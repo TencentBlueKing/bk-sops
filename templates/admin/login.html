@@ -1,0 +1,23 @@
+{% extends "admin/base_site.html" %}
+{% load url from future %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+    <p>您暂时不能访问该站点的后台管理，这是以下原因造成的：</p>
+    <ul>
+    {% if user.is_anonymous %}
+        <script>
+        	window.location.href="{{ LOGIN_URL }}?is_admin=1";
+        </script>
+    {% else %}
+	    {% if not user.is_active %}
+	    	<li>用户（<strong>{{ user.username }}</strong>）未激活！</li>
+	    {% else %}{% if not user.is_staff %}
+	        <li>用户（<strong>{{ user.username }}</strong>）没有管理员权限，请联系管理员！</li>
+	    {% endif %}{% endif %}
+    {% endif %}
+    </ul>
+    <p>如有需要，请联系管理员或开发者为您解决上述问题。</p>
+</div>
+{% endblock %}

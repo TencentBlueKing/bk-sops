@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>标准运维</title>
+    <script>
+        var RUN_VER = ''
+        var BIZ_CC_ID = 2;
+        var SITE_URL = '/';
+        var USERNAME = 'admin';
+        // 用户身份： 职能化
+        var IS_FUNCTOR = 0;
+        // 用户身份： 审计员
+        var IS_AUDITOR = 0;
+        // 用户身份： 运维
+        var IS_MAINTAINER = 1;
+        // 隐藏头部，目前需要嵌入到其他 APP 作为 iframe 子页面
+        var HIDE_HEADER = 0;
+        // APP 内打开或者轻应用内打开
+        var VIEW_MODE = 'app';
+        // 轻应打开时的轻应用ID
+        var APP_ID = 0;
+
+        function getCookie(name) {
+            var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");　　
+            return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;
+        }
+    </script>
+    <script src="http://dev.{BK_PAAS_HOST}:8000/jsi18n/gcloud" type="text/javascript"></script>
+    <script src="http://dev.{BK_PAAS_HOST}:8000/static/core/js/paas_api.js" type="text/javascript"></script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+
+</html>

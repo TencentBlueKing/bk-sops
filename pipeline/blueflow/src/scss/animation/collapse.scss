@@ -1,0 +1,12 @@
+.collaspe-enter-active,
+.collaspe-leave-active{
+    transition: all 0.5s ease-in-out;
+}
+.collaspe-enter,
+.collaspe-leave-to {
+    transform: transformY(100%);
+}
+.collaspe-leave,
+.collaspe-enter-to {
+    transform: transformY(-100%);
+}

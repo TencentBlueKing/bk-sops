@@ -1,0 +1,8 @@
+.common-green-btn {
+    color: $whiteDefault;
+    background: $greenDefault;
+    &:hover {
+        color: $whiteDefault;
+        background: $greenDark;
+    }
+}

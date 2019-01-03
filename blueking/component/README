@@ -1,0 +1,38 @@
+有两种方式访问组件，shortcuts或ComponentClient。使用示例如下：
+
+1. 使用shortcuts
+
+1.1 get_client_by_request
+
+    from blueking.component.shortcuts import get_client_by_request
+    # 从环境配置获取APP信息，从request获取当前用户信息
+    client = get_client_by_request(request)
+    kwargs = {'bk_biz_id': 1}
+    result = client.cc.get_app_host_list(kwargs)
+
+1.2 get_client_by_user
+
+    from blueking.component.shortcuts import get_client_by_user
+    # 从环境配置获取APP信息，从user获取当前用户信息，user为User对象或User中username数据
+    user = 'xxx'
+    client = get_client_by_user(user)
+    kwargs = {'bk_biz_id': 1}
+    result = client.cc.get_app_host_list(kwargs)
+
+
+ 2. 使用ComponentClient
+
+     from blueking.component.client import ComponentClient
+     # APP信息
+     app_code = 'xxx' 
+     app_secret = 'xxx' 
+     # 用户信息
+     common_args = {'bk_token': 'xxx'}
+     # APP信息app_code, app_secret如未提供，从环境配置获取
+     client = ComponentClient(
+         app_code=app_code, 
+         app_secret=app_secret, 
+         common_args=common_args
+     )
+     kwargs = {'bk_biz_id': 1}
+     result = client.cc.get_app_host_list(kwargs)

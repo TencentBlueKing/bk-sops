@@ -1,0 +1,31 @@
+@mixin make-transitions($base, $names, $animationDuration: 0.5s) {
+    
+    .#{$base}-enter-active, .#{$base}In,
+    .#{$base}-leave-active, .#{$base}Out {
+        animation-duration: $animationDuration;
+        animation-fill-mode: both;
+    }
+
+    .#{$base}-enter-active, .#{$base}In {
+        animation-name: #{$base}In;
+    }
+
+    .#{$base}-leave-active, .#{$base}Out {
+        animation-name: #{$base}Out;
+    }
+    
+    @each $name in $names {
+        .#{$base}#{$name}-enter-active, .#{$base}In#{$name},
+        .#{$base}#{$name}-leave-active, .#{$base}Out#{$name} {
+            animation-duration: $animationDuration;
+            animation-fill-mode: both;
+        }
+
+        .#{$base}#{$name}-enter-active, .#{$base}In#{$name} {
+            animation-name: #{$base}In#{$name};
+        }
+        .#{$base}#{$name}-leave-active, .#{$base}Out#{$name} {
+            animation-name: #{$base}Out#{$name};
+        }
+    }
+}

@@ -1,0 +1,16 @@
+@import './config.scss';
+@import './reset.scss';
+@import './iconfont.scss';
+@import './button.scss';
+@import './animation/slide.scss';
+@import './mixins/clearfix.scss';
+@import './common.scss';
+
+body {
+    color: #333333;
+    font-family: 'Microsoft YaHei','PingFang SC','Hiragino Sans GB','SimSun','sans-serif';
+}
+
+.clearfix {
+    @include clearfix;
+}
