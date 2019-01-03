@@ -47,7 +47,7 @@
 - [白皮书](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [蓝鲸论坛](https://bk.tencent.com/s-mart/community)
 - [蓝鲸 DevOps 在线视频教程](https://cloud.tencent.com/developer/edu/major-100008)
-- 联系我们，加入腾讯蓝鲸运维开发交流群
+- 联系我们，加入腾讯蓝鲸运维开发交流群  
 ![](docs/resource/img/qq_group.jpg)
 
 
