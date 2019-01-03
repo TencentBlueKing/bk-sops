@@ -60,4 +60,4 @@ If you are interested in contributing, check out the [CONTRIBUTING.md], also joi
 
 
 ## License
-Standard OPS is based on the MIT protocol. Please refer to [LICENSE](LICENSE) for details.
+Standard OPS is based on the MIT protocol. Please refer to [LICENSE](LICENSE.txt) for details.
