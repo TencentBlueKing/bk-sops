@@ -1,12 +1,12 @@
-![](https://github.com/Tencent/bk-sops/tree/master/docs/wiki/img/wiki_sops.png)
+![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_sops.png)
 # 标准运维，一套成熟稳定的流程编排调度引擎！
 
 ## 导读
 >标准运维是腾讯蓝鲸体系中的一款SaaS产品，它助力运维实现跨系统的调度自动化。通过一套成熟稳定的流程编排调度引擎，基于蓝鲸PaaS平台的API网关服务对接企业内部各个系统API的能力，把在多系统间切换的工作模式整合到一个流程中，不仅可以将腾讯蓝鲸智云体系内的服务（如：配置平台、作业平台、通知服务等）进行整合，而且提供了自定义原子开发能力，让用户可以将自己企业内独有的系统接入并整合，实现一键自动化调度。
-![](https://github.com/Tencent/bk-sops/tree/master/docs/wiki/img/wiki_product.png)
+![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_product.png)
 
 ## 功能特性
-![](https://github.com/Tencent/bk-sops/tree/master/docs/wiki/img/wiki_feature.png)
+![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_feature.png)
 
 ## 定位
 腾讯蓝鲸智云根据自身的发展，将运维的发展历程分为四个阶段：
@@ -26,20 +26,20 @@
 
 ## 未来
 我们希望通过开源，能够促进IT运维圈子同仁的凝聚力，共同构建一个友好、活跃的社区；相信大家的加入和共同陪伴一定可以使这个大生态社区变得更加强大、优秀。
-[](https://github.com/Tencent/bk-sops/tree/master/docs/wiki/img/wiki_future.png)
+[](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_future.png)
 
 ## 关于开源协议
 标准运维采用的是MIT开源协议。MIT是和BSD一样宽范的许可协议，作者只想保留版权，而无任何其他的限制。也就是说，你必须在你的发行版里包含原许可协议的声明，无论你是以二进制发布的还是以源代码发布的。
 
 ## 欢迎一起交流
-![](https://github.com/Tencent/bk-sops/tree/master/docs/wiki/img/wiki_communication.png)
+![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_communication.png)
 
 
 ## 腾讯蓝鲸智云
 腾讯蓝鲸智云体系由平台级产品和通用 SaaS 服务组成，平台包括管控平台、配置平台、作业平台、PaaS 平台等，通用 SaaS 包括节点管理、标准运维、日志检索、蓝鲸监控、故障自愈等，为各种云（公有云、私有云、混合云）的用户提供不同场景、不同需求的一站式技术运营解决方案。
 
 腾讯蓝鲸体系产品架构图-社区版  
-![](https://github.com/Tencent/bk-sops/tree/master/docs/wiki/img/wiki_blueking.png)
+![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_blueking.png)
 
 说明：  
 1、腾讯蓝鲸是一个体系化产品，需要各产品整体配合使用，才能发挥最大的功能价值；  
