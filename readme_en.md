@@ -46,7 +46,7 @@ If you want to know more about the above features, please refer to the [Blueking
 - [White paper(In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [BK forum](https://bk.tencent.com/s-mart/community)
 - [BK DevOps online video tutorial](In Chinese)(https://cloud.tencent.com/developer/edu/major-100008)
-- Contact us, technical exchange QQ group:  
+- Contact us, technical exchange QQ group  
 ![](docs/resource/img/qq_group.jpg)
 
 

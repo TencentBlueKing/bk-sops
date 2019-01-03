@@ -29,4 +29,4 @@
 
 
 ## 代码协议
-[MIT LICENSE](LICENSE.txt) 为标准运维的开源协议，您贡献的代码也会受此协议保护。
+[MIT LICENSE](../LICENSE.txt) 为标准运维的开源协议，您贡献的代码也会受此协议保护。
