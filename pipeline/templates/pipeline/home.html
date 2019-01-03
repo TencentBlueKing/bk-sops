@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/bk-icon-2.0/iconfont.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/bkDialog-2.0/css/bkDialog.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/select2-3.5.2/select2.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/bk/css-pro/bk.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}pipeline/home/demo_home.css?v={{ STATIC_VERSION }}">
+</head>
+<body>
+    <div class="container">
+        <h3>
+            模板列表
+            <a href="{{ SITE_URL }}pipeline/template/" class="bk-button bk-success fr"
+               title="新建模板">
+                <span>新建模板</span>
+            </a>
+        </h3>
+        <table class="bk-table tmplTab">
+            <thead>
+            <tr>
+                <th style="width:80px;">序号</th>
+                <th style="width:20%;">模板名称</th>
+                <th>最后修改人</th>
+                <th>修改时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--  -->
+            </tbody>
+        </table>
+
+        <h3>
+            实例列表
+        </h3>
+        <table class="bk-table instanceTab">
+            <thead>
+            <tr>
+                <th style="width:80px;">序号</th>
+                <th style="width:20%;">实例名称</th>
+                <th>创建者</th>
+                <th>创建时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--  -->
+            </tbody>
+        </table>
+
+    </div>
+    <script>
+        var site_url = "{{ SITE_URL }}";
+    </script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/js/jquery-1.10.2.min.js"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/bkMessage-1.0/js/bkMessage.js"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/select2-3.5.2/select2.js"></script>
+    <script src="{{ STATIC_URL }}pipeline/dist/js/bkDialog.js?v={{ STATIC_VERSION }}"></script>
+    <script src="{{ STATIC_URL }}pipeline/home/ajaxhook.js?v={{ STATIC_VERSION }}"></script>
+    <script>
+        hookAjax({
+            onload: function (xhr) {
+            },
+            //hook function
+            open: function (arg, xhr) {
+            }
+        })
+
+        var templateList = []
+        var loadingTmp = '<tr><td colspan="5" style="text-align: center;">' +
+            '<div class="bk-spin-loading bk-spin-loading-mini">' +
+            '<div class="rotate rotate1"></div>' +
+            '<div class="rotate rotate2"></div>' +
+            '<div class="rotate rotate3"></div>' +
+            '<div class="rotate rotate4"></div>' +
+            '<div class="rotate rotate5"></div>' +
+            '<div class="rotate rotate6"></div>' +
+            '<div class="rotate rotate7"></div>' +
+            '<div class="rotate rotate8"></div>' +
+            '</div>' +
+            '</td></tr>'
+
+        initTmplList()
+
+        // 模板列表
+        function initTmplList() {
+            $('.tmplTab tbody').html(loadingTmp)
+            $.ajax({
+                url: site_url +'pipeline/api/v1/templates/',
+                type: 'GET',
+                dataType: "json",
+                success: function (resp) {
+
+                    templateList = resp.objects
+
+                    var tmplist = resp.objects,
+                        strList = '',
+                        index = 0
+                    tmplist.forEach(function (item) {
+                        index++
+                        strList += '<tr>' +
+                            '<td>' + index + '</td>' +
+                            '<td><a href="'+ site_url + 'pipeline/template/?template_id=' + item.template_id + '">' + item.name + '</a></td>' +
+                            '<td>' + (item.editor || item.creator) + '</td>' +
+                            '<td>' + item.edit_time + '</td>' +
+                            '<td>' +
+                            '<a href="' + site_url + 'pipeline/newtask/?template_id=' + item.template_id + '" class="bk-text-button" title="新建任务" config-id="' + item.template_id + '"><span>新建任务</span></a>' +
+                            '<a href="' + site_url + 'pipeline/template/?clone_template_id=' + item.template_id + '" class="bk-text-button clone-tmpl" title="克隆" clone-id="' + item.template_id + '"><span>克隆</span></a>' +
+                            '<a href="' + site_url + 'pipeline/template/?template_id=' + item.template_id + '" class="bk-text-button edit-tmpl" title="编辑模板" config-id="' + item.template_id + '"><span>编辑</span></a>' +
+                            '<a class="bk-text-button delete-tmpl" title="删除模板" config-id="' + item.template_id + '"><span>删除</span><div class="bk-tolltip-confirm"><span class="delete">确认</span><span class="cancel">取消</span></div></a>' +
+                            '</td>' +
+                            '</tr>'
+                    })
+
+                    $('.tmplTab tbody').html(strList)
+
+                }
+            })
+
+        }
+
+        // 模块编辑与删除
+        $('body').on('mouseover', '.delete-tmpl', function () {
+            $(this).find('.bk-tolltip-confirm').show()
+        }).on('mouseout', '.delete-tmpl', function () {
+            $(this).find('.bk-tolltip-confirm').hide()
+        })
+        
+        $('.tmplTab').on('click', '.delete', function () {
+            var env_id = $(this).parents('.delete-tmpl').attr('config-id')
+            $.ajax({
+                url: site_url + 'pipeline/api/v1/templates/' + env_id + '/',
+                type: 'DELETE',
+                contentType: 'application/json; charset=UTF-8',
+                success: function (resp, textStatus, xhr) {
+                    if (xhr.status === 204) {
+                        initTmplList()
+                        new bkMessage({
+                            message: '模板删除成功',
+                            theme: 'success'
+                        });
+                    }
+                }
+            })
+        })
+
+        initInstanceList()
+
+        $('.newInstanceBtn').on('click', function () {
+            var appendTpmlStr = ''
+            templateList.forEach(function (item) {
+                appendTpmlStr += '<option value="' + item.template_id + '">' + item.name + '</option>'
+            })
+            var instanceInfoForm = new bkDialog({
+                type: 'dialog',
+                width: 600,
+                padding: 20,
+                content: '<form class="bk-form" id="validate_form">' +
+                '<div class="bk-form-item">' +
+                '<label class="bk-label" style="width: 90px;">实例名称</label>' +
+                '<div class="bk-form-content">' +
+                '<input type="text" class="bk-form-input instanceName" name="validation_name" placeholder="请输入实例名称">' +
+                '</div>' +
+                '</div>' +
+                '<div class="bk-form-item">' +
+                '<label class="bk-label" style="width: 90px;">实例模板</label>' +
+                '<div class="bk-form-content">' +
+                '<select class="tmplSelect">' +
+                '<option></option>' + appendTpmlStr +
+                '</select>' +
+                '</div>' +
+                '</div>' +
+                '<div class="bk-form-item">' +
+                '<label class="bk-label" style="width: 90px;">实例描述</label>' +
+                '<div class="bk-form-content">' +
+                '<textarea name="" id="instance_desc" class="bk-form-textarea" placeholder="请输入..."></textarea>' +
+                '</div>' +
+                '</div>',
+                hasHeader: false,
+                closeIcon: false,
+                quickClose: true,
+                confirmFn: function (e, x) {
+                    var template_id = $('.tmplSelect').select2('val')
+
+                    $.ajax({
+                        url: site_url + 'pipeline/api/v1/templates/' + template_id + '/',
+                        type: 'GET',
+                        dataType: "json",
+                        success: function (resp) {
+                            var instanceParams = {
+                                name: $('.instanceName').val(),
+                                creator: '',
+                                description: $('#instance_desc').val(),
+                                template_id: template_id,
+                                exec_data: resp.data
+                            }
+                            newInstance(instanceParams)
+                            instanceInfoForm.close()
+                        }
+                    })
+
+                }
+            });
+            instanceInfoForm.show();
+
+            $('.tmplSelect').select2({
+                width: 280,
+                placeholder: '请选择实例模板'
+            })
+
+        })
+
+        $('.instanceTab').on('click', '.delete', function () {
+            var curInstanceId = $(this).parents('.delete-tmpl').attr('config-id')
+            delInstance(curInstanceId)
+        }).on('click', '.cloneInstance', function () {
+            var cloneInsId = $(this).attr('config-id')
+            $.ajax({
+                url: site_url + 'pipeline/api/v1/instance/clone/',
+                type: 'POST',
+                data: {
+                    instance_id : cloneInsId,
+                    creator : getCookie('bk_uid')
+                },
+                success: function (resp, textStatus, xhr) {
+                    if (resp.result) {
+                        window.location = window.location.href + 'instance/?instance_id=' + resp.data.new_instance_id
+                    } else {
+                        new bkMessage({
+                            message: resp.message,
+                            theme: 'error'
+                        });
+                    }
+                }
+            })
+        })
+
+        $('body').on('click', '.delete-tmpl .cancel', function () {
+            $(this).parent().hide()
+        })
+
+        // 获取Cookie中的某字段
+        function getCookie(cookie_name){   
+            var allcookies = document.cookie;
+            
+            var cookie_pos = allcookies.indexOf(cookie_name); 
+
+            if (cookie_pos != -1){ 
+                
+                cookie_pos = cookie_pos+cookie_name.length + 1;
+                var cookie_end = allcookies.indexOf(";", cookie_pos);
+                
+                if (cookie_end == -1){  
+                    cookie_end = allcookies.length;
+                    
+                }  
+                var value = unescape(allcookies.substring(cookie_pos, cookie_end));
+
+            }
+            return value;    
+        }
+        
+        // 实例列表
+        function initInstanceList() {
+            $('.instanceTab tbody').html(loadingTmp)
+            $.ajax({
+                url: site_url + 'pipeline/api/v1/instances/',
+                type: 'GET',
+                dataType: "json",
+                success: function (resp, data, xhr) {
+                    var tmplist = resp.objects,
+                        strList = '',
+                        index = 0
+                    tmplist.forEach(function (item) {
+                        index++
+                        strList += '<tr>' +
+                            '<td>' + index + '</td>' +
+                            '<td><a href="' + site_url + 'pipeline/instance/?instance_id=' + item.instance_id + '">' + item.name + '</a></td>' +
+                            '<td>' + item.creator + '</td>' +
+                            '<td>' + item.create_time + '</td>' +
+                            '<td>' +
+                            '<a href="' + site_url + 'pipeline/instance/?instance_id=' + item.instance_id + '" class="bk-text-button edit-tmpl" title="" config-id="' + item.instance_id + '"><span>查看</span></a>' +
+                            '<a class="bk-text-button cloneInstance" title="" config-id="' + item.instance_id + '"><span>克隆</span></a>' +
+                            '<a class="bk-text-button delete-tmpl" title="删除实例" config-id="' + item.instance_id + '"><span>删除</span><div class="bk-tolltip-confirm"><span class="delete">确认</span><span class="cancel">取消</span></div></a>' +
+                            '</td>' +
+                            '</tr>'
+                    })
+
+                    if (tmplist.length === 0) {
+                        strList = '<tr><td colspan="5" style="text-align: center;">无数据</td></tr>'
+                    }
+
+                    $('.instanceTab tbody').html(strList)
+                }
+            })
+        }
+
+        // 新建实例
+        function newInstance(params) {
+            // 新建实例
+            $.ajax({
+                url: site_url + 'pipeline/api/v1/instances/',
+                type: 'POST',
+                contentType: 'application/json; charset=UTF-8',
+                data: JSON.stringify(params),
+                success: function (resp, textStatus, xhr) {
+                    if (xhr.status === 201) {
+                        new bkMessage({
+                            message: '新建实例成功',
+                            theme: 'success'
+                        });
+
+                        initInstanceList()
+
+                    }
+
+                }
+            })
+        }
+
+        // 删除实例
+        function delInstance(instance_id) {
+            // 新建实例
+            $.ajax({
+                url: site_url + 'pipeline/api/v1/instances/' + instance_id + '/',
+                type: 'DELETE',
+                contentType: 'application/json; charset=UTF-8',
+                success: function (resp, textStatus, xhr) {
+                    if (xhr.status === 204) {
+                        new bkMessage({
+                            message: '删除实例成功',
+                            theme: 'success'
+                        });
+
+                        initInstanceList()
+
+                    }
+
+                }
+            })
+        }
+
+    </script>
+    </body>
+</html>
