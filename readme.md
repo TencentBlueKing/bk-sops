@@ -5,9 +5,7 @@
 [![Release](https://img.shields.io/badge/release-3.1.32-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
 
-
 [(English Documents Available)](readme_en.md)
-
 
 标准运维（SOPS）是通过可视化的图形界面进行任务流程编排和执行的系统，是腾讯蓝鲸产品体系中一款轻量级的调度编排类SaaS产品。
 
