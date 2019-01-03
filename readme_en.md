@@ -5,10 +5,6 @@
 [![Release](https://img.shields.io/badge/release-3.1.32-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
 
-
-[(English Documents Available)](readme_en.md)
-
-
 Standard OPS is a product in the Tencent Blueking product system, designed to arrange task process and execution through a visual graphical interface.
 
 Standard OPS provides two core services. One is scheduling arrangement service: based on the capability of The BlueKing PaaS API Gateway to connect various system APIs of an enterprise, integrate the works among multiple systems within the enterprise into a task flow, so as to achieve one-key automated scheduling.The other is self-service: Standard OPS shields the difference of the underlying system, allowing the operation and maintenance personnel to hand over the daily operation and maintenance of the business to the personnel of the product, development, test, etc., to realize the self-service of the release and change of the business. By means of in-depth integration with BlueKing PaaS, Standard OPS provides users with “Min-APP” and “Functional Center”, so that we can further reduce the user's operating costs and increase the self-service rate.
