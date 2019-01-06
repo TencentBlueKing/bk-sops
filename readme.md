@@ -1,5 +1,5 @@
 # 蓝鲸智云标准运维（社区版）
-![](docs/resource/img/bk_sops.png)
+<img src="docs/resource/img/bk_sops.png" hegiht="10" align=center />
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
 [![Release](https://img.shields.io/badge/release-3.1.32-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
@@ -46,7 +46,7 @@
 - [蓝鲸论坛](https://bk.tencent.com/s-mart/community)
 - [蓝鲸 DevOps 在线视频教程](https://cloud.tencent.com/developer/edu/major-100008)
 - 联系我们，加入腾讯蓝鲸运维开发交流群  
-![](docs/resource/img/qq_group.jpg)
+<img src="docs/resource/img/qq_group.jpg" width="250" hegiht="250" align=center />
 
 
 ## Contributing

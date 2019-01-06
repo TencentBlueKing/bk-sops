@@ -1,5 +1,5 @@
 # BlueKing Standard OPS（Community Edition）
-![](docs/resource/img/bk_sops.png)
+<img src="docs/resource/img/bk_sops.png" hegiht="10" align=center />
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
 [![Release](https://img.shields.io/badge/release-3.1.32-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
@@ -43,7 +43,7 @@ If you want to know more about the above features, please refer to the [Blueking
 - [BK forum](https://bk.tencent.com/s-mart/community)
 - [BK DevOps online video tutorial](In Chinese)(https://cloud.tencent.com/developer/edu/major-100008)
 - Contact us, technical exchange QQ group  
-![](docs/resource/img/qq_group.jpg)
+<img src="docs/resource/img/qq_group.jpg" width="250" hegiht="250" align=center />
 
 
 ## Contributing
