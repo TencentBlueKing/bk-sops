@@ -43,13 +43,12 @@
 
 说明：  
 1、腾讯蓝鲸是一个体系化产品，需要各产品整体配合使用，才能发挥最大的功能价值；  
-2、社区版中，目前开源的产品有：配置平台、PaaS平台、标准运维、故障自愈、CICDKit（SaaS层）；  
+2、社区版中，目前开源的产品有：配置平台、PaaS平台、标准运维、故障自愈；  
 3、配置平台、PaaS平台可以作为原子平台单独部署使用；  
-4、标准运维、故障自愈、CICDKit（SaaS层）必须跟整个体系配合使用。
+4、标准运维、故障自愈必须跟整个体系配合使用。
 
 开源产品链接  
 配置平台：https://github.com/Tencent/bk-cmdb  
 PaaS平台：https://github.com/Tencent/bk-PaaS  
 标准运维：https://github.com/Tencent/bk-sops  
 故障自愈：https://github.com/Tencent/bk-fta-solutions  
-CICDKit（SaaS层）：https://github.com/Tencent/bk-cicdkit
