@@ -1,6 +1,6 @@
 # 蓝鲸智云标准运维（社区版）
-<img src="docs/resource/img/bk_sops.png" hegiht="10" align=center />
----  
+![](docs/resource/img/bk_sops.png)
+---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
 [![Release](https://img.shields.io/badge/release-3.1.32-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
