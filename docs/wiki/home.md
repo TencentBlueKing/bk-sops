@@ -26,7 +26,7 @@
 
 ## 未来
 我们希望通过开源，能够促进IT运维圈子同仁的凝聚力，共同构建一个友好、活跃的社区；相信大家的加入和共同陪伴一定可以使这个大生态社区变得更加强大、优秀。
-[](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_future.png)
+![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_future.png)
 
 ## 关于开源协议
 标准运维采用的是MIT开源协议。MIT是和BSD一样宽范的许可协议，作者只想保留版权，而无任何其他的限制。也就是说，你必须在你的发行版里包含原许可协议的声明，无论你是以二进制发布的还是以源代码发布的。
