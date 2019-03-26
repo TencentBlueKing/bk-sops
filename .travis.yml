@@ -1,0 +1,8 @@
+language: python
+python: 2.7
+
+before_script:
+  - pip install -r requirements.txt
+
+script:
+  - flake8
