@@ -1,0 +1,11 @@
+
+.full-width {
+    width: 100%;
+}
+
+.center-content {
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
