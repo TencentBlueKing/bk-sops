@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 import importlib
 
 from pipeline.conf import settings
@@ -14,7 +15,7 @@ adapter_api = importlib.import_module(settings.PIPELINE_ENGINE_ADAPTER_API)
 
 
 def run_pipeline(pipeline, instance_id=None):
-    adapter_api.run_pipeline(pipeline, instance_id)
+    return adapter_api.run_pipeline(pipeline, instance_id)
 
 
 def pause_pipeline(pipeline_id):

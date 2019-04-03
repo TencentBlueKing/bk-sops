@@ -60,11 +60,12 @@
     </bk-dialog>
 </template>
 <script>
+import '@/utils/i18n.js'
 import { mapActions } from 'vuex'
 import { errorHandler } from '@/utils/errorHandler.js'
 export default {
     name: 'AthorityManageDialog',
-    props: ['isAuthorityDialogShow', 'templateId', 'pending'],
+    props: ['isAuthorityDialogShow', 'templateId', 'pending', 'common'],
     data () {
         return {
             loading: true,
@@ -106,9 +107,9 @@ export default {
                             })
                         }
                     })
-                    this.createdTaskPerList = values[1].create_task_groups.map(item => item.show_name)
-                    this.modifyParamsPerList = values[1].fill_params_groups.map(item => item.show_name)
-                    this.executeTaskPerList = values[1].execute_task_groups.map(item => item.show_name)
+                    this.createdTaskPerList = values[1].create_task.map(item => item.show_name)
+                    this.modifyParamsPerList = values[1].fill_params.map(item => item.show_name)
+                    this.executeTaskPerList = values[1].execute_task.map(item => item.show_name)
                     this.loading = false
                 })
             } catch (e) {
@@ -130,7 +131,11 @@ export default {
         },
         async loadTemplatePersons () {
             try {
-                const res = await this.getTemplatePersons(this.templateId)
+                const data = {
+                    templateId: this.templateId,
+                    common: this.common
+                }
+                const res = await this.getTemplatePersons(data)
                 if (res.result) {
                     return res.data
                 } else {
@@ -146,7 +151,8 @@ export default {
                 templateId: this.templateId,
                 createTask: this.createdTaskPerList,
                 fillParams: this.modifyParamsPerList,
-                executeTask: this.executeTaskPerList
+                executeTask: this.executeTaskPerList,
+                common: this.common
             }
             this.$emit('onAuthorityConfirm', data)
         },
@@ -161,6 +167,9 @@ export default {
     label {
         font-weight: normal;
     }
+}
+.common-form-content {
+    margin-right: 20px;
 }
 </style>
 

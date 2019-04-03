@@ -21,9 +21,9 @@
                     <RenderForm
                         v-if="!loading"
                         :key="currentNode"
-                        :config="renderConfig"
-                        :option="renderOption"
-                        :data="renderData">
+                        :scheme="renderConfig"
+                        :formOption="renderOption"
+                        v-model="renderData">
                     </RenderForm>
                 </div>
             </div>
@@ -53,7 +53,7 @@ export default {
     data () {
         return {
             i18n: {
-                atom_params: gettext("查看原子参数")
+                atom_params: gettext("查看标准插件参数")
             },
             loading: true,
             bkMessageInstance: null,
@@ -61,13 +61,11 @@ export default {
                 showGroup: false,
                 showLabel: true,
                 showHook: false,
-                editable: false
+                formEdit: false,
+                formMode: false
             },
             renderConfig: [],
-            renderData: {
-                hook: {},
-                value: {}
-            }
+            renderData: {}
         }
     },
     computed: {
@@ -81,7 +79,7 @@ export default {
             return !this.nodeDetailConfig.component_code
         },
         noDataMessage () {
-            return this.isSubflowNode ? gettext('请点击原子节点查看参数') : gettext('无数据')
+            return this.isSubflowNode ? gettext('请点击标准插件节点查看参数') : gettext('无数据')
         },
         currentNode () {
             return this.selectedFlowPath.slice(-1)[0].id
@@ -113,7 +111,7 @@ export default {
                 this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
                 if (this.nodeInfo.result) {
                     for ( let key in this.nodeInfo.data.inputs) {
-                        this.$set(this.renderData.value, key, this.nodeInfo.data.inputs[key])
+                        this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
                     }
                 } else {
                     errorHandler(this.nodeInfo, this)
@@ -144,7 +142,7 @@ export default {
                 this.$nextTick(()=>{
                     this.loading = false
                     this.renderConfig = []
-                    this.renderData.value = {}
+                    this.renderData = {}
                 })
             }
         },

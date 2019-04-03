@@ -37,8 +37,8 @@ const atomList = {
         loadSingleAtomList ({commit}) {
             return api.getSingleAtomList().then(response => response.data.objects)
         },
-        loadSubAtomList ({commit}, cc_id) {
-            return api.getSubAtomList(cc_id).then(response => response.data.objects)
+        loadSubAtomList ({commit}, data) {
+            return api.getSubAtomList(data).then(response => response.data.objects)
         },
         queryAtomData ({commit}, data) {
             return api.queryAtom(data).then(response => response.data)

@@ -16,7 +16,7 @@
 </template>
 <script>
 import '@/utils/i18n.js'
-import Plotly from 'plotly.js/dist/plotly-basic'
+import Plotly from 'plotly.js/dist/plotly-basic.min.js'
 import NoData from '@/components/common/base/NoData.vue'
 export default {
     name: 'TaskPercentChart',

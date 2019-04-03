@@ -8,11 +8,31 @@
 如果有任何代码修改，请务必修改 app.yml 文件中 version 版本号。
 
 
+## 打包并收集前端静态资源
+1）安装依赖包  
+进入 pipeline/blueflow/，执行以下命令安装
+```bash
+npm install
+```
+
+2）本地打包
+在 pipeline/blueflow/ 目录下，继续执行以下命令打包前端静态资源
+```bash
+npm run build -- --STATIC_ENV=dev
+```
+
+3）收集静态资源
+回到项目根目录，执行以下命令收集前端静态资源到 static 目录下
+```bash
+python manage.py collectstatic --noinput
+```
+
+
 ## 准备环境
 由于上传部署只支持从本地安装 python 依赖包，而 python 安装包是和部署的机器架构相关的，所以你需要在和蓝鲸社区版部署的机器一样的环境执行打包脚本。即准备 CentOS 7 以上操作系统的机器，可以使用 docker。
 
 
-## 打包
+## 应用打包
 在 CentOS 机器上，通过 git 拉取你的标准运维定制版仓库代码后，在项目根目录下运行以下命令执行打包操作。
 ```bash
 bash scripts/publish/build.sh

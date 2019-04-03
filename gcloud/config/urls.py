@@ -6,11 +6,12 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.conf.urls import url
 
 from gcloud.config import api
 
-
 urlpatterns = [
+    url(r'^api/biz_config/(?P<biz_cc_id>\d+)/$', api.biz_config),
     url(r'^api/biz_executor/(?P<biz_cc_id>\d+)/$', api.biz_executor),
 ]

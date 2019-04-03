@@ -21,7 +21,7 @@
                         {{item.name}}
                     </router-link>
                     <i
-                        class="common-icon-close-circle delete-task"
+                        class="common-icon-dark-circle-close delete-task"
                         v-bktooltips.top="i18n.cancelCollect"
                         @click="onDeleteTemplate(item.id)">
                     </i>
@@ -46,6 +46,7 @@
             :templateList="templateList"
             :quickTaskList="quickTaskList"
             :templateGrouped="templateGrouped"
+            :selectTemplateLoading="selectTemplateLoading"
             @confirm="onConfirm"
             @cancel="onCancel">
         </SelectTemplateDialog>
@@ -63,7 +64,7 @@ export default {
         NoData,
         SelectTemplateDialog
     },
-    props: ['templateList', 'quickTaskList', 'templateGrouped', 'cc_id'],
+    props: ['quickTaskList', 'cc_id', 'templateClassify', 'totalTemplate'],
     data () {
         return {
             isSelectTemplateDialogShow: false,
@@ -74,13 +75,19 @@ export default {
                 addTasks: gettext('添加常用流程'),
                 addTips1: gettext('业务下无常用流程，'),
                 addTips2: gettext('立即添加')
-            }
+            },
+            selectTemplateLoading: false,
+            templateList: [],
+            templateGrouped: []
         }
     },
     methods: {
         ...mapActions('template/', [
             'templateCollectSelect',
             'templateCollectDelete'
+        ]),
+        ...mapActions('templateList/', [
+            'loadTemplateList'
         ]),
         async onDeleteTemplate (id) {
             const list = this.getDeletedList(id)
@@ -97,6 +104,9 @@ export default {
         },
         onSelectTemplate () {
             this.isSelectTemplateDialogShow = true
+            if (this.templateList.length === 0) {
+                this.getTemplateData()
+            }
         },
         async onConfirm (selectedTemplate) {
             if (this.submitting) return
@@ -129,6 +139,49 @@ export default {
             })
             list.splice(index, 1)
             return list
+        },
+        async getTemplateData () {
+            if (this.totalTemplate === 0) {
+                this.$bkMessage({
+                    'message': gettext('业务下无流程模板，为您跳转至新建流程'),
+                    'theme': 'success'
+                })
+                this.$router.push(`/template/new/${this.cc_id}`)
+                return
+            }
+            this.selectTemplateLoading = true
+            try {
+                const templateData = await this.loadTemplateList()
+                this.templateList = templateData.objects
+                // 如果没有数据跳转至新建页面
+                this.templateGrouped = this.getGroupData(this.templateList, this.templateClassify)
+            } catch (e) {
+                errorHandler(templateData, this)
+            } finally {
+                this.selectTemplateLoading = false
+            }
+            
+        },
+        getGroupData (list, classify) {
+            const groupData = []
+            classify.forEach(item => {
+                groupData.push({
+                    code: item.code,
+                    name: item.name,
+                    list: []
+                })
+            })
+            list.forEach(item => {
+                let index
+                classify.some((cls, i) => {
+                    if (item.category === cls.code) {
+                        index = i
+                        return true
+                    }
+                })
+                groupData[index].list.push(item)
+            })
+            return groupData
         }
     }
 }

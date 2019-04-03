@@ -9,7 +9,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 from abc import ABCMeta
 from pipeline.core.flow.base import FlowNode
-from pipeline.models import PipelineInstance
 
 
 class Event(FlowNode):
@@ -47,7 +46,8 @@ class EmptyStartEvent(StartEvent):
 
 class EmptyEndEvent(EndEvent):
     def pipeline_finish(self, root_pipeline_id):
+        from pipeline.models import PipelineInstance  # noqa
         try:
             PipelineInstance.objects.set_finished(root_pipeline_id)
-        except PipelineInstance.DoesNotExist:  # sdk mode
+        except PipelineInstance.DoesNotExist:  # task which do not belong to any instance
             pass

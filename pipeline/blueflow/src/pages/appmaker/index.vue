@@ -49,7 +49,7 @@
             :is-show.sync="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div slot="content" class="delete-tips">
+            <div slot="content" class="delete-tips" v-bkloading="{isLoading: pending.delete, opacity: 1}">
                 {{i18n.deleteTips}}
             </div>
         </bk-dialog>
@@ -108,14 +108,14 @@ export default {
     },
     methods: {
         ...mapActions('appmaker', [
-            'loadAppmakerSummary',
+            'loadAppmaker',
             'appmakerEdit',
             'appmakerDelete'
         ]),
         async loadData () {
             this.loading = true
             try {
-                const data = await this.loadAppmakerSummary()
+                const data = await this.loadAppmaker()
                 this.list = data.objects
             } catch (e) {
                 errorHandler(e, this)
@@ -199,8 +199,8 @@ export default {
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .appmaker-page {
-    min-width: 1200px;
-    min-height: calc(100% -60px);
+    min-width: 1320px;
+    min-height: calc(100% - 50px);
     background: $whiteMainBg;
     .page-content {
         width: 1200px;

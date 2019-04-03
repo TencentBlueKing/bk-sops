@@ -5,9 +5,15 @@
 * http://opensource.org/licenses/MIT
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
+import cloneDeepWith from 'lodash/cloneDeepWith'
 import { checkDataType } from './checkDataType.js'
 
 const tools = {
+    /**
+     * 防抖函数
+     * @param {Function} fn 回调函数
+     * @param {Number} delay 延迟时间
+     */
     debounce (fn, delay) {
         let timer
 
@@ -22,15 +28,20 @@ const tools = {
             }, delay)
         }
     },
+    /**
+     * 节流函数
+     * @param {Function} fn 回调函数
+     * @param {*} threshhold 时间间隔
+     */
     throttle (fn, threshhold) {
         let last, timer
 
         threshhold || (threshhold = 250)
 
         return function () {
-            var context = this
-            var args = arguments
-            var now = +new Date()
+            const context = this
+            const args = arguments
+            const now = +new Date()
 
             if (last && now < last + threshhold) {
                 clearTimeout(timer)
@@ -46,16 +57,18 @@ const tools = {
             }
         }
     },
+    /**
+     * 深拷贝函数
+     * @param {Object}} obj copy 对象
+     */
     deepClone (obj) {
-        if (typeof obj !== 'object') return
-        var newObj = obj instanceof Array ? [] : {}
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                newObj[key] = typeof obj[key] === 'object' ? this.deepClone(obj[key]) : obj[key]
-            }
-        }
-        return newObj
+        return cloneDeepWith(obj)
     },
+    /**
+     * 对象比较
+     * @param {Object} a 对象 a
+     * @param {Object} b 对象 b
+     */
     isObjEqual (a, b) {
         let p, t
         for (p in a) {
@@ -83,9 +96,13 @@ const tools = {
         }
         return true
     },
+    /**
+     * 判断传入值是否为空
+     * @param {Any} value 值
+     */
     isEmpty (value) {
         const dataType = checkDataType(value)
-        let isEmpty = false
+        let isEmpty
         switch (dataType) {
             case 'String':
                 isEmpty = value === ''
@@ -101,6 +118,10 @@ const tools = {
         }
         return isEmpty
     },
+    /**
+     * 时间转化函数，毫秒转换为特定字符串格式
+     * @param {String|Number} time 时间
+     */
     timeTransform (time) {
         const val = Number(time)
         if (val > 0) {

@@ -6,8 +6,10 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.test import TestCase
-from .boolrule import BoolRule
+
+from pipeline.utils.boolrule import BoolRule
 
 
 class BoolRuleTests(TestCase):
@@ -119,7 +121,7 @@ class BoolRuleTests(TestCase):
         self.assertTrue(BoolRule('${v1} >= "0"').test(context))
 
         # self.assertTrue(BoolRule('${v1} >= 2').test(context))
-        self.assertTrue(BoolRule('${v2} >= "2"').test(context))
+        self.assertFalse(BoolRule('${v2} >= "2"').test(context))
 
     def test_lt_or_equal(self):
         context = {
@@ -182,4 +184,3 @@ class BoolRuleTests(TestCase):
         self.assertFalse(BoolRule('${v1} == True').test(context))
         self.assertFalse(BoolRule('${v1} == "True"').test(context))
         self.assertFalse(BoolRule('${v1} == "s"').test(context))
-

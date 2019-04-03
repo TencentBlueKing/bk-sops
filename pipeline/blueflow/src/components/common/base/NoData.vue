@@ -10,7 +10,7 @@
         <div class="no-data">
             <i class="common-icon-no-data"></i>
             <p class="no-data-wording">
-                <slot>{{ i18n.no_data }}</slot>
+                <slot>{{ message || i18n.no_data }}</slot>
             </p>
         </div>
     </div>
@@ -19,6 +19,14 @@
 import '@/utils/i18n.js'
 export default {
     name: 'NoData',
+    props: {
+        message: {
+            type: String,
+            default () {
+                return ""
+            }
+        }
+    },
     data () {
         return {
             i18n: {

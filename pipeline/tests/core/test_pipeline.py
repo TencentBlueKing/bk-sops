@@ -6,8 +6,11 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.test import TestCase
-from pipeline.core.pipeline import *
+
+from pipeline.core.pipeline import * # noqa
+from pipeline.core.data.base import DataObject
 from pipeline.core.flow.base import SequenceFlow
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.event import EmptyStartEvent, EmptyEndEvent
@@ -16,7 +19,7 @@ from pipeline.core.flow.event import EmptyStartEvent, EmptyEndEvent
 class TestPipeline(TestCase):
     def test_node(self):
         start_event = EmptyStartEvent(id='a')
-        act = ServiceActivity(id='b', service=None)
+        act = ServiceActivity(id='b', service=None, data=DataObject({}))
         end_event = EmptyEndEvent(id='c')
 
         flow_ab = SequenceFlow('ab', start_event, act)
@@ -33,7 +36,7 @@ class TestPipeline(TestCase):
 
     def test_start_event(self):
         start_event = EmptyStartEvent(id='a')
-        act = ServiceActivity(id='b', service=None)
+        act = ServiceActivity(id='b', service=None, data=DataObject({}))
         end_event = EmptyEndEvent(id='c')
 
         flow_ab = SequenceFlow('ab', start_event, act)
@@ -46,11 +49,11 @@ class TestPipeline(TestCase):
 
         spec = PipelineSpec(start_event, end_event, [flow_ab, flow_bc], [act], [], None, None)
         pipeline = Pipeline('pipeline', spec)
-        self.assertEqual(start_event, pipeline.start_event())
+        self.assertEqual(start_event, pipeline.start_event)
 
     def test_end_event(self):
         start_event = EmptyStartEvent(id='a')
-        act = ServiceActivity(id='b', service=None)
+        act = ServiceActivity(id='b', service=None, data=DataObject({}))
         end_event = EmptyEndEvent(id='c')
 
         flow_ab = SequenceFlow('ab', start_event, act)
@@ -63,4 +66,4 @@ class TestPipeline(TestCase):
 
         spec = PipelineSpec(start_event, end_event, [flow_ab, flow_bc], [act], [], None, None)
         pipeline = Pipeline('pipeline', spec)
-        self.assertEqual(end_event, pipeline.end_event())
+        self.assertEqual(end_event, pipeline.end_event)

@@ -19,17 +19,14 @@
                 {{ i18n.create_biz }}
             </li>
         </ul>
+        <p v-if="responseText" class="error-tip">{{responseText}}</p>
     </div>
 </template>
 <script>
 import '@/utils/i18n.js'
 export default {
     name: 'ErrorCode405',
-    methods: {
-        onGotoCC () {
-            window.PAAS_API.open_other_app('bk_cc')
-        }
-    },
+    props: ['responseText'],
     data () {
         return {
             i18n: {
@@ -42,15 +39,26 @@ export default {
                 create_biz: gettext("创建属于自己的业务")
             }
         }
+    },
+    methods: {
+        onGotoCC () {
+            window.PAAS_API.open_other_app('bk_cc')
+        }
     }
 }
 </script>
 <style lang="scss" scoped>
-    ul {
-        padding-left: 30px;
-    }
-    li {
-        list-style: disc;
-    }
+@import '@/scss/config.scss';
+ul {
+    padding-left: 30px;
+}
+li {
+    list-style: disc;
+}
+.error-tip {
+    margin-top: 10px;
+    color: $redDark;
+    text-align: left;
+}
 </style>
 

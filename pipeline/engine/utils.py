@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.utils import timezone
 
 
@@ -48,3 +49,10 @@ def calculate_elapsed_time(started_time, archived_time):
     else:
         elapsed_time = 0
     return elapsed_time
+
+
+class ActionResult(object):
+    def __init__(self, result, message, extra=None):
+        self.result = result
+        self.message = message
+        self.extra = extra
