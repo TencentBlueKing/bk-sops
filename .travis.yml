@@ -9,6 +9,7 @@ before_script:
 
 script:
   - flake8
+  - source scripts/develop/sites/community/env.sh
   - echo 'yes' | bash scripts/code/coverage_and_report.sh -e enterprise
 
 after_success:
