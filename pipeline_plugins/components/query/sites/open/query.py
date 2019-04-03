@@ -117,8 +117,8 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
 def cc_format_topo_data(data, obj_id, category):
     """
     @summary: 格式化拓扑数据
-    @param obj_id set\module
-    @param category prev(获取obj_id上一层级拓扑)\ normal (获取obj_id层级拓扑) \picker(ip选择器拓扑)
+    @param obj_id set or module
+    @param category prev(获取obj_id上一层级拓扑) or normal (获取obj_id层级拓扑) or picker(ip选择器拓扑)
     @return 拓扑数据列表
     """
     tree_data = []
