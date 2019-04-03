@@ -30,11 +30,7 @@ done
 DB_NAME="test_$RANDOM"
 sed -i.bak "s/test_sops/$DB_NAME/g" config/dev.py && rm config/dev.py.bak
 
-function revert_db
-{
-    sed -i.bak "s/$DB_NAME/test_sops/g" config/dev.py && rm config/dev.py.bak
-    exit 1
-}
+revert_db() { sed -i.bak "s/$DB_NAME/test_sops/g" config/dev.py && rm config/dev.py.bak; exit 1; }
 
 coverage erase
 coverage run --include=$INCLUDE_PATH --omit=$OMIT_PATH ./manage.py test $module --exclude-tag=$exclude_tag || revert_db
