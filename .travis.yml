@@ -9,7 +9,7 @@ before_script:
 
 script:
   - flake8
-  - echo 'yes' | sh scripts/code/coverage_and_report.sh -e enterprise
+  - echo 'yes' | bash scripts/code/coverage_and_report.sh -e enterprise
 
 after_success:
   - codecov
