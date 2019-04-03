@@ -5,428 +5,232 @@
 * http://opensource.org/licenses/MIT
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
+<template>
+    <div class="render-form">
+        <component
+            :is="atom.type === 'combine' ? 'FormGroup' : 'FormItem'"
+            v-for="(atom, index) in scheme"
+            :key="`${atom.tag_code}_${index}`"
+            :scheme="atom"
+            :option="option"
+            :value="getFormValue(atom)"
+            :hook="hooked[atom.tag_code]"
+            @change="updateForm"
+            @onHook="updateHook">
+        </component>
+    </div>
+</template>
 <script>
 /**
- * 原子分发渲染组件
- *
- * {Object} config 原子表单配置项
- * {Object} option 表单 UI 选项 （label、checkbox、groupName）
- * {Object} data 表单值
+ * 标准插件表单渲染函数
+ * param {Array} scheme 标准插件表单配置项
+ * param {Object} formOption 表单 UI 选项(label、checkbox、groupName)
+ * param {Object} formData 表单值
+ * param {Object} hooked 表单是否勾选
  */
 import '@/utils/i18n.js'
-import { random4 } from '@/utils/uuid.js'
-import { checkDataType } from '@/utils/checkDataType.js'
-import lowerFirst from 'lodash/lowerFirst'
-import toLower from 'lodash/toLower'
+import tools from '@/utils/tools.js'
+import FormGroup from './FormGroup.vue'
+import FormItem from './FormItem.vue'
 
-import BaseCheckbox from '../base/BaseCheckbox.vue'
-import BaseInput from '../base/BaseInput.vue'
-
-// import tags for components registry
-const innerComponent = require.context(
-    '.',
-    false,
-    /Tag[A-Z]\w+\.(vue|js)$/
-)
-
-const userComponent = require.context(
-    '../../tag',
-    false,
-    /Tag[A-Z]\w+\.(vue|js)$/
-)
-
-const registry = {}
-
-const register = (fileNmae, context) => {
-    const componentConfig = context(fileNmae)
-    const comp = componentConfig.default
-    const name = 'tag-' + toLower(comp.name.slice(3))
-    registry[name] = comp
+const DEFAUTL_OPTION = {
+    showHook: false, // 是否可以勾选
+    showGroup: false, // 是否显示 combine 类型标准插件名称
+    showLabel: false, // 是否显示标准插件名称
+    formEdit: true, // 是否可编辑
+    formMode: true // 是否为表单模式（查看参数时，input、textarea等不需要用表单展示）
 }
-
-innerComponent.keys().forEach(fileNmae => {
-    register(fileNmae, innerComponent)
-})
-
-userComponent.keys().forEach(fileName => {
-    register(fileName, userComponent)
-})
-
 
 export default {
     name: 'RenderForm',
     components: {
-        ...registry,
-        BaseCheckbox,
-        BaseInput
+        FormGroup,
+        FormItem
+    },
+    model: {
+        prop: 'formData',
+        event: 'change'
+    },
+    data () {
+        return {
+            value: tools.deepClone(this.formData)
+        }
     },
     props: {
-        config: {
+        scheme: {
             type: Array,
             default () {
                 return []
             }
         },
-        option: {
+        formOption: {
             type: Object,
             default () {
                 return {
-                    showHook: false,
-                    showGroup: false,
-                    showLabel: false,
-                    editable: true
+                    ...DEFAUTL_OPTION
                 }
             }
         },
-        data: {
-            type: Object
+        formData: {
+            type: Object,
+            default () {
+                return {}
+            }
+        },
+        hooked: {
+            type: Object,
+            default () {
+                return {}
+            }
         }
     },
+    computed: {
+        option () {
+            return Object.assign({}, DEFAUTL_OPTION, this.formOption)
+        }
+    },
+    watch: {
+        scheme: {
+            handler: function (val) {
+                this.setDefaultValue(val, this.formData)
+            },
+            deep: true
+        },
+        formData: {
+            handler: function (val) {
+                this.value = tools.deepClone(val)
+            },
+            deep: true
+        }
+    },
+    created () {
+        this.setDefaultValue(this.scheme, this.formData)
+    },
     methods: {
+        /**
+         * 设置表单默认值
+         * 若传入的 formData 不包含表单项的值，取值顺序为：标准插件配置项 value 字段 -> 标准插件配置项 default 字段 -> tag 类型默认值
+         * @param {Array} scheme 表单配置项
+         * @param {Object} data 表单值
+         */
+        setDefaultValue (scheme, data) {
+            if (!scheme || !Array.isArray(scheme)) return
+
+            scheme.forEach(item => {
+                const key = item.tag_code
+
+                if (item.type === 'combine') {
+                    if (!this.hooked || !this.hooked[item.tag_code]) {
+                        if (!(key in data)) {
+                            this.$set(data, key, {})
+                            this.$set(this.value, key, {})
+                        }
+                        this.setDefaultValue (item.attrs.children, data[key])
+                    }
+                } else {
+                    if (!(key in data)) {
+                        let val
+                        if ('value' in item.attrs) {
+                            val = tools.deepClone(item.attrs.value)
+                        } else if ('default' in item.attrs) {
+                            val = tools.deepClone(item.attrs.default)
+                        } else {
+                            switch (item.type) {
+                                case 'input':
+                                case 'textarea':
+                                case 'radio':
+                                case 'text':
+                                case 'datetime':
+                                case 'password':
+                                    val = ''
+                                    break
+                                case 'checkbox':
+                                case 'datatable':
+                                case 'tree':
+                                case 'upload':
+                                    val = []
+                                    break
+                                case 'select':
+                                    val = item.attrs.multiple ? [] : ''
+                                    break
+                                case 'int':
+                                    val = 0
+                                    break
+                                case 'ip_selector':
+                                    val = {
+                                        selectors: [],
+                                        ip: [],
+                                        topo: [],
+                                        filters: [],
+                                        excludes: []
+                                    }
+                                    break
+                                default:
+                                    val = ''
+
+                            }
+                        }
+                        this.$set(data, key, val)
+                    }
+                }
+            })
+        },
+        getFormValue (atom) {
+            return this.value[atom.tag_code]
+        },
+        updateForm (fieldArr, val) {
+            const field = fieldArr.slice(-1)[0]
+            let fieldDataObj = this.value
+            fieldArr.slice(0, -1).forEach(item => {
+                if (item in fieldDataObj) {
+                    fieldDataObj = fieldDataObj[item]
+                } else {
+                    this.$set(fieldDataObj, item, {})
+                }
+            })
+
+            this.$set(fieldDataObj, field, val)
+            this.$emit('change', this.value)
+        },
+        updateHook (field, val) {
+            this.$emit('onHookChange', field, val)
+        },
+        /**
+         * 获取 combine 类型组件的子组件实例
+         * @param {String} tagCode 标准插件 tag_code，值空时，返回全部子组件
+         */
+        get_child (tagCode) {
+            let childComponent
+            if (typeof tagCode === 'string' && tagCode !== '') {
+                this.$children.some(item => {
+                    if (item.scheme && item.scheme.tag_code === tagCode) {
+                        childComponent = item.$children[0]
+                        return true
+                    }
+                })
+            } else {
+                childComponent = this.$children
+            }
+
+            return childComponent
+        },
+        /**
+         * 表单校验函数
+         * @TODO: 改写为 promise 异步机制
+         */
         validate () {
             let isValid = true
-            for (let ref in this.$refs) {
-                let singleItemValid = true
-                const component = this.$refs[ref]
-                if (checkDataType(component) === 'Undefined') {
-                    delete this.$refs[ref]
-                } else if (checkDataType(component) === 'Array') {
-                    component.forEach(item => {
-                        singleItemValid = !item.validate || item.validate()
-                    })
-                } else {
-                    singleItemValid = !component.validate || component.validate()
-                }
+            this.$children.forEach(childComp => {
+                const singleItemValid = childComp.validate()
+
                 if (isValid) {
                     isValid = singleItemValid
                 }
-            }
+            })
             return isValid
-        },
-        get_child (tagCode) {
-            let childComponent
-            this.$children.some(item => {
-                if (item.tag_code === tagCode) {
-                    childComponent = item
-                    return true
-                }
-            })
-            return childComponent
         }
-    },
-    render (h) {
-        const self = this
-        function getFormItem (config, option, data, h) {
-            return  config.map((item, formIndex) => {
-                const formId = item.tag_code + '_' + formIndex
-                const isRenderTagHook = item.attrs.hookable && option.showHook
-                let isHooked
-                if (item.variableKey) {
-                    isHooked = data.hook && (data.hook[item.variableKey] || data.hook[item.tag_code])
-                } else {
-                    isHooked = data.hook && (data.hook[item.tag_code] || data.hook['${' + item.tag_code + '}'])
-                }
-                // combine
-                if (item.type === 'combine' && item.attrs.children.length) {
-                    const childrenItems = []
-                    const childrenOption = Object.assign({}, option)
-                    if (option.showGroup) {  // 分组名称
-                        const groupName =  data.extend && data.extend[item.variableKey].name
-                        const groupLabel = h('div', {class: 'group-name'},
-                            [
-                                h('h3', {class: 'name'}, groupName)
-                            ]
-                        )
-                        childrenOption.showGroup = false
-                        childrenItems.push(groupLabel)
-                    }
-                    if (isRenderTagHook) { // hook
-                        childrenItems.push(h('bk-tooltip', {
-                            class: 'tag-hook',
-                            props: {
-                                content: isHooked ? gettext('取消勾选') : gettext('勾选参数作为全局变量'),
-                                placement: 'left'
-                            }
-                        }, [h('BaseCheckbox', {
-                            props: {
-                                isChecked: isHooked
-                            },
-                            on: {
-                                'checkCallback' (checked) {
-                                    self.$emit('hookChange', checked, item.tag_code, item.variableKey)
-                                }
-                            }
-                        })]
-                        ))
-                    }
-                    // 标识 form-item 属于哪个变量
-                    item.attrs.children.forEach(cItem => {
-                        cItem.variableKey = item.variableKey
-                    })
-                    const combineKey = item.variableKey || item.tag_code
-                    const groupData = {
-                        hook: data.hook[combineKey],
-                        value: data.value[combineKey]
-                    }
-
-                    if (isHooked) {
-                        // combine 类型变量勾选
-                        childrenItems.push(
-                            h('div', {
-                                class: "form-item clearfix"
-                            }, [
-                                h('label', {
-                                    class: {
-                                        'tag-label': true,
-                                        'required': false
-                                    }
-                                }, item.attrs.name),
-                                h('div',
-                                    {
-                                        class: {
-                                            'tag-form': true
-                                        }
-                                    },
-                                    [h(`BaseInput`, {
-                                        class: {
-                                            'baseInput': true,
-                                            'disabled': true
-                                        },
-                                        attrs: {
-                                            disabled: true,
-                                            value: groupData.value
-                                        }
-                                    })]
-                                )
-                            ])
-                        )
-                    } else {
-                        childrenItems.push(getFormItem(item.attrs.children, childrenOption, groupData, h))
-                    }
-                    return h(`tag-group`, {
-                        'class': ['form-group']
-                    }, childrenItems)
-                }
-
-                const formComponents = []
-                const propAttrs = {}
-
-                // 遍历原子配置文件属性，作为 props 项传递到 tag
-                Object.keys(item.attrs).forEach(attr => {
-                    let attrKey = `initial${attr.charAt(0).toUpperCase() + attr.slice(1)}`
-                    propAttrs[attrKey] = item.attrs[attr]
-                    // editabel 属性优先取 UI 配置项里的值
-                    if (attr === 'editable') {
-                        propAttrs[attrKey] = ('editable' in option) ? option.editable : item.attrs[attr]
-                    }
-                })
-
-                const hasAttrsInConfig = !!item.attrs
-                let propValue = ''
-                let valueFromUp
-                if (checkDataType(data.value) === 'Object') {
-                    if (item.variableKey in data.value) {
-                        valueFromUp = data.value[item.variableKey]
-                    } else if (item.tag_code in data.value) {
-                        valueFromUp = data.value[item.tag_code]
-                    } else {
-                        data.value['${' + item.tag_code + '}']
-                    }
-                } else {
-                    valueFromUp = data.value
-                }
-
-                if (valueFromUp && valueFromUp != undefined) {
-                    if (typeof valueFromUp === 'string') {
-                        propValue = valueFromUp
-                    } else if (Array.isArray(valueFromUp)){
-                        propValue = [...valueFromUp]
-                    } else {
-                        propValue = valueFromUp || data.value['${' + item.tag_code + '}']
-                    }
-                } else if (hasAttrsInConfig && item.attrs.default) {
-                    propValue = item.attrs.default
-                }
-                // name
-                if (option.showGroup) {
-                    const name = data.extend && data.extend[item.variableKey] && data.extend[item.variableKey].name
-                    formComponents.push(h('div', {class: {'group-name': true}},
-                        [
-                            h('h3', {class: {'name': true}}, name || item.attrs.name)
-                        ]
-                    ))
-                }
-                // desc
-                if (option.showDesc && data.extend && data.extend[item.variableKey] && data.extend[item.variableKey].desc) {
-                    formComponents.push(
-                        h('bk-tooltip', {
-                            class: {'desc': true},
-                            props: {
-                                content: data.extend[item.variableKey].desc,
-                                placement: 'left'
-                            }
-                        }, [
-                            h('i', {
-                                class: {
-                                    'common-icon-warning': true
-                                }
-                            })
-                        ])
-                    )
-                }
-                // label
-                if (option.showLabel) {
-                    let labelName = ''
-                    let isRequired = false
-                    if (item.attrs) {
-                        labelName = item.attrs.name
-                        if (item.attrs.validation) {
-                            isRequired = item.attrs.validation.some(item => {
-                                return item.type === 'required'
-                            })
-                        }
-                    }
-                    formComponents.push(
-                        h('label', {
-                            class: {
-                                'tag-label': true,
-                                'required': isRequired
-                            }
-                        }, labelName)
-                    )
-                }
-                if (isHooked) {
-                    // checked input
-                    formComponents.push(
-                        h('div',
-                            {
-                                class: {
-                                    'tag-form': true
-                                }
-                            },
-                            [h(`BaseInput`, {
-                                class: {
-                                    'baseInput': true,
-                                    'disabled': true
-                                },
-                                attrs: {
-                                    disabled: true,
-                                    value: propValue
-                                },
-                                ref: formId
-                            })]
-                        )
-                    )
-                } else {
-                // full form
-                    const editable = ('editable' in option) ? option.editable : true
-                    const props = {
-                        initialTag_id: formId,
-                        initialTag_code: item.tag_code,
-                        initialType: item.type,
-                        initialMethods: item.methods || {},
-                        initialEvents: item.events || [],
-                        initialEditable: editable,
-                        ...propAttrs
-                    }
-                    propValue && (props.initialValue = propValue)
-                    formComponents.push(
-                        h(`tag-${item.type}`, {
-                            on: {
-                                change: function (val, tagCode) {
-                                    self.$emit('dataChange', val, tagCode, item.variableKey)
-                                }
-                            },
-                            props: props,
-                            key: item.tag_code,
-                            ref: formId
-                        })
-                    )
-                }
-                // hook
-                if (isRenderTagHook) {
-                    formComponents.push(
-                        h('bk-tooltip', {
-                            class: 'tag-hook',
-                            props: {
-                                content: isHooked ? gettext('取消勾选') : gettext('勾选参数作为全局变量'),
-                                placement: 'left'
-                            }
-                        }, [
-                            h('BaseCheckbox', {
-                                props: {
-                                    isChecked: isHooked
-                                },
-                                on: {
-                                    'checkCallback' (checked) {
-                                        self.$emit('hookChange', checked, item.tag_code, item.variableKey)
-                                    }
-                                }
-                            })
-                        ])
-                    )
-                }
-                return h('div', {
-                    class: "form-item clearfix"
-                }, formComponents)
-            })
-        }
-        const formItems = getFormItem(this.config, this.option, this.data, h)
-        return h('div', {class: "render-form"}, formItems)
     }
 }
 </script>
-<style lang="scss" scoped>
-    .group-name {
-        display: block
-    }
-    .form-group {
-        position: relative;
-    }
-    .form-item {
-        position: relative;
-        margin: 15px 0;
-        &:first-child {
-            margin-top: 0;
-        }
-        /deep/ .view-value {
-            display: inline-block;
-            height: 36px;
-            line-height: 36px;
-            font-size: 14px;
-            word-wrap: break-word;
-            word-break: break-all;
-        }
-    }
-    .tag-label {
-        float: left;
-        position: relative;
-        margin-top: 8px;
-        width: 100px;
-        font-size: 14px;
-        font-weight: bold;
-        color: #666666;
-        text-align: right;
-        word-wrap: break-word;
-        word-break: break-all;
-        &.required {
-            &:before {
-                content: '*';
-                position: absolute;
-                top: 0px;
-                right: -10px;
-                color: #F00;
-                font-family: "SimSun";
-            }
-        }
-    }
-    .tag-form {
-        margin-left: 120px;
-    }
-    .tag-hook {
-        position: absolute;
-        top: 11px;
-        right: 0;
-        z-index: 1;
-    }
-</style>
+
+

@@ -8,14 +8,12 @@
 <template>
     <div class="audit-container">
         <div class="list-wrapper">
-            <div class="operation-area clearfix">
-                <div class="audit-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
-                    <i class="common-icon-search"></i>
-                </div>
+            <BaseTitle :title="i18n.auditList"></BaseTitle>
+            <div class="operation-area">
+                <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
             </div>
-            <div class="audit-table-content" v-bkloading="{isLoading: listLoading, opacity: 1}">
-                <table>
+            <div class="audit-table-content">
+                <table v-bkloading="{isLoading: listLoading, opacity: 1}">
                     <thead>
                         <tr>
                             <th class="audit-id">ID</th>
@@ -31,21 +29,28 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in auditList" :key="item.id">
+                        <tr v-for="(item, index) in auditList" :key="item.id">
                             <td class="audit-id">{{item.id}}</td>
                             <td class="audit-business">{{item.business.cc_name}}</td>
                             <td class="audit-name">
-                                <router-link :to="`/taskflow/execute/${item.business.cc_id}/?instance_id=${item.id}`">{{item.name}}</router-link>
+                                <router-link
+                                    :title="item.name"
+                                    :to="`/taskflow/execute/${item.business.cc_id}/?instance_id=${item.id}`">
+                                    {{item.name}}
+                                </router-link>
                             </td>
-                            <td class="audit-time">{{formatter(item.start_time)}}</td>
-                            <td class="audit-time">{{formatter(item.finish_time)}}</td>
+                            <td class="audit-time">{{item.start_time || '--'}}</td>
+                            <td class="audit-time">{{item.finish_time || '--'}}</td>
                             <td class="audit-category">{{item.category_name}}</td>
                             <td class="audit-creator">{{item.creator_name}}</td>
-                            <td class="audit-executor">{{formatter(item.executor_name)}}</td>
-                            <td class="audit-status" :class="statusClass(item.is_started, item.is_finished)">{{statusMethod(item.is_started,item.is_finished)}}</td>
+                            <td class="audit-executor">{{item.executor_name || '--'}}</td>
+                            <td class="audit-status">
+                                <span :class="executeStatus[index] && executeStatus[index].cls"></span>
+                                <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
+                            </td>
                             <td class="audit-operation">
                                 <router-link
-                                    class="bk-button bk-primary btn-size-mini"
+                                    class="audit-operation-btn"
                                     :to="`/taskflow/execute/${item.business.cc_id}/?instance_id=${item.id}`">
                                     {{ i18n.view }}
                                 </router-link>
@@ -75,20 +80,25 @@
 </template>
 <script>
 import '@/utils/i18n.js'
-import { mapActions } from 'vuex'
+import { mapState, mapMutations, mapActions } from 'vuex'
 import { errorHandler } from '@/utils/errorHandler.js'
 import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
 import NoData from '@/components/common/base/NoData.vue'
+import BaseTitle from '@/components/common/base/BaseTitle.vue'
+import BaseSearch from '@/components/common/base/BaseSearch.vue'
 import toolsUtils from '@/utils/tools.js'
 export default {
     name: 'auditTaskHome',
     components: {
         CopyrightFooter,
+        BaseTitle,
+        BaseSearch,
         NoData
     },
     data () {
         return {
             i18n: {
+                auditList: gettext('审计中心'),
                 placeholder: gettext('请输入ID或流程名称'),
                 business: gettext('所属业务'),
                 startedTime: gettext('执行开始'),
@@ -100,19 +110,42 @@ export default {
                 status: gettext('状态'),
                 operation: gettext('操作'),
                 view: gettext('查看'),
-                total: gettext("共"),
-                item: gettext("条记录"),
-                comma: gettext("，"),
-                currentPageTip: gettext("当前第"),
-                page: gettext("页")
+                total: gettext('共'),
+                item: gettext('条记录'),
+                comma: gettext('，'),
+                currentPageTip: gettext('当前第'),
+                page: gettext('页'),
+                executing: gettext('执行中'),
+                pauseState: gettext('暂停'),
+                taskType: gettext('任务分类'),
+                query: gettext('搜索'),
+                reset: gettext('清空'),
+                taskTypePlaceholder: gettext('请选择分类'),
+                creatorPlaceholder: gettext('请输入创建人'),
+                executorPlaceholder: gettext('请输入执行人'),
+                statusPlaceholder: gettext('请选择状态')
             },
+            taskBasicInfoLoading: true,
             listLoading: true,
+            isAdvancedSerachShow: false,
             currentPage: 1,
             totalPage: 1,
             countPerPage: 15,
             totalCount: 0,
+            taskSync: 0,
+            statusSync: 0,
             searchStr: '',
-            auditList: []
+            creator: undefined,
+            executor: undefined,
+            activeTaskCategory: undefined,
+            executeStartTime: undefined,
+            executeEndTime: undefined,
+            isStarted: undefined,
+            isFinished: undefined,
+            auditList: [],
+            statusList: [],
+            taskCategory: [],
+            executeStatus: [] // 任务执行态
         }
     },
     computed: {
@@ -124,6 +157,9 @@ export default {
     methods: {
         ...mapActions('auditTask/', [
             'loadAuditTaskList'
+        ]),
+        ...mapActions('task/', [
+            'getInstanceStatus'
         ]),
         async loadFunctionTask () {
             this.listLoading = true
@@ -143,6 +179,20 @@ export default {
                 } else {
                     this.totalPage = totalPage
                 }
+                this.executeStatus = list.map((item, index) => {
+                    const status = {}
+                    if (item.is_finished) {
+                        status.cls = 'finished bk-icon icon-check-circle-shape'
+                        status.text = gettext('完成')
+                    } else if (item.is_started) {
+                        status.cls = 'loading common-icon-loading'
+                        this.getExecuteDetail(item, index)
+                    } else {
+                        status.cls = 'created common-icon-dark-circle-shape'
+                        status.text = gettext('未执行')
+                    }
+                    return status
+                })
             } catch (e) {
                 errorHandler(e, this)
             } finally {
@@ -157,55 +207,89 @@ export default {
             this.currentPage = 1
             this.loadFunctionTask()
         },
-        statusMethod (is_started,is_finished) {
-            if (is_finished) {
-                return gettext('完成')
+        async getExecuteDetail (task, index) {
+            const data = {
+                instance_id: task.id,
+                cc_id: task.business.cc_id
             }
-            else if (is_started){
-                return gettext('执行中')
+            try {
+                const detailInfo = await this.getInstanceStatus(data)
+                if (detailInfo.result) {
+                    const state = detailInfo.data.state
+                    const status = {}
+                    switch (state) {
+                        case 'RUNNING':
+                        case 'BLOCKED':
+                            status.cls = 'running common-icon-dark-circle-ellipsis'
+                            status.text = gettext('执行中')
+                            break
+                        case 'SUSPENDED':
+                            status.cls = 'execute common-icon-dark-circle-pause'
+                            status.text = gettext('暂停')
+                            break
+                        case 'NODE_SUSPENDED':
+                            status.cls = 'execute'
+                            status.text = gettext('节点暂停')
+                            break
+                        case 'FAILED':
+                            status.cls = 'failed common-icon-dark-circle-close'
+                            status.text = gettext('失败')
+                            break
+                        case 'REVOKED':
+                            status.cls = 'revoke common-icon-dark-circle-shape'
+                            status.text = gettext('撤销')
+                            break
+                        default:
+                            status.text = gettext('未知')
+                    }
+                    this.executeStatus.splice(index, 1, status)
+                } else {
+                    errorHandler(detailInfo, this)
+                }
+            } catch (e) {
+                errorHandler(e, this)
             }
-            return gettext('未执行')
         },
-        statusClass (is_started,is_finished) {
-            if (is_finished) {
-                return {success: true}
-            }
-            else if (is_started){
-                return {warning: true}
-            }
-            return {primary: true}
+        onAdvanceShow () {
+            this.isAdvancedSerachShow = !this.isAdvancedSerachShow
         },
-        formatter (value) {
-            if (value === '' || value === null) {
-                return '--'
-            }
-            return value
+        onChangeExecuteTime (oldValue, newValue) {
+            const timeArray = newValue.split(" - ")
+            this.executeStartTime = timeArray[0]
+            this.executeEndTime = timeArray[1]
+        },
+        onClearCategory (){
+            this.activeTaskCategory = undefined
+        },
+        onSelectedCategory () {
+            this.activeTaskCategory = name
         }
     }
 }
 </script>
-<style lang='scss' scoped>
+<style lang='scss'>
 @import '@/scss/config.scss';
 .audit-container {
     padding-top: 20px;
     min-width: 1320px;
-    min-height: calc(100% - 60px);
+    min-height: calc(100% - 50px);
     background: #fafafa;
 }
 .list-wrapper {
     padding: 0 60px;
+    min-height: calc(100vh - 240px);
+    .advanced-search {
+        margin: 20px 0px;
+    }
 }
 .operation-area {
     margin: 20px 0;
-    .audit-search {
-        float: right;
-        position: relative;
-    }
+    float: right;
     .search-input {
         padding: 0 40px 0 10px;
-        width: 300px;
-        height: 36px;
-        line-height: 36px;
+        width: 360px;
+        height: 32px;
+        line-height: 32px;
         font-size: 14px;
         background: $whiteDefault;
         border: 1px solid $commonBorderColor;
@@ -224,16 +308,105 @@ export default {
     .common-icon-search {
         position: absolute;
         right: 15px;
-        top: 11px;
+        top: 8px;
         color: $commonBorderColor;
     }
+}
+.audit-fieldset {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid $commonBorderColor;
+    background: #fff;
+    .audit-query-content {
+        display: flex;
+        flex-wrap: wrap;
+        .query-content {
+            min-width: 420px;
+            padding: 10px;
+            @media screen and (max-width: 1420px){
+                min-width: 380px;
+            }
+            .query-span {
+                float: left;
+                min-width: 130px;
+                margin-right: 12px;
+                height: 32px;
+                line-height: 32px;
+                font-size: 14px;
+                text-align: right;
+                @media screen and (max-width: 1420px){
+                    min-width: 100px;
+                }
+            }
+            input {
+                max-width: 260px;
+                height: 32px;
+                line-height: 32px;
+            }
+            .bk-date-range:after {
+                height: 32px;
+                line-height: 32px;
+            }
+            .bk-selector-icon.clear-icon {
+                top:6px;
+            }
+            /deep/ .bk-selector {
+                max-width: 260px;
+                display: inline-block;
+            }
+            input::-webkit-input-placeholder{
+                color: $formBorderColor;
+            }
+            input:-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input::-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input:-ms-input-placeholder {
+                color: $formBorderColor;
+            }
+            input,.bk-selector,.bk-date-range {
+                min-width: 260px;
+            }
+            .search-input {
+                width: 260px;
+                height: 32px;
+                padding: 0 10px 0 10px;
+                font-size: 14px;
+                border: 1px solid $commonBorderColor;
+                line-height: 32px;
+                outline: none;
+                &:hover {
+                    border-color: #c0c4cc;
+                }
+                &:focus {
+                    border-color: $blueDefault;
+                    & + i {
+                        color: $blueDefault;
+                    }
+                }
+            }
+            .bk-selector-search-item > input {
+                min-width: 249px;
+            }
+            .bk-date-range {
+                display: inline-block;
+                width: 260px;
+            }
+        }
+    }
+}
+.common-icon-dark-circle-pause {
+    color: #FF9C01;
+    font-size: 12px;
 }
 .audit-table-content {
     table {
         width: 100%;
-        border: 1px solid #ebebeb;
+        border: 1px solid $commonBorderColor;;
         border-collapse: collapse;
-        font-size: 14px;
+        font-size: 12px;
         background: $whiteDefault;
         table-layout: fixed;
         tr:not(.empty-tr):hover {
@@ -241,8 +414,8 @@ export default {
         }
         th,td {
             padding: 10px;
-            text-align: center;
-            border: 1px solid #ebebeb;
+            text-align: left;
+            border-bottom: 1px solid $commonBorderColor;;
         }
         th {
             background: #fafafa;
@@ -266,31 +439,66 @@ export default {
             width: 110px;
         }
         .audit-time {
-            width: 210px;
+            width: 215px;
         }
         .audit-creator {
-            width: 130px;
+            width: 100px;
             overflow:hidden;
             text-overflow:ellipsis;
             white-space: nowrap;
         }
         .audit-business {
-            width: 130px;
+            width: 120px;
             overflow:hidden;
             text-overflow:ellipsis;
             white-space: nowrap;
         }
         .audit-status {
-            width: 110px;
+            width: 100px;
+            .common-icon-dark-circle-shape {
+                display: inline-block;
+                transform: scale(0.9);
+                font-size: 12px;
+                color: #979BA5;
+            }
+            .common-icon-dark-circle-ellipsis {
+                color: #3c96ff;
+                font-size: 12px;
+            }
+            .icon-check-circle-shape {
+                color: $greenDefault;
+            }
+            .common-icon-dark-circle-close {
+                color: $redDefault;
+            }
+            &.revoke {
+                color: $blueDisable;
+            }
+            .common-icon-loading {
+                display: inline-block;
+                animation: bk-button-loading 1.4s infinite linear;
+            }
+            @keyframes bk-button-loading {
+                from {
+                    -webkit-transform: rotate(0);
+                    transform: rotate(0); }
+                to {
+                    -webkit-transform: rotate(360deg);
+                    transform: rotate(360deg);
+                }
+            }
         }
         .audit-operation {
-            width: 110px;
+            width: 90px;
         }
         .audit-category {
-            width: 160px;
+            width: 110px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space: nowrap;
         }
         .audit-executor {
-            width: 130px;
+            width: 100px;
             overflow:hidden;
             text-overflow:ellipsis;
             white-space: nowrap;
@@ -301,6 +509,9 @@ export default {
         line-height: 22px;
         padding: 0 11px;
         font-size: 12px;
+    }
+    .audit-operation-btn {
+        color: #3c96ff;
     }
     .empty-data {
         padding: 120px 0;
@@ -314,15 +525,6 @@ export default {
         margin-top: 10px;
         font-size: 14px;
     }
-}
-.success {
-    color:#30d878;
-}
-.primary {
-    color: #4a9bff;
-}
-.warning {
-    color: #f8b53f;
 }
 </style>
 

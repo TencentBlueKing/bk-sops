@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from __future__ import absolute_import
 
 import redis
@@ -51,6 +52,9 @@ def get_single_client():
     }
     if 'password' in settings.REDIS:
         kwargs['password'] = settings.REDIS['password']
+    if 'db' in settings.REDIS:
+        kwargs['db'] = settings.REDIS['db']
+
     pool = redis.ConnectionPool(**kwargs)
     return redis.StrictRedis(connection_pool=pool)
 
@@ -67,7 +71,7 @@ class PipelineConfig(AppConfig):
     verbose_name = 'Pipeline'
 
     def ready(self):
-        from pipeline.signals.handlers import pipeline_template_post_save_handler
+        from pipeline.signals.handlers import pipeline_template_post_save_handler  # noqa
         # init redis pool
         if hasattr(settings, 'REDIS'):
             mode = settings.REDIS.get('mode') or 'single'
@@ -76,3 +80,5 @@ class PipelineConfig(AppConfig):
             except Exception as e:
                 # fall back to single node mode
                 logger.error("redis client init error: %s" % traceback.format_exc(e))
+        else:
+            logger.error("can not find REDIS in settings!")

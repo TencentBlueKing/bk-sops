@@ -24,8 +24,8 @@ const taskList = {
         deleteTask ({commit}, task_id) {
             return api.deleteTask(task_id).then(response => response.data.objects)
         },
-        cloneTask ({commit}, task_id) {
-            return api.cloneTask(task_id).then(response => response.data)
+        cloneTask ({commit}, data) {
+            return api.cloneTask(data).then(response => response.data)
         }
     },
     getters: {}

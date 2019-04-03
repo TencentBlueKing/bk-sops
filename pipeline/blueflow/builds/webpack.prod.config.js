@@ -13,8 +13,8 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpackBaseConfig = require('./webpack.base.js')
 
-// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-console.log(__dirname)
+// const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+
 module.exports = merge( webpackBaseConfig, {
     plugins: [
         new webpack.DefinePlugin({
@@ -22,13 +22,15 @@ module.exports = merge( webpackBaseConfig, {
                 NODE_ENV: '"production"'
             }
         }),
-        new CleanWebpackPlugin(['static/dist/'], {
+        new CleanWebpackPlugin([path.resolve('static', process.env.STATIC_ENV)], {
             root: process.cwd(),
             verbose: true,
             dry: false
         }),
+        // 只打 moment.js 中文包，减小体积
+        new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
-            filename: 'dist/css/[name].css'
+            filename: path.posix.join(process.env.STATIC_ENV, 'dist/css/[name].css')
         }),
         new UglifyJsPlugin({
             sourceMap: true,
@@ -41,7 +43,10 @@ module.exports = merge( webpackBaseConfig, {
         performance: true,
         chunks: false,
         entrypoints: false,
-        modules: false
+        modules: false,
+        children: false,
+        publicPath: true,
+        colors: true
     },
     mode: 'production',
     performance: {

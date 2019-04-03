@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 import ujson as json
 from django import forms
 
@@ -40,7 +41,7 @@ class ActivityIDField(forms.CharField):
         super(ActivityIDField, self).validate(value)
         try:
             task_service.get_single_state(value)
-        except:
+        except Exception:
             raise forms.ValidationError(_(u"无效的节点 ID"), code='invalid')
 
 
@@ -49,7 +50,7 @@ class InstanceIDField(forms.CharField):
         super(InstanceIDField, self).validate(value)
         try:
             PipelineInstance.objects.get(instance_id=value)
-        except:
+        except Exception:
             raise forms.ValidationError(_(u"无效的实例 ID"), code='invalid')
 
 
@@ -58,7 +59,7 @@ class TemplateIDField(forms.CharField):
         super(TemplateIDField, self).validate(value)
         try:
             PipelineTemplate.objects.get(template_id=value)
-        except:
+        except Exception:
             raise forms.ValidationError(_(u"无效的模板 ID"), code='invalid')
 
 
@@ -75,7 +76,7 @@ class ComponentCodeField(forms.CharField):
         super(ComponentCodeField, self).validate(value)
         try:
             ComponentModel.objects.get(code=value)
-        except:
+        except Exception:
             raise forms.ValidationError(_(u"无效的组件代码"), code='invalid')
 
 
@@ -87,10 +88,10 @@ class JSONField(forms.CharField):
     def validate(self, value):
         super(JSONField, self).validate(value)
         try:
-            l = json.loads(value)
-            if self.assert_type and not isinstance(l, self.assert_type):
+            parsed = json.loads(value)
+            if self.assert_type and not isinstance(parsed, self.assert_type):
                 raise forms.ValidationError(_(u"该字段的类型必须为 %s") % self.assert_type, code='invalid')
-        except:
+        except Exception:
             raise forms.ValidationError(_(u"JSON 格式不合法"), code='invalid')
 
 

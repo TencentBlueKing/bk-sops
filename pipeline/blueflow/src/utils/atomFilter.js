@@ -5,6 +5,8 @@
 * http://opensource.org/licenses/MIT
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
+import tools from './tools.js'
+
 const atomFilter = {
     formFilter (tag_code, config) {
         let formConfig
@@ -27,19 +29,58 @@ const atomFilter = {
         return formConfig
     },
     getFormItemDefaultValue (config) {
-        let value
-        if (config.type === 'combine') {
-            value = {}
-            config.attrs.children.forEach(item => {
-                if (item.type === 'combine') {
-                    value[item.tag_code] = this.getFormItemDefaultValue(item)
+        let value = {}
+        config.forEach(item => {
+            if (item.type === 'combine') {
+                value[item.tag_code] = this.getFormItemDefaultValue(item.attrs.children)
+            } else {
+                let val
+
+                if ('value' in item.attrs) {
+                    val = tools.deepClone(item.attrs.value)
+                } else if ('default' in item.attrs) {
+                    val = tools.deepClone(item.attrs.default)
                 } else {
-                    value[item.tag_code] = (item.attrs && item.attrs.default) || ''
+                    switch (item.type) {
+                        case 'input':
+                        case 'textarea':
+                        case 'radio':
+                        case 'text':
+                        case 'datetime':
+                        case 'password':
+                            val = ''
+                            break
+                        case 'checkbox':
+                        case 'datatable':
+                        case 'tree':
+                        case 'upload':
+                            val = []
+                            break
+                        case 'select':
+                            val = item.attrs.multiple ? [] : ''
+                            break
+                        case 'int':
+                            val = 0
+                            break
+                        case 'ip_selector':
+                            val = {
+                                selectors: [],
+                                ip: [],
+                                topo: [],
+                                filters: [],
+                                excludes: []
+                            }
+                            break
+                        default:
+                            val = ''
+
+                    }
                 }
-            })
-        } else {
-            value = (config.attrs && config.attrs.default) || ''
-        }
+
+                value[item.tag_code] = val
+            }
+        })
+
         return value
     }
 }

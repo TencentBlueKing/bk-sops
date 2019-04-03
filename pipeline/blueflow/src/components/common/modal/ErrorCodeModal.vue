@@ -15,7 +15,7 @@
     :has-header="true"
     :has-footer="false"
     :quick-close="false"
-    :close-icon="true"
+    :close-icon="code !== 401"
     @cancel="onCloseDialog">
         <div slot="content" class="error-content">
             <div class="pic-wrapper">
@@ -23,9 +23,10 @@
             </div>
             <ErrorCode401 v-if="code === 401"></ErrorCode401>
             <ErrorCode403 v-if="code === 403"></ErrorCode403>
-            <ErrorCode405 v-if="code === 405"></ErrorCode405>
+            <ErrorCode405 v-if="code === 405" :responseText="responseText"></ErrorCode405>
             <ErrorCode406 v-if="code === 406"></ErrorCode406>
-            <ErrorCode500 v-if="code === 500"></ErrorCode500>
+            <ErrorCode407 v-if="code === 407"></ErrorCode407>
+            <ErrorCode500 v-if="code === 500" :responseText="responseText"></ErrorCode500>
         </div>
     </bk-dialog>
 </template>
@@ -35,6 +36,7 @@ import ErrorCode401 from './ErrorCode401.vue'
 import ErrorCode403 from './ErrorCode403.vue'
 import ErrorCode405 from './ErrorCode405.vue'
 import ErrorCode406 from './ErrorCode406.vue'
+import ErrorCode407 from './ErrorCode407.vue'
 import ErrorCode500 from './ErrorCode500.vue'
 export default {
     name: 'ErrorCodeModal',
@@ -43,12 +45,14 @@ export default {
         ErrorCode401,
         ErrorCode405,
         ErrorCode406,
+        ErrorCode407,
         ErrorCode500
     },
     data () {
         return {
             isModalShow: false,
             code: '',
+            responseText: '',
             expPic401: require('@/assets/images/expre_401.png'),
             expPic403: require('@/assets/images/expre_403.png'),
             expPic500: require('@/assets/images/expre_500.png')
@@ -65,8 +69,9 @@ export default {
         }
     },
     methods: {
-        show (code) {
+        show (code, responseText) {
             this.code = code
+            this.responseText = responseText
             this.isModalShow = true
         },
         onCloseDialog () {

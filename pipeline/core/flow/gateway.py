@@ -12,8 +12,11 @@ from abc import ABCMeta
 
 from pipeline.core.flow.base import FlowNode
 from pipeline.core.data.expression import ConstantTemplate, deformat_constant_key
-from pipeline.exceptions import (InvalidOperationException, ConditionExhaustedException, EvaluationException,
-                                 SourceKeyException)
+from pipeline.exceptions import (
+    InvalidOperationException,
+    ConditionExhaustedException,
+    EvaluationException
+)
 from pipeline.utils.boolrule import BoolRule
 
 
@@ -22,26 +25,21 @@ class Gateway(FlowNode):
 
 
 class ExclusiveGateway(Gateway):
-    def __init__(self, id, conditions=None, name=None, data=None, data_source=None):
+    def __init__(self, id, conditions=None, name=None, data=None):
         super(ExclusiveGateway, self).__init__(id, name, data)
         self.conditions = conditions or []
-        self.data_source = data_source
 
     def add_condition(self, condition):
         self.conditions.append(condition)
 
     def next(self, data=None):
-        self.logger.error('from exg')
         default_flow = self.outgoing.default_flow()
-
-        try:
-            next_flow = self._determine_next_flow_with_boolrule(data)
-        except:
-            raise
+        next_flow = self._determine_next_flow_with_boolrule(data)
 
         if not next_flow:  # determine fail
             if not default_flow:  # try to use default flow
-                raise ConditionExhaustedException('default flow is not appointed when data is exhausted.')
+                raise ConditionExhaustedException('all conditions of branches are False '
+                                                  'while default flow is not appointed')
             return default_flow.target
 
         return next_flow.target
@@ -59,39 +57,25 @@ class ExclusiveGateway(Gateway):
         :return:
         """
         for condition in self.conditions:
+            deformatted_data = {deformat_constant_key(key): value for key, value in data.items()}
             try:
-                deformatted_data = {deformat_constant_key(key): value for key, value in data.items()}
                 resolved_evaluate = ConstantTemplate(condition.evaluate).resolve_data(deformatted_data)
                 result = BoolRule(resolved_evaluate).test(data)
             except Exception as e:
-                raise EvaluationException('evaluate[%s] fail with data[%s] message: %s' % (condition.evaluate,
-                                                                                           json.dumps(data),
-                                                                                           e.message))
+                raise EvaluationException(
+                    'evaluate[%s] fail with data[%s] message: %s' % (
+                        condition.evaluate,
+                        json.dumps(deformatted_data),
+                        e.message
+                    )
+                )
             if result:
                 return condition.sequence_flow
 
         return None
 
-    def _determine_next_flow(self, data):
-        """
-        根据当前传入的数据判断下一个应该流向的 flow
-        :param data:
-        :return:
-        """
-        for condition in self.conditions:
-            try:
-                local = {'result': eval(condition.source_key, {}, {'data': data.get_outputs()})}
-            except KeyError:
-                raise SourceKeyException('%s does not exist in %s' % (condition.source_key, data.get_outputs()))
-
-            try:
-                result = eval(condition.evaluate, {}, local)
-            except Exception as e:
-                raise EvaluationException('%s fail with message: %s' % (condition.evaluate, e.message))
-            if result:
-                return condition.sequence_flow
-
-        return None
+    def skip(self):
+        return True
 
 
 class ParallelGateway(Gateway):
@@ -103,9 +87,53 @@ class ParallelGateway(Gateway):
         raise InvalidOperationException('can not determine next node for parallel gateway.')
 
 
+class ConditionalParallelGateway(Gateway):
+    def __init__(self, id, converge_gateway_id, conditions=None, name=None, data=None):
+        super(ConditionalParallelGateway, self).__init__(id, name, data)
+        self.converge_gateway_id = converge_gateway_id
+        self.conditions = conditions or []
+
+    def add_condition(self, condition):
+        self.conditions.append(condition)
+
+    def targets_meet_condition(self, data):
+
+        targets = []
+
+        for condition in self.conditions:
+            deformatted_data = {deformat_constant_key(key): value for key, value in data.items()}
+            try:
+                resolved_evaluate = ConstantTemplate(condition.evaluate).resolve_data(deformatted_data)
+                result = BoolRule(resolved_evaluate).test(data)
+            except Exception as e:
+                raise EvaluationException(
+                    'evaluate[%s] fail with data[%s] message: %s' % (
+                        condition.evaluate,
+                        json.dumps(deformatted_data),
+                        e.message
+                    )
+                )
+            if result:
+                targets.append(condition.sequence_flow.target)
+
+        if not targets:
+            raise ConditionExhaustedException('all conditions of branches are False')
+
+        return targets
+
+    def next(self):
+        raise InvalidOperationException('can not determine next node for conditional parallel gateway.')
+
+    def skip(self):
+        raise InvalidOperationException('can not skip conditional parallel gateway.')
+
+
 class ConvergeGateway(Gateway):
     def next(self):
         return self.outgoing.unique_one().target
+
+    def skip(self):
+        raise InvalidOperationException('can not skip conditional converge gateway.')
 
 
 class Condition(object):

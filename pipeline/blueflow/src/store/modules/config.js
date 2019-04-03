@@ -12,6 +12,11 @@ const config = {
     actions: {
         configBizExecutor ({commit}, data) {
             return api.configBizExecutor(data).then(response => response.data)
+        },
+        loadBizConfig () {
+            return api.loadBizConfig().then(
+                response => response.data
+            )
         }
     }
 }

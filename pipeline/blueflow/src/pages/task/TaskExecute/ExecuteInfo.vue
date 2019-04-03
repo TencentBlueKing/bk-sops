@@ -18,6 +18,7 @@
                         <th class="last-time">{{ i18n.last_time}}</th>
                         <th class="task-skipped">{{ i18n.task_skipped}}</th>
                         <th class="error_ignorable">{{i18n.error_ignorable}}</th>
+                        <th class="manually-retry">{{i18n.manuallyRetry}}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,6 +28,7 @@
                         <td class="last-time">{{getLastTime(nodeInfo.elapsed_time)}}</td>
                         <td class="task-skipped">{{nodeInfo.skip ? i18n.yes : i18n.no}}</td>
                         <td class="error_ignorable">{{nodeInfo.error_ignorable ? i18n.yes : i18n.no}}</td>
+                        <td class="manually-retry">{{nodeInfo.retry > 0 ? i18n.yes : i18n.no}}</td>
                     </tr>
                 </tbody>
             </table>
@@ -36,9 +38,9 @@
             <div class="">
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
-                    :config="renderConfig"
-                    :option="renderOption"
-                    :data="renderData">
+                    :scheme="renderConfig"
+                    :formOption="renderOption"
+                    v-model="renderData">
                 </RenderForm>
                 <NoData v-else></NoData>
             </div>
@@ -54,8 +56,8 @@
                 </thead>
                 <tbody>
                     <tr v-for="output in nodeInfo.outputs" :key="output.name">
-                        <td class="output-name">{{output.name}}</td>
-                        <td class="output-value">{{(output.value === 'undefined' || output.value === '') ? '--' : output.value}}</td>
+                        <td class="output-name">{{getOutputName(output)}}</td>
+                        <td class="output-value" v-html="getOutputValue(output)"></td>
                     </tr>
                 </tbody>
             </table>
@@ -63,6 +65,10 @@
         <section class="info-section" v-if="nodeInfo && nodeInfo.ex_data">
             <h4 class="common-section-title">{{ i18n.exception }}</h4>
             <div v-html="failInfo"></div>
+            <IpLogContent
+                v-if="nodeInfo.ex_data.show_ip_log"
+                :nodeInfo="nodeInfo">
+            </IpLogContent>
         </section>
         <section class="info-section" v-if="nodeInfo && nodeInfo.histories && nodeInfo.histories.length">
             <h4 class="common-section-title">{{ i18n.retries }}</h4>
@@ -123,18 +129,21 @@ import '@/utils/i18n.js'
 import { mapState, mapMutations, mapActions } from 'vuex'
 import VueJsonPretty from 'vue-json-pretty'
 import tools from '@/utils/tools.js'
+import { URL_REG } from '@/constants/index.js'
 import { errorHandler } from '@/utils/errorHandler.js'
 import { checkDataType } from '@/utils/checkDataType.js'
 import NoData from '@/components/common/base/NoData.vue'
 import BaseCollapse from '@/components/common/base/BaseCollapse.vue'
 import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
 export default {
     name: 'ExecuteInfo',
     components: {
         VueJsonPretty,
         RenderForm,
         NoData,
-        BaseCollapse
+        BaseCollapse,
+        IpLogContent
     },
     props: ['nodeDetailConfig'],
     data () {
@@ -146,7 +155,7 @@ export default {
                 finish_time: gettext("结束时间"),
                 last_time: gettext("耗时"),
                 task_skipped: gettext("失败后跳过"),
-                error_ignorable: gettext("失败忽略错误"),
+                error_ignorable: gettext("失败自动忽略"),
                 inputs_params: gettext("输入参数"),
                 outputs_params: gettext("输出参数"),
                 name: gettext("参数名"),
@@ -155,7 +164,8 @@ export default {
                 retries: gettext("执行记录"),
                 index: gettext("序号"),
                 yes: gettext("是"),
-                no: gettext("否")
+                no: gettext("否"),
+                manuallyRetry: gettext('手动重试')
             },
             loading: true,
             bkMessageInstance: null,
@@ -165,13 +175,11 @@ export default {
                 showGroup: false,
                 showLabel: true,
                 showHook: false,
-                editable: false
+                formEdit: false,
+                formMode: false
             },
             renderConfig: [],
-            renderData: {
-                hook: {},
-                value: {}
-            }
+            renderData: {}
         }
     },
     computed: {
@@ -187,7 +195,9 @@ export default {
     },
     watch: {
         'nodeDetailConfig.node_id' (val) {
-            this.loadNodeInfo()
+            if (val !== undefined) {
+                this.loadNodeInfo()
+            }
         }
     },
     mounted () {
@@ -216,9 +226,26 @@ export default {
                         item.last_time = this.getLastTime(item.elapsed_time)
                     })
                     for ( let key in this.nodeInfo.inputs) {
-                        this.$set(this.renderData.value, key, this.nodeInfo.inputs[key])
+                        this.$set(this.renderData, key, this.nodeInfo.inputs[key])
+                    }
+                    if (this.nodeDetailConfig.component_code === 'job_execute_task') {
+                        this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => {
+                            const outputIndex = this.nodeInfo.inputs['job_global_var'].findIndex(prop => prop.name === output.key)
+                            if (!output.preset && outputIndex === -1) {
+                                return false
+                            }
+                            return true
+                        })
+                    } else {
+                        this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => output.preset)
                     }
                     this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
+                    
+                    if (this.nodeInfo.ex_data && this.nodeInfo.ex_data.show_ip_log){
+                        this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data.exception_msg)
+                    } else {
+                        this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
+                    }
                 } else {
                     errorHandler(nodeDetailRes, this)
                 }
@@ -244,6 +271,19 @@ export default {
                 }
             }
         },
+        getOutputValue (output) {
+            if (output.value === 'undefined' || output.value === '') {
+                return '--'
+            } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
+                return output.value
+            } else {
+                if (URL_REG.test(output.value)) {
+                    return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
+                }
+                return output.value
+            }
+
+        },
         transformFailInfo (data) {
             if (!data) {
                 return ''
@@ -257,6 +297,12 @@ export default {
         },
         getLastTime (time) {
             return tools.timeTransform(time)
+        },
+        getOutputName (output) {
+            if (this.nodeDetailConfig.component_code === 'job_execute_task' && output.perset) {
+                return output.key
+            }
+            return output.name
         }
     }
 }
@@ -278,6 +324,9 @@ export default {
         margin: 30px 0;
         word-wrap: break-word;
         word-break: break-all;
+        /deep/ a {
+            color: #4b9aff;
+        }
     }
     .common-section-title {
         margin-bottom: 20px;

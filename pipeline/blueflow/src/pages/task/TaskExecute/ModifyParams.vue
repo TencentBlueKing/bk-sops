@@ -14,7 +14,8 @@
             <TaskParamEdit
                 v-if="!isParamsEmpty"
                 ref="TaskParamEdit"
-                :constants="constants">
+                :constants="constants"
+                :editable="paramsCanBeModify">
             </TaskParamEdit>
             <NoData v-else></NoData>
         </div>

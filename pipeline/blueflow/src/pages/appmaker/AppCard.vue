@@ -58,7 +58,15 @@ export default {
             this.$emit('onCardDelete', this.appData)
         },
         onGotoAppMaker () {
-            window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
+            if (self === top) {
+                this.$bkMessage({
+                    'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
+                    'theme': 'warning'
+                })
+            }
+            else {
+                window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
+            }
         }
     }
 }

@@ -1,0 +1,20 @@
+language: python
+python: 2.7
+
+services:
+  - mysql
+
+before_script:
+  - pip install -r requirements.txt
+  - pip install flake8
+  - pip install codecov
+  - pip install coverage
+
+script:
+  - flake8
+  - source scripts/develop/sites/community/env.sh
+  - mysql -uroot -e "CREATE DATABASE IF NOT EXISTS $APP_ID;"
+  - echo 'yes' | bash scripts/code/coverage_and_report.sh -e enterprise
+
+after_success:
+  - codecov

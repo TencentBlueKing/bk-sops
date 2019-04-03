@@ -13,10 +13,9 @@ import contextlib
 
 from django.db import transaction
 
-from pipeline.engine import signals, states
+from pipeline.engine import signals, states, exceptions
 from pipeline.engine.core.data import get_schedule_parent_data, set_schedule_data, delete_parent_data
 from pipeline.engine.models import ScheduleService, Data, Status, PipelineProcess
-from pipeline.models import PipelineInstance
 from django_signal_valve import valve
 
 logger = logging.getLogger('celery')
@@ -27,8 +26,8 @@ def schedule_exception_handler(process_id, schedule_id):
     try:
         yield
     except Exception as e:
-        activity_id = schedule_id[:32]
-        version = schedule_id[32:]
+        activity_id = schedule_id[:ScheduleService.SCHEDULE_ID_SPLIT_DIVISION]
+        version = schedule_id[ScheduleService.SCHEDULE_ID_SPLIT_DIVISION:]
         if Status.objects.filter(id=activity_id, version=version).exists():
             logger.error(traceback.format_exc(e))
             process = PipelineProcess.objects.get(id=process_id)
@@ -55,30 +54,28 @@ def schedule(process_id, schedule_id):
 
         if not Status.objects.filter(id=act_id, version=version).exists():
             # forced failed
-            logger.warning('schedule(%s - %s) forced exit.' % (act_id, version))
+            logger.warning('schedule service failed, schedule(%s - %s) had been forced exit.' % (act_id, version))
             sched_service.destroy()
             return
 
         # get data
         parent_data = get_schedule_parent_data(sched_service.id)
+        if parent_data is None:
+            raise exceptions.DataRetrieveError(
+                'child process(%s) retrieve parent_data error, sched_id: %s' % (process_id, schedule_id))
 
         # schedule
         ex_data = None
+        success = False
         try:
             success = service_act.schedule(parent_data, sched_service.callback_data)
+            if success is None:
+                success = True
         except Exception as e:
             if service_act.error_ignorable:
                 success = True
                 service_act.ignore_error()
-                service_act.service.finish_schedule()
-            else:
-                success = False
-                # send activity error signal
-                process = PipelineProcess.objects.get(id=sched_service.process_id)
-                valve.send(signals, 'activity_failed',
-                           sender=process.root_pipeline,
-                           pipeline_id=process.root_pipeline_id,
-                           pipeline_activity_id=service_act.id)
+                service_act.finish_schedule()
 
             ex_data = traceback.format_exc(e)
             logging.error(ex_data)
@@ -87,17 +84,35 @@ def schedule(process_id, schedule_id):
         set_schedule_data(sched_service.id, parent_data)
 
         # schedule failed
-        if success is False:
-            if not Status.objects.transit(id=act_id, version=version, to_state=states.FAILED):
+        if not success:
+            if not Status.objects.transit(id=act_id, version=version, to_state=states.FAILED).result:
                 # forced failed
-                logger.warning('schedule(%s - %s) forced exit.' % (act_id, version))
+                logger.warning('FAILED transit failed, schedule(%s - %s) had been forced exit.' % (act_id, version))
                 sched_service.destroy()
                 return
+
+            if service_act.timeout:
+                signals.service_activity_timeout_monitor_end.send(sender=service_act.__class__,
+                                                                  node_id=service_act.id,
+                                                                  version=version)
+                logger.info('node %s %s timeout monitor revoke' % (service_act.id, version))
+
             Data.objects.write_node_data(service_act, ex_data=ex_data)
             process = PipelineProcess.objects.get(id=sched_service.process_id)
             process.adjust_status()
 
             # send activity error signal
+
+            try:
+                service_act.schedule_fail()
+            except Exception as e:
+                logger.error('schedule_fail handler fail: %s' % traceback.format_exc(e))
+
+            signals.service_schedule_fail.send(sender=ScheduleService,
+                                               activity_shell=service_act,
+                                               schedule_service=sched_service,
+                                               ex_data=ex_data)
+
             valve.send(signals, 'activity_failed',
                        sender=process.root_pipeline,
                        pipeline_id=process.root_pipeline_id,
@@ -105,14 +120,19 @@ def schedule(process_id, schedule_id):
             return
 
         # schedule execute finished or callback finished
-        if service_act.schedule_done() or sched_service.wait_callback:
+        if service_act.is_schedule_done() or sched_service.wait_callback:
             error_ignorable = not service_act.get_result_bit()
-            if not Status.objects.transit(id=act_id, version=version, to_state=states.FINISHED):
-
+            if not Status.objects.transit(id=act_id, version=version, to_state=states.FINISHED).result:
                 # forced failed
-                logger.warning('schedule(%s - %s) forced exit.' % (act_id, version))
+                logger.warning('FINISHED transit failed, schedule(%s - %s) had been forced exit.' % (act_id, version))
                 sched_service.destroy()
                 return
+
+            if service_act.timeout:
+                signals.service_activity_timeout_monitor_end.send(sender=service_act.__class__,
+                                                                  node_id=service_act.id,
+                                                                  version=version)
+                logger.info('node %s %s timeout monitor revoke' % (service_act.id, version))
 
             Data.objects.write_node_data(service_act)
             if error_ignorable:
@@ -130,13 +150,17 @@ def schedule(process_id, schedule_id):
 
                 process.top_pipeline.data.update_outputs(parent_data.get_outputs())
                 # extract outputs
-                process.top_pipeline.context().extract_output(service_act)
+                process.top_pipeline.context.extract_output(service_act)
                 process.save(save_snapshot=True)
 
             # clear temp data
             delete_parent_data(sched_service.id)
             # save schedule service
             sched_service.finish()
+
+            signals.service_schedule_success.send(sender=ScheduleService,
+                                                  activity_shell=service_act,
+                                                  schedule_service=sched_service)
 
             valve.send(signals, 'wake_from_schedule',
                        sender=ScheduleService,

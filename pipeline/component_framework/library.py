@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from pipeline.exceptions import ComponentNotExistException
 
 
@@ -13,10 +14,12 @@ class ComponentLibrary(object):
     components = {}
 
     def __new__(cls, *args, **kwargs):
-        if "component_code" not in kwargs:
+        component_code = kwargs.get('component_code', None)
+        if args:
             component_code = args[0]
-        else:
-            component_code = kwargs["component_code"]
+        if not component_code:
+            raise ValueError('please pass a component_code in args or kwargs: '
+                             'ComponentLibrary(\'code\') or ComponentLibrary(component_code=\'code\')')
         if component_code not in cls.components:
             raise ComponentNotExistException('component %s does not exist.' %
                                              component_code)

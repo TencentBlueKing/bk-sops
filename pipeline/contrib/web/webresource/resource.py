@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 import ujson as json
 
 from django.utils import timezone
@@ -19,7 +20,7 @@ from tastypie.exceptions import ImmediateHttpResponse
 
 from pipeline import exceptions
 from pipeline.models import PipelineTemplate, Snapshot, PipelineInstance, unfold_subprocess, TemplateScheme
-from pipeline.utils.uniqid import uniqid, node_uniqid
+from pipeline.utils.uniqid import node_uniqid
 from pipeline.component_framework.models import ComponentModel
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.contrib.web import forms
@@ -88,7 +89,10 @@ class PipelineTemplateResource(ModelResource):
             raise_validation_error(self, bundle,
                                    'templates', 'data', _(u"JSON 格式不合法"))
 
-        result, msg = self.subprocess_ref_validate(bundle, data, root_id=bundle.obj.template_id, root_name=bundle.obj.name)
+        result, msg = self.subprocess_ref_validate(bundle,
+                                                   data,
+                                                   root_id=bundle.obj.template_id,
+                                                   root_name=bundle.obj.name)
         if not result:
             raise_validation_error(self, bundle, 'templates', 'data', msg)
         self.gateway_validate(bundle, data)

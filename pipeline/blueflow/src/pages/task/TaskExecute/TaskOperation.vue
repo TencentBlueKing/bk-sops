@@ -8,46 +8,74 @@
 <template>
     <div class="task-operation">
         <div class="operation-header clearfix">
-            <span :class="['task-status', state]">
-                <span class="task-status-icon">
-                    <i :class="['status-icon', taskStatusIcon]"></i>
-                </span>
-                <span class="task-status-name">{{taskState}}</span>
-            </span>
             <div class="bread-crumbs-wrapper">
                 <span
-                    class="path-item"
+                    :class="['path-item', {'name-ellipsis': nodeNav.length > 1}]"
                     v-for="(path, index) in nodeNav"
-                    :key="path.id">
-                        <span v-if="!!index">&gt;</span>
-                        <span class="node-name" @click="onSelectSubflow(path.id)">{{path.name}}</span>
+                    :key="path.id"
+                    :title="showNodeList.includes(index)? path.name: ''">
+                        <span v-if="!!index && showNodeList.includes(index) || index === 1">
+                            &gt;
+                        </span>
+                        <span
+                            v-if="showNodeList.includes(index)"
+                            class="node-name"
+                            :title="path.name"
+                            @click="onSelectSubflow(path.id)">
+                            {{path.name}}
+                        </span>
+                        <span class="node-ellipsis" v-else-if="index === 1">
+                            {{ellipsis}}
+                        </span>
                 </span>
             </div>
             <ul class="operation-container clearfix">
                 <li
                     v-for="operation in operationList"
                     :key="operation.type"
-                    :class="['operation-btn', operation.icon, {
+                    :class="['operation-btn', {
                         'actived': activeOperation === operation.type,
-                        'clickable': getBtnClickAble(operation.type)
+                        'clickable': getBtnClickAble(operation.type),
+                        'operation-extra-btn': operation.extraStyle,
+                        'revoke-actived': operation.type === 'revoke' && getBtnClickAble(operation.type),
+                        'operation-btn-disabled': operateLoading,
+                        'unclickable': unclickableOperation(operation.type)
                     }]"
                     v-bktooltips.bottom="operation.text"
-                    @click="onOperationClick(operation.type)">
+                    @click="onOperationClick(operation)">
+                    <div v-show="operateLoading && operation.type !== 'revoke'" class="operation-loading">
+                        <div class="loading-ball first-ball"></div>
+                        <div class="loading-ball second-ball"></div>
+                        <div class="loading-ball third-ball"></div>
+                    </div>
+                    <div
+                        v-show="!operateLoading || operation.type === 'revoke'">
+                        <i :class="[operation.icon]"></i>
+                    </div>
+                </li>
+                <li :class="['operation-line',
+                    {'disabled': state === 'REVOKED' || state === 'FINISHED'
+                }]">
                 </li>
                 <li
-                    :class="['operation-btn common-icon-menu-view clickable',{
-                        'actived': taskParamsType === 'viewParams'
+                    :class="['operation-btn common-icon-dark-paper clickable',{
+                        'actived': nodeInfoType === 'viewParams'
                     }]"
                     v-bktooltips.bottom="i18n.params"
-                    @click="onViewTaskParams">
+                    @click="onTaskParamsClick('viewParams')">
                 </li>
                 <li :class="['operation-btn', 'common-icon-edit', 'clickable', {
-                        'actived': taskParamsType === 'modifyParams'
+                        'actived': nodeInfoType === 'modifyParams'
                     }]"
-                    v-bktooltips.bottom="i18n.change_params"
-                    @click="onModifyTaskParams">
+                    v-bktooltips.bottom="i18n.changeParams"
+                    @click="onTaskParamsClick('modifyParams')">
                 </li>
             </ul>
+        </div>
+        <div :class="['task-status', state]">
+            <span class="task-status-name">
+                {{taskState}}
+            </span>
         </div>
         <div class="task-container">
             <div :class="['pipeline-nodes', {
@@ -63,28 +91,21 @@
                     @onNodeClick="onNodeClick">
                 </PipelineCanvas>
             </div>
-            <transition name="slideRight">
-                <div class="task-params" v-show="isTaskParamsShow">
-                    <ViewParams
-                        v-if="taskParamsType === 'viewParams'"
-                        :nodeData="nodeData"
-                        :selectedFlowPath="selectedFlowPath"
-                        :nodeDetailConfig="nodeDetailConfig"
-                        @onClickTreeNode="onClickTreeNode">
-                    </ViewParams>
-                    <ModifyParams
-                        v-if="taskParamsType === 'modifyParams'"
-                        :paramsCanBeModify="paramsCanBeModify"
-                        :instance_id="instance_id">
-                    </ModifyParams>
-                    <div class="toggle-params-panel" @click="onToggleParamPanel">
-                        <i :class="['common-icon-double-arrow', {actived: isTaskParamsShow}]"></i>
-                    </div>
-                </div>
-            </transition>
         </div>
         <transition name="slideRight">
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
+                <ViewParams
+                    v-if="nodeInfoType === 'viewParams'"
+                    :nodeData="nodeData"
+                    :selectedFlowPath="selectedFlowPath"
+                    :nodeDetailConfig="nodeDetailConfig"
+                    @onClickTreeNode="onClickTreeNode">
+                </ViewParams>
+                <ModifyParams
+                    v-if="nodeInfoType === 'modifyParams'"
+                    :paramsCanBeModify="paramsCanBeModify"
+                    :instance_id="instance_id">
+                </ModifyParams>
                 <ExecuteInfo
                     v-if="nodeInfoType==='executeInfo'"
                     :nodeDetailConfig="nodeDetailConfig">
@@ -102,7 +123,7 @@
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
                 <div class="close-node-info-panel" @click="onToggleNodeInfoPanel">
-                    <i class="common-icon-close"></i>
+                    <i class="common-icon-double-arrow"></i>
                 </div>
             </div>
         </transition>
@@ -113,6 +134,11 @@
             @onConfirm="onConfirmGatewaySelect"
             @onCancel="onCancelGatewaySelect">
         </gatewaySelectDialog>
+        <revokeDialog
+            :isRevokeDialogShow="isRevokeDialogShow"
+            @onConfirmRevokeTask="onConfirmRevokeTask"
+            @onCancelRevokeTask="onCancelRevokeTask">
+        </revokeDialog>
     </div>
 </template>
 <script>
@@ -129,30 +155,48 @@ import ExecuteInfo from './ExecuteInfo.vue'
 import RetryNode from './RetryNode.vue'
 import ModifyTime from './ModifyTime.vue'
 import gatewaySelectDialog from './GatewaySelectDialog.vue'
+import revokeDialog from './revokeDialog.vue'
 
 const OPERATIONS = [
     {
         type: 'execute',
-        icon: 'common-icon-execute',
-        text: gettext('执行')
-    },
-    {
-        type: 'pause',
-        icon: 'common-icon-suspended',
-        text: gettext('暂停')
-    },
-    {
-        type: 'resume',
-        icon: 'common-icon-resume',
-        text: gettext('继续')
+        icon: 'common-icon-right-triangle',
+        text: gettext('执行'),
+        extraStyle: true
     },
     {
         type: 'revoke',
-        icon: 'common-icon-revoke',
+        icon: 'common-icon-return-arrow',
         text: gettext('撤销')
     }
 ]
-
+// 执行按钮的变更
+const STATE_OPERATIONS = {
+    'RUNNING': {
+        type: 'pause',
+        icon: 'common-icon-double-vertical-line',
+        text: gettext('暂停'),
+        extraStyle: true
+    },
+    'SUSPENDED': {
+        type: 'resume',
+        icon: 'common-icon-right-triangle',
+        text: gettext('继续'),
+        extraStyle: true
+    },
+    'CREATED': {
+        type: 'execute',
+        icon: 'common-icon-right-triangle',
+        text: gettext('执行'),
+        extraStyle: true
+    },
+    'FAILED': {
+        type: 'pause',
+        icon: 'common-icon-double-vertical-line',
+        text: gettext('暂停'),
+        extraStyle: true
+    }
+}
 export default {
     name: 'TaskOperation',
     components: {
@@ -162,7 +206,8 @@ export default {
         ExecuteInfo,
         RetryNode,
         ModifyTime,
-        gatewaySelectDialog
+        gatewaySelectDialog,
+        revokeDialog
     },
     props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName'],
     data () {
@@ -177,11 +222,10 @@ export default {
 
         return {
             i18n: {
-                params: gettext("查看参数"),
-                change_params: gettext("修改参数")
+                params: gettext('查看参数'),
+                changeParams: gettext('修改参数')
             },
-            loading: true,
-            operationList: OPERATIONS,
+            operationList: OPERATIONS.slice(0),
             taskId: this.instance_id,
             isTaskParamsShow: false,
             isNodeInfoPanelShow: false,
@@ -202,8 +246,14 @@ export default {
                 skip: false,
                 selectGateway: false,
                 task: false,
-                parseNodeResume: false
-            }
+                parseNodeResume: false,
+                subflowPause: false,
+                subflowResume: false
+            },
+            isRevokeDialogShow: false,
+            showNodeList: [0, 1, 2],
+            ellipsis: '...',
+            operateLoading: false
         }
     },
     computed: {
@@ -240,33 +290,6 @@ export default {
         taskState () {
             return TASK_STATE_DICT[this.state]
         },
-        taskStatusIcon () {
-            let iconName
-            switch (this.state) {
-                case 'CREATED':
-                    iconName = 'icon-task-default'
-                    break
-                case 'RUNNING':
-                    iconName = 'common-icon-loading'
-                    break
-                case 'SUSPENDED':
-                    iconName = 'common-icon-suspended'
-                    break
-                case 'NODE_SUSPENDED':
-                    iconName = 'common-icon-suspended'
-                    break
-                case 'FAILED':
-                    iconName = 'common-icon-close-circle'
-                    break
-                case 'FINISHED':
-                    iconName = 'icon-task-done'
-                    break
-                case 'REVOKED':
-                    iconName = 'common-icon-revoke'
-                    break
-            }
-            return iconName
-        },
         nodeNav () {
             return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
         },
@@ -288,6 +311,23 @@ export default {
         this.$el.removeEventListener('click', this.handleNodeHoverClick, false)
         window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
     },
+    watch: {
+        state (val) {
+            if (val in STATE_OPERATIONS) {
+                this.operationList[0] = STATE_OPERATIONS[val]
+            } else if (val === 'REVOKED' || val === 'FINISHED') {
+                this.operationList = []
+            }
+            this.operateLoading = false
+        },
+        nodeNav (val) {
+            if (val.length > 3) {
+                this.showNodeList = [0, val.length - 1 , val.length - 2]
+            } else {
+                this.showNodeList = [0, 1, 2]
+            }
+        }
+    },
     methods: {
         ...mapActions('task/', [
             'getInstanceStatus',
@@ -303,9 +343,13 @@ export default {
             'pauseNodeResume'
         ]),
         async loadTaskStatus () {
-            this.loading =  true
+            const data = {
+                instance_id: this.taskId,
+                cc_id: this.cc_id
+            }
             try {
-                const instanceStatus = await this.getInstanceStatus(this.taskId)
+                this.$emit('taskStatusLoadChange', true)
+                const instanceStatus = await this.getInstanceStatus(data)
                 if (instanceStatus.result) {
                     this.state = instanceStatus.data.state
                     this.instanceStatus = instanceStatus.data
@@ -321,10 +365,12 @@ export default {
                 this.cancelTaskStatusTimer()
                 errorHandler(e, this)
             } finally {
-                this.loading = false
+                this.$emit('taskStatusLoadChange', false)
             }
         },
         async taskExecute () {
+            // 这里的loading结束由state的改变来停止
+            this.operateLoading = true
             try {
                 const res = await this.instanceStart(this.instance_id)
                 if (res.result) {
@@ -340,19 +386,21 @@ export default {
                 errorHandler(e, this)
             } finally {
                 this.pending.task = false
+                this.operateLoading = false
             }
         },
-        async taskPause () {
+        async taskPause (subflowPause, nodeId) {
+            this.operateLoading = true
             let res
             try {
-                if (this.isTopTask) {
-                    res = await this.instancePause(this.instance_id)
-                } else {
+                if (!this.isTopTask || subflowPause) { // 子流程画布暂停或子流程节点暂停
                     const data = {
                         instance_id: this.instance_id,
-                        node_id: this.taskId
+                        node_id: nodeId || this.taskId
                     }
                     res = await this.subInstancePause(data)
+                } else {
+                    res = await this.instancePause(this.instance_id)
                 }
                 if (res.result) {
                     this.$bkMessage({
@@ -366,19 +414,21 @@ export default {
                 errorHandler(e, this)
             } finally {
                 this.pending.task = false
+                this.operateLoading = false
             }
         },
-        async taskResume () {
+        async taskResume (subflowResume, nodeId) {
+            this.operateLoading = true
             let res
             try {
-                if (this.isTopTask) {
-                    res = await this.instanceResume(this.instance_id)
-                } else {
+                if (!this.isTopTask || subflowResume) {
                     const data = {
                         instance_id: this.instance_id,
-                        node_id: this.taskId
+                        node_id: nodeId || this.taskId
                     }
                     res = await this.subInstanceResume(data)
+                } else {
+                    res = await this.instanceResume(this.instance_id)
                 }
                 if (res.result) {
                     this.setTaskStatusTimer()
@@ -389,14 +439,15 @@ export default {
                 } else {
                     errorHandler(res, this)
                 }
-
             } catch (e) {
                 errorHandler(e, this)
             } finally {
                 this.pending.task = false
+                this.operateLoading = false
             }
         },
         async taskRevoke () {
+            this.operateLoading = true
             try {
                 const res = await this.instanceRevoke(this.instance_id)
                 if (res.result) {
@@ -414,9 +465,11 @@ export default {
                 errorHandler(e, this)
             } finally {
                 this.pending.task = false
+                this.operateLoading = false
             }
         },
-        async nodeTaskSkip (data) {
+        async nodeTaskSkip (tooltipDom, data) {
+            tooltipDom.style.display = 'none'
             this.pending.skip = true
             try {
                 const res = await this.instanceNodeSkip(data)
@@ -430,6 +483,7 @@ export default {
                         this.setTaskStatusTimer()
                     }, 1000)
                 } else {
+                    tooltipDom.style.display = 'block'
                     errorHandler(res, this)
                 }
             } catch (e) {
@@ -509,47 +563,102 @@ export default {
                 if (nodes[id].state === 'FINISHED') {
                     isSkipped = nodes[id].skip || nodes[id].error_ignorable
                     this.destroyTooltipInstance(id)
-                } else if (nodes[id].state === 'FAILED') {
-                    const type = nodeEl.dataset.type
+                } else if (nodes[id].state === 'FAILED') { // 初始化失败节点重试 tooltip（任务节点、分支网关）
+                    const type = nodeEl ? nodeEl.dataset.type : 'undefined'
                     if (type === 'tasknode') {
-                        const tpl = this.getFailedBtnTpl(id)
+                        const tpl = this.getFailedBtnTpl(id,nodeActivities.isSkipped, nodeActivities.can_retry)
                         this.generateTooltipInstance(nodeEl, id, tpl)
                     } else if (type === 'branchgateway') {
                         const tpl = this.getGatewayBtnTpl(id)
                         this.generateTooltipInstance(nodeEl, id, tpl)
                     }
-
-                } else if ( // modify timer node's time
+                } else if ( // 初始化定时节点修改时间 tooltip
                     nodes[id].state === 'RUNNING' &&
+                    nodeActivities &&
                     nodeActivities.component &&
                     nodeActivities.component.code === 'sleep_timer' &&
                     !this.nodeTooltipInstance[id]
                 ) {
                     const tpl = this.getModityTimeBtnTpl(id)
                     this.generateTooltipInstance(nodeEl, id, tpl)
-                } else if ( // resume pause node
+                } else if ( // 初始化暂停节点继续 tooltip
                     nodes[id].state === 'RUNNING' &&
+                    nodeActivities &&
                     nodeActivities.component &&
                     nodeActivities.component.code === 'pause_node' &&
                     !this.nodeTooltipInstance[id]
                 ) {
                     const tpl = this.getPauseResumeBtnTpl(id)
                     this.generateTooltipInstance(nodeEl, id, tpl)
+                } else if ( // 初始化子流程节点暂停 tooltip
+                    nodes[id].state === 'RUNNING' &&
+                    nodeActivities &&
+                    nodeActivities.type === 'SubProcess'
+                ) {
+                    const tpl = this.getSubflowPauseBtnTpl(id)
+                    if (!this.nodeTooltipInstance[id]) {
+                        this.generateTooltipInstance(nodeEl, id, tpl)
+                    } else {
+                        this.nodeTooltipInstance[id].updateTitleContent(tpl)
+                    }
+                } else if ( // 初始化子流程节点继续 tooltip
+                    nodes[id].state === 'SUSPENDED' &&
+                    nodeActivities &&
+                    nodeActivities.type === 'SubProcess'
+                ) {
+                    const tpl = this.getSubflowResumeBtnTpl(id)
+                    if (!this.nodeTooltipInstance[id]) {
+                        this.generateTooltipInstance(nodeEl, id, tpl)
+                    } else {
+                        this.nodeTooltipInstance[id].updateTitleContent(tpl)
+                    }
                 }
                 const data = {status: nodes[id].state, isSkipped}
+
+                // 暂停节点右上角显示暂停icon
+                if (nodes[id].state === 'RUNNING' &&
+                    nodeActivities &&
+                    nodeActivities.component &&
+                    nodeActivities.component.code === 'pause_node'
+                ) {
+                    data.status = 'SUSPENDED'
+                }
+
+                // 定时节点右上角显示时钟icon
+                if (nodes[id].state === 'RUNNING' &&
+                    nodeActivities &&
+                    nodeActivities.component &&
+                    nodeActivities.component.code === 'sleep_timer'
+                ) {
+                    data.isShowClockIcon = true
+                }
+
                 this.setTaskNodeStatus(id, data)
             }
         },
         setTaskNodeStatus (id, data) {
             this.$refs.pipelineCanvas && this.$refs.pipelineCanvas.onUpdateNodeInfo(id, data)
         },
-        getFailedBtnTpl (id) {
+        getFailedBtnTpl (id, isSkipped, retry) {
             const i18n_retry = gettext("重试")
             const i18n_skip = gettext("跳过")
-            return `<div class="btn-wrapper">
-                <div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>
-                <div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>
-            </div>`
+            const atom_failed = gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
+            let content = `<div class="btn-wrapper">`
+            if (retry) {
+                content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
+            }
+            if (isSkipped) {
+                content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
+            }
+            // 兼容老数据
+            if (retry === undefined && isSkipped === undefined) {
+                content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
+                content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
+            } else if (!retry && !isSkipped) {
+                content += `<div class="atom-failed">${atom_failed}</div>`
+            }
+            content += `</div>`
+            return content
         },
         getModityTimeBtnTpl (id) {
             const i18n_change_timer = gettext("修改时间")
@@ -567,6 +676,18 @@ export default {
             const i18n_continue = gettext("继续")
             return `<div class="btn-wrapper">
                 <div class="tooltip-btn pause-resume-btn" data-id="${id}">${i18n_continue}</div>
+            </div>`
+        },
+        getSubflowPauseBtnTpl (id) {
+            const i18n_pause = gettext("暂停")
+            return `<div class="btn-wrapper">
+                <div class="tooltip-btn subflow-pause-btn" data-id="${id}">${i18n_pause}</div>
+            </div>`
+        },
+        getSubflowResumeBtnTpl (id) {
+            const i18n_continue = gettext("继续")
+            return `<div class="btn-wrapper">
+                <div class="tooltip-btn subflow-resume-btn" data-id="${id}">${i18n_continue}</div>
             </div>`
         },
         generateTooltipInstance (el, id, tpl) {
@@ -590,7 +711,7 @@ export default {
                 subprocess_stack: JSON.stringify(subprocessStack)
             }
         },
-        // node tooltip click
+        // 节点 tooltip 操作
         handleNodeHoverClick (e) {
             const classList = e.target.classList
             if (!classList) return
@@ -604,16 +725,25 @@ export default {
                 this.handleGatewaySelectClick(e)
             } else if (classList.contains('pause-resume-btn')) {
                 this.handlePauseResumeClick(e)
+            } else if (classList.contains('subflow-pause-btn')) {
+                this.handleSubflowPauseClick(e)
+            } else if (classList.contains('subflow-resume-btn')) {
+                this.handleSubflowResumeClick(e)
             }
         },
         handleNodeInfoPanelHide (e) {
+            if (e.target.classList[0] === 'operation-btn') {
+                return
+            }
             const classList = e.target.classList
             const isTooltipBtn = classList.contains('tooltip-btn')
             if (!this.isNodeInfoPanelShow || isTooltipBtn) return
-            const NodeInfoPanel = document.querySelector(".node-info-panel")
+            const NodeInfoPanel = document.querySelector('.node-info-panel')
             if (NodeInfoPanel) {
                 if (!dom.nodeContains(NodeInfoPanel, e.target)) {
                     this.isNodeInfoPanelShow = false
+                    this.nodeInfoType = ''
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                 }
             }
         },
@@ -622,6 +752,7 @@ export default {
             this.isNodeInfoPanelShow = true
             this.nodeInfoType = 'retryNode'
             this.setNodeDetailConfig(id)
+            this.updateNodeActived(id, true)
         },
         handleNodeSkipClick (e) {
             if (this.pending.skip) return
@@ -631,13 +762,15 @@ export default {
                 instance_id: this.instance_id,
                 node_id: id
             }
-            this.nodeTaskSkip(data)
+            const tooltipDom = e.target.parentNode.parentNode.parentNode
+            this.nodeTaskSkip(tooltipDom, data)
         },
         handleNodeModifyTimeClick (e) {
             const id = e.target.dataset.id
             this.isNodeInfoPanelShow = true
             this.nodeInfoType = 'modifyTime'
             this.setNodeDetailConfig(id)
+            this.updateNodeActived(id, true)
         },
         handleGatewaySelectClick (e) {
             const id = e.target.dataset.id
@@ -664,13 +797,27 @@ export default {
             }
             this.nodeResume(data)
         },
-        // update pipeline canvas
+        handleSubflowPauseClick (e) {
+            if (this.pending.subflowPause) return
+            const id = e.target.dataset.id
+            this.taskPause(true, id)
+        },
+        handleSubflowResumeClick (e) {
+            if (this.pending.subflowResume) return
+            const id = e.target.dataset.id
+            this.taskResume(true, id)
+        },
+        // 设置画布数据，更新页面
         setCanvasData () {
             this.$nextTick(()=>{
                 this.nodeSwitching = false
             })
         },
         getBtnClickAble (type) {
+            if (this.operateLoading) {
+                // loading过程不允许点击
+                return false
+            }
             switch (type) {
                 case 'execute':
                     return this.state === 'CREATED' && this.isTopTask
@@ -702,28 +849,35 @@ export default {
                 this.destroyTooltipInstance(item)
             })
         },
-        // trigger view task params and select node panel
-        onViewTaskParams () {
-            this.isTaskParamsShow = true
-            this.taskParamsType = 'viewParams'
+        updateNodeActived (id, isActived) {
+            this.$refs.pipelineCanvas.onUpdateNodeInfo(id, { isActived })
         },
-        // trigger modify task params panel
-        onModifyTaskParams () {
-            this.isTaskParamsShow = true
-            this.taskParamsType = 'modifyParams'
+        // 查看参数、修改参数
+        onTaskParamsClick (type) {
+            this.nodeDetailConfig = {}
+            if (this.nodeInfoType === type) {
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
+            } else {
+                this.isNodeInfoPanelShow = true
+                this.nodeInfoType = type
+            }
         },
-        // trigger view params panel
-        onToggleParamPanel () {
-            this.isTaskParamsShow = false
-            this.taskParamsType = ''
-        },
-        // trigger node information panel
         onToggleNodeInfoPanel () {
             this.isNodeInfoPanelShow = false
             this.nodeInfoType = ''
+            this.updateNodeActived(this.nodeDetailConfig.node_id, false)
         },
-        onOperationClick (type) {
+        onOperationClick (operation) {
+            if (this.operateLoading) {
+                return
+            }
+            const type = operation.type
             if (!this.getBtnClickAble(type) || this.pending.task)  return
+            if (type === 'revoke') {
+                this.isRevokeDialogShow = true
+                return
+            }
             this.pending.task = true
             this.activeOperation = this.activeOperation ? '' : type
             const actionType = 'task' + type.charAt(0).toUpperCase() + type.slice(1)
@@ -746,24 +900,30 @@ export default {
             let isPanelShow = false
             if (nodeState) {
                 if (type === 'singleAtom') {
-                    isPanelShow = nodeState.state === 'FINISHED' || nodeState.state === 'FAILED'
+                    // 标准插件节点执行中、完成、失败状态，点击展开详情
+                    isPanelShow = ['RUNNING', 'FINISHED', 'FAILED'].indexOf(nodeState.state) > -1
                 } else {
+                    // 控制节点失败时点击展开详情
                     isPanelShow = nodeState.state === 'FAILED'
                 }
             }
             if (isPanelShow) {
                 let subprocessStack = []
                 if (this.selectedFlowPath.length > 1){
-                    subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                    subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = 'executeInfo'
+                if (this.nodeDetailConfig.node_id) {
+                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                }
                 this.nodeDetailConfig = {
                     component_code: componentCode,
                     node_id: id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
+                this.updateNodeActived(id, true)
             }
         },
         handleSubflowAtomClick (id) {
@@ -780,7 +940,7 @@ export default {
             this.pipelineData = this.pipelineData.activities[id].pipeline
             this.updateTaskStatus(id)
         },
-        // bread crumbs click
+        // 面包屑点击
         onSelectSubflow (id) {
             let nodeIndex = 0
             this.selectedFlowPath.some((item, index) => {
@@ -802,6 +962,7 @@ export default {
                 })
                 this.pipelineData = nodeActivities.pipeline
             }
+            this.isNodeInfoPanelShow = false
             this.nodeDetailConfig = {}
             this.clearTooltipInstance()
             this.cancelTaskStatusTimer()
@@ -859,19 +1020,23 @@ export default {
             this.isNodeInfoPanelShow = false
             this.destroyTooltipInstance(id)
             this.setTaskStatusTimer()
+            this.updateNodeActived(id, false)
         },
-        onRetryCancel () {
+        onRetryCancel (id) {
             this.isNodeInfoPanelShow = false
             this.nodeInfoType = ''
+            this.updateNodeActived(id, false)
         },
         onModifyTimeSuccess (id) {
             this.isNodeInfoPanelShow = false
             this.destroyTooltipInstance(id)
             this.setTaskStatusTimer()
+            this.updateNodeActived(id, false)
         },
-        onModifyTimeCancel () {
+        onModifyTimeCancel (id) {
             this.isNodeInfoPanelShow = false
             this.nodeInfoType = ''
+            this.updateNodeActived(id, false)
         },
         onConfirmGatewaySelect (selected) {
             const data = {
@@ -884,146 +1049,129 @@ export default {
         },
         onCancelGatewaySelect () {
             this.isGatewaySelectDialogShow = false
+        },
+        onConfirmRevokeTask () {
+            this.isRevokeDialogShow = false
+            this.taskRevoke()
+        },
+        onCancelRevokeTask () {
+            this.isRevokeDialogShow = false
+        },
+        unclickableOperation (type) {
+            // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击
+            return this.state === 'FAILED' && type !== 'revoke' || this.state === 'CREATED' && type === 'revoke' || this.operateLoading || !this.isTopTask
         }
     }
 }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+@import '@/scss/animation/operate.scss';
 .task-operation {
     position: relative;
-    height: calc(100% - 60px);
+    height: calc(100% - 118px);
+    min-height: 500px;
     overflow: hidden;
-}
-.operation-header {
-    padding: 0 0 0 10px;
-    height: 50px;
-    line-height: 50px;
-    background: $commonBgColor;
-    border-bottom: 1px solid $commonBorderColor;
+    background: #f4f7fa;
     .task-status {
-        display: inline-block;
-        padding-right: 10px;
-        height: 20px;
-        line-height: 20px;
+        height: 30px;
+        line-height: 30px;
         font-size: 14px;
-        color: $whiteDefault;
-        border-right: 1px solid $commonBorderColor;
+        color: #63656e;
+        border-right: 1px solid #d2d4dd;
         text-align: center;
-        .task-status-icon {
-            position: relative;
-            float: left;
-            margin-top: 2px;
-            margin-right: 4px;
-            width: 16px;
-            height: 16px;
-            line-height: 16px;
-            border-radius: 50%;
-            font-size: 12px;
-            text-align: center;
-        }
+        background-color: #dcdee5;
         &.CREATED {
-            .task-status-icon {
-                background: $blueDefault;
-                & > i {
-                    display: inline-block;
-                    width: 6px;
-                    height: 6px;
-                    border-radius: 50%;
-                    background: $whiteDefault;
-                    vertical-align: 2px;
-                }
-            }
+            border-top: 1px solid #d2d4dd;
+            border-bottom: 1px solid #d2d4dd;
             .task-status-name {
-                color: $blueDefault;
+                color: #63656e;
             }
         }
         &.FINISHED {
-            .task-status-icon {
-                background: $greenDark;
-
-            }
-            .icon-task-done:after {
-                content: "";
-                position: absolute;
-                left: 3px;
-                top: 4px;
-                height: 4px;
-                width: 8px;
-                border-left: 1px solid;
-                border-bottom: 1px solid;
-                border-color: #ffffff;
-                -webkit-transform: rotate(-45deg);
-                transform: rotate(-45deg);
-            }
+            background-color: #cceed9;
+            border-top: 1px solid #b6e4c7;
+            border-bottom: 1px solid #b6e4c7;
             .task-status-name {
-                color: $greenDark;
+                color: #2dcb56;
             }
         }
         &.RUNNING {
-            .task-status-icon {
-                background: $yellowDefault;
-            }
+            background-color: #cfdffb;
+            border-top: 1px solid #c0d4f8;
+            border-bottom: 1px solid #c0d4f8;
             .task-status-name {
-                color: $yellowDefault;
-            }
-            .common-icon-loading {
-                display: inline-block;
-                font-size: 12px;
-                animation: bk-button-loading 1.4s infinite linear;
-            }
-            @keyframes bk-button-loading {
-                from {
-                  -webkit-transform: rotate(0);
-                  transform: rotate(0); }
-                to {
-                  -webkit-transform: rotate(360deg);
-                  transform: rotate(360deg);
-                }
+                color: #3a84ff;
             }
         }
         &.SUSPENDED, &.NODE_SUSPENDED {
-            .task-status-icon {
-                color: $whiteDefault;
-                background: $yellowDefault;
-            }
+            background-color: #ffe8c3;
+            border-top: 1px solid #e6cfaa;
+            border-bottom: 1px solid #e6cfaa;
             .task-status-name {
-                color: $yellowDefault;
+                color: #d78300;
             }
         }
         &.FAILED {
-            .task-status-icon {
-                color: $redDefault;
-                font-size: 16px;
-            }
+            background-color: #f2d0d3;
+            border-top: 1px solid #efb9be;
+            border-bottom: 1px solid #efb9be;
             .task-status-name {
-                color: $redDefault;
+                color: #EA3636;
             }
         }
         &.REVOKED {
-            .task-status-icon {
-                background: $blueDisable;
-            }
+            background-color: #f2d0d3;
+            border-top: 1px solid #efb9be;
+            border-bottom: 1px solid #efb9be;
             .task-status-name {
-                color: $blueDisable;
+                color: #ea3636;
             }
         }
     }
+}
+
+/deep/ .atom-failed {
+    font-size: 12px;
+}
+.operation-header {
+    margin: 0 20px;
+    height: 50px;
+    line-height: 50px;
+    background: #f4f7fa;
+    border-top: 1px solid #cacedb;
+
     .bread-crumbs-wrapper {
         display: inline-block;
         font-size: 14px;
+        height: 50px;
         .path-item {
             display: inline-block;
+            overflow: hidden;
+            &.name-ellipsis {
+                max-width: 190px;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
             .node-name {
                 margin: 0 4px;
-                color: $blueDefault;
+                font-size: 14px;
+                color: #3a84ff;
                 cursor: pointer;
-
+            }
+            .node-ellipsis {
+                margin-right: 4px;
+            }
+            &:first-child {
+                .node-name {
+                    margin-left: 0px;
+                }
             }
             &:last-child {
                 .node-name {
                     &:last-child {
-                        color: $greyDefault;
+                        color: #313238;
                         cursor: text;
                     }
                 }
@@ -1034,33 +1182,114 @@ export default {
         float: right;
         .operation-btn {
             float: left;
-            width: 60px;
-            height: 49px;
-            line-height: 49px;
-            font-size: 22px;
+            margin-top: 9px;
+            margin-left: 15px;
+            width: 50px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 16px;
             text-align: center;
-            color: $greyDisable;
+            color: #d8d8d8;
             &.clickable {
-                color: $greyDefault;
+                color: #979ba5;
                 cursor: pointer;
                 &:hover {
-                    color: $greenDefault;
+                    color: #63656e;
                 }
                 &.actived {
-                    color: $greenDefault;
-                    background: $whiteDefault;
+                    color: #63656e;
                 }
             }
-            &.common-icon-menu-view {
-                border-left: 1px solid $commonBorderColor;
+            &.common-icon-edit {
+                margin-left: 0px;
             }
+            &.revoke-actived {
+                &.clickable {
+                    color: #c32929;
+                }
+                &:hover {
+                    color: #c32929;
+                }
+                &.actived {
+                    color: #c32929;
+                }
+            }
+        }
+        .operation-line {
+            float: left;
+            margin-top: 9px;
+            margin-left: 17px;
+            height: 32px;
+            &.disabled {
+                height: 0px;
+            }
+            width: 1px;
+            background-color: #dde4eb;
+        }
+        .operation-extra-btn {
+            width: 140px;
+            height: 32px;
+            line-height: 33px;
+            margin-top: 9px;
+            margin-right: 2px;
+            border-radius: 2px;
+            background-color: #2dcb56;
+            font-size: 13px;
+            color: #ffffff;
+            &.clickable {
+                color: #ffffff;
+                cursor: pointer;
+                &:hover {
+                    color: #ffffff;
+                    background: #1f9c40;
+                }
+                &.actived {
+                    color: #ffffff;
+                    background: #1f9c40;
+                }
+            }
+        }
+        .operation-loading {
+            display: inline-block;
+            margin-left: -7px;
+            margin-top: -4px;
+            vertical-align: middle;
+            &.loading {
+                content: '\E920'
+            }
+            .loading-ball {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                float: left;
+                margin-left: 6px;
+                &.first-ball {
+                    background-color: #abeabb;
+                    animation: operate-loading 0.8s linear 0s infinite;
+                }
+                &.second-ball {
+                    background-color: #57d577;
+                    animation: operate-loading 0.8s linear 0.2s infinite;
+                }
+                &.third-ball {
+                    background-color: #57d577;
+                    animation: operate-loading 0.8s linear 0.4s infinite;
+                }
+            }
+            .operation-btn-disabled {
+                cursor: not-allowed;
+            }
+        }
+        .unclickable {
+            cursor: not-allowed;
+            opacity: 0.3;
         }
     }
 }
 .task-container {
     position: relative;
     width: 100%;
-    height: calc(100% - 52px);
+    height: calc(100% - 80px);
     background: $whiteDefault;
     overflow: hidden;
     .pipeline-nodes {
@@ -1072,60 +1301,66 @@ export default {
             .node-canvas {
                 width: 100%;
                 height: 100%;
-                background: $whiteDefault;
+                background: #e1e4e8;
+            }
+            .tool-wrapper {
+                top: 19px;
+                left: 40px;
             }
         }
     }
-    .task-params {
-        position: absolute;
-        top: 0;
-        right: 0;
+
+}
+.task-params {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 750px;
+    height: 100%;
+    background: $whiteDefault;
+    border-left: 1px solid $commonBorderColor;
+    box-shadow: -1px 1px 8px rgba(130, 130, 130, .15), 1px -1px 8px rgba(130, 130, 130, .15);
+    z-index: 4;
+    .task-params-show {
         width: 750px;
-        height: 100%;
-        background: $whiteDefault;
         border-left: 1px solid $commonBorderColor;
-        z-index: 4;
-        .task-params-show {
-            width: 750px;
-            border-left: 1px solid $commonBorderColor;
+    }
+    .toggle-params-panel {
+        position: absolute;
+        top: 50%;
+        left: -20px;
+        margin-top: -12px;
+        width: 20px;
+        height: 38px;
+        line-height: 38px;
+        font-size: 12px;
+        color: $whiteDefault;
+        text-align: center;
+        background: $blueDefault;
+        border-right: none;
+        border-radius: 4px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
+        cursor: pointer;
+        transform: rotate(0);
+        &:hover {
+            background: #0082ff;
         }
-        .toggle-params-panel {
-            position: absolute;
-            top: 50%;
-            left: -18px;
-            margin-top: -12px;
-            width: 18px;
-            height: 38px;
-            line-height: 38px;
-            font-size: 14px;
-            color: #5a5a68;
-            text-align: center;
-            background: $commonBgColor;
-            border: 1px solid $commonBorderColor;
-            border-right: none;
-            border-radius: 2px;
-            border-top-right-radius: 0;
-            border-bottom-right-radius: 0;
-            cursor: pointer;
-            transform: rotate(0);
-            &:hover {
-                color: $blueDefault;
-                background: $greyDash;
-            }
-            &.actived {
-                transform: rotate(-180deg);
-            }
+        &.actived {
+            transform: rotate(-180deg);
         }
     }
 }
 .node-info-panel {
     position: absolute;
-    top: 0;
+    top: 50px;
     right: 0;
     width: 764px;
-    height: 100%;
+    height: calc(100% - 50px);
     background: $whiteDefault;
-    border-left: 1px solid $commonBorderColor;
+    border-top: 1px solid #dde4eb;
+    border-left: 1px solid #dde4eb;
     z-index: 5;
     .close-node-info-panel {
         position: absolute;
@@ -1137,13 +1372,19 @@ export default {
         font-size: 12px;
         color: $whiteDefault;
         text-align: center;
-        background: $blueThinBg;
+        background:#3c96ff;
+        border-right: none;
+        border-radius: 4px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+        box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
         cursor: pointer;
         &:hover {
             background: $blueDefault;
         }
     }
 }
+
 </style>
 <style lang="scss">
 @import '@/scss/config.scss';

@@ -14,7 +14,12 @@ import '../css/bkflow.scss'
                 canvas: null,  //画布
                 template: null,  //可配置的模版
                 tools: null,  // 流程拖动源
-
+                selector: {
+                    el: null,
+                    x: 0, // 矩形框中心点画布 x 坐标
+                    y: 0, // 矩形框中心点画布 y 坐标
+                    nodes: []
+                }, // 节点选择框
                 locationConfig: {},  // 节点的类型和端点的位置
                 lineWidth: 3,  // 线的宽度 默认为2
                 fillColor: 'red',  // 高亮颜色
@@ -26,9 +31,10 @@ import '../css/bkflow.scss'
                 data: {
                     locations: [],
                     lines: []
-                },  //渲染的数据源
+                },  // 渲染的数据源
                 id: 'chart',  // 配置渲染的节点id
                 isEdit: true,  // 是否编辑
+                dragSelection: false, // 是否支持框选节点
                 dropElevent: null,  // 拖拽的数据源
 
                 getDefaultLocation: null,  // 获取某一类型节点的初始化节点数据
@@ -48,7 +54,8 @@ import '../css/bkflow.scss'
                 ondrawData: null,  // 渲染流程后回调
 
                 onLineDragStop: null, // 节点端点拖拽连线结束回调
-                onLabelBlur: null // 连接线label失焦回调
+                onLabelBlur: null, // 连接线label失焦回调
+                onCloseDragSelection: null // 关闭节点框选回调
             }
 
             // 最终配置，包括组装连线配置
@@ -56,13 +63,13 @@ import '../css/bkflow.scss'
             opts.sourceEndpoint = {
                 endpoint: 'Dot',
                 paintStyle: { //出发点
-                    stroke: 'rgba(0, 0, 0, 0)',
+                    stroke: opts.isEdit ? opts.pointColor : 'rgba(0, 0, 0, 0)',
                     fill: 'rgba(0, 0, 0, 0)',
                     radius: 7,
                 },
                 hoverPaintStyle: {
-                    stroke: opts.fillColor,
-                    fill: opts.fillColor,
+                    stroke: opts.isEdit ? opts.fillColor : 'rgba(0, 0, 0, 0)',
+                    fill: opts.isEdit ? opts.fillColor : 'rgba(0, 0, 0, 0)',
                     radius: 7
                 },
                 isSource: true,
@@ -71,7 +78,7 @@ import '../css/bkflow.scss'
                     'Flowchart',
                     {
                         stub: [5, 20],
-                        gap: 3,
+                        gap: 8,
                         cornerRadius: opts.lineRadius,
                         alwaysRespectStubs: true
                     }
@@ -80,11 +87,11 @@ import '../css/bkflow.scss'
                     strokeWidth: 2, // 线条宽度
                     stroke: opts.defaultColor, //填充颜色
                     joinstyle: 'round',
-                    // outlineStroke: 'transparent',
-                    outlineWidth: 10 //线条外部宽度
+                    outlineStroke: 'transparent',
+                    outlineWidth: 0 //线条外部宽度
                 },
                 connectorHoverStyle: {
-                    strokeWidth: 3,
+                    strokeWidth: 2,
                     stroke: opts.isEdit ? opts.fillColor : opts.defaultColor,
                     fill: opts.isEdit ? opts.fillColor : opts.defaultColor
                 },
@@ -98,19 +105,18 @@ import '../css/bkflow.scss'
             opts.targetEndpoint = {
                 endpoint: 'Dot',
                 paintStyle: {
-                    stroke: opts.pointColor,
-                    fill: opts.pointColor,
+                    stroke: opts.isEdit ? opts.fillColor : 'rgba(0, 0, 0, 0)',
+                    fill: 'rgba(0, 0, 0, 0)',
                     radius: 7
                 },
                 hoverPaintStyle: {
-                    stroke: opts.fillColor,
-                    fill: opts.fillColor,
+                    stroke: opts.isEdit ? opts.fillColor : 'rgba(0, 0, 0, 0)',
+                    fill: opts.isEdit ? opts.fillColor : 'rgba(0, 0, 0, 0)',
                     radius: 7
                 },
                 connectorHoverStyle: {
-                    strokeWidth: 3,
-                    stroke: opts.isEdit ? opts.fillColor : opts.defaultColor,
-                    fill: opts.isEdit ? opts.fillColor : opts.defaultColor
+                    strokeWidth: 4,
+                    stroke: opts.isEdit ? opts.fillColor : opts.defaultColor
                 },
                 dragOptions: {
                     drag: function (e) {
@@ -121,8 +127,8 @@ import '../css/bkflow.scss'
                     strokeWidth: 2, // 线条宽度
                     stroke: opts.defaultColor, //填充颜色
                     joinstyle: 'round',
-                    // outlineStroke: 'transparent',
-                    outlineWidth: 10 //线条外部宽度
+                    outlineStroke: 'transparent',
+                    outlineWidth: 0 //线条外部宽度
                 },
                 maxConnections: -1,
                 isSource: true,
@@ -217,7 +223,7 @@ import '../css/bkflow.scss'
                     ['PlainArrow', {
                         location: 1, // 0-1
                         width: 8,
-                        id: 'amrrow',
+                        id: 'arrow',
                         length: 6,
                         events: { //终线箭头的点击事件
                             click: function (e) {
@@ -226,7 +232,7 @@ import '../css/bkflow.scss'
                         }
                     }],
                     ['Label', 
-                        { label: '<i class="common-icon-close-circle"></i>', id: 'label' }
+                        { label: '<i class="common-icon-dark-circle-close"></i>', id: 'label' }
                     ]
                 ],
                 Container: 'ktj-canvas' //容器id
@@ -267,132 +273,328 @@ import '../css/bkflow.scss'
                     x: 0,
                     y: 0
                 }
+                var mousePos = { // 鼠标位置相对于画布坐标
+                    x: 0,
+                    y: 0
+                }
 
                 _self
                     .off('mousedown')
                     .off('mousemove')
                     .off('mouseup')
+                setMouseMoveEvent()
 
-                // 画布拖拽功能
-                _self
-                    .on('mousedown', opts.canvas, function (e) {
-                        isCvsDragging = true
-                        initialLocation.x = e.pageX
-                        initialLocation.y = e.pageY
-                        // return false
+                // 设置鼠标移动事件，记录鼠标坐标
+                function setMouseMoveEvent () {
+                    _self.on('mousemove', opts.canvas, function (e) {
+                        const canvasWrapperOffset = $(opts.canvas).offset()
+                        mousePos = {
+                            x: e.pageX - canvasWrapperOffset.left - $nodeContainer.left,
+                            y: e.pageY - canvasWrapperOffset.top - $nodeContainer.top
+                        }
                     })
-                    .on('mousemove', opts.canvas, function (e) {
-                        if (isCvsDragging) {
-                            // 拖拽画布非节点区域，则触发画布整体拖拽事件
-                            var distanceOnX = e.pageX - initialLocation.x + $nodeContainer.left
-                            var distanceOnY = e.pageY - initialLocation.y + $nodeContainer.top
-                            $nodeContainer.el.css({
-                                left: distanceOnX + 'px',
-                                top: distanceOnY + 'px'
+                }
+                
+                // 画布拖拽、节点框选事件
+                _self.on('mousedown', opts.canvas, canvasDragHanlder)
+
+                function canvasDragHanlder (e) {
+                    const canvasWrapperOffset = $(opts.canvas).offset() // 画布最外层元素相对于文档的偏移量
+                    const posLeft = e.pageX - canvasWrapperOffset.left - $nodeContainer.left
+                    const posTop = e.pageY - canvasWrapperOffset.top - $nodeContainer.top
+                    initialLocation.x = e.pageX
+                    initialLocation.y = e.pageY
+
+                    if (opts.dragSelection) {
+                        const selectWrapper = document.createElement('div')
+                        selectWrapper.className = 'select-wrapper'
+                        _self.find('.bk-flow-container').append(selectWrapper)
+                        opts.selector.el = $(selectWrapper)
+                        opts.selector.el.css({
+                            left: posLeft,
+                            top: posTop
+                        })
+                    }
+                    _self.on('mousemove', opts.canvas, function (event) {
+                        if (opts.dragSelection) {
+                            selectionMoveHanlder(event, posLeft, posTop)
+                        } else {
+                            canvasMoveHandler(event)
+                        }
+                    })
+                    $(document).one('mouseup', function (event) {
+                        if (opts.dragSelection) {
+                            selectionEndHandler(event)
+                        } else {
+                            canvasMoveEndHandler(event)
+                        }
+                        _self.off('mousemove', opts.canvas)
+                        setMouseMoveEvent()
+                    })
+                }
+
+                /**
+                 * 画布移动事件回调
+                 * @param {Object} e 事件对象
+                 */
+                function canvasMoveHandler (e) {
+                    var distanceOnX = e.pageX - initialLocation.x + $nodeContainer.left
+                    var distanceOnY = e.pageY - initialLocation.y + $nodeContainer.top
+                    $nodeContainer.el.css({
+                        left: distanceOnX,
+                        top: distanceOnY
+                    })
+                }
+
+                /**
+                 * 画布移动结束事件回调
+                 * @param {Object} e 事件对象
+                 */
+                function canvasMoveEndHandler (e) {
+                    // 拖拽结束更新画布的位移值
+                    $nodeContainer.left += e.pageX - initialLocation.x
+                    $nodeContainer.top += e.pageY - initialLocation.y
+                }
+
+                /**
+                 * 节点选择事件回调
+                 * @param {Object} e 事件对象
+                 * @param {Number} posLeft 选框相对于画布左偏移量
+                 * @param {Number} posTop 选框相对于画布顶部偏移量
+                 */
+                function selectionMoveHanlder (e, posLeft, posTop) {
+                    const distanceX = e.pageX - initialLocation.x
+                    const distanceY = e.pageY - initialLocation.y
+                    posLeft = distanceX > 0 ? posLeft : posLeft + distanceX
+                    posTop = distanceY > 0 ? posTop : posTop + distanceY
+                    opts.selector.el.css({
+                        width: Math.abs(distanceX),
+                        height: Math.abs(distanceY),
+                        left: posLeft,
+                        top: posTop
+                    })
+                    opts.selector.x = (posLeft + Math.abs(distanceX)) / 2
+                    opts.selector.y = (posTop + Math.abs(distanceY)) / 2
+                }
+
+                /**
+                 * 节点选择结束回调
+                 * @param {Object} e 事件对象
+                 */
+                function selectionEndHandler (e) {
+                    const locations = _self.find('.bk-flow-location')
+                    
+                    locations.each((index, node) => {
+                        const $node = $(node)
+                        if (opts.selector.el && isNodeInSelectionArea($node)) { // 暂时兼容鼠标在画布外释放
+                            opts.selector.nodes.push(node)
+                            $node.addClass('selected')
+                        }
+                    })
+                    instance.addToDragSelection(opts.selector.nodes) // 多节点拖拽
+                    
+                    $(document).on('keydown', locationLineCopyHandler) // 节点、连线复制事件
+                    $(document).on('keydown', locationLinePasteHandler) // 节点、连线粘贴事件
+                    $(document).on('keydown', locationLineDeleteHandler) // 节点、连线删除事件
+                    $(document).one('mousedown', function (event) { // 画布失焦
+                        const $this = $(event.target)
+                        if (!$this.hasClass('bk-flow-location')) {
+                            clearSelector()
+                        }
+                    })
+                    $('.bk-flow-location').one('mousedown', function (event) {
+                        if (!$(this).hasClass('selected')) {
+                            clearSelector()
+                        }
+                    })
+                    opts.dragSelection = false // 关闭可拖拽状态
+                    opts.onCloseDragSelection && opts.onCloseDragSelection()
+                    _self.find('.select-wrapper').remove()
+                }
+
+                /**
+                 * 清除选框及数据
+                 */
+                function clearSelector () {
+                    _self.find('.bk-flow-location.selected').removeClass('selected')
+                    $(document).off('keydown', locationLineCopyHandler)
+                    $(document).off('keydown', locationLinePasteHandler)
+                    $(document).off('keydown', locationLineDeleteHandler)
+                    opts.selector.el = null
+                    opts.selector.nodes = []
+                    instance.clearDragSelection()
+                }
+
+                /**
+                 * 判断节点是否在选择框里
+                 * @param {Object} node 画布中所有节点集合
+                 * @return {Boolean} 节点是否在选择框里
+                 */
+                function isNodeInSelectionArea ($node) {
+                    const $selector = opts.selector.el
+                    const selectorPos = $selector.position()
+                    const nodePos = $node.position()
+                    return selectorPos.left < nodePos.left &&
+                            selectorPos.left + $selector.width() > nodePos.left &&
+                            selectorPos.top < nodePos.top &&
+                            selectorPos.top + $selector.height() > nodePos.top
+                }
+
+                /**
+                 * 节点、连线复制回调
+                 */
+                function locationLineCopyHandler (e) {
+                    if ((e.ctrlKey || e.metaKey) && e.keyCode === 67) {
+                        const selectedLocationId = opts.selector.nodes.map(item => item.id)
+                        opts.onCopyElement && opts.onCopyElement(selectedLocationId, opts.selector)
+                    }
+                }
+
+                /**
+                 * 节点、连线粘贴回调
+                 */
+                function locationLinePasteHandler (e) {
+                    if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) {
+                        const offsetX = mousePos.x - opts.selector.x
+                        const offsetY = mousePos.y - opts.selector.y
+                        instance.clearDragSelection()
+                        _self.find('.bk-flow-location.selected').removeClass('selected')
+                        if (opts.onPasteElement) {
+                            const locations = opts.onPasteElement(offsetX, offsetY)
+                            const locationIds = []
+                            locations.forEach(location => {
+                                $('#' + location.id).addClass('selected')
+                                locationIds.push(location.id)
                             })
+                            instance.addToDragSelection(locationIds)
                         }
-                    })
-                    .on('mouseup', opts.canvas, function (e) {
-                        if (isCvsDragging) {
-                            // 拖拽结束更新画布的位移值
-                            $nodeContainer.left += e.pageX - initialLocation.x
-                            $nodeContainer.top += e.pageY - initialLocation.y
-                            // 画布拖拽结束标识变更
-                            isCvsDragging = false
-                        }
-                    })
+                    }
+                }
 
-                // 组件库拖拽功能
-                _self
-                    .on('mousedown', opts.tools, function (e) {
-                        e.stopPropagation()
-                        var __this = $(this)
+                /**
+                 * 节点、连线删除回调
+                 */
+                function locationLineDeleteHandler (e) {
+                    if (e.keyCode === 46 || e.keyCode === 8) {
+                        const selectedLocationId = opts.selector.nodes.map(item => item.id)
+                        opts.onDeleteElement && opts.onDeleteElement(selectedLocationId)
+                    }
+                }
 
-                        if (!opts.isEdit) {
+                // 工具栏节点添加事件
+                _self.on('mousedown', opts.tools, toolsDragHandler)
+
+                /**
+                 * 工具栏节点鼠标点击按下事件回调
+                 * @param {Object} e 事件对象
+                 */
+                function toolsDragHandler (e) {
+                    var __this = $(this)
+
+                    if (!opts.isEdit) {
+                        return false
+                    }
+
+                    var type = __this.attr('data-type')
+                    var _html = handlerFactory.getLocationTemplate(type, 'update')
+                    var _loc = handlerFactory.getDefaultLocation(type)
+                    var atomId = __this.attr('data-atomid')
+                    var atomVersion = __this.attr('data-version')
+                    var atomName = __this.attr('data-atomname')
+                    _loc.atomId = atomId
+                    _loc.atomVersion = atomVersion
+                    atomName && (_loc.name = atomName)
+                    if (type !== 'tasknode' && type !== 'subflow') {
+                        _loc.name = ''
+                    }
+                    var _mouseDom = `
+                        <div class="bk-flow-location" id="${_loc.id}" data-type="${_loc.type}">
+                            ${handlerFactory.initHtml(_html, _loc).str}
+                        </div>
+                    `
+
+                    // 将鼠标拖动节点，存在于 body 一级子节点
+                    $('body').append(_mouseDom)
+                    var top = $('body').scrollTop()
+                    var x = e.pageX + 10
+                    var y = e.pageY + 10
+                    currentNode = $('body >.bk-flow-location')
+                    // 把生成的数据绑定在DOM上
+                    currentNode.data('raw', _loc)
+                    $(currentNode).css({
+                        left: x,
+                        top: y,
+                        position: 'fixed',
+                        opacity: '0.7',
+                        'z-index': 9999
+                    })
+                    isMove = true
+
+                    _self.on('mousemove', toolsMoveHandler)
+                    _self.one('mouseup', toolsMoveEndHandler)
+                    return false
+                }
+
+                /**
+                 * 工具栏节点点击拖拽事件回调
+                 * @param {Object} e 事件对象
+                 */
+                function toolsMoveHandler (e) {
+                    if (isMove) {
+                        var top = $('body').scrollTop()
+                        _obj = $('body >.bk-flow-location').length
+                        $(currentNode).css({
+                            left: e.pageX + 10,
+                            top: e.pageY + 10 - top
+                        })
+                    }
+                }
+
+                /**
+                 * 工具栏节点拖拽结束事件回调
+                 * @param {Object} e 事件对象
+                 */
+                function toolsMoveEndHandler (e) {
+                    if (isMove && _obj && opts.isEdit) {
+                        var canvas = $(opts.canvas)
+                        var scroll_top = canvas.scrollTop() // 画布纵向滚动高度
+                        var scroll_left = canvas.scrollLeft() // 画布横向滚动高度
+                        var w = parseInt(canvas.width())
+                        var h = parseInt(canvas.height())
+                        var left = canvas.offset().left
+                        var top = canvas.offset().top
+                        // 拖动不符合预期（不在画布内）的节点，直接删除，流程结束
+                        var _x = e.pageX - (left + scroll_left)
+                        var _y = e.pageY - (top + scroll_top)
+                        if (_x < 0 || _x > w || _y < 0 || _y > h) {
+                            $('body >.bk-flow-location').remove('*')
                             return false
                         }
+                        // 拖动符合预期（在画布内）的节点，插入画布，设置正确位置，清除拖动节点
+                        var loc = currentNode.data('raw')
+                        loc.x = e.pageX + 10 - left + scroll_left - $nodeContainer.left
+                        loc.y = e.pageY + 10 - top + scroll_top - $nodeContainer.top
+                        _createLocation(loc)
 
-                        var type = __this.attr('data-type')
-                        var _html = handlerFactory.getLocationTemplate(type, 'update')
-                        var _loc = handlerFactory.getDefaultLocation(type)
-                        var atomId = __this.attr('data-atomid')
-                        var atomVersion = __this.attr('data-version')
-                        var atomName = __this.attr('data-atomname')
-                        _loc.atomId = atomId
-                        _loc.atomVersion = atomVersion
-                        atomName && (_loc.name = atomName)
-                        if (type !== 'tasknode' && type !== 'subflow') {
-                            _loc.name = ''
-                        }
-                        var _mouseDom = `
-                            <div class="bk-flow-location" id="${_loc.id}" data-type="${_loc.type}">
-                                ${handlerFactory.initHtml(_html, _loc).str}
-                            </div>
-                        `
-
-                        // 将鼠标拖动节点，存在于 body 一级子节点
-                        $('body').append(_mouseDom)
-                        var top = $('body').scrollTop()
-                        var x = e.pageX + 10
-                        var y = e.pageY + 10
-                        currentNode = $('body >.bk-flow-location')
-                        // 把生成的数据绑定在DOM上
-                        currentNode.data('raw', _loc)
-                        $(currentNode).css({
-                            left: x,
-                            top: y,
-                            position: 'fixed',
-                            opacity: '0.7',
-                            'z-index': 9999,
-                            'background': '#fafafa',
-                        })
-                        isMove = true
-
-                        return false
-                    })
-                    .on('mousemove', function (e) {
-                        if (isMove) {
-                            var top = $('body').scrollTop()
-                            _obj = $('body >.bk-flow-location').length
-                            $(currentNode).css({
-                                left: e.pageX + 10 + 'px',
-                                top: e.pageY + 10 - top + 'px'
-                            })
-                        }
-                        
-                    })
-                    .on('mouseup', function (e) {
-                        if (isMove && _obj && opts.isEdit) {
-                            var canvas = $(opts.canvas)
-                            var scroll_top = canvas.scrollTop() //画布纵向滚动高度
-                            var scroll_left = canvas.scrollLeft() //画布横向滚动高度
-                            var w = parseInt(canvas.width())
-                            var h = parseInt(canvas.height())
-                            var left = canvas.offset().left
-                            var top = canvas.offset().top
-                            // 拖动不符合预期（不在画布内）的节点，直接删除，流程结束
-                            var _x = e.pageX - (left + scroll_left)
-                            var _y = e.pageY - (top + scroll_top)
-                            if (_x < 0 || _x > w || _y < 0 || _y > h) {
-                                $('body >.bk-flow-location').remove('*')
-                                return false
-                            }
-                            // 拖动符合预期（在画布内）的节点，插入画布，设置正确位置，清除拖动节点
-                            var loc = currentNode.data('raw')
-                            loc.x = e.pageX + 10 - left + scroll_left - $nodeContainer.left
-                            loc.y = e.pageY + 10 - top + scroll_top - $nodeContainer.top
-                            _createLocation(loc)
-
-                            $('body >.bk-flow-location').remove('*')
-                        } else {
-                            $('body >.bk-flow-location').remove('*')
-                        }
-                        isMove = false
-                    })
+                        $('body >.bk-flow-location').remove('*')
+                    } else {
+                        $('body >.bk-flow-location').remove('*')
+                    }
+                    isMove = false
+                    _self.off('mousemove')
+                }
 
                 $(opts.canvas).on('mouseup', '.bk-flow-location', function (e) {
-                    (opts.onLocationMoveAfter && 
-                        opts.onLocationMoveAfter(_getLocationById($(e.target).closest('.bk-flow-location').attr('id'))))
+                    if (opts.onLocationMoveAfter) {
+                        const selectedNodes = _self.find('.bk-flow-location.selected')
+                        if (selectedNodes.length) {
+                            selectedNodes.each((index, item) => {
+                                opts.onLocationMoveAfter(_getLocationById($(item).attr('id')))
+                            })
+                        } else {
+                            opts.onLocationMoveAfter(_getLocationById(this.id))
+                        }
+                    }
                 })
                 $(opts.canvas).on('click', '.bk-flow-location', function (e) {
                     e.stopPropagation()
@@ -434,22 +636,23 @@ import '../css/bkflow.scss'
                 instance.unbind('connectionDrag')
                 instance.unbind('click')
 
-                //拖动连线结束时触发
-                instance.bind('connectionDragStop', function (connection) {
+                // 拖动连线结束时触发
+                instance.bind('connectionDragStop', function (connection, originalEvent) {
                     // 连线不可连接至自身
                     if (connection.sourceId == connection.targetId) {
                         instance.detach(connection)
+                        return false
                     }
-                    // 连线前看是否允许连接
+
                     let _line = _connection_to_line(connection)
 
-                    if (_line.target.arrow &&
-                        (opts.onLineDragStop && !opts.onLineDragStop(_line)) ||
+                    if ((opts.onLineDragStop && !opts.onLineDragStop(_line, originalEvent, connection)) ||
                         (opts.onCreateLineBefore && !opts.onCreateLineBefore(_line))
                     ) {
                         instance.detach(connection)
                         return false
                     }
+
                     opts.onCreateLineAfter && opts.onCreateLineAfter(_line)
                 })
                 instance.bind('connectionDrag', function (conn) { //拖动线前触发
@@ -459,14 +662,13 @@ import '../css/bkflow.scss'
                     }
                 })
 
-                instance.bind('dblclick', function (conn, originalEvent) {
+                instance.bind('click', function (conn, originalEvent) {
                     if (!opts.isEdit) {
                         return false
                     }
-                    if ($(originalEvent.target).hasClass('branch-condition')) {
-                        return false
+                    if ($(originalEvent.target).hasClass('common-icon-dark-circle-close')) {
+                        _deleteLine(conn.sourceId, conn.targetId)
                     }
-                    _deleteLine(conn.sourceId, conn.targetId)
                 })
                 instance.bind('mousemove', function (conn, originalEvent) {
                     if (!opts.isEdit) {
@@ -513,63 +715,40 @@ import '../css/bkflow.scss'
             }
 
             /**
-             * 绑定高亮事件
+             * 绑定节点 hover 高亮事件
              */
-            var _hightLight = function (obj) {
-                var flag = false
+            var _highLight = function (obj) {
                 $(obj).off()
-                $(obj).on('mouseover', function (e) {
+                $(obj).on('mouseenter', function (e) {
                     var id = $(this).attr('id')
                     var lines = _getConnectionsByNodeId(id)
                     var endPoints = instance.getEndpoints(id)
-                    _toggleColor(lines, opts.fillColor, 'line')
-                    _toggleColor(endPoints, opts.fillColor, 'endpoint')
-                })
-                    .on('mousedown', function () {
-                        flag = true
+                    var hglObj = lines.concat(lines, endPoints)
+                    hglObj.forEach(function (item) {
+                        item.setPaintStyle({
+                            stroke: opts.fillColor,
+                            fill: opts.fillColor
+                        })
                     })
-                    .on('mousemove', function () {
-                        if (flag) {
-                            var id = $(this).attr('id')
-                            var lines = _getConnectionsByNodeId(id)
-                            var endPoints = instance.getEndpoints(id)
-                            _toggleColor(lines, opts.defaultColor, 'line')
-                            _toggleColor(endPoints, opts.fillColor, 'endpoint')
-                        }
-                    })
-                    .on('mouseup', function () {
-                        flag = false
-                    })
-                    .on('mouseout', function (e) {
-                        var id = $(this).attr('id')
-                        var lines = _getConnectionsByNodeId(id)
-                        var endPoints = instance.getEndpoints(id)
-                        _toggleColor(lines, opts.defaultColor, 'line')
-                        _toggleColor(endPoints, 'transparent', 'endpoint')
-                    })
-            }
 
-            /**
-             *   流程节点mouseout高亮
-             */
-            var _toggleColor = function (arr, color, type) {
-                var self = this
-                var l = arr.length
-                for (var i = 0; i < l; i++) {
-                    if(type === 'line') {
-                        $(arr[i].canvas).find('path').css({
-                            fill: color,
-                            stroke: color
+                }).on('mouseleave', function (e) {
+                    var id = $(this).attr('id')
+                    var lines = _getConnectionsByNodeId(id)
+                    var endPoints = instance.getEndpoints(id)
+                    lines.forEach(function (item) {
+                        item.setPaintStyle({
+                            stroke: opts.defaultColor,
+                            fill: opts.defaultColor,
+                            strokeWidth: 2
                         })
-                    }
-                    if(type === 'endpoint') {
-                        arr[i].setPaintStyle({
-                            fill: color,
-                            stroke: color,
+                    })
+                    endPoints.forEach(function (item) {
+                        item.setPaintStyle({
+                            stroke: opts.pointColor,
+                            fill: 'rgba(0, 0, 0, 0)'
                         })
-                    }
-                    
-                }
+                    })
+                })
             }
 
             var _disabledEdit = function () {
@@ -649,8 +828,8 @@ import '../css/bkflow.scss'
                 $nodeContainer.el.append(locationDom)
                 // 新增节点时若当前画布时放大或者缩小状态，需计算节点位移
                 $(locationObj.id).css({
-                    left: (1 / $nodeContainer.zoom) * location.x + 'px',
-                    top: (1 / $nodeContainer.zoom) * location.y + 'px'
+                    left: (1 / $nodeContainer.zoom) * location.x,
+                    top: (1 / $nodeContainer.zoom) * location.y
                 })
                 
                 // 绑定数据
@@ -666,18 +845,16 @@ import '../css/bkflow.scss'
 
                 if (opts.isEdit) {
                     // 使得节点可拖拽
-                    instance.draggable(instance.getSelector(opts.canvas + ' ' + `#${location.id}`), {
-                        grid: [20, 20],
+                    var locationEl = jsPlumb.getSelector(opts.canvas + ' ' + `#${location.id}`)
+                    instance.draggable(locationEl, {
+                        grid: [5, 5],
                         start: function (event, id) {
                             nodeClickStatus.pageX = event.e.pageX
                             nodeClickStatus.pageY = event.e.pageY
                         },
-                        drag: function (event, ui) {
-                            let id = event.el.id
+                        stop: function (event, id) {
                             // _getBestArrow(id)
                             opts.onLocationMove && opts.onLocationMove(id)
-                        },
-                        stop: function (event, id) {
                             if (event.e.pageX !== nodeClickStatus.pageX || event.e.pageY !== nodeClickStatus.pageY) {
                                 nodeClickStatus.isDragEvent = true
                             } else {
@@ -685,7 +862,7 @@ import '../css/bkflow.scss'
                             }
                         }
                     })
-                    _hightLight(jsPlumb.getSelector(opts.canvas + ' ' + `#${location.id}`))
+                    _highLight(locationEl)
                 }
 
                 opts.onCreateLocationAfter && opts.onCreateLocationAfter(location)
@@ -697,7 +874,6 @@ import '../css/bkflow.scss'
              * 新增连线，更新画布
              */
             var _createLine = function (line) {
-
                 // 连线前看是否允许连接
                 if (opts.onCreateLineBefore &&
                         !opts.onCreateLineBefore(line)) {
@@ -713,13 +889,13 @@ import '../css/bkflow.scss'
                 opts.onCreateLineAfter && opts.onCreateLineAfter(line)
             }
 
-            /** 
+            /**
              * 增加 label
              */
             var _addLabel = function (connect, labelData) {
                 const label = connect.addOverlay(["Label", {
                     label: labelData.name,
-                    location: 0.25,
+                    location: -60,
                     cssClass: "branch-condition"
                 }])
                 var labelDom = label.getElement()
@@ -755,6 +931,12 @@ import '../css/bkflow.scss'
              */
             var _updateLocationeById = function (id, data) {
                 var $location = $('#' + id)
+
+                // id 参数错误时，不执行节点数据更新
+                if (!$location.length) {
+                    return
+                }
+
                 var rawData = $location.data('raw')
 
                 // 与之前赋值对象取共同集合，保证DOM渲染时，数据的完整性
@@ -844,6 +1026,14 @@ import '../css/bkflow.scss'
                             break
                     }
                 })
+            }
+
+            /**
+             * 节点框选开关
+             * @param {Boolean} dragSelection
+             */
+            function _setDragSelection (dragSelection) {
+                opts.dragSelection = dragSelection
             }
 
             /**
@@ -1267,7 +1457,7 @@ import '../css/bkflow.scss'
             /**
              * 删除指定连线
              * @param {String} source 连线起点 DOM-ID
-             * @param {String} target 连线重点 DOM-ID
+             * @param {String} target 连线终点 DOM-ID
              */
             dataflow.prototype.deleteLine = function (source, target) {
                 return _deleteLine(source, target)
@@ -1280,6 +1470,30 @@ import '../css/bkflow.scss'
             dataflow.prototype.enableEdit = function () {
                 _enableEdit()
             }
+            /**
+             * 修改指定连线的配置
+             * @param {String} source 连线起点 DOM-ID
+             * @param {String} target 连线终点 DOM-ID
+             * @param {Array} config 连线配置 对应底层 api 不是增量修改 需要传全量配置：
+             * eg: [
+             *     'Flowchart', // 流程图种类
+             *     {
+             *          stub: [5, 20], // 起始端点连接线的最小长度
+             *          gap: 8, // 线与端点点最小间隔
+             *          cornerRadius: 2, // 折线弧度
+             *          alwaysRespectStubs: true, // 允许 stub 配置生效
+             *          midpoint: 0.9 // 折线比例
+             *      }
+             *  ]
+             */
+            dataflow.prototype.setConnector = function (source, target, config) {
+                var connections = instance.getAllConnections().filter(item => {
+                    return item.sourceId === source && item.targetId === target
+                })
+                connections.forEach(connection => {
+                    connection.setConnector(config)
+                })
+            }
 
             /**
              * 添加指定label
@@ -1289,6 +1503,13 @@ import '../css/bkflow.scss'
                 if(connection) {
                     _addLabel(connection, labelName)
                 }
+            }
+            
+            /**
+             * 设置是否开启节点框选
+             */
+            dataflow.prototype.setDragSelection = function (val) {
+                _setDragSelection(val)
             }
 
             // 绑定DataFlow实例

@@ -19,18 +19,28 @@ pip install -r requirements.txt
 ```
 
 
-## 修改本地配置  
+## 配置本地环境变量和数据库
 
-1) 修改 conf/default.py，设置APP_ID, APP_TOKEN, BK_PAAS_HOST  
+1) 设置环境变量  
+有两种方式设置本地开发需要的环境变量，一是手动设置，即执行如下命令
 
-```python
-APP_ID = ''
-APP_TOKEN = ''
-BK_PAAS_HOST = ''
+```bash
+export APP_ID="bk_sops"
+export APP_TOKEN="{APP_TOKEN}"
+export BK_PAAS_HOST=""
+export BK_CC_HOST=""
+export BK_JOB_HOST=""
 ```
-BK_PAAS_HOST 为你部署的蓝鲸社区版域名（需要加上 http 前缀；如果是 https 域名，请改为 https 前缀）。APP_ID 设置为你的社区版标准运维应用ID，默认设置为 bk_sops。APP_TOKEN 设置为你的社区版标准运维应用 TOKEN，默认可以访问 http://{BK_PAAS_HOST}/admin/app/app/，找到名为"标准运维"的应用，查看详情获取 Token 字段值。
+BK_PAAS_HOST、BK_CC_HOST、BK_JOB_HOST 分别改为你部署的蓝鲸社区版域名、配置平台域名、作业平台域名（需要加上 http 前缀；如果是 https 域名，请改为 https 前缀）。
+APP_ID 设置为你的社区版标准运维应用ID，默认设置为 bk_sops。APP_TOKEN 设置为你的社区版标准运维应用 TOKEN，默认可以访问 http://{BK_PAAS_HOST}/admin/app/app/，找到名为"标准运维"的应用，查看详情获取 Token 字段值。
 
-2) 修改 conf/settings_development.py，设置本地开发用的数据库信息以及 Redis 本地信息
+二是直接修改 scripts/develop/sites/community/env.sh，然后执行
+
+```bash
+source scripts/develop/sites/community/env.sh
+```
+
+2) 修改 config/dev.py，设置本地开发用的数据库信息，添加 Redis 本地信息
 
 ```python
 DATABASES = {
@@ -62,6 +72,27 @@ CREATE DATABASE `bk_sops` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 ```bash
 python manage.py migrate
 python manage.py createcachetable django_cache
+```
+
+
+## 打包并收集前端静态资源
+
+1）安装依赖包  
+进入 pipeline/blueflow/，执行以下命令安装
+```bash
+npm install
+```
+
+2）本地打包
+在 pipeline/blueflow/ 目录下，继续执行以下命令打包前端静态资源
+```bash
+npm run build -- --STATIC_ENV=dev
+```
+
+3）收集静态资源
+回到项目根目录，执行以下命令收集前端静态资源到 static 目录下
+```bash
+python manage.py collectstatic --noinput
 ```
 
 

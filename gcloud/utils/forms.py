@@ -6,11 +6,32 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 import json
+import functools
 
 from django import forms
+from django.http.response import JsonResponse
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
+
+
+def post_form_validator(form_cls):
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(request, *args, **kwargs):
+            form = form_cls(request.POST)
+            if not form.is_valid():
+                return JsonResponse(status=400, data={
+                    'result': False,
+                    'message': form.errors
+                })
+            setattr(request, 'form', form)
+            return func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorate
 
 
 class JsonField(forms.CharField):
@@ -23,7 +44,7 @@ class JsonField(forms.CharField):
 
         try:
             json.loads(value)
-        except:
+        except Exception:
             raise ValidationError(
                 self.error_messages['invalid'],
                 code='invalid')

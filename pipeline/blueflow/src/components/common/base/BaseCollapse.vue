@@ -44,13 +44,13 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-    @import '../../../scss/config.scss';
+@import '../../../scss/config.scss';
+.base-collapse {
     .header-wrapper {
         position: relative;
         padding: 0 24px;
         height: 50px;
         line-height: 50px;
-
         background: $blueDashBg;
         border-bottom: 1px solid $commonBorderColor;
         cursor: pointer;
@@ -76,5 +76,5 @@ export default {
     .content-wrapper {
         padding: 10px;
     }
+}
 </style>
-
