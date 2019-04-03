@@ -75,32 +75,47 @@ NOTIFY_TYPE = [
     ("voice", _(u"语音")),
 ]
 
+TEMPLATE_NAME_MAX_LENGTH = 50
+TEMPLATE_NODE_NAME_MAX_LENGTH = 50
+TASK_NAME_MAX_LENGTH = 100
+PERIOD_TASK_NAME_MAX_LENGTH = 50
+
 
 # 数据分析相关内容
-class AnalysisElement:
+class AnalysisElement(object):
     # 常量池
-    def __init__(self):
-        self.category = 'category'
-        self.business__cc_name = 'business__cc_name'
-        self.business__cc_id = 'business__cc_id'
-        self.state = 'status'
-        self.atom_cite = 'atom_cite'
-        self.atom_template = 'atom_template'
-        self.atom_execute = 'atom_execute'
-        self.atom_instance = 'atom_instance'
-        self.template_node = 'template_node'
-        self.template_cite = 'template_cite'
-        self.instance_node = 'instance_node'
-        self.instance_details = 'instance_details'
-        self.appmaker_instance = 'appmaker_instance'
-        self.create_method = 'create_method'
-        self.flow_type = 'flow_type'
-        self.app_maker = 'app_maker'
-        self.biz_cc_id = 'biz_cc_id'
-
-    def dict_element(self):
-        # 返回常量的dict形式 key : value
-        return vars(self)
+    category = 'category'
+    business__cc_name = 'business__cc_name'
+    business__cc_id = 'business__cc_id'
+    state = 'status'
+    atom_cite = 'atom_cite'
+    atom_template = 'atom_template'
+    atom_execute = 'atom_execute'
+    atom_instance = 'atom_instance'
+    template_node = 'template_node'
+    template_cite = 'template_cite'
+    instance_node = 'instance_node'
+    instance_details = 'instance_details'
+    appmaker_instance = 'appmaker_instance'
+    create_method = 'create_method'
+    flow_type = 'flow_type'
+    app_maker = 'app_maker'
+    biz_cc_id = 'biz_cc_id'
+    order_by = 'order_by'
+    instance_time = 'instance_time'
+    type = 'type'
+    group_list = ['category',
+                  'biz_cc_id',
+                  'atom_template',
+                  'atom_execute',
+                  'atom_instance',
+                  'template_node',
+                  'template_cite',
+                  'instance_node',
+                  'instance_details',
+                  'instance_time',
+                  'appmaker_instance',
+                  'atom_cite']
 
 
 AE = AnalysisElement()

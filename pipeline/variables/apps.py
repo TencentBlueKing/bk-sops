@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.apps import AppConfig
 from django.db.utils import ProgrammingError
 
@@ -19,11 +20,13 @@ class VariablesConfig(AppConfig):
 
     def ready(self):
         """
-        @summary: 注册公共部分和RUN_VER下的变量到数据库
+        @summary: 注册公共部分和OPEN_VER下的变量到数据库
         @return:
         """
-        autodiscover_collections('variables.collections')
-        autodiscover_collections('variables.collections.sites.%s' % settings.RUN_VER)
+        from pipeline.variables.signals.handlers import *  # noqa
+        for path in settings.VARIABLE_AUTO_DISCOVER_PATH:
+            autodiscover_collections(path)
+
         from pipeline.models import VariableModel
         from pipeline.core.data.library import VariableLibrary
         try:
@@ -31,4 +34,3 @@ class VariablesConfig(AppConfig):
         except ProgrammingError:
             # first migrate
             pass
-

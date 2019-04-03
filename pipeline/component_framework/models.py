@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -15,7 +16,7 @@ from pipeline.component_framework.library import ComponentLibrary
 class ComponentManager(models.Manager):
     def get_component_dict(self):
         """
-        获得原子对应的dict类型
+        获得标准插件对应的dict类型
         :return:
         """
         components = self.filter(status=True)

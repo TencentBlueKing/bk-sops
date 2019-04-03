@@ -36,12 +36,22 @@ class FlowElement(object):
 
 class FlowNode(FlowElement):
     __metaclass__ = ABCMeta
+    ON_RETRY = '_on_retry'
 
     def __init__(self, id, name=None, data=None):
         super(FlowNode, self).__init__(id, name)
         self.incoming = SequenceFlowCollection()
         self.outgoing = SequenceFlowCollection()
         self.data = data
+
+    def on_retry(self):
+        return hasattr(self, self.ON_RETRY)
+
+    def next_exec_is_retry(self):
+        setattr(self, self.ON_RETRY, True)
+
+    def retry_at_current_exec(self):
+        delattr(self, self.ON_RETRY)
 
     @abstractmethod
     def next(self):

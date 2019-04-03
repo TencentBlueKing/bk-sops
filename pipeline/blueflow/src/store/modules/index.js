@@ -15,6 +15,7 @@ import config from './config'
 import appmaker from './appmaker'
 import functionTask from './function.js'
 import auditTask from './audit.js'
+import periodic from './periodic.js'
 
 const modules = {
     template,
@@ -26,7 +27,8 @@ const modules = {
     config,
     appmaker,
     functionTask,
-    auditTask
+    auditTask,
+    periodic
 }
 
 export default modules

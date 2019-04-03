@@ -43,8 +43,8 @@ const task = {
         claimFuncTask ({commit}, data) {
             return api.claimFuncTask(data).then(response => response.data)
         },
-        getInstanceStatus ({commit}, instance_id) {
-            return api.getInstanceStatus(instance_id).then(response => response.data)
+        getInstanceStatus ({commit}, data) {
+            return api.getInstanceStatus(data).then(response => response.data)
         },
         instanceStart ({commit}, instance_id) {
             return api.instanceStart(instance_id).then(response => response.data)
@@ -96,6 +96,12 @@ const task = {
         },
         queryInstanceData ({commit}, data) {
             return api.queryInstance(data).then(response => response.data)
+        },
+        loadCreateMethod ({commit}) {
+            return api.loadCreateMethod().then(response => response.data)
+        },
+        getJobInstanceLog ({commit}, data) {
+            return api.getJobInstanceLog(data).then(response => response.data)
         }
     }
 }

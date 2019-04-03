@@ -82,7 +82,7 @@ def get_activity_histories(act_id):
 
 
 def callback(act_id, data=None):
-    api.activity_callback(act_id, data)
+    return api.activity_callback(act_id, data)
 
 
 def get_state(node_id):
@@ -111,7 +111,7 @@ def _get_node_state(tree):
         return STATE_MAP[tree['state']]
 
     # iterate children and get child state recursively
-    for identifier_code, child_tree in tree['children'].iteritems():
+    for identifier_code, child_tree in tree['children'].items():
         status.append(_get_node_state(child_tree))
 
     # summary parent state
@@ -135,7 +135,7 @@ def _get_parent_state_from_children_state(parent_state, children_state_list):
 
 def _collect_descendants(tree, descendants):
     # iterate children for tree
-    for identifier_code, child_tree in tree['children'].iteritems():
+    for identifier_code, child_tree in tree['children'].items():
         child_status = _map(child_tree)
         descendants[identifier_code] = child_status
 
@@ -155,6 +155,7 @@ def _map(tree):
         'state': _get_node_state(tree),
         'start_time': _better_time_or_none(tree['started_time']),
         'finish_time': _better_time_or_none(tree['archived_time']),
+        'loop': tree['loop'],
         'retry': tree['retry'],
         'skip': tree['skip']
     }

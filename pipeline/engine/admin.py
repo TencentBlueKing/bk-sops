@@ -11,6 +11,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.engine import models
+from pipeline.service import task_service
 from pipeline.engine.core import api
 from pipeline.engine.conf.function_switch import (FREEZE_ENGINE)
 
@@ -25,10 +26,15 @@ class PipelineModelAdmin(admin.ModelAdmin):
 @admin.register(models.PipelineProcess)
 class PipelineProcessAdmin(admin.ModelAdmin):
     list_display = ['id', 'root_pipeline_id', 'current_node_id', 'destination_id',
-                    'parent_id', 'need_ack', 'ack_num', 'is_alive', 'is_sleep']
-    search_fields = ['id', 'root_pipeline_id']
+                    'parent_id', 'need_ack', 'ack_num', 'is_alive', 'is_sleep', 'is_frozen']
+    search_fields = ['id', 'root_pipeline_id', 'current_node_id']
     list_filter = ['is_alive', 'is_sleep']
     raw_id_fields = ['snapshot']
+
+
+def force_fail_node(modeladmin, request, queryset):
+    for item in queryset:
+        task_service.forced_fail(item.id)
 
 
 @admin.register(models.Status)
@@ -37,6 +43,7 @@ class StatusAdmin(admin.ModelAdmin):
                     'created_time', 'started_time', 'archived_time']
     search_fields = ['id']
     list_filter = ['state', 'skip']
+    actions = [force_fail_node]
 
 
 @admin.register(models.ScheduleService)
@@ -57,6 +64,30 @@ class ProcessCeleryTaskAdmin(admin.ModelAdmin):
 class DataAdmin(admin.ModelAdmin):
     list_display = ['id', 'inputs', 'outputs', 'ex_data']
     search_fields = ['id']
+
+
+@admin.register(models.HistoryData)
+class HistoryDataAdmin(admin.ModelAdmin):
+    list_display = ['id', 'inputs', 'outputs', 'ex_data']
+    search_fields = ['id']
+
+
+@admin.register(models.History)
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ['identifier', 'started_time', 'archived_time']
+    search_fields = ['identifier']
+
+
+@admin.register(models.ScheduleCeleryTask)
+class ScheduleCeleryTaskAdmin(admin.ModelAdmin):
+    list_display = ['schedule_id', 'celery_task_id']
+    search_fields = ['schedule_id']
+
+
+@admin.register(models.NodeCeleryTask)
+class NodeCeleryTaskAdmin(admin.ModelAdmin):
+    list_display = ['node_id', 'celery_task_id']
+    search_fields = ['node_id']
 
 
 on = True

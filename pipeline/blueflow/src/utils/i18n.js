@@ -8,3 +8,9 @@
 /**
  * vue组件国际化导入空函数，否则无法被提取
  */
+
+if (typeof window.gettext !== 'function') {
+    window.gettext = function gettext (string) {
+        return string
+    }
+}

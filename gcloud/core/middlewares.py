@@ -6,18 +6,25 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
+import json
+import logging
+
 import pytz
 from django.http import HttpResponse, HttpResponseForbidden
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
-
-from common.mymako import render_mako_context
+from django.utils.deprecation import MiddlewareMixin
 
 from gcloud import exceptions
 from gcloud.core.utils import prepare_business
 
+logger = logging.getLogger("root")
 
-class GCloudPermissionMiddleware(object):
+
+class GCloudPermissionMiddleware(MiddlewareMixin):
+    def __init__(self, get_response):
+        self.get_response = get_response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         """
@@ -27,7 +34,7 @@ class GCloudPermissionMiddleware(object):
         if getattr(view_func, 'login_exempt', False):
             return None
         biz_cc_id = view_kwargs.get('biz_cc_id')
-        if biz_cc_id:
+        if biz_cc_id and str(biz_cc_id) != '0':
             try:
                 business = prepare_business(request, cc_id=biz_cc_id)
             except exceptions.Unauthorized:
@@ -42,7 +49,8 @@ class GCloudPermissionMiddleware(object):
                     'api': e.api,
                     'message': e.message,
                 }
-                return render_mako_context(request, '503.html', ctx)
+                logger.error(json.dumps(ctx))
+                return HttpResponse(status=503, content=json.dumps(ctx))
 
             # set time_zone of business
             if business.time_zone:
@@ -52,7 +60,9 @@ class GCloudPermissionMiddleware(object):
                 return HttpResponseForbidden()
 
 
-class UnauthorizedMiddleware(object):
+class UnauthorizedMiddleware(MiddlewareMixin):
+    def __init__(self, get_response):
+        self.get_response = get_response
 
     def process_response(self, request, response):
         # 403: PaaS 平台用来控制应用白名单和 IP 白名单
@@ -65,7 +75,9 @@ class UnauthorizedMiddleware(object):
         return response
 
 
-class TimezoneMiddleware(object):
+class TimezoneMiddleware(MiddlewareMixin):
+    def __init__(self, get_response):
+        self.get_response = get_response
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         tzname = request.session.get('blueking_timezone')

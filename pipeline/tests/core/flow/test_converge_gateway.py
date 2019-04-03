@@ -26,5 +26,3 @@ class TestConvergeGateway(TestCase):
         cvg_gateway.outgoing.add_flow(out_flow)
         parallel_gateway.incoming.add_flow(out_flow)
         self.assertEqual(parallel_gateway, cvg_gateway.next())
-
-

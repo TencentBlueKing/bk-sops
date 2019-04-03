@@ -9,7 +9,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 from pyparsing import CaselessLiteral, Word, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, \
-    QuotedString, ZeroOrMore, Keyword, ParseResults, removeQuotes, Suppress
+    QuotedString, ZeroOrMore, Keyword, ParseResults, Suppress
 
 
 class SubstituteVal(object):
@@ -22,9 +22,10 @@ class SubstituteVal(object):
 
     def get_val(self, context):
         if not context:
-            raise MissingVariableException(
-                'context missing or empty'
-            )
+            # raise MissingVariableException(
+            #     'context missing or empty'
+            # )
+            return self._path
 
         val = context
 
@@ -113,7 +114,7 @@ def double_equals_trans(lval, rval, operator):
                 rval = str(rval)
             elif isinstance(rval, basestring):
                 lval = str(lval)
-        except:
+        except Exception:
             pass
     else:
         if isinstance(rval, list) and len(rval):
@@ -122,13 +123,13 @@ def double_equals_trans(lval, rval, operator):
                 for item in rval:
                     try:
                         transed_rval.append(int(item))
-                    except:
+                    except Exception:
                         pass
             elif isinstance(lval, basestring):
                 for item in rval:
                     try:
                         transed_rval.append(str(item))
-                    except:
+                    except Exception:
                         pass
             rval += transed_rval
     return lval, rval

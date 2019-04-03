@@ -8,6 +8,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 """ # noqa
 
 from django.test import TestCase
+from pipeline.core.data.base import DataObject
 from pipeline.core.flow.base import SequenceFlow, FlowElement
 from pipeline.core.flow.activity import ServiceActivity
 
@@ -15,8 +16,8 @@ from pipeline.core.flow.activity import ServiceActivity
 class TestSequenceFlow(TestCase):
     def test_sequence_flow(self):
         flow_id = '1'
-        source = ServiceActivity(id='1', service=None)
-        target = ServiceActivity(id='2', service=None)
+        source = ServiceActivity(id='1', service=None, data=DataObject({}))
+        target = ServiceActivity(id='2', service=None, data=DataObject({}))
         flow = SequenceFlow(flow_id, source, target)
         self.assertTrue(isinstance(flow, FlowElement))
         self.assertEqual(flow_id, flow.id)

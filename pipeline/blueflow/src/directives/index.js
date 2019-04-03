@@ -5,3 +5,22 @@
 * http://opensource.org/licenses/MIT
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
+import Vue from 'vue'
+
+Vue.directive('clickout', {
+    bind (el, binding) {
+        function handler (e) {
+            if (el.contains(e.target)) {
+                return
+            }
+            if (binding.expression) {
+                typeof binding.value === 'function' && binding.value()
+            }
+        }
+        el.handler = handler
+        window.addEventListener('click', el.handler)
+    },
+    unbind (el) {
+        window.removeEventListener('click', el.handler)
+    }
+})

@@ -44,10 +44,6 @@ class ParserException(PipelineException):
     pass
 
 
-class ParserWebTreeException(ParserException):
-    pass
-
-
 class SubprocessRefError(PipelineException):
     pass
 
@@ -58,6 +54,7 @@ class TemplateImportError(PipelineException):
 
 class SubprocessExpiredError(PipelineException):
     pass
+
 
 #
 # data exception
@@ -80,10 +77,31 @@ class DataTypeErrorException(DataException):
     pass
 
 
+class CycleErrorException(DataException):
+    pass
+
+
+class ConnectionValidateError(DataException):
+    def __init__(self, failed_nodes, detail, *args):
+        self.failed_nodes = failed_nodes
+        self.detail = detail
+        super(ConnectionValidateError, self).__init__(*args)
+
+
 class ConvergeMatchError(DataException):
     def __init__(self, gateway_id, *args):
         self.gateway_id = gateway_id
         super(ConvergeMatchError, self).__init__(*args)
+
+
+class StreamValidateError(DataException):
+    def __init__(self, node_id, *args):
+        self.node_id = node_id
+        super(StreamValidateError, self).__init__(*args)
+
+
+class IsolateNodeError(DataException):
+    pass
 
 
 #
@@ -161,4 +179,11 @@ class ReferenceNotExistError(ContextError):
 
 
 class InsufficientVariableError(ContextError):
+    pass
+
+
+#
+# periodic task exception
+#
+class InvalidCrontabException(PipelineException):
     pass

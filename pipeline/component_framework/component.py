@@ -32,7 +32,7 @@ class Component(object):
         data_dict = self.clean_execute_data(context)
         inputs = {}
 
-        for key, tag_info in data_dict.iteritems():
+        for key, tag_info in data_dict.items():
             if tag_info is None:
                 raise ComponentDataLackException('Lack of inputs: %s' % key)
 

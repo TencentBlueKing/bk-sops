@@ -14,6 +14,7 @@
     </div>
 </template>
 <script>
+import '@/utils/i18n.js'
 import ErrorCode401 from '@/components/common/modal/ErrorCode401.vue'
 import ErrorCode403 from '@/components/common/modal/ErrorCode403.vue'
 import ErrorCode405 from '@/components/common/modal/ErrorCode405.vue'
