@@ -7,7 +7,8 @@ http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
 
-pipeline_1 = {  # 存储 pipeline 结构的字典
+# 存储 pipeline 结构的字典
+pipeline_1 = {
     'id': 'p1',  # 该 pipeline 的 id
     'name': 'name',
     'start_event': {
@@ -124,7 +125,7 @@ pipeline_1 = {  # 存储 pipeline 结构的字典
             'key': '${_env_id}',
             'desc': '',
             'tag_type': 'input_var',
-            'validation': '^\d+$',
+            'validation': r'^\d+$',
             'show_type': 'show',
             'tag_code': '${_env_id}',
             'value': '11',

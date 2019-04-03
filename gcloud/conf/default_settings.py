@@ -6,13 +6,13 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 import importlib
 
 from django.conf import settings
 
-ver_settings = importlib.import_module('gcloud.conf.sites.%s.ver_settings' % settings.RUN_VER)
+ver_settings = importlib.import_module('gcloud.conf.sites.%s.ver_settings' % settings.OPEN_VER)
 
 for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
-

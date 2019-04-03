@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.apps import AppConfig
 
 
@@ -14,6 +15,6 @@ class Taskflow3Config(AppConfig):
     verbose_name = 'GcloudTaskflow3'
 
     def ready(self):
-        from gcloud.taskflow3.signals.handlers import pipeline_post_save_handler
+        from gcloud.taskflow3.signals.handlers import pipeline_post_save_handler  # noqa
         from gcloud.taskflow3.signals.dispatch import dispatch_activity_failed
         dispatch_activity_failed()

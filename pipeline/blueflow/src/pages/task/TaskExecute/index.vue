@@ -6,11 +6,13 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="task-execute-container" v-if="!exception.code" v-bkloading="{isLoading: loading, opacity: 1}">
+    <div :class="['task-execute-container', {'task-function-container': currentStep === 'functionalization'}]"
+        v-if="!exception.code"
+        v-bkloading="{isLoading: loading, opacity: 1}">
         <TaskStep
-        :list="stepList"
-        :currentStep="currentStep"
-        :allFinished="isAllStepsFinished">
+            :list="stepList"
+            :currentStep="currentStep"
+            :allFinished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
             v-if="isFunctional && !loading"
@@ -24,7 +26,8 @@
             :cc_id="cc_id"
             :instance_id="instance_id"
             :instanceName="instanceName"
-            :instanceFlow="instanceFlow">
+            :instanceFlow="instanceFlow"
+            @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
     </div>
 </template>
@@ -59,7 +62,8 @@ export default {
     props: ['cc_id', 'instance_id'],
     data () {
         return {
-            loading: true,
+            taskDataLoading: true,
+            taskStatusLoading: true,
             bkMessageInstance: null,
             exception: {},
             stepList: STEP_DICT,
@@ -68,6 +72,11 @@ export default {
             isAllStepsFinished: false,
             instanceName: '',
             instanceFlow: ''
+        }
+    },
+    computed: {
+        loading () {
+            return this.isFunctional ? this.taskDataLoading : (this.taskDataLoading && this.taskStatusLoading)
         }
     },
     created () {
@@ -87,7 +96,6 @@ export default {
             }
         },
         async getTaskData () {
-            this.loading = true
             try {
                 const instanceData = await this.getTaskInstanceData(this.instance_id)
                 if (instanceData.flow_type === 'common_func') {
@@ -105,15 +113,22 @@ export default {
             } catch (e) {
                 errorHandler(e, this)
             } finally {
-                this.loading = false
+                this.taskDataLoading = false
             }
+        },
+        taskStatusLoadChange (status) {
+            this.taskStatusLoading = status
         }
     }
 }
 </script>
-<style lang="sass" scoped>
+<style lang="scss" scoped>
     .task-execute-container {
-        min-width: 1200px;
+        min-width: 1320px;
         height: calc(100% - 62px);
+        background-color: #f4f7fa;
+    }
+    .task-function-container {
+        background-color: #ffffff;
     }
 </style>

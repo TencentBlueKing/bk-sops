@@ -6,7 +6,7 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 <template>
-    <ul :class="['node-tree', 'tree-level-' + treeLevel]">
+    <ul :class="['node-tree', 'tree-level-' + level]">
         <li v-for="(item, key) in data" :key="key" class="tree-item">
             <h4
                 :class="{
@@ -14,7 +14,9 @@
                     'actived': getNodeActivedState(item.id)
                 }"
                 @click.stop="onSelectNode(item, true)">
-                <i :class="item.pipeline ? 'common-icon-node-subflow' : 'common-icon-node-tasknode'"></i>
+                <span class="node-icon">
+                    <i :class="item.pipeline ? 'common-icon-node-subflow' : 'common-icon-node-tasknode'"></i>
+                </span>
                 <span class="name" :title="item.name">{{item.name}}</span>
             </h4>
             <NodeTree
@@ -22,7 +24,8 @@
                 class="sub-tree"
                 :data="item.pipeline.activities"
                 :selectedFlowPath="selectedFlowPath"
-                :heirarchy="heirarchy ? `${heirarchy}.${item.id}` : item.id "
+                :heirarchy="heirarchy ? `${heirarchy}.${item.id}` : String(item.id)"
+                :level="level + 1"
                 @onSelectNode="onSelectNode">
             </NodeTree>
         </li>
@@ -32,14 +35,26 @@
 import '@/utils/i18n.js'
 export default {
     name: 'NodeTree',
-    props: [
-        'data',
-        'selectedFlowPath',
-        'heirarchy'
-    ],
-    computed: {
-        treeLevel () {
-            return this.selectedFlowPath.length
+    props: {
+        data: {
+            type: Object,
+            default () {
+                return {}
+            }
+        },
+        selectedFlowPath: {
+            type: Array,
+            default () {
+                return []
+            }
+        },
+        heirarchy: {
+            type: String,
+            default: ''
+        },
+        level: {
+            type: Number,
+            default: 1
         }
     },
     methods: {
@@ -54,7 +69,7 @@ export default {
             let nodeHeirarchy = node
             const nodeType = node.pipeline ? 'subflow' : 'tasknode'
             if (isClick) {
-                nodeHeirarchy = this.heirarchy ? `${this.heirarchy}.${node.id}` : node.id
+                nodeHeirarchy = this.heirarchy ? `${this.heirarchy}.${node.id}` : String(node.id)
             }
             this.$emit('onSelectNode', nodeHeirarchy, false, nodeType)
         }
@@ -67,8 +82,10 @@ export default {
 .node-tree {
     display: inline-block;
     width: 100%;
-    overflow-x: auto;
-    @include scrollbar;
+    &.tree-level-1 {
+        overflow-x: auto;
+        @include scrollbar;
+    }
     &.sub-tree {
         .tree-item {
             position: relative;
@@ -111,14 +128,15 @@ export default {
         &:hover {
             color: $blueDefault;
         }
-        i {
+        .node-icon {
+            float: left;
             font-size: 16px;
             font-weight: bold;
-            vertical-align: -3px;
         }
         .name {
-            display: inline-block;
-            max-width: 170px;
+            float: left;
+            margin-left: 4px;
+            max-width: 85px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;

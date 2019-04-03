@@ -6,8 +6,15 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
+import logging
+import traceback
+
 from django.apps import AppConfig
 from django.conf import settings
+
+
+logger = logging.getLogger('root')
 
 
 class CoreConfig(AppConfig):
@@ -15,7 +22,7 @@ class CoreConfig(AppConfig):
     verbose_name = 'GcloudCore'
 
     def ready(self):
-        from gcloud.core.signals.handlers import business_post_save_handler
+        from gcloud.core.signals.handlers import business_post_save_handler  # noqa
         if not hasattr(settings, 'REDIS'):
             try:
                 from gcloud.core.models import EnvironmentVariables
@@ -26,5 +33,5 @@ class CoreConfig(AppConfig):
                     'service_name': EnvironmentVariables.objects.get_var('BKAPP_REDIS_SERVICE_NAME'),
                     'mode': EnvironmentVariables.objects.get_var('BKAPP_REDIS_MODE')
                 }
-            except:
-                pass
+            except Exception:
+                logger.error(traceback.format_exc())

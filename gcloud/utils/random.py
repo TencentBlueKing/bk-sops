@@ -9,6 +9,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 gcloud.utils.random
 An extension of built-in random module.
 """ # noqa
+
 from __future__ import absolute_import
 
 from random import choice

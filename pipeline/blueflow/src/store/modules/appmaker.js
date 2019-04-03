@@ -14,8 +14,8 @@ const appmaker = {
     mutations: {
     },
     actions: {
-        loadAppmakerSummary () {
-            return api.loadAppmakerSummary().then(response => response.data)
+        loadAppmakerSummary ({commit}, data) {
+            return api.loadAppmakerSummary(data).then(response => response.data)
         },
         loadAppmakerDetail ({commit}, id) {
             return api.loadAppmakerDetail(id).then(response => response.data)
@@ -28,6 +28,9 @@ const appmaker = {
         },
         queryAppmakerData ({commit}, data) {
             return api.queryAppmaker(data).then(response => response.data)
+        },
+        loadAppmaker ({commit}) {
+            return api.loadAppmaker().then(response => response.data)
         }
     }
 }

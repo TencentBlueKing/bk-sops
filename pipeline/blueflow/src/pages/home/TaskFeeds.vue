@@ -102,8 +102,12 @@ export default {
             })
         },
         async getExecuteDetail (task, index) {
+            const data = {
+                instance_id: task.id,
+                cc_id: task.business.cc_id
+            }
             try {
-                const detailInfo = await this.getInstanceStatus(task.id)
+                const detailInfo = await this.getInstanceStatus(data)
                 if (detailInfo.result) {
                     const state = detailInfo.data.state
                     const status = {}
@@ -116,22 +120,22 @@ export default {
                             break
                         case 'SUSPENDED':
                             status.cls = 'execute'
-                            status.icon = 'common-icon-suspended'
+                            status.icon = 'common-icon-double-vertical-line'
                             status.text = gettext('暂停')
                             break
                         case 'NODE_SUSPENDED':
                             status.cls = 'execute'
-                            status.icon = 'common-icon-suspended'
+                            status.icon = 'common-icon-double-vertical-line'
                             status.text = gettext('节点暂停')
                             break
                         case 'FAILED':
                             status.cls = 'failed'
-                            status.icon = 'common-icon-close-circle'
+                            status.icon = 'common-icon-dark-circle-close'
                             status.text = gettext('失败')
                             break
                         case 'REVOKED':
                             status.cls = 'revoke'
-                            status.icon = 'common-icon-revoke'
+                            status.icon = 'common-icon-return-arrow'
                             status.text = gettext('撤销')
                             break
                         default:

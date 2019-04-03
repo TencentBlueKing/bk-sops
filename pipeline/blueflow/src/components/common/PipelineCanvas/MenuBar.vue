@@ -8,9 +8,6 @@
 <template>
     <div class="menu-wrapper">
         <div class="menu-bar">
-            <div class="menu-title">
-                <h3>{{ i18n.tools }}</h3>
-            </div>
             <ul>
                 <li v-for="item in nodeDict"
                     :key="item.type"
@@ -19,18 +16,24 @@
                         `common-icon-node-${item.type}`,
                         {'node-type-has-sub': isNodeTypeHasSub(item.type)},
                         {'node-source': !isNodeTypeHasSub(item.type)},
-                        {'active-node-type' : activeNodeType === item.type && showNodeList}
+                        {'active-node-type' : activeNodeType === item.type && showNodeList},
+                        {'startpoint-unavailable':item.type === 'startpoint' ?  isDisableStartPoint : false},
+                        {'endpoint-unavailable':item.type === 'endpoint' ?  isDisableEndPoint : false}
                     ]"
                     :data-type="item.type"
                     v-bktooltips.right="item.name"
-                    @click.stop="onSelectNode(item.type)"
-                />
+                    @click.stop="onSelectNode(item.type)">
+                    <span
+                        v-if="item.type === 'startpoint' || item.type === 'endpoint'">
+                        {{i18n[item.type]}}
+                    </span>
+                </li>
             </ul>
         </div>
         <transition name="slideLeft">
             <div class="node-list" v-if="showNodeList">
                 <div class="list-container" v-bkloading="{isLoading: loading, opacity: 1}">
-                    <i :class="['common-icon-pin', 'node-list-pin', {actived: isPinActived}]" @click.stop="onClickPin"></i>
+                    <i :class="['common-icon-left-pin', 'node-list-pin', {actived: isPinActived}]" @click.stop="onClickPin"></i>
                     <div class="search-node-wraper">
                         <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
                         <i class="common-icon-search"></i>
@@ -45,18 +48,25 @@
                                 <BaseCollapse>
                                     <template slot="header" class="panel-header">
                                         <img class="header-icon" :src="item.group_icon||defaultTypeIcon"/>
-                                        <span class="header-title">{{item.group_name}}</span>
+                                        <span class="header-title">{{item.group_name}}
+                                            <span class="header-atom">
+                                                {{item.list.length}}{{i18n.num}}
+                                            </span>
+                                        </span>
                                     </template>
                                     <template slot="content">
                                         <div
                                             v-for="atom in item.list"
                                             class="atom-item node-source"
+                                            :title="atom.name"
                                             :key="activeNodeType === 'tasknode' ? atom.tag_code : atom.id"
                                             :data-atomid="activeNodeType === 'tasknode' ? atom.code : atom.template_id"
                                             :data-version="activeNodeType === 'tasknode' ? '' : atom.version"
                                             :data-atomname="atom.name.replace(/\s/g, '')"
                                             :data-type="activeNodeType">
-                                            <p>{{atom.name}}</p>
+                                            <div class="name-wrapper">
+                                                <p>{{atom.name}}</p>
+                                            </div>
                                         </div>
                                     </template>
                                 </BaseCollapse>
@@ -66,12 +76,15 @@
                             <div
                                 v-for="atom in listInPanel"
                                 class="atom-item node-source"
+                                :title="atom.name"
                                 :key="activeNodeType === 'tasknode' ? atom.tag_code : atom.id"
                                 :data-atomid="activeNodeType === 'tasknode' ? atom.code : atom.template_id"
                                 :data-version="activeNodeType === 'tasknode' ? '' : atom.version"
                                 :data-atomname="atom.name.replace(/\s/g, '')"
                                 :data-type="activeNodeType">
-                                <p>{{atom.name}}</p>
+                                <div class="name-wrapper">
+                                    <p>{{atom.name}}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -113,6 +126,12 @@ export default {
         },
         searchAtomResult: {
             type: Array
+        },
+        isDisableStartPoint: {
+            type: Boolean
+        },
+        isDisableEndPoint: {
+            type: Boolean
         }
     },
     components: {
@@ -123,7 +142,10 @@ export default {
         return {
             i18n: {
                 tools: gettext("工具"),
-                placeholder: gettext("请输入名称")
+                placeholder: gettext("请输入名称"),
+                startpoint: gettext('开始'),
+                endpoint: gettext('结束'),
+                num: gettext('个')
             },
             nodeDict: node_list,
             nodeTypeList,
@@ -180,18 +202,16 @@ export default {
             this.isCollapseAll = true
             this.searchMode = false
             this.searchStr = ''
+            this.$emit('show', this.showNodeList)
         },
         onClickPin () {
             this.isPinActived = !this.isPinActived
         },
-        onResetPosition () {
-            this.$emit('onResetPosition')
-        },
         handleOutOfMenuBarClick (event) {
-            const that = this
             const nodeListDOM = document.querySelector(".node-list")
             if (this.showNodeList && !this.isPinActived && !domUtils.nodeContains(nodeListDOM, event.target)) {
-                that.showNodeList = false
+                this.showNodeList = false
+                this.$emit('show', this.showNodeList)
             }
         },
         searchInputhandler () {
@@ -214,27 +234,17 @@ export default {
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 .menu-wrapper {
     position: relative;
     float: left;
     width: 60px;
-    height: 100%;
+    height: calc(100% - 60px);
     z-index: 4;
-}
-.menu-title {
-    padding: 0 14px;
-    text-align: center;
-    h3 {
-        margin: 0;
-        padding: 16px 0;
-        font-size: 14px;
-        font-weight: normal;
-        line-height: 1;
-        border-bottom: 1px solid $commonBorderColor;
-    }
 }
 .menu-bar {
     position: relative;
+    top: -1px;
     height: 100%;
     background: $commonBgColor;
     border: 1px solid $commonBorderColor;
@@ -243,7 +253,8 @@ export default {
 .node-type-item {
     position: relative;
     padding: 15px 0;
-    font-size: 28px;
+    font-size: 32px;
+    color: #52699D;
     text-align: center;
     cursor: move;
     transition: all 0.5s ease;
@@ -264,7 +275,7 @@ export default {
             height: 0;
             border-style: solid;
             border-width: 0 0 8px 8px;
-            border-color: transparent transparent $blackDefault transparent;
+            border-color: transparent transparent #546a9e transparent;
         }
     }
     &.active-node-type {
@@ -275,12 +286,29 @@ export default {
         }
     }
 }
+.common-icon-node-startpoint,
+.common-icon-node-endpoint{
+    display: flex;
+    width: 32px;
+    height: 32px;
+    margin: 12px;
+    font-size: 12px;
+    margin-bottom: 23px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #546a9e;
+    justify-content: center;
+    align-items: center;
+}
+.node-endpoint {
+    margin-top: 20px;
+}
 .node-list {
     position: absolute;
-    top: 50px;
+    top: 0;
     margin-left: 60px;
     width: 300px;
-    height: calc(100% - 50px);
+    height: 100%;
     background: $whitePanelBg;
     border-right: 1px solid $commonBorderColor;
     z-index: 2;
@@ -351,8 +379,12 @@ export default {
         margin-left: 10px;
         width: 210px;
         font-size: 14px;
-        font-weight: bold;
         overflow: hidden;
+        .header-atom {
+            float: right;
+            color: #a9b2bd;
+            font-size: 12px;
+        }
     }
     .list-content {
         padding: 10px;
@@ -360,18 +392,10 @@ export default {
     }
     .atom-item {
         float: left;
-        display: table;
         margin-right: 8px;
         margin-bottom: 10px;
-        padding: 10px;
-        width: 134px;
-        height: 58px;
-        font-size: 12px;
-        color: $greyDefault;
         background: $whiteNodeBg;
         border: 1px solid $commonBorderColor;
-        text-align: center;
-        word-break: break-all;
         overflow: hidden;
         cursor: move;
         &:nth-child(2n) {
@@ -380,11 +404,50 @@ export default {
         &:hover {
             background: $blueDashBg;
             border-color: $blueDefault;
+            .name-wrapper p{
+                &:after {
+                    background: $blueDashBg;
+                }
+            }
         }
-        p {
+        .name-wrapper {
             display: table-cell;
+            padding: 0 10px;
+            width: 134px;
+            height: 58px;
             vertical-align: middle;
+            p {
+                @include multiLineEllipsis($lineHeight: 1.2em, $lineCount: 2, $bgColor: #fafafa);
+                font-size: 12px;
+                color: $greyDefault;
+                text-align: center;
+                word-break: break-all;
+                &:before {
+                    right: 3px;
+                }
+            }
         }
+        
     }
+}
+.startpoint-unavailable, .endpoint-unavailable {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #546a9e;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.3;
+    pointer-events: none;
+}
+.endpoint-unavailable {
+    margin-bottom: 12px;
+}
+.common-icon-node-tasknode,
+.common-icon-node-subflow {
+    font-size: 24px;
 }
 </style>

@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 import base64
 import hashlib
 import hmac
@@ -40,7 +41,6 @@ def http_request_workbench(url, http_method, data=None):
             发起GET/POST等各种请求
     @note: httplib2的post里的数据值必须转成utf8编码
     @note: 优先选用django的querydict的urlencode, urllib的urlencode会出现编码问题。
-    @note: 参照http://stackoverflow.com/questions/3110104/unicodeencodeerror-ascii-codec-cant-encode-character-when-trying-a-http-post
     @note: 请求参数query中的参数项如果是json, 请不要传入python dict, 一定要传入json字符串, 否则服务端将无法解析json(单双引号问题)
     @return: 直接返回原始响应数据(包含result,data,message的字典)
     """
@@ -82,7 +82,7 @@ def http_request_workbench(url, http_method, data=None):
         try:
             content_dict = json.loads(content)
             return content_dict
-        except:
+        except Exception:
             logger.error(_(u"请求返回数据格式错误!"))
             return {'result': 0, 'message': _(u"调用远程服务失败，Http请求返回数据格式错误!")}
     else:

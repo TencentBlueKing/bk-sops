@@ -6,10 +6,10 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.conf.urls import url
 
 from gcloud.taskflow3 import views, api
-
 
 urlpatterns = [
     url(r'^home/(?P<biz_cc_id>\d+)/$', views.home),
@@ -27,5 +27,8 @@ urlpatterns = [
 
     url(r'^api/preview_task_tree/(?P<biz_cc_id>\d+)/$', api.preview_task_tree),
     url(r'^api/query_task_count/(?P<biz_cc_id>\d+)/$', api.query_task_count),
-    url(r'^api/nodes/log/(?P<biz_cc_id>\d+)/(?P<node_id>\w+)/$', api.get_node_log)
+    url(r'^api/nodes/log/(?P<biz_cc_id>\d+)/(?P<node_id>\w+)/$', api.get_node_log),
+    url(r'^api/get_task_create_method/$', api.get_task_create_method),
+    url(r'^api/nodes/callback/(?P<token>.+)/$', api.node_callback),
+    url(r'^api/flows/get_root_context/(?P<taskflow_id>\w+)/$', api.get_taskflow_root_context)
 ]

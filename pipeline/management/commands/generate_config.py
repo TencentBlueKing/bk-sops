@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 import os
 
 from pipeline.conf import settings
@@ -60,12 +61,12 @@ class Command(BaseCommand):
             if not os.path.exists(path):
                 os.makedirs(path)
 
-        for target_path, template_name in self.configs.iteritems():
+        for target_path, template_name in self.configs.items():
             dirname = os.path.dirname(target_path)
             if not os.path.exists(dirname):
                 try:
                     os.makedirs(dirname)
-                except:
+                except Exception:
                     pass
 
             with open(target_path, 'wb+') as f:

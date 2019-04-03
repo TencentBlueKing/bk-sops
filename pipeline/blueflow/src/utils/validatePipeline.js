@@ -19,7 +19,7 @@ const NODE_RULE = {
     },
     "endpoint": {
         min_in: 1,
-        max_in: 1000,
+        max_in: 1,
         min_out: 0,
         max_out: 0,
         allowed_out: [],

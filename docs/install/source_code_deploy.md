@@ -4,6 +4,26 @@
 通过 Fork 源代码到自己的仓库，可以进行二次开发和定制。建议公共特性开发和 bug 修复通过 Pull requests 及时提交到官方仓库。如果不需要进行二次开发，请直接在 releases 中获取打包好的版本，上传部署升级官方标准运维 SaaS。
 
 
+## 打包并收集前端静态资源
+1）安装依赖包  
+进入 pipeline/blueflow/，执行以下命令安装
+```bash
+npm install
+```
+
+2）本地打包
+在 pipeline/blueflow/ 目录下，继续执行以下命令打包前端静态资源
+```bash
+npm run build -- --STATIC_ENV=dev
+```
+
+3）收集静态资源
+回到项目根目录，执行以下命令收集前端静态资源到 static 目录下
+```bash
+python manage.py collectstatic --noinput
+```
+
+
 ## 创建应用  
 前往你部署的蓝鲸社区版平台，在"开发者中心"点击"应用创建"，填写需要的参数，注意代码仓库填写你的 Github 仓库地址，账号和密码。注意，由于官方已经存在一个名为"标准运维"的应用，你只能填写不一样的应用名称和应用 ID，如"标准运维定制版"、bk-sops-ce。
 

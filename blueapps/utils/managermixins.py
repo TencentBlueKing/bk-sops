@@ -24,7 +24,7 @@ class ClassificationCountMixin(object):
     def get_choices(self, field):
         choices_fields = self.get_choices_fields()
         if field not in choices_fields:
-            raise FieldError('Unsupported filed:%s, which should be CharField with property choices')
+            raise FieldError('Unsupported filed:%s, which should be CharField with property choices' % field)
         return getattr(self.model._meta.get_field(field), 'choices')
 
     def classified_count(self, conditions=None, field=None):
@@ -34,7 +34,6 @@ class ClassificationCountMixin(object):
         total = queryset.count()
         if field is None:
             return {'total': total, 'groups': []}
-
         choices = self.get_choices(field)
         queryset = queryset.values(field).annotate(value=Count(field)).order_by()
         values = {item[field]: item['value'] for item in queryset}

@@ -1,0 +1,15 @@
+language: python
+python: 2.7
+
+before_script:
+  - pip install -r requirements.txt
+  - pip install flake8
+  - pip install codecov
+  - pip install coverage
+
+script:
+  - flake8
+  - echo 'yes' | sh scripts/code/coverage_and_report.sh -e enterprise
+
+after_success:
+  - codecov

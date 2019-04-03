@@ -13,7 +13,7 @@
                     <router-link
                         class="summary-module"
                         :to="`/taskflow/home/${cc_id}`">
-                        <i class="common-icon-task module-icon"></i>
+                        <i class="common-icon-clock-inversion module-icon"></i>
                         <span class="module-entry">{{i18n.enter}}</span>
                     </router-link>
                     <h4 class="title">{{i18n.executeTask}}</h4>
@@ -36,7 +36,7 @@
                 <router-link
                     class="summary-module"
                     :to="`/template/new/${cc_id}`">
-                    <i class="common-icon-template module-icon"></i>
+                    <i class="common-icon-circulation module-icon"></i>
                     <span class="module-entry">{{i18n.enter}}</span>
                 </router-link>
                 <h4 class="title">{{i18n.template}}</h4>
@@ -53,17 +53,25 @@
             </ul>
             <div class="sperate-line"></div>
         </div>
-        <div class="summary-item summary-closed clearfix">
+        <div class="summary-item clearfix">
             <div class="count-title">
-                <div class="summary-module">
-                    <i class="common-icon-appmaker module-icon"></i>
+                <router-link
+                    class="summary-module"
+                    :to="`/appmaker/home/${cc_id}`">
+                    <i class="common-icon-box module-icon"></i>
                     <span class="module-entry">{{i18n.enter}}</span>
-                </div>
+                </router-link>
                 <h4 class="title">{{i18n.appmaker}}</h4>
                 <p class="num">{{summaryData.appmakerStatus.total}}{{i18n.num}}</p>
             </div>
             <ul class="count-detail">
-                <li class="item-info">{{i18n.closed}}</li>
+                <li
+                    v-for="item in summaryData.appmakerStatus.groups"
+                    :key="item.code"
+                    class="item-info">
+                    <span>{{item.name}}: </span>
+                    <span class="value">{{item.value}}</span>
+                </li>
             </ul>
         </div>
     </div>
@@ -81,8 +89,7 @@ export default {
                 template: gettext('新建流程'),
                 appmaker: gettext('轻应用'),
                 times: gettext('次'),
-                num: gettext('个'),
-                closed: gettext('未开放')
+                num: gettext('个')
             }
         }
     }
@@ -110,18 +117,6 @@ export default {
             height: 100px;
             background: #3ea1cf;
         }
-        &.summary-closed {
-            .count-detail {
-                padding: 98px 0;
-            }
-            .item-info {
-                font-size: 20px;
-            }
-            .summary-module:hover {
-                background: $greyDisable;
-                cursor: not-allowed;
-            }
-        }
     }
     .count-title {
         float: left;
@@ -145,7 +140,7 @@ export default {
                 font-size: 30px;
                 vertical-align: middle;
             }
-            .common-icon-appmaker {
+            .common-icon-box {
                 font-size: 34px;
             }
             .module-entry {

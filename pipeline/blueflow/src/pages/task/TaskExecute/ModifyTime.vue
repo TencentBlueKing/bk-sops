@@ -14,10 +14,9 @@
             <RenderForm
                 ref="renderForm"
                 v-if="!isEmptyParams"
-                :config="renderConfig"
-                :option="renderOption"
-                :data="renderData"
-                @dataChange="onInputDataChange">
+                :scheme="renderConfig"
+                :formOption="renderOption"
+                v-model="renderData">
             </RenderForm>
             <NoData v-else></NoData>
         </div>
@@ -57,10 +56,7 @@ export default {
                 showHook: false
             },
             renderConfig: [],
-            renderData: {
-                hook: {},
-                value: {}
-            }
+            renderData: {}
         }
     },
     computed: {
@@ -68,7 +64,7 @@ export default {
             'atomFormConfig': state => state.atomForm.config
         }),
         isEmptyParams () {
-            return Object.keys(this.renderData.value).length === 0
+            return Object.keys(this.renderData).length === 0
         }
     },
     mounted () {
@@ -93,7 +89,7 @@ export default {
                 this.nodeInfo = nodeDetailRes.data
                 if (nodeDetailRes.result) {
                     for ( let key in this.nodeInfo.inputs) {
-                        this.$set(this.renderData.value, key, this.nodeInfo.inputs[key])
+                        this.$set(this.renderData, key, this.nodeInfo.inputs[key])
                     }
                 } else {
                     errorHandler(nodeDetailRes, this)
@@ -117,14 +113,6 @@ export default {
                 }
             }
         },
-        onInputDataChange (val, tagCode,) {
-            let value = this.renderData.value[tagCode]
-            if (checkDataType(value) === 'Object') {
-                this.$set(value, tagCode, val)
-            } else {
-                this.$set(this.renderData.value, tagCode, val)
-            }
-        },
         async onModifyTime () {
             let formvalid = true
             if (this.$refs.renderForm) {
@@ -137,7 +125,7 @@ export default {
                 instance_id,
                 node_id,
                 component_code,
-                inputs: JSON.stringify(this.renderData.value)
+                inputs: JSON.stringify(this.renderData)
             }
             this.retrying = true
             try {
@@ -158,7 +146,8 @@ export default {
             }
         },
         onCancelRetry () {
-            this.$emit('modifyTimeCancel')
+            const  { node_id } = this.nodeDetailConfig
+            this.$emit('modifyTimeCancel', node_id)
         }
     }
 }

@@ -8,7 +8,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 """ # noqa
 
 from django.test import TestCase
-from pipeline.core.flow.event import *
+from pipeline.core.flow.event import *  # noqa
 
 
 class TestEvent(TestCase):
@@ -47,4 +47,3 @@ class TestEvent(TestCase):
         event_id = '1'
         event = EmptyEndEvent(event_id)
         self.assertTrue(isinstance(event, EndEvent))
-

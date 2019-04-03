@@ -9,25 +9,39 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
 import { setAtomConfigApiUrls } from '@/config/setting.js'
-import NotFoundComponent from '@/components/layout/NotFoundComponent.vue'
-import Home from '@/pages/home/index.vue'
-import Template from '@/pages/template/index.vue'
-import TemplateEdit from '@/pages/template/TemplateEdit/index.vue'
-import TemplateList from '@/pages/template/TemplateList/index.vue'
-import Task from '@/pages/task/index.vue'
-import ConfigPage from '@/pages/config/index.vue'
-import AppMaker from '@/pages/appmaker/index.vue'
-import AppMakerTaskHome from '@/pages/appmaker/AppTaskHome/index.vue'
-import TaskList from '@/pages/task/TaskList/index.vue'
-import TaskCreate from '@/pages/task/TaskCreate/index.vue'
-import TaskExecute from '@/pages/task/TaskExecute/index.vue'
-import ErrorPage from '@/pages/error/index.vue'
-import AnalysisTemplate from '@/pages/analysis/Template/index.vue'
-import AnalysisInstance from '@/pages/analysis/Instance/index.vue'
-import AnalysisAtom from '@/pages/analysis/Atom/index.vue'
-import AnalysisAppmaker from '@/pages/analysis/Appmaker/index.vue'
-import FunctionHome from '@/pages/function/index.vue'
-import AuditHome from '@/pages/audit/index.vue'
+
+const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
+
+const Home = () => import('@/pages/home/index.vue')
+
+const Template = () => import('@/pages/template/index.vue')
+const TemplateEdit = () => import('@/pages/template/TemplateEdit/index.vue')
+const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
+
+const Task = () => import( '@/pages/task/index.vue')
+const TaskList = () => import('@/pages/task/TaskList/index.vue')
+const TaskCreate = () => import('@/pages/task/TaskCreate/index.vue')
+const TaskExecute = () => import('@/pages/task/TaskExecute/index.vue')
+
+const ConfigPage = () => import('@/pages/config/index.vue')
+
+const AppMaker = () => import('@/pages/appmaker/index.vue')
+const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
+
+const ErrorPage = () => import('@/pages/error/index.vue')
+
+const Statistics = () => import('@/pages/statistics/index.vue')
+const StatisticsTemplate = () => import('@/pages/statistics/Template/index.vue')
+const StatisticsInstance = () => import('@/pages/statistics/Instance/index.vue')
+const StatisticsAtom = () => import('@/pages/statistics/Atom/index.vue')
+const StatisticsAppmaker = () => import('@/pages/statistics/Appmaker/index.vue')
+
+const FunctionHome = () => import('@/pages/functor/index.vue')
+
+const AuditHome = () => import('@/pages/audit/index.vue')
+
+const periodic = () => import('@/pages/periodic/index.vue')
+const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.vue')
 
 Vue.use(VueRouter)
 
@@ -38,7 +52,7 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: to => {
-                return `/business/home/${store.state.cc_id}`
+                return `/business/home/${store.state.cc_id}/`
             }
         },
         {
@@ -51,67 +65,87 @@ const routers = new VueRouter({
         {
             path: '/template',
             component: Template,
-            children: [{
-                path: 'home/:cc_id/',
-                component: TemplateList,
-                props: (route) => ({
-                    cc_id: route.params.cc_id
-                })
-            },
-            {
-                path: 'edit/:cc_id/',
-                component: TemplateEdit,
-                props: (route) => ({
-                    cc_id: route.params.cc_id,
-                    template_id: route.query.template_id,
-                    type: 'edit'
-                })
-            },
-            {
-                path: 'new/:cc_id/',
-                component: TemplateEdit,
-                props: (route) => ({
-                    cc_id: route.params.cc_id,
-                    type: 'new'
-                })
-            },
-            {
-                path: 'clone/:cc_id/',
-                component: TemplateEdit,
-                props: (route) => ({
-                    cc_id: route.params.cc_id,
-                    template_id: route.query.template_id,
-                    type: 'clone'
-                })
-            },
-            {
-                path: 'newtask/:cc_id/:step/',
-                component: TaskCreate,
-                props: (route) => ({
-                    cc_id: route.params.cc_id,
-                    step: route.params.step,
-                    template_id: route.query.template_id
-                })
-            }]
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home/:cc_id/',
+                    component: TemplateList,
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        common: route.query.common,
+                        common_template: route.query.common_template
+                    })
+                },
+                {
+                    path: 'edit/:cc_id/',
+                    component: TemplateEdit,
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        template_id: route.query.template_id,
+                        type: 'edit',
+                        common: route.query.common
+                    })
+                },
+                {
+                    path: 'new/:cc_id/',
+                    component: TemplateEdit,
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        type: 'new',
+                        common: route.query.common
+                    })
+                },
+                {
+                    path: 'clone/:cc_id/',
+                    component: TemplateEdit,
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        template_id: route.query.template_id,
+                        type: 'clone',
+                        common: route.query.common
+                    })
+                },
+                {
+                    path: 'newtask/:cc_id/:step/',
+                    component: TaskCreate,
+                    name: 'templateStep',
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        step: route.params.step,
+                        template_id: route.query.template_id,
+                        common: route.query.common
+                    })
+                }]
         },
         {
             path: '/taskflow',
             component: Task,
-            children: [{
-                path: 'home/:cc_id/',
-                component: TaskList,
-                props: (route) => ({
-                    cc_id: route.params.cc_id
-                })
-            },
-            {
-                path: 'execute/:cc_id/',
-                component: TaskExecute,
-                props: (route) => ({
-                    cc_id: route.params.cc_id,
-                    instance_id: route.query.instance_id
-                })
-            }]
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'home/:cc_id/',
+                    component: TaskList,
+                    name: 'taskList',
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        common: route.query.common,
+                        create_method: route.query.create_method
+                    })
+                },
+                {
+                    path: 'execute/:cc_id/',
+                    component: TaskExecute,
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        instance_id: route.query.instance_id
+                    })
+                }]
         },
         {
             path: '/config/home/:cc_id/',
@@ -164,34 +198,56 @@ const routers = new VueRouter({
             })
         },
         {
-            path: '/analysis/atom/',
-            component: AnalysisAtom,
-            name: 'analysisAtom'
-        },
-        {
-            path: '/analysis/template/',
-            component: AnalysisTemplate,
-            name: 'analysisTemplate'
-        },
-        {
-            path: '/analysis/instance/',
-            component: AnalysisInstance,
-            name: 'analysisInstance'
-        },
-        {
-            path: '/analysis/appmaker/',
-            component: AnalysisAppmaker,
-            name: 'analysisAppmaker'
+            path: '/statistics',
+            component: Statistics,
+            children: [
+                {
+                    path: '',
+                    component: NotFoundComponent
+                },
+                {
+                    path: 'template/',
+                    name: 'statisticsTemplate',
+                    component: StatisticsTemplate
+                },
+                {
+                    path: 'instance/',
+                    name: 'statisticsInstance',
+                    component: StatisticsInstance
+                },
+                {
+                    path: 'atom/',
+                    name: 'statisticsAtom',
+                    component: StatisticsAtom
+                },
+                {
+                    path: 'appmaker/',
+                    name: 'statisticsAppmaker',
+                    component: StatisticsAppmaker
+                }
+            ]
         },
         {
             path: '/function/home/',
-            component: FunctionHome,
-            name: 'functionHome'
+            name: 'functionHome',
+            component: FunctionHome
         },
         {
             path: '/audit/home/',
-            component: AuditHome,
-            name: 'auditHome'
+            name: 'auditHome',
+            component: AuditHome
+        },
+        {
+            path: '/periodic',
+            component: periodic,
+            children: [{
+                path: 'home/:cc_id/',
+                component: periodicTemplateList,
+                name: 'periodicTemplate',
+                props: (route) => ({
+                    cc_id: route.params.cc_id
+                })
+            }]
         },
         {
             path: '*',
@@ -201,43 +257,18 @@ const routers = new VueRouter({
     ]
 })
 
-const oldPages = [
-]
-
 routers.beforeEach ((to, from, next) => {
-    // is jump to 404 page
+    // 生产环境 404 页面头部导航跳转统一设置为首页
     if (process.env.NODE_ENV === "production" && to.name === 'notFoundPage') {
         store.commit('setNotFoundPage', true)
     } else {
         store.commit('setNotFoundPage', false)
     }
-
     if (to.params.cc_id) {
         store.commit('setBizId', to.params.cc_id)
-        setAtomConfigApiUrls(store.state.site_url, store.state.cc_id)
+        setAtomConfigApiUrls(store.state.site_url, to.params.cc_id)
     }
-    const isPathShouldReload = oldPages.some(item => {
-        const reg = new RegExp('^' + item)
-        return reg.test(to.fullPath)
-    })
-    if (process.env.NODE_ENV === "production" && isPathShouldReload && !store.state.firstEnterApp) {
-        let prefix_url = SITE_URL.replace(/\/?$/, '')
-        let redirectPath = prefix_url + to.fullPath
-        if (store.state.hideHeader) {
-            if (Object.keys(to.query).length) {
-                redirectPath += '&hide_header=1'
-            } else {
-                redirectPath += '?hide_header=1'
-            }
-        }
-        window.location.href = redirectPath
-    } else {
-        // hack spa page goto Django page
-        if (store.state.firstEnterApp) {
-            store.commit('markFirstEnter')
-        }
-        next()
-    }
+    next()
 })
 
 
