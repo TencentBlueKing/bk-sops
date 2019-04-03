@@ -8,7 +8,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 """ # noqa
 
 from django.test import TestCase
-from pipeline.core.flow.activity import *
+from pipeline.core.data.base import DataObject
+from pipeline.core.flow.activity import *  # noqa
 
 
 class TestActivity(TestCase):
@@ -22,16 +23,26 @@ class TestActivity(TestCase):
         act_id = '1'
         service = 'a_service'
         inputs = {'args': [1, 2, 3], 'kwargs': {'1': 1, '2': 2}}
-        service_act = ServiceActivity(id=act_id, service=service, data=inputs)
+        service_act = ServiceActivity(id=act_id, service=service, data=DataObject(inputs))
         self.assertTrue(isinstance(service_act, Activity))
         self.assertEqual(service, service_act.service)
 
     def test_subprocess(self):
         act_id = '1'
 
+        class MockData(object):
+            def __init__(self, val):
+                self.val = val
+
+            def inputs_copy(self):
+                pass
+
+            def outputs_copy(self):
+                pass
+
         class MockPipeline(object):
             def __init__(self, data):
-                self.data = data
+                self.data = MockData(data)
 
         pipeline = MockPipeline('data')
         sub_process = SubProcess(act_id, pipeline)

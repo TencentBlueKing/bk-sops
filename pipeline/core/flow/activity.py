@@ -8,6 +8,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 """ # noqa
 
 from abc import ABCMeta, abstractmethod
+from copy import deepcopy
+
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.base import FlowNode
@@ -31,17 +33,42 @@ class Activity(FlowNode):
     def failure_handler(self, parent_data):
         return self._failure_handler(data=self.data, parent_data=parent_data)
 
+    def skip(self):
+        raise NotImplementedError()
+
+    def prepare_rerun_data(self):
+        raise NotImplementedError()
+
 
 class ServiceActivity(Activity):
     result_bit = '_result'
+    loop = '_loop'
+    ON_RETRY = '_on_retry'
 
-    def __init__(self, id, service, name=None, data=None, error_ignorable=False, failure_handler=None):
+    def __init__(self,
+                 id,
+                 service,
+                 name=None,
+                 data=None,
+                 error_ignorable=False,
+                 failure_handler=None,
+                 skippable=True,
+                 can_retry=True,
+                 timeout=None):
         super(ServiceActivity, self).__init__(id, name, data, failure_handler)
         self.service = service
         self.error_ignorable = error_ignorable
+        self.skippable = skippable
+        self.can_retry = can_retry
+        self.timeout = timeout
+
+        if data:
+            self._prepared_inputs = self.data.inputs_copy()
+            self._prepared_outputs = self.data.outputs_copy()
 
     def execute(self, parent_data):
         self.service.logger = self.logger
+        self.service.id = self.id
         result = self.service.execute(self.data, parent_data)
 
         # set result
@@ -52,10 +79,10 @@ class ServiceActivity(Activity):
         return result
 
     def set_result_bit(self, result):
-        if result:
-            self.data.set_outputs(self.result_bit, True)
-        else:
+        if result is False:
             self.data.set_outputs(self.result_bit, False)
+        else:
+            self.data.set_outputs(self.result_bit, True)
 
     def get_result_bit(self):
         return self.data.get_one_of_outputs(self.result_bit, False)
@@ -72,10 +99,11 @@ class ServiceActivity(Activity):
         self.data.reset_outputs({})
 
     def need_schedule(self):
-        return getattr(self.service, '__need_schedule__', False)
+        return self.service.need_schedule()
 
     def schedule(self, parent_data, callback_data=None):
         self.service.logger = self.logger
+        self.service.id = self.id
         result = self.service.schedule(self.data, parent_data, callback_data)
         self.set_result_bit(result)
 
@@ -86,24 +114,45 @@ class ServiceActivity(Activity):
 
         return result
 
-    def schedule_done(self):
-        return getattr(self.service, '__schedule_finish__', False)
+    def is_schedule_done(self):
+        return self.service.is_schedule_finished()
+
+    def finish_schedule(self):
+        self.service.finish_schedule()
 
     def shell(self):
         shell = ServiceActivity(id=self.id, service=self.service, name=self.name, data=self.data,
-                                error_ignorable=self.error_ignorable)
+                                error_ignorable=self.error_ignorable, timeout=self.timeout)
         return shell
+
+    def schedule_fail(self):
+        return
+
+    def schedule_success(self):
+        return
+
+    def prepare_rerun_data(self):
+        self.data.override_inputs(deepcopy(self._prepared_inputs))
+        self.data.override_outputs(deepcopy(self._prepared_outputs))
 
 
 class SubProcess(Activity):
     def __init__(self, id, pipeline, name=None):
         super(SubProcess, self).__init__(id, name, pipeline.data)
         self.pipeline = pipeline
+        self._prepared_inputs = self.pipeline.data.inputs_copy()
+        self._prepared_outputs = self.pipeline.data.outputs_copy()
+
+    def prepare_rerun_data(self):
+        self.data.override_inputs(deepcopy(self._prepared_inputs))
+        self.data.override_outputs(deepcopy(self._prepared_outputs))
 
 
 class Service(object):
     __metaclass__ = ABCMeta
 
+    ScheduleResultAttr = '__schedule_finish__'
+    ScheduleDetermineAttr = '__need_schedule__'
     OutputItem = namedtuple('OutputItem', 'name key type')
     interval = None
     _result_output = OutputItem(name=_(u'执行结果'), key='_result', type='bool')
@@ -126,19 +175,25 @@ class Service(object):
         custom_format.append(self._result_output)
         return custom_format
 
+    def need_schedule(self):
+        return getattr(self, Service.ScheduleDetermineAttr, False)
+
     def schedule(self, data, parent_data, callback_data=None):
         return True
 
     def finish_schedule(self):
-        setattr(self, '__schedule_finish__', True)
+        setattr(self, self.ScheduleResultAttr, True)
 
     def is_schedule_finished(self):
-        return getattr(self, '__schedule_finish__', False)
+        return getattr(self, self.ScheduleResultAttr, False)
 
     def __getstate__(self):
         if 'logger' in self.__dict__:
             del self.__dict__['logger']
         return self.__dict__
+
+    def clean_status(self):
+        setattr(self, self.ScheduleResultAttr, False)
 
 
 class AbstractIntervalGenerator(object):

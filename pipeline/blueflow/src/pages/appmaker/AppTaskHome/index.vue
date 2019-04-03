@@ -8,14 +8,15 @@
 <template>
     <div class="appmaker-container">
         <div class="list-wrapper">
+            <BaseTitle :title="i18n.taskRecord"></BaseTitle>
             <div class="operation-area clearfix">
                 <div class="appmaker-search">
                     <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
                     <i class="common-icon-search"></i>
                 </div>
             </div>
-            <div class="appmaker-table-content" v-bkloading="{isLoading: listLoading, opacity: 1}">
-                <table>
+            <div class="appmaker-table-content">
+                <table v-bkloading="{isLoading: listLoading, opacity: 1}">
                     <thead>
                         <tr>
                             <th class="appmaker-id">ID</th>
@@ -29,7 +30,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="item in appmakerList" :key="item.id">
+                        <tr v-for="(item, index) in appmakerList" :key="item.id">
                             <td class="appmaker-id">{{item.id}}</td>
                             <td class="appmaker-name">
                                 <router-link
@@ -37,12 +38,15 @@
                                     {{item.name}}
                                 </router-link>
                             </td>
-                            <td class="appmaker-time">{{formatter(item.start_time)}}</td>
-                            <td class="appmaker-time">{{formatter(item.finish_time)}}</td>
+                            <td class="appmaker-time">{{item.start_time || '--'}}</td>
+                            <td class="appmaker-time">{{item.finish_time || '--'}}</td>
                             <td class="appmaker-category">{{item.category_name}}</td>
                             <td class="appmaker-creator">{{item.creator_name}}</td>
-                            <td class="appmaker-operator">{{formatter(item.executor_name)}}</td>
-                            <td class="appmaker-status" :class="statusClass(item.is_started, item.is_finished)">{{statusMethod(item.is_started, item.is_finished)}}</td>
+                            <td class="appmaker-operator">{{item.executor_name || '--'}}</td>
+                            <td class="appmaker-status">
+                                <span :class="executeStatus[index] ? executeStatus[index].cls : ''"></span>
+                                <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
+                            </td>
                         </tr>
                         <tr v-if="!appmakerList || !appmakerList.length" class="empty-tr">
                             <td colspan="8">
@@ -72,11 +76,15 @@ import { mapActions } from 'vuex'
 import { errorHandler } from '@/utils/errorHandler.js'
 import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
 import NoData from '@/components/common/base/NoData.vue'
+import BaseTitle from '@/components/common/base/BaseTitle.vue'
+import BaseSearch from '@/components/common/base/BaseSearch.vue'
 import toolsUtils from '@/utils/tools.js'
 export default {
     name: 'appmakerTaskHome',
     components: {
         CopyrightFooter,
+        BaseTitle,
+        BaseSearch,
         NoData
     },
     props: ['cc_id','app_id'],
@@ -95,7 +103,8 @@ export default {
                 item: gettext("条记录"),
                 comma: gettext("，"),
                 currentPageTip: gettext("当前第"),
-                page: gettext("页")
+                page: gettext("页"),
+                taskRecord: gettext('任务记录')
             },
             listLoading: true,
             currentPage: 1,
@@ -109,7 +118,8 @@ export default {
                 authority: false
             },
             searchStr: '',
-            appmakerList: []
+            appmakerList: [],
+            executeStatus: [] // 任务执行状态
         }
     },
     computed: {
@@ -121,6 +131,9 @@ export default {
     methods: {
         ...mapActions('taskList/', [
             'loadTaskList'
+        ]),
+        ...mapActions('task/', [
+            'getInstanceStatus'
         ]),
         async getAppmakerList () {
             this.listLoading = true
@@ -142,10 +155,67 @@ export default {
                 } else {
                     this.totalPage = totalPage
                 }
+                this.executeStatus = list.map((item, index) => {
+                    const status = {}
+                    if (item.is_finished) {
+                        status.cls = 'finished bk-icon icon-check-circle-shape'
+                        status.text = gettext('完成')
+                    } else if (item.is_started) {
+                        status.cls = 'loading common-icon-loading'
+                        this.getExecuteDetail(item, index)
+                    } else {
+                        status.cls = 'created common-icon-dark-circle-shape'
+                        status.text = gettext('未执行')
+                    }
+                    return status
+                })
             } catch (e) {
                 errorHandler(e, this)
             } finally {
                 this.listLoading = false
+            }
+        },
+        async getExecuteDetail (task, index) {
+            const data = {
+                instance_id: task.id,
+                cc_id: task.business.cc_id
+            }
+            try {
+                const detailInfo = await this.getInstanceStatus(data)
+                if (detailInfo.result) {
+                    const state = detailInfo.data.state
+                    const status = {}
+                    switch (state) {
+                        case 'RUNNING':
+                        case 'BLOCKED':
+                            status.cls = 'running common-icon-dark-circle-ellipsis'
+                            status.text = gettext('执行中')
+                            break
+                        case 'SUSPENDED':
+                            status.cls = 'execute common-icon-dark-circle-pause'
+                            status.text = gettext('暂停')
+                            break
+                        case 'NODE_SUSPENDED':
+                            status.cls = 'execute'
+                            status.text = gettext('节点暂停')
+                            break
+                        case 'FAILED':
+                            status.cls = 'failed common-icon-dark-circle-close'
+                            status.text = gettext('失败')
+                            break
+                        case 'REVOKED':
+                            status.cls = 'revoke common-icon-dark-circle-shape'
+                            status.text = gettext('撤销')
+                            break
+                        default:
+                            status.text = gettext('未知')
+                    }
+                    this.executeStatus.splice(index, 1, status)
+                } else {
+                    errorHandler(detailInfo, this)
+                }
+            } catch (e) {
+                errorHandler(e, this)
             }
         },
         onPageChange (page) {
@@ -181,13 +251,8 @@ export default {
                 statusClass = {primary: true}
             }
             return statusClass
-        },
-        formatter (value) {
-            if (value === '' || value === null) {
-                return '--'
-            }
-            return value
         }
+
     }
 }
 </script>
@@ -196,11 +261,12 @@ export default {
 .appmaker-container {
     padding-top: 20px;
     min-width: 1320px;
-    min-height: calc(100% - 60px);
+    min-height: calc(100% - 50px);
     background: #fafafa;
 }
 .list-wrapper {
     padding: 0 60px;
+    min-height: calc(100vh - 240px);
 }
 .operation-area {
     margin: 20px 0;
@@ -210,9 +276,9 @@ export default {
     }
     .search-input {
         padding: 0 40px 0 10px;
-        width: 300px;
-        height: 36px;
-        line-height: 36px;
+        width: 360px;
+        height: 32px;
+        line-height: 32px;
         font-size: 14px;
         background: $whiteDefault;
         border: 1px solid $commonBorderColor;
@@ -231,7 +297,7 @@ export default {
     .common-icon-search {
         position: absolute;
         right: 15px;
-        top: 11px;
+        top: 8px;
         color: $commonBorderColor;
     }
 }
@@ -240,16 +306,16 @@ export default {
         width: 100%;
         border: 1px solid #ebebeb;
         border-collapse: collapse;
-        font-size: 14px;
+        font-size: 12px;
         background: $whiteDefault;
         table-layout: fixed;
         tr:not(.empty-tr):hover {
-            background: #fafafa;
+            background: $whiteNodeBg;
         }
         th,td {
             padding: 10px;
-            text-align: center;
-            border: 1px solid #ebebeb;
+            text-align: left;
+            border-bottom: 1px solid $commonBorderColor;
         }
         th {
             background: #fafafa;
@@ -284,11 +350,43 @@ export default {
         .appmaker-category {
             width: 110px;
         }
-        .appmaker-status {
-            width: 110px;
-        }
         .appmaker-name {
             width: 220px;
+        }
+        .appmaker-status {
+            width: 84px;
+            .common-icon-dark-circle-shape {
+                display: inline-block;
+                transform: scale(0.9);
+                font-size: 12px;
+                color: #979BA5;
+            }
+             .common-icon-dark-circle-ellipsis {
+                color: #3c96ff;
+                font-size: 12px;
+            }
+            .icon-check-circle-shape {
+                color: $greenDefault;
+            }
+            .common-icon-dark-circle-close {
+                color: $redDefault;
+            }
+            &.revoke {
+                color: $blueDisable;
+            }
+            .common-icon-loading {
+                display: inline-block;
+                animation: bk-button-loading 1.4s infinite linear;
+            }
+            @keyframes bk-button-loading {
+                from {
+                    -webkit-transform: rotate(0);
+                    transform: rotate(0); }
+                to {
+                    -webkit-transform: rotate(360deg);
+                    transform: rotate(360deg);
+                }
+            }
         }
     }
     .btn-size-mini {
@@ -302,12 +400,18 @@ export default {
     }
 }
 .panagation {
-    margin-top: 20px;
+    padding: 10px 20px;
     text-align: right;
+    border: 1px solid #dde4eb;
+    border-top: none;
+    background: #fafbfd;
     .page-info {
         float: left;
-        margin-top: 10px;
+        line-height: 36px;
         font-size: 14px;
+    }
+    .bk-page {
+        display: inline-block;
     }
 }
 .success {

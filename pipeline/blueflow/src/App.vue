@@ -12,7 +12,7 @@
         :appmakerDataLoading="appmakerDataLoading"/>
     <UserLoginModal ref="userLogin"></UserLoginModal>
     <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
-    <router-view></router-view>
+    <router-view v-if="isRouterAlive"></router-view>
 </div>
 </template>
 <script>
@@ -32,8 +32,14 @@ export default {
         UserLoginModal,
         ErrorCodeModal
     },
+    provide () {
+        return {
+            reload: this.reload
+        }
+    },
     data () {
         return {
+            isRouterAlive: true,
             appmakerDataLoading: false // 轻应用加载 app 详情
         }
     },
@@ -46,7 +52,7 @@ export default {
     },
     created () {
         /**
-         * 兼容原子配置项里，异步请求用到的全局弹窗提示
+         * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
          */
         window.show_msg = (message, type) => {
             this.$bkMessage({
@@ -54,7 +60,7 @@ export default {
                 theme: type
             })
         }
-        
+
         if (this.viewMode === 'appmaker') {
             this.getAppmakerDetail()
         }
@@ -63,8 +69,8 @@ export default {
         bus.$on('showLoginModal', (src) => {
             this.$refs.userLogin.show(src)
         })
-        bus.$on('showErrorModal', (type) => {
-            this.$refs.errorModal.show(type)
+        bus.$on('showErrorModal', (type, responseText) => {
+            this.$refs.errorModal.show(type, responseText)
         })
         bus.$on('showMessage', (info) => {
             this.$bkMessage({
@@ -90,6 +96,12 @@ export default {
             } finally {
                 this.appmakerDataLoading = false
             }
+        },
+        reload () {
+            this.isRouterAlive = false
+            this.$nextTick(() => {
+                this.isRouterAlive = true
+            })
         }
     }
 }

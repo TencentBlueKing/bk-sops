@@ -6,18 +6,24 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.conf.urls import include, url
 from tastypie.api import Api
 
 from gcloud.webservice3.resources import (
     BusinessResource,
-    TaskTemplateResource,
     ComponentModelResource,
-    TemplateSchemeResource,
-    TaskFlowInstanceResource,
     VariableModelResource
 )
-
+from gcloud.commons.template.resources import CommonTemplateResource
+from gcloud.tasktmpl3.resources import (
+    TaskTemplateResource,
+    TemplateSchemeResource,
+)
+from gcloud.taskflow3.resources import TaskFlowInstanceResource
+from gcloud.contrib.appmaker.resources import AppMakerResource
+from gcloud.contrib.function.resources import FunctionTaskResource
+from gcloud.periodictask.resources import PeriodicTaskResource
 
 v3_api = Api(api_name='v3')
 v3_api.register(BusinessResource())
@@ -26,7 +32,10 @@ v3_api.register(ComponentModelResource())
 v3_api.register(VariableModelResource())
 v3_api.register(TemplateSchemeResource())
 v3_api.register(TaskFlowInstanceResource())
-
+v3_api.register(AppMakerResource())
+v3_api.register(FunctionTaskResource())
+v3_api.register(PeriodicTaskResource())
+v3_api.register(CommonTemplateResource())
 
 # Standard bits...
 urlpatterns = [

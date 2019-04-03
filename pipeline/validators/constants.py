@@ -13,8 +13,17 @@ FLOW_NODES_WITHOUT_STARTEVENT = [
     "SubProcess",
     "ExclusiveGateway",
     "ParallelGateway",
+    "ConditionalParallelGateway",
     "ConvergeGateway",
     "EmptyEndEvent",
+]
+FLOW_NODES_WITHOUT_START_AND_END = [
+    "ServiceActivity",
+    "ExclusiveGateway",
+    "ConditionalParallelGateway",
+    "ParallelGateway",
+    "EmptyEndEvent",
+    "SubProcess"
 ]
 
 # rules of activity graph
@@ -24,7 +33,7 @@ ACTIVITY_RULES = {
         "max_in": 0,
         "min_out": 1,
         "max_out": 1,
-        "allowed_out": ["ServiceActivity", "ExclusiveGateway", "ParallelGateway", "EmptyEndEvent", "SubProcess"]
+        "allowed_out": FLOW_NODES_WITHOUT_START_AND_END
     },
     "EmptyEndEvent": {
         "min_in": 1,
@@ -35,28 +44,35 @@ ACTIVITY_RULES = {
     },
     "ServiceActivity": {
         "min_in": 1,
-        "max_in": 1,
+        "max_in": MAX_IN,
         "min_out": 1,
         "max_out": 1,
         "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
     },
     "ExclusiveGateway": {
         "min_in": 1,
-        "max_in": 1,
-        "min_out": 2,
+        "max_in": MAX_IN,
+        "min_out": 1,
         "max_out": MAX_OUT,
         "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
     },
     "ParallelGateway": {
         "min_in": 1,
-        "max_in": 1,
-        "min_out": 2,
+        "max_in": MAX_IN,
+        "min_out": 1,
+        "max_out": MAX_OUT,
+        "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
+    },
+    "ConditionalParallelGateway": {
+        "min_in": 1,
+        "max_in": MAX_IN,
+        "min_out": 1,
         "max_out": MAX_OUT,
         "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
     },
     "ConvergeGateway": {
-        "min_in": 2,
-        "max_in": MAX_OUT,
+        "min_in": 1,
+        "max_in": MAX_IN,
         "min_out": 1,
         "max_out": 1,
         "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT
@@ -64,7 +80,7 @@ ACTIVITY_RULES = {
     },
     "SubProcess": {
         "min_in": 1,
-        "max_in": 1,
+        "max_in": MAX_IN,
         "min_out": 1,
         "max_out": 1,
         "allowed_out": FLOW_NODES_WITHOUT_STARTEVENT

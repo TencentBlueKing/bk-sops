@@ -8,15 +8,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 """ # noqa
 
 from django.test import TestCase
-from pipeline.core.data.base import DataObject
-from pipeline.core.flow.base import FlowNode, SequenceFlowCollection, SequenceFlow
+from pipeline.core.flow.base import FlowNode, SequenceFlow
 from pipeline.core.flow.gateway import Gateway, ExclusiveGateway, Condition, ParallelGateway
-from pipeline.exceptions import (ConditionExhaustedException, SourceKeyException, EvaluationException)
+from pipeline.exceptions import ConditionExhaustedException, EvaluationException
 
 
 class TestExclusiveGateway(TestCase):
     def setUp(self):
-        ex_gateway1 = ExclusiveGateway(id='1', converge_gateway_id='cvg')
+        ex_gateway1 = ExclusiveGateway(id='1')
         next_node1 = ParallelGateway(id='1', converge_gateway_id='cvg')
         next_node2 = ParallelGateway(id='2', converge_gateway_id='cvg')
         flow1 = SequenceFlow('flow1', ex_gateway1, next_node1)
@@ -32,7 +31,7 @@ class TestExclusiveGateway(TestCase):
 
         self.gateway_for_test_determine = ex_gateway1
 
-        ex_gateway2 = ExclusiveGateway(id='2', converge_gateway_id='cvg')
+        ex_gateway2 = ExclusiveGateway(id='2')
         next_node3 = ParallelGateway(id='3', converge_gateway_id='cvg')
         next_node4 = ParallelGateway(id='4', converge_gateway_id='cvg')
         next_node5 = ParallelGateway(id='5', converge_gateway_id='cvg')
@@ -55,13 +54,13 @@ class TestExclusiveGateway(TestCase):
     def test_exclusive_gateway(self):
         gw_id = '1'
         conditions = [Condition(None, None), Condition(None, None)]
-        ex_gateway = ExclusiveGateway(id=gw_id, converge_gateway_id='cvg', conditions=conditions)
+        ex_gateway = ExclusiveGateway(id=gw_id, conditions=conditions)
         self.assertTrue(isinstance(ex_gateway, FlowNode))
         self.assertTrue(isinstance(ex_gateway, Gateway))
         self.assertEqual(conditions, ex_gateway.conditions)
 
     def test_add_condition(self):
-        ex_gateway = ExclusiveGateway(id='1', converge_gateway_id='cvg')
+        ex_gateway = ExclusiveGateway(id='1')
         flow1 = SequenceFlow('flow1', ex_gateway, None)
         self.assertEqual([], ex_gateway.conditions)
         ex_gateway.add_condition(flow1)
@@ -89,12 +88,6 @@ class TestExclusiveGateway(TestCase):
         node = self.gateway_for_test_next.outgoing.flows[1].target
         data = {'a': 2}
         self.assertEqual(node, self.gateway_for_test_next.next(data))
-
-    def test_next_none_data(self):
-        node = self.gateway_for_test_next.outgoing.flows[2].target
-        self.assertEqual(node, self.gateway_for_test_next.next())
-        self.gateway_for_test_next.outgoing.flows[2].is_default = False
-        self.assertRaises(ConditionExhaustedException, self.gateway_for_test_next.next)
 
     def test_next_exhausted(self):
         node = self.gateway_for_test_next.outgoing.flows[2].target

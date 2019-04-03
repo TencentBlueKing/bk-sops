@@ -65,7 +65,7 @@
 import '@/utils/i18n.js'
 import { mapState } from 'vuex'
 import { Validator } from 'vee-validate'
-import { NAME_REG } from '@/constants/index.js'
+import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
 import BaseInput from '@/components/common/base/BaseInput.vue'
 export default {
@@ -89,15 +89,16 @@ export default {
             varKey: '',
             variableNameRule: {
                 required: true,
-                max: 20,
+                max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
                 regex: NAME_REG
             },
             variableKeyRule: {
                 required: true,
-                max: 20,
-                regex: /(^\$\{\w+\}$)|(^\w+$)/,
+                max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
+                regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
                 keyRepeat: true
-            }
+            },
+            isOverride: false
         }
     },
     computed: {
@@ -172,14 +173,73 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+@import '@/scss/config.scss';
+@import '@/scss/mixins/scrollbar.scss';
 .reuse-variable-dialog {
     .common-form-item {
         label {
-            width: 70px;
+            width: 100px;
             font-weight: normal;
         }
         .common-form-content {
-            margin-left: 90px;
+            margin: 0 30px 0 120px;
+        }
+         .is-override-radio {
+            margin-right: 14px;
+            height: 36px;
+            line-height: 36px;
+            font-size: 14px;
+            .radio-icon {
+                position: relative;
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border: 1px solid $commonBorderColor;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+            .radio-label {
+                padding-left: 4px;
+                line-height: 1;
+                cursor: pointer;
+            }
+            input[type="radio"] {
+                display: none;
+            }
+            input[type="radio"]:checked + label {
+                & > .radio-icon {
+                    background: $blueDefault;
+                    border: 1px solid $blueDefault;
+                    &:after {
+                        content: "";
+                        position: absolute;
+                        top: 4px;
+                        left: 4px;
+                        width: 4px;
+                        height: 4px;
+                        background: $whiteDefault;
+                        border-radius: 50%;
+                    }
+                }
+            }
+            &.is-disabled {
+                .radio-label {
+                    color: $greyDisable;
+                    cursor: not-allowed;
+                }
+                .radio-icon {
+                    border-color: $greyDisable;
+                }
+                input[type="radio"]:checked + label {
+                    & > .radio-icon {
+                        background: $whiteDefault;
+                        border-color: $greyDisable;
+                        &::after {
+                            background: $greyDisable;
+                        }
+                    }
+                }
+            }
         }
     }
     .new_variable-checkbox {
@@ -187,5 +247,6 @@ export default {
         line-height: 36px;
     }
 }
+
 </style>
 

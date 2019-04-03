@@ -8,7 +8,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 """ # noqa
 
 from pipeline.engine import tasks
-from pipeline.engine.models import ProcessCeleryTask, ScheduleCeleryTask
+from pipeline.engine.models import ProcessCeleryTask, ScheduleCeleryTask, NodeCeleryTask
 
 
 def pipeline_ready_handler(sender, process_id, **kwargs):
@@ -74,3 +74,18 @@ def schedule_ready_handler(sender, process_id, schedule_id, countdown, **kwargs)
             'countdown': countdown
         }
     )
+
+
+def service_activity_timeout_monitor_start_handler(sender, node_id, version, root_pipeline_id, countdown, **kwargs):
+    NodeCeleryTask.objects.start_task(
+        node_id=node_id,
+        start_func=tasks.node_timeout_check.apply_async,
+        kwargs={
+            'args': [node_id, version, root_pipeline_id],
+            'countdown': countdown
+        }
+    )
+
+
+def service_activity_timeout_monitor_end_handler(sender, node_id, version, **kwargs):
+    NodeCeleryTask.objects.revoke(node_id)

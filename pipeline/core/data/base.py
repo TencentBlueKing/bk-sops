@@ -10,20 +10,22 @@ try:
     import ujson as json
 except ImportError:
     import json
+import copy
 
 from pipeline import exceptions
+from pipeline.utils.collections import FancyDict
 
 
 class DataObject(object):
     def __init__(self, inputs, outputs=None):
         if not isinstance(inputs, dict):
             raise exceptions.DataTypeErrorException('inputs is not dict')
-        self.inputs = inputs
+        self.inputs = FancyDict(inputs)
         if outputs is None:
             outputs = {}
         if not isinstance(outputs, dict):
             raise exceptions.DataTypeErrorException('outputs is not dict')
-        self.outputs = outputs
+        self.outputs = FancyDict(outputs)
 
     def get_inputs(self):
         return self.inputs
@@ -44,11 +46,27 @@ class DataObject(object):
     def reset_outputs(self, outputs):
         if not isinstance(outputs, dict):
             raise exceptions.DataTypeErrorException('outputs is not dict')
-        self.outputs = outputs
+        self.outputs = FancyDict(outputs)
         return True
 
     def update_outputs(self, dic):
         self.outputs.update(dic)
+
+    def inputs_copy(self):
+        return copy.deepcopy(self.inputs)
+
+    def outputs_copy(self):
+        return copy.deepcopy(self.outputs)
+
+    def override_inputs(self, inputs):
+        if not isinstance(inputs, FancyDict):
+            inputs = FancyDict(inputs)
+        self.inputs = inputs
+
+    def override_outputs(self, outputs):
+        if not isinstance(outputs, FancyDict):
+            outputs = FancyDict(outputs)
+        self.outputs = outputs
 
     def serializer(self):
         result = {

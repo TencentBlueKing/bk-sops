@@ -7,6 +7,17 @@
 */
 import Vue from 'vue'
 import api from '@/api/index.js'
+import { debug } from 'util'
+
+const VAR_TYPE = {
+    'var_ip_picker': 'variable',
+    'password': 'variable',
+    'select': 'variable'
+}
+
+const META_FORM_TYPE = {
+    'select': 'select_meta'
+}
 
 const atomForm = {
     namespaced: true,
@@ -21,26 +32,35 @@ const atomForm = {
             state.fetching = status
         },
         setAtomForm (state, payload) {
-            Vue.set(state.form, payload.atomType, payload.data)
+            let atomType = payload.isMeta ? META_FORM_TYPE[payload.atomType] : payload.atomType
+            Vue.set(state.form, atomType, payload.data)
         },
         setAtomConfig (state, payload) {
             Vue.set(state.config, payload.atomType, payload.configData)
         },
         setAtomOutput (state, payload) {
             Vue.set(state.output, payload.atomType, payload.outputData)
+        },
+        clearAtomForm (state, payload) {
+            $.atoms = {}
+            state.form = {}
+            state.config = {}
+            state.output = {}
         }
     },
     actions: {
         loadAtomConfig ({commit, state}, payload) {
-            const { atomType } = payload
-            const atomClassify = atomType === 'var_ip_picker' ? 'variable' : 'component'
-            return api.$getAtomForm(atomType, atomClassify, state.cc_id).then(
+            const { atomType, isMeta } = payload
+            const atomClassify = VAR_TYPE[atomType] || 'component'
+            return api.$getAtomForm(atomType, atomClassify, isMeta || 0).then(
                 response => response.data
-            )
+            ).catch(e => {
+                Promise.reject(e)
+            })
         },
         loadSubflowConfig ({commit}, payload) {
-            const { id } = payload
-            return api.getFormByTemplateId(id).then(
+            const { templateId, version, common } = payload
+            return api.getFormByTemplateId(templateId, version, common).then(
                 response => response.data
             )
         }

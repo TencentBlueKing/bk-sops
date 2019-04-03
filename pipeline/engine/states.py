@@ -30,7 +30,7 @@ _NODE_TRANSITION = ConstantDict({
     RUNNING: frozenset([FINISHED, FAILED]),
     SUSPENDED: frozenset([READY, REVOKED]),
     BLOCKED: frozenset([]),
-    FINISHED: frozenset([]),
+    FINISHED: frozenset([RUNNING, FAILED]),
     FAILED: frozenset([]),
     REVOKED: frozenset([]),
 })
@@ -40,7 +40,7 @@ _PIPELINE_TRANSITION = ConstantDict({
     RUNNING: frozenset([SUSPENDED, BLOCKED, FINISHED, FAILED]),
     SUSPENDED: frozenset([READY, REVOKED, BLOCKED]),
     BLOCKED: frozenset([READY, REVOKED]),
-    FINISHED: frozenset([]),
+    FINISHED: frozenset([RUNNING]),
     FAILED: frozenset([]),
     REVOKED: frozenset([]),
 })
@@ -86,3 +86,7 @@ def can_transit(from_state, to_state, is_pipeline=False, appoint=False):
         if to_state in transition[from_state]:
             return True
     return False
+
+
+def is_rerunning(from_state, to_state):
+    return from_state == FINISHED and to_state == RUNNING
