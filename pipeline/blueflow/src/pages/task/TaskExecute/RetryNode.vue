@@ -14,15 +14,14 @@
             <RenderForm
                 ref="renderForm"
                 v-if="!isEmptyParams"
-                :config="renderConfig"
-                :option="renderOption"
-                :data="renderData"
-                @dataChange="onInputDataChange">
+                :scheme="renderConfig"
+                :formOption="renderOption"
+                v-model="renderData">
             </RenderForm>
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button type="success" @click="onRetryTask">{{ i18n.confirm }}</bk-button>
+            <bk-button type="success" @click.once="onRetryTask">{{ i18n.confirm }}</bk-button>
             <bk-button type="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
         </div>
     </div>
@@ -57,10 +56,7 @@ export default {
                 showHook: false
             },
             renderConfig: [],
-            renderData: {
-                hook: {},
-                value: {}
-            }
+            renderData: {}
         }
     },
     computed: {
@@ -93,7 +89,7 @@ export default {
                 if (this.nodeInfo.result) {
                     if (this.nodeInfo) {
                         for ( let key in this.nodeInfo.data.inputs) {
-                            this.$set(this.renderData.value, key, this.nodeInfo.data.inputs[key])
+                            this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
                         }
                     }
                 } else {
@@ -118,14 +114,6 @@ export default {
                 }
             }
         },
-        onInputDataChange (val, tagCode,) {
-            let value = this.renderData.value[tagCode]
-            if (checkDataType(value) === 'Object') {
-                this.$set(value, tagCode, val)
-            } else {
-                this.$set(this.renderData.value, tagCode, val)
-            }
-        },
         async onRetryTask () {
             let formvalid = true
             if (this.$refs.renderForm) {
@@ -138,7 +126,7 @@ export default {
                 instance_id,
                 node_id,
                 component_code,
-                inputs: JSON.stringify(this.renderData.value)
+                inputs: JSON.stringify(this.renderData)
             }
             this.retrying = true
             try {
@@ -159,7 +147,8 @@ export default {
             }
         },
         onCancelRetry () {
-            this.$emit('retryCancel')
+            const  { node_id } = this.nodeDetailConfig
+            this.$emit('retryCancel', node_id)
         }
     }
 }

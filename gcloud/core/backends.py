@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from guardian.shortcuts import get_perms
 
 from gcloud.core.models import Business
@@ -26,8 +27,15 @@ class GCloudPermissionBackend(object):
         """
         if isinstance(obj, Business):
             business = obj
+        elif hasattr(obj, 'business'):
+            business = getattr(obj, 'business')
+        elif hasattr(obj, 'biz_cc_id'):
+            try:
+                business = Business.objects.get(cc_id=getattr(obj, 'biz_cc_id'))
+            except Business.DoesNotExist:
+                return
         else:
-            business = getattr(obj, 'business', None)
+            return
 
         if isinstance(business, Business) and \
                 'manage_business' in get_perms(user_obj, business):

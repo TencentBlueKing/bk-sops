@@ -17,9 +17,9 @@
             <div class="main-wrapper">
                 <QuickCreateTask
                     :cc_id="cc_id"
-                    :templateList="templateList"
                     :quickTaskList="quickTaskList"
-                    :templateGrouped="templateGrouped"
+                    :templateClassify="templateClassify"
+                    :totalTemplate="totalTemplate"
                     @updateQuickTaskList="updateQuickTaskList">
                 </QuickCreateTask>
                 <div class="column-panel clearfix">
@@ -61,7 +61,6 @@ export default {
     data () {
         return {
             loading: true,
-            templateList: [],
             summaryData: {
                 executeStatus: {},
                 templateStatus: {},
@@ -71,7 +70,8 @@ export default {
             top3TaskFeeds: [],
             taskCount: [],
             totalTask: 0,
-            templateClassify: []
+            templateClassify: [],
+            totalTemplate: 0
         }
     },
     watch: {
@@ -83,8 +83,12 @@ export default {
         this.getData()
     },
     methods: {
-        ...mapActions('templateList/', [
-            'loadTemplateList'
+        ...mapActions('template/', [
+            'loadTemplateSummary',
+            'loadTemplateCollectList'
+        ]),
+        ...mapActions('appmaker/', [
+            'loadAppmakerSummary'
         ]),
         ...mapActions('task/', [
             'loadTaskSummary',
@@ -100,10 +104,12 @@ export default {
         async getData () {
             this.loading = true
             Promise.all([
-                this.getTemplateList(),
+                this.getAppmakerSummary(),
                 this.getTaskTop3Data(),
                 this.getTaskCountData(),
-                this.getTaskExecuteData()
+                this.getTaskExecuteData(),
+                this.getTemplateCategorySummary(),
+                this.getTemplateCollectList()
             ]).then(values => {
                 this.handleHomeData(values)
                 this.loading = false
@@ -112,10 +118,13 @@ export default {
                 this.loading = false
             })
         },
-        async getTemplateList () {
+        async getAppmakerSummary () {
+            const query = {
+                groupBy: 'category'
+            }
             try {
-                const templateListData = await this.loadTemplateList()
-                return templateListData.objects
+                const appmakerData = await this.loadAppmakerSummary(query)
+                return appmakerData.data
             } catch (e) {
                 errorHandler(e, this)
             }
@@ -162,6 +171,39 @@ export default {
             }
         },
         /**
+         * 流程统计
+         */
+        async getTemplateCategorySummary () {
+            const query = {
+                groupBy: 'category'
+            }
+            try {
+                const categoryData = await this.loadTemplateSummary(query)
+                if (categoryData.result) {
+                    return categoryData.data
+                } else {
+                    errorHandler(categoryData, this)
+                }
+            } catch (e) {
+                errorHandler(e, this)
+            }
+        },
+        /**
+         * 用户收藏的模板
+         */
+        async getTemplateCollectList () {
+            try {
+                const collectListData = await this.loadTemplateCollectList()
+                if (collectListData.result) {
+                    return collectListData.data
+                } else {
+                    errorHandler(collectListData, this)
+                }
+            } catch (e) {
+                errorHandler(e, this)
+            }
+        },
+        /**
          * 默认流程模板分类数据
          */
         getDefaultGroup (list) {
@@ -176,8 +218,7 @@ export default {
         },
         handleHomeData (data) {
             this.templateClassify = []
-            this.quickTaskList = []
-            this.templateList = data[0]
+            this.quickTaskList = data[5]
             data[2].groups.forEach(item => {
                 item.name = gettext(item.name)
                 this.templateClassify.push({
@@ -188,14 +229,7 @@ export default {
             data[3].groups.forEach(item => {
                 item.name = gettext(item.name)
             })
-            const templateGroup = this.getDefaultGroup(data[2].groups)
-            // 收藏常用任务
-            data[0].forEach(item => {
-                if (item.is_add) {
-                    this.quickTaskList.push(item)
-                }
-                templateGroup[item.category].value += 1
-            })
+            const appmakerGroup = this.getDefaultGroup(data[2].groups)
             // 头部概览数据
             this.summaryData = {
                 executeStatus: {
@@ -203,40 +237,20 @@ export default {
                     groups: data[3].groups
                 },
                 templateStatus: {
-                    total: data[0].length,
-                    groups: data[2].groups.map(item => templateGroup[item.code])
+                    total: data[4].total,
+                    groups: data[4].groups
                 },
                 appmakerStatus: {
-                    total: 0,
-                    groups: null
+                    total: data[0].total,
+                    groups: data[0].groups
                 }
             }
+            // 任务的数量
+            this.totalTemplate = data[4].total
             // 任务记录
             this.top3TaskFeeds = data[1]
             this.taskCount = data[2].groups
             this.totalTask = data[2].total
-            this.templateGrouped = this.getGroupData(this.templateList, this.templateClassify)
-        },
-        getGroupData (list, classify) {
-            const groupData = []
-            classify.forEach(item => {
-                groupData.push({
-                    code: item.code,
-                    name: item.name,
-                    list: []
-                })
-            })
-            list.forEach(item => {
-                let index
-                classify.some((cls, i) => {
-                    if (item.category === cls.code) {
-                        index = i
-                        return true
-                    }
-                })
-                groupData[index].list.push(item)
-            })
-            return groupData
         },
         updateQuickTaskList (data) {
             this.quickTaskList = data
@@ -247,8 +261,8 @@ export default {
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .home-page {
-    min-width: 1200px;
-    min-height: calc(100% -60px);
+    min-width: 1320px;
+    min-height: calc(100% - 50px);
     background: $whiteMainBg;
 }
 .summary-info {

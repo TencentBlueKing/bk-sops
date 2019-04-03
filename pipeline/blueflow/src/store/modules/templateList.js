@@ -27,8 +27,8 @@ const templateList = {
         getBizPerson () {
             return api.getBizPerson().then(response => response.data)
         },
-        getTemplatePersons ({commit}, template_id) {
-            return api.getTemplatePersons(template_id).then(response => response.data)
+        getTemplatePersons ({commit}, data) {
+            return api.getTemplatePersons(data).then(response => response.data)
         },
         saveTemplatePersons ({commit}, data) {
             return api.saveTemplatePersons(data).then(response => response.data)
@@ -39,8 +39,8 @@ const templateList = {
         templateImport ({commit}, data) {
             return api.templateImport(data).then(response => response.data)
         },
-        templateExport ({commit}, list) {
-            return api.templateExport(list).then(response => response.data)
+        templateExport ({commit}, data) {
+            return api.templateExport(data).then(response => response.data)
         }
     },
     getters: {}

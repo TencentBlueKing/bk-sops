@@ -8,6 +8,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 """ # noqa
 
 from pipeline.core.pipeline import Pipeline
+from pipeline.core.flow.activity import ServiceActivity
 from pipeline.engine import models
 from pipeline.engine import signals
 from pipeline.engine.signals import handlers
@@ -72,6 +73,22 @@ def dispatch_process_unfreeze():
     )
 
 
+def dispatch_service_activity_timeout_monitor_start():
+    signals.service_activity_timeout_monitor_start.connect(
+        handlers.service_activity_timeout_monitor_start_handler,
+        sender=ServiceActivity,
+        dispatch_uid='_service_activity_timeout_monitor_start'
+    )
+
+
+def dispatch_service_activity_timeout_monitor_end():
+    signals.service_activity_timeout_monitor_end.connect(
+        handlers.service_activity_timeout_monitor_end_handler,
+        sender=ServiceActivity,
+        dispatch_uid='__service_activity_timeout_monitor_end'
+    )
+
+
 def dispatch():
     dispatch_pipeline_ready()
     dispatch_child_process_ready()
@@ -80,3 +97,5 @@ def dispatch():
     dispatch_wake_from_schedule()
     dispatch_schedule_ready()
     dispatch_process_unfreeze()
+    dispatch_service_activity_timeout_monitor_start()
+    dispatch_service_activity_timeout_monitor_end()

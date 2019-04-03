@@ -7,58 +7,78 @@
 */
 <template>
     <div
-        :class="{
-            'pipeline-canvas': true,
-            'is-edit': isEdit
-        }"
+        :class="['pipeline-canvas', {'is-edit': isEdit}]"
         id="pipelineCanvas"
         ref="pipelineCanvas">
+        <ConfigBar
+            v-if="isConfigBarShow"
+            :name="name"
+            :cc_id="cc_id"
+            :common="common"
+            :templateSaving="templateSaving"
+            @onChangeName="onChangeName"
+            @onSaveTemplate="onSaveTemplate">
+        </ConfigBar>
         <MenuBar
             v-if="isMenuBarShow"
             :singleAtomListLoading="singleAtomListLoading"
             :subAtomListLoading="subAtomListLoading"
             :atomTypeList="atomTypeList"
             :searchAtomResult="searchAtomResult"
-            @onSearchAtom="onSearchAtom"
-            @onResetPosition="onResetPosition"
-            @onZoomOut="onZoomOut"
-            @onZoomIn="onZoomIn">
+            :isDisableStartPoint="isDisableStartPoint"
+            :isDisableEndPoint="isDisableEndPoint"
+            @show="onMenuBarShow"
+            @onSearchAtom="onSearchAtom">
         </MenuBar>
-        <div class="tool-wrapper">
-            <!-- <div
-                class="reset-position"
-                @click="onFormatPosition"
-                v-bktooltips.right="i18n.format_position">
-                <i class="common-icon-adjust-position"></i>
-            </div> -->
-            <div
-                class="reset-position"
-                @click="onResetPosition"
-                v-bktooltips.right="i18n.reset_zoom">
-                <i class="common-icon-adjust-position"></i>
-            </div>
-            <div class="zoom-area">
-                <div
-                    class="zoom-in"
-                    @click="onZoomOut"
-                    v-bktooltips.right="i18n.zoom_in">
-                    <i class="common-icon-add"></i>
+        <div :class="['tool-wrapper',{'tool-wrapper-telescopic ': showNodeList}]">
+            <transition name="wrapperLeft">
+                <div class="tool-position">
+                    <bk-tooltip :content="i18n.zoomIn" :delay="1000">
+                        <div class="tool-icon" @click="onZoomIn">
+                            <i class="common-icon-zoom-in"></i>
+                        </div>
+                    </bk-tooltip>
+                    <bk-tooltip :content="i18n.zoomOut" :delay="1000">
+                        <div class="tool-icon" @click="onZoomOut">
+                            <i class="common-icon-zoom-out"></i>
+                        </div>
+                    </bk-tooltip>
+                    <bk-tooltip :content="i18n.resetZoom" :delay="1000">
+                        <div class="tool-icon" @click="onResetPosition">
+                            <i class="common-icon-reduction"></i>
+                        </div>
+                    </bk-tooltip>
+                    <bk-tooltip :content="i18n.nodeSelection" :delay="1000" v-if="isEdit">
+                        <div
+                            :class="['tool-icon', {'actived': isSelectionOpen}]"
+                            @click="onOpenDragSelection">
+                            <i class="common-icon-marquee"></i>
+                        </div>
+                    </bk-tooltip>
+                    <bk-tooltip :content="i18n.formatPosition" :delay="1000" v-if="isEdit">
+                        <div
+                            class="tool-icon"
+                            @click="onFormatPosition">
+                            <i class="common-icon-four-square"></i>
+                        </div>
+                    </bk-tooltip>
+                    <bk-tooltip :content="selectNodeName" :delay="1000" v-if="isSelectNode">
+                        <div
+                            class="tool-icon"
+                            @click="onSelectNode">
+                            <i :class="[{
+                                'common-icon-black-box': !isSelectAll,
+                                'common-icon-black-hook': isSelectAll,
+                                'tool-disable': isPreviewMode
+                                }]"></i>
+                        </div>
+                    </bk-tooltip>
                 </div>
-                <div
-                    class="zoom-out"
-                    @click="onZoomIn"
-                    v-bktooltips.right="i18n.zoom_out">
-                    <i class="minus"></i>
-                </div>
-            </div>
+            </transition>
         </div>
-        <ConfigBar
-            v-if="isConfigBarShow"
-            :name="name"
-            :cc_id="cc_id"
-            @onChangeName="onChangeName"
-            @onSaveTemplate="onSaveTemplate">
-        </ConfigBar>
+        <div class="atom-node" v-show="isEdit">
+            <span class="atom-number">{{i18n.added}} {{atomNumber}} {{i18n.node}}</span>
+        </div>
         <NodeCanvas id="nodeCanvas"></NodeCanvas>
         <NodeTemplate/>
     </div>
@@ -68,12 +88,16 @@ import '@/utils/i18n.js'
 import '@/assets/js/bkflow.js'
 import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid } from '@/utils/uuid.js'
+import tools from '@/utils/tools.js'
 import validatePipeline from '@/utils/validatePipeline.js'
 import { NODE_DICT } from '@/constants/index.js'
 import NodeTemplate from './NodeTemplate.vue'
 import ConfigBar from './ConfigBar.vue'
 import MenuBar from './MenuBar.vue'
 import NodeCanvas from './NodeCanvas.vue'
+import formatPositionUtils from '@/utils/formatPosition.js'
+import draft from '@/utils/draft.js'
+import toolsUtils from '@/utils/tools.js'
 
 const ENDPOINT_DIRECTION = ['Top', 'Left', 'Right', 'Bottom']
 export default {
@@ -103,6 +127,9 @@ export default {
         subAtomListLoading: {
             type: Boolean
         },
+        templateSaving: {
+            type: Boolean
+        },
         atomTypeList: {
             type: Object,
             required: false
@@ -126,6 +153,38 @@ export default {
         cc_id: {
             type: String,
             required: false
+        },
+        common: {
+            type: String,
+            required: false
+        },
+        isSelectNode: {
+            type: Boolean,
+            required: false,
+            default () {
+                return false
+            }
+        },
+        selectNodeType: {
+            type: Boolean,
+            required: false,
+            default () {
+                return false
+            }
+        },
+        isPreviewMode: {
+            type: Boolean,
+            required: false,
+            default () {
+                return false
+            }
+        },
+        isSelectAllNode: {
+            type: Boolean,
+            required: false,
+            default () {
+                return false
+            }
         }
     },
     components: {
@@ -137,10 +196,15 @@ export default {
     data () {
         return {
             i18n: {
-                reset_zoom: gettext("复位"),
-                zoom_in: gettext("放大"),
-                zoom_out: gettext("缩小"),
-                format_position: gettext("自动编排")
+                resetZoom: gettext('复位'),
+                zoomIn: gettext('放大'),
+                zoomOut: gettext('缩小'),
+                nodeSelection: gettext('节点框选'),
+                formatPosition: gettext('排版'),
+                choiceAll: gettext('全选'),
+                cancelChoiceAll: gettext('反选'),
+                added: gettext('已添加'),
+                node: gettext('个节点')
             },
             zoomRadio: 1,
             nodeTypeUniqueInCanvas: ['startpoint', 'endpoint'],
@@ -163,10 +227,10 @@ export default {
                 fillColor: '#348af3',  // 高亮颜色
                 defaultColor: '#a9adb6',  // 默认颜色
                 lineRadius: 1, // 线拐弯弧度
-                pointColor: '#348af3',  // 端点的颜色
+                pointColor: 'rgba(52, 138, 243, 0.15)',  // 端点的颜色
                 pointWidth: 3,  // 连接端点的半径
                 pointDistance: 0,  // 端点与线的距离
-                data: JSON.parse(JSON.stringify(this.canvasData)), // 渲染的数据源,
+                data: tools.deepClone(this.canvasData), // 渲染的数据源,
                 id: 'node',  // 配置渲染的节点id
                 isEdit: this.isEdit,  // 是否编辑
                 dropElevent: null,  // 拖拽的数据源
@@ -174,16 +238,37 @@ export default {
                 getDefaultLocation: this.getDefaultLocation,  // 获取某一类型节点的初始化节点数据
                 onCreateLocationBefore: this.onCreateLocationBefore, // 节点创建前事件回调
                 onCreateLocationAfter: this.onCreateLocationAfter, // 节点创建初始化后事件回调, 参数为节点id
-                onCreateLineBefore: this.onCreateLineBefore, // 创建线条前事件回调
                 onCreateLineAfter: this.onCreateLineAfter, // 创建线条后事件回调
                 onRemoveLineAfter: this.onRemoveLineAfter,  // 删除线之后的回调函数
                 onNodeMoveAfter: this.onNodeMoveAfter,  // 拖动节点停止后的回调函数
                 ondrawData: null,  // 渲染流程后回调
                 onLineDragStop: this.onLineDragStop, // 节点端点拖拽连线结束回调
-                onNodeClick: this.onNodeClick, // 原子节点点击事件回调
-                onLabelBlur: this.onLabelBlur, // 原子节点点击事件回调
-                onLocationMoveAfter: this.onLocationMoveAfter
-            }
+                onNodeClick: this.onNodeClick, // 标准插件节点点击事件回调
+                onLabelBlur: this.onLabelBlur, // 标准插件节点点击事件回调
+                onLocationMoveAfter: this.onLocationMoveAfter, // 标准插件节点移动事件回调
+                onRemoveLocationAfter: this.onRemoveLocationAfter, // 删除标准插件节点事件回调
+                onCopyElement: this.onCopyElement, // 复制节点、连线回调
+                onPasteElement: this.onPasteElement, // 粘贴节点、连线回调
+                onDeleteElement: this.onDeleteElement, // 删除节点、连线回调
+                onCloseDragSelection: this.onCloseDragSelection // 关闭节点框选回调
+            },
+            isDisableStartPoint: false,
+            isDisableEndPoint: false,
+            showNodeList: '',
+            isSelectionOpen: false,
+            nodesOfCopyed: [],
+            isSelectAll: this.isSelectAllNode
+        }
+    },
+    computed: {
+        locationsObj () {
+            return this.transformArrayToObj(this.canvasData.locations)
+        },
+        selectNodeName () {
+            return this.isSelectAll ? this.i18n.choiceAll : this.i18n.cancelChoiceAll
+        },
+        atomNumber () {
+            return this.canvasData.activities && this.isEdit ? Object.keys(this.canvasData.activities).length : 0
         }
     },
     watch: {
@@ -191,12 +276,16 @@ export default {
             this.dataFlowInstance.setZoom(val)
         }
     },
+    created () {
+        this.onFormatPosition = toolsUtils.debounce(this.formatPositionHandler, 500)
+    },
     mounted () {
         const canvasInstance = $("#pipelineCanvas").dataflow(this.opts)
         this.canvasInstance = canvasInstance
         this.dataFlowInstance = $('#pipelineCanvas').data('dataflow')
         this.$refs.pipelineCanvas.addEventListener('click', this.handleDeleteNode, 'false')
-        // this.onFormatPosition()
+        this.isDisableStartPoint = this.canvasData.locations.find((location) => location.type === 'startpoint') ? true : false
+        this.isDisableEndPoint = this.canvasData.locations.find((location) => location.type === 'endpoint') ? true : false
     },
     beforeDestroy () {
         this.$refs.pipelineCanvas.removeEventListener('click', this.handleDeleteNode, 'false')
@@ -210,11 +299,38 @@ export default {
                 optional: false,
                 error_ignorable: false,
                 mode: 'edit', // edit：编辑模板；select：选择节点；excute：执行任务；preview：预览
-                checked: true // 节点选中状态
+                checked: true, // 节点选中状态
+                can_retry: true,
+                isSkipped: true
+            }
+        },
+        transformArrayToObj (data) {
+            const obj = {}
+            data.forEach(item => {
+                obj[item.id] = tools.deepClone(item)
+            })
+            return obj
+        },
+        /**
+         * 获取包含连线目标端点的节点
+         * @param {Object} 端点 DOM 对象
+         */
+        getNodeWithEndpoint (endpoint) {
+            const parentEl = endpoint.parentNode
+
+            if (!parentEl || parentEl.nodeName === 'HTML') {
+                return false
+            }
+
+            if (parentEl.classList.contains('bk-flow-location')) {
+                return parentEl
+            } else {
+                return this.getNodeWithEndpoint(parentEl)
             }
         },
         onCreateLocationBefore (loc) {
             const validateMessage = validatePipeline.isLocationValid(loc, this.canvasData.locations)
+
             if (!validateMessage.result) {
                 this.$bkMessage({
                     message: validateMessage.message,
@@ -226,10 +342,51 @@ export default {
         },
         onCreateLocationAfter (loc) {
             this.$emit('onLocationChange', 'add', Object.assign({}, loc))
+            if (loc.type === 'startpoint') {
+                this.isDisableStartPoint = true
+            } else if (loc.type === 'endpoint') {
+                this.isDisableEndPoint = true
+            }
         },
-        onLineDragStop (line) {
-            if (!line.source.arrow || !line.target.arrow) return // 无效连线
-            const validateMessage = validatePipeline.isLineValid(line, this.canvasData)
+        onLineDragStop (line, event, connection) {
+            let validateMessage
+            if (!line.target.arrow) {
+                const nodeEl = this.getNodeWithEndpoint(event.target)
+                if (!nodeEl) { // 无效连线
+                    return false
+                } else { // 连线端点在节点上自动吸附
+                    if (line.source.id === nodeEl.id) {
+                        return false // 节点不可以连接自身
+                    }
+                    let arrow
+                    const nodeRects = nodeEl.getBoundingClientRect()
+                    const offsetX = event.clientX - nodeRects.left
+                    const offsetY = event.clientY - nodeRects.top
+                    if (offsetX < nodeRects.width / 2) {
+                        if (offsetY < nodeRects.height / 2) {
+                            arrow = offsetX > offsetY ? 'Top' : 'Left'
+                        } else {
+                            arrow = offsetX > (nodeRects.height - offsetY) ? 'Bottom' : 'Left'
+                        }
+                    } else {
+                        if (offsetY < nodeRects.height / 2) {
+                            arrow = (nodeRects.width - offsetX) > offsetY ? 'Top' : 'right'
+                        } else {
+                            arrow = (nodeRects.width - offsetX) > (nodeRects.height - offsetY) ? 'Bottom' : 'Right'
+                        }
+                    }
+
+                    line.target = {
+                        arrow,
+                        id: nodeEl.id
+                    }
+                    validateMessage = validatePipeline.isLineValid(line, this.canvasData)
+                    validateMessage.result && this.dataFlowInstance.createLine(line)
+                }
+            } else {
+                validateMessage = validatePipeline.isLineValid(line, this.canvasData)
+            }
+
             if (!validateMessage.result) {
                 this.$bkMessage({
                     message: validateMessage.message,
@@ -237,10 +394,6 @@ export default {
                 })
                 return false
             }
-            return true
-        },
-        onCreateLineBefore (line) {
-            if (!line.source.arrow || !line.target.arrow) return
             return true
         },
         onCreateLineAfter (line) {
@@ -268,24 +421,26 @@ export default {
         onLocationMoveAfter (loc) {
             this.$emit('onLocationMoveDone', loc)
         },
+        onOpenDragSelection () {
+            this.dataFlowInstance.setDragSelection(true)
+            this.isSelectionOpen = true
+        },
+        onCloseDragSelection () {
+            this.isSelectionOpen = false
+        },
         onZoomIn () {
-            this.zoomRadio = this.zoomRadio * 0.9
+            this.zoomRadio = this.zoomRadio * 1.1
         },
         onZoomOut () {
-            this.zoomRadio = this.zoomRadio * 1.1
+            this.zoomRadio = this.zoomRadio * 0.9
         },
         onResetPosition () {
             this.dataFlowInstance.resetLocation()
             this.zoomRadio = 1
         },
-        onFormatPosition () {
-            let allData = this.dataFlowInstance.getAllData()
-            let lines = allData.lines
-            let linesLength = lines.length
-            let locations = allData.locations
-            let locationsLength = locations.length
-            // 判断是否结构完整
+        formatPositionHandler () {
             const validateMessage = validatePipeline.isDataValid(this.canvasData)
+            // 判断是否结构完整
             if (!validateMessage.result) {
                 this.$bkMessage({
                     message: validateMessage.message,
@@ -293,247 +448,56 @@ export default {
                 })
                 return false
             }
-            const gatewayShiftX = 210
-            // 其实位置
-            const startPointX = 60
-            const startPointY = 50
-            // 每一个偏移大小
-            const shiftX = 152
-            const halfShiftX = shiftX / 2
-            const toolShiftX = 14
-            const shiftY = 110
-            // 偏差高
-            const deviationY = 17
-            // 工具栏大小
-            const toolsWidth = 60
-            const tabContentWidth = 414
-            const maxShiftX = 100
-            // 浏览器宽度 - 工具栏大小 - 全局变量栏大小
-            const maxWidth = document.body.clientWidth - toolsWidth - tabContentWidth - maxShiftX
-            var lastNodeX = 60
-            var lastNodeY = 50
-            // 由于网关排序问题，需要记录最大高度
-            var gatewayShiftY = 0
-            let group = {}
-            
-            // 分组进行位置定位
-            for (let i = 0 ; i < linesLength; i++) {
-                let line = lines[i]
-                let source = line.source
-                let target = line.target
-                try {
-                    let groupLength = group[source.id].length
-                    group[source.id][groupLength] = target.id
-                }
-                catch (e) {
-                    // 初始化
-                    group[source.id] = [target.id]
-                }
-            }
-            
-            // 当前节点
-            let lastPoint = null
-            // 尾节点
-            let endPoint = null
-            // 循环的当前Id
-            let nowId = null
-            // 整合所有的除头结点的数据
-            let newLocations = {}
-            for (let i = 0 ; i < locationsLength; i++) {
-                let location = locations[i]
-                let type = location['type']
-                if (type === 'startpoint') {
-                    lastPoint = location
-                    nowId = location['id']
-                }
-                else {
-                    if (type === 'endpoint') {
-                        endPoint = location
-                    }
-                    else {
-                        newLocations[location['id']] = location
-                    }
-                }
-            }
-            // 结束节点放最后一个
-            newLocations[endPoint['id']] = endPoint
-            locations = [{
-                'id': lastPoint['id'],
-                'type': 'startpoint',
-                'name': lastPoint['name'],
-                'status': '',
-                'x': startPointX,
-                'y': startPointY
-            }]
-            let gatewayFlag = false
-            // 用于控制换行时起始位置
-            let isStartPoint = false
-            // 用于控制在结束节点之前的原子大小
-            let lastPointType = 'startpoint'
-            let branchgatewayId = null
-            for (let i = 0; i < locationsLength ; i++) {
-                let lastList = group[nowId]
-                if (lastList  === undefined ) {
-                    // 尾节点不需要继续进行了
-                    break
-                }
-                if (lastNodeX + shiftX * 1.6 > maxWidth) {
-                    lastNodeX = startPointX
-                    if (gatewayShiftY === 0) {
-                        gatewayShiftY = shiftY
-                    }
-                    lastNodeY = lastNodeY + startPointY + gatewayShiftY
-                    isStartPoint = true
-                }
-                let length = lastList.length
-                let originX = lastNodeX + shiftX
-                let originY = 0
-                for (let j = 0; j < length; j++){
-                    nowId = lastList[j]
-                    let location = newLocations[nowId]
-                    let type = location['type']
-                    if (type === 'tasknode' || type === 'subflow') {
-                        if (isStartPoint) {
-                            // 换行的第一个需要删减一定距离
-                            lastNodeX = lastNodeX - shiftX - halfShiftX
-                            isStartPoint = false
-                        }
-                        if (gatewayFlag) {
-                            let nodeY = lastNodeY + j * shiftY - deviationY
-                            locations.push({
-                                'id': location['id'],
-                                'type': type,
-                                'name': location['name'],
-                                'stage_name': location['stage_name'],
-                                'status': '',
-                                'x': lastNodeX + shiftX,
-                                'y': nodeY
-                            })
-                            for (let lineIndex = 0; lineIndex < linesLength; lineIndex++ ) {
-                                if (lines[lineIndex].target.id === location.id) {
-                                    if (j === 0) {
-                                        lines[lineIndex].source.arrow = 'Right'
-                                    }
-                                    else if (j >= 1){
-                                        lines[lineIndex].source.arrow = 'Bottom'
-                                    }
-                                }
-                                // 尾箭头统一
-                                if (lines[lineIndex].source.id === location.id) {
-                                    if (j === 0) {
-                                        lines[lineIndex].target.arrow = 'Left'
-                                    }
-                                    else if (j >= 1){
-                                        lines[lineIndex].target.arrow = 'Bottom'
-                                    }
-                                }
-                            }
-                            if (j + 1 === length){
-                                // 最后一个节点
-                                gatewayFlag = false
-                                lastNodeX = lastNodeX + shiftX
-                                gatewayShiftY = 2 * nodeY
-                            }
-                        }
-                        else {
-                            // 上一个还是tasknode 节点
-                            if (lastPointType === type) {
-                                lastNodeX = lastNodeX + toolShiftX * 4
-                            }
-                            locations.push({
-                                'id': location['id'],
-                                'type': 'tasknode',
-                                'name': location['name'],
-                                'stage_name': location['stage_name'],
-                                'status': '',
-                                'x': lastNodeX + shiftX,
-                                'y': lastNodeY - deviationY
-                            })
-                            lastNodeX = lastNodeX + shiftX
-                        }
-                        lastPointType = type
-                    }
-                    else if (type === 'parallelgateway' || type === 'branchgateway') {
-                        if (lastPointType === 'tasknode') {
-                            // 结束节点前是个原子节点需要增加一半距离
-                            lastNodeX = lastNodeX + shiftX / 2
-                            isStartPoint = false
-                        }
-                        if (isStartPoint) {
-                            // 换行的第一个需要删减一定距离
-                            lastNodeX = lastNodeX - shiftX * 2
-                            isStartPoint = false
-                        }
-                        locations.push({
-                            'id': location['id'],
-                            'type': type,
-                            'name': location['name'],
-                            'status': '',
-                            'x': lastNodeX + shiftX,
-                            'y': lastNodeY
-                        })
-                        // 网关节点标记位，用于排列后续原子节点
-                        gatewayFlag = true
-                        lastNodeX = lastNodeX + shiftX
-                        lastPointType = type
-                    }
-                    else if (type === 'convergegateway') {
-                        if (isStartPoint) {
-                            // 换行的第一个需要删减一定距离
-                            lastNodeX = lastNodeX - shiftX - gatewayShiftX
-                            isStartPoint = false
-                        }
-                        locations.push({
-                            'id': location['id'],
-                            'type': type,
-                            'name': location['name'],
-                            'status': '',
-                            'x': lastNodeX + gatewayShiftX,
-                            'y': lastNodeY
-                        })
-                        lastNodeX = lastNodeX + gatewayShiftX
-                        lastPointType = type
-                    }
-                    else if (type === 'endpoint') {
-                        if (isStartPoint) {
-                            // 换行的第一个需要删减一定距离
-                            lastNodeX = lastNodeX - shiftX * 2
-                        }
-                        if (lastPointType === 'tasknode') {
-                            // 结束节点前是个原子节点需要增加一半距离
-                            lastNodeX = lastNodeX + shiftX
-                            isStartPoint = false
-                        }
-                        locations.push({
-                            'id': location['id'],
-                            'type': type,
-                            'name': location['name'],
-                            'status': '',
-                            'x': lastNodeX + shiftX,
-                            'y': lastNodeY
-                        })
-                        break
-                    }
-                }
-            }
+            // 恢复大小后进行编排
+            this.onResetPosition()
+
+            // 需要做深拷贝一次 防止改变vue store内容
+            let lines = tools.deepClone(this.canvasData.lines)
+            let locations = this.canvasData.locations
+            let data = formatPositionUtils.formatPosition(lines, locations)
+
+            this.onNewDraft(gettext('排版自动保存'), false)
+            let message = gettext('排版完成，原内容在本地缓存中')
             // 重绘Canvas
-            this.dataFlowInstance.updateCanvas({'lines': lines, 'locations': locations})
-            // 重回界面开始的地方
-            this.dataFlowInstance.resetLocation()
-            this.zoomRadio = 1
+            this.dataFlowInstance.updateCanvas(data)
+            const {overBorderLine} = data
+            if (overBorderLine.length !== 0) {
+                overBorderLine.forEach(line => {
+                    const config = [
+                        'Flowchart', // 流程图种类
+                        {
+                            stub: [5, 20], // 起始端点连接线的最小长度
+                            gap: 8, // 线与端点点最小间隔
+                            cornerRadius: 2, // 折线弧度
+                            alwaysRespectStubs: true, // 允许 stub 配置生效
+                            midpoint: line.midpoint// 折线比例
+                            // todo:需要增加midpoint数据的source,target,midpoint数据进行后台和前端保存
+                        }
+                    ]
+                    this.dataFlowInstance.setConnector(line.source, line.target, config)
+                })
+            }
+            // 提示信息
             this.$bkMessage({
-                message: gettext('自动编排完成'),
+                message: message,
                 theme: 'success'
             })
+            // 改变store中的line和location内容
+            this.onReplaceLineAndLocation(data)
         },
         handleDeleteNode (event) {
             const node = event.target
-            if (!node.classList.contains('common-icon-close-circle')) return
+            if (!node.classList.contains('common-icon-dark-circle-close')) return
             const id = node.dataset.id
             const type = node.dataset.type
             if (this.canvasInstance && id && type) {
                 this.dataFlowInstance.deleteLocation(id)
                 this.$emit('onLocationChange', 'delete', {id, type})
+            }
+            if (type === 'startpoint' ) {
+                this.isDisableStartPoint = false
+            } else if (type === 'endpoint') {
+                this.isDisableEndPoint = false
             }
         },
         onNodeClick (id) {
@@ -564,6 +528,86 @@ export default {
                 return false
             }
             this.$emit('onSaveTemplate')
+        },
+        onNewDraft (message) {
+            this.$emit('onNewDraft', message)
+        },
+        onReplaceLineAndLocation (data) {
+            this.$emit('onReplaceLineAndLocation', data)
+        },
+        onMenuBarShow (val) {
+            this.showNodeList = val
+        },
+        onCopyElement (data) {
+            this.nodesOfCopyed = data
+        },
+        /**
+         * 节点粘贴
+         * @param {Number} x 节点 x 坐标偏移量
+         * @param {Number} y 节点 y 坐标偏移量
+         * @return {Array} 返回新增的节点
+         */
+        onPasteElement (x, y) {
+            const {locations, lines} = this.createCopyOfSelectedNodes()
+            locations.forEach(location => {
+                location.x += x
+                location.y += y
+                this.dataFlowInstance.createLocation(location)
+            })
+            lines.forEach(line => {
+                this.dataFlowInstance.createLine(line)
+            })
+            return locations
+        },
+        onDeleteElement (data) {
+            data.forEach(id => {
+                const node = {
+                    id,
+                    type: this.locationsObj[id].type
+                }
+                this.dataFlowInstance.deleteLocation(id)
+                this.$emit('onLocationChange', 'delete', node)
+            })
+        },
+        createCopyOfSelectedNodes () {
+            const lines = []
+            const locations = []
+            const locationIdReplaceHash = {} // 节点 id 替换映射表
+            const lineIdReplaceHash = {} // 连线 id 替换映射表
+            this.nodesOfCopyed.forEach((id, index) => {
+                const location = tools.deepClone(this.locationsObj[id])
+                const activity = tools.deepClone(this.canvasData.activities[id])
+                locationIdReplaceHash[id] = location.id = 'node' + uuid()
+
+                // 复制 location 数据
+                if (activity) {
+                    location.atomId = activity.type === 'ServiceActivity' ? activity.component.code : activity.template_id
+                }
+
+                if (location.type !== 'startpoint' && location.type !== 'endpoint') {
+                    locations.push(location)
+                }
+            })
+
+            // 复制 line 数据
+            this.canvasData.lines.forEach(line => {
+                if (locationIdReplaceHash[line.source.id] && locationIdReplaceHash[line.target.id]) {
+                    const lineCopy = tools.deepClone(line)
+                    lineIdReplaceHash[line.id] = lineCopy.id = 'line' + uuid()
+                    lineCopy.source.id = locationIdReplaceHash[line.source.id]
+                    lineCopy.target.id = locationIdReplaceHash[line.target.id]
+                    lines.push(lineCopy)
+                }
+            })
+
+            return {locations, lines}
+        },
+        onSelectNode () {
+            if (this.isPreviewMode) {
+                return
+            }
+            this.isSelectAll = !this.isSelectAll
+            this.$emit('onSelectNode', this.isSelectAll)
         }
     }
 }
@@ -576,56 +620,59 @@ export default {
     overflow: hidden;
     .tool-wrapper {
         position: absolute;
-        bottom: 0;
-        left: 10px;
-        width: 40px;
-        color: $black;
-        text-align: center;
+        top: 80px;
+        left: 80px;
         z-index: 4;
-        .reset-position {
-            margin: 0 auto;
-            width: 34px;
-            height: 34px;
-            line-height: 34px;
-            font-size: 18px;
-            background: $whiteDefault;
-            border: 1px solid #d6d6d6;
-            border-radius: 2px;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.15);
-            cursor: pointer;
-            &:hover {
-                color: $blueDefault;
+        transition: all 0.5s ease;
+        user-select: none;
+        .tool-position {
+            height: 36px;
+            background: #c4c6cc;
+            border-radius: 18px;
+            opacity: 0.8;
+            /deep/ .bk-tooltip:first-child {
+                margin-left: 20px;
+            }
+            /deep/ .bk-tooltip:last-child {
+                margin-right: 20px;
+            }
+            .tool-icon {
+                display: inline-block;
+                line-height: 36px;
+                margin-left: 15px;
+                margin-right: 15px;
+                color: #ffffff;
+                cursor: pointer;
+                &:first-child {
+                    margin-left: 20px;
+                }
+                &:last-child {
+                    margin-right: 15px;
+                }
+                &.actived {
+                    color: #3480ff;
+                }
+                .tool-disable {
+                    cursor: not-allowed;
+                    opacity: 0.3;
+                }
             }
         }
-        .zoom-area {
-            margin: 10px auto;
-            width: 34px;
-            background: $whiteDefault;
-            border: 1px solid #d6d6d6;
-            border-radius: 2px;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.15);
-            .zoom-in, .zoom-out {
-                padding: 10px 0;
-                font-size: 20px;
-                cursor: pointer;
-                &:hover {
-                    color: $blueDefault;
-                }
-            }
-            .zoom-out {
-                padding-top: 0;
-                &:hover {
-                    .minus {
-                        border-color: $blueDefault;
-                    }
-                }
-            }
-            .minus {
-                display: inline-block;
-                width: 8px;
-                height: 0;
-                border-bottom: 1px solid $black;
-            }
+    }
+    .tool-wrapper-telescopic {
+        position: absolute;
+        top: 80px;
+        left: 380px;
+        z-index: 4;
+    }
+    .atom-node {
+        position: absolute;
+        top: 86px;
+        left: 42%;
+        z-index: 4;
+        .atom-number {
+            color: #a9b2bd;
+            font-size: 14px;
         }
     }
 }

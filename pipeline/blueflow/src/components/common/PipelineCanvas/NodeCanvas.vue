@@ -18,11 +18,9 @@ export default {
 <style lang="scss" scoped>
     @import '../../../scss/config.scss';
     .node-canvas {
-        width: calc(100% -60px);
+        width: calc(100% - 60px);
         height: calc(100% - 50px);
-        background: $whiteCanvasBg;
-        background-image: linear-gradient($whiteDash 1px, transparent 0),
-                          linear-gradient(90deg, $whiteDash 1px, transparent 0);
+        background: #e1e4e8;
         background-size: 10px 10px;
     }
 </style>

@@ -9,6 +9,7 @@ import Vue from 'vue'
 import api from '@/api/index.js'
 import nodeFilter from '@/utils/nodeFilter.js'
 import { uuid } from '@/utils/uuid.js'
+import tools from '@/utils/tools.js'
 const ATOM_TYPE_DICT = {
     startpoint: 'EmptyStartEvent',
     endpoint: 'EmptyEndEvent',
@@ -30,7 +31,7 @@ function generateInitLocation () {
         {
             id: 'node' + uuid(),
             x: 300,
-            y: 133,
+            y: 135,
             name: '',
             stage_name: gettext('步骤1'),
             type: 'tasknode'
@@ -60,8 +61,9 @@ function generateInitActivities (location, line) {
             optional: false,
             outgoing: line[1].id,
             stage_name: gettext('步骤1'),
-            type: 'ServiceActivity'
-
+            type: 'ServiceActivity',
+            can_retry: true,
+            isSkipped: true
         }
     }
 }
@@ -146,7 +148,8 @@ const template = {
         },
         notify_type: [],
         time_out: '',
-        category: ''
+        category: '',
+        subprocess_info: {}
     },
     mutations: {
         setTemplateName (state, name) {
@@ -164,9 +167,27 @@ const template = {
         setCategory (state, data) {
             state.category = data
         },
+        setSubprocessUpdated (state, subflow) {
+            state.subprocess_info.details.some(item => {
+                if (
+                    subflow.template_id === item.template_id &&
+                    subflow.subprocess_node_id === item.subprocess_node_id
+                ) {
+                    item.expired = false
+                    subflow.version && (item.version = subflow.version)
+                    return true
+                }
+            })
+        },
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
-            const { name, template_id, pipeline_tree, notify_receivers, notify_type, time_out, category } = data
+            const { name, template_id, pipeline_tree, notify_receivers,
+                notify_type, time_out, category, subprocess_info
+            } = data
+            const pipelineTreeOrder = [
+                'activities', 'constants', 'end_event', 'flows', 'gateways',
+                'line', 'location', 'outputs', 'start_event'
+            ]
             const pipelineData = JSON.parse(pipeline_tree)
             const receiver = JSON.parse(notify_receivers)
             state.name = name
@@ -175,7 +196,9 @@ const template = {
             state.notify_type = notify_type ? JSON.parse(notify_type) : []
             state.time_out = time_out
             state.category = category
-            for (let key in pipelineData) {
+            state.subprocess_info = subprocess_info
+
+            pipelineTreeOrder.forEach(key => {
                 let val = pipelineData[key]
                 if (key !== 'constants'){
                     val = nodeFilter.convertInvalidIdData(key, val) // convert old invalid data =_=!
@@ -188,7 +211,9 @@ const template = {
                                 name: node.name,
                                 stage_name: node.stage_name,
                                 optional: node.optional,
-                                error_ignorable: node.error_ignorable
+                                error_ignorable: node.error_ignorable,
+                                can_retry: node.can_retry,
+                                isSkipped: node.isSkipped
                             })
                             return loc
                         }
@@ -196,7 +221,8 @@ const template = {
                     })
                 }
                 state[key] = val
-            }
+            })
+
         },
         setBusinessBaseInfo (state, data) {
             state.businessBaseInfo = data
@@ -236,6 +262,11 @@ const template = {
             state.start_event = {}
             state.template_id = ''
             state.constants = {}
+            state.notify_type = []
+            state.notify_receivers = {
+                receiver_group: [],
+                more_receiver: ''
+            }
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -316,7 +347,9 @@ const template = {
                 }
             })
             if (type === 'add' && !isLocationExist) {
-                state.location.push(location)
+                const loc = tools.deepClone(location)
+                delete loc.atomId // 添加节点后删除标准插件类型字段
+                state.location.push(loc)
             } else {
                 if (type === 'edit') {
                     state.location.splice(locationIndex, 1, location)
@@ -446,7 +479,9 @@ const template = {
                             optional: false,
                             outgoing: "",
                             stage_name: gettext('步骤1'),
-                            type: "ServiceActivity"
+                            type: "ServiceActivity",
+                            can_retry: true,
+                            isSkipped: true
                         }
                     } else if (location.type === 'subflow') {
                         state.activities[location.id] = {
@@ -550,10 +585,31 @@ const template = {
                     if (flow) {
                         const targetNode = flow.target
                         const sourceNode = flow.source
+                        const targetGateway = state.gateways[targetNode]
+                        const sourceGateway = state.gateways[sourceNode]
                         state.activities[targetNode] && (state.activities[targetNode].incoming = '')
                         state.activities[sourceNode] && (state.activities[sourceNode].outgoing = '')
                         state.start_event.id === sourceNode && (state.start_event.outgoing = '')
                         state.end_event.id === sourceNode && (state.end_event.incoming = '')
+                        if (targetGateway && targetNode !== location.id) {
+                            if (typeof targetGateway.incoming === 'string') {
+                                targetGateway.incoming = ''
+                            } else {
+                                targetGateway.incoming = targetGateway.incoming.filter(item => {
+                                    return item !== line
+                                })
+                            }
+
+                        }
+                        if (sourceGateway && sourceNode !== location.id) {
+                            if (typeof sourceGateway.outgoing === 'string') {
+                                sourceGateway.outgoing = ''
+                            } else {
+                                sourceGateway.outgoing = sourceGateway.outgoing.filter(item => {
+                                    return item !== line
+                                })
+                            }
+                        }
                         Vue.delete(state.flows, line)
                     }
                     state.line = state.line.filter(item => {
@@ -653,17 +709,32 @@ const template = {
                     return item !== key
                 })
             }
+        },
+        // 修改state中的模板数据
+        replaceTemplate (state, template) {
+            if (template !== undefined) {
+                for (let prop in template) {
+                    state[prop] = template[prop]
+                }
+            }
+        },
+        // 修改lines和locations
+        replaceLineAndLocation (state, payload) {
+            //  需要做一次深层拷贝
+            const {lines, locations} = tools.deepClone(payload)
+            state.line = lines
+            state.location = locations
         }
     },
     actions: {
         loadBusinessBaseInfo () {
             return api.getBusinessBaseInfo().then(response => response.data)
         },
-        loadTemplateData ({commit}, template_id) {
-            return api.getTemplateData(template_id).then(response => response.data)
+        loadTemplateData ({commit}, data) {
+            return api.getTemplateData(data).then(response => response.data)
         },
         // 保存模板数据
-        saveTemplateData ({state}, template_id) {
+        saveTemplateData ({state}, {templateId, ccId, common}) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type, time_out, category
             } = state
@@ -685,13 +756,15 @@ const template = {
                 location: pureLocation, outputs,  start_event
             })
             const data = {
-                template_id,
-                time_out,
+                ccId,
+                templateId,
+                timeout: time_out,
                 category,
-                notify_receivers: JSON.stringify(notify_receivers),
-                notify_type: JSON.stringify(notify_type),
+                notifyReceivers: JSON.stringify(notify_receivers),
+                notifyType: JSON.stringify(notify_type),
                 name: state.name,
-                pipeline_tree: fullCanvasData
+                pipelineTree: fullCanvasData,
+                common
             }
             return api.saveTemplate(data).then(response => {
                 return response.data
@@ -707,6 +780,18 @@ const template = {
         },
         queryTemplateData ({commit}, data) {
             return api.queryTemplate(data).then(response => response.data)
+        },
+        loadTemplateSummary ({commit}, data) {
+            return api.loadTemplateSummary(data).then(response => response.data)
+        },
+        loadTemplateCollectList ({commit}) {
+            return api.loadTemplateCollectList().then(response => response.data)
+        }
+    },
+    getters: {
+        // 获取所有模板数据
+        getLocalTemplateData (state) {
+            return tools.deepClone(state)
         }
     }
 }

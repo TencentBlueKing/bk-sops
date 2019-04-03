@@ -40,7 +40,7 @@ axios.interceptors.response.use(
             case 405:
             case 406:
             case 500:
-                bus.$emit('showErrorModal', response.status)
+                bus.$emit('showErrorModal', response.status, response.data.responseText)
                 break
         }
         if (!response.data) {

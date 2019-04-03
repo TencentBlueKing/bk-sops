@@ -9,12 +9,14 @@
     <div class="content-wrapper">
         <h3 class="error-title">{{ i18n.except }}</h3>
         <p>{{ i18n.contact }}</p>
+        <p v-if="responseText" class="error-tip">{{responseText}}</p>
     </div>
 </template>
 <script>
 import '@/utils/i18n.js'
 export default {
     name: 'ErrorCode500',
+    props: ['responseText'],
     data () {
         return {
             i18n: {
@@ -26,8 +28,14 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-    .content-wrapper {
-        text-align: center;
-    }
+@import '@/scss/config.scss';
+.content-wrapper {
+    text-align: center;
+}
+.error-tip {
+    margin-top: 10px;
+    color: $redDark;
+    text-align: left;
+}
 </style>
 

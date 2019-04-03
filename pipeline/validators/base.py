@@ -6,29 +6,28 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
-from jsonschema import Draft4Validator
+
 
 from pipeline import exceptions
-from pipeline.validators.schemas import WEB_PIPELINE_SCHEMA
-from pipeline.validators.utils import validate_graph_connection, validate_graph_cycle, validate_converge_gateway
+from pipeline.validators.connection import (
+    validate_graph_connection,
+    find_graph_circle,
+)
+from pipeline.validators.gateway import validate_gateways, validate_stream
 
 
-def validate_web_pipeline_tree(web_pipeline_tree):
-    valid = Draft4Validator(WEB_PIPELINE_SCHEMA)
-    errors = []
-    for error in sorted(valid.iter_errors(web_pipeline_tree), key=str):
-        errors.append('%s: %s' % ('->'.join(error.absolute_path), error.message))
-    if errors:
-        raise exceptions.ParserWebTreeException(','.join(errors))
+def validate_pipeline_tree(pipeline_tree, cycle_tolerate=False):
+    # 1. connection validation
+    validate_graph_connection(pipeline_tree)
 
+    # do not tolerate circle in flow
+    if not cycle_tolerate:
+        result = find_graph_circle(pipeline_tree)
+        if not result['result']:
+            raise exceptions.CycleErrorException(result['message'])
 
-def validate_pipeline_tree(pipeline_tree):
-    check_connection = validate_graph_connection(pipeline_tree)
-    if not check_connection['result']:
-        raise exceptions.ParserWebTreeException(check_connection['message'])
+    # 2. gateway validation
+    validate_gateways(pipeline_tree)
 
-    check_cycle = validate_graph_cycle(pipeline_tree)
-    if not check_cycle['result']:
-        raise exceptions.ParserWebTreeException(check_cycle['message'])
-
-    validate_converge_gateway(pipeline_tree)
+    # 3. stream validation
+    validate_stream(pipeline_tree)

@@ -7,37 +7,62 @@
 */
 <template>
     <header>
-        <img :src="logo" class="logo"/>
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(businessHomeRoute)">
+            <img :src="logo" class="logo"/>
+        </router-link>
+        <img v-else :src="logo" class="logo"/>
         <nav>
             <div class="navigator" v-if="!appmakerDataLoading">
-                <router-link
-                    v-for="route in route_list"
-                    :key="route.key"
-                    :to="getGotoPath(route)"
-                    :class="{
-                        'nav-item': true,
-                        'active-module': getPathActivedState(route.key)
-                    }"
-                    tag="a">{{route.name}}</router-link>
-                <a target="_blank" href="http://docs.bk.tencent.com/product_white_paper/gcloud/" class="nav-item" v-if="view_mode !== 'analysis'">{{ i18n.help }}</a>
+                <template v-for="route in routeList">
+                    <div
+                        v-if="route.children && route.children.length"
+                        :key="route.key"
+                        :class="['nav-item', { 'active': isNavActived(route)}]">
+                        <span>{{route.name}}</span>
+                        <div class="sub-nav">
+                            <router-link
+                                v-for="subRoute in route.children"
+                                tag="a"
+                                :key="subRoute.key"
+                                :class="['sub-nav-item', {'selected': isSubNavActived(subRoute)}]"
+                                :to="getPath(subRoute)"
+                                @click.native="onGoToPath(subRoute)">
+                                {{subRoute.name}}
+                            </router-link>
+                        </div>
+                    </div>
+                    <router-link
+                        v-else
+                        tag="a"
+                        :key="route.key"
+                        :class="['nav-item', { 'active': isNavActived(route)}]"
+                        :to="getPath(route)"
+                        @click.native="onGoToPath(route)">
+                        {{route.name}}
+                    </router-link>
+                </template>
             </div>
         </nav>
-        <div class="header-right">
-            <div class="biz-list" v-if="showHeaderRight && view_mode !== 'analysis'">
-                <bk-selector
-                    :list="businessList"
-                    :selected.sync="currentCcId"
-                    @item-selected="onSelectBiz">
-                </bk-selector>
+        <div class="header-right clearfix">
+            <BizSelector v-if="showHeaderRight" :disabled="disabled"></BizSelector>
+            <div class="help-doc">
+                <a
+                    class="common-icon-dark-circle-question"
+                    href="http://docs.bk.tencent.com/product_white_paper/gcloud/"
+                    target="_blank">
+                </a>
             </div>
-            <a
-                :href="`${site_url}`"
-                target="_self"
-                v-if="view_mode === 'analysis' && isSuperUser"
-                class="nav-item">
-                {{i18n.back}}
-            </a>
-            <div v-if="username" class="user-name">{{username}}</div>
+            <div class="user-avatar">
+                <span
+                    class="common-icon-dark-circle-avatar"
+                    v-bktooltips="{
+                        content: username,
+                        placement: 'bottom-left',
+                        theme: 'light',
+                        zIndex: 1001
+                    }">
+                </span>
+            </div>
         </div>
     </header>
 </template>
@@ -46,7 +71,10 @@ import '@/utils/i18n.js'
 import { mapState, mapMutations, mapActions } from 'vuex'
 import { errorHandler } from '@/utils/errorHandler.js'
 import { setAtomConfigApiUrls } from '@/config/setting.js'
+import BizSelector from './BizSelector.vue'
+
 const ROUTE_LIST = {
+    // 职能化中心导航
     functor_router_list: [
         {
             key: 'function',
@@ -54,6 +82,7 @@ const ROUTE_LIST = {
             name: gettext('职能化中心')
         }
     ],
+    // 职能化中心导航
     auditor_router_list: [
         {
             key: 'audit',
@@ -61,16 +90,29 @@ const ROUTE_LIST = {
             name: gettext('审计中心')
         }
     ],
+    // 通用导航
     maintainer_router_list: [
         {
-            key: 'business',
-            path: '/business/home/',
-            name: gettext('业务首页')
+            key: 'template',
+            name: gettext('流程模板'),
+            children: [
+                {
+                    key: 'template',
+                    name: gettext('业务流程'),
+                    path: '/template/home/'
+                },
+                {
+                    key: 'commonTemplate',
+                    name: gettext('公共流程'),
+                    path: '/template/home/',
+                    query: {common: 1, common_template: 'common'}
+                }
+            ]
         },
         {
-            key: 'template',
-            path: '/template/home/',
-            name: gettext('流程模板')
+            key: 'periodic',
+            path: '/periodic/home/',
+            name: gettext('周期任务')
         },
         {
             key: 'taskflow',
@@ -81,22 +123,50 @@ const ROUTE_LIST = {
             key: 'config',
             path: '/config/home/',
             name: gettext('业务配置')
+        },
+        {
+            key: 'appmaker',
+            path: '/appmaker/home/',
+            name: gettext('轻应用')
+        },
+        {
+            key: 'administrator',
+            name: gettext('管理员入口'),
+            children: [
+                {
+                    key: 'statistics',
+                    name: gettext('运营数据'),
+                    path: '/statistics/template/'
+                },
+                {
+                    key: 'common',
+                    name: gettext('公共流程'),
+                    path: '/template/home/',
+                    query: {common: 1}
+                }
+            ]
         }
     ]
 }
 
 export default {
+    inject: ['reload'],
     name: 'Navigator',
+    components: {
+        BizSelector
+    },
     props: ['appmakerDataLoading'],
     data () {
         return {
-            i18n: {
-                help: gettext("帮助文档"),
-                analysisName: gettext("运营数据"),
-                back: gettext('返回首页')
-            },
+            subNavKey: '',
             logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
-            analysisLogo: require('../../assets/images/analysis.png')
+            i18n: {
+                help: gettext("帮助文档")
+            },
+            businessHomeRoute: {
+                key: 'business',
+                path: '/business/home/'
+            }
         }
     },
     computed: {
@@ -107,39 +177,15 @@ export default {
             cc_id: state => state.cc_id,
             app_id: state => state.app_id,
             view_mode: state => state.view_mode,
-            run_ver: state => state.run_ver,
             bizList: state => state.bizList,
             templateId: state => state.templateId,
             notFoundPage: state => state.notFoundPage,
             isSuperUser: state => state.isSuperUser
         }),
-        businessList () {
-            return this.bizList.map(item => {
-                return {
-                    id: item.cc_id,
-                    name: item.cc_name
-                }
-            })
-        },
-        currentCcId: {
-            get () {
-                return this.cc_id
-            },
-            set (id) {
-                this.setBizId(id)
-            }
-        },
         showHeaderRight () {
-            if (
-                this.userType === 'maintainer' &&
-                this.view_mode !== 'appmaker' &&
-                this.bizList.length
-            ) {
-                return true
-            }
-            return false
+            return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.bizList.length
         },
-        route_list () {
+        routeList () {
             if (this.view_mode === 'appmaker') {
                 return [
                     {
@@ -154,45 +200,40 @@ export default {
                         name: gettext('任务记录')
                     }
                 ]
-            }  else if (this.view_mode === 'analysis') {
-                return [
-                    {
-                        key: 'analysisTemplate',
-                        path: '/analysis/template/',
-                        name: gettext('流程统计')
-                    },
-                    {
-                        key: 'analysisInstance',
-                        path: '/analysis/instance/',
-                        name: gettext('任务统计')
-                    },
-                    {
-                        key: 'analysisAtom',
-                        path: '/analysis/atom/',
-                        name: gettext('原子统计')
-                    },
-                    {
-                        key: 'analysisAppmaker',
-                        path: '/analysis/appmaker/',
-                        name: gettext('轻应用统计')
-                    }
-                ]
-            }
-            else {
+            } else {
                 let routes = ROUTE_LIST[`${this.userType}_router_list`]
-                if (this.run_ver === 'community') {
-                    routes = routes.filter(item => item.key !== 'appmaker')
+
+                // 非管理员用户去掉管理员入口
+                if (!this.isSuperUser) {
+                    routes = routes.filter(item => item.key !== 'administrator')
                 }
                 return routes
             }
+        },
+        disabled () {
+            const route = this.$route
+            if (
+                route.path.indexOf('/statistics/') > -1 ||
+                route.query &&
+                route.query.common &&
+                !route.query.common_template &&
+                route.name !== 'templateStep' &&
+                route.name !== 'taskList'
+            ) {
+                return true
+            }
+            return false
         }
     },
     mounted () {
-        if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-            this.getBizList()
-        }
+        this.initHome()
     },
     methods: {
+        initHome () {
+            if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
+                this.getBizList()
+            }
+        },
         ...mapActions([
             'getBizList',
             'changeDefaultBiz'
@@ -200,129 +241,183 @@ export default {
         ...mapMutations([
             'setBizId'
         ]),
-        getPathActivedState (key) {
+        isNavActived (route) {
+            const key = route.key
+
+            // 轻应用打开
             if (this.view_mode === 'appmaker') {
                 if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {
                     return key === 'appmakerTaskList'
-                }
-                else {
+                } else {
                     return key === 'appmakerTaskCreate'
                 }
             }
-            else if (this.view_mode === 'analysis') {
-                if (this.$route.name === 'analysisTemplate') {
-                    return key === 'analysisTemplate'
-                } else if (this.$route.name === 'analysisInstance') {
-                    return key === 'analysisInstance'
-                } else if (this.$route.name === 'analysisAppmaker') {
-                    return key === 'analysisAppmaker'
-                } else if (this.$route.name === 'analysisAtom') {
-                    return key === 'analysisAtom'
-                }
-            }
+
+            // 职能化中心、审计中心打开
             if (this.userType === 'functor') {
                 return key === 'function'
             } else if (this.userType === 'auditor') {
                 return key === 'audit'
             }
-            const regx = new RegExp('^\/' + key)
-            return regx.test(this.$route.path)
-        },
-        getGotoPath (route) {
-            if (this.notFoundPage) {
-                return '/'
+            // 二级导航被选中
+            if (route.children && route.children.length) {
+                return route.children.some(item => {
+                    return this.matchPathResult(item.key)
+                })
             }
-            if (route.key === 'appmakerTaskCreate') {
-                return `${route.path}?template_id=${this.templateId}`
-            } else if (this.userType !== 'maintainer' || this.view_mode === 'analysis') {
-                return `${route.path}`
-            } else {
-                return `${route.path}${this.cc_id}/`
-            }
+
+            return this.matchPathResult(key)
         },
-        async onSelectBiz (id) {
-            try {
-                const res = await this.changeDefaultBiz()
-                if (res.result) {
-                    setAtomConfigApiUrls(this.site_url, this.cc_id)
-                    this.$router.push({path: `/business/home/${id}/`})
-                } else {
-                    errorHandler(res, this)
+        isSubNavActived (route) {
+            return this.matchPathResult(route.key)
+        },
+        matchPathResult (key) {
+            if (this.$route.query !== undefined && Object.keys(this.$route.query).length !== 0 && this.$route.query.common) {
+                if (this.$route.query.common_template || this.$route.name === 'templateStep') {
+                    return key === 'commonTemplate'
+                } else if (this.$route.name !== 'taskList'){
+                    return key === 'common'
                 }
-            } catch (e) {
-                errorHandler(e, this)
             }
+            return new RegExp('^\/' + key).test(this.$route.path)
+        },
+        getPath (route) {
+            /** 404 页面时，导航统一跳转到首页 */
+            if (this.notFoundPage) {
+                if (['functor', 'auditor'].indexOf(this.userType) === -1
+                    && this.view_mode !== 'appmaker'
+                ) {
+                    return '/'
+                }
+                
+            }
+
+            let path
+            if (route.key === 'appmakerTaskCreate') {
+                path = `${route.path}?template_id=${this.templateId}`
+            } else if (this.userType !== 'maintainer' || route.key === 'statistics') {
+                path = `${route.path}`
+            } else {
+                path =  {path: `${route.path}${this.cc_id}/`, query: route.query}
+            }
+            return path
+        },
+        onGoToPath (route) {
+            let path = this.getPath(route)
+            // 点击当前导航刷新页面
+            if (path === this.$route.path || path.path === this.$route.path) {
+                this.refreshCurrentPage()
+            }
+            return
+        },
+        onClickSubNav (route) {
+            this.onGoToPath(route)
+        },
+        refreshCurrentPage () {
+            this.reload()
         }
     }
 }
 </script>
-<style lang="scss">
-    @import '@/scss/config.scss';
-    header {
-        min-width: $minWidth;
-        height: 60px;
-        font-size: 14px;
-        background: $blackBack;
-        .logo {
-            float: left;
-            margin-top: 14px;
-            margin-left: 20px;
-            width: 120px;
+<style lang="scss" scoped>
+@import '@/scss/config.scss';
+header {
+    min-width: 1320px;
+    height: 50px;
+    font-size: 14px;
+    background: #182131;
+    .logo {
+        float: left;
+        margin-top: 11px;
+        margin-left: 25px;
+        width: 110px;
+    }
+    nav {
+        float: left;
+        margin-left: 120px;
+    }
+    .nav-item {
+        position: relative;
+        display: inline-block;
+        padding: 0 17px;
+        min-width: 90px;
+        height: 50px;
+        line-height: 50px;
+        color: #979BA5;
+        text-align: center;
+        border-radius: 2px;
+        cursor: pointer;
+        transition: all .5s linear;
+        &:hover {
+            color: $whiteDefault;
+            .sub-nav {
+                display: inline-block;
+            }
         }
-        .analysisLogo {
-            float: left;
-            margin-top: 17px;
-            margin-left: 20px;
+        &.active {
+            color: $whiteDefault;
+            background: $blackDefault;
         }
-        nav {
-            float: left;
-            margin-top: 12px;
-            margin-left: 100px;
-        }
-        .nav-item {
-            display: inline-block;
-            width: 90px;
-            height: 36px;
-            line-height: 36px;
-            color: $greyDark;
-            text-align: center;
-            border-radius: 2px;
-            cursor: pointer;
-            transition: all .5s linear;
+    }
+    /*二级导航*/
+    .sub-nav {
+        display: none;
+        position: absolute;
+        top: 50px;
+        left: 0;
+        min-width: 100%;
+        background: $whiteDefault;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+        z-index: 1001;
+        .sub-nav-item {
+            display: block;
+            padding: 0 10px;
+            height: 35px;
+            line-height: 35px;
+            color: #63656E;
+            white-space: nowrap;
+            &.selected {
+                color: #313238;
+                background: #f0f1f5;
+            }
             &:hover {
-                color: $whiteDefault;
-                background-color: $blackBack;
-            }
-            &.active-module {
-                color: $whiteDefault;
-                background: $blueDefault;
-            }
-        }
-        .header-right {
-            float: right;
-            padding-right: 20px;
-            .biz-list {
-                display: inline-block;
-                vertical-align: top;
-                .bk-selector-input {
-                    height: 60px;
-                    line-height: 60px;
-                    border: none;
-                    background: #333;
-                    color: #fff;
-                }
-                .bk-selector-icon {
-                    top: 23px;
-                }
-            }
-            .user-name {
-                display: inline-block;
-                margin-left: 20px;
-                height: 60px;
-                line-height: 60px;
-                font-size: 14px;
-                color: #666;
+                color: #313238;
+                background: #f0f1f5;
             }
         }
     }
+    /*导航右侧区域*/
+    .header-right {
+        float: right;
+        padding-right: 20px;
+        .help-doc {
+            float: left;
+            margin-left: 25px;
+            height: 50px;
+            font-size: 16px;
+            .common-icon-dark-circle-question {
+                margin-top: 17px;
+                display: inline-block;
+                color: #63656e;
+                &:hover {
+                    color: #616d7d;
+                }
+            }
+
+        }
+        .user-avatar {
+            float: left;
+            margin-left: 25px;
+            height: 50px;
+            font-size: 16px;
+            color: #63656e;
+            .common-icon-dark-circle-avatar {
+                display: inline-block;
+                margin-top: 17px;
+            }
+        }
+    }
+}
 </style>

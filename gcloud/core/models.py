@@ -6,26 +6,42 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models
 from django.utils import timezone
 
 
-class Business(models.Model):
+class BusinessManager(models.Manager):
+    def supplier_account_for_business(self, cc_id):
+        return self.get(cc_id=cc_id).cc_owner
 
+    def supplier_id_for_business(self, cc_id):
+        return self.get(cc_id=cc_id).cc_company or 0
+
+
+class Business(models.Model):
     cc_id = models.IntegerField(unique=True)
-    cc_name = models.CharField(max_length=100)
+    cc_name = models.CharField(max_length=256)
+    # 开发商账号 bk_supplier_account
     cc_owner = models.CharField(max_length=100)
+    # 开发商ID bk_supplier_id
     cc_company = models.CharField(max_length=100)
     time_zone = models.CharField(max_length=100, blank=True)
     # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是非法值
     life_cycle = models.CharField(_(u"生命周期"), max_length=100, blank=True)
     executor = models.CharField(_(u"任务执行者"), max_length=100, blank=True)
+    # null 表未归档，disabled 表示已归档
+    status = models.CharField(_(u"业务状态"), max_length=32, null=True)
+    always_use_executor = models.BooleanField(_(u"是否始终使用任务执行者"), default=False)
+
     groups = models.ManyToManyField(
         Group,
         through='BusinessGroupMembership'
     )
+
+    objects = BusinessManager()
 
     class Meta:
         verbose_name = _(u"业务 Business")
@@ -55,7 +71,6 @@ class UserBusiness(models.Model):
 
 
 class BusinessGroupMembership(models.Model):
-
     business = models.ForeignKey(Business)
     group = models.ForeignKey(Group)
 

@@ -6,6 +6,7 @@ Licensed under the MIT License (the "License"); you may not use this file except
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 """ # noqa
+
 from django.apps import AppConfig
 from django.db.utils import ProgrammingError
 
@@ -19,11 +20,13 @@ class ComponentFrameworkConfig(AppConfig):
 
     def ready(self):
         """
-        @summary: 注册公共部分和当前RUN_VER下的原子到数据库
+        @summary: 注册公共部分和当前RUN_VER下的标准插件到数据库
         @return:
         """
-        autodiscover_collections('components.collections')
-        autodiscover_collections('components.collections.sites.%s' % settings.RUN_VER)
+
+        for path in settings.COMPONENT_AUTO_DISCOVER_PATH:
+            autodiscover_collections(path)
+
         from pipeline.component_framework.models import ComponentModel
         from pipeline.component_framework.library import ComponentLibrary
         try:

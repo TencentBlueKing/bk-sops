@@ -11,37 +11,43 @@
         :has-header="true"
         :ext-cls="'common-dialog'"
         :title="i18n.addTasks"
-        width="800"
+        width="850"
         padding="0"
         :is-show.sync="isShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <template slot="content">
-            <div v-if="templateList.length" class="dialog-centent">
-                <div v-bkloading="{isLoading: submitting, opacity: 1}">
-                    <div class="template-wrapper">
+        <div slot="content" class="template-container">
+            <div
+                v-if="selectTemplateLoading || templateList.length" class="dialog-centent"
+                v-bkloading="{isLoading: submitting || selectTemplateLoading, opacity: 1}">
+                <div class="template-wrapper">
+                    <div class="template-search">
+                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
+                        <i class="common-icon-search"></i>
+                    </div>
+                    <div class="template-list">
                         <ul v-if="!searchMode" class="grouped-list">
-                            <li
-                                v-for="group in templateGrouped"
-                                v-if="group.list.length"
-                                :key="group.code"
-                                class="template-group">
-                                <h4 class="group-name">
-                                    {{group.name}} (
-                                    <span class="list-count">{{group.list.length}}</span>
-                                    )
-                                </h4>
-                                <ul>
-                                    <li
-                                        v-for="item in group.list"
-                                        :key="item.id"
-                                        @click="onSelectTemplate(item)"
-                                        class="template-item">
-                                        <span :class="['checkbox', {checked: getItemStatus(item.id)}]"></span>
-                                        {{item.name}}
-                                    </li>
-                                </ul>
-                            </li>
+                            <template v-for="group in activeTemplateGrouped">
+                                <li
+                                    v-if="group.list.length"
+                                    :key="group.code"
+                                    class="template-group">
+                                    <h5 class="group-name">
+                                        {{group.name}}
+                                        (<span class="list-count">{{group.list.length}}</span>)
+                                    </h5>
+                                    <ul>
+                                        <li
+                                            class="template-item"
+                                            v-for="item in group.list"
+                                            :key="item.id"
+                                            @click="onSelectTemplate(item)">
+                                            <span :class="['checkbox', {checked: getItemStatus(item.id)}]"></span>
+                                            {{item.name}}
+                                        </li>
+                                    </ul>
+                                </li>
+                            </template>
                         </ul>
                         <div v-else class="search-list">
                             <ul v-if="searchList.length">
@@ -58,9 +64,23 @@
                         </div>
                     </div>
                 </div>
-                <div class="template-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
-                    <i class="common-icon-search"></i>
+                <div class="selected-wrapper">
+                    <div class="selected-area-title">
+                        {{i18n.selected}}
+                        <span class="select-count">{{selectedTemplate.length}}</span>
+                        {{i18n.num}}
+                    </div>
+                    <ul class="selected-list">
+                        <li
+                            class="selected-item"
+                            v-for="item in selectedTemplate"
+                            :key="item.id">
+                            <span class="selected-name" :title="item.name">{{item.name}}</span>
+                            <span class="selected-delete">
+                                <i class="bk-icon icon-close-circle-shape" @click="deleteTemplate(item)"></i>
+                            </span>
+                        </li>
+                    </ul>
                 </div>
                 <div class="select-tips">
                     {{i18n.selected}}
@@ -78,7 +98,7 @@
                     </div>
                 </NoData>
             </div>
-        </template>
+        </div>
     </bk-dialog>
 </template>
 <script>
@@ -91,7 +111,7 @@ export default {
     components: {
         NoData
     },
-    props: ['cc_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped'],
+    props: ['cc_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading'],
     data () {
         const selectedTemplate = this.quickTaskList.slice(0)
         return {
@@ -103,7 +123,7 @@ export default {
             i18n: {
                 placeholder: gettext('请输入流程名称'),
                 addTasks: gettext('添加常用流程'),
-                selected: gettext('已选'),
+                selected: gettext('已选择'),
                 num: gettext('项'),
                 maxSelect: gettext('，最多可选'),
                 noSearchResult: gettext('搜索结果为空'),
@@ -118,6 +138,13 @@ export default {
         },
         quickTaskList (val) {
             this.selectedTemplate = val.slice(0)
+        }
+    },
+    computed: {
+        activeTemplateGrouped () {
+            return this.templateGrouped.filter(group =>{
+                return group.list.length
+            })
         }
     },
     created () {
@@ -166,123 +193,184 @@ export default {
         onCancel () {
             this.selectedTemplate = this.quickTaskList.slice(0)
             this.$emit('cancel')
+        },
+        deleteTemplate (template) {
+            const deleteIndex = this.selectedTemplate.findIndex(item => item.id === template.id)
+            if (deleteIndex > -1) {
+                this.selectedTemplate.splice(deleteIndex, 1)[0]
+            }
         }
     }
 }
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';
-.template-search {
-    position: absolute;
-    top: 80px;
-    right: 30px;
-    .search-input {
-        padding: 0 40px 0 10px;
-        width: 300px;
-        height: 36px;
-        line-height: 36px;
-        font-size: 14px;
-        background: $whiteDefault;
-        border: 1px solid $commonBorderColor;
-        border-radius: 4px;
-        outline: none;
-        &:hover {
-            border-color: #c0c4cc;
+.template-container {
+    position: relative;
+    height: 340px;
+    .template-wrapper {
+        float: left;
+        padding: 20px;
+        width: 590px;
+        height: 100%;
+        .template-list {
+            height: 268px;
+            overflow-y: auto;
+            @include scrollbar;
         }
-        &:focus {
-            border-color: $blueDefault;
-            & + i {
+        .template-group {
+            margin-bottom: 30px;
+        }
+        .search-list {
+            padding-top: 40px;
+        }
+        .group-name {
+            margin: 0 0 14px;
+            font-size: 16px;
+            font-weight: bold;
+            .list-count {
                 color: $blueDefault;
             }
         }
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 11px;
-        color: $commonBorderColor;
-    }
-}
-.template-wrapper {
-    padding: 16px 30px 0;
-    height: 400px;
-    overflow-y: auto;
-    @include scrollbar;
-    .template-group {
-        margin-bottom: 30px;
-    }
-    .search-list {
-        padding-top: 40px;
-    }
-    .group-name {
-        margin: 0 0 14px;
-        font-size: 16px;
-        font-weight: bold;
-        .list-count {
-            color: $blueDefault;
-        }
-    }
-    .template-item {
-        display: inline-block;
-        margin-right: 20px;
-        margin-bottom: 5px;
-        width: 230px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        &:nth-child(3n) {
-            margin-right: 0;
-        }
-        &:hover {
-            color: $blueDefault;
-            cursor: pointer;
-        }
-        .checkbox {
+        .template-item {
             display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            color: $whiteDefault;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &:hover {
-                border-color: $greyDark;
+            margin-right: 20px;
+            margin-bottom: 5px;
+            width: 250px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            &:nth-child(2n) {
+                margin-right: 0;
             }
-            &.checked {
-                background: $blueDefault;
-                border-color: $blueDefault;
-                &::after {
-                    content: "";
-                    position: absolute;
-                    left: 2px;
-                    top: 2px;
-                    height: 4px;
-                    width: 8px;
-                    border-left: 1px solid;
-                    border-bottom: 1px solid;
-                    border-color: $whiteDefault;
-                    transform: rotate(-45deg);
+            &:hover {
+                color: $blueDefault;
+                cursor: pointer;
+            }
+            .checkbox {
+                display: inline-block;
+                position: relative;
+                width: 14px;
+                height: 14px;
+                color: $whiteDefault;
+                border: 1px solid $formBorderColor;
+                border-radius: 2px;
+                text-align: center;
+                vertical-align: -2px;
+                &:hover {
+                    border-color: $greyDark;
+                }
+                &.checked {
+                    background: $blueDefault;
+                    border-color: $blueDefault;
+                    &::after {
+                        content: "";
+                        position: absolute;
+                        left: 2px;
+                        top: 2px;
+                        height: 4px;
+                        width: 8px;
+                        border-left: 1px solid;
+                        border-bottom: 1px solid;
+                        border-color: $whiteDefault;
+                        transform: rotate(-45deg);
+                    }
                 }
             }
         }
     }
-}
-.select-tips {
-    position: absolute;
-    bottom: 20px;
-    left: 30px;
-    .select-count {
-        color: $blueDefault;
+    .template-search {
+        position: relative;
+        margin-bottom: 20px;
+        text-align: right;
+        .search-input {
+            padding: 0 40px 0 10px;
+            width: 362px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 14px;
+            background: $whiteDefault;
+            border: 1px solid $commonBorderColor;
+            border-radius: 4px;
+            outline: none;
+            &:hover {
+                border-color: #c0c4cc;
+            }
+            &:focus {
+                border-color: $blueDefault;
+                & + i {
+                    color: $blueDefault;
+                }
+            }
+        }
+        .common-icon-search {
+            position: absolute;
+            right: 15px;
+            top: 11px;
+            color: $commonBorderColor;
+        }
+    }
+    .selected-wrapper {
+        margin-left: 590px;
+        width: 260px;
+        height: 100%;
+        margin-left: 590px;
+        border-left:1px solid #dde4eb;
+        .selected-area-title {
+            padding: 28px 20px 22px;
+            line-height: 1;
+            font-size: 14px;
+            font-weight: 600;
+            color: #313238;
+            .select-count {
+                color: #3a84ff;
+            }
+        }
+        .selected-list {
+            height: 276px;
+            overflow-y: auto;
+            @include scrollbar;
+            .selected-item {
+                position: relative;
+                padding: 0 20px;
+            }
+            .selected-name {
+                display: inline-block;
+                margin-bottom: 5px;
+                width: 200px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+            .selected-delete {
+                position: absolute;
+                top: 1px;
+                right: 20px;
+            }
+            .icon-close-circle-shape {
+                display: none;
+                margin-left: 10px;
+                cursor: pointer;
+            }
+            .selected-item:hover .icon-close-circle-shape {
+                display: inline-block;
+                margin-left: 10px;
+                bottom: 20px;
+            }
+        }
+    }
+    .select-tips {
+        position: absolute;
+        left: 30px;
+        bottom: -40px;
+        .select-count {
+            color: $blueDefault;
+        }
     }
 }
-.empty-task  {
-    padding: 80px 0;
-}
-.create-template {
-    color: #3c96ff;
+.bk-dialog-footer .bk-dialog-outer {
+    padding: 0px;
 }
 </style>
 
