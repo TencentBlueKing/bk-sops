@@ -2,12 +2,18 @@
     <div>
         <div class="page-list">
             <!-- 搜索 -->
-            <van-search :placeholder="i18n.placeholder" v-model="value" class="process-search" />
+            <van-search :placeholder="i18n.placeholder"
+                v-model="value"
+                show-action
+                class="process-search"
+                @search="search()">
+                <div slot="action" @click="search">搜索</div>
+            </van-search>
             <!-- 收藏 -->
             <section class="bk-block">
                 <h2 class="bk-block-title">{{ i18n.collect }}</h2>
                 <van-cell clickable v-for="item in collectTemplateList"
-                    :to="`/template/task_create?templateId=${item.id}`" :key="item.id">
+                    :to="`/task/create?templateId=${item.id}`" :key="item.id">
                     <template slot="title">
                         <div class="bk-text">{{ item.name }}</div>
                         <div class="bk-name">{{ item.creator_name }}</div>
@@ -18,7 +24,7 @@
             </section>
             <!-- 开区 -->
             <section class="bk-block">
-                <h2 class="bk-block-title">{{ templateList[0].business.cc_name }}</h2>
+                <h2 class="bk-block-title">{{ business.cc_name }}</h2>
                 <van-cell clickable :to="`/template/task_create?templateId=${item.cc_id}`"
                     v-for="item in templateList" :key="item.id">
                     <template slot="title">
@@ -60,6 +66,10 @@
             return {
                 collectTemplateList: [],
                 templateList: [],
+                originalTemplateList: [],
+                business: {
+                    cc_name: ''
+                },
                 i18n: {
                     collect: window.gettext('收藏'),
                     finished_text: window.gettext('没有更多了'),
@@ -85,9 +95,24 @@
                 'getTemplateList',
                 'getCollectTemplateList'
             ]),
+
             async loadData () {
                 this.collectTemplateList = await this.getCollectTemplateList()
                 this.templateList = await this.getTemplateList()
+                this.originalTemplateList = this.templateList
+                if (this.templateList.length > 0) {
+                    this.business = this.templateList[0]['business']
+                }
+            },
+
+            search () {
+                const arr = []
+                for (let i = 0; i < this.originalTemplateList.length; i++) {
+                    if (this.originalTemplateList[i].name.includes(this.value)) {
+                        arr.push(this.originalTemplateList[i])
+                    }
+                }
+                this.templateList = arr
             }
         }
     }

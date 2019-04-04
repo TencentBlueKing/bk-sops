@@ -22,16 +22,21 @@ const routes = [
     {
         path: '/template',
         name: 'template',
-        component: Template,
-        children: [
-            {
-                path: '/task_create',
-                component: TaskCreate,
-                props: (route) => ({
-                    template_id: route.query.template_id
-                })
-            }
-        ]
+        component: Template
+        // children: [
+        //     {
+        //         path: '/task_create',
+        //         component: TaskCreate,
+        //         props: (route) => ({
+        //             template_id: route.query.template_id
+        //         })
+        //     }
+        // ]
+    },
+    {
+        path: '/task/create',
+        name: 'task_create',
+        component: TaskCreate
     },
     // 404
     {

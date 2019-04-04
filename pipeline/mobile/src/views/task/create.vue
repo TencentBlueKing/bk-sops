@@ -6,16 +6,17 @@
             <section class="bk-block">
                 <van-cell>
                     <template slot="title">
-                        <div class="bk-text">Troytu的测试流程模版任务</div>
-                        <div class="bk-name">Troytu</div>
-                        <div class="bk-time">2019-03-10 13:49:20</div>
+                        <div class="bk-text">{{ templateData.name }}</div>
+                        <div class="bk-name">{{ templateData.creator_name }}</div>
+                        <div class="bk-time">{{ templateData.create_time }}</div>
                     </template>
-                    <van-icon slot="right-icon" name="star" class="star-icon collection" />
+                    <!--<van-icon slot="right-icon" name="star" class="star-icon collection" />-->
                 </van-cell>
             </section>
             <!-- 任务信息 -->
             <section class="bk-block">
                 <h2 class="bk-text-title">任务信息</h2>
+                <!-- TODO:方案信息怎么拿？ -->
                 <div class="bk-text-list">
                     <van-cell title="任务名称" value="new20190313145111" />
                     <van-cell title="方案" value="方案一" />
@@ -28,12 +29,8 @@
             <section class="bk-block">
                 <h2 class="bk-text-title">参数信息</h2>
                 <div class="bk-text-list">
-                    <van-field
+                    <van-field v-for="item in templateConstants.constants" :key="item.id"
                         label="参数01"
-                        placeholder="输入参数值"
-                    />
-                    <van-field
-                        label="参数02"
                         placeholder="输入参数值"
                     />
                 </div>
@@ -41,7 +38,7 @@
         </div>
         <!-- 按钮 -->
         <div class="task-action">
-            <van-button size="large" type="info">执行任务</van-button>
+            <van-button size="large" type="info">{{ i18n.btnCreate }}</van-button>
         </div>
     </div>
 </template>
@@ -53,7 +50,12 @@
         name: 'TaskCreate',
         data () {
             return {
-                templateData: {},
+                templateData: {
+                    name: '',
+                    creator_name: '',
+                    create_time: ''
+                },
+                templateConstants: {},
                 i18n: {
                     btnCreate: window.gettext('执行任务')
                 }
@@ -64,10 +66,12 @@
         },
         methods: {
             ...mapActions('template', [
-                'getTemplate'
+                'getTemplate',
+                'getTemplateConstants'
             ]),
             async loadData () {
                 this.templateData = await this.getTemplate()
+                this.templateConstants = await this.getTemplateConstants()
             }
         }
     }
