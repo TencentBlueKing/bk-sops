@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import templateList from './modules/templateList'
+import template from './modules/template'
 import http from '@/api'
 import { unifyObjectStyle } from '@/common/util'
 
@@ -10,7 +11,8 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
     // 模块
     modules: {
-        templateList
+        templateList,
+        template
     },
     // 公共 store
     state: {
