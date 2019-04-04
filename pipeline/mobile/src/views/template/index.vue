@@ -93,11 +93,10 @@
     }
 </script>
 
-<style lang="less">
-  @import '../../../static/style/page';
-  @import '../../../static/style/var';
+<style lang="scss">
+  @import '../../../static/style/app.scss';
   .page-list{
-    background: @white;
+    background: $white;
     min-height: 100vh;
     padding-bottom: 50px;
     -webkit-box-sizing: border-box;
@@ -109,7 +108,7 @@
     padding: 8px 25px;
 
     .van-search__content{
-      background-color: @white;
+      background-color: $white;
       -webkit-border-radius: 10px;
       -moz-border-radius: 10px;
       border-radius: 10px;

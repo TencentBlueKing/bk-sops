@@ -1,7 +1,7 @@
 @import '../../static/style/var';
 /*全局*/
 a{
-  color: @blue;
+  color: $blue;
 }
 
 /*列表页*/
@@ -9,12 +9,12 @@ a{
   .van-cell:not(:last-child):after{
     left: 25px;
     right: 25px;
-    border-bottom-color: @border-color;
+    border-bottom-color: $border-color;
     -webkit-transform: scaleY(1);
     transform: scaleY(1);
   }
   &-title {
-    background-color: @background-color;
+    background-color: $background-color;
     margin: 0;
     font-weight: 400;
     font-size: 12px;
@@ -28,7 +28,7 @@ a{
     -webkit-box-align: center;
     -webkit-align-items: center;
     align-items: center;
-    color: @text-color;
+    color: $text-color;
 
     .bk-text{
       font-size: 16px;
@@ -68,7 +68,7 @@ a{
 
 /*标签栏*/
 .bk-tabbar{
-  background-color: @background-color;
+  background-color: $background-color;
 
   .van-tabbar-item{
     color: #BFBDBC;
@@ -99,6 +99,6 @@ a{
   }
   .van-cell__value{
     text-align: left;
-    color: @text-color;
+    color: $text-color;
   }
 }

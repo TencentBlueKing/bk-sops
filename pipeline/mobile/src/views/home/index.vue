@@ -55,12 +55,11 @@
     }
 </script>
 
-<style lang="less">
-  @import '../../../static/style/page';
-  @import '../../../static/style/var';
+<style lang="scss">
+  @import '../../../static/style/app.scss';
   .index-view {
     min-height: 100vh;
-    background-color: @white;
+    background-color: $white;
     padding: 20px 0;
     box-sizing: border-box;
 
@@ -82,7 +81,7 @@
         display: inline-block;
         padding: 0;
         font-size: 28px;
-        color: @white;
+        color: $white;
       }
 
       .tag-1 {
@@ -97,7 +96,7 @@
         font-size: 16px;
         font-weight: bold;
         margin-left: 10px;
-        color: @black;
+        color: $black;
       }
     }
   }
