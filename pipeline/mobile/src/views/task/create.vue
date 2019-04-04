@@ -73,33 +73,33 @@
     }
 </script>
 
-<style lang="less">
-  @import '../../../static/style/page';
-  @import '../../../static/style/var';
-  /*container*/
-  .task-container{
-    position: absolute;
-    bottom: 90px;
-    top: 0;
-    width: 100%;
-    overflow-y: auto;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-  }
-  /*button*/
-  .task-action{
-    position: fixed;
-    background-color: #f7f7f7;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
-    z-index: 1;
-
-    .van-button{
-      border-radius: 4px;
-      background-color: @blue;
-      border-color: @blue;
+<style lang="scss">
+    @import '../../../static/style/app.scss';
+    /*container*/
+    .task-container {
+        position: absolute;
+        bottom: 90px;
+        top: 0;
+        width: 100%;
+        overflow-y: auto;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
     }
-  }
+
+    /*button*/
+    .task-action {
+        position: fixed;
+        background-color: #f7f7f7;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        z-index: 1;
+
+        .van-button {
+            border-radius: 4px;
+            background-color: $blue;
+            border-color: $blue;
+        }
+    }
 </style>

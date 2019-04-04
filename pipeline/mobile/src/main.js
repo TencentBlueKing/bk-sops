@@ -8,6 +8,7 @@ import { bus } from './common/bus'
 import { Button, Search, Cell, CellGroup, Icon, Tag, Tabbar, TabbarItem, Field, List, Dialog, Locale } from 'vant'
 import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
+import 'amfe-flexible'
 
 Vue.use(Button)
     .use(Search)

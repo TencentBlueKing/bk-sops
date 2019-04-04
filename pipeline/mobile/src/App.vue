@@ -41,7 +41,6 @@
 </script>
 
 <style>
-    @import './css/reset.css';
     .app-container {
       font-family: 'PingFang SC', Helvetica, 'STHeiti STXihei', 'Microsoft YaHei', Tohoma, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
