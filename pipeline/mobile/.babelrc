@@ -18,6 +18,7 @@
         "lodash",
         "@babel/plugin-syntax-dynamic-import",
         ["@babel/plugin-proposal-decorators", { "legacy": true }],
+        ["import", {"libraryName": "vant", "libraryDirectory": "es", "style": true}],
         "@babel/plugin-proposal-function-sent",
         "@babel/plugin-proposal-export-namespace-from",
         "@babel/plugin-proposal-numeric-separator",

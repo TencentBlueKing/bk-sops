@@ -1,0 +1,104 @@
+@import '../../static/style/var';
+/*全局*/
+a{
+  color: @blue;
+}
+
+/*列表页*/
+.bk-block{
+  .van-cell:not(:last-child):after{
+    left: 25px;
+    right: 25px;
+    border-bottom-color: @border-color;
+    -webkit-transform: scaleY(1);
+    transform: scaleY(1);
+  }
+  &-title {
+    background-color: @background-color;
+    margin: 0;
+    font-weight: 400;
+    font-size: 12px;
+    color: #999;
+    padding: 0 25px;
+    height: 30px;
+    line-height: 30px;
+  }
+  .van-cell{
+    padding: 12px 25px;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+    color: @text-color;
+
+    .bk-text{
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .bk-name,.bk-time{
+      font-size: 12px;
+      color: #C4C6CC;
+      line-height: 18px;
+    }
+    .star-icon{
+      font-size: 16px;
+      color: #e1e1e1;
+      width: 30px;
+      text-align: right;
+    }
+    .collection{
+      color: #dba871;
+    }
+    .task-icon{
+      font-size: 14px;
+    }
+    .close{
+      color: #ea3636;
+    }
+    .more{
+      color: #3a84ff;
+    }
+    .pause{
+      color: #ff9c01;
+    }
+    .question{
+      color: #979ba5;
+    }
+  }
+}
+
+/*标签栏*/
+.bk-tabbar{
+  background-color: @background-color;
+
+  .van-tabbar-item{
+    color: #BFBDBC;
+    cursor: pointer;
+  }
+  .van-tabbar-item--active{
+    color: #63656E;
+  }
+  .van-tabbar-item__icon img{
+    height: 20px;
+  }
+}
+
+/*详情页*/
+.bk-text-title{
+  font-size: 12px;
+  color: #999;
+  padding: 20px 25px 7px 25px;
+  margin: 0;
+  font-weight: 400;
+}
+.bk-text-list{
+  .van-cell:not(:last-child):after{
+    border-bottom-color: #F1F4F8;
+  }
+  .van-cell__title{
+    max-width: 90px;
+  }
+  .van-cell__value{
+    text-align: left;
+    color: @text-color;
+  }
+}

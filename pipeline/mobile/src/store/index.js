@@ -15,6 +15,8 @@ const store = new Vuex.Store({
     // 公共 store
     state: {
         mainContentLoading: false,
+        lang: 'en',
+        bizId: 0,
         // 系统当前登录用户
         user: {}
     },
@@ -25,6 +27,16 @@ const store = new Vuex.Store({
     },
     // 公共 mutations
     mutations: {
+        /**
+         * 更新业务ID
+         *
+         * @param {Object} state store state
+         * @param id
+         */
+        setBizId (state, id) {
+            state.bizId = id
+        },
+
         /**
          * 设置内容区的 loading 是否显示
          *

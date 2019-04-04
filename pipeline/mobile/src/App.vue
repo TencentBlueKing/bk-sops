@@ -42,5 +42,10 @@
 
 <style>
     @import './css/reset.css';
-    @import './css/app.css';
+    .app-container {
+      font-family: 'PingFang SC', Helvetica, 'STHeiti STXihei', 'Microsoft YaHei', Tohoma, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: #313238;
+    }
 </style>
