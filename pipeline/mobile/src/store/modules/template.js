@@ -5,8 +5,6 @@ export default {
     mutations: {},
     actions: {
         getTemplate () {
-            console.log('123123123')
-            console.log(template)
             return template
         },
 
