@@ -9,7 +9,8 @@ Vue.use(VueRouter)
 Vue.use(VueCookies)
 
 const Home = () => import(/* webpackChunkName: 'home' */'../views/home')
-const TemplateList = () => import(/* webpackChunkName: 'home' */'../views/template/list')
+const Template = () => import(/* webpackChunkName: 'home' */'../views/template/index')
+const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
 
 const routes = [
@@ -19,9 +20,18 @@ const routes = [
         component: Home
     },
     {
-        path: '/template/list',
-        name: 'templateList',
-        component: TemplateList
+        path: '/template',
+        name: 'template',
+        component: Template,
+        children: [
+            {
+                path: '/task_create',
+                component: TaskCreate,
+                props: (route) => ({
+                    template_id: route.query.template_id
+                })
+            }
+        ]
     },
     // 404
     {
@@ -29,7 +39,6 @@ const routes = [
         name: '404',
         component: NotFound
     }
-
 ]
 
 const router = new VueRouter({
@@ -60,7 +69,7 @@ router.beforeEach(async (to, from, next) => {
         // cookies记录用户第一次选择的biz_id,如果为空，则跳转至选择业务页面
         VueCookies.set('biz_id', store.state.bizId)
         if (to.name === 'home') {
-            next({ path: '/template/list', query: { bizId: bizId } })
+            next({ path: '/template', query: { bizId: bizId } })
         } else {
             next()
         }

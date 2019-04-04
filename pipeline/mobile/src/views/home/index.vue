@@ -8,7 +8,7 @@
         >
             <div class="panel-list">
                 <van-cell v-for="item in list"
-                    :to="`/template/list/?bizId=${item.cc_id}`"
+                    :to="`/template/?bizId=${item.cc_id}`"
                     :key="item.cc_id"
                     :title="item.cc_name">
                     <template slot="title">

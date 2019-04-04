@@ -6,7 +6,8 @@
             <!-- 收藏 -->
             <section class="bk-block">
                 <h2 class="bk-block-title">{{ i18n.collect }}</h2>
-                <van-cell clickable to="task-setting" v-for="item in collectTemplateList" :key="item.id">
+                <van-cell clickable v-for="item in collectTemplateList"
+                    :to="`/template/task_create?templateId=${item.id}`" :key="item.id">
                     <template slot="title">
                         <div class="bk-text">{{ item.name }}</div>
                         <div class="bk-name">{{ item.creator_name }}</div>
@@ -18,7 +19,8 @@
             <!-- 开区 -->
             <section class="bk-block">
                 <h2 class="bk-block-title">{{ templateList[0].business.cc_name }}</h2>
-                <van-cell clickable to="task-setting" v-for="item in templateList" :key="item.id">
+                <van-cell clickable :to="`/template/task_create?templateId=${item.cc_id}`"
+                    v-for="item in templateList" :key="item.id">
                     <template slot="title">
                         <div class="bk-text">{{ item.name }}</div>
                         <div class="bk-name">{{ item.creator_name }}</div>
@@ -53,7 +55,7 @@
     import { mapActions } from 'vuex'
 
     export default {
-        name: 'process-list',
+        name: 'TemplateList',
         data () {
             return {
                 collectTemplateList: [],

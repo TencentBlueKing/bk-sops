@@ -10,6 +10,8 @@ export default {
             return [templateList.objects[0]]
         },
         getTemplateList ({ commit, state, dispatch }, params, config) {
+            console.log('>>>>>>>>>>>>>>>>>>>>!!!!!!>>>>>>>>>>>>>>')
+            console.log(state)
             return templateList.objects
             // return http.get(
             //     `${AJAX_URL_PREFIX}/api/v3/template/?limit=15&offset=0&business__cc_id=` + state.bizId
