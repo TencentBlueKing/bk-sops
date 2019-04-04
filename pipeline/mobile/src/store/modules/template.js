@@ -4,8 +4,14 @@ export default {
     state: {},
     mutations: {},
     actions: {
-        getTemplate ({ commit, state, dispatch }, params, config) {
+        getTemplate () {
+            console.log('123123123')
+            console.log(template)
             return template
+        },
+
+        getTemplateConstants() {
+            return JSON.parse(template.pipeline_tree).constants
         }
     }
 }

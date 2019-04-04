@@ -53,8 +53,8 @@ export default {
                             img: 'src',
                             image: 'xlink:href'
                         },
-                        scss: 'style-loader!css-loader!px2rem-loader!sass-loader',
-                        sass: 'style-loader!css-loader!px2rem-loader!sass-loader?indentedSyntax',
+                        scss: 'vue-style-loader!css-loader!px2rem-loader!sass-loader',
+                        sass: 'vue-style-loader!css-loader!px2rem-loader!sass-loader?indentedSyntax',
                     }
                 }
             },
