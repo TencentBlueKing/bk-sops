@@ -52,7 +52,6 @@ INSTALLED_APPS += (
     'gcloud.commons.template',
     'gcloud.periodictask',
     'pipeline',
-    'pipeline.blueflow',
     'pipeline.component_framework',
     'pipeline.variables',
     'pipeline.engine',
