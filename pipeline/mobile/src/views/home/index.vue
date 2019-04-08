@@ -1,5 +1,5 @@
 <template>
-    <div class="index-view">
+    <div class="page-view">
         <van-list
             v-model="loading"
             :finished="finished"
@@ -55,18 +55,13 @@
     }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
   @import '../../../static/style/app.scss';
-  .index-view {
-    min-height: 100vh;
-    background-color: $white;
-    padding: 20px 0;
-    box-sizing: border-box;
-
+  .page-view {
     .van-cell {
-      background-color: #F0F0F0;
+      background-color: $white;
       height: 90px;
-      margin: 0 25px 20px 25px;
+      margin: 20px 25px;
       width: auto;
       border-radius: 10px;
       padding: 15px;

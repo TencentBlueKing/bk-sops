@@ -5,13 +5,31 @@ import router from './router'
 import store from './store'
 import Exception from './components/exception'
 import { bus } from './common/bus'
-import { Button, Search, Cell, CellGroup, Icon, Tag, Tabbar, TabbarItem, Field, List, Dialog, Locale } from 'vant'
+import {
+    NavBar,
+    Button,
+    Search,
+    Cell,
+    CellGroup,
+    Icon,
+    Tag,
+    Tabbar,
+    TabbarItem,
+    Field,
+    List,
+    Dialog,
+    Popup,
+    Locale,
+    Picker,
+    Actionsheet
+} from 'vant'
 import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
 import 'amfe-flexible'
 
-Vue.use(Button)
+Vue.use(NavBar)
     .use(Search)
+    .use(Button)
     .use(Cell)
     .use(CellGroup)
     .use(Icon)
@@ -21,6 +39,9 @@ Vue.use(Button)
     .use(Field)
     .use(List)
     .use(Dialog)
+    .use(Popup)
+    .use(Picker)
+    .use(Actionsheet)
 
 Vue.component('app-exception', Exception)
 
