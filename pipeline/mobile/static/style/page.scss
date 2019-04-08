@@ -4,6 +4,36 @@ a{
   color: $blue;
 }
 
+.page-view{
+    position: absolute;
+    width: 100%;
+    top: 60px;
+    bottom: 0;
+    overflow-y: auto;
+}
+/*search*/
+.bk-search{
+    background-color: #F4F7FA!important;
+    padding: 16px 25px;
+
+    .van-search__content{
+        background-color: rgba(142,142,147,0.12);
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+
+        .van-cell{
+            padding: 6px 10px 6px 0;
+
+            .van-field__left-icon{
+                color: #8E8E93;
+            }
+        }
+    }
+    .van-search__action{
+        padding-right: 0;
+    }
+}
 /*列表页*/
 .bk-block{
   .van-cell:not(:last-child):after{
@@ -14,7 +44,6 @@ a{
     transform: scaleY(1);
   }
   &-title {
-    background-color: $background-color;
     margin: 0;
     font-weight: 400;
     font-size: 12px;
@@ -49,7 +78,7 @@ a{
       color: #dba871;
     }
     .task-icon{
-      font-size: 14px;
+      font-size: 12px;
     }
     .close{
       color: #ea3636;
@@ -60,25 +89,12 @@ a{
     .pause{
       color: #ff9c01;
     }
-    .question{
-      color: #979ba5;
+    .circle{
+        width: 10px;
+        height: 10px;
+        background-color: #979ba5;
+        border-radius: 50%;
     }
-  }
-}
-
-/*标签栏*/
-.bk-tabbar{
-  background-color: $background-color;
-
-  .van-tabbar-item{
-    color: #BFBDBC;
-    cursor: pointer;
-  }
-  .van-tabbar-item--active{
-    color: #63656E;
-  }
-  .van-tabbar-item__icon img{
-    height: 20px;
   }
 }
 
@@ -101,4 +117,38 @@ a{
     text-align: left;
     color: $text-color;
   }
+}
+/*popup*/
+.van-overlay{
+    background-color: rgba(0, 0, 0, 0.2);
+}
+.van-picker__cancel{
+    color: #979BA5;
+}
+.van-picker__confirm{
+    color: $blue;
+}
+[class*="van-hairline"]:after {
+    border-color: #E1E0E2;
+}
+/*btn*/
+.btn-group{
+    margin: 30px 25px;
+    display: flex;
+
+    .van-button{
+        border-radius: 4px;
+
+        + .van-button{
+            margin-left: 10px;
+        }
+    }
+    .van-button--default{
+        border-color: #C4C6CC;
+        color: $text-color;
+    }
+    .van-button--info{
+        background-color: $blue;
+        border-color: $blue;
+    }
 }

@@ -10,7 +10,10 @@ Vue.use(VueCookies)
 
 const Home = () => import(/* webpackChunkName: 'home' */'../views/home')
 const Template = () => import(/* webpackChunkName: 'home' */'../views/template/index')
+const TaskList = () => import(/* webpackChunkName: 'home' */'../views/task/list')
 const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
+const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/reset')
+const TaskCheck = () => import(/* webpackChunkName: 'home' */'../views/task/check')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
 
 const routes = [
@@ -37,6 +40,21 @@ const routes = [
         path: '/task/create',
         name: 'task_create',
         component: TaskCreate
+    },
+    {
+        path: '/task/list',
+        name: 'task_list',
+        component: TaskList
+    },
+    {
+        path: '/task/reset',
+        name: 'task_reset',
+        component: TaskReset
+    },
+    {
+        path: '/task/check',
+        name: 'task_check',
+        component: TaskCheck
     },
     // 404
     {
