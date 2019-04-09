@@ -27,19 +27,19 @@ from django.utils import timezone
 from django.utils import six
 from guardian.shortcuts import assign_perm
 
-from bk_api import (
+from gcloud.conf import settings
+from gcloud import exceptions
+from gcloud.core import roles
+from gcloud.core.constant import AE
+from gcloud.core.models import Business, BusinessGroupMembership
+from gcloud.core.api_adapter import (
     is_user_functor,
     get_operate_user_list,
     is_user_auditor,
     get_auditor_user_list,
-    get_user_info
+    get_user_info,
+    adapt_get_user_data
 )
-from gcloud.conf import settings
-from gcloud import exceptions
-from gcloud.core.constant import AE
-from gcloud.core.models import Business, BusinessGroupMembership
-from gcloud.core import roles
-from gcloud.core.api_adapter import user_api_adapter
 
 logger = logging.getLogger("root")
 
@@ -304,7 +304,7 @@ def get_business_obj(request, cc_id, use_cache=True, use_maintainer=False):
 
 
 def _update_user_info(info):
-    info = user_api_adapter.adapt_get_user_data(info)
+    info = adapt_get_user_data(info)
     User = get_user_model()
     User.objects.update_or_create(
         username=info['uin'],

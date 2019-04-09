@@ -22,15 +22,15 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 
-from bk_api import is_user_functor
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.commons.template.resources import PipelineTemplateResource
+from gcloud.core.api_adapter import is_user_functor
 from gcloud.core.utils import name_handler
 from gcloud.core.models import Business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
+from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.commons.template.constants import PermNm
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.webservice3.resources import (
