@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 
 context_processor for common(setting)
-
 ** 除setting外的其他context_processor内容，均采用组件的方式(string)
 """
 
