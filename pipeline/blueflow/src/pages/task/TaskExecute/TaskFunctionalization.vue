@@ -92,6 +92,7 @@ import NodePreview from '../NodePreview.vue'
 
 export default {
     name: 'TaskFunctionalization',
+    inject: ['reload'],
     components: {
         NoData,
         BaseInput,
@@ -177,12 +178,14 @@ export default {
                 try {
                     const res = await this.claimFuncTask(data)
                     if (res.result) {
-                        window.location.reload()
+                        this.reload()
                     } else {
                         errorHandler(e, this)
                     }
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.isSubmit = false
                 }
             })
         },
