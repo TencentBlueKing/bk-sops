@@ -25,7 +25,7 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isEmptyParams">
-            <bk-button type="success" @click.once="onRetryTask">{{ i18n.confirm }}</bk-button>
+            <bk-button type="success" @click="onRetryTask">{{ i18n.confirm }}</bk-button>
             <bk-button type="default" @click="onCancelRetry">{{ i18n.cancel }}</bk-button>
         </div>
     </div>
@@ -123,7 +123,7 @@ export default {
             if (this.$refs.renderForm) {
                 formvalid = this.$refs.renderForm.validate()
             }
-            if (!formvalid) return
+            if (!formvalid || this.retrying) return
 
             const  { instance_id, component_code, node_id } = this.nodeDetailConfig
             const data = {
@@ -151,7 +151,7 @@ export default {
             }
         },
         onCancelRetry () {
-            const  { node_id } = this.nodeDetailConfig
+            const { node_id } = this.nodeDetailConfigs
             this.$emit('retryCancel', node_id)
         }
     }
