@@ -10,22 +10,22 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import copy
 import json
 import logging
 import traceback
-from cryptography.fernet import Fernet
 
+from cryptography.fernet import Fernet
 from django.conf import settings
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
+from blueapps.account.decorators import login_exempt
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions, states
 from pipeline.engine.models import PipelineModel
 
-from blueapps.account.decorators import login_exempt
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
@@ -215,12 +215,18 @@ def preview_task_tree(request, biz_cc_id):
             return HttpResponseForbidden()
     exclude_task_nodes_id = json.loads(request.POST.get('exclude_task_nodes_id', '[]'))
     pipeline_tree = template.get_pipeline_tree_by_version(version)
+    template_constants = copy.deepcopy(pipeline_tree['constants'])
     try:
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception(e)
         return JsonResponse({'result': False, 'message': e.message})
-    return JsonResponse({'result': True, 'data': {'pipeline_tree': pipeline_tree}})
+    constants_not_referred = {key: value for key, value in template_constants.items()
+                              if key not in pipeline_tree['constants']}
+    return JsonResponse({
+        'result': True,
+        'data': {'pipeline_tree': pipeline_tree, 'constants_not_referred': constants_not_referred}
+    })
 
 
 @require_POST
