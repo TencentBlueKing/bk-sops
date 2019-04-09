@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
-import json
-
 from django.test import TestCase, Client
 
 from pipeline.utils.uniqid import node_uniqid
