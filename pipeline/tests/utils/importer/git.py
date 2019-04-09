@@ -1,0 +1,137 @@
+# -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+"""  # noqa
+
+import urllib2
+
+from django.test import TestCase
+
+from pipeline.tests.mock import *  # noqa
+from pipeline.tests.mock_settings import *  # noqa
+from pipeline.utils.importer.git import GitRepoModuleImporter
+
+GET_FILE_RETURN = 'GET_FILE_RETURN'
+GET_SOURCE_RETURN = 'a=1'
+IS_PACKAGE_RETURN = False
+_FILE_URL_RETURN = '_FILE_URL_RETURN'
+_FETCH_REPO_FILE_RETURN = '_FETCH_REPO_FILE_RETURN'
+
+
+class GitRepoModuleImporterTestCase(TestCase):
+    def setUp(self):
+        self.repo_raw_url = 'https://test-git-repo-raw/'
+        self.repo_raw_url_without_slash = 'https://test-git-repo-raw'
+        self.branch = 'master'
+        self.fullname = 'module1.module2.module3'
+        self.module_url = 'https://test-git-repo-raw/master/module1/module2/module3.py'
+        self.package_url = 'https://test-git-repo-raw/master/module1/module2/module3/__init__.py'
+
+    def test__init__(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+        self.assertEqual(importer.repo_raw_url, self.repo_raw_url)
+
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url_without_slash, branch=self.branch)
+        self.assertEqual(importer.repo_raw_url, self.repo_raw_url)
+
+    def test__file_url(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+        self.assertEqual(importer._file_url(self.fullname, is_pkg=True), self.package_url)
+        self.assertEqual(importer._file_url(self.fullname, is_pkg=False), self.module_url)
+
+    def test__fetch_repo_file__no_cache(self):
+        importer = GitRepoModuleImporter(modules=[],
+                                         repo_raw_url=self.repo_raw_url,
+                                         branch=self.branch,
+                                         use_cache=False)
+        first_request_content = ReadableObject(read_return='first_request_content')
+        second_request_content = ReadableObject(read_return='second_request_content')
+
+        with patch(URLLIB2_URLOPEN, MagicMock(return_value=first_request_content)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), first_request_content.read())
+            self.assertEqual(importer.file_cache, {})
+
+        with patch(URLLIB2_URLOPEN, MagicMock(return_value=second_request_content)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), second_request_content.read())
+            self.assertEqual(importer.file_cache, {})
+
+        with patch(URLLIB2_URLOPEN, MagicMock(side_effect=IOError())):
+            self.assertRaises(IOError, importer._fetch_repo_file, self.module_url)
+            self.assertEqual(importer.error_cache, {})
+
+    def test__fetch_repo_file__use_cache(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+        first_request_content = ReadableObject(read_return='first_request_content')
+        second_request_content = ReadableObject(read_return='second_request_content')
+        io_error = IOError()
+
+        with patch(URLLIB2_URLOPEN, MagicMock(return_value=first_request_content)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), first_request_content.read())
+            self.assertEqual(importer.file_cache[self.module_url], first_request_content.read())
+
+        with patch(URLLIB2_URLOPEN, MagicMock(return_value=second_request_content)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), first_request_content.read())
+            self.assertEqual(importer.file_cache[self.module_url], first_request_content.read())
+
+        with patch(URLLIB2_URLOPEN, MagicMock(side_effect=io_error)):
+            self.assertRaises(IOError, importer._fetch_repo_file, self.package_url)
+            self.assertIs(importer.error_cache[self.package_url], io_error)
+
+        with patch(URLLIB2_URLOPEN, MagicMock(side_effect=NotImplementedError())):
+            self.assertRaises(IOError, importer._fetch_repo_file, self.package_url)
+            self.assertIs(importer.error_cache[self.package_url], io_error)
+
+    def test_is_package(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+
+        with patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock()):
+            self.assertTrue(importer.is_package(self.fullname))
+            importer._fetch_repo_file.assert_called_once_with(importer._file_url(self.fullname, is_pkg=True))
+
+        with patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(side_effect=IOError)):
+            self.assertFalse(importer.is_package(self.fullname))
+            importer._fetch_repo_file.assert_called_once_with(importer._file_url(self.fullname, is_pkg=True))
+
+    @patch(UTILS_IMPORTER_GIT_GET_FILE, MagicMock(return_value=GET_FILE_RETURN))
+    @patch(UTILS_IMPORTER_GIT_GET_SOURCE, MagicMock(return_value=GET_SOURCE_RETURN))
+    def test_get_code(self):
+        expect_code = compile(GET_SOURCE_RETURN, GET_FILE_RETURN, 'exec')
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+
+        self.assertEqual(expect_code, importer.get_code(self.fullname))
+
+    @patch(UTILS_IMPORTER_GIT_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
+    @patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(return_value=_FETCH_REPO_FILE_RETURN))
+    def test_get_source(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+
+        source = importer.get_source(self.fullname)
+
+        self.assertEqual(source, _FETCH_REPO_FILE_RETURN)
+        importer._fetch_repo_file.assert_called_once_with(importer._file_url(self.fullname, is_pkg=IS_PACKAGE_RETURN))
+
+    @patch(UTILS_IMPORTER_GIT_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
+    @patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(side_effect=IOError))
+    def test_get_source__catch_io_error(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+
+        self.assertRaises(ImportError, importer.get_source, self.fullname)
+        importer._fetch_repo_file.assert_called_once_with(importer._file_url(self.fullname, is_pkg=IS_PACKAGE_RETURN))
+
+    def test_get_path(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+        self.assertEqual(importer.get_path(self.fullname), ['https://test-git-repo-raw/master/module1/module2/module3'])
+
+    def test_get_file(self):
+        importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+
+        with patch(UTILS_IMPORTER_GIT_IS_PACKAGE, MagicMock(return_value=False)):
+            self.assertEqual(importer.get_file(self.fullname), self.module_url)
+
+        with patch(UTILS_IMPORTER_GIT_IS_PACKAGE, MagicMock(return_value=True)):
+            self.assertEqual(importer.get_file(self.fullname), self.package_url)
+

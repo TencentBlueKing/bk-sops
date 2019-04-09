@@ -5,7 +5,13 @@ Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+"""  # noqa
+
+SYS_MODULES = 'sys.modules'
+IMP_ACQUIRE_LOCK = 'imp.acquire_lock'
+IMP_RELEASE_LOCK = 'imp.release_lock'
+URLLIB2_URLOPEN = 'urllib2.urlopen'
+
 PIPELINE_CORE_GATEWAY_DEFORMAT = 'pipeline.core.flow.gateway.deformat_constant_key'
 PIPELINE_CORE_CONSTANT_RESOLVE = 'pipeline.core.data.expression.ConstantTemplate.resolve_data'
 
@@ -110,3 +116,10 @@ EXG_HYDRATE_NODE_DATA = 'pipeline.engine.core.handlers.exclusive_gateway.hydrate
 EXG_HYDRATE_DATA = 'pipeline.engine.core.handlers.exclusive_gateway.hydrate_data'
 
 CPG_HYDRATE_DATA = 'pipeline.engine.core.handlers.conditional_parallel.hydrate_data'
+
+UTILS_IMPORTER_BASE_EXECUTE_SRC_CODE = 'pipeline.utils.importer.base.NonstandardModuleImporter._execute_src_code'
+UTILS_IMPORTER_GIT__FETCH_REPO_FILE = 'pipeline.utils.importer.git.GitRepoModuleImporter._fetch_repo_file'
+UTILS_IMPORTER_GIT__FILE_URL = 'pipeline.utils.importer.git.GitRepoModuleImporter._file_url'
+UTILS_IMPORTER_GIT_GET_SOURCE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_source'
+UTILS_IMPORTER_GIT_GET_FILE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_file'
+UTILS_IMPORTER_GIT_IS_PACKAGE = 'pipeline.utils.importer.git.GitRepoModuleImporter.is_package'
