@@ -31,9 +31,10 @@ class Object(object):
     pass
 
 
-class ReadableObject(object):
+class MockResponse(object):
     def __init__(self, **kwargs):
-        self.read = MagicMock(return_value=kwargs.get('read_return'))
+        self.content = kwargs.get('content')
+        self.ok = kwargs.get('ok', True)
 
 
 class ContextObject(object):

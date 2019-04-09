@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 SYS_MODULES = 'sys.modules'
 IMP_ACQUIRE_LOCK = 'imp.acquire_lock'
 IMP_RELEASE_LOCK = 'imp.release_lock'
-URLLIB2_URLOPEN = 'urllib2.urlopen'
+REQUESTS_GET = 'requests.get'
 
 PIPELINE_CORE_GATEWAY_DEFORMAT = 'pipeline.core.flow.gateway.deformat_constant_key'
 PIPELINE_CORE_CONSTANT_RESOLVE = 'pipeline.core.data.expression.ConstantTemplate.resolve_data'

@@ -50,52 +50,50 @@ class GitRepoModuleImporterTestCase(TestCase):
                                          repo_raw_url=self.repo_raw_url,
                                          branch=self.branch,
                                          use_cache=False)
-        first_request_content = ReadableObject(read_return='first_request_content')
-        second_request_content = ReadableObject(read_return='second_request_content')
+        first_resp = MockResponse(content='first_request_content')
+        second_resp = MockResponse(content='second_request_content')
 
-        with patch(URLLIB2_URLOPEN, MagicMock(return_value=first_request_content)):
-            self.assertEqual(importer._fetch_repo_file(self.module_url), first_request_content.read())
+        with patch(REQUESTS_GET, MagicMock(return_value=first_resp)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), first_resp.content)
             self.assertEqual(importer.file_cache, {})
 
-        with patch(URLLIB2_URLOPEN, MagicMock(return_value=second_request_content)):
-            self.assertEqual(importer._fetch_repo_file(self.module_url), second_request_content.read())
+        with patch(REQUESTS_GET, MagicMock(return_value=second_resp)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), second_resp.content)
             self.assertEqual(importer.file_cache, {})
 
-        with patch(URLLIB2_URLOPEN, MagicMock(side_effect=IOError())):
-            self.assertRaises(IOError, importer._fetch_repo_file, self.module_url)
-            self.assertEqual(importer.error_cache, {})
+        with patch(REQUESTS_GET, MagicMock(return_value=MockResponse(ok=False))):
+            self.assertIsNone(importer._fetch_repo_file(self.module_url))
 
     def test__fetch_repo_file__use_cache(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
-        first_request_content = ReadableObject(read_return='first_request_content')
-        second_request_content = ReadableObject(read_return='second_request_content')
-        io_error = IOError()
+        first_resp = MockResponse(content='first_request_content')
+        second_resp = MockResponse(content='second_request_content')
 
-        with patch(URLLIB2_URLOPEN, MagicMock(return_value=first_request_content)):
-            self.assertEqual(importer._fetch_repo_file(self.module_url), first_request_content.read())
-            self.assertEqual(importer.file_cache[self.module_url], first_request_content.read())
+        with patch(REQUESTS_GET, MagicMock(return_value=first_resp)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), first_resp.content)
+            self.assertEqual(importer.file_cache[self.module_url], first_resp.content)
 
-        with patch(URLLIB2_URLOPEN, MagicMock(return_value=second_request_content)):
-            self.assertEqual(importer._fetch_repo_file(self.module_url), first_request_content.read())
-            self.assertEqual(importer.file_cache[self.module_url], first_request_content.read())
+        with patch(REQUESTS_GET, MagicMock(return_value=second_resp)):
+            self.assertEqual(importer._fetch_repo_file(self.module_url), first_resp.content)
+            self.assertEqual(importer.file_cache[self.module_url], first_resp.content)
 
-        with patch(URLLIB2_URLOPEN, MagicMock(side_effect=io_error)):
-            self.assertRaises(IOError, importer._fetch_repo_file, self.package_url)
-            self.assertIs(importer.error_cache[self.package_url], io_error)
+        with patch(REQUESTS_GET, MagicMock(return_value=MockResponse(ok=False))):
+            self.assertIsNone(importer._fetch_repo_file(self.package_url))
+            self.assertIsNone(importer.file_cache[self.package_url])
 
-        with patch(URLLIB2_URLOPEN, MagicMock(side_effect=NotImplementedError())):
-            self.assertRaises(IOError, importer._fetch_repo_file, self.package_url)
-            self.assertIs(importer.error_cache[self.package_url], io_error)
+        with patch(REQUESTS_GET, MagicMock(return_value=second_resp)):
+            self.assertIsNone(importer._fetch_repo_file(self.package_url))
+            self.assertIsNone(importer.file_cache[self.package_url])
 
     def test_is_package(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
 
-        with patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock()):
-            self.assertTrue(importer.is_package(self.fullname))
+        with patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(return_value=None)):
+            self.assertFalse(importer.is_package(self.fullname))
             importer._fetch_repo_file.assert_called_once_with(importer._file_url(self.fullname, is_pkg=True))
 
-        with patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(side_effect=IOError)):
-            self.assertFalse(importer.is_package(self.fullname))
+        with patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(return_value='')):
+            self.assertTrue(importer.is_package(self.fullname))
             importer._fetch_repo_file.assert_called_once_with(importer._file_url(self.fullname, is_pkg=True))
 
     @patch(UTILS_IMPORTER_GIT_GET_FILE, MagicMock(return_value=GET_FILE_RETURN))
@@ -117,8 +115,8 @@ class GitRepoModuleImporterTestCase(TestCase):
         importer._fetch_repo_file.assert_called_once_with(importer._file_url(self.fullname, is_pkg=IS_PACKAGE_RETURN))
 
     @patch(UTILS_IMPORTER_GIT_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
-    @patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(side_effect=IOError))
-    def test_get_source__catch_io_error(self):
+    @patch(UTILS_IMPORTER_GIT__FETCH_REPO_FILE, MagicMock(return_value=None))
+    def test_get_source__fetch_none(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
 
         self.assertRaises(ImportError, importer.get_source, self.fullname)

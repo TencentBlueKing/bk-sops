@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import urlparse
-import urllib2
+import requests
 
 from pipeline.utils.importer.base import NonstandardModuleImporter
 
@@ -28,26 +28,21 @@ class GitRepoModuleImporter(NonstandardModuleImporter):
         self.branch = branch
         self.use_cache = use_cache
         self.file_cache = {}
-        self.error_cache = {}
 
     def is_package(self, fullname):
-        try:
-            self._fetch_repo_file(self._file_url(fullname, is_pkg=True))
-        except IOError:
-            return False
-
-        return True
+        return self._fetch_repo_file(self._file_url(fullname, is_pkg=True)) is not None
 
     def get_code(self, fullname):
         return compile(self.get_source(fullname), self.get_file(fullname), 'exec')
 
     def get_source(self, fullname):
-        try:
-            return self._fetch_repo_file(self._file_url(fullname, is_pkg=self.is_package(fullname)))
-        except IOError:
-            raise ImportError('Can not find {module} in {repo}/{branch}'.format(module=fullname,
-                                                                                repo=self.repo_raw_url,
-                                                                                branch=self.branch))
+        source_code = self._fetch_repo_file(self._file_url(fullname, is_pkg=self.is_package(fullname)))
+
+        if source_code is None:
+            raise ImportError('Can not find {module} in {repo}{branch}'.format(module=fullname,
+                                                                               repo=self.repo_raw_url,
+                                                                               branch=self.branch))
+        return source_code
 
     def get_path(self, fullname):
         return [self._file_url(fullname, is_pkg=True).rpartition('/')[0]]
@@ -63,25 +58,17 @@ class GitRepoModuleImporter(NonstandardModuleImporter):
 
     def _fetch_repo_file(self, file_url):
         logger.info('Try to fetch git file: {file_url}'.format(file_url=file_url))
+
+        if self.use_cache and file_url in self.file_cache:
+            logger.info('Use content in cache for git file: {file_url}'.format(file_url=file_url))
+            return self.file_cache[file_url]
+
+        resp = requests.get(file_url, timeout=10)
+
+        file_content = resp.content if resp.ok else None
+
         if self.use_cache:
-
-            if file_url in self.file_cache:
-                logger.info('Content in cache for git file: {file_url} found'.format(file_url=file_url))
-                return self.file_cache[file_url]
-
-            if file_url in self.error_cache:
-                logger.info('Error in cache for git file: {file_url} found'.format(file_url=file_url))
-                raise self.error_cache[file_url]
-
-            try:
-                file_content = urllib2.urlopen(file_url).read()
-            except IOError as e:
-                logger.info('Error cached for git file: {file_url}'.format(file_url=file_url))
-                self.error_cache[file_url] = e
-                raise e
-
             self.file_cache[file_url] = file_content
             logger.info('Content cached for git file: {file_url}'.format(file_url=file_url))
-            return file_content
 
-        return urllib2.urlopen(file_url).read()
+        return file_content
