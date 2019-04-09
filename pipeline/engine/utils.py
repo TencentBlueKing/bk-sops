@@ -47,9 +47,9 @@ def calculate_elapsed_time(started_time, archived_time):
     """
     if archived_time and started_time:
         # when status_tree['archived_time'] == status_tree['started_time'], set elapsed_time to 1s
-        elapsed_time = (archived_time - started_time).seconds or 1
+        elapsed_time = (archived_time - started_time).total_seconds() or 1
     elif started_time:
-        elapsed_time = (timezone.now() - started_time).seconds
+        elapsed_time = (timezone.now() - started_time).total_seconds()
     else:
         elapsed_time = 0
     return elapsed_time
