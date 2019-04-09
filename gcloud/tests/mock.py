@@ -19,6 +19,18 @@ from mock import MagicMock
 from django.utils.timezone import now
 
 
+class MockRequest(object):
+    def __init__(self, method, data):
+        self.method = method
+        setattr(self, method, data)
+        self.user = MagicMock()
+
+
+class MockJsonResponse(object):
+    def __call__(self, dct):
+        return dct
+
+
 class MockBusiness(object):
     def __init__(self, **kwargs):
         self.cc_id = kwargs.get('cc_id', 'cc_id')
@@ -42,7 +54,9 @@ class MockBaseTemplate(object):
         self.name = kwargs.get('name', 'name')
         self.category = kwargs.get('category', 'category')
         self.pipeline_template = kwargs.get('pipeline_template', MockPipelineTemplate())
-        self.pipeline_tree = {'line': 'line', 'location': 'location', 'activities': []}
+        self.pipeline_tree = kwargs.get('pipeline_tree',
+                                        {'line': 'line', 'location': 'location', 'activities': []})
+        self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
 
 
 class MockTaskTemplate(MockBaseTemplate):
