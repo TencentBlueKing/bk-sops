@@ -21,14 +21,15 @@ from django.db import models
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 
-from bk_api import (
+from blueapps.utils import managermixins
+
+from gcloud.core.api_adapter import (
     create_maker_app,
     edit_maker_app,
     del_maker_app,
     modify_app_logo,
     get_app_logo_url,
 )
-from blueapps.utils import managermixins
 from gcloud.conf import settings
 from gcloud.core.constant import AE
 from gcloud.core.models import Business

@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
-from bk_api import is_user_auditor
+from gcloud.core.api_adapter import is_user_auditor
 from gcloud.core.utils import prepare_view_all_business
 
 

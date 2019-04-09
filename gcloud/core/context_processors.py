@@ -19,9 +19,8 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from bk_api import is_user_functor, is_user_auditor
-
 from gcloud.conf import settings
+from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 
 logger = logging.getLogger("root")
 
