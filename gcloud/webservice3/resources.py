@@ -28,18 +28,15 @@ from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.serializers import Serializer
 
-from bk_api import is_user_functor, is_user_auditor
-
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.core.data.library import VariableLibrary
 from pipeline.models import VariableModel
+
 from gcloud import exceptions
 from gcloud.core.models import Business
-from gcloud.core.utils import (
-    name_handler,
-    prepare_user_business,
-)
+from gcloud.core.api_adapter import is_user_functor, is_user_auditor
+from gcloud.core.utils import name_handler, prepare_user_business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 
 

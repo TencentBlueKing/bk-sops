@@ -15,7 +15,7 @@ from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
-from bk_api import is_user_functor
+from gcloud.core.api_adapter import is_user_functor
 
 from gcloud.webservice3.resources import (
     GCloudModelResource,

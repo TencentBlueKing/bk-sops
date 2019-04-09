@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 
 context_processor for common(setting)
-
 ** 除setting外的其他context_processor内容，均采用组件的方式(string)
 """
 
@@ -19,9 +18,8 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 
-from bk_api import is_user_functor, is_user_auditor
-
 from gcloud.conf import settings
+from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 
 logger = logging.getLogger("root")
 
