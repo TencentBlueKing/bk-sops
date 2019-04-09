@@ -146,15 +146,15 @@ class NonstandardModuleImporterTestCase(TestCase):
     def test_load_module__is_package(self):
         src_code = 'src_code'
         fullname = 'magic_module'
-        file = 'file'
+        _file = 'file'
         path = 'path'
-        importer = DummyImporter(is_package=True, get_source=src_code, get_file=file, get_path=path)
+        importer = DummyImporter(is_package=True, get_source=src_code, get_file=_file, get_path=path)
 
         with patch(SYS_MODULES, {}):
             mod = importer.load_module(fullname=fullname)
 
             self.assertIs(sys.modules[fullname], mod)
-            self.assertEqual(mod.__file__, file)
+            self.assertEqual(mod.__file__, _file)
             self.assertIs(mod.__loader__, importer)
             self.assertEqual(mod.__path__, path)
             self.assertEqual(mod.__package__, fullname)
@@ -168,14 +168,14 @@ class NonstandardModuleImporterTestCase(TestCase):
     def test_load_module__is_not_package(self):
         src_code = 'src_code'
         fullname = 'magic_module.sub_module'
-        file = 'file'
-        importer = DummyImporter(is_package=False, get_source=src_code, get_file=file)
+        _file = 'file'
+        importer = DummyImporter(is_package=False, get_source=src_code, get_file=_file)
 
         with patch(SYS_MODULES, {}):
             mod = importer.load_module(fullname=fullname)
 
             self.assertIs(sys.modules[fullname], mod)
-            self.assertEqual(mod.__file__, file)
+            self.assertEqual(mod.__file__, _file)
             self.assertIs(mod.__loader__, importer)
             self.assertEqual(mod.__package__, fullname.rpartition('.')[0])
 
