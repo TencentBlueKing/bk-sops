@@ -10,7 +10,7 @@ for item in `find $WORK_PATH/pipeline/blueflow/src/ -name "*.vue" ! -path "*IpSe
 done
 
 mkdir -p  ~/Temp/gcloud_open/
-mv -f $WORK_PATH/staticfiles/ ~/Temp/gcloud_open/
+mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/
 rm -rf $WORK_PATH/pipeline/blueflow/static/
 
 pybabel extract -F babel.cfg --copyright-holder=blueking . -o django.pot || exit 1
@@ -49,4 +49,4 @@ grep -n -e 'fuzzy' $WORK_PATH/locale/zh_hans/LC_MESSAGES/djangojs.po
 read -rsp $'Press translate django.po and djangojs.po, then press any key to continue...\n' -n1 key
 django-admin compilemessages
 
-mv -f ~/Temp/gcloud_open/staticfiles/ $WORK_PATH/
+mv -f ~/Temp/gcloud_open/static/ $WORK_PATH/
