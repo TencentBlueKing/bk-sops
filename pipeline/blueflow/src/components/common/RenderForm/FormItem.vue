@@ -10,7 +10,16 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['rf-form-item', 'clearfix', {'rf-has-hook': showHook}]" v-show="showForm">
+    <div
+        :class="[
+            'rf-form-item',
+            'clearfix',
+            {
+                'rf-has-hook': showHook,
+                'show-label': option.showLabel
+            }
+        ]"
+        v-show="showForm">
         <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
             <h3 class="name">{{scheme.attrs.name}}</h3>
             <div v-if="scheme.attrs.desc" class="rf-group-desc">
@@ -22,11 +31,11 @@
             :class="['rf-tag-label', {'required': isRequired()}]">
             {{scheme.attrs.name}}
         </label>
-        <div v-if="hook" class="rf-tag-form">
+        <div v-show="hook" class="rf-tag-form">
             <el-input :disabled="true" :value="String(value)"></el-input>
         </div>
         <component
-            v-else
+            v-show="!hook"
             class="rf-tag-form"
             ref="tagComponent"
             :is="tagComponent"
@@ -324,7 +333,7 @@ export default {
             }
         }
     }
-    .rf-tag-label + .rf-tag-form {
+    &.show-label .rf-tag-form {
         margin-left: 120px;
     }
     .rf-tag-hook {
