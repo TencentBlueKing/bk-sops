@@ -180,7 +180,7 @@ def save_perms(request, biz_cc_id):
     return JsonResponse(ctx)
 
 
-# TODO： 该方法已迁移至 code/api/get_basic_info ，等待前端完成迁移后删除
+# TODO： 该方法已迁移至 core/api/get_basic_info ，等待前端完成迁移后删除
 @require_GET
 def get_business_basic_info(request, biz_cc_id):
     """
