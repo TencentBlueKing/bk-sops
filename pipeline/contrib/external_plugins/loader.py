@@ -11,4 +11,25 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'pipeline.contrib.external_plugins.apps.ExternalPluginsConfig'
+import importlib
+
+from pipeline.utils.importer import importer_context
+from pipeline.contrib.external_plugins.models import source_cls_factory
+
+
+def load_external_modules():
+    for source_type, source_model_cls in source_cls_factory.items():
+        # get all external source
+        sources = source_model_cls.objects.all()
+
+        # get importer for source
+        for source in sources:
+            _import_modules_in_source(source)
+
+
+def _import_modules_in_source(source):
+    importer = source.importer()
+
+    with importer_context(importer):
+        for module in source.modules:
+            importlib.import_module(module)

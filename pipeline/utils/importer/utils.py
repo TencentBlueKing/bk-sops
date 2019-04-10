@@ -11,4 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'pipeline.contrib.external_plugins.apps.ExternalPluginsConfig'
+import sys
+from contextlib import contextmanager
+
+
+@contextmanager
+def importer_context(importer):
+    _setup_importer(importer)
+    yield
+    _remove_importer(importer)
+
+
+def _setup_importer(importer):
+    sys.meta_path.insert(0, importer)
+
+
+def _remove_importer(importer):
+    for hooked_importer in sys.meta_path:
+        if hooked_importer is importer:
+            sys.meta_path.remove(hooked_importer)
+            return

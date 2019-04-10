@@ -11,10 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
-
 from django.apps import AppConfig
+from django.db.utils import ProgrammingError
+
+from pipeline.conf import settings
+from pipeline.contrib.external_plugins import loader
+from pipeline.contrib.external_plugins.models import ExternalPackageSource
 
 
 class ExternalPluginsConfig(AppConfig):
     name = 'external_plugins'
+
+    def ready(self):
+        try:
+            ExternalPackageSource.update_package_source_from_config(getattr(settings, 'COMPONENTS_PACKAGE_SOURCES', {}))
+        except ProgrammingError:
+            # first migrate
+            return
+
+        loader.load_external_modules()

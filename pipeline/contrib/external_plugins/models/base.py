@@ -11,12 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import importlib
 from copy import deepcopy
 from abc import abstractmethod
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.utils.importer.utils import importer_context
 from pipeline.contrib.external_plugins import exceptions
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
 
@@ -94,5 +96,26 @@ class ExternalPackageSource(models.Model):
     def type():
         raise NotImplementedError()
 
+    @abstractmethod
     def importer(self):
         raise NotImplementedError()
+
+    @property
+    def modules(self):
+        modules = []
+
+        for _, package_info in self.packages:
+            modules.extend(package_info['modules'])
+
+        return modules
+
+    @staticmethod
+    def update_package_source_from_config(source_configs):
+        classified_config = {}
+
+        for config in source_configs:
+            classified_config.setdefault(config.pop('type'), []).append(config)
+
+        for source_type, config in classified_config.items():
+            source_model_cls = source_cls_factory[source_type]
+            source_model_cls.objects.update_source_from_config(config=config)
