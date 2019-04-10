@@ -74,8 +74,8 @@ def run_loop(process):
                 return
 
                 # try to transit current node to running state
-            action = Status.objects.transit(id=current_node.id, to_state=states.RUNNING, start=True,
-                                            name=str(current_node.__class__))
+            name = (current_node.name or str(current_node.__class__))[:64]
+            action = Status.objects.transit(id=current_node.id, to_state=states.RUNNING, start=True, name=name)
 
             # check rerun limit
             if not isinstance(current_node, SubProcess) and RERUN_MAX_LIMIT != 0 and \
