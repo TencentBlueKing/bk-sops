@@ -25,7 +25,7 @@ from gcloud.taskflow3 import api
 
 
 TEST_BIZ_CC_ID = '2'  # do not change this to non number
-TEST_ID_LIST = [node_uniqid() for i in xrange(10)]
+TEST_ID_LIST = [node_uniqid() for i in range(10)]
 TEST_PIPELINE_TREE = {
     'id': TEST_ID_LIST[0],
     'name': 'name',
@@ -145,7 +145,7 @@ class APITest(TestCase):
         self.client = Client()
 
     @mock.patch('gcloud.taskflow3.api.JsonResponse', MockJsonResponse())
-    def test_preview_task_tree_constants_not_referred(self):
+    def test_preview_task_tree__constants_not_referred(self):
 
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
