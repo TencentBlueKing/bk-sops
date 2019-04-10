@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
+from copy import deepcopy
+
 from django.test import TestCase, Client
 
 from pipeline.utils.uniqid import node_uniqid
@@ -142,25 +144,53 @@ class APITest(TestCase):
         self.PREVIEW_TASK_TREE_URL = '/taskflow/api/preview_task_tree/{biz_cc_id}/'
         self.client = Client()
 
-    @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=TEST_PIPELINE_TREE)))
     @mock.patch('gcloud.taskflow3.api.JsonResponse', MockJsonResponse())
-    def test_preview_task_tree(self):
-        data1 = {
-            'template_source': 'business',
-            'template_id': 1,
-            'version': 'test_version',
-            'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[3]
-        }
-        result = api.preview_task_tree(MockRequest('POST', data1), TEST_BIZ_CC_ID)
-        self.assertTrue(result['result'])
-        self.assertTrue(result['data']['constants_not_referred'].keys(), ['${custom_key1}'])
+    def test_preview_task_tree_constants_not_referred(self):
 
-        data2 = {
-            'template_source': 'business',
-            'template_id': 1,
-            'version': 'test_version',
-            'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[4]
-        }
-        result = api.preview_task_tree(MockRequest('POST', data2), TEST_BIZ_CC_ID)
-        self.assertTrue(result['result'])
-        self.assertTrue(result['data']['constants_not_referred'].keys(), ['${custom_key2}'])
+        with mock.patch(TASKTEMPLATE_GET,
+                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+            data1 = {
+                'template_source': 'business',
+                'template_id': 1,
+                'version': 'test_version',
+                'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[3]
+            }
+            result = api.preview_task_tree(MockRequest('POST', data1), TEST_BIZ_CC_ID)
+            self.assertTrue(result['result'])
+            self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key1}'])
+
+        with mock.patch(TASKTEMPLATE_GET,
+                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+            data2 = {
+                'template_source': 'business',
+                'template_id': 1,
+                'version': 'test_version',
+                'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[4]
+            }
+            result = api.preview_task_tree(MockRequest('POST', data2), TEST_BIZ_CC_ID)
+            self.assertTrue(result['result'])
+            self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key2}'])
+
+        with mock.patch(TASKTEMPLATE_GET,
+                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+            data3 = {
+                'template_source': 'business',
+                'template_id': 1,
+                'version': 'test_version',
+                'exclude_task_nodes_id': '[]'
+            }
+            result = api.preview_task_tree(MockRequest('POST', data3), TEST_BIZ_CC_ID)
+            self.assertTrue(result['result'])
+            self.assertEquals(result['data']['constants_not_referred'].keys(), [])
+
+        with mock.patch(TASKTEMPLATE_GET,
+                        MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
+            data4 = {
+                'template_source': 'business',
+                'template_id': 1,
+                'version': 'test_version',
+                'exclude_task_nodes_id': '["%s", "%s"]' % (TEST_ID_LIST[3], TEST_ID_LIST[4])
+            }
+            result = api.preview_task_tree(MockRequest('POST', data4), TEST_BIZ_CC_ID)
+            self.assertTrue(result['result'])
+            self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key1}', '${custom_key2}'])
