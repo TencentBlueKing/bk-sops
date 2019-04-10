@@ -103,54 +103,36 @@ export default {
                 return a.index - b.index
             })
             for (let variable of variableArray) {
-                const sourceTag = variable.source_tag
-                const key = variable.key
-                if (sourceTag) { // 需要加载标准插件配置文件的表单项
-                    const [ atomType, tagCode ] = sourceTag.split('.')
-                    if (!this.atomFormConfig[atomType]) {
-                        this.isConfigLoading = true
-                        await this.loadAtomConfig({atomType})
-                        this.setAtomConfig({atomType, configData: $.atoms[atomType]})
-                    }
-                    const atomConfig = this.atomFormConfig[atomType]
-                    var currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                    if (currentFormConfig) {
-                        // 若该比变量是原型变量则进行转换操作
-                        if (variable.is_meta || currentFormConfig.meta_transform) {
-                            currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                            this.metaConfig[key] = tools.deepClone(variable)
-                            if (!variable.meta) {
-                                variable.value = currentFormConfig.attrs.value
-                            }
-                        }
-                        currentFormConfig.tag_code = key
-                        currentFormConfig.attrs.name = variable.name
-                        currentFormConfig.attrs.desc = variable.desc
-                        this.renderConfig.push(currentFormConfig)
-                    }
-                } else { // 自定义变量且不需要加载标准插件配置文件的表单项
-                    const currentFormConfig = {
-                        tag_code: key,
-                        type: variable.custom_type,
-                        variableKey: key,
-                        attrs: {
-                            name: variable.name,
-                            hookable: true
+                const { key, source_tag, custom_type } = variable
+                let atomType = ''
+                let tagCode = ''
+                let classify = ''
+                if (custom_type) {
+                    atomType = custom_type
+                    classify = 'variable'
+                } else {
+                    [ atomType, tagCode ] = source_tag.split('.')
+                    classify = 'component'
+                }
+                if (!this.atomFormConfig[atomType]) {
+                    this.isConfigLoading = true
+                    await this.loadAtomConfig({atomType, classify})
+                    this.setAtomConfig({atomType, configData: $.atoms[atomType]})
+                }
+                const atomConfig = this.atomFormConfig[atomType]
+                var currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                if (currentFormConfig) {
+                    // 若该变量是原型变量则进行转换操作
+                    if (variable.is_meta || currentFormConfig.meta_transform) {
+                        currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
+                        this.metaConfig[key] = tools.deepClone(variable)
+                        if (!variable.meta) {
+                            variable.value = currentFormConfig.attrs.value
                         }
                     }
-                    if ( // 自定义正则校验注册到表单的校验属性上
-                        variable.custom_type === 'input' &&
-                        variable.validation &&
-                        checkDataType(variable.validation) === 'String'
-                    ) {
-                        const validation = {
-                            type: 'regex',
-                            args: variable.validation,
-                            error_message: gettext('输入值不满足正则校验') + variable.validation
-                        }
-                        currentFormConfig.attrs.desc = variable.desc
-                        currentFormConfig.attrs.validation = [validation]
-                    }
+                    currentFormConfig.tag_code = key
+                    currentFormConfig.attrs.name = variable.name
+                    currentFormConfig.attrs.desc = variable.desc
                     this.renderConfig.push(currentFormConfig)
                 }
                 this.renderData[key] = tools.deepClone(variable.value)

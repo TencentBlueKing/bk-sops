@@ -524,46 +524,37 @@ export default {
                 })
                 // 遍历加载标准插件表单配置文件
                 for (let form of variableArray) {
-                    let key = form.key
-                    let constantData = {}
-                    const sourceTag = form.source_tag
-                    if (sourceTag) {
-                        const [ atomType, tagCode ] = sourceTag.split('.')
-                        if (!this.atomFormConfig[atomType]) {
-                            await this.loadAtomConfig({atomType})
-                            this.setAtomConfig({atomType, configData: $.atoms[atomType]})
-                        }
-                        const atomConfig = this.atomFormConfig[atomType]
-                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        if (currentFormConfig) {
-                            if (form.is_meta || currentFormConfig.meta_transform) {
-                                currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
-                                if (!form.meta) {
-                                    form.value = currentFormConfig.attrs.value
-                                }
-                            }
-                            currentFormConfig.tag_code = key
-                            currentFormConfig.attrs.name = this.subAtomConfigData.form[key].name
-                            inputConfig.push(currentFormConfig)
-                        }
+                    const { key, source_tag, custom_type } = form
+                    let atomType = ''
+                    let tagCode = ''
+                    let classify = ''
+                    if (custom_type) {
+                        atomType = form.custom_type
+                        classify = 'variable'
                     } else {
-                        const currentFormConfig = {
-                            tag_code: key,
-                            type: form.custom_type,
-                            variableKey: key,
-                            attrs: {
-                                name: form.name,
-                                hookable: true
+                        [ atomType, tagCode ] = source_tag.split('.')
+                        classify = 'component'
+                    }
+                    if (!this.atomFormConfig[atomType]) {
+                        await this.loadAtomConfig({atomType, classify})
+                        this.setAtomConfig({atomType, configData: $.atoms[atomType]})
+                    }
+                    const atomConfig = this.atomFormConfig[atomType]
+                    let currentFormConfig = {}
+                    if (custom_type) {
+                        currentFormConfig = atomConfig && atomConfig[0]
+                    } else {
+                        currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                    }
+                    if (currentFormConfig) {
+                        if (form.is_meta || currentFormConfig.meta_transform) {
+                            currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
+                            if (!form.meta) {
+                                form.value = currentFormConfig.attrs.value
                             }
                         }
-                        if (form.validation && checkDataType(form.validation) === 'String') {
-                            const validation = {
-                                type: 'regex',
-                                args: form.validation,
-                                error_message: gettext('输入值不满足正则校验') + form.validation
-                            }
-                            currentFormConfig.attrs.validation = [validation]
-                        }
+                        currentFormConfig.tag_code = key
+                        currentFormConfig.attrs.name = this.subAtomConfigData.form[key].name
                         inputConfig.push(currentFormConfig)
                     }
                     // 子流程表单项的取值

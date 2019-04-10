@@ -55,7 +55,7 @@
                     </bk-selector>
                 </div>
             </li>
-            <li class="form-item clearfix" v-if="isShowDefault">
+            <li class="form-item clearfix" v-if="!isOutputVar">
                 <label class="form-label">{{ theEditingData.is_meta ? i18n.meta : i18n.default }}</label>
                 <div class="form-content" v-bkloading="{isLoading: atomConfigLoading, opacity: 1}">
                     <template v-if="!atomConfigLoading && renderConfig.length">
@@ -239,15 +239,6 @@ export default {
             'atomFormConfig': state => state.atomForm.config,
             'constants': state => state.template.constants
         }),
-        isShowDefault () {
-            const { custom_type, source_type } = this.theEditingData
-            return source_type !== 'component_outputs'
-        },
-        // 是否渲染标准插件表单
-        isRenderAtomForm () {
-            const { custom_type, source_type } = this.theEditingData
-            return (source_type === 'component_inputs' && !custom_type) || (custom_type in ATOM_FORM)
-        },
         isEditInDialog () {
             return this.renderConfig[0].type &&
                 (this.renderConfig[0].type === 'datatable' || this.renderConfig[0].type === 'ip_selector')
@@ -256,7 +247,7 @@ export default {
             const { source_type } = this.theEditingData
             return source_type === 'component_inputs' || source_type === 'component_outputs'
         },
-        isDisabledShowType () {
+        isOutputVar () {
             return this.theEditingData.source_type === 'component_outputs'
         },
         currentValType: {
@@ -271,13 +262,12 @@ export default {
             return this.isDisabledValType ? [{ id: "component", name: gettext("组件")}] : [...VAL_TYPE_LIST]
         },
         atomType () {
-            const { custom_type, source_type, source_tag } = this.theEditingData
+            const { custom_type, source_tag } = this.theEditingData
             if (source_tag) {
                 return source_tag.split('.')[0]
-            } else if (custom_type in ATOM_FORM) {
-                return ATOM_FORM[custom_type].split('.')[0]
+            } else {
+                return custom_type
             }
-            return ''
         }
     },
     watch: {
@@ -339,11 +329,7 @@ export default {
         })
     },
     mounted () {
-        if (this.isRenderAtomForm) {
-            this.getAtomConfig()
-        } else {
-            this.getRenderConfig()
-        }
+        this.getAtomConfig()
     },
     methods: {
         ...mapMutations ('atomForm/', [
@@ -369,8 +355,14 @@ export default {
             }
 
             this.atomConfigLoading = true
+            let classify = ''
+            if (this.theEditingData.custom_type) {
+                classify = 'variable'
+            } else {
+                classify = 'component'
+            }
             try {
-                await this.loadAtomConfig({ atomType: this.atomType, isMeta: isMeta })
+                await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta })
                 this.setAtomConfig({atomType: realAtomType, configData: $.atoms[realAtomType]})
                 this.getRenderConfig()
             } catch (e) {
@@ -384,33 +376,14 @@ export default {
             let realAtomType = META_ATOM_FORM[this.atomType] || this.atomType
             let atom = this.atomFormConfig[realAtomType]
             let config
-            if (this.isRenderAtomForm) {
-                if (atom && this.isRenderAtomForm && !(custom_type in ATOM_FORM)){
-                    const tag_code = source_tag.split('.')[1]
-                    config = tools.deepClone(atomFilter.formFilter(tag_code, atom))
-                    config.tag_code = 'customVariable'
-                } else {
-                    config = tools.deepClone(atom[0])
-                    config.tag_code = 'customVariable'
-                }
+            let config = {}
+            if (custom_type){
+                config = tools.deepClone(atom[0])
             } else {
-                config = {
-                    tag_code: 'customVariable',
-                    type: custom_type,
-                    attrs: {}
-                }
-                if (custom_type === 'input') {
-                    config.attrs.validation = []
-                    if (this.theEditingData.show_type === 'hide') {
-                        config.attrs.validation.push({ type: 'required'})
-                    }
-                    config.attrs.validation.push({
-                        type: 'regex',
-                        args: this.theEditingData.validation,
-                        error_message: gettext('默认值不满足正则校验')
-                    })
-                }
+                const tag_code = source_tag.split('.')[1]
+                config = tools.deepClone(atomFilter.formFilter(tag_code, atom))
             }
+            config.tag_code = 'customVariable'          
 
             this.renderConfig = [config]
         },
@@ -438,12 +411,7 @@ export default {
             } else {
                 this.theEditingData.is_meta = false
             }
-
-            if (ATOM_FORM[id]) {
-                this.getAtomConfig()
-            } else {
-                this.getRenderConfig()
-            }
+            this.getAtomConfig()           
         },
         /**
          * 变量显示/隐藏切换
