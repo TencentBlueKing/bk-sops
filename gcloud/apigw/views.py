@@ -35,7 +35,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.conf import settings
 
-if not sys.argv[1:2] == ['test'] and settings.RUN_VER == 'clouds':
+if not sys.argv[1:2] == ['test'] and settings.RUN_VER != 'open':
     try:
         from bkoauth.decorators import apigw_required
     except ImportError:
