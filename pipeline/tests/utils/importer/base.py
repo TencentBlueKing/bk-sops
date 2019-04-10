@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import imp
 import sys
+
 from django.test import TestCase
 
 from pipeline.tests.mock import *  # noqa
