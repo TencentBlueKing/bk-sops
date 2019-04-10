@@ -24,6 +24,7 @@ from blueapps.account.decorators import login_exempt
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
 
+from gcloud.conf import settings
 from gcloud.apigw.decorators import api_check_user_perm_of_business, api_check_user_perm_of_task
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
 from gcloud.core.models import Business
@@ -33,7 +34,6 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.commons.template.constants import PermNm
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.template.models import CommonTemplate
-from gcloud.conf import settings
 
 if not sys.argv[1:2] == ['test'] and settings.RUN_VER == 'clouds':
     try:
