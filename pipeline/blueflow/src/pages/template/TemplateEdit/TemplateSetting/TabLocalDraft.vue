@@ -37,46 +37,42 @@
             <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
         </div>
         <div class="local-draft-content">
-            <div class="variable-header clearfix">
-                <span class="col-drag t-head"></span>
-                <span class="col-number t-head">{{ i18n.serialNumber }}</span>
-                <span class="col-message t-head">{{ i18n.draftMessage }}</span>
-                <span class="col-time t-head">{{ i18n.saveTime }}</span>
-                <span class="col-delete t-head"></span>
-            </div>
-            <ul class="draft-list">
-                <draggable v-model="draftArray" :options="{handle:'.col-drag'}">
-                    <li
+            <table class="draft-table">
+                <thead>
+                    <tr>
+                        <th class="col-number">{{ i18n.serialNumber }}</th>
+                        <th class="col-name">{{ i18n.draftMessage }}</th>
+                        <th class="col-time">{{ i18n.saveTime }}</th>
+                        <th class="col-delete"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
                         v-for="(draft, index) in draftArray"
                         :key="draft.key"
-                        :class="{
-                            'clearfix': true,
-                            'draft-item': true}"
                         @click="onReplaceTemplate(draft.data.template)">
-                        <div class="draft-content">
-                            <span class="col-item col-drag"></span>
-                            <span class="col-item col-number"> {{index + 1}} </span>
-                            <span class="col-item col-message" :title="draft.data.description.message"> {{draft.data.description.message}}</span>
-                            <span class="col-item col-time"> {{draft.data.description.time}}</span>
-                            <span class="col-item col-delete" @click.stop="onDeleteDraft(draft.key)">
-                                <i class="bk-icon icon-close-circle"></i>
-                            </span>
-                        </div>
-                    </li>
-                </draggable>
-                <li v-if="!draftArray.length" class="empty-draft-tip">
-                    <NoData>
-                        <p>{{i18n.emptyDraftTip}}</p>
-                    </NoData>
-                </li>
-            </ul>
+                        <td class="col-number"><div class="content">{{ index + 1 }}</div></td>
+                        <td
+                            class="col-name"
+                            :title="draft.data.description.message">
+                            <div class="content">{{draft.data.description.message}}</div>
+                        </td>
+                        <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
+                        <td class="col-delete" @click.stop="onDeleteDraft(draft.key)">
+                            <i class="bk-icon icon-close-circle"></i>
+                        </td>
+                    </tr>
+                    <tr v-if="!draftArray.length" class="empty-draft-tip">
+                        <td><NoData><p>{{i18n.emptyDraftTip}}</p></NoData></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </template>
 
 <script>
 import '@/utils/i18n.js'
-import draggable from 'vuedraggable'
 import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 import BaseInput from '@/components/common/base/BaseInput.vue'
 import NoData from '@/components/common/base/NoData.vue'
@@ -84,7 +80,6 @@ import NoData from '@/components/common/base/NoData.vue'
 export default {
     name: 'TabLocalDraft',
     components: {
-        draggable,
         BaseInput,
         NoData
     },
@@ -165,7 +160,7 @@ export default {
 @import '@/scss/mixins/scrollbar.scss';
 .local-draft-panel {
     height: 100%;
-     .local-title {
+    .local-title {
         height: 35px;
         margin: 20px;
         border-bottom: 1px solid #cacecb;
@@ -257,151 +252,70 @@ export default {
         height: calc(100% - 54px);
         border-top: 1px solid $commonBorderColor;
     }
-    .variable-header {
-        .t-head {
-            float: left;
-            padding: 0 8px;
+    .draft-table {
+        width: 100%;
+        height: 100%;
+        color: #313238;
+        border-collapse: collapse;
+        table-layout: fixed;
+        tr {
+            display: block;
+        }
+        th, td {
+            padding: 0 10px;
             height: 40px;
             line-height: 40px;
-            font-size: 14px;
             border-bottom: 1px solid $commonBorderColor;
-            background: $greyDash;
-        }
-    }
-    .draft-list {
-        width: 100%;
-        height: calc(100% - 40px);
-        text-align: center;
-        overflow-x: hidden;
-        overflow-y: auto;
-        @include scrollbar;
-        .draft-item {
-            border-bottom: 1px solid #ebebeb;
-            background: $whiteDefault;
-            cursor: pointer;
-            &:hover {
-                background: $blueStatus;
-            }
-            .variable-content, .draft-content {
-                display: table;
-                &:hover{
-                    .icon-close-circle {
-                        display: inline-block;
-                    }
-                }
-            }
-            .col-item {
-                display: table-cell;
-                padding: 14px 4px;
-                font-size: 12px;
-                vertical-align: middle;
-                word-break: break-all;
-            }
-            &.variable-editing {
-                background: $blueStatus;
-            }
-            .col-source {
-                font-size: 16px;
-            }
-            .col-show-type {
-                font-size: 18px;
-            }
-            .col-delete {
-                .icon-close-circle {
-                    display: none;
-                }
-            }
-            .col-time {
-                width: 134px;
-                text-align: center;
-            }
-            .col-replace {
-                width: 45px;
-            }
-            .col-number {
-                width: 45px;
-            }
-        }
-        .variable-edit-td {
-            padding: 0;
-            width: 412px;
-        }
-        .empty-draft-tip {
-            margin-top: 120px;
-        }
-    }
-    .variable-header, .draft-list {
-        font-size: 12px;
-        .col-drag {
-            width: 20px;
-            padding: 10px 0;
-            cursor: move;
-        }
-        .col-name {
-            width: 107px;
             text-align: left;
         }
-        .draft-item  {
-            .col-message {
-                display: block;
+        th {
+            font-size: 14px;
+            font-weight: normal;
+            background: $greyDash;
+        }
+        td {
+            font-size: 12px;
+            .content {
+                width: 100%;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
             }
         }
-        .col-source {
-            width: 45px;
-        }
-        .col-show-type {
-            width: 45px;
-        }
-        .col-delete {
-            width: 45px;
-        }
-        .col-output {
-            width: 57px;
-            text-align: center;
-        }
-        .col-message {
-            width: 153px;
-            text-align: center;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            word-break: break-all;
-            white-space: nowrap;
-        }
-        .col-delete {
-            width: 45px;
-            text-align: center;
-        }
-        .col-time {
-            width: 150px;
-            text-align: center;
-        }
-        .col-replace {
-            width: 45px;
+        tbody {
+            display: block;
+            height: calc(100% - 40px);
+            overflow: auto;
+            cursor: pointer;
+            tr:hover {
+                background: $blueStatus;
+                .icon-close-circle {
+                    display: inline-block;
+                }
+            }
         }
         .col-number {
-            width: 50px;
+            padding-left: 20px;
+            width: 80px;
+            max-width: 80px;
         }
-    }
-    .config-wrapper {
-        padding: 20px;
-        .common-form-item > label {
-            width: 70px;
-            font-weight: normal;
+        .col-name {
+            width: 174px;
+            max-width: 174px;
         }
-        .common-form-content {
-            margin-left: 90px;
-            line-height: 32px;
+        .col-time {
+            width: 146px;
         }
-        .el-checkbox {
-            margin-left: 0;
-            margin-right: 14px;
+        .col-delete {
+            position: relative;
+            width: 20px;
+            .icon-close-circle {
+                position: absolute;
+                top: 14px;
+                right: 16px;
+                display: none;
+            }
         }
-        /deep/ .el-checkbox__input.is-checked + .el-checkbox__label {
-            color: $greyDefault;
-        }
-    }
-    .draft-dialog-content {
-        margin-left: -30px;
     }
 }
 </style>

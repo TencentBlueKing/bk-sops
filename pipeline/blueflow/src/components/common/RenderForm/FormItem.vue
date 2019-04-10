@@ -12,10 +12,17 @@
 <template>
     <div :class="['rf-form-item', 'clearfix', {'rf-has-hook': showHook}]" v-show="showForm">
         <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
-            <h3 class="name">{{scheme.attrs.name}}</h3>
-            <div v-if="scheme.attrs.desc" class="rf-group-desc">
-                <i v-bktooltips.left="scheme.attrs.desc" class="common-icon-dark-circle-warning"></i>
-            </div>
+            <span class="name">{{scheme.attrs.name}}</span>
+            <span v-if="scheme.attrs.desc" class="rf-group-desc">
+                <i
+                    v-bktooltips="{
+                        content: scheme.attrs.desc,
+                        placements: ['right'],
+                        zIndex: 2002
+                    }"
+                    class="bk-icon icon-info-circle">
+                </i>
+            </span>
         </div>
         <label
             v-if="option.showLabel"
@@ -45,7 +52,8 @@
                 v-bktooltips="{
                     content: hook ? i18n.hooked : i18n.cancelHook,
                     placements: ['left'],
-                    customClass: 'offset-left-tooltip'
+                    customClass: 'offset-left-tooltip',
+                    zIndex: 2002
                 }"
                 :isChecked="hook"
                 @checkCallback="onHookForm">
