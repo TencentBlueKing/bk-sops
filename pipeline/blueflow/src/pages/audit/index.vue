@@ -425,6 +425,7 @@ export default {
             background: #fafafa;
         }
         .audit-id {
+            padding-left: 20px;
             width: 80px;
         }
         .audit-name {

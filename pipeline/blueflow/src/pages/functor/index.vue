@@ -501,6 +501,7 @@ label.required:after {
             background: $whiteNodeBg;
         }
         .functor-id {
+            padding-left: 20px;
             width: 80px;
         }
         .functor-name {

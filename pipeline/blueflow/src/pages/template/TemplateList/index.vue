@@ -833,6 +833,7 @@ export default {
             background: $whiteNodeBg;
         }
         .template-id {
+            padding-left: 20px;
             width: 80px;
         }
         .template-name {
