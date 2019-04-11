@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 from __future__ import absolute_import
 
@@ -13,6 +17,18 @@ import mock  # noqa
 from mock import MagicMock
 
 from django.utils.timezone import now
+
+
+class MockRequest(object):
+    def __init__(self, method, data):
+        self.method = method
+        setattr(self, method, data)
+        self.user = MagicMock()
+
+
+class MockJsonResponse(object):
+    def __call__(self, dct):
+        return dct
 
 
 class MockBusiness(object):
@@ -38,7 +54,9 @@ class MockBaseTemplate(object):
         self.name = kwargs.get('name', 'name')
         self.category = kwargs.get('category', 'category')
         self.pipeline_template = kwargs.get('pipeline_template', MockPipelineTemplate())
-        self.pipeline_tree = {'line': 'line', 'location': 'location', 'activities': []}
+        self.pipeline_tree = kwargs.get('pipeline_tree',
+                                        {'line': 'line', 'location': 'location', 'activities': []})
+        self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
 
 
 class MockTaskTemplate(MockBaseTemplate):

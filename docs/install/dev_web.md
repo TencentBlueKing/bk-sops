@@ -26,7 +26,9 @@ npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod"
 ```
 
 ## 收集静态资源  
-前端打包后，需要在工程目录下运行如下命令自动收集静态资源到 static 下。
+前端打包后，需要在工程目录下运行如下命令收集静态资源到 static 下。
 ```bash
-python manage.py collectstatic --noinput
+rm -rf static/open static/images
+mv pipeline/blueflow/static/open static/
+mv pipeline/blueflow/static/images static/
 ```

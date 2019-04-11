@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 import ujson as json
 
@@ -18,15 +22,15 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 
-from bk_api import is_user_functor
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.commons.template.resources import PipelineTemplateResource
+from gcloud.core.api_adapter import is_user_functor
 from gcloud.core.utils import name_handler
 from gcloud.core.models import Business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
+from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.commons.template.constants import PermNm
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.webservice3.resources import (
