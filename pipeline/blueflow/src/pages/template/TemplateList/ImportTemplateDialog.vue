@@ -180,10 +180,10 @@ export default {
             'cc_id': state => state.cc_id
         }),
         exportConflict () {
-            return this.exportList.length ? this.i18n.replaceWithoutConflict : this.i18n.reservedSubmit
+            return this.exportList.length ? this.i18n.replaceSubmit : this.i18n.replaceWithoutConflict
         },
         overrideFlict () {
-            return this.overrideList.length ? this.i18n.replaceSubmit  : this.i18n.reservedWithoutConflict
+            return this.overrideList.length ? this.i18n.reservedSubmit : this.i18n.reservedWithoutConflict
         },
         isEmpty () {
             return !this.exportList.length || this.exportList.length && this.isChecked && !this.overrideList.length
