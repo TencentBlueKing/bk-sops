@@ -96,7 +96,13 @@ export default {
                     this.nodeInfo.ex_data.show_ip_log
                 ) {
                     this.failDetail = await this.getJobInstanceLog({"job_instance_id": this.nodeInfo.ex_data.task_inst_id})
-                    this.ipTotal = this.failDetail.data[0].step_results[0].ip_logs
+                    let ipTotal = []
+                    let ipResults = this.failDetail.data[0].step_results
+                    for (let i in ipResults) {
+                        ipTotal = ipTotal.concat(ipResults[i].ip_logs)
+                    }
+                    debugger
+                    this.ipTotal = ipTotal
                     this.dataTotal = this.ipTotal
                     this.initTable()
                 }
