@@ -19,8 +19,6 @@ from django.apps import AppConfig
 from django.conf import settings
 from django.db.utils import ProgrammingError
 
-from pipeline.conf import settings
-
 logger = logging.getLogger('root')
 
 
@@ -40,7 +38,7 @@ class ExternalPluginsConfig(AppConfig):
                 ExternalPackageSource.update_package_source_from_config(getattr(settings,
                                                                                 'COMPONENTS_PACKAGE_SOURCES',
                                                                                 {}))
-            except ProgrammingError as e:
+            except ProgrammingError:
                 logger.warning('update package source failed, maybe first migration? exception: %s' %
                                traceback.format_exc())
                 # first migrate

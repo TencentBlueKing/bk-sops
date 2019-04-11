@@ -174,7 +174,7 @@ class ExternalPackageSourceTestCase(TestCase):
         source = GitRepoSource.objects.get(name=SOURCE_NAME)
 
         modules = []
-        for _, package_info in PACKAGES.items():
+        for package_info in PACKAGES.values():
             modules.extend(package_info['modules'])
 
         self.assertEqual(source.modules, modules)

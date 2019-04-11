@@ -30,9 +30,7 @@ package_source_types = frozenset({
     FILE_SYSTEM
 })
 
-source_cls_factory = {
-
-}
+source_cls_factory = {}
 
 
 def package_source(cls):
@@ -102,7 +100,7 @@ class ExternalPackageSource(models.Model):
     def modules(self):
         modules = []
 
-        for _, package_info in self.packages.items():
+        for package_info in self.packages.values():
             modules.extend(package_info['modules'])
 
         return modules
