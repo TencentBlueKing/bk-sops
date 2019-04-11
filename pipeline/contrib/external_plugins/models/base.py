@@ -116,6 +116,6 @@ class ExternalPackageSource(models.Model):
         for config in source_configs:
             classified_config.setdefault(config.pop('type'), []).append(config)
 
-        for source_type, config in classified_config.items():
+        for source_type, configs in classified_config.items():
             source_model_cls = source_cls_factory[source_type]
-            source_model_cls.objects.update_source_from_config(config=config)
+            source_model_cls.objects.update_source_from_config(configs=configs)

@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 IMPORTLIB_IMPORT_MODULE = 'importlib.import_module'
 
 MODELS_BASE_SOURCE_CLS_FACTORY = 'pipeline.contrib.external_plugins.models.base.source_cls_factory'
+MODELS_SOURCE_MANAGER_UPDATE_SOURCE_FROM_CONFIG = \
+    'pipeline.contrib.external_plugins.models.base.SourceManager.update_source_from_config'
 
 LOADER_SOURCE_CLS_FACTORY = 'pipeline.contrib.external_plugins.loader.source_cls_factory'
 LOADER__IMPORT_MODULES_IN_SOURCE = 'pipeline.contrib.external_plugins.loader._import_modules_in_source'

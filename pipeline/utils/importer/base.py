@@ -19,7 +19,7 @@ import traceback
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('root')
 
 
 @contextmanager

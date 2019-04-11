@@ -14,7 +14,12 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from pipeline.contrib.external_plugins import exceptions
-from pipeline.contrib.external_plugins.models import GitRepoSource
+from pipeline.contrib.external_plugins.models import (
+    source_cls_factory,
+    GitRepoSource,
+    ExternalPackageSource)
+from pipeline.contrib.external_plugins.tests.mock import *  # noqa
+from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
 
 SOURCE_NAME = 'source_name'
 PACKAGES = {
@@ -173,3 +178,36 @@ class ExternalPackageSourceTestCase(TestCase):
             modules.extend(package_info['modules'])
 
         self.assertEqual(source.modules, modules)
+
+    @patch(MODELS_SOURCE_MANAGER_UPDATE_SOURCE_FROM_CONFIG, MagicMock())
+    def test_update_package_source_from_config__empty_configs(self):
+        ExternalPackageSource.update_package_source_from_config([])
+        for source_model_cls in source_cls_factory.values():
+            source_model_cls.objects.update_source_from_config.assert_not_called()
+
+    @patch(MODELS_SOURCE_MANAGER_UPDATE_SOURCE_FROM_CONFIG, MagicMock())
+    def test_update_package_source_from_config__normal_case(self):
+        source_configs = [
+            {
+                'name': '1',
+                'type': 'git'
+            },
+            {
+                'name': '2',
+                'type': 'git'
+            },
+            {
+                'name': '3',
+                'type': 's3'
+            },
+            {
+                'name': '4',
+                'type': 'fs'
+            }
+        ]
+        ExternalPackageSource.update_package_source_from_config(source_configs)
+        GitRepoSource.objects.update_source_from_config.assert_has_calls([
+            call(configs=[{'name': '3'}]),
+            call(configs=[{'name': '1'}, {'name': '2'}]),
+            call(configs=[{'name': '4'}])
+        ])

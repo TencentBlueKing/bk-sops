@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models
+from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.utils.importer.git import GitRepoModuleImporter
@@ -36,7 +37,8 @@ class GitRepoSource(ExternalPackageSource):
     def importer(self):
         return GitRepoModuleImporter(repo_raw_url=self.repo_raw_address,
                                      branch=self.branch,
-                                     modules=self.packages.keys())
+                                     modules=self.packages.keys(),
+                                     proxy=getattr(settings, 'EXTERNAL_SOURCE_PROXY'))
 
 
 @package_source

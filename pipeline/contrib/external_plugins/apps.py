@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import sys
+
 from django.apps import AppConfig
 from django.db.utils import ProgrammingError
 
@@ -24,10 +26,13 @@ class ExternalPluginsConfig(AppConfig):
         from pipeline.contrib.external_plugins import loader  # noqa
         from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
 
-        try:
-            ExternalPackageSource.update_package_source_from_config(getattr(settings, 'COMPONENTS_PACKAGE_SOURCES', {}))
-        except ProgrammingError:
-            # first migrate
-            return
+        if not sys.argv[1:2] == ['test']:
+            try:
+                ExternalPackageSource.update_package_source_from_config(getattr(settings,
+                                                                                'COMPONENTS_PACKAGE_SOURCES',
+                                                                                {}))
+            except ProgrammingError:
+                # first migrate
+                return
 
-        loader.load_external_modules()
+            loader.load_external_modules()

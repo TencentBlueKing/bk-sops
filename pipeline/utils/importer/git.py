@@ -18,12 +18,18 @@ import requests
 
 from pipeline.utils.importer.base import NonstandardModuleImporter
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('root')
 
 
 class GitRepoModuleImporter(NonstandardModuleImporter):
 
-    def __init__(self, modules, repo_raw_url, branch, use_cache=True, secure_only=True):
+    def __init__(self,
+                 modules,
+                 repo_raw_url,
+                 branch,
+                 use_cache=True,
+                 secure_only=True,
+                 proxy=None):
         super(GitRepoModuleImporter, self).__init__(modules=modules)
 
         if secure_only and not repo_raw_url.startswith('https'):
@@ -35,6 +41,7 @@ class GitRepoModuleImporter(NonstandardModuleImporter):
         self.branch = branch
         self.use_cache = use_cache
         self.file_cache = {}
+        self.proxy = proxy or {}
 
     def is_package(self, fullname):
         return self._fetch_repo_file(self._file_url(fullname, is_pkg=True)) is not None
@@ -70,7 +77,7 @@ class GitRepoModuleImporter(NonstandardModuleImporter):
             logger.info('Use content in cache for git file: {file_url}'.format(file_url=file_url))
             return self.file_cache[file_url]
 
-        resp = requests.get(file_url, timeout=10)
+        resp = requests.get(file_url, timeout=10, proxies=self.proxy)
 
         file_content = resp.content if resp.ok else None
 
