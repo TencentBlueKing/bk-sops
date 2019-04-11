@@ -11,12 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-SYS_MODULES = 'sys.modules'
-SYS_META_PATH = 'sys.meta_path'
-IMP_ACQUIRE_LOCK = 'imp.acquire_lock'
-IMP_RELEASE_LOCK = 'imp.release_lock'
-REQUESTS_GET = 'requests.get'
-
 PIPELINE_CORE_GATEWAY_DEFORMAT = 'pipeline.core.flow.gateway.deformat_constant_key'
 PIPELINE_CORE_CONSTANT_RESOLVE = 'pipeline.core.data.expression.ConstantTemplate.resolve_data'
 
@@ -121,12 +115,3 @@ EXG_HYDRATE_NODE_DATA = 'pipeline.engine.core.handlers.exclusive_gateway.hydrate
 EXG_HYDRATE_DATA = 'pipeline.engine.core.handlers.exclusive_gateway.hydrate_data'
 
 CPG_HYDRATE_DATA = 'pipeline.engine.core.handlers.conditional_parallel.hydrate_data'
-
-UTILS_IMPORTER_BASE_EXECUTE_SRC_CODE = 'pipeline.utils.importer.base.NonstandardModuleImporter._execute_src_code'
-UTILS_IMPORTER_GIT__FETCH_REPO_FILE = 'pipeline.utils.importer.git.GitRepoModuleImporter._fetch_repo_file'
-UTILS_IMPORTER_GIT__FILE_URL = 'pipeline.utils.importer.git.GitRepoModuleImporter._file_url'
-UTILS_IMPORTER_GIT_GET_SOURCE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_source'
-UTILS_IMPORTER_GIT_GET_FILE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_file'
-UTILS_IMPORTER_GIT_IS_PACKAGE = 'pipeline.utils.importer.git.GitRepoModuleImporter.is_package'
-UTILS_IMPORTER__SETUP_IMPORTER = 'pipeline.utils.importer.utils._setup_importer'
-UTILS_IMPORTER__REMOVE_IMPORTER = 'pipeline.utils.importer.utils._remove_importer'

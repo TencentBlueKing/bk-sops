@@ -20,6 +20,12 @@ class Object(object):
     pass
 
 
+class MockResponse(object):
+    def __init__(self, **kwargs):
+        self.content = kwargs.get('content')
+        self.ok = kwargs.get('ok', True)
+
+
 class MockPackageSourceManager(object):
     def __init__(self, **kwargs):
         self.all = MagicMock(return_value=kwargs.get('all'))

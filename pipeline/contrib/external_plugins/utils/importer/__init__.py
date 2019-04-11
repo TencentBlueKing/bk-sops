@@ -11,5 +11,5 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.utils.importer.utils import importer_context  # noqa
-from pipeline.utils.importer.git import GitRepoModuleImporter  # noqa
+from pipeline.contrib.external_plugins.utils.importer.utils import importer_context  # noqa
+from pipeline.contrib.external_plugins.utils.importer.git import GitRepoModuleImporter  # noqa

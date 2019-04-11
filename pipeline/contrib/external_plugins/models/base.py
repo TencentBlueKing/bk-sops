@@ -11,14 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
 from copy import deepcopy
 from abc import abstractmethod
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.utils.importer.utils import importer_context
 from pipeline.contrib.external_plugins import exceptions
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
 

@@ -15,11 +15,11 @@ import sys
 
 from django.test import TestCase
 
-from pipeline.utils.importer import utils
-from pipeline.utils.importer import GitRepoModuleImporter
+from pipeline.contrib.external_plugins.utils.importer import utils
+from pipeline.contrib.external_plugins.utils.importer import GitRepoModuleImporter
 
-from pipeline.tests.mock import *  # noqa
-from pipeline.tests.mock_settings import *  # noqa
+from pipeline.contrib.external_plugins.tests.mock import *  # noqa
+from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
 
 
 class UtilsTestCase(TestCase):

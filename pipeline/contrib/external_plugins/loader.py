@@ -15,8 +15,8 @@ import logging
 import importlib
 import traceback
 
-from pipeline.utils.importer import importer_context
 from pipeline.contrib.external_plugins.models import source_cls_factory
+from pipeline.contrib.external_plugins.utils.importer import importer_context
 
 logger = logging.getLogger('root')
 

@@ -16,6 +16,7 @@ import logging
 import traceback
 
 from django.apps import AppConfig
+from django.conf import settings
 from django.db.utils import ProgrammingError
 
 from pipeline.conf import settings
@@ -30,7 +31,10 @@ class ExternalPluginsConfig(AppConfig):
         from pipeline.contrib.external_plugins import loader  # noqa
         from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
 
-        if not sys.argv[1:2] == ['test']:
+        triggers = getattr(settings, 'EXTERNAL_COMPONENTS_LOAD_TRIGGER', {'runserver', 'celery', 'worker'})
+        command = sys.argv[1]
+
+        if command in triggers:
             try:
                 logger.info('Start to update package source from config file...')
                 ExternalPackageSource.update_package_source_from_config(getattr(settings,

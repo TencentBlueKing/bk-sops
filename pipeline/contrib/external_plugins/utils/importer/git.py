@@ -16,7 +16,7 @@ import logging
 import urlparse
 import requests
 
-from pipeline.utils.importer.base import NonstandardModuleImporter
+from pipeline.contrib.external_plugins.utils.importer.base import NonstandardModuleImporter
 
 logger = logging.getLogger('root')
 

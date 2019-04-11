@@ -16,9 +16,9 @@ import sys
 
 from django.test import TestCase
 
-from pipeline.tests.mock import *  # noqa
-from pipeline.tests.mock_settings import *  # noqa
-from pipeline.utils.importer.base import NonstandardModuleImporter
+from pipeline.contrib.external_plugins.tests.mock import *  # noqa
+from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
+from pipeline.contrib.external_plugins.utils.importer.base import NonstandardModuleImporter
 
 
 class DummyImporter(NonstandardModuleImporter):
