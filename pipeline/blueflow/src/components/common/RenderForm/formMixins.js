@@ -42,7 +42,8 @@ const COMMON_ATTRS = {
         default: true
     },
     formMode: {
-        type: Boolean
+        type: Boolean,
+        default: true
     },
     parentValue: {
         type: [String, Number, Boolean, Array, Object]
