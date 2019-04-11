@@ -40,6 +40,17 @@ class GitRepoModuleImporterTestCase(TestCase):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url_without_slash, branch=self.branch)
         self.assertEqual(importer.repo_raw_url, self.repo_raw_url)
 
+        self.assertRaises(ValueError,
+                          GitRepoModuleImporter,
+                          modules=[],
+                          repo_raw_url='http://repo-addr/',
+                          branch=self.branch)
+
+        GitRepoModuleImporter(modules=[],
+                              repo_raw_url='http://repo-addr/',
+                              branch=self.branch,
+                              secure_only=False)
+
     def test__file_url(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
         self.assertEqual(importer._file_url(self.fullname, is_pkg=True), self.package_url)

@@ -23,8 +23,14 @@ logger = logging.getLogger(__name__)
 
 class GitRepoModuleImporter(NonstandardModuleImporter):
 
-    def __init__(self, modules, repo_raw_url, branch, use_cache=True):
+    def __init__(self, modules, repo_raw_url, branch, use_cache=True, secure_only=True):
         super(GitRepoModuleImporter, self).__init__(modules=modules)
+
+        if secure_only and not repo_raw_url.startswith('https'):
+            raise ValueError('Only accept https when secure_only it True.')
+        elif not secure_only:
+            logger.warning('Using not secure protocol is extremely dangerous!!')
+
         self.repo_raw_url = repo_raw_url if repo_raw_url.endswith('/') else '%s/' % repo_raw_url
         self.branch = branch
         self.use_cache = use_cache
