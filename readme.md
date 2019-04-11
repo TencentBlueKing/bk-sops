@@ -15,6 +15,8 @@
 
 标准运维后台使用 Python 作为开发语言，使用 Django 开发框架；前端使用 Vue 开发页面，使用 jQuery 开发原子，通过配置式的开发模式，不断降低用户开发原子前端表单的难度。
 
+this is a bug test for selina
+
 
 ## Overview
 - [架构设计](docs/overview/architecture.md)
