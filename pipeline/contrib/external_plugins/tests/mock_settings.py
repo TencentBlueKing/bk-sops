@@ -11,23 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
-from django.db.utils import ProgrammingError
+IMPORTLIB_IMPORT_MODULE = 'importlib.import_module'
 
-from pipeline.conf import settings
+MODELS_BASE_SOURCE_CLS_FACTORY = 'pipeline.contrib.external_plugins.models.base.source_cls_factory'
 
-
-class ExternalPluginsConfig(AppConfig):
-    name = 'pipeline.contrib.external_plugins'
-
-    def ready(self):
-        from pipeline.contrib.external_plugins import loader  # noqa
-        from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
-
-        try:
-            ExternalPackageSource.update_package_source_from_config(getattr(settings, 'COMPONENTS_PACKAGE_SOURCES', {}))
-        except ProgrammingError:
-            # first migrate
-            return
-
-        loader.load_external_modules()
+LOADER_SOURCE_CLS_FACTORY = 'pipeline.contrib.external_plugins.loader.source_cls_factory'
+LOADER__IMPORT_MODULES_IN_SOURCE = 'pipeline.contrib.external_plugins.loader._import_modules_in_source'

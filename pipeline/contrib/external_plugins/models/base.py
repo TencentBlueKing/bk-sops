@@ -104,7 +104,7 @@ class ExternalPackageSource(models.Model):
     def modules(self):
         modules = []
 
-        for _, package_info in self.packages:
+        for _, package_info in self.packages.items():
             modules.extend(package_info['modules'])
 
         return modules

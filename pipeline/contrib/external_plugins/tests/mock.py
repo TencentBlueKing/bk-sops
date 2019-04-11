@@ -11,23 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
-from django.db.utils import ProgrammingError
+from __future__ import absolute_import
 
-from pipeline.conf import settings
+from mock import MagicMock, patch, call  # noqa
 
 
-class ExternalPluginsConfig(AppConfig):
-    name = 'pipeline.contrib.external_plugins'
+class Object(object):
+    pass
 
-    def ready(self):
-        from pipeline.contrib.external_plugins import loader  # noqa
-        from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
 
-        try:
-            ExternalPackageSource.update_package_source_from_config(getattr(settings, 'COMPONENTS_PACKAGE_SOURCES', {}))
-        except ProgrammingError:
-            # first migrate
-            return
+class MockPackageSourceManager(object):
+    def __init__(self, **kwargs):
+        self.all = MagicMock(return_value=kwargs.get('all'))
 
-        loader.load_external_modules()
+
+class MockPackageSourceClass(object):
+    def __init__(self, **kwargs):
+        self.objects = MockPackageSourceManager(all=kwargs.get('all'))
+
+
+class MockPackageSource(object):
+    def __init__(self, **kwargs):
+        self.type = MagicMock(return_value=kwargs.get('type'))
+        self.importer = MagicMock(return_value=kwargs.get('importer'))
+        self.modules = kwargs.get('modules', [])

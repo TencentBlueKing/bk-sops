@@ -17,7 +17,20 @@ from pipeline.contrib.external_plugins import exceptions
 from pipeline.contrib.external_plugins.models import GitRepoSource
 
 SOURCE_NAME = 'source_name'
-PACKAGES = [{'1': 1}, {'2': 2}]
+PACKAGES = {
+    'root_package_1': {
+        'version': '',
+        'modules': ['test1', 'test2']
+    },
+    'root_package_2': {
+        'version': '',
+        'modules': ['test3', 'test4']
+    },
+    'root_package_3': {
+        'version': '',
+        'modules': ['test5', 'test6']
+    }
+}
 FROM_CONFIG = True
 REPO_RAW_ADDRESS = 'REPO_RAW_ADDRESS'
 BRANCH = 'master'
@@ -151,3 +164,12 @@ class ExternalPackageSourceTestCase(TestCase):
             source = GitRepoSource.objects.get(name=config['name'])
             self.assertTrue(source.from_config)
             self._assert_source_equals_config(source, config)
+
+    def test_modules(self):
+        source = GitRepoSource.objects.get(name=SOURCE_NAME)
+
+        modules = []
+        for _, package_info in PACKAGES.items():
+            modules.extend(package_info['modules'])
+
+        self.assertEqual(source.modules, modules)

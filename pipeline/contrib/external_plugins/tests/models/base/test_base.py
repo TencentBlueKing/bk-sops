@@ -11,23 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
-from django.db.utils import ProgrammingError
+from django.test import TestCase
 
-from pipeline.conf import settings
+from pipeline.contrib.external_plugins.tests.mock import *  # noqa
+from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
+from pipeline.contrib.external_plugins.models import base
 
 
-class ExternalPluginsConfig(AppConfig):
-    name = 'pipeline.contrib.external_plugins'
+class BaseModuleTestCase(TestCase):
 
-    def ready(self):
-        from pipeline.contrib.external_plugins import loader  # noqa
-        from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
+    def test_package_source(self):
+        source_type = 'source_type'
 
-        try:
-            ExternalPackageSource.update_package_source_from_config(getattr(settings, 'COMPONENTS_PACKAGE_SOURCES', {}))
-        except ProgrammingError:
-            # first migrate
-            return
+        cls_factory = {}
 
-        loader.load_external_modules()
+        with patch(MODELS_BASE_SOURCE_CLS_FACTORY, cls_factory):
+            @base.package_source
+            class APackageSource(object):
+
+                @staticmethod
+                def type():
+                    return source_type
+
+            self.assertIs(cls_factory[source_type], APackageSource)
