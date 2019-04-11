@@ -333,7 +333,7 @@ export default {
             }
         }
     }
-    &.show-label .rf-tag-form {
+    &.show-label > .rf-tag-form {
         margin-left: 120px;
     }
     .rf-tag-hook {
