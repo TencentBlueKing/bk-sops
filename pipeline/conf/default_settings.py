@@ -51,3 +51,5 @@ VARIABLE_AUTO_DISCOVER_PATH += getattr(settings, 'VARIABLE_PATH', [])
 PIPELINE_PARSER_CLASS = getattr(settings, 'PIPELINE_PARSER_CLASS', 'pipeline.parser.pipeline_parser.PipelineParser')
 
 ENABLE_EXAMPLE_COMPONENTS = getattr(settings, 'ENABLE_EXAMPLE_COMPONENTS', False)
+
+COMPONENTS_PACKAGE_SOURCES = getattr(settings, 'COMPONENTS_PACKAGE_SOURCES', {})
