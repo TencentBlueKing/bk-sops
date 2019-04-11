@@ -18,8 +18,12 @@ from contextlib import contextmanager
 @contextmanager
 def importer_context(importer):
     _setup_importer(importer)
-    yield
-    _remove_importer(importer)
+    try:
+        yield
+    except Exception as e:
+        raise e
+    finally:
+        _remove_importer(importer)
 
 
 def _setup_importer(importer):

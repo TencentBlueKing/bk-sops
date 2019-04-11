@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 SYS_MODULES = 'sys.modules'
+SYS_META_PATH = 'sys.meta_path'
 IMP_ACQUIRE_LOCK = 'imp.acquire_lock'
 IMP_RELEASE_LOCK = 'imp.release_lock'
 REQUESTS_GET = 'requests.get'
@@ -127,3 +128,5 @@ UTILS_IMPORTER_GIT__FILE_URL = 'pipeline.utils.importer.git.GitRepoModuleImporte
 UTILS_IMPORTER_GIT_GET_SOURCE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_source'
 UTILS_IMPORTER_GIT_GET_FILE = 'pipeline.utils.importer.git.GitRepoModuleImporter.get_file'
 UTILS_IMPORTER_GIT_IS_PACKAGE = 'pipeline.utils.importer.git.GitRepoModuleImporter.is_package'
+UTILS_IMPORTER__SETUP_IMPORTER = 'pipeline.utils.importer.utils._setup_importer'
+UTILS_IMPORTER__REMOVE_IMPORTER = 'pipeline.utils.importer.utils._remove_importer'
