@@ -19,6 +19,9 @@
             :name="name"
             :cc_id="cc_id"
             :common="common"
+            :template_id="template_id"
+            :type="type"
+            :isTemplateDataChanged="isTemplateDataChanged"
             :templateSaving="templateSaving"
             @onChangeName="onChangeName"
             @onSaveTemplate="onSaveTemplate">
@@ -129,17 +132,30 @@ export default {
             type: Boolean
         },
         subAtomListLoading: {
-            type: Boolean
+            type: Boolean,
+            default: true
+        },
+        type: {
+            type: String,
+            default: ''
         },
         templateSaving: {
-            type: Boolean
+            type: Boolean,
+            default: false
+        },
+        createTaskSaving: {
+            type: Boolean,
+            default: false
         },
         atomTypeList: {
             type: Object,
             required: false
         },
         searchAtomResult: {
-            type: Array
+            type: Array,
+            default () {
+                return []
+            }
         },
         canvasData: {
             type: Object,
@@ -522,7 +538,7 @@ export default {
         onChangeName (name) {
             this.$emit('onChangeName', name)
         },
-        onSaveTemplate () {
+        onSaveTemplate (saveCreateBtn) {
             const validateMessage = validatePipeline.isDataValid(this.canvasData)
             if (!validateMessage.result) {
                 this.$bkMessage({
@@ -531,7 +547,7 @@ export default {
                 })
                 return false
             }
-            this.$emit('onSaveTemplate')
+            this.$emit('onSaveTemplate', saveCreateBtn)
         },
         onNewDraft (message) {
             this.$emit('onNewDraft', message)

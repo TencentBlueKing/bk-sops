@@ -16,6 +16,8 @@
                 ref="pipelineCanvas"
                 :singleAtomListLoading="singleAtomListLoading"
                 :subAtomListLoading="subAtomListLoading"
+                :type="type"
+                :isTemplateDataChanged="isTemplateDataChanged"
                 :templateSaving="templateSaving"
                 :canvasData="canvasData"
                 :name="name"
@@ -431,6 +433,9 @@ export default {
                     this.allowLeave = true
                     this.$router.push({path: `/template/edit/${this.cc_id}/`, query: {'template_id': data.template_id, 'common': this.common}})
                 }
+                if (this.createTaskSaving) {
+                    this.$router.push(this.getTaskUrl())
+                }
             } catch (e) {
                 errorHandler(e, this)
             } finally {
@@ -692,8 +697,11 @@ export default {
             }
         },
         // 点击保存模板按钮回调
-        onSaveTemplate () {
-            if (this.templateSaving) return
+        onSaveTemplate (saveCreateBtn) {
+            if (this.templateSaving || this.createTaskSaving) {
+                return
+            }
+            this.saveAndCreate = saveCreateBtn
             this.checkVariable() // 全局变量是否合法
         },
         // 校验全局变量
