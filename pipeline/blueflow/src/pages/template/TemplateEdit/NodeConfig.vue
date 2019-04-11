@@ -406,13 +406,13 @@ export default {
         this.initData()
     },
     mounted () {
-        window.addEventListener('click', this.handleNodeConfigPanelShow, false)
+        window.addEventListener('click', this.handleNodeConfigPanelShow, true)
         if (this.errorCouldBeIgnored) {
             this.isDisable = true
         }
     },
     beforeDestroy (){
-        window.removeEventListener('click', this.handleNodeConfigPanelShow, false)
+        window.removeEventListener('click', this.handleNodeConfigPanelShow, true)
     },
     watch: {
         idOfNodeInConfigPanel (val) {
@@ -706,7 +706,7 @@ export default {
             return false
         },
         /**
-         * 处理节点配置面板和全局变量面板之外的点击时间
+         * 处理节点配置面板和全局变量面板之外的点击事件
          */
         handleNodeConfigPanelShow (e) {
             if (!this.isNodeConfigPanelShow || this.isReuseVarDialogShow) {

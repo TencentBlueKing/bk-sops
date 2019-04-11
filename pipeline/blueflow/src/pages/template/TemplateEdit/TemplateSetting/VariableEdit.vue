@@ -532,11 +532,13 @@ export default {
     label {
         position: relative;
         float: left;
-        min-width: 55px;
+        width: 60px;
         margin-top: 8px;
         font-size: 14px;
         color: $greyDefault;
         text-align: right;
+        word-wrap: break-word;
+        word-break: break-all;
         &.required:before {
             content: '*';
             position: absolute;

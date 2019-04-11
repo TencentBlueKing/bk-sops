@@ -45,6 +45,13 @@
                 @click="onSaveTemplate">
                 {{ i18n.save }}
             </bk-button>
+            <bk-button
+                type="primary"
+                class="task-btn"
+                :loading="createTaskSaving"
+                @click="onSaveTemplate(true)">
+                {{ isSaveAndCreate ? i18n.saveTplAndcreateTask : i18n.addTask }}
+            </bk-button>
             <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
         </div>
     </div>
@@ -60,7 +67,10 @@ export default {
     components: {
         BaseInput
     },
-    props: ['name', 'cc_id', 'common', 'templateSaving'],
+    props: [
+        'name', 'cc_id', 'template_id', 'common', 'type',
+        'templateSaving', 'createTaskSaving', 'isTemplateDataChanged'
+    ],
     data () {
         return {
             i18n: {
@@ -87,25 +97,37 @@ export default {
     computed: {
         templateTitle () {
             return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
+        },
+        isSaveAndCreate () {
+            return this.type === 'new' || this.isTemplateDataChanged
         }
     },
     methods: {
         onInputName (val) {
             this.$emit('onChangeName', val)
         },
-        onSaveTemplate () {
+        onSaveTemplate (saveCreateBtn = false) {
+            if (saveCreateBtn && !this.isSaveAndCreate) {
+                this.$router.push(this.getTaskUrl())
+                return
+            }
             this.$validator.validateAll().then((result) => {
                 this.tName = this.tName.trim()
-                this.$emit('onChangeName', this.tName)
-                // 替换之前进行替换空格
-                if (!result) return
-                this.$emit('onSaveTemplate')
+                this.setTemplateName(this.tName)
+                this.$emit('onSaveTemplate', saveCreateBtn)
             })
         },
         getHomeUrl () {
             let url = `/template/home/${this.cc_id}/`
             if (this.common) {
                 url += '?common=1'
+            }
+            return url
+        },
+        getTaskUrl () {
+            let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
+            if (this.common) {
+                url += '&common=1'
             }
             return url
         },
