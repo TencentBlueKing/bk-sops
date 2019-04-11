@@ -42,9 +42,7 @@ class SourceManager(models.Manager):
 
     def create_source(self, name, packages, from_config, **kwargs):
         create_kwargs = deepcopy(kwargs)
-        create_kwargs['name'] = name
-        create_kwargs['packages'] = packages
-        create_kwargs['from_config'] = from_config
+        create_kwargs.update({'name': name, 'packages': packages, 'from_config': from_config})
         return self.create(**create_kwargs)
 
     def remove_source(self, source_id):
