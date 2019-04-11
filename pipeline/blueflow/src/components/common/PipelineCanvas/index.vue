@@ -672,7 +672,8 @@ export default {
     .atom-node {
         position: absolute;
         top: 86px;
-        left: 42%;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 4;
         .atom-number {
             color: #a9b2bd;

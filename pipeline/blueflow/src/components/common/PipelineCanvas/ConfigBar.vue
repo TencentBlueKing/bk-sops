@@ -149,10 +149,9 @@ export default {
         }
     }
     .config-name-wrapper {
-        display: inline-block;
-        margin: 15px auto 0;
+        margin: 0 auto;
+        padding-top: 15px;
         width: 430px;
-        height: 30px;
         .name-show-mode {
             display: inline-block;
         }
@@ -201,8 +200,9 @@ export default {
         }
     }
     .canvas-operation-wrapper {
-        float: right;
-        margin: 14px 20px 0 0;
+        position: absolute;
+        top: 14px;
+        right: 20px;
         .save-canvas {
             width: 90px;
             height: 32px;
