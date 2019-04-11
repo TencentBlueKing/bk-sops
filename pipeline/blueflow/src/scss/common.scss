@@ -131,3 +131,22 @@
         line-height: 32px;
     }
 }
+// 列表分页
+.panagation {
+    .bk-page .page-item {
+        float: none;
+    }
+    .bk-page .page-item.cur-page {
+        background: #3c96ff;
+    }
+    .bk-page .page-item .page-button {
+        padding: 0 7px;
+    }
+    .bk-page .page-item.disabled .page-button {
+        padding: 0 5px;
+        color: #737987;
+         &:hover {
+              color: #737987;
+        }
+    }
+}
