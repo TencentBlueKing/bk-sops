@@ -12,11 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 import sys
+import logging
+import traceback
 
 from django.apps import AppConfig
 from django.db.utils import ProgrammingError
 
 from pipeline.conf import settings
+
+logger = logging.getLogger('root')
 
 
 class ExternalPluginsConfig(AppConfig):
@@ -28,11 +32,16 @@ class ExternalPluginsConfig(AppConfig):
 
         if not sys.argv[1:2] == ['test']:
             try:
+                logger.info('Start to update package source from config file...')
                 ExternalPackageSource.update_package_source_from_config(getattr(settings,
                                                                                 'COMPONENTS_PACKAGE_SOURCES',
                                                                                 {}))
-            except ProgrammingError:
+            except ProgrammingError as e:
+                logger.warning('update package source failed, maybe first migration? exception: %s' %
+                               traceback.format_exc())
                 # first migrate
                 return
+
+            logger.info('Start to load external modules...')
 
             loader.load_external_modules()

@@ -11,10 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import importlib
+import traceback
 
 from pipeline.utils.importer import importer_context
 from pipeline.contrib.external_plugins.models import source_cls_factory
+
+logger = logging.getLogger('root')
 
 
 def load_external_modules():
@@ -32,4 +36,8 @@ def _import_modules_in_source(source):
 
     with importer_context(importer):
         for module in source.modules:
-            importlib.import_module(module)
+            try:
+                importlib.import_module(module)
+            except Exception as e:
+                logger.error('An error occurred when loading {%s}: %s' % (module, traceback.format_exc()))
+                raise e
