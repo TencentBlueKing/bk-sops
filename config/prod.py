@@ -31,11 +31,11 @@ RUN_MODE = 'PRODUCT'
 
 
 # 正式环境数据库可以在这里配置
-# 默认 default 请不要修改，如果使用了外部数据库，请联系【蓝鲸助手】授权
-# DATABASES.update(
+# USE FOLLOWING SQL TO CREATE THE DATABASE NAMED APP_CODE
+# SQL: CREATE DATABASE `bk_sops` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+# DATABASES = (
 #     {
-#         # 外部数据库授权，请联系 【蓝鲸助手】
-#         'external_db': {
+#         'default': {
 #             'ENGINE': 'django.db.backends.mysql',
 #             'NAME': '',  # 外部数据库名
 #             'USER': '',  # 外部数据库用户
