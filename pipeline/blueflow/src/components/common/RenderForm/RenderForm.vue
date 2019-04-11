@@ -236,5 +236,37 @@ export default {
     }
 }
 </script>
-
-
+<style lang="scss" scoped>
+.render-form {
+    /deep/ .rf-group-name {
+        margin-bottom: 12px;
+        .name {
+            display: inline-block;
+            margin: 0;
+            margin-bottom: -1px;
+            padding: 5px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #313238;
+        }
+        &:before {
+            content: '';
+            display: inline-block;
+            position: relative;
+            top: 4px;
+            width: 2px;
+            height: 20px;
+            background: #a3c5fd;
+        }
+        .rf-group-desc {
+            color: #c4c6cc;
+            font-size: 16px;
+            cursor: pointer;
+            &:hover {
+                color: #f4aa1a;
+            }
+        }
+    }
+    
+}
+</style>

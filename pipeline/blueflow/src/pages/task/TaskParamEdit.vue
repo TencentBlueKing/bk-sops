@@ -196,34 +196,6 @@ export default {
 @import '@/scss/config.scss';
     .task-param-wrapper {
         /deep/ .render-form {
-            .rf-group-name {
-                margin-bottom: 12px;
-                h3 {
-                    display: inline-block;
-                    margin: 0;
-                    margin-bottom: -1px;
-                    padding: 5px 14px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #313238;
-                }
-                &:before {
-                    content: '';
-                    display: inline-block;
-                    position: relative;
-                    top: 4px;
-                    width: 2px;
-                    height: 20px;
-                    background: #A3C5FD;
-                }
-            }
-            .rf-group-desc {
-                position: absolute;
-                right: 0;
-                top: 10px;
-                color: $yellowBg;
-                font-size: 14px;
-            }
             .form-item {
                 margin-bottom: 20px;
             }
