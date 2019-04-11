@@ -206,7 +206,13 @@ def create_task(request, template_id, bk_biz_id):
         flow_type=params.get('flow_type', 'common'),
         current_flow='execute_task' if params.get('flow_type', 'common') == 'common' else 'func_claim',
     )
-    return JsonResponse({'result': True, 'data': {'task_id': task.id}})
+    return JsonResponse({
+        'result': True,
+        'data': {
+            'task_id': task.id,
+            'task_url': task.url,
+            'pipeline_tree': task.pipeline_tree
+        }})
 
 
 @login_exempt
@@ -598,6 +604,41 @@ def get_task_node_detail(request, task_id, bk_biz_id):
 
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
-    subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
+    try:
+        subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
+    except Exception:
+        return JsonResponse({
+            'result': False,
+            'message': 'subprocess_stack is not a valid array json'
+        })
     result = task.get_node_detail(node_id, component_code, subprocess_stack)
     return JsonResponse(result)
+
+
+@login_exempt
+@csrf_exempt
+@require_POST
+@apigw_required
+@api_check_user_perm_of_business('manage_business')
+def node_callback(request, task_id, bk_biz_id):
+    try:
+        params = json.loads(request.body)
+    except Exception:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid param format'
+        })
+
+    try:
+        task = TaskFlowInstance.objects.get(id=task_id, business__cc_id=bk_biz_id)
+    except TaskFlowInstance.DoesNotExist:
+        message = 'task[id={task_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+            task_id=task_id,
+            bk_biz_id=bk_biz_id)
+        logger.exception(message)
+        return JsonResponse({'result': False, 'message': message})
+
+    node_id = params.get('node_id')
+    callback_data = params.get('callback_data')
+
+    return JsonResponse(task.callback(node_id, callback_data))

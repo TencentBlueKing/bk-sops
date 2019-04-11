@@ -745,9 +745,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         try:
             result = pipeline_api.activity_callback(activity_id=act_id, callback_data=data)
         except Exception as e:
-            return False, e.message
+            return {
+                'result': False,
+                'message': e.message
+            }
 
-        return result.result, result.message
+        return {
+            'result': result.result,
+            'message': result.message
+        }
 
 
 class TaskFlowInstance(models.Model):
@@ -1231,7 +1237,9 @@ class TaskFlowInstance(models.Model):
             'start_time': format_datetime(self.start_time),
             'finish_time': format_datetime(self.finish_time),
             'executor': self.executor,
-            'elapsed_time': self.elapsed_time
+            'elapsed_time': self.elapsed_time,
+            'pipeline_tree': self.pipeline_tree,
+            'task_url': self.url
         }
         exec_data = self.pipeline_instance.execution_data
         # inputs data
@@ -1251,3 +1259,12 @@ class TaskFlowInstance(models.Model):
             'ex_data': outputs.get('ex_data', '')
         })
         return data
+
+    def callback(self, act_id, data):
+        if not self.has_node(act_id):
+            return {
+                'result': False,
+                'message': 'task[{tid}] does not have node[{nid}]'.format(tid=self.id, nid=act_id)
+            }
+
+        return TaskFlowInstance.objects.callback(act_id, data)
