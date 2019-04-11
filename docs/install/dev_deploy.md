@@ -95,6 +95,13 @@ npm run build -- --STATIC_ENV=dev
 python manage.py collectstatic --noinput
 ```
 
+前端资源文件需要单独拷贝收集，执行如下命令
+```bash
+rm -rf static/dev static/images
+mv pipeline/blueflow/static/dev static/
+mv pipeline/blueflow/static/images static/
+```
+
 
 ## 配置本地 hosts  
 windows: 在 C:\Windows\System32\drivers\etc\host 文件中添加“127.0.0.1 dev.{BK_PAAS_HOST}”。  
