@@ -12,7 +12,7 @@
                     :key="item.cc_id"
                     :title="item.cc_name">
                     <template slot="title">
-                        <van-tag class="tag-2">{{ item.cc_id }}</van-tag>
+                        <van-tag :class="item.tagColor">{{ item.tag }}</van-tag>
                         <span class="title">{{ item.cc_name }}</span>
                     </template>
                 </van-cell>
@@ -24,6 +24,9 @@
     import { getBusinessList } from '@/store/modules/businessList'
 
     export default {
+        name: 'home',
+        props: { title: String },
+
         data () {
             return {
                 list: [],
@@ -39,6 +42,8 @@
                     const bizList = getBusinessList()['objects']
                     const _this = this
                     bizList.forEach(item => {
+                        ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
+                        console.log(item)
                         _this.list.push(item)
                     })
 
@@ -50,6 +55,20 @@
                         this.finished = true
                     }
                 }, 500)
+            },
+
+            getTagColor (biz) {
+                // tag颜色分布 1-5号色值，保存在cookie里面
+                const tagColor = this.$cookies.get(biz.cc_id)
+                const [tag] = biz.cc_name
+                if (tagColor) {
+                    return { tagColor: tagColor, tag: tag }
+                } else {
+                    const color = parseInt(Math.random() * 5, 10) + 1
+                    const tagColor = `tag-${color}`
+                    this.$cookies.set(biz.cc_id, tagColor)
+                    return { tagColor: tagColor, tag: tag }
+                }
             }
         }
     }
@@ -80,11 +99,23 @@
       }
 
       .tag-1 {
-        background-color: #ff5656 !important;
+        background-color: #3A84FF !important;
       }
 
       .tag-2 {
-        background-color: #3A84FF !important;
+        background-color: #EA3636 !important;
+      }
+
+      .tag-3 {
+        background-color: #FF9C01 !important;
+      }
+
+      .tag-4 {
+        background-color: #2DCB56 !important;
+      }
+
+      .tag-5 {
+        background-color: #C4C6CC !important;
       }
 
       .title {

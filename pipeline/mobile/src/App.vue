@@ -5,8 +5,8 @@
     </div>
 </template>
 <script>
-    import Navbar from '@/components/navbar/Navbar.vue'
     import { mapGetters } from 'vuex'
+    import Navbar from '@/components/navbar/Navbar.vue'
 
     export default {
         name: 'app',

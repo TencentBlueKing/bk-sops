@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 
 import templateList from './modules/templateList'
 import template from './modules/template'
+import taskList from './modules/taskList'
 import http from '@/api'
 import { unifyObjectStyle } from '@/common/util'
 
@@ -11,14 +12,17 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
     // 模块
     modules: {
+        taskList,
         templateList,
         template
     },
     // 公共 store
     state: {
         mainContentLoading: false,
-        lang: 'en',
+        lang: 'zh-cn',
         bizId: 0,
+        title: '业务选择',
+        isActionSheetShow: true,
         // 系统当前登录用户
         user: {}
     },
@@ -57,6 +61,12 @@ const store = new Vuex.Store({
          */
         updateUser (state, user) {
             state.user = Object.assign({}, user)
+        },
+        setTitle (state, title) {
+            state.title = title
+        },
+        setActionSheetShow (state, isActionSheetShow) {
+            state.isActionSheetShow = isActionSheetShow
         }
     },
     actions: {

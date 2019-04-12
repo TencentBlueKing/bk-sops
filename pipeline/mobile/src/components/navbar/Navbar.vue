@@ -1,41 +1,56 @@
 <template>
     <div class="navbar">
-        <van-nav-bar title="标题">
-            <van-icon @click="show = true" name="wap-nav" slot="left" />
+        <van-nav-bar :title="title">
+            <van-icon @click="show = true" name="wap-nav" slot="left" v-if="isActionSheetShow" />
         </van-nav-bar>
         <van-actionsheet class="navbar-list"
             v-model="show"
             position="top"
             :actions="actions"
             @select="onSelect"
-            :overlay="false"
         />
     </div>
 </template>
 
 <script>
+
+    import { mapState } from 'vuex'
+
     export default {
-        name: 'navbar',
+        name: 'Navbar',
         data () {
             return {
                 show: false,
                 actions: [
                     {
-                        name: '流程模板'
+                        name: '流程模板',
+                        router: '/template'
                     },
                     {
-                        name: '任务记录'
+                        name: '任务记录',
+                        router: 'task_list'
                     },
                     {
-                        name: '业务选择'
+                        name: '业务选择',
+                        router: 'home'
                     }
                 ]
             }
         },
+        computed: {
+            ...mapState({
+                isActionSheetShow: state => state.isActionSheetShow,
+                title: state => state.title
+            })
+        },
         methods: {
-            onSelect () {
+            onSelect (item) {
                 // 点击选项时默认不会关闭菜单，可以手动关闭
                 this.show = false
+                if (item.router === 'home') {
+                    this.$cookies.remove('biz_id')
+                }
+                this.$router.push({ path: item.router })
             }
         }
     }

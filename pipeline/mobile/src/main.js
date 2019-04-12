@@ -44,6 +44,7 @@ Vue.use(NavBar)
     .use(Actionsheet)
 
 Vue.component('app-exception', Exception)
+Vue.config.devtools = true
 
 global.bus = bus
 global.mainComponent = new Vue({
@@ -55,9 +56,9 @@ global.mainComponent = new Vue({
 })
 
 if (store.state.lang === 'en') {
-    Locale.use('en', enUS)
+    Locale.use('en-US', enUS)
 } else {
-    Locale.use('zhCHS', zhCN)
+    Locale.use('zh-CN', zhCN)
 }
 
 if (typeof (window.gettext) !== 'function') {

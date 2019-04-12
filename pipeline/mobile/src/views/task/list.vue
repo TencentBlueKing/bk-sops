@@ -3,44 +3,19 @@
         <!-- 搜索 -->
         <van-search :placeholder="i18n.placeholder"
             v-model="value"
-            show-action
             class="bk-search"
             @search="search()">
-            <div slot="action" @click="search">搜索</div>
         </van-search>
         <!-- 列表 -->
         <section class="bk-block">
-            <van-cell clickable>
+
+            <van-cell clickable v-for="item in taskList" :key="item.id">
                 <template slot="title">
-                    <div class="bk-text">Troytu的测试流程模版任务</div>
-                    <div class="bk-name">Troytu</div>
-                    <div class="bk-time">2019-03-10 13:49:20 至 2019-03-10 15:01:20</div>
-                </template>
-                <van-icon slot="right-icon" name="clear" class="task-icon close" />
-            </van-cell>
-            <van-cell clickable>
-                <template slot="title">
-                    <div class="bk-text">Troytu的测试流程模版任务</div>
-                    <div class="bk-name">Troytu</div>
-                    <div class="bk-time">2019-03-10 13:49:20 至 2019-03-10 15:01:20</div>
+                    <div class="bk-text">{{ item.name }}</div>
+                    <div class="bk-name">{{ item.creator_name }}</div>
+                    <div class="bk-time">{{ item.create_time }} 至 {{ item.finish_time }}</div>
                 </template>
                 <van-icon slot="right-icon" name="more" class="task-icon more" />
-            </van-cell>
-            <van-cell clickable>
-                <template slot="title">
-                    <div class="bk-text">Troytu的测试流程模版任务</div>
-                    <div class="bk-name">Troytu</div>
-                    <div class="bk-time">2019-03-10 13:49:20 至 2019-03-10 15:01:20</div>
-                </template>
-                <van-icon slot="right-icon" name="pause-circle" class="task-icon pause" />
-            </van-cell>
-            <van-cell clickable>
-                <template slot="title">
-                    <div class="bk-text">Troytu的测试流程模版任务</div>
-                    <div class="bk-name">Troytu</div>
-                    <div class="bk-time">2019-03-10 13:49:20 至 2019-03-10 15:01:20</div>
-                </template>
-                <van-icon slot="right-icon" name="" class="task-icon circle" />
             </van-cell>
         </section>
     </div>
@@ -53,6 +28,7 @@
         name: 'TaskList',
         data () {
             return {
+                taskList: [],
                 i18n: {
                     placeholder: window.gettext('搜索任务名称')
                 }
@@ -62,10 +38,21 @@
             this.loadData()
         },
         methods: {
-            ...mapActions('template', [
-                'getTemplate',
-                'getCollectTemplateList'
-            ])
+            ...mapActions('taskList', [
+                'getTaskList'
+            ]),
+            async loadData () {
+                this.taskList = await this.getTaskList()
+            },
+            search () {
+                const arr = []
+                for (let i = 0; i < this.taskList.length; i++) {
+                    if (this.taskList[i].name.includes(this.value)) {
+                        arr.push(this.taskList[i])
+                    }
+                }
+                this.taskList = arr
+            }
         }
     }
 </script>
