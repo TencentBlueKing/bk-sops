@@ -224,7 +224,11 @@ export function getFormMixins (attrs = {}) {
                 this.$emit('onShow')
             },
             hide () {
+                this.changeHook(false)
                 this.$emit('onHide')
+            },
+            changeHook (val) {
+                this.$parent.onHookForm(val)
             },
             // 获取 form 项实例
             get_form_instance () {
