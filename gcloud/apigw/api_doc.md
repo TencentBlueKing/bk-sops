@@ -2122,3 +2122,153 @@ result = client.api.modify_constants_for_periodic_task(kwargs, path_kwargs)
     "result": true
 }
 ```
+
+## modify_cron_for_periodic_task
+
+### 功能描述
+修改一个周期任务的调度策略
+
+### 请求方法
+POST
+
+### 请求参数说明
+|   字段   |    参数类型  |  必须  |     参数说明     |
+| ------------ | ------------ | ------ | ---------------- |
+|   app_code      |   string     |   是   |  蓝鲸应用编码    |
+|   app_secret    |   string     |   是   |  蓝鲸应用私密key |
+|   access_token |   string     |   否   |  用户登录票据，bk_token 为空时必填 |
+|   bk_token       |   string     |   否   |  用户登录票据，access_token 为空时必填 |
+|   task_id    |   string     |   是   |  周期任务ID |
+|   bk_biz_id    |   string     |   是   |  模板所属业务ID |
+|   cron    |   dict     |   否   | 调度策略对象 |
+
+#### cron 说明
+ 
+ |   字段   |    参数类型  |  必须  |     参数说明     |
+| ------------ | ------------ | ------ | ---------------- |
+|   minute    |   string     |   否   |  分，默认为 * |
+|   hour    |   string     |   否   |  时，默认为 * |
+|   day_of_week    |   string     |   否   |  一周内的某些天，默认为 * |
+|   day_of_month    |   string     |   否   |  一个月中的某些天，默认为 * |
+|   month_of_year    |   string     |   否   |  一年中的某些月份，默认为 * |
+
+
+### 返回结果说明
+|   字段   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+|  result      |    bool    |      true/false 操作是否成功     |
+|  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
+|  message        |    string      |      result=false 时错误信息     |
+
+##### data 说明
+|   字段   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+|  cron      |    string    |      调度策略表达式    |
+
+
+### HTTP 请求调用示例
+```python
+import json
+import requests
+kwargs = {
+	"app_code": "app_code",
+	"app_secret": "app_secret",
+	"access_token": "access_token",
+	"cron" : {"minute": "*/1", "hour": "15", "day_of_week":"*", "day_of_month":"*", "month_of_year":"*"},
+}
+response = requests.get("http://{stageVariables.domain}/apigw/modify_cron_for_periodic_task/1/2/", json.dumps(kwargs))
+result = response.json()
+```
+
+### ESB SDK 调用示例
+```
+from bkapigw.app_code.shortcuts import get_client_by_request
+client = get_client_by_request(request)
+# 填充参数
+kwargs = {
+    "cron" : {"minute": "*/1", "hour": "15", "day_of_week":"*", "day_of_month":"*", "month_of_year":"*"},
+}
+# 路径参数
+path_kwargs = {
+    "task_id": "1",
+	"bk_biz_id": "2",
+}
+result = client.api.modify_cron_for_periodic_task(kwargs, path_kwargs)
+```
+
+### 返回结果示例
+```
+{
+    "data": {
+        "cron": "*/1 15 * * * (m/h/d/dM/MY)"
+    },
+    "result": true
+}
+```
+
+## node_callback
+
+### 功能描述
+对某个节点发起回调操作
+
+### 请求方法
+POST
+
+### 请求参数说明
+|   字段   |    参数类型  |  必须  |     参数说明     |
+| ------------ | ------------ | ------ | ---------------- |
+|   app_code      |   string     |   是   |  蓝鲸应用编码    |
+|   app_secret    |   string     |   是   |  蓝鲸应用私密key |
+|   access_token |   string     |   否   |  用户登录票据，bk_token 为空时必填 |
+|   bk_token       |   string     |   否   |  用户登录票据，access_token 为空时必填 |
+|   task_id    |   string     |   是   |  周期任务ID |
+|   bk_biz_id    |   string     |   是   |  模板所属业务ID |
+|   node_id    |   string     |   是   | 节点 ID |
+|   callback_data    |   any    |   是   | 回调数据 |
+
+### 返回结果说明
+|   字段   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+|  result      |    bool    |      true/false 操作是否成功     |
+|  message        |    string      |      result=false 时错误信息     |
+
+
+### HTTP 请求调用示例
+```python
+import json
+import requests
+kwargs = {
+	"app_code": "app_code",
+	"app_secret": "app_secret",
+	"access_token": "access_token",
+	"node_id": "node76393dcfedcf73dbc726f1c4786d",
+	"callback_data": {"data": "data"},
+}
+response = requests.get("http://{stageVariables.domain}/apigw/node_callback/1/2/", json.dumps(kwargs))
+result = response.json()
+```
+
+### ESB SDK 调用示例
+```
+from bkapigw.app_code.shortcuts import get_client_by_request
+client = get_client_by_request(request)
+# 填充参数
+kwargs = {
+    "node_id": "node76393dcfedcf73dbc726f1c4786d",
+	"callback_data": {"data": "data"},
+}
+# 路径参数
+path_kwargs = {
+    "task_id": "1",
+	"bk_biz_id": "2",
+}
+result = client.api.node_callback(kwargs, path_kwargs)
+```
+
+### 返回结果示例
+```
+{
+    "message": "success",
+    "result": true
+}
+```
