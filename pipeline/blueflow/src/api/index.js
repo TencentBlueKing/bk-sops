@@ -51,11 +51,14 @@ const api = {
     /**
      * 获取当前用户有权限业务
      */
-    getBizList () {
+    getBizList (isAll) {
         const prefixUrl = this.getPrefix('business')
         const opts = {
             method: 'GET',
-            url: prefixUrl
+            url: prefixUrl,
+            params: {
+                all: isAll
+            }
         }
         return request(opts)
     },
