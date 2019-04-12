@@ -98,7 +98,14 @@ def cc_get_module_name_list(request, biz_cc_id):
 
 def cc_get_plat_id(request, biz_cc_id):
     client = get_client_by_request(request)
-    biz = Business.objects.get(cc_id=biz_cc_id)
+    try:
+        biz = Business.objects.get(cc_id=biz_cc_id)
+    except Business.DoesNotExist:
+        return {
+            'result': False,
+            'data': [],
+            'message': 'business[bk_biz_id=%s] does not exist' % biz_cc_id
+        }
     cc_owner = biz.cc_owner
     cc_result = client.cc.get_plat_id({'plat_company': biz.cc_company})
     if not cc_result['result']:
