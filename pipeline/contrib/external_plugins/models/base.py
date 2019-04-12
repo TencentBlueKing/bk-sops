@@ -111,5 +111,8 @@ class ExternalPackageSource(models.Model):
             classified_config.setdefault(config.pop('type'), []).append(config)
 
         for source_type, configs in classified_config.items():
-            source_model_cls = source_cls_factory[source_type]
+            try:
+                source_model_cls = source_cls_factory[source_type]
+            except KeyError:
+                raise KeyError('Unsupported external source type: %s' % source_type)
             source_model_cls.objects.update_source_from_config(configs=configs)

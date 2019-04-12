@@ -211,3 +211,12 @@ class ExternalPackageSourceTestCase(TestCase):
             call(configs=[{'name': '1'}, {'name': '2'}]),
             call(configs=[{'name': '4'}])
         ])
+
+    def test_update_package_source_from_config__unsupported_source_type(self):
+        source_configs = [
+            {
+                'name': '1',
+                'type': 'wrong_type'
+            }
+        ]
+        self.assertRaises(KeyError, ExternalPackageSource.update_package_source_from_config, source_configs)
