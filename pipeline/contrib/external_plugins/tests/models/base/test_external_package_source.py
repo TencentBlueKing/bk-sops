@@ -183,7 +183,7 @@ class ExternalPackageSourceTestCase(TestCase):
     def test_update_package_source_from_config__empty_configs(self):
         ExternalPackageSource.update_package_source_from_config([])
         for source_model_cls in source_cls_factory.values():
-            source_model_cls.objects.update_source_from_config.assert_not_called()
+            source_model_cls.objects.update_source_from_config.assert_called_with(configs=[])
 
     @patch(MODELS_SOURCE_MANAGER_UPDATE_SOURCE_FROM_CONFIG, MagicMock())
     def test_update_package_source_from_config__normal_case(self):

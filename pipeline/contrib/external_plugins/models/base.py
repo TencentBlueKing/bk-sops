@@ -105,7 +105,7 @@ class ExternalPackageSource(models.Model):
 
     @staticmethod
     def update_package_source_from_config(source_configs):
-        classified_config = {}
+        classified_config = {source_type: [] for source_type in source_cls_factory.keys()}
 
         for config in source_configs:
             classified_config.setdefault(config.pop('type'), []).append(config)
