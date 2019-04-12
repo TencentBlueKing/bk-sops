@@ -972,6 +972,10 @@ export default {
             } else {  // cancel hook
                 variableKey = this.inputAtomData[key] // variable key
                 const variable = this.constants[variableKey]
+                if (!variable) {
+                    return
+                }
+
                 const formKey = this.isSingleAtom ? tagCode : key // input arguments form item key
                 this.inputAtomHook[formKey] = val
                 this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)
