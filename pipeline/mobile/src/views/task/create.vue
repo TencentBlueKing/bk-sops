@@ -9,16 +9,15 @@
                     <div class="bk-name">{{ templateData.creator_name }}</div>
                     <div class="bk-time">{{ templateData.create_time }}</div>
                 </template>
-                <!--<van-icon slot="right-icon" name="star" class="star-icon collection" />-->
+                <van-icon slot="right-icon" name="star" class="star-icon collection" />
             </van-cell>
         </section>
         <!-- 任务信息 -->
         <section class="bk-block">
             <h2 class="bk-text-title">任务信息</h2>
-            <!-- TODO:方案信息怎么拿？ -->
             <div class="bk-text-list">
-                <van-cell title="任务名称" value="new20190313145111" />
-                <van-cell @click="show = true" title="方案" value="执行所有节点" />
+                <van-field label="任务名称" v-validate="taskNameRule" v-model="taskName" />
+                <van-cell @click="show = true" title="方案" :value="scheme" />
                 <van-cell>
                     <router-link to="">预览流程图</router-link>
                 </van-cell>
@@ -32,7 +31,7 @@
             <van-picker
                 show-toolbar
                 :columns="columns"
-                @confirm="show = false"
+                @confirm="onConfirm"
                 @cancel="show = false"
             />
         </van-popup>
@@ -40,10 +39,8 @@
         <section class="bk-block">
             <h2 class="bk-text-title">参数信息</h2>
             <div class="bk-text-list">
-                <van-field v-for="item in templateConstants.constants" :key="item.id"
-                    label="参数01"
-                    placeholder="输入参数值"
-                />
+                <van-field v-for="item in templateConstants" :key="item.id"
+                    :label="item.name" placeholder="输入参数值" :value="item.value" />
             </div>
         </section>
         <!-- 按钮 -->
@@ -54,22 +51,33 @@
 </template>
 
 <script>
+    import moment from 'moment'
     import { mapActions } from 'vuex'
+
+    const NAME_REG = /^[A-Za-z0-9\_\-\[\]\【\】\(\)\（\）\u4e00-\u9fa5]+$/
 
     export default {
         name: 'TaskCreate',
         data () {
             return {
                 show: false,
-                columns: ['执行所有节点', '方案一', '方案二', '方案三'],
+                columns: [],
                 templateData: {
                     name: '',
                     creator_name: '',
                     create_time: ''
                 },
                 templateConstants: {},
+                schemes: [],
+                scheme: '执行所有节点',
                 i18n: {
                     btnCreate: window.gettext('执行任务')
+                },
+                taskName: '',
+                taskNameRule: {
+                    required: true,
+                    max: 50,
+                    regex: NAME_REG
                 }
             }
         },
@@ -79,11 +87,24 @@
         methods: {
             ...mapActions('template', [
                 'getTemplate',
-                'getTemplateConstants'
+                'getTemplateConstants',
+                'getSchemes'
             ]),
             async loadData () {
                 this.templateData = await this.getTemplate()
                 this.templateConstants = await this.getTemplateConstants()
+                this.schemes = await this.getSchemes()
+                this.taskName = this.getDefaultTaskName()
+                this.columns = [{ text: '执行所有节点' }, ...this.schemes]
+                console.log(this.schemes)
+            },
+            getDefaultTaskName () {
+                return this.templateData.name + '_' + moment().format('YYYYMMDDHHmmss')
+            },
+            onConfirm (value, index) {
+                this.show = false
+                this.scheme = value
+                console.log(`当前值：${value}, 当前索引：${index}`)
             }
         }
     }

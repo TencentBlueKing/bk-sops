@@ -3,10 +3,8 @@
         <!-- 搜索 -->
         <van-search :placeholder="i18n.placeholder"
             v-model="value"
-            show-action
             class="bk-search"
             @search="search()">
-            <div slot="action" @click="search">搜索</div>
         </van-search>
         <!-- 收藏 -->
         <section class="bk-block">
@@ -24,7 +22,7 @@
         <!-- 开区 -->
         <section class="bk-block">
             <h2 class="bk-block-title">{{ business.cc_name }}</h2>
-            <van-cell clickable :to="`/template/task_create?templateId=${item.cc_id}`"
+            <van-cell clickable :to="`/task/create?templateId=${item.id}`"
                 v-for="item in templateList" :key="item.id">
                 <template slot="title">
                     <div class="bk-text">{{ item.name }}</div>
