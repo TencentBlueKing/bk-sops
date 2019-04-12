@@ -19,14 +19,14 @@
                 }"
                 @click.stop="onSelectNode(item, true)">
                 <span class="node-icon">
-                    <i :class="item.pipeline ? 'common-icon-node-subflow' : 'common-icon-node-tasknode'"></i>
+                    <i :class="item.children ? 'common-icon-node-subflow' : 'common-icon-node-tasknode'"></i>
                 </span>
                 <span class="name" :title="item.name">{{item.name}}</span>
             </h4>
             <NodeTree
-                v-if="item.pipeline"
+                v-if="item.children"
                 class="sub-tree"
-                :data="item.pipeline.activities"
+                :data="item.children"
                 :selectedFlowPath="selectedFlowPath"
                 :heirarchy="heirarchy ? `${heirarchy}.${item.id}` : String(item.id)"
                 :level="level + 1"
@@ -41,9 +41,9 @@ export default {
     name: 'NodeTree',
     props: {
         data: {
-            type: Object,
+            type: Array,
             default () {
-                return {}
+                return []
             }
         },
         selectedFlowPath: {
@@ -71,7 +71,7 @@ export default {
         },
         onSelectNode (node, isClick, type) {
             let nodeHeirarchy = node
-            const nodeType = node.pipeline ? 'subflow' : 'tasknode'
+            const nodeType = node.children ? 'subflow' : 'tasknode'
             if (isClick) {
                 nodeHeirarchy = this.heirarchy ? `${this.heirarchy}.${node.id}` : String(node.id)
             }
