@@ -1,17 +1,20 @@
 <template>
     <div class="navbar">
         <van-nav-bar :title="title">
-            <van-icon @click="show = true" name="wap-nav" slot="left" v-if="isActionSheetShow" />
+            <van-icon
+                @click="show = true"
+                name="wap-nav"
+                slot="left"
+                v-if="isActionSheetShow" />
         </van-nav-bar>
-        <van-actionsheet class="navbar-list"
+        <van-actionsheet
+            class="navbar-list"
             v-model="show"
             position="top"
             :actions="actions"
-            @select="onSelect"
-        />
+            @select="onSelect" />
     </div>
 </template>
-
 <script>
 
     import { mapState } from 'vuex'
@@ -28,7 +31,7 @@
                     },
                     {
                         name: '任务记录',
-                        router: 'task_list'
+                        router: '/task/list'
                     },
                     {
                         name: '业务选择',

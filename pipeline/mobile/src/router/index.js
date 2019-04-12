@@ -13,7 +13,7 @@ const Template = () => import(/* webpackChunkName: 'home' */'../views/template/i
 const TaskList = () => import(/* webpackChunkName: 'home' */'../views/task/list')
 const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
 const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/reset')
-const TaskCheck = () => import(/* webpackChunkName: 'home' */'../views/task/check')
+const TaskDetail = () => import(/* webpackChunkName: 'home' */'../views/task/detail')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
 
 const routes = [
@@ -30,15 +30,6 @@ const routes = [
         title: '流程模板',
         isActionSheetShow: true,
         component: Template
-        // children: [
-        //     {
-        //         path: '/task_create',
-        //         component: TaskCreate,
-        //         props: (route) => ({
-        //             template_id: route.query.template_id
-        //         })
-        //     }
-        // ]
     },
     {
         path: '/task/create',
@@ -60,9 +51,9 @@ const routes = [
         component: TaskReset
     },
     {
-        path: '/task/check',
-        name: 'task_check',
-        component: TaskCheck
+        path: '/task/detail',
+        name: 'task_detal',
+        component: TaskDetail
     },
     // 404
     {
@@ -103,22 +94,13 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    console.log(from)
-    console.log(to)
-
     canceling = true
     await cancelRequest()
     canceling = false
     const bizId = to.params.bizId || to.query.bizId || VueCookies.get('biz_id')
-    console.log('to.name=' + to.name)
     if (to.name && routerConfig[to.name]) {
         ({ title: store.state.title, isActionSheetShow: store.state.isActionSheetShow } = routerConfig[to.name])
-
-        // store.commit('setTitle', routerConfig[to.name]['title'])
-        // store.commit('setActionSheetShow', routerConfig[to.name]['isActionSheetShow'])
     }
-    console.log(store.state.title, store.state.isActionSheetShow)
-
     if (bizId) {
         store.commit('setBizId', bizId)
         store.commit('setActionSheetShow', true)

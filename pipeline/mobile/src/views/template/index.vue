@@ -1,7 +1,8 @@
 <template>
     <div class="page-view">
         <!-- 搜索 -->
-        <van-search :placeholder="i18n.placeholder"
+        <van-search
+            :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"
             @search="search()">
@@ -9,20 +10,25 @@
         <!-- 收藏 -->
         <section class="bk-block">
             <h2 class="bk-block-title">{{ i18n.collect }}</h2>
-            <van-cell clickable v-for="item in collectTemplateList"
-                :to="`/task/create?templateId=${item.id}`" :key="item.id">
+            <van-cell
+                clickable
+                v-for="item in collectTemplateList"
+                :to="`/task/create?templateId=${item.id}`"
+                :key="item.id">
                 <template slot="title">
                     <div class="bk-text">{{ item.name }}</div>
                     <div class="bk-name">{{ item.creator_name }}</div>
                     <div class="bk-time">{{ item.create_time }}</div>
                 </template>
-                <van-icon slot="right-icon" name="star" class="star-icon collection" />
+                <van-icon class="star-icon collection" slot="right-icon" name="star" />
             </van-cell>
         </section>
         <!-- 开区 -->
         <section class="bk-block">
             <h2 class="bk-block-title">{{ business.cc_name }}</h2>
-            <van-cell clickable :to="`/task/create?templateId=${item.id}`"
+            <van-cell
+                clickable
+                :to="`/task/create?templateId=${item.id}`"
                 v-for="item in templateList" :key="item.id">
                 <template slot="title">
                     <div class="bk-text">{{ item.name }}</div>
