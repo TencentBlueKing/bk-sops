@@ -8,7 +8,7 @@
                     <div class="bk-name">Troytu</div>
                     <div class="bk-time">2019-03-10 13:49:20</div>
                 </template>
-                <van-icon slot="right-icon" name="star" class="star-icon collection" />
+                <van-icon slot="right-icon" name="star" class="star-icon collection" clickable />
             </van-cell>
         </section>
         <!-- 任务信息 -->
@@ -34,20 +34,23 @@
     import { mapActions } from 'vuex'
 
     export default {
-        name: 'TaskCheck',
+        name: 'TaskDetail',
         data () {
             return {
-
+                task: {}
             }
         },
         mounted () {
             this.loadData()
         },
         methods: {
-            ...mapActions('template', [
-                'getTemplate',
-                'getTemplateConstants'
-            ])
+            ...mapActions('task', [
+                'getTask'
+            ]),
+
+            async loadData () {
+                this.task = await this.getTask()
+            }
         }
     }
 </script>

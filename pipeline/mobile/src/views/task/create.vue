@@ -16,8 +16,14 @@
         <section class="bk-block">
             <h2 class="bk-text-title">任务信息</h2>
             <div class="bk-text-list">
-                <van-field label="任务名称" v-validate="taskNameRule" v-model="taskName" />
-                <van-cell @click="show = true" title="方案" :value="scheme" />
+                <van-field
+                    label="任务名称"
+                    v-validate="taskNameRule"
+                    v-model="taskName" />
+                <van-cell
+                    @click="show = true"
+                    title="方案"
+                    :value="scheme" />
                 <van-cell>
                     <router-link to="">预览流程图</router-link>
                 </van-cell>
@@ -26,21 +32,23 @@
         <van-popup
             v-model="show"
             position="bottom"
-            :overlay="true"
-        >
+            :overlay="true">
             <van-picker
                 show-toolbar
                 :columns="columns"
                 @confirm="onConfirm"
-                @cancel="show = false"
-            />
+                @cancel="show = false" />
         </van-popup>
         <!-- 参数信息 -->
         <section class="bk-block">
             <h2 class="bk-text-title">参数信息</h2>
             <div class="bk-text-list">
-                <van-field v-for="item in templateConstants" :key="item.id"
-                    :label="item.name" placeholder="输入参数值" :value="item.value" />
+                <van-field
+                    v-for="item in templateConstants"
+                    :key="item.id"
+                    :label="item.name"
+                    placeholder="输入参数值"
+                    :value="item.value" />
             </div>
         </section>
         <!-- 按钮 -->
@@ -96,15 +104,13 @@
                 this.schemes = await this.getSchemes()
                 this.taskName = this.getDefaultTaskName()
                 this.columns = [{ text: '执行所有节点' }, ...this.schemes]
-                console.log(this.schemes)
             },
             getDefaultTaskName () {
                 return this.templateData.name + '_' + moment().format('YYYYMMDDHHmmss')
             },
-            onConfirm (value, index) {
+            onConfirm (value) {
                 this.show = false
                 this.scheme = value
-                console.log(`当前值：${value}, 当前索引：${index}`)
             }
         }
     }

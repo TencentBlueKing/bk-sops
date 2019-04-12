@@ -3,14 +3,8 @@
         <!-- 任务信息 -->
         <section class="bk-block">
             <div class="bk-text-list">
-                <van-field
-                    label="参数01"
-                    placeholder="输入参数值"
-                />
-                <van-field
-                    label="参数02"
-                    placeholder="输入参数值"
-                />
+                <van-field label="参数01" placeholder="输入参数值" />
+                <van-field label="参数02" placeholder="输入参数值" />
             </div>
         </section>
         <div class="btn-group">
@@ -21,14 +15,12 @@
         <van-popup
             v-model="show11"
             position="bottom"
-            :overlay="true"
-        >
+            :overlay="true">
             <van-picker
                 show-toolbar
                 :columns="columns"
                 @confirm="show11 = false"
-                @cancel="show11 = false"
-            />
+                @cancel="show11 = false" />
         </van-popup>
     </div>
 </template>

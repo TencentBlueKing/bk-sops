@@ -44,7 +44,7 @@ Vue.use(NavBar)
     .use(Actionsheet)
 
 Vue.component('app-exception', Exception)
-Vue.config.devtools = true
+Vue.config.devtools = false
 
 global.bus = bus
 global.mainComponent = new Vue({

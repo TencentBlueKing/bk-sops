@@ -117,11 +117,7 @@ export default {
                         name: assetsPath('fonts/[name].[hash:7].[ext]')
                     }
                 }
-            },
-            {
-                test: /\.less$/,
-                loader: "vue-style-loader!css-loader!less-loader",
-            },
+            }
         ]
     },
     plugins: [

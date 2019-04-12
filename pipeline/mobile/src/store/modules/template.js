@@ -15,7 +15,6 @@ export default {
         getSchemes() {
             const _schemes = schemes.objects
             _schemes.forEach((item) => item.text = item.name)
-            console.log(_schemes)
             return _schemes
         }
     }

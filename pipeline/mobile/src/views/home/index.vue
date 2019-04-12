@@ -4,10 +4,10 @@
             v-model="loading"
             :finished="finished"
             finished-text="没有更多了"
-            @load="onLoad"
-        >
+            @load="onLoad">
             <div class="panel-list">
-                <van-cell v-for="item in list"
+                <van-cell
+                    v-for="item in list"
                     :to="`/template/?bizId=${item.cc_id}`"
                     :key="item.cc_id"
                     :title="item.cc_name">
@@ -43,7 +43,6 @@
                     const _this = this
                     bizList.forEach(item => {
                         ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
-                        console.log(item)
                         _this.list.push(item)
                     })
 

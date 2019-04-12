@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 import templateList from './modules/templateList'
 import template from './modules/template'
 import taskList from './modules/taskList'
+import task from './modules/task'
 import http from '@/api'
 import { unifyObjectStyle } from '@/common/util'
 
@@ -12,6 +13,7 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
     // 模块
     modules: {
+        task,
         taskList,
         templateList,
         template
