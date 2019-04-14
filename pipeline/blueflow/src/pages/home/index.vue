@@ -102,9 +102,6 @@ export default {
         ...mapActions('taskList/', [
             'loadTaskList'
         ]),
-        ...mapMutations('templateList/', [
-            'setTemplateListData'
-        ]),
         async getData () {
             this.loading = true
             Promise.all([
