@@ -975,15 +975,14 @@ const api = {
     /**
      * 加载轻应用数据
      */
-    loadAppmaker () {
+    loadAppmaker (data) {
         const { cc_id } = store.state
         const prefixUrl = this.getPrefix('appmaker')
+        const querystring = Object.assign({}, data, {business__cc_id: cc_id})
         const opts = {
             method: 'GET',
             url: prefixUrl,
-            params: {
-                business__cc_id: cc_id
-            }
+            params: querystring
         }
         return request(opts)
     },
