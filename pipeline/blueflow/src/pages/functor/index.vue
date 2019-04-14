@@ -12,12 +12,63 @@
 <template>
     <div class="functor-container">
         <div class="list-wrapper">
-            <div class="operation-area clearfix">
-                <bk-button :type="'primary'" @click="onNewTask">{{i18n.new}}</bk-button>
-                <div class="functor-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
-                    <i class="common-icon-search"></i>
-                </div>
+            <BaseTitle :title="i18n.functorList"></BaseTitle>
+            <BaseSearch
+                v-model="searchStr"
+                :inputPlaceholader="i18n.placeholder"
+                @onShow="onAdvanceShow"
+                @input="onSearchInput">
+            </BaseSearch>
+            <div class="functor-search" v-show="isAdvancedSerachShow">
+                <fieldset class="functor-fieldset">
+                    <div class="functor-query-content">
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.ownBusiness}}</span>
+                            <bk-selector
+                                :list="business.list"
+                                :display-key="'cc_name'"
+                                :setting-name="'cc_id'"
+                                :search-key="'cc_name'"
+                                :setting-key="'cc_id'"
+                                :selected.sync="selectedCcId"
+                                :placeholder="i18n.choice"
+                                :searchable="true"
+                                :allow-clear="true"
+                                @item-selected="onSelectedBizCcId">
+                            </bk-selector>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.billTime}}</span>
+                            <bk-date-range
+                                :range-separator="'-'"
+                                :quick-select="false"
+                                :start-date.sync="executeStartTime"
+                                :end-date.sync="executeEndTime"
+                                @change="onChangeExecuteTime">
+                            </bk-date-range>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.creator}}</span>
+                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder"/>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.status}}</span>
+                            <bk-selector
+                                :placeholder="i18n.statusPlaceholder"
+                                :list="statusList"
+                                :selected.sync="statusSync"
+                                :allow-clear="true"
+                                :searchable="true"
+                                @clear="onClearStatus"
+                                @item-selected="onSelectedStatus">
+                            </bk-selector>
+                        </div>
+                        <div class="query-button">
+                            <bk-button class="query-primary" type="primary" @click="loadFunctionTask">{{i18n.query}}</bk-button>
+                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
+                        </div>
+                    </div>
+                </fieldset>
             </div>
             <div class="functor-table-content">
                 <table v-bkloading="{isLoading: listLoading, opacity: 1}">
@@ -110,7 +161,7 @@
                             :search-key="'cc_name'"
                             :is-loading="business.loading"
                             :searchable="business.searchable"
-                            @item-selected="onSelectedBusiness"
+                            @item-selected="onSelectedBizCcId"
                             @clear="onClearBusiness">
                         </bk-selector>
                         <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
@@ -135,7 +186,7 @@
                         <bk-tooltip placement="left" width="400" class="template-tooltip">
                             <i class="bk-icon icon-info-circle"></i>
                             <div slot="content" style="white-space: normal;">
-                                <div class="">{{i18n.tips}}</div>
+                                <div>{{i18n.tips}}</div>
                             </div>
                         </bk-tooltip>
                         <span v-show="template.empty" class="common-error-tip error-msg">{{i18n.choiceTemplate}}</span>
@@ -147,28 +198,37 @@
 </template>
 <script>
 import '@/utils/i18n.js'
-import { mapActions, mapMutations } from 'vuex'
+import { mapActions, mapMutations, mapState } from 'vuex'
 import { errorHandler } from '@/utils/errorHandler.js'
 import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
 import NoData from '@/components/common/base/NoData.vue'
+import BaseTitle from '@/components/common/base/BaseTitle.vue'
 import BaseSearch from '@/components/common/base/BaseSearch.vue'
 import toolsUtils from '@/utils/tools.js'
+import moment from 'moment-timezone'
+
 export default {
     name: 'functorTaskHome',
     components: {
         CopyrightFooter,
         BaseSearch,
+        BaseTitle,
         NoData
     },
     props: ['cc_id', 'app_id'],
     data () {
         return {
             i18n: {
+                functorList: gettext('职能化中心'),
                 placeholder: gettext('请输入ID或流程名称'),
                 business: gettext('所属业务'),
                 createdTime: gettext('提单时间'),
                 claimedTime: gettext('认领时间'),
+                ownBusiness: gettext('所属业务'),
+                finishedTime: gettext('执行结束'),
                 name: gettext('任务名称'),
+                billTime: gettext('提单时间'),
+                billTimePlaceholder: gettext('请选择时间'),
                 creator: gettext('提单人'),
                 claimant: gettext('认领人'),
                 status: gettext('状态'),
@@ -182,16 +242,26 @@ export default {
                 total: gettext('共'),
                 item: gettext('条记录'),
                 comma: gettext('，'),
+                choice: gettext('请选择'),
                 currentPageTip: gettext('当前第'),
-                page: gettext('页')
+                page: gettext('页'),
+                functorType: gettext('任务分类'),
+                functorTypePlaceholder: gettext('请选择分类'),
+                creatorPlaceholder: gettext('请输入提单人'),
+                query: gettext('搜索'),
+                reset: gettext('清空')
             },
             listLoading: true,
+            selectedCcId: -1,
             currentPage: 1,
             totalPage: 1,
             countPerPage: 15,
             totalCount: 0,
-            searchStr: '',
+            functorSync: 0,
+            statusSync: 0,
+            searchStr: undefined,
             isShowNewTaskDialog: false,
+            functorBasicInfoLoading: true,
             functorList: [],
             business: {
                 list: [],
@@ -219,8 +289,30 @@ export default {
                 empty: false,
                 disabled: true
             },
-            isCommonTemplate: false
+            bizCcId: undefined,
+            billTime: undefined,
+            creator: undefined,
+            executeStartTime: undefined,
+            executeEndTime: undefined,
+            isStarted: undefined,
+            isFinished: undefined,
+            isCommonTemplate: false,
+            isAdvancedSerachShow: false,
+            status: undefined,
+            functorCategory: [],
+            statusList: [
+                {'id': 'submitted', 'name': gettext('未认领')},
+                {'id': 'claimed', 'name': gettext('已认领')},
+                {'id': 'executed', 'name': gettext('已执行')},
+                {'id': 'finished', 'name': gettext('完成')}
+            ]
         }
+    },
+    computed: {
+        ...mapState({
+            bizList: state => state.bizList,
+            categorys: state => state.categorys
+        })
     },
     created () {
         this.loadFunctionTask()
@@ -245,7 +337,21 @@ export default {
                 const data = {
                     limit: this.countPerPage,
                     offset: (this.currentPage - 1) * this.countPerPage,
-                    q: this.searchStr
+                    task__pipeline_instance__name__contains: this.searchStr,
+                    creator: this.creator || undefined,
+                    pipeline_instance__is_started: this.isStarted,
+                    pipeline_instance__is_finished: this.isFinished,
+                    task__business__cc_id: this.bizCcId,
+                    status: this.status
+                }
+                if (this.executeEndTime) {
+                    if (this.common) {
+                        data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
+                        data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1','d').format('YYYY-MM-DD')
+                    } else {
+                        data['create_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                        data['create_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1','d').format('YYYY-MM-DD')
+                    }
                 }
                 const functorListData = await this.loadFunctionTaskList(data)
                 const list = functorListData.objects
@@ -347,6 +453,12 @@ export default {
                 this.template.loading = false
             }
         },
+        onSelectedBizCcId (name, value) {
+            if (this.bizCcId === name) {
+                return
+            }
+            this.bizCcId = name
+        },
         onSelectedBusiness (id, data) {
             this.business.id = id
             this.getTemplateList()
@@ -400,11 +512,35 @@ export default {
             for (let item of textList) {
                 if (item.textContent === gettext(' 无数据 ')) {
                     item.style['cursor'] = 'not-allowed'
-                    item.style['background-color'] = '#FAFAFA'
-                    item.style['color'] = '#AAAAAA'
-                    item.parentElement.style["background-color"] = '#FAFAFA'
+                    item.style['background-color'] = '#fafafa'
+                    item.style['color'] = '#aaaaaa'
+                    item.parentElement.style["background-color"] = '#fafafa'
                 }
             }
+        },
+        onAdvanceShow () {
+            this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+        },
+        onChangeExecuteTime (oldValue, newValue) {
+            const timeArray = newValue.split(" - ")
+            this.executeStartTime = timeArray[0]
+            this.executeEndTime = timeArray[1]
+        },
+        onClearStatus () {
+            this.isStarted = undefined
+            this.isFinished = undefined
+        },
+        onResetForm () {
+            this.status = undefined
+            this.creator = undefined
+            this.statusSync = 0
+            this.selectedCcId = 0
+            this.funtorSync = 0
+            this.executeStartTime = undefined
+            this.executeEndTime = undefined
+        },
+        onSelectedStatus (id, name) {
+            this.status = id
         }
     }
 }
@@ -420,7 +556,6 @@ label.required:after {
     font-family: "SimSun";
 }
 .functor-container {
-    padding-top: 20px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: $whiteNodeBg;
@@ -448,37 +583,104 @@ label.required:after {
         margin-right: 30px;
     }
 }
-.operation-area {
-    margin: 20px 0;
-    .functor-search {
-        float: right;
-        position: relative;
-    }
-    .search-input {
-        padding: 0 40px 0 10px;
-        width: 360px;
-        height: 32px;
-        line-height: 32px;
-        font-size: 12px;
-        background: $whiteDefault;
-        border: 1px solid $commonBorderColor;
-        border-radius: 4px;
-        outline: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: $blueDefault;
-            & + i {
-                color: $blueDefault;
+.functor-fieldset {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid $commonBorderColor;
+    background: #fff;
+    .functor-query-content {
+        display: flex;
+        flex-wrap: wrap;
+        .query-content {
+            min-width: 420px;
+            padding: 10px;
+            @media screen and (max-width: 1420px){
+                min-width: 380px;
+            }
+            .query-span {
+                float: left;
+                min-width: 130px;
+                margin-right: 12px;
+                height: 32px;
+                line-height: 32px;
+                font-size: 14px;
+                text-align: right;
+                @media screen and (max-width: 1420px){
+                    min-width: 100px;
+                }
+            }
+            input {
+                max-width: 260px;
+                height: 32px;
+                line-height: 32px;
+            }
+            .bk-date-range:after {
+                height: 32px;
+                line-height: 32px;
+            }
+            .bk-selector-icon.clear-icon {
+                top:6px;
+            }
+            /deep/ .bk-selector {
+                max-width: 260px;
+                display: inline-block;
+            }
+            input::-webkit-input-placeholder{
+                color: $formBorderColor;
+            }
+            input:-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input::-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input:-ms-input-placeholder {
+                color: $formBorderColor;
+            }
+            input,.bk-selector,.bk-date-range {
+                min-width: 260px;
+            }
+            .search-input {
+                width: 260px;
+                height: 32px;
+                padding: 0 10px 0 10px;
+                font-size: 14px;
+                border: 1px solid $commonBorderColor;
+                line-height: 32px;
+                outline: none;
+                &:hover {
+                    border-color: #c0c4cc;
+                }
+                &:focus {
+                    border-color: $blueDefault;
+                    & + i {
+                        color: $blueDefault;
+                    }
+                }
+            }
+            .bk-selector-search-item > input {
+                min-width: 249px;
+            }
+            .bk-date-range {
+                display: inline-block;
+                width: 260px;
             }
         }
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
+        .query-button {
+            padding: 10px;
+            min-width: 450px;
+            @media screen and (max-width: 1420px) {
+                min-width: 390px;
+            }
+            text-align: center;
+            .query-cancel {
+                margin-left: 5px;
+            }
+            .bk-button {
+                height: 32px;
+                line-height: 32px;
+            }
+        }
     }
 }
 .functor-table-content {
