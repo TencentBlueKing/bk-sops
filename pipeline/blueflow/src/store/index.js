@@ -52,7 +52,8 @@ const store = new Vuex.Store({
         isSuperUser: window.IS_SUPERUSER === 1,
         v1_import_flag: window.IMPORT_V1_FLAG,
         rsa_pub_key: window.RSA_PUB_KEY,
-        businessTimezone: window.BUSINESS_TIMEZONE
+        businessTimezone: window.BUSINESS_TIMEZONE,
+        allBusinessList: []
     },
     mutations: {
         setAppId (state, id) {
@@ -81,12 +82,19 @@ const store = new Vuex.Store({
         },
         setBusinessTimezone (state, data) {
             state.businessTimezone = data
+        },
+        setAllBusinessList (state, data) {
+            state.allBusinessList = data
         }
     },
     actions: {
-        getBizList ({commit}) {
-            api.getBizList().then(response => {
-                commit('setBizList', response.data.objects)
+        getBizList ({commit}, isAll) {
+            api.getBizList(isAll).then(response => {
+                if (isAll) {
+                    commit('setAllBusinessList', response.data.objects)
+                } else {
+                    commit('setBizList', response.data.objects)
+                }
             })
         },
         changeDefaultBiz ({commit}, ccId) {
