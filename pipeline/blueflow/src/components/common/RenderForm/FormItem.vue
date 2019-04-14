@@ -93,7 +93,11 @@ function registerTag () {
     const register = (fileName, context) => {
         const componentConfig = context(fileName)
         const comp = componentConfig.default
-        const name = 'tag-' + comp.name.slice(3).toLowerCase()
+        const typeName = comp.name.slice(3).replace(/[A-Z]/g, match => {
+            return `_${match.toLowerCase()}`
+        })
+        const name = 'tag' + typeName
+
         tagComponent[name] = comp
     }
     innerComponent.keys().forEach(fileName => {
@@ -145,7 +149,7 @@ export default {
         const formValue = this.getFormValue(this.value)
 
         return {
-            tagComponent: `tag-${this.scheme.type}`,
+            tagComponent: `tag_${this.scheme.type}`,
             showForm,
             showHook,
             formValue,
@@ -157,7 +161,7 @@ export default {
     },
     watch: {
         scheme (val) {
-            this.tagComponent = `tag-${this.scheme.type}`
+            this.tagComponent = `tag_${this.scheme.type}`
         },
         value (val) {
             this.formValue = this.getFormValue(val)
