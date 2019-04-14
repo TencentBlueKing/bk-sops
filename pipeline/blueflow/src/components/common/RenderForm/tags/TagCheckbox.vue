@@ -41,7 +41,7 @@ const checkboxAttrs = {
     }
 }
 export default {
-    name: 'TagCheckBox',
+    name: 'TagCheckbox',
     mixins: [getFormMixins(checkboxAttrs)],
     computed: {
         checkedValue: {
