@@ -33,8 +33,8 @@ const appmaker = {
         queryAppmakerData ({commit}, data) {
             return api.queryAppmaker(data).then(response => response.data)
         },
-        loadAppmaker ({commit}) {
-            return api.loadAppmaker().then(response => response.data)
+        loadAppmaker ({commit}, data) {
+            return api.loadAppmaker(data).then(response => response.data)
         }
     }
 }
