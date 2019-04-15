@@ -62,6 +62,7 @@ INSTALLED_APPS += (
     'pipeline.log',
     'pipeline.contrib.statistics',
     'pipeline.contrib.periodic_task',
+    'pipeline.contrib.external_plugins',
     'django_signal_valve',
     'pipeline_plugins',
     'pipeline_plugins.components',
@@ -103,7 +104,7 @@ MIDDLEWARE += (
 )
 
 # 所有环境的日志级别可以在这里配置
-# LOG_LEVEL = 'INFO'
+LOG_LEVEL = 'INFO'
 
 # 静态资源文件(js,css等）在APP上线更新后, 由于浏览器有缓存,
 # 可能会造成没更新的情况. 所以在引用静态资源的地方，都把这个加上
@@ -131,6 +132,12 @@ CELERY_IMPORTS = (
 
 # load logging settings
 LOGGING = get_logging_config_dict(locals())
+
+LOGGING['loggers']['pipeline'] = {
+    'handlers': ['root'],
+    'level': LOG_LEVEL,
+    'propagate': True,
+}
 
 # 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
 # 注意：请在首次提测和上线前修改，之后的修改将不会生效
