@@ -962,7 +962,8 @@ class TaskFlowInstance(models.Model):
                 logger.exception(message)
                 outputs = {'ex_data': message}
             else:
-                outputs_data = outputs.get('outputs') or {}  # for some special empty case e.g. ''
+                # for some special empty case e.g. ''
+                outputs_data = outputs.get('outputs') or {}
                 # 在标准插件定义中的预设输出参数
                 archived_keys = []
                 for outputs_item in outputs_format:
