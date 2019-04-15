@@ -101,7 +101,6 @@ export default {
                     for (let i in ipResults) {
                         ipTotal = ipTotal.concat(ipResults[i].ip_logs)
                     }
-                    debugger
                     this.ipTotal = ipTotal
                     this.dataTotal = this.ipTotal
                     this.initTable()
