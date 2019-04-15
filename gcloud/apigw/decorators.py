@@ -27,7 +27,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.conf import settings
 
-if not sys.argv[1:2] == ['test'] and settings.RUN_VER != 'open':
+if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:
         from bkoauth.decorators import apigw_required
     except ImportError:
