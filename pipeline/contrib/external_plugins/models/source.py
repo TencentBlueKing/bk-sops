@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.contrib.external_plugins.utils.importer.git import GitRepoModuleImporter
 
 from pipeline.contrib.external_plugins.models.base import (
