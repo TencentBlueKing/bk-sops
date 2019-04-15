@@ -133,7 +133,7 @@ class JobExecuteTaskService(JobService):
                     ip_str=_value['value'],
                     use_cache=False)
                 ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
-                if ip_list:
+                if _value['value']:
                     global_vars.append({
                         'name': _value['name'],
                         'ip_list': ip_list,
