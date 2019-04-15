@@ -134,7 +134,7 @@ class JobExecuteTaskService(JobService):
                     use_cache=False)
                 ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
                 if _value['value'].strip() and not ip_list:
-                    data.outputs.ex_data = _(u"无法从 CC 查询到对应 IP，请确认输入的 IP 是否合法")
+                    data.outputs.ex_data = _(u"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
                     return False
                 if ip_list:
                     global_vars.append({
