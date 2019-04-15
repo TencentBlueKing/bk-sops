@@ -12,12 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
+import logging
 
 from django.utils import timezone
 from django.db.models import Q
 from django.forms.fields import BooleanField
 from django.utils.translation import ugettext_lazy as _
-from django.http.response import HttpResponseForbidden, HttpResponse
+from django.http.response import HttpResponseForbidden
 from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
@@ -32,12 +33,17 @@ from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.core.data.library import VariableLibrary
 from pipeline.models import VariableModel
-
 from gcloud import exceptions
 from gcloud.core.models import Business
+from gcloud.core.utils import (
+    name_handler,
+    prepare_user_business,
+)
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
-from gcloud.core.utils import name_handler, prepare_user_business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
+
+
+logger = logging.getLogger('root')
 
 
 def pipeline_node_name_handle(pipeline_tree):
@@ -259,9 +265,11 @@ class GCloudModelResource(ModelResource):
             query = applicable_filters.pop('q')
         else:
             query = None
-        queryset = super(GCloudModelResource, self).apply_filters(
-            request,
-            applicable_filters)
+        queryset = super(GCloudModelResource, self)
+        try:
+            queryset = queryset.apply_filters(request, applicable_filters)
+        except AttributeError:
+            pass
         return queryset.filter(query) if query else queryset
 
     def wrap_view(self, view):
@@ -322,13 +330,9 @@ class BusinessResource(GCloudModelResource):
         try:
             # fetch business from CMDB
             biz_list = prepare_user_business(request)
-        except exceptions.Unauthorized:
-            return HttpResponse(status=401)
-        except exceptions.Forbidden:
-            # target business does not exist (irregular request)
-            return HttpResponseForbidden()
-        except exceptions.APIError as e:
-            return HttpResponse(status=503, content=e.error)
+        except (exceptions.Unauthorized, exceptions.Forbidden, exceptions.APIError) as e:
+            logger.error(u'get business list[username=%s] from CMDB raise error: %s' % (request.user.username, e))
+            return super(BusinessResource, self).get_object_list(request)
         cc_id_list = [biz.cc_id for biz in biz_list]
         return super(BusinessResource, self).get_object_list(request).filter(cc_id__in=cc_id_list)
 
