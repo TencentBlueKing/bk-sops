@@ -59,14 +59,13 @@
 </template>
 <script>
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
-
     import SingleIpSelector from './SingleIpSelector.vue'
     import MultipleIpSelector from './MultipleIpSelector.vue'
     import SelectCondition from './SelectCondition.vue'
 
     const i18n = {
-        staticIP: gettext('静态IP'),
-        dynamicIP: gettext('动态IP'),
+        staticIp: gettext('静态IP'),
+        dynamicIp: gettext('动态IP'),
         filter: gettext('筛选条件'),
         exclude: gettext('排除条件')
     }

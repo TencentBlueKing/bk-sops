@@ -27,10 +27,11 @@
                     :data-type="item.type"
                     v-bktooltips.right="item.name"
                     @click.stop="onSelectNode(item.type)">
-                    <span
-                        v-if="item.type === 'startpoint' || item.type === 'endpoint'">
+                    <div
+                        v-if="item.type === 'startpoint' || item.type === 'endpoint'"
+                        class="node-circle">
                         {{i18n[item.type]}}
-                    </span>
+                    </div>
                 </li>
             </ul>
         </div>
@@ -290,22 +291,24 @@
         }
     }
 }
-.common-icon-node-startpoint,
-.common-icon-node-endpoint{
-    display: flex;
+.node-circle{
+    margin: 0 auto;
     width: 32px;
     height: 32px;
-    margin: 12px;
+    line-height: 32px;
     font-size: 12px;
-    margin-bottom: 23px;
     border-radius: 50%;
     background-color: #ffffff;
     border: 1px solid #546a9e;
-    justify-content: center;
-    align-items: center;
 }
-.node-endpoint {
-    margin-top: 20px;
+.startpoint-unavailable,
+.endpoint-unavailable {
+    opacity: 0.3;
+    pointer-events: none;
+}
+.common-icon-node-tasknode,
+.common-icon-node-subflow {
+    font-size: 24px;
 }
 .node-list {
     position: absolute;
@@ -433,25 +436,5 @@
         }
         
     }
-}
-.startpoint-unavailable, .endpoint-unavailable {
-    display: flex;
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
-    border-radius: 50%;
-    background-color: #ffffff;
-    border: 1px solid #546a9e;
-    justify-content: center;
-    align-items: center;
-    opacity: 0.3;
-    pointer-events: none;
-}
-.endpoint-unavailable {
-    margin-bottom: 12px;
-}
-.common-icon-node-tasknode,
-.common-icon-node-subflow {
-    font-size: 24px;
 }
 </style>

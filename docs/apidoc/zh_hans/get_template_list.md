@@ -17,21 +17,23 @@
 | 字段          |  类型       | 必选   |  描述             |
 |---------------|------------|--------|-------------------|
 | bk_biz_id     |  string    | 是     | 模板所属业务ID     |
+| template_source | string   | 否     | 流程模板来源，business:默认值，业务流程，common：公共流程 |
 
 ### 请求参数示例
 
-```python
+```
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "2"
+    "bk_biz_id": "2",
+    "template_source": "business",
 }
 ```
 
 ### 返回结果示例
 
-```python
+```
 {
     "result": true,
     "data": [

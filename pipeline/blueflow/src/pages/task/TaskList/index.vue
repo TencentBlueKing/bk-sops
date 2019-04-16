@@ -708,6 +708,7 @@
             background: $whiteNodeBg;
         }
         .task-id {
+            padding-left: 20px;
             width: 80px;
         }
         .task-name {

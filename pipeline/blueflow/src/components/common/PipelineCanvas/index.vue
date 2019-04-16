@@ -664,12 +664,13 @@
         position: absolute;
         top: 80px;
         left: 380px;
-        z-index: 4;
+        z-index: 5;
     }
     .atom-node {
         position: absolute;
         top: 86px;
-        left: 42%;
+        left: 50%;
+        transform: translateX(-50%);
         z-index: 4;
         .atom-number {
             color: #a9b2bd;

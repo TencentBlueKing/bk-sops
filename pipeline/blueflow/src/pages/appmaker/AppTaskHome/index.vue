@@ -319,6 +319,7 @@
             background: #fafafa;
         }
         .appmaker-id {
+            padding-left: 20px;
             width: 80px;
         }
         .appmaker-name {

@@ -59,7 +59,7 @@
                         </td>
                         <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
                         <td class="col-delete" @click.stop="onDeleteDraft(draft.key)">
-                            <i class="bk-icon icon-close-circle"></i>
+                            <i class="close-btn common-icon-dark-circle-close"></i>
                         </td>
                     </tr>
                     <tr v-if="!draftArray.length" class="empty-draft-tip">
@@ -289,7 +289,7 @@
             cursor: pointer;
             tr:hover {
                 background: $blueStatus;
-                .icon-close-circle {
+                .close-btn {
                     display: inline-block;
                 }
             }
@@ -309,11 +309,14 @@
         .col-delete {
             position: relative;
             width: 20px;
-            .icon-close-circle {
-                position: absolute;
-                top: 14px;
-                right: 16px;
+            .close-btn {
                 display: none;
+                position: absolute;
+                top: 13px;
+                right: 14px;
+                font-size: 14px;
+                color: #979ba5;
+                cursor: pointer;
             }
         }
     }

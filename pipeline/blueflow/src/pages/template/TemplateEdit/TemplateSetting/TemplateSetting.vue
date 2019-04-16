@@ -28,37 +28,35 @@
                 </div>
             </div>
         </div>
-        <transition name="slideRight">
-            <div class="setting-panel" v-show="showPanel">
-                <div class="panel-content">
-                    <TabGlobalVariables
-                        v-show="activeTab === 'globalVariableTab'"
-                        ref="globalVariable"
-                        class="panel-item"
-                        :is-variable-editing="isVariableEditing"
-                        @changeVariableEditing="onVariableEditingChange"
-                        @variableDataChanged="onVariableDataChange"
-                        @onDeleteConstant="onDeleteConstant">
-                    </TabGlobalVariables>
-                    <TabTemplateConfig
-                        class="panel-item"
-                        v-show="activeTab === 'templateConfigTab'"
-                        :is-template-config-valid="isTemplateConfigValid"
-                        :business-info-loading="businessInfoLoading"
-                        @onSelectCategory="onSelectCategory">
-                    </TabTemplateConfig>
-                    <TabLocalDraft
-                        class="panel-item"
-                        v-show="activeTab === 'localDraftTab'"
-                        :draft-array="draftArray"
-                        @onDeleteDraft="onDeleteDraft"
-                        @onReplaceTemplate="onReplaceTemplate"
-                        @onNewDraft="onNewDraft"
-                        @hideConfigPanel="hideConfigPanel">
-                    </TabLocalDraft>
-                </div>
+        <div class="setting-panel" v-show="showPanel">
+            <div class="panel-content">
+                <TabGlobalVariables
+                    v-show="activeTab === 'globalVariableTab'"
+                    ref="globalVariable"
+                    class="panel-item"
+                    :is-variable-editing="isVariableEditing"
+                    @changeVariableEditing="onVariableEditingChange"
+                    @variableDataChanged="onVariableDataChange"
+                    @onDeleteConstant="onDeleteConstant">
+                </TabGlobalVariables>
+                <TabTemplateConfig
+                    class="panel-item"
+                    v-show="activeTab === 'templateConfigTab'"
+                    :is-template-config-valid="isTemplateConfigValid"
+                    :business-info-loading="businessInfoLoading"
+                    @onSelectCategory="onSelectCategory">
+                </TabTemplateConfig>
+                <TabLocalDraft
+                    class="panel-item"
+                    v-show="activeTab === 'localDraftTab'"
+                    :draft-array="draftArray"
+                    @onDeleteDraft="onDeleteDraft"
+                    @onReplaceTemplate="onReplaceTemplate"
+                    @onNewDraft="onNewDraft"
+                    @hideConfigPanel="hideConfigPanel">
+                </TabLocalDraft>
             </div>
-        </transition>
+        </div>
     </div>
 </template>
 <script>
@@ -206,7 +204,6 @@
     border-left: 1px solid $commonBorderColor;
     border-bottom: 1px solid $commonBorderColor;
     z-index: 1;
-    transition: height 0.3s ease-in;
     &.vertical-fold {
         height: 217px;
     }
@@ -239,7 +236,6 @@
     height: 100%;
     background: $whiteDefault;
     border-left: 1px solid $commonBorderColor;
-    transition: right 0.5s ease-in-out;
 }
 .panel-content {
     height: 100%;

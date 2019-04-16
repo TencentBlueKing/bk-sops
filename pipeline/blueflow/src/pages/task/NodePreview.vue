@@ -101,7 +101,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .node-preview-wrapper {
-    height: 100%;
+    height: 460px;
 }
 .canvas-wrapper {
     height: calc(100% - 50px);

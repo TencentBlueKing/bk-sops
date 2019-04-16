@@ -494,6 +494,7 @@
             background: $whiteNodeBg;
         }
         .periodic-id {
+            padding-left: 20px;
             width: 80px;
         }
         .periodic-name {

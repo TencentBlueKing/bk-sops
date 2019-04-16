@@ -173,10 +173,9 @@
         }
     }
     .config-name-wrapper {
-        display: inline-block;
-        margin: 15px auto 0;
+        margin: 0 auto;
+        padding-top: 15px;
         width: 430px;
-        height: 30px;
         .name-show-mode {
             display: inline-block;
         }

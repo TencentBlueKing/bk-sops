@@ -29,7 +29,7 @@
                 <div class="column-panel clearfix">
                     <div class="col-item">
                         <TaskFeeds
-                            :top3task-feeds="top3TaskFeeds"
+                            :top-three-task-feeds="topThreeTaskFeeds"
                             :cc_id="cc_id">
                         </TaskFeeds>
                     </div>
@@ -71,7 +71,7 @@
                     appmakerStatus: {}
                 },
                 quickTaskList: [],
-                top3TaskFeeds: [],
+                topThreeTaskFeeds: [],
                 taskCount: [],
                 totalTask: 0,
                 templateClassify: [],
@@ -248,7 +248,7 @@
                 // 任务的数量
                 this.totalTemplate = data[4].total
                 // 任务记录
-                this.top3TaskFeeds = data[1]
+                this.topThreeTaskFeeds = data[1]
                 this.taskCount = data[2].groups
                 this.totalTask = data[2].total
             },

@@ -13,9 +13,9 @@
     <div class="task-feeds-content">
         <h3 class="title">{{i18n.feeds}}</h3>
         <router-link class="view-more-task" :to="`/taskflow/home/${cc_id}/`">{{i18n.viewMore}}</router-link>
-        <div v-if="top3TaskFeeds.length" class="feed-container">
+        <div v-if="topThreeTaskFeeds.length" class="feed-container">
             <ul class="feed-list">
-                <li v-for="(item, index) in top3TaskFeeds" :key="item.id" class="feed-item">
+                <li v-for="(item, index) in topThreeTaskFeeds" :key="item.id" class="feed-item">
                     <div class="item-mark-icon">
                         <i class="common-icon-clock"></i>
                     </div>
@@ -56,7 +56,7 @@
         components: {
             NoData
         },
-        props: ['top3TaskFeeds', 'cc_id'],
+        props: ['topThreeTaskFeeds', 'cc_id'],
         data () {
             return {
                 feedsStatus: this.getTaskStatus(),
@@ -87,7 +87,7 @@
                 return tools.timeTransform(task.elapsed_time)
             },
             getTaskStatus () {
-                return this.top3TaskFeeds.map((item, index) => {
+                return this.topThreeTaskFeeds.map((item, index) => {
                     const status = {}
                     if (item.is_finished) {
                         status.cls = 'finished'

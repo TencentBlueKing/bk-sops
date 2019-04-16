@@ -119,6 +119,7 @@
         display: inline-block;
         margin: 0;
         padding-left: 20px;
+        width: 140px;
         height: 30px;
         line-height: 30px;
         font-size: 12px;
@@ -140,7 +141,7 @@
         .name {
             float: left;
             margin-left: 4px;
-            max-width: 85px;
+            max-width: 90px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;

@@ -12,12 +12,6 @@
 import Vue from 'vue'
 import api from '@/api/index.js'
 
-const VAR_TYPE = {
-    'var_ip_picker': 'variable',
-    'password': 'variable',
-    'select': 'variable'
-}
-
 const META_FORM_TYPE = {
     'select': 'select_meta'
 }
@@ -53,8 +47,8 @@ const atomForm = {
     },
     actions: {
         loadAtomConfig ({ commit, state }, payload) {
-            const { atomType, isMeta } = payload
-            const atomClassify = VAR_TYPE[atomType] || 'component'
+            const { atomType, classify, isMeta } = payload
+            const atomClassify = classify || 'component'
             return api.$getAtomForm(atomType, atomClassify, isMeta || 0).then(
                 response => response.data
             ).catch(e => {

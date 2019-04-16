@@ -31,7 +31,7 @@
                             :class="['bk-button', 'bk-primary', { 'is-disabled': pending.upload }]">
                             {{ i18n.click }}
                         </label>
-                        <h4 class="common-h4">{{file && file.name}}</h4>
+                        <h4 class="file-name">{{file && file.name}}</h4>
                         <input
                             ref="templateFile"
                             id="template-file"
@@ -55,58 +55,56 @@
                         </span>
                     </div>
                 </div>
-                <template>
-                    <div class="common-form-item">
-                        <label>{{ i18n.list }}</label>
-                        <div class="common-form-content">
-                            <div class="template-head">
-                                <span class="template-span">ID</span>
-                                <span class="template-process-name">{{ i18n.name }}</span>
-                            </div>
-                            <div class="template-fileList">
-                                <table :class="['template-table', { 'hide-border': hideBorder }]">
-                                    <tbody>
-                                        <template v-for="item in exportList">
-                                            <tr
-                                                v-if="!isChecked || overrideList.find(file => file.id === item.id )"
-                                                :key="item.id"
-                                                :class="{ 'template-table-conflict': overrideList.find(file => file.id === item.id ) }">
-                                                <td class="conflict-id" :title="item.id">
-                                                    {{item.id}}
-                                                </td>
-                                                <td class="conflict-name">
-                                                    <span :title="item.name">{{item.name}}</span>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                        <template v-if="isEmpty">
-                                            <tr>
-                                                <td colspan="2">
-                                                    <NoData v-if="!pending.upload">
-                                                        <div>{{ i18n.noData }}</div>
-                                                    </NoData>
-                                                    <div v-else class="uploading-tip">
-                                                        <i class="common-icon-loading"></i>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
+                <div class="common-form-item">
+                    <label>{{ i18n.list }}</label>
+                    <div class="common-form-content">
+                        <div class="template-head">
+                            <span class="template-span">ID</span>
+                            <span class="template-process-name">{{ i18n.name }}</span>
+                        </div>
+                        <div class="template-fileList">
+                            <table class="template-table">
+                                <tbody>
+                                    <template v-for="item in exportList">
+                                        <tr
+                                            v-if="!isChecked || overrideList.find(file => file.id === item.id )"
+                                            :key="item.id"
+                                            :class="{ 'template-table-conflict': overrideList.find(file => file.id === item.id ) }">
+                                            <td class="conflict-id" :title="item.id">
+                                                {{item.id}}
+                                            </td>
+                                            <td class="conflict-name">
+                                                <span :title="item.name">{{item.name}}</span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <template v-if="isEmpty">
+                                        <tr>
+                                            <td colspan="2">
+                                                <NoData v-if="!pending.upload">
+                                                    <div>{{ i18n.noData }}</div>
+                                                </NoData>
+                                                <div v-else class="uploading-tip">
+                                                    <i class="common-icon-loading"></i>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-                    <div class="common-content" v-show="uploadData">
-                        <div class="common-list-label">
-                            <label class="common-list">{{i18n.uploadProcess}}{{exportList.length}}{{i18n.process}}</label>
-                            <label class="common-item" v-if="overrideList.length">{{i18n.amongThem}}{{overrideList.length}}{{i18n.conflictList}}</label>
-                        </div>
-                        <div class="common-checkbox" @click="onShowConflicts">
-                            <span :class="['checkbox', { checked: isChecked }]"></span>
-                            <span>{{ i18n.showConflicts }}</span>
-                        </div>
+                </div>
+                <div class="common-content" v-show="uploadData">
+                    <div class="common-list-label">
+                        <label class="common-list">{{i18n.uploadProcess}}{{exportList.length}}{{i18n.process}}</label>
+                        <label class="common-item" v-if="overrideList.length">{{i18n.amongThem}}{{overrideList.length}}{{i18n.conflictList}}</label>
                     </div>
-                </template>
+                    <div class="common-checkbox" @click="onShowConflicts">
+                        <span :class="['checkbox', { checked: isChecked }]"></span>
+                        <span>{{ i18n.showConflicts }}</span>
+                    </div>
+                </div>
             </div>
             <div class="common-wrapper-btn">
                 <bk-button type="primary button" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
@@ -122,8 +120,7 @@
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
-    const TABLE_COLUMN_HEIGHT = 42
-    const TABLE_HEIGHT = 251
+
     export default {
         name: 'ImportTemplateDialog',
         components: {
@@ -180,17 +177,11 @@
                 'site_url': state => state.site_url,
                 'cc_id': state => state.cc_id
             }),
-            hideBorder () {
-                return this.exportList.length * TABLE_COLUMN_HEIGHT > TABLE_HEIGHT
-            },
             exportConflict () {
-                return this.exportList.length ? this.i18n.replaceWithoutConflict : this.i18n.reservedSubmit
+                return this.exportList.length ? this.i18n.replaceSubmit : this.i18n.replaceWithoutConflict
             },
             overrideFlict () {
-                return this.overrideList.length ? this.i18n.replaceSubmit : this.i18n.reservedWithoutConflict
-            },
-            isEmpty () {
-                return !this.exportList.length || (this.exportList.length && this.isChecked && !this.overrideList.length)
+                return this.overrideList.length ? this.i18n.reservedSubmit : this.i18n.reservedWithoutConflict
             }
         },
         methods: {
@@ -307,87 +298,158 @@
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import "@/scss/config.scss";
 @import "@/scss/mixins/scrollbar.scss";
 .import-container {
-  .import-wrapper {
     .common-form-item {
-      margin-bottom: 15px;
-      & > label {
-        width: 80px;
-        font-weight: normal;
-      }
-      .common-form-label {
-        width: 180px;
-        margin-left: 30px;
-      }
-      .common-form-content {
-        margin-left: 100px;
-        margin-right: 20px;
-        .bk-button.bk-primary {
-          width: 120px;
-          margin-left: 20px;
+        margin-bottom: 15px;
+        & > label {
+            width: 80px;
+            font-weight: normal;
         }
-        .common-h4 {
-          padding: 4px 0px 0px 20px;
+        .common-form-label {
+            width: 180px;
+            margin-left: 30px;
         }
-        .common-form-checkbox {
-          display: inline-block;
-          width: 120px;
-          margin-left: 280px;
-          margin-top: 6px;
-          .checkbox {
+        .common-form-content {
+            margin-left: 100px;
+            margin-right: 20px;
+            .bk-button.bk-primary {
+                width: 120px;
+                margin-left: 20px;
+            }
+        }
+        .is-override-radio {
+            margin-left: 20px;
+            height: 36px;
+            line-height: 36px;
+            font-size: 14px;
+            .radio-icon {
+                position: relative;
+                display: inline-block;
+                width: 14px;
+                height: 14px;
+                border: 1px solid $commonBorderColor;
+                border-radius: 50%;
+                cursor: pointer;
+            }
+            .radio-label {
+                padding-left: 4px;
+                line-height: 1;
+                cursor: pointer;
+            }
+            input[type="radio"] {
+                display: none;
+            }
+            input[type="radio"]:checked + label {
+                & > .radio-icon {
+                    background: $blueDefault;
+                    border: 1px solid $blueDefault;
+                    &:after {
+                        content: "";
+                        position: absolute;
+                        top: 4px;
+                        left: 4px;
+                        width: 4px;
+                        height: 4px;
+                        background: $whiteDefault;
+                        border-radius: 50%;
+                    }
+                }
+            }
+            &.is-disabled {
+                .radio-label {
+                    color: $greyDisable;
+                    cursor: not-allowed;
+                }
+                .radio-icon {
+                    border-color: $greyDisable;
+                }
+                input[type="radio"]:checked + label {
+                    & > .radio-icon {
+                        background: $whiteDefault;
+                        border-color: $greyDisable;
+                        &::after {
+                            background: $greyDisable;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    .common-content {
+        margin-left: 118px;
+        .common-list-label {
             display: inline-block;
+            width: 353px;
+        }
+        .common-item {
+            color: #ff5656;
+        }
+        .common-checkbox {
             position: relative;
-            width: 14px;
-            height: 14px;
-            color: $whiteDefault;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &:hover {
-              border-color: $greyDark;
+            right: 20px;
+            float: right;
+            cursor: pointer;
+            .checkbox {
+                display: inline-block;
+                position: relative;
+                width: 14px;
+                height: 14px;
+                color: $whiteDefault;
+                border: 1px solid $formBorderColor;
+                border-radius: 2px;
+                text-align: center;
+                vertical-align: -2px;
+                &:hover {
+                    border-color: $greyDark;
+                }
+                &.checked {
+                    background: $blueDefault;
+                    border-color: $blueDefault;
+                    &::after {
+                        content: "";
+                        position: absolute;
+                        left: 2px;
+                        top: 2px;
+                        height: 4px;
+                        width: 8px;
+                        border-left: 1px solid;
+                        border-bottom: 1px solid;
+                        border-color: $whiteDefault;
+                        transform: rotate(-45deg);
+                    }
+                }
             }
-            &.checked {
-              background: $blueDefault;
-              border-color: $blueDefault;
-              &::after {
-                content: "";
-                position: absolute;
-                left: 2px;
-                top: 2px;
-                height: 4px;
-                width: 8px;
-                border-left: 1px solid;
-                border-bottom: 1px solid;
-                border-color: $whiteDefault;
-                transform: rotate(-45deg);
-              }
-            }
-          }
         }
-        .template-head {
-          height: 42px;
-          line-height: 42px;
-          margin-left: 20px;
-          font-size: 0;
-          border-top: 1px solid #C3CDD7;
-          border-right: 1px solid #C3CDD7;
-          .template-span {
+    }
+    #template-file {
+        display: none;
+    }
+    .file-name {
+        padding: 4px 0px 0px 20px;
+    }
+    .template-head {
+        height: 42px;
+        line-height: 42px;
+        margin-left: 20px;
+        font-size: 0;
+        border-top: 1px solid #c3cdd7;
+        border-right: 1px solid #c3cdd7;
+        .template-span {
             display: inline-block;
-            width: 88px;
+            width: 80px;
             height: 42px;
             color: #333333;
             font-size: 14px;
             font-weight: 600;
             border-left: 1px solid $formBorderColor;
-          }
-          .template-process-name {
+        }
+        .template-process-name {
             font-size: 14px;
-          }
-          span {
+        }
+        span {
             display: inline-block;
             width: 230px;
             height: 42px;
@@ -396,10 +458,9 @@
             color: #333333;
             font-weight: 600;
             border-left: 1px solid $formBorderColor;
-          }
         }
-      }
-      .template-fileList {
+    }
+    .template-fileList {
         margin-left: 20px;
         height: 252px;
         border: 1px solid #c3cdd7;
@@ -407,196 +468,79 @@
         overflow-y: auto;
         @include scrollbar;
         .template-table {
-          color: #e4e5e7;
-          border-collapse: collapse;
-          &.hide-border {
-            .template-table-conflict:last-child {
-              tr,td {
+            width: 100%;
+            color: #e4e5e7;
+            border-collapse: collapse;
+            tr:last-child td{
                 border-bottom: none;
-              }
             }
-          }
-          .conflict-id {
-            display: inline-block;
-            padding: 0 10px;
-            width: 88px;
-            max-width: 88px;
-            height: 42px;
-            line-height: 42px;
-            text-align: center;
-            border-bottom: 1px solid #c3cdd7;
-            border-right:1px solid #c3cdd7;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-          }
-          .conflict-name {
-            max-width: 460px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-            border-bottom: 1px solid #c3cdd7;
-          }
-          th,td {
-            width: 579px;
-            height: 42px;
-            padding: 10px 10px;
-            text-align: left;
-            color: #313238;
-          }
-          /deep/ .no-data {
-            padding: 10px 0;
-            .common-icon-no-data {
-              font-size: 32px;
+            th,td {
+                padding: 10px 10px;
+                height: 42px;
+                text-align: left;
+                color: #313238;
             }
-            .no-data-wording {
-              margin: 0;
-              font-size: 12px;
+            .conflict-id {
+                width: 79px;
+                height: 42px;
+                text-align: center;
+                border-bottom: 1px solid #c3cdd7;
+                border-right: 1px solid #c3cdd7;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
             }
-          }
-          .template-table-conflict {
-            tr,td {
-              height: 42px;
-              color: #ff5656;
-              border-bottom: 1px solid #c3cdd7;
+            .conflict-name {
+                max-width: 470px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                border-bottom: 1px solid #c3cdd7;
             }
-          }
-          .uploading-tip {
-            padding: 10px;
-            .common-icon-loading {
-              display: inline-block;
-              animation: bk-button-loading 1.4s infinite linear;
+            /deep/ .no-data-wrapper {
+                margin-top: 90px;
+                .common-icon-no-data {
+                    font-size: 32px;
+                }
+                .no-data-wording {
+                    margin: 0;
+                    font-size: 12px;
+                }
             }
-            @keyframes bk-button-loading {
-              from {
-                -webkit-transform: rotate(0);
-                transform: rotate(0);
-              }
-              to {
-                -webkit-transform: rotate(360deg);
-                transform: rotate(360deg);
-              }
+            .template-table-conflict {
+                td {
+                    color: #ff5656;
+                }
             }
-          }
+            .uploading-tip {
+                margin-top: 105px;
+                text-align: center;
+                .common-icon-loading {
+                    display: inline-block;
+                    animation: bk-button-loading 1.4s infinite linear;
+                }
+                @keyframes bk-button-loading {
+                    from {
+                        -webkit-transform: rotate(0);
+                        transform: rotate(0);
+                    }
+                    to {
+                        -webkit-transform: rotate(360deg);
+                        transform: rotate(360deg);
+                    }
+                }
+            }
         }
-      }
-      .is-override-radio {
-        margin-left: 20px;
-        height: 36px;
-        line-height: 36px;
-        font-size: 14px;
-        .radio-icon {
-          position: relative;
-          display: inline-block;
-          width: 14px;
-          height: 14px;
-          border: 1px solid $commonBorderColor;
-          border-radius: 50%;
-          cursor: pointer;
-        }
-        .radio-label {
-          padding-left: 4px;
-          line-height: 1;
-          cursor: pointer;
-        }
-        input[type="radio"] {
-          display: none;
-        }
-        input[type="radio"]:checked + label {
-          & > .radio-icon {
-            background: $blueDefault;
-            border: 1px solid $blueDefault;
-            &:after {
-              content: "";
-              position: absolute;
-              top: 4px;
-              left: 4px;
-              width: 4px;
-              height: 4px;
-              background: $whiteDefault;
-              border-radius: 50%;
-            }
-          }
-        }
-        &.is-disabled {
-          .radio-label {
-            color: $greyDisable;
-            cursor: not-allowed;
-          }
-          .radio-icon {
-            border-color: $greyDisable;
-          }
-          input[type="radio"]:checked + label {
-            & > .radio-icon {
-              background: $whiteDefault;
-              border-color: $greyDisable;
-              &::after {
-                background: $greyDisable;
-              }
-            }
-          }
-        }
-      }
     }
-    .common-content {
-      margin-left: 118px;
-      .common-list-label {
-        display: inline-block;
-        width: 353px;
-      }
-      .common-item {
-        color: #ff5656;
-      }
-      .common-checkbox {
-        position: relative;
-        right: 20px;
+    .common-wrapper-btn {
         float: right;
-        cursor: pointer;
-        .checkbox {
-          display: inline-block;
-          position: relative;
-          width: 14px;
-          height: 14px;
-          color: $whiteDefault;
-          border: 1px solid $formBorderColor;
-          border-radius: 2px;
-          text-align: center;
-          vertical-align: -2px;
-          &:hover {
-            border-color: $greyDark;
-          }
-          &.checked {
-            background: $blueDefault;
-            border-color: $blueDefault;
-            &::after {
-              content: "";
-              position: absolute;
-              left: 2px;
-              top: 2px;
-              height: 4px;
-              width: 8px;
-              border-left: 1px solid;
-              border-bottom: 1px solid;
-              border-color: $whiteDefault;
-              transform: rotate(-45deg);
-            }
-          }
+        margin-top: 28px;
+        .bk-button {
+            margin: 5px;
         }
-      }
     }
-    #template-file {
-      display: none;
-    }
-  }
-  .common-wrapper-btn {
-    float: right;
-    margin-top: 28px;
-    .bk-button {
-      margin: 5px;
-    }
-  }
 }
-.import-dialog .bk-dialog-outer {
-  display: none;
+/deep/ .bk-dialog-footer .bk-dialog-outer {
+    display: none;
 }
 </style>

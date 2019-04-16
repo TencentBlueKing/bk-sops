@@ -438,6 +438,7 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
+                        this.template_id = data.template_id
                         this.allowLeave = true
                         this.$router.push({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
@@ -487,7 +488,7 @@
                         atomGrouped[index].list.push(item)
                     }
                 })
-
+                
                 this.subAtomGrouped = atomGrouped
             },
             toggleSettingPanel (isSettingPanelShow) {
