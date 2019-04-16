@@ -19,8 +19,18 @@ from pipeline_plugins.components.utils import handle_api_error
 
 from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
 
+from .constants import NO_ERROR, ERROR_CODES
+
 
 def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
+    """
+    @summary：根据前端表单数据获取合法的IP
+    @param username:
+    @param bk_biz_id:
+    @param bk_supplier_account:
+    @param kwargs:
+    @return:
+    """
     topo_result = get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account)
     if not topo_result['result']:
         return topo_result
@@ -31,7 +41,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
                                                  kwargs,
                                                  biz_topo_tree)
     if not build_result['result']:
-        return {'result': False, 'code': 111, 'data': [], 'message': build_result['message']}
+        return {'result': False, 'code': ERROR_CODES.PARAMETERS_ERROR, 'data': [], 'message': build_result['message']}
     cmdb_kwargs = build_result['data']
 
     client = get_client_by_user(username)
@@ -91,7 +101,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
 
     result = {
         'result': True,
-        'code': 0,
+        'code': NO_ERROR,
         'data': data,
         'message': ''
     }
@@ -114,6 +124,14 @@ def format_condition_value(conditions):
 
 
 def build_cmdb_search_host_kwargs(bk_biz_id, bk_supplier_account, kwargs, biz_topo_tree):
+    """
+    @summary: 组装配置平台请求参数
+    @param bk_biz_id:
+    @param bk_supplier_account:
+    @param kwargs:
+    @param biz_topo_tree:
+    @return:
+    """
     cmdb_kwargs = {
         'bk_biz_id': bk_biz_id,
         'bk_supplier_account': bk_supplier_account,
@@ -177,6 +195,11 @@ def get_modules_of_bk_obj(bk_obj):
 
 
 def get_modules_id(modules):
+    """
+    @summary: 将模块列表转换成 id 格式
+    @param modules:
+    @return:
+    """
     return [mod.get('bk_module_id') or mod.get('bk_inst_id') for mod in modules]
 
 
@@ -246,13 +269,13 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
     topo_result = client.cc.search_biz_inst_topo(kwargs)
     if not topo_result['result']:
         message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.search_biz_inst_topo', kwargs, topo_result['message'])
-        result = {'result': False, 'code': 100, 'message': message, 'data': []}
+        result = {'result': False, 'code': ERROR_CODES.API_CMDB_ERROR, 'message': message, 'data': []}
         return result
 
     inter_result = client.cc.get_biz_internal_module(kwargs)
     if not inter_result['result']:
         message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.get_biz_internal_module', kwargs, inter_result['message'])
-        result = {'result': False, 'code': 101, 'message': message, 'data': []}
+        result = {'result': False, 'code': ERROR_CODES.API_CMDB_ERROR, 'message': message, 'data': []}
         return result
 
     inter_data = inter_result['data']
@@ -273,4 +296,4 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
             } for mod in inter_data['module']]
         }
         data[0]['child'].insert(0, default_set)
-    return {'result': True, 'code': 0, 'data': data, 'messsage': ''}
+    return {'result': True, 'code': NO_ERROR, 'data': data, 'messsage': ''}
