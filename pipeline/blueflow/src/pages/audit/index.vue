@@ -598,6 +598,7 @@ export default {
             background: #fafafa;
         }
         .audit-id {
+            padding-left: 20px;
             width: 80px;
         }
         .audit-name {
@@ -695,12 +696,18 @@ export default {
     }
 }
 .panagation {
-    margin-top: 20px;
+    padding: 10px 20px;
     text-align: right;
+    border: 1px solid #dde4eb;
+    border-top: none;
+    background: #fafbfd;
     .page-info {
         float: left;
-        margin-top: 10px;
+        line-height: 36px;
         font-size: 14px;
+    }
+    .bk-page {
+        display: inline-block;
     }
 }
 </style>
