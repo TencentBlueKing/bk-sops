@@ -41,19 +41,11 @@
 <script>
     import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
-<<<<<<< HEAD
-const i18n = {
-    select: gettext('请选择'),
-    desc: gettext('请输入拓扑实例名称，多个用换行符分隔'),
-    notEmpty: gettext('必填项')
-}
-=======
     const i18n = {
         select: gettext('请选择'),
-        desc: gettext('输入筛选条件，多条筛选条件换行隔开'),
+        desc: gettext('请输入拓扑实例名称，多个用换行符分隔'),
         notEmpty: gettext('必填项')
     }
->>>>>>> V3.3.X
 
     export default {
         name: 'ConditionItem',
