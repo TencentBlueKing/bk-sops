@@ -14,9 +14,9 @@
         <el-input
             type="textarea"
             v-model="textareaValue"
-            :class="{'rf-view-textarea-value': !formMode, 'rf-view-textarea': !editable}"
+            :class="{ 'rf-view-textarea-value': !formMode, 'rf-view-textarea': !editable }"
             :disabled="!editable || !formMode"
-            :autosize="formMode ? {minRows: 2} : true"
+            :autosize="formMode ? { minRows: 2 } : true"
             resize="none"
             :placeholder="placeholder">
         </el-input>
@@ -24,39 +24,39 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const textareaAttrs = {
-    value: {
-        type: String,
-        required: false,
-        default: ''
-    },
-    placeholder: {
-        type: String,
-        required: false,
-        default: '',
-        desc: "placeholder"
+    const textareaAttrs = {
+        value: {
+            type: String,
+            required: false,
+            default: ''
+        },
+        placeholder: {
+            type: String,
+            required: false,
+            default: '',
+            desc: 'placeholder'
+        }
     }
-}
-export default {
-    name: "TagTextarea",
-    mixins: [getFormMixins(textareaAttrs)],
-    computed: {
-        textareaValue: {
-            get () {
-                if (!this.formMode && !this.value) {
-                    return '--'
+    export default {
+        name: 'TagTextarea',
+        mixins: [getFormMixins(textareaAttrs)],
+        computed: {
+            textareaValue: {
+                get () {
+                    if (!this.formMode && !this.value) {
+                        return '--'
+                    }
+                    return this.value
+                },
+                set (val) {
+                    this.updateForm(val)
                 }
-                return this.value
-            },
-            set (val) {
-                this.updateForm(val)
             }
         }
     }
-}
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
@@ -86,6 +86,3 @@ export default {
     }
 }
 </style>
-
-
-

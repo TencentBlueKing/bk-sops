@@ -13,11 +13,11 @@
     <div class="config-page">
         <div class="page-container">
             <h3 class="page-title">{{i18n.title}}</h3>
-            <div class="page-content" v-bkloading="{isLoading: configLoading, opacity: 1}">
+            <div class="page-content" v-bkloading="{ isLoading: configLoading, opacity: 1 }">
                 <div class="common-form-item">
                     <label>{{i18n.executorLabel}}</label>
                     <div class="common-form-content">
-                        <BaseInput v-model="executor"/>
+                        <BaseInput v-model="executor" />
                         <bk-tooltip placement="right" width="400" class="desc-tooltip">
                             <i class="bk-icon icon-info-circle"></i>
                             <div slot="content" style="white-space: normal;">
@@ -50,85 +50,85 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import BaseInput from '@/components/common/base/BaseInput.vue'
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import BaseInput from '@/components/common/base/BaseInput.vue'
 
-export default {
-    name: 'configPage',
-    components: {
-        BaseInput
-    },
-    data () {
-        return {
-            executor: undefined,
-            pending: false,
-            alwaysUseExecutor: false,
-            configLoading: false,
-            i18n: {
-                title: gettext('执行者配置'),
-                executorLabel: gettext('任务执行者'),
-                alwaysUseExecutorLabel: gettext('强制生效'),
-                executorTips: gettext('该字段默认在非运维人员执行任务时生效，为空则从配置平台(CMDB)随机获取运维身份'),
-                alwaysUseTips: gettext('开启后，所有任务都使用任务执行者身份来执行'),
-                save: gettext("保存")
-            }
-        }
-    },
-    created () {
-        this.getConfig()
-    },
-    methods: {
-        ...mapActions('config/', [
-            'loadBizConfig',
-            'configBizExecutor'
-        ]),
-        async getConfig () {
-            this.configLoading = true
-            try {
-                const resp = await this.loadBizConfig()
-                if (resp.result) {
-                    this.executor = resp.data.executor
-                    this.alwaysUseExecutor = resp.data.always_use_executor
-                } else {
-                    errorHandler(resp, this)
+    export default {
+        name: 'configPage',
+        components: {
+            BaseInput
+        },
+        data () {
+            return {
+                executor: undefined,
+                pending: false,
+                alwaysUseExecutor: false,
+                configLoading: false,
+                i18n: {
+                    title: gettext('执行者配置'),
+                    executorLabel: gettext('任务执行者'),
+                    alwaysUseExecutorLabel: gettext('强制生效'),
+                    executorTips: gettext('该字段默认在非运维人员执行任务时生效，为空则从配置平台(CMDB)随机获取运维身份'),
+                    alwaysUseTips: gettext('开启后，所有任务都使用任务执行者身份来执行'),
+                    save: gettext('保存')
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.configLoading = false
             }
         },
-        async onSaveConfig () {
-            if (this.pending) return
-            this.pending = true
-            this.executor = this.executor.trim()
-            try {
-                const data = {
-                    executor: this.executor,
-                    always_use_executor: this.alwaysUseExecutor
-                }
-                const resp = await this.configBizExecutor(data)
-                if (resp.result) {
-                    this.$bkMessage({
-                        message: gettext('保存成功'),
-                        theme: 'success'
-                    })
-                } else {
-                    errorHandler(resp, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending = false
-            }
+        created () {
+            this.getConfig()
         },
-        onSwitchChange (selected) {
-            this.alwaysUseExecutor = selected
+        methods: {
+            ...mapActions('config/', [
+                'loadBizConfig',
+                'configBizExecutor'
+            ]),
+            async getConfig () {
+                this.configLoading = true
+                try {
+                    const resp = await this.loadBizConfig()
+                    if (resp.result) {
+                        this.executor = resp.data.executor
+                        this.alwaysUseExecutor = resp.data.always_use_executor
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.configLoading = false
+                }
+            },
+            async onSaveConfig () {
+                if (this.pending) return
+                this.pending = true
+                this.executor = this.executor.trim()
+                try {
+                    const data = {
+                        executor: this.executor,
+                        always_use_executor: this.alwaysUseExecutor
+                    }
+                    const resp = await this.configBizExecutor(data)
+                    if (resp.result) {
+                        this.$bkMessage({
+                            message: gettext('保存成功'),
+                            theme: 'success'
+                        })
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending = false
+                }
+            },
+            onSwitchChange (selected) {
+                this.alwaysUseExecutor = selected
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -182,5 +182,3 @@ export default {
     }
 }
 </style>
-
-

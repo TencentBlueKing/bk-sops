@@ -23,53 +23,53 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const checkboxAttrs = {
-    items: {
-        type: Array,
-        required: true,
-        desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
-    },
-    value: {
-        type: Array,
-        required: false,
-        default () {
-            return []
-        }
-    }
-}
-export default {
-    name: 'TagCheckbox',
-    mixins: [getFormMixins(checkboxAttrs)],
-    computed: {
-        checkedValue: {
-            get () {
-                return this.value
-            },
-            set (val) {
-                this.updateForm(val)
-            }
+    const checkboxAttrs = {
+        items: {
+            type: Array,
+            required: true,
+            desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
         },
-        viewValue () {
-            if (!this.checkedValue.length) {
-                return '--'
+        value: {
+            type: Array,
+            required: false,
+            default () {
+                return []
             }
-
-            return this.checkedValue.map(val => {
-                let label = val
-                this.items.some(item => {
-                    if (item.value === val) {
-                        label = item.name
-                        return true
-                    }
-                })
-                return label
-            }).join(',')
         }
     }
-}
+    export default {
+        name: 'TagCheckbox',
+        mixins: [getFormMixins(checkboxAttrs)],
+        computed: {
+            checkedValue: {
+                get () {
+                    return this.value
+                },
+                set (val) {
+                    this.updateForm(val)
+                }
+            },
+            viewValue () {
+                if (!this.checkedValue.length) {
+                    return '--'
+                }
+
+                return this.checkedValue.map(val => {
+                    let label = val
+                    this.items.some(item => {
+                        if (item.value === val) {
+                            label = item.name
+                            return true
+                        }
+                    })
+                    return label
+                }).join(',')
+            }
+        }
+    }
 </script>
 <style lang="scss" scoped>
     .checkbox-item {

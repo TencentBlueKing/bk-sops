@@ -81,23 +81,23 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'HomeSummary',
-    props: ['cc_id', 'summaryData'],
-    data () {
-        return {
-            i18n: {
-                enter: gettext('进入'),
-                executeTask: gettext('执行任务'),
-                template: gettext('新建流程'),
-                appmaker: gettext('轻应用'),
-                times: gettext('次'),
-                num: gettext('个')
+    import '@/utils/i18n.js'
+    export default {
+        name: 'HomeSummary',
+        props: ['cc_id', 'summaryData'],
+        data () {
+            return {
+                i18n: {
+                    enter: gettext('进入'),
+                    executeTask: gettext('执行任务'),
+                    template: gettext('新建流程'),
+                    appmaker: gettext('轻应用'),
+                    times: gettext('次'),
+                    num: gettext('个')
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';

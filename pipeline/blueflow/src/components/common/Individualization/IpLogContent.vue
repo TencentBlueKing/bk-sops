@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="ip-log-content" v-bkloading="{isLoading: loading, opacity: 1}">
+    <div class="ip-log-content" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="detail-ip-log" v-html="logContent"></div>
         <el-input
             :placeholder="i18n.placeholder"
@@ -47,95 +47,95 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-import { mapActions } from 'vuex'
-export default {
-    name: 'IpLogContent',
-    props: [
-        'nodeInfo'
-    ],
-    data () {
-        return {
-            i18n: {
-                error_code: gettext("错误码"),
-                placeholder: gettext("请输入 IP")
-            },
-            loading: true,
-            failDetail: '',
-            ipTotal: [],
-            ipList: [],
-            pageSize: 5,
-            pageCount: 5,
-            ipTableData: [],
-            currentRow: null,
-            logContent: '',
-            dataTotal: [],
-            search: ''
-        }
-    },
-    mounted () {
-        this.loadIpLogContent()
-    },
-    watch: {
-        search: function () {
-            this.dataTotal = this.ipTotal.filter( item => ( !this.search || item.ip.includes(this.search)))
-            this.initTable()
-        }
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getJobInstanceLog'
-        ]),
-        async loadIpLogContent () {
-            this.loading = true
-            try {
-                if (
-                    this.nodeInfo.ex_data &&
-                    this.nodeInfo.ex_data.hasOwnProperty('show_ip_log') &&
-                    this.nodeInfo.ex_data.show_ip_log
-                ) {
-                    this.failDetail = await this.getJobInstanceLog({"job_instance_id": this.nodeInfo.ex_data.task_inst_id})
-                    let ipTotal = []
-                    let ipResults = this.failDetail.data[0].step_results
-                    for (let i in ipResults) {
-                        ipTotal = ipTotal.concat(ipResults[i].ip_logs)
+    import '@/utils/i18n.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import { mapActions } from 'vuex'
+    export default {
+        name: 'IpLogContent',
+        props: [
+            'nodeInfo'
+        ],
+        data () {
+            return {
+                i18n: {
+                    error_code: gettext('错误码'),
+                    placeholder: gettext('请输入 IP')
+                },
+                loading: true,
+                failDetail: '',
+                ipTotal: [],
+                ipList: [],
+                pageSize: 5,
+                pageCount: 5,
+                ipTableData: [],
+                currentRow: null,
+                logContent: '',
+                dataTotal: [],
+                search: ''
+            }
+        },
+        watch: {
+            search: function () {
+                this.dataTotal = this.ipTotal.filter(item => (!this.search || item.ip.includes(this.search)))
+                this.initTable()
+            }
+        },
+        mounted () {
+            this.loadIpLogContent()
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getJobInstanceLog'
+            ]),
+            async loadIpLogContent () {
+                this.loading = true
+                try {
+                    if (
+                        this.nodeInfo.ex_data
+                        && this.nodeInfo.ex_data.hasOwnProperty('show_ip_log')
+                        && this.nodeInfo.ex_data.show_ip_log
+                    ) {
+                        this.failDetail = await this.getJobInstanceLog({ 'job_instance_id': this.nodeInfo.ex_data.task_inst_id })
+                        let ipTotal = []
+                        const ipResults = this.failDetail.data[0].step_results
+                        for (const i in ipResults) {
+                            ipTotal = ipTotal.concat(ipResults[i].ip_logs)
+                        }
+                        this.ipTotal = ipTotal
+                        this.dataTotal = this.ipTotal
+                        this.initTable()
                     }
-                    this.ipTotal = ipTotal
-                    this.dataTotal = this.ipTotal
-                    this.initTable()
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.loading = false
+            },
+            currentChange (val) {
+                this.ipList = this.dataTotal.slice(val * this.pageSize - this.pageSize, val * this.pageSize)
+            },
+            getIpLogContent (data) {
+                if (data !== null) {
+                    const self = this
+                    this.ipList.every(item => {
+                        if (item.ip === data.ip) {
+                            self.logContent = item.log_content
+                            return false
+                        }
+                        return true
+                    })
+                }
+            },
+            setCurrent (row) {
+                this.$refs.singleTable.setCurrentRow(row)
+            },
+            initTable () {
+                this.currentChange(1)
+                this.getIpLogContent(this.ipList[0])
+                this.setCurrent(this.ipList[0])
             }
-        },
-        currentChange (val) {
-            this.ipList = this.dataTotal.slice(val * this.pageSize - this.pageSize, val * this.pageSize)
-        },
-        getIpLogContent (data){
-            if (data !== null){
-                var self = this
-                this.ipList.every( item => {
-                    if (item.ip === data.ip){
-                        self.logContent = item.log_content
-                        return false
-                    }
-                    return true
-                })
-            }
-        },
-        setCurrent (row) {
-            this.$refs.singleTable.setCurrentRow(row)
-        },
-        initTable () {
-            this.currentChange(1)
-            this.getIpLogContent(this.ipList[0])
-            this.setCurrent(this.ipList[0])
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .ip-log-content {

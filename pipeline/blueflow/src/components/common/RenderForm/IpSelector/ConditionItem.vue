@@ -26,97 +26,97 @@
             <textarea
                 :placeholder="i18n.desc"
                 v-model="condition.value"
-                :class="{'disabled': !editable}"
+                :class="{ 'disabled': !editable }"
                 :disabled="!editable"
                 @change="onConditionTextChange">
             </textarea>
             <span v-show="valueError" class="common-error-tip value-error">{{i18n.notEmpty}}</span>
         </div>
         <div class="operation-wrap">
-            <i :class="['operation-btn', 'add-condition', {'disabled': !editable}]" @click.stop="onAddCondition"></i>
-            <i :class="['operation-btn', 'delete-condition', {'disabled': !editable}]" @click.stop="onDeleteCondition"></i>
+            <i :class="['operation-btn', 'add-condition', { 'disabled': !editable }]" @click.stop="onAddCondition"></i>
+            <i :class="['operation-btn', 'delete-condition', { 'disabled': !editable }]" @click.stop="onDeleteCondition"></i>
         </div>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
-const i18n = {
-    select: gettext('请选择'),
-    desc: gettext('输入筛选条件，多条筛选条件换行隔开'),
-    notEmpty: gettext('必填项')
-}
+    const i18n = {
+        select: gettext('请选择'),
+        desc: gettext('输入筛选条件，多条筛选条件换行隔开'),
+        notEmpty: gettext('必填项')
+    }
 
-export default {
-    name: 'ConditionItem',
-    props: ['editable', 'data', 'fieldsList', 'index'],
-    data () {
-        return {
-            isDropdownShow: false,
-            filedError: false,
-            valueError: false,
-            condition: {
-                field: this.data.field,
-                value: this.data.value.join('\n')
-            },
-            i18n
-        }
-    },
-    computed: {
-        filedsData () {
-            return this.fieldsList.map(item => {
-                return {
-                    id: item.bk_obj_id,
-                    name: item.bk_obj_name
+    export default {
+        name: 'ConditionItem',
+        props: ['editable', 'data', 'fieldsList', 'index'],
+        data () {
+            return {
+                isDropdownShow: false,
+                filedError: false,
+                valueError: false,
+                condition: {
+                    field: this.data.field,
+                    value: this.data.value.join('\n')
+                },
+                i18n
+            }
+        },
+        computed: {
+            filedsData () {
+                return this.fieldsList.map(item => {
+                    return {
+                        id: item.bk_obj_id,
+                        name: item.bk_obj_name
+                    }
+                })
+            }
+        },
+        watch: {
+            data: {
+                handler (val) {
+                    this.condition = {
+                        field: val.field,
+                        value: val.value.join('\n')
+                    }
+                },
+                deep: true
+            }
+        },
+        methods: {
+            onConditionSelect (value) {
+                const condition = {
+                    field: value,
+                    value: this.data.value
                 }
-            })
-        }
-    },
-    watch: {
-        data: {
-            handler (val) {
-                this.condition = {
-                    field: val.field,
-                    value: val.value.join('\n')
-                }
+                this.$emit('changeCondition', condition, this.index)
             },
-            deep: true
-        }
-    },
-    methods: {
-        onConditionSelect (value) {
-            const condition = {
-                field: value,
-                value: this.data.value
+            onConditionTextChange () {
+                const condition = {
+                    field: this.condition.field,
+                    value: this.condition.value.split('\n')
+                }
+                this.$emit('changeCondition', condition, this.index)
+            },
+            onAddCondition () {
+                if (!this.editable) {
+                    return
+                }
+                this.$emit('addCondition')
+            },
+            onDeleteCondition (data) {
+                if (!this.editable) {
+                    return
+                }
+                this.$emit('deleteCondition')
+            },
+            validate () {
+                this.filedError = !this.condition.field
+                this.valueError = !this.condition.value
+                return !this.filedError && !this.valueError
             }
-            this.$emit('changeCondition', condition, this.index)
-        },
-        onConditionTextChange () {
-            const condition = {
-                field: this.condition.field,
-                value: this.condition.value.split('\n')
-            }
-            this.$emit('changeCondition', condition, this.index)
-        },
-        onAddCondition () {
-            if (!this.editable) {
-                return
-            }
-            this.$emit('addCondition')
-        },
-        onDeleteCondition (data) {
-            if (!this.editable) {
-                return
-            }
-            this.$emit('deleteCondition')
-        },
-        validate () {
-            this.filedError = !this.condition.field
-            this.valueError = !this.condition.value
-            return !this.filedError && !this.valueError
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .condition-item {
@@ -245,7 +245,3 @@ export default {
     }
 }
 </style>
-
-
-
-

@@ -10,31 +10,31 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-	<div class="exception-box">
-		<img :src="require('@/assets/images/building.png')" alt="404">
-		<p>{{ i18n.no_page }}</p>
-	</div>
+    <div class="exception-box">
+        <img :src="require('@/assets/images/building.png')" alt="404">
+        <p>{{ i18n.no_page }}</p>
+    </div>
 </template>
 
 <script>
-import '@/utils/i18n.js'
-export default {
-    data () {
-        return {
-            i18n: {
-                no_page: gettext("没找到页面！")
+    import '@/utils/i18n.js'
+    export default {
+        data () {
+            return {
+                i18n: {
+                    no_page: gettext('没找到页面！')
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss">
-	.exception-box {
-		margin: 150px auto 0;
-		width: 300px;
-		text-align: center;
-		img {
-			width: 100%;
-		}
-	}
+    .exception-box {
+        margin: 150px auto 0;
+        width: 300px;
+        text-align: center;
+        img {
+            width: 100%;
+        }
+    }
 </style>

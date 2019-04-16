@@ -15,9 +15,9 @@
             <div
                 v-for="selector in selectorTabs"
                 :key="selector.type"
-                :class="['ip-tab-radio', {'disabled': !editable}]"
+                :class="['ip-tab-radio', { 'disabled': !editable }]"
                 @click="onChooseSelector(selector.id)">
-                <span :class="['radio', {'checked': activeSelector === selector.id}]"></span>
+                <span :class="['radio', { 'checked': activeSelector === selector.id }]"></span>
                 <span class="radio-text">{{selector.name}}</span>
             </div>
         </div>
@@ -26,62 +26,62 @@
                 v-show="activeSelector === 'ip'"
                 ref="ip"
                 :editable="editable"
-                :staticIpList="staticIpList"
-                :staticIps="staticIps"
+                :static-ip-list="staticIpList"
+                :static-ips="staticIps"
                 @change="onStaticIpChange">
             </static-ip>
             <dynamic-ip
                 v-show="activeSelector === 'topo'"
                 ref="topo"
                 :editable="editable"
-                :dynamicIpList="dynamicIpList"
-                :dynamicIps="dynamicIps"
+                :dynamic-ip-list="dynamicIpList"
+                :dynamic-ips="dynamicIps"
                 @change="onDynamicIpChange">
             </dynamic-ip>
         </div>
     </div>
 </template>
 <script>
-import StaticIp from './StaticIp.vue'
-import DynamicIp from './DynamicIp.vue'
+    import StaticIp from './StaticIp.vue'
+    import DynamicIp from './DynamicIp.vue'
 
-export default {
-    name: 'SingleIpSelector',
-    components: {
-        StaticIp,
-        DynamicIp
-    },
-    props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'staticIps', 'dynamicIps'],
-    data () {
-        return {
-            activeSelector: this.selectors[0]
-        }
-    },
-    watch: {
-        selectors (val, oldVal) {
-            if (val.toString() !== oldVal.toString()) {
-                this.activeSelector = val[0]
+    export default {
+        name: 'SingleIpSelector',
+        components: {
+            StaticIp,
+            DynamicIp
+        },
+        props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'staticIps', 'dynamicIps'],
+        data () {
+            return {
+                activeSelector: this.selectors[0]
             }
-        }
-    },
-    methods: {
-        onChooseSelector (id) {
-            if (!this.editable) {
-                return
+        },
+        watch: {
+            selectors (val, oldVal) {
+                if (val.toString() !== oldVal.toString()) {
+                    this.activeSelector = val[0]
+                }
             }
-            this.$emit('change', 'selectors', [id])
         },
-        onStaticIpChange (val) {
-            this.$emit('change', 'ip', val)
-        },
-        onDynamicIpChange (val) {
-            this.$emit('change', 'topo', val)
-        },
-        validate () {
-            return this.$refs[this.activeSelector].validate()
+        methods: {
+            onChooseSelector (id) {
+                if (!this.editable) {
+                    return
+                }
+                this.$emit('change', 'selectors', [id])
+            },
+            onStaticIpChange (val) {
+                this.$emit('change', 'ip', val)
+            },
+            onDynamicIpChange (val) {
+                this.$emit('change', 'topo', val)
+            },
+            validate () {
+                return this.$refs[this.activeSelector].validate()
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .selector-choose-wrap {
@@ -124,5 +124,3 @@ export default {
     }
 }
 </style>
-
-
