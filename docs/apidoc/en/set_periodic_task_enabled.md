@@ -1,6 +1,6 @@
 ### Functional description
 
-Task actions such as start, pause, resume, revoke, etc.
+modify task activation status
 
 ### Request Parameters
 
@@ -16,18 +16,10 @@ Task actions such as start, pause, resume, revoke, etc.
 
 | Field          |  Type       | Required   |  Description             |
 |---------------|------------|--------|------------------|
-|   bk_biz_id   |   string     |   YES   |  the business ID |
-|   task_id     |   string     |   YES   |  the task ID     |
-|   action      |   string     |   YES   |  action type, the value is described below |
+|   task_id    |   string     |   YES   |  task ID |
+|   bk_biz_id    |   string     |   YES   |  business ID |
+|   enabled    |   bool     |   NO   | whether the task is activate, default value is false |
 
-#### action
-
-| Value        | Description     |
-|-----------|----------|
-| start     | start a task, which is same with calling API[start_task] |
-| pause     | suspended a running task  |
-| resume    | resume a suspended task   |
-| revoke    | revoke a task, task revoked could not be operated again |
 
 ### Request Parameters Example
 
@@ -36,9 +28,9 @@ Task actions such as start, pause, resume, revoke, etc.
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "action": "start",
     "bk_biz_id": "2",
-    "task_id": "10"
+    "task_id": "8",
+    "enabled": false
 }
 ```
 
@@ -46,8 +38,10 @@ Task actions such as start, pause, resume, revoke, etc.
 
 ```
 {
-    "result": true,
-    "data": {}
+    "data": {
+        "enabled": false
+    },
+    "result": true
 }
 ```
 
@@ -55,6 +49,12 @@ Task actions such as start, pause, resume, revoke, etc.
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
-|  result   |    bool    |      true or false, indicate success or failure   |
-|  data     |    dict    |      data returned when result is true            |
-|  message  |    string  |      error message returned when result is false  |
+|  result   |    bool    |      true or false, indicate success or failure                      |
+|  data     |    dict    |      data returned when result is true, details are described below  |
+|  message  |    string  |      error message returned when result is false                     |
+
+#### data
+
+| Field      | Type      | Description      |
+| ------------ | ---------- | ------------------------------ |
+|  enabled      |    bool    |      whether the task is activate    |
