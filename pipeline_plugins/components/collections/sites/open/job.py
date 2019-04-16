@@ -133,10 +133,14 @@ class JobExecuteTaskService(JobService):
                     ip_str=_value['value'],
                     use_cache=False)
                 ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
-                global_vars.append({
-                    'name': _value['name'],
-                    'ip_list': ip_list,
-                })
+                if _value['value'].strip() and not ip_list:
+                    data.outputs.ex_data = _(u"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+                    return False
+                if ip_list:
+                    global_vars.append({
+                        'name': _value['name'],
+                        'ip_list': ip_list,
+                    })
             else:
                 global_vars.append({
                     'name': _value['name'],

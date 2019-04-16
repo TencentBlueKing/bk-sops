@@ -77,7 +77,7 @@ export default {
             'atomFormConfig': state => state.atomForm.config
         }),
         isEmptyParams () {
-            return this.renderConfig.length === 0
+            return !this.renderConfig || this.renderConfig.length === 0
         },
         isSubflowNode () {
             return !this.nodeDetailConfig.component_code

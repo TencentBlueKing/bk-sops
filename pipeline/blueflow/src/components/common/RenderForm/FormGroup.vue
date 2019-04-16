@@ -14,7 +14,14 @@
         <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
             <h3 class="name">{{scheme.attrs.name}}</h3>
             <div v-if="scheme.attrs.desc" class="rf-group-desc">
-                <i v-bktooltips.left="scheme.attrs.desc" class="common-icon-dark-circle-warning"></i>
+                <i
+                    v-bktooltips="{
+                        content: scheme.attrs.desc,
+                        placements: ['right'],
+                        zIndex: 2002
+                    }"
+                    class="bk-icon icon-info-circle">
+                </i>
             </div>
         </div>
         <div v-if="hook" class="rf-form-item rf-has-hook">

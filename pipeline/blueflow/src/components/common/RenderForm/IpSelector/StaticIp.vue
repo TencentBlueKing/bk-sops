@@ -54,7 +54,7 @@
                     <tbody>
                         <template v-if="listInPage.length">
                             <tr v-for="item in listInPage" :key="item.bk_host_d">
-                                <td>{{item.bk_host_name}}</td>
+                                <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}}</td>
                                 <td>{{item.bk_host_innerip}}</td>
                                 <td :class="item.agent ? 'agent-normal' : 'agent-failed'">{{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}</td>
                                 <td>
@@ -68,7 +68,11 @@
                         </template>
                         <tr v-else>
                             <td class="static-ip-empty" colspan="4">
-                                <span v-if="!isSearchMode && editable">{{i18n.noDataClick}}<a class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</a>{{i18n.server}}</span>
+                                <span v-if="!isSearchMode && editable">
+                                    {{i18n.noDataClick}}
+                                    <a class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</a>
+                                    {{i18n.server}}
+                                </span>
                                 <span v-else>{{i18n.noData}}</span>
                             </td>
                         </tr>
@@ -273,7 +277,7 @@ export default {
     position: relative;
     margin: 20px 0;
     .bk-dropdown-menu, .trigger-btn {
-        width: 145px;
+        width: 162px;
     }
 }
 .operation-btn {

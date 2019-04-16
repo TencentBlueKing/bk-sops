@@ -42,7 +42,7 @@
                                     @click="onHostItemClick(item)">
                                 </span>
                             </td>
-                            <td>{{item.bk_host_name}}</td>
+                            <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}</td>
                             <td>{{item.bk_host_innerip}}</td>
                             <td :class="item.agent ? 'agent-normal' : 'agent-failed'">{{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}</td>
                         </tr>
@@ -191,6 +191,7 @@ export default {
         position: absolute;
         top: 20px;
         right: 0;
+        width: 80%;
     }
 }
 .ip-table {
