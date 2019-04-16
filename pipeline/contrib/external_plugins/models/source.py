@@ -14,7 +14,11 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from pipeline.contrib.external_plugins.utils.importer.git import GitRepoModuleImporter
+from pipeline.contrib.external_plugins.utils.importer import (
+    GitRepoModuleImporter,
+    S3ModuleImporter,
+    FSModuleImporter
+)
 
 from pipeline.contrib.external_plugins.models.base import (
     GIT,
@@ -52,7 +56,11 @@ class S3Source(ExternalPackageSource):
         return S3
 
     def importer(self):
-        pass
+        return S3ModuleImporter(modules=self.packages.keys(),
+                                service_address=self.service_address,
+                                bucket=self.bucket,
+                                access_key=self.access_key,
+                                secret_key=self.secret_key)
 
 
 @package_source
@@ -64,4 +72,5 @@ class FileSystemSource(ExternalPackageSource):
         return FILE_SYSTEM
 
     def importer(self):
-        pass
+        return FSModuleImporter(modules=self.packages.keys(),
+                                path=self.path)
