@@ -75,6 +75,7 @@
                     type: "change",
                     action: function (value) {
                         var $this = this;
+                        this.changeHook(false);
                         this.set_loading(true);
                         $.ajax({
                             url: $.context.site_url + 'pipeline/job_get_job_detail_by_biz/' + $.context.biz_cc_id + '/' + value + '/',

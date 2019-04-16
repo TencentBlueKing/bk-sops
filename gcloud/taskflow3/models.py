@@ -962,7 +962,8 @@ class TaskFlowInstance(models.Model):
                 logger.exception(message)
                 outputs = {'ex_data': message}
             else:
-                outputs_data = outputs.get('outputs', {})
+                # for some special empty case e.g. ''
+                outputs_data = outputs.get('outputs') or {}
                 # 在标准插件定义中的预设输出参数
                 archived_keys = []
                 for outputs_item in outputs_format:
@@ -1098,6 +1099,10 @@ class TaskFlowInstance(models.Model):
                                                                                             e.failed_nodes)
                 logger.exception(message)
                 return {'result': False, 'message': message}
+
+            except TypeError:
+                logger.exception(traceback.format_exc())
+                return {'result': False, 'message': 'redis connection error, check redis configuration please'}
 
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)
