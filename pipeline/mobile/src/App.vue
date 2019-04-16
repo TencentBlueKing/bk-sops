@@ -1,13 +1,18 @@
 <template>
     <div class="app-container">
+        <Navbar></Navbar>
         <router-view></router-view>
     </div>
 </template>
 <script>
     import { mapGetters } from 'vuex'
+    import Navbar from '@/components/navbar/Navbar.vue'
 
     export default {
         name: 'app',
+        components: {
+            Navbar
+        },
         data () {
             return {
                 routerKey: +new Date(),
@@ -41,6 +46,10 @@
 </script>
 
 <style>
-    @import './css/reset.css';
-    @import './css/app.css';
+    .app-container {
+      font-family: 'PingFang SC', Helvetica, 'STHeiti STXihei', 'Microsoft YaHei', Tohoma, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: #313238;
+    }
 </style>
