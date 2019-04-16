@@ -17,16 +17,16 @@ import store from '@/store/index.js'
 import { getUrlSetting } from './urls.js'
 import { fileDownload } from './fileDownload.js'
 
-const axiosDefaults = require("axios/lib/defaults")
+const axiosDefaults = require('axios/lib/defaults')
 
-axiosDefaults.xsrfCookieName = window.APP_CODE + "_csrftoken"
-axiosDefaults.xsrfHeaderName = "X-CSRFToken"
+axiosDefaults.xsrfCookieName = window.APP_CODE + '_csrftoken'
+axiosDefaults.xsrfHeaderName = 'X-CSRFToken'
 axiosDefaults.withCredentials = true
 axiosDefaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
 
 const fullURL = window.location.protocol + '//' + window.location.host
 
-function request (opts){
+function request (opts) {
     const defaultOptions = {
         method: 'GET',
         url: '',
@@ -45,7 +45,7 @@ const api = {
      * @param {String} path 路径名称
      */
     getPrefix (path) {
-        const {site_url, cc_id} = store.state
+        const { site_url, cc_id } = store.state
         return getUrlSetting(site_url, cc_id)[path]
     },
     /**
@@ -108,7 +108,7 @@ const api = {
         const { cc_id } = store.state
         let prefixUrl = ''
         if (data) {
-            const {common} = data
+            const { common } = data
             if (common) {
                 prefixUrl = this.getPrefix('commonTemplate')
             } else {
@@ -117,7 +117,7 @@ const api = {
         } else {
             prefixUrl = this.getPrefix('template')
         }
-        const querystring = Object.assign({}, data, {business__cc_id: cc_id})
+        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -129,7 +129,7 @@ const api = {
      * 删除模板
      */
     deleteTemplate (data) {
-        const {templateId, common} = data
+        const { templateId, common } = data
         let prefixUrl = ''
         if (common) {
             prefixUrl = this.getPrefix('commonTemplate')
@@ -158,7 +158,7 @@ const api = {
      */
     getSubAtomList (data) {
         let prefixUrl = ''
-        const {ccId, common} = data
+        const { ccId, common } = data
         if (common) {
             prefixUrl = this.getPrefix('commonTemplate')
         } else {
@@ -200,8 +200,8 @@ const api = {
     $getAtomForm (type, classify, isMeta) {
         return this.getAtomFormURL(type, classify, isMeta).then(response => {
             const { output: outputData, form: url } = response.data
-            store.commit('atomForm/setAtomForm', {atomType: type, data: response.data, isMeta})
-            store.commit('atomForm/setAtomOutput', {atomType: type, outputData})
+            store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
+            store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
             return $.getScript(url)
         }).catch(e => {
             return Promise.reject(e)
@@ -212,7 +212,7 @@ const api = {
      * @param {String} template_id 模板id
      */
     getTemplateData (data) {
-        const {templateId, common} = data
+        const { templateId, common } = data
         let prefixUrl = ''
         if (common) {
             prefixUrl = this.getPrefix('commonTemplate')
@@ -230,8 +230,8 @@ const api = {
      * @param {String} data 包含templateId 模板Id, common 是否是公共流程
      */
     getTemplatePersons (data) {
-        const {cc_id} = store.state
-        const {templateId, common} = data
+        const { cc_id } = store.state
+        const { templateId, common } = data
         let prefixUrl = ''
         const params = {
             template_id: templateId
@@ -254,7 +254,7 @@ const api = {
      * @param {Object} data 模板人员配置数据
      */
     saveTemplatePersons (data) {
-        const {cc_id} = store.state
+        const { cc_id } = store.state
         const { templateId, createTask, fillParams, executeTask, common } = data
         let prefixUrl = ''
         const bodyData = {
@@ -318,7 +318,7 @@ const api = {
      */
     templateUploadCheck (data) {
         let prefixUrl = ''
-        const {common, formData} = data
+        const { common, formData } = data
         if (common) {
             prefixUrl = this.getPrefix('commonTemplateUploadCheck')
         } else {
@@ -337,7 +337,7 @@ const api = {
      * @param {Object} data {common是否是公共流程,formData数据}
      */
     templateImport (data) {
-        const {formData, common} = data
+        const { formData, common } = data
         let prefixUrl = ''
         if (common) {
             prefixUrl = this.getPrefix('commonTemplateImport')
@@ -357,7 +357,7 @@ const api = {
      * @param {String} data 模板列表数组字符串
      */
     templateExport (data) {
-        const {common, list} = data
+        const { common, list } = data
         let prefixUrl = ''
         if (common) {
             prefixUrl = this.getPrefix('commonTemplateExport')
@@ -422,7 +422,7 @@ const api = {
      * @param {Object} data 模板完整数据
      */
     saveTemplate (data) {
-        const { ccId ,name, templateId, pipelineTree, category, notifyReceivers, notifyType, timeout, common } = data
+        const { ccId, name, templateId, pipelineTree, category, notifyReceivers, notifyType, timeout, common } = data
         let prefixUrl = ''
         if (common) {
             prefixUrl = this.getPrefix('commonTemplate')
@@ -443,9 +443,9 @@ const api = {
                 timeout
             }
         }
-        if (templateId != undefined) {
+        if (templateId !== undefined) {
             opts.url = `${prefixUrl}${templateId}/`
-            opts.headers = {'X-HTTP-Method-Override': 'PATCH'}
+            opts.headers = { 'X-HTTP-Method-Override': 'PATCH' }
         }
         return request(opts)
     },
@@ -455,8 +455,8 @@ const api = {
      */
     getTaskList (data) {
         const { cc_id } = store.state
-        const {common, template_id} = data
-        const querystring = Object.assign({}, data, {business__cc_id: cc_id})
+        const { common, template_id } = data
+        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
             querystring['template_source'] = 'business'
@@ -494,7 +494,7 @@ const api = {
         const dataString = qs.stringify({
             name,
             instance_id: task_id,
-            create_method: view_mode == 'appmaker' ? 'app_maker' : 'app',
+            create_method: view_mode === 'appmaker' ? 'app_maker' : 'app',
             create_info: app_id
         })
         const opts = {
@@ -571,7 +571,7 @@ const api = {
      */
     getPreviewNodeData (data) {
         const prefixUrl = this.getPrefix('instancePreview')
-        const {templateId, excludeTaskNodesId, common} = data
+        const { templateId, excludeTaskNodesId, common } = data
         const dataJson = {
             template_id: templateId,
             exclude_task_nodes_id: excludeTaskNodesId,
@@ -595,7 +595,7 @@ const api = {
      */
     createTask (data) {
         const { cc_id, app_id, view_mode, username } = store.state
-        const {templateId, name, description, execData, flowType, common} = data
+        const { templateId, name, description, execData, flowType, common } = data
         const prefixUrl = this.getPrefix('instance')
         const requestData = {
             'business': `api/v3/business/${cc_id}/`,
@@ -604,7 +604,7 @@ const api = {
             'name': name,
             'description': description,
             'pipeline_tree': execData,
-            'create_method': view_mode == 'appmaker' ? 'app_maker' : 'app',
+            'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
             'create_info': app_id,
             'flow_type': flowType,
             'template_source': 'business'
@@ -651,7 +651,7 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const {instance_id, cc_id} = data
+        const { instance_id, cc_id } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
@@ -669,7 +669,7 @@ const api = {
      */
     instanceStart (instance_id) {
         const prefixUrl = this.getPrefix('instanceStart')
-        const data = qs.stringify({instance_id: instance_id})
+        const data = qs.stringify({ instance_id: instance_id })
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -685,7 +685,7 @@ const api = {
      */
     instancePause (instance_id) {
         const prefixUrl = this.getPrefix('instancePause')
-        const data = qs.stringify({instance_id: instance_id})
+        const data = qs.stringify({ instance_id: instance_id })
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -702,7 +702,7 @@ const api = {
     subInstanceResume (data) {
         const { instance_id, node_id } = data
         const prefixUrl = this.getPrefix('resumeSubProcess')
-        const dataString = qs.stringify({instance_id: instance_id, node_id: node_id})
+        const dataString = qs.stringify({ instance_id: instance_id, node_id: node_id })
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -718,7 +718,7 @@ const api = {
      */
     instanceResume (instance_id) {
         const prefixUrl = this.getPrefix('instanceResume')
-        const data = qs.stringify({instance_id: instance_id})
+        const data = qs.stringify({ instance_id: instance_id })
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -735,7 +735,7 @@ const api = {
     subInstancePause (data) {
         const { instance_id, node_id } = data
         const prefixUrl = this.getPrefix('pauseSubProcess')
-        const dataString = qs.stringify({instance_id: instance_id, node_id: node_id})
+        const dataString = qs.stringify({ instance_id: instance_id, node_id: node_id })
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -751,7 +751,7 @@ const api = {
      */
     instanceRevoke (instance_id) {
         const prefixUrl = this.getPrefix('instanceRevoke')
-        const data = qs.stringify({instance_id: instance_id})
+        const data = qs.stringify({ instance_id: instance_id })
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -783,7 +783,7 @@ const api = {
      */
     getNodeActDetail (data) {
         const prefixUrl = this.getPrefix('nodeActDetails')
-        const {instance_id, node_id, component_code, subprocess_stack} = data
+        const { instance_id, node_id, component_code, subprocess_stack } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -803,7 +803,7 @@ const api = {
      */
     getJobInstanceLog (data) {
         const prefixUrl = this.getPrefix('jobInstanceLog')
-        const {job_instance_id} = data
+        const { job_instance_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -820,7 +820,7 @@ const api = {
      */
     getNodeActInfo (data) {
         const prefixUrl = this.getPrefix('nodeActInfo')
-        const {instance_id, node_id, component_code, subprocess_stack} = data
+        const { instance_id, node_id, component_code, subprocess_stack } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -951,7 +951,6 @@ const api = {
      * 获取业务配置
      */
     loadBizConfig () {
-        const { cc_id } = store.state
         const prefixUrl = this.getPrefix('bizConfig')
         const opts = {
             method: 'GET',
@@ -981,7 +980,7 @@ const api = {
     loadAppmaker (data) {
         const { cc_id } = store.state
         const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data, {business__cc_id: cc_id})
+        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -1156,10 +1155,7 @@ const api = {
     createPeriodic (data) {
         const prefixUrl = this.getPrefix('periodic')
         const { cc_id } = store.state
-        const requestData = {
-            'business': `api/v3/business/${cc_id}/`
-        }
-        const {name, cron, templateId, execData} = data
+        const { name, cron, templateId, execData } = data
         const opts = {
             method: 'POST',
             url: prefixUrl,
@@ -1179,7 +1175,7 @@ const api = {
      */
     getPeriodicList (data) {
         const { cc_id } = store.state
-        const querystring = Object.assign({}, data, {business__cc_id: cc_id})
+        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
@@ -1209,7 +1205,7 @@ const api = {
      * @param {Object} data task_id 定时任务id, enabled 需要切换的状态
      */
     setPeriodicEnable (data) {
-        const {enabled, taskId} = data
+        const { enabled, taskId } = data
         const prefixUrl = this.getPrefix('periodicEnable') + taskId + '/'
         const dataString = qs.stringify({
             enabled
@@ -1227,7 +1223,7 @@ const api = {
      * @param {Object} data task_id 定时任务id, cron 表达式
      */
     modifyPeriodicCron (data) {
-        const {cron, taskId} = data
+        const { cron, taskId } = data
         const prefixUrl = this.getPrefix('periodicModifyCron') + taskId + '/'
         const dataString = qs.stringify({
             'cron': cron
@@ -1242,8 +1238,8 @@ const api = {
     },
     getPeriodic (data) {
         const { cc_id } = store.state
-        const {taskId} = data
-        const querystring = Object.assign({}, {business__cc_id: cc_id})
+        const { taskId } = data
+        const querystring = Object.assign({}, { business__cc_id: cc_id })
         const prefixUrl = this.getPrefix('periodic') + taskId + '/'
         const opts = {
             method: 'GET',
@@ -1253,7 +1249,7 @@ const api = {
         return request(opts)
     },
     modifyPeriodicConstants (data) {
-        const {constants, taskId} = data
+        const { constants, taskId } = data
         const prefixUrl = this.getPrefix('periodicModifyConstants') + taskId + '/'
         const dataString = qs.stringify({
             'constants': constants

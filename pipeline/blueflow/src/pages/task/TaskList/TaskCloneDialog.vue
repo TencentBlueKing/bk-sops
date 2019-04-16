@@ -20,7 +20,7 @@
         @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content">
-            <div class="clone-wrapper" v-bkloading="{isLoading: pending, opacity: 1}">
+            <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1 }">
                 <div class="common-form-item">
                     <label>{{ i18n.template }}</label>
                     <div class="common-form-content">
@@ -37,45 +37,45 @@
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-import BaseInput from '@/components/common/base/BaseInput.vue'
-import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import '@/utils/i18n.js'
+    import BaseInput from '@/components/common/base/BaseInput.vue'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
-export default {
-    name: 'TaskCloneDialog',
-    components: {
-        BaseInput
-    },
-    props: ['isTaskCloneDialogShow', 'taskName', 'pending'],
-    data () {
-        return {
-            name: 'copy' + this.taskName.slice(0, STRING_LENGTH.TASK_NAME_MAX_LENGTH - 4),
-            taskNameRule: {
-                required: true,
-                max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
-                regex: NAME_REG
+    export default {
+        name: 'TaskCloneDialog',
+        components: {
+            BaseInput
+        },
+        props: ['isTaskCloneDialogShow', 'taskName', 'pending'],
+        data () {
+            return {
+                name: 'copy' + this.taskName.slice(0, STRING_LENGTH.TASK_NAME_MAX_LENGTH - 4),
+                taskNameRule: {
+                    required: true,
+                    max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
+                i18n: {
+                    title: gettext('任务克隆'),
+                    template: gettext('任务名称')
+                }
+            }
+        },
+        methods: {
+            onConfirm () {
+                this.$validator.validateAll().then(result => {
+                    if (!result) {
+                        return
+                    }
+                    this.name = this.name.trim()
+                    this.$emit('confirm', this.name)
+                })
             },
-            i18n: {
-                title: gettext('任务克隆'),
-                template: gettext('任务名称')
+            onCancel () {
+                this.$emit('cancel')
             }
         }
-    },
-    methods: {
-        onConfirm () {
-            this.$validator.validateAll().then(result => {
-                if (!result) {
-                    return
-                }
-                this.name = this.name.trim()
-                this.$emit('confirm', this.name)
-            })
-        },
-        onCancel () {
-            this.$emit('cancel')
-        }
     }
-}
 </script>
 <style lang="scss" scoped>
     .clone-wrapper {
@@ -91,4 +91,3 @@ export default {
         }
     }
 </style>
-

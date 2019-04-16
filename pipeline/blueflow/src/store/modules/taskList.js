@@ -9,7 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from "@/api/index.js"
+import api from '@/api/index.js'
 
 const taskList = {
     namespaced: true,
@@ -22,13 +22,13 @@ const taskList = {
         }
     },
     actions: {
-        loadTaskList ({commit}, data) {
+        loadTaskList ({ commit }, data) {
             return api.getTaskList(data).then(response => response.data)
         },
-        deleteTask ({commit}, task_id) {
+        deleteTask ({ commit }, task_id) {
             return api.deleteTask(task_id).then(response => response.data.objects)
         },
-        cloneTask ({commit}, data) {
+        cloneTask ({ commit }, data) {
             return api.cloneTask(data).then(response => response.data)
         }
     },

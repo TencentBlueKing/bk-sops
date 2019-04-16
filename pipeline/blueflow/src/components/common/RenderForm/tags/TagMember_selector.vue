@@ -21,31 +21,30 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '../formMixins.js'
-import { errorHandler } from '@/utils/errorHandler.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const intAttrs = {
-    value: {
-        type: Array,
-        required: false,
-        default () {
-            return []
-        }
-    }
-}
-export default {
-    name: 'TagMember_selector',
-    mixins: [getFormMixins(intAttrs)],
-    computed: {
-        memberValue: {
-            get () {
-                return this.value.slice(0)
-            },
-            set (val) {
-                this.updateForm(val)
+    const intAttrs = {
+        value: {
+            type: Array,
+            required: false,
+            default () {
+                return []
             }
         }
     }
-}
+    export default {
+        name: 'TagMember_selector',
+        mixins: [getFormMixins(intAttrs)],
+        computed: {
+            memberValue: {
+                get () {
+                    return this.value.slice(0)
+                },
+                set (val) {
+                    this.updateForm(val)
+                }
+            }
+        }
+    }
 </script>

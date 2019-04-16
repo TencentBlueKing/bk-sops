@@ -25,7 +25,6 @@ import { Input, Select, Radio, RadioGroup, RadioButton, Checkbox,
 import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
-import { JSEncrypt } from 'jsencrypt'
 import { STRING_LENGTH } from '@/constants/index.js'
 
 Vue.use(VeeValidate)
@@ -54,7 +53,6 @@ Vue.use(Container)
 Vue.use(Row)
 Vue.use(Col)
 Vue.use(Pagination)
-
 
 if (store.state.lang === 'en') {
     locale.use(langPkg.enUS)

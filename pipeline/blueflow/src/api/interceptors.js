@@ -48,7 +48,7 @@ axios.interceptors.response.use(
                 break
         }
         if (!response.data) {
-            let msg = gettext('接口数据返回为空')
+            const msg = gettext('接口数据返回为空')
             console.warn(gettext('接口异常，'), gettext('HTTP状态码：'), response.status)
             console.error(msg)
             response.data = {
@@ -56,7 +56,7 @@ axios.interceptors.response.use(
                 msg: msg
             }
         } else {
-            let msg = response.data
+            const msg = response.data
             response.data = {
                 code: response.status,
                 msg
@@ -64,8 +64,8 @@ axios.interceptors.response.use(
         }
         if (response.data.message) {
             if (checkDataType(response.data.message) === 'Object') {
-                let msg = []
-                for (let key in response.data.message) {
+                const msg = []
+                for (const key in response.data.message) {
                     msg.push(response.data.message[key].join(';'))
                 }
                 response.data.msg = msg.join(';')

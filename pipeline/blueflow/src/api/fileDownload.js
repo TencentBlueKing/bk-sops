@@ -10,12 +10,11 @@
 * specific language governing permissions and limitations under the License.
 */
 export function fileDownload (data, filename) {
-    const blob = new Blob([data], {type: 'application/octet-stream'})
+    const blob = new Blob([data], { type: 'application/octet-stream' })
     if (typeof window.navigator.msSaveBlob !== 'undefined') {
         // hack old IE
         window.navigator.msSaveBlob(blob, filename)
-    }
-    else {
+    } else {
         const eleLink = document.createElement('a')
         const blobURL = window.URL.createObjectURL(blob)
         eleLink.style.display = 'none'

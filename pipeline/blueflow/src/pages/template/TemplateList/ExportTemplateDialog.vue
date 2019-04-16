@@ -23,10 +23,10 @@
         <div slot="content" class="export-container">
             <div class="template-wrapper">
                 <div class="template-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
+                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
                     <i class="common-icon-search"></i>
                 </div>
-                <div class="template-list" v-bkloading="{isLoading: exportPending, opacity: 1}">
+                <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
                     <ul v-if="!searchMode" class="grouped-list">
                         <template v-for="item in templateList">
                             <li
@@ -44,7 +44,7 @@
                                         :key="group.id"
                                         :title="group.name"
                                         @click="onSelectTemplate(group)">
-                                        <span :class="['checkbox', {checked: group.ischecked}]"></span>
+                                        <span :class="['checkbox', { checked: group.ischecked }]"></span>
                                         {{group.name}}
                                     </li>
                                 </ul>
@@ -59,7 +59,7 @@
                                 :key="item.id"
                                 :title="item.name"
                                 @click="onSelectTemplate(item)">
-                                <span :class="['checkbox', {checked: item.ischecked}]"></span>
+                                <span :class="['checkbox', { checked: item.ischecked }]"></span>
                                 {{item.name}}
                             </li>
                         </ul>
@@ -86,171 +86,170 @@
                 </ul>
             </div>
             <div class="template-checkbox" @click="onSelectAll">
-                <span :class="['checkbox', {checked: ischecked,'checkbox-disabled':isCheckedDisabled}]"></span>
+                <span :class="['checkbox', { checked: ischecked,'checkbox-disabled': isCheckedDisabled }]"></span>
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
         </div>
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-import toolsUtils from '@/utils/tools.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
-import NoData from '@/components/common/base/NoData.vue'
-export default {
-    name: 'ExportTemplateDialog',
-    props: ['isExportDialogShow', 'businessInfoLoading', 'common'],
-    components: {
-        NoData
-    },
-    data () {
-        return {
-            exportPending: false,
-            searchMode: false,
-            ischecked: false,
-            isCheckedDisabled: false,
-            selectedTemplate: [],
-            templateList: [],
-            searchList: [],
-            selectedList: [],
-            i18n: {
-                title: gettext('导出流程'),
-                choose: gettext('选择流程'),
-                noSearchResult: gettext('搜索结果为空'),
-                templateEmpty: gettext('请选择需要导出的流程'),
-                placeholder: gettext('请输入流程名称'),
-                selected: gettext('已选择'),
-                num: gettext('项'),
-                selectAll: gettext('全选'),
-                delete: gettext('删除')
+    import '@/utils/i18n.js'
+    import toolsUtils from '@/utils/tools.js'
+    import { mapState, mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    export default {
+        name: 'ExportTemplateDialog',
+        components: {
+            NoData
+        },
+        props: ['isExportDialogShow', 'businessInfoLoading', 'common'],
+        data () {
+            return {
+                exportPending: false,
+                searchMode: false,
+                ischecked: false,
+                isCheckedDisabled: false,
+                selectedTemplate: [],
+                templateList: [],
+                searchList: [],
+                selectedList: [],
+                i18n: {
+                    title: gettext('导出流程'),
+                    choose: gettext('选择流程'),
+                    noSearchResult: gettext('搜索结果为空'),
+                    templateEmpty: gettext('请选择需要导出的流程'),
+                    placeholder: gettext('请输入流程名称'),
+                    selected: gettext('已选择'),
+                    num: gettext('项'),
+                    selectAll: gettext('全选'),
+                    delete: gettext('删除')
+                },
+                templateEmpty: false,
+                searchStr: ''
+            }
+        },
+        computed: {
+            ...mapState({
+                'businessBaseInfo': state => state.template.businessBaseInfo
+            })
+        },
+        created () {
+            this.getTemplateData()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
+        methods: {
+            ...mapActions('templateList/', [
+                'loadTemplateList'
+            ]),
+            async getTemplateData () {
+                this.exportPending = true
+                this.isCheckedDisabled = true
+                try {
+                    const data = {
+                        common: this.common
+                    }
+                    const respData = await this.loadTemplateList(data)
+                    const list = respData.objects
+                    this.templateList = this.getGroupedList(list)
+                    this.templateList.forEach((item) => {
+                        item.children.forEach((group) => {
+                            this.$set(group, 'ischecked', false)
+                            this.selectedList.push(group)
+                        })
+                    })
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.exportPending = false
+                    this.isCheckedDisabled = false
+                }
             },
-            templateEmpty: false,
-            searchStr: ''
-        }
-    },
-    computed: {
-        ...mapState({
-            'businessBaseInfo': state => state.template.businessBaseInfo
-        })
-    },
-    created () {
-        this.getTemplateData()
-        this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-    },
-    methods: {
-        ...mapActions('templateList/', [
-            'loadTemplateList'
-        ]),
-        async getTemplateData () {
-            this.exportPending = true
-            this.isCheckedDisabled = true
-            try {
-                const data = {
-                    common: this.common
-                }
-                const respData = await this.loadTemplateList(data)
-                const list = respData.objects
-                this.templateList = this.getGroupedList(list)
-                this.templateList.forEach((item) => {
-                    item.children.forEach((group) => {
-                        this.$set(group, 'ischecked', false)
-                        this.selectedList.push(group)
+            getGroupedList (list) {
+                const groups = []
+                const atomGrouped = []
+                this.businessBaseInfo.task_categories.forEach(item => {
+                    groups.push(item.value)
+                    atomGrouped.push({
+                        name: item.name,
+                        children: []
                     })
                 })
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.exportPending = false
-                this.isCheckedDisabled = false
-            }
-        },
-        getGroupedList (list) {
-            const groups = []
-            const atomGrouped = []
-            this.businessBaseInfo.task_categories.forEach(item => {
-                groups.push(item.value)
-                atomGrouped.push({
-                    name: item.name,
-                    children: []
-                })
-            })
-            list.forEach(item => {
-                const type = item.category
-                const index = groups.indexOf(type)
-                if (index > -1) {
-                    atomGrouped[index].children.push({
-                        id: item.id,
-                        name: item.name
-                    })
-                }
-            })
-            const listGroup = atomGrouped.filter(item => item.children.length)
-            return listGroup
-        },
-        searchInputhandler () {
-            if (this.searchStr.length) {
-                this.searchMode = true
-                const reg = new RegExp(this.searchStr, 'g')
-                this.searchList =  this.selectedList.filter(item => {
-                    return reg.test(item.name)
-                })
-            } else {
-                this.searchMode = false
-                this.searchList = []
-            }
-        },
-        onSelectTemplate (group, clearAll) {
-            group.ischecked = !group.ischecked
-            if (group.ischecked) {
-                this.selectedTemplate.push(group)
-            } else {
-                this.deleteTemplate(group)
-            }
-        },
-        deleteTemplate (template) {
-            const deleteIndex = this.selectedTemplate.findIndex(item => item.id === template.id)
-            if (deleteIndex > -1) {
-                const deleteGroup = this.selectedTemplate.splice(deleteIndex, 1)[0]
-                deleteGroup.ischecked = false
-                this.templateList.forEach((item) => {
-                    if (item.children.findIndex(util => !util.ischecked)) {
-                        this.ischecked = false
+                list.forEach(item => {
+                    const type = item.category
+                    const index = groups.indexOf(type)
+                    if (index > -1) {
+                        atomGrouped[index].children.push({
+                            id: item.id,
+                            name: item.name
+                        })
                     }
                 })
-            }
-        },
-        onSelectAll () {
-            if (this.isCheckedDisabled) {
-                return false
-            }
-            this.selectedTemplate = []
-            this.ischecked = !this.ischecked
-            this.templateList.forEach((item) => {
-                item.children.forEach((group) => {
-                    group.ischecked = this.ischecked
-                })
-                if (this.ischecked) {
-                    this.selectedTemplate.push(...item.children)
+                const listGroup = atomGrouped.filter(item => item.children.length)
+                return listGroup
+            },
+            searchInputhandler () {
+                if (this.searchStr.length) {
+                    this.searchMode = true
+                    const reg = new RegExp(this.searchStr, 'g')
+                    this.searchList = this.selectedList.filter(item => {
+                        return reg.test(item.name)
+                    })
                 } else {
-                    this.selectedTemplate = []
+                    this.searchMode = false
+                    this.searchList = []
                 }
-            })
-        },
-        onConfirm () {
-            const idList = []
-            this.selectedTemplate.forEach(item => {
-                idList.push(item.id)
-            })
-            this.$emit('onExportConfirm', idList)
-        },
-        onCancel () {
-            this.templateEmpty = false
-            this.$emit('onExportCancel')
+            },
+            onSelectTemplate (group, clearAll) {
+                group.ischecked = !group.ischecked
+                if (group.ischecked) {
+                    this.selectedTemplate.push(group)
+                } else {
+                    this.deleteTemplate(group)
+                }
+            },
+            deleteTemplate (template) {
+                const deleteIndex = this.selectedTemplate.findIndex(item => item.id === template.id)
+                if (deleteIndex > -1) {
+                    const deleteGroup = this.selectedTemplate.splice(deleteIndex, 1)[0]
+                    deleteGroup.ischecked = false
+                    this.templateList.forEach((item) => {
+                        if (item.children.findIndex(util => !util.ischecked)) {
+                            this.ischecked = false
+                        }
+                    })
+                }
+            },
+            onSelectAll () {
+                if (this.isCheckedDisabled) {
+                    return false
+                }
+                this.selectedTemplate = []
+                this.ischecked = !this.ischecked
+                this.templateList.forEach((item) => {
+                    item.children.forEach((group) => {
+                        group.ischecked = this.ischecked
+                    })
+                    if (this.ischecked) {
+                        this.selectedTemplate.push(...item.children)
+                    } else {
+                        this.selectedTemplate = []
+                    }
+                })
+            },
+            onConfirm () {
+                const idList = []
+                this.selectedTemplate.forEach(item => {
+                    idList.push(item.id)
+                })
+                this.$emit('onExportConfirm', idList)
+            },
+            onCancel () {
+                this.templateEmpty = false
+                this.$emit('onExportCancel')
+            }
         }
     }
-}
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';

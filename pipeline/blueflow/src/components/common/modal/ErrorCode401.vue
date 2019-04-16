@@ -16,23 +16,23 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'ErrorCode401',
-    data () {
-        return {
-            i18n: {
-                title: gettext('您需要登录蓝鲸智云'),
-                login: gettext('立即登录')
+    import '@/utils/i18n.js'
+    export default {
+        name: 'ErrorCode401',
+        data () {
+            return {
+                i18n: {
+                    title: gettext('您需要登录蓝鲸智云'),
+                    login: gettext('立即登录')
+                }
+            }
+        },
+        methods: {
+            onReloadLogin () {
+                window.top.location.reload()
             }
         }
-    },
-    methods: {
-        onReloadLogin () {
-            window.top.location.reload()
-        }
     }
-}
 </script>
 <style lang="scss" scoped>
     .content-wrapper {

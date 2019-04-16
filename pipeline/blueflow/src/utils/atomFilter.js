@@ -14,7 +14,7 @@ import tools from './tools.js'
 const atomFilter = {
     formFilter (tag_code, config) {
         let formConfig
-        if (tag_code && config){
+        if (tag_code && config) {
             config.some(item => {
                 if (item.tag_code === tag_code) {
                     formConfig = item
@@ -33,7 +33,7 @@ const atomFilter = {
         return formConfig
     },
     getFormItemDefaultValue (config) {
-        let value = {}
+        const value = {}
         config.forEach(item => {
             if (item.type === 'combine') {
                 value[item.tag_code] = this.getFormItemDefaultValue(item.attrs.children)
@@ -77,7 +77,6 @@ const atomFilter = {
                             break
                         default:
                             val = ''
-
                     }
                 }
 

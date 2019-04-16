@@ -15,20 +15,18 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const textAttrs = {
-    value: {
-        type: String,
-        required: false,
-        default: ''
+    const textAttrs = {
+        value: {
+            type: String,
+            required: false,
+            default: ''
+        }
     }
-}
-export default {
-    name: 'TagText',
-    mixins: [getFormMixins(textAttrs)]
-}
+    export default {
+        name: 'TagText',
+        mixins: [getFormMixins(textAttrs)]
+    }
 </script>
-
-

@@ -40,100 +40,100 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState } from 'vuex'
-import dom from '@/utils/dom.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
+    import dom from '@/utils/dom.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const VAR_REG = /\$\{\w*$/
+    const VAR_REG = /\$\{\w*$/
 
-const inputAttrs = {
-    placeholder: {
-        type: String,
-        required: false,
-        default: '',
-        desc: 'placeholder'
-    },
-    value: {
-        type: String,
-        required: false,
-        default: ''
-    },
-    showVarList: {
-        type: Boolean,
-        default: false
-    }
-}
-export default {
-    name: 'TagInput',
-    mixins: [getFormMixins(inputAttrs)],
-    data () {
-        return {
-            isListOpen: false,
-            varList: []
+    const inputAttrs = {
+        placeholder: {
+            type: String,
+            required: false,
+            default: '',
+            desc: 'placeholder'
+        },
+        value: {
+            type: String,
+            required: false,
+            default: ''
+        },
+        showVarList: {
+            type: Boolean,
+            default: false
         }
-    },
-    computed: {
-        ...mapState({
-            'constants': state => state.template.constants
-        }),
-        constantArr: {
-            get () {
-                if (this.constants) {
-                    return Object.keys(this.constants)
-                }
-                return []
-            },
-            set (val) {
-                this.varList = val
+    }
+    export default {
+        name: 'TagInput',
+        mixins: [getFormMixins(inputAttrs)],
+        data () {
+            return {
+                isListOpen: false,
+                varList: []
             }
         },
-
-        inputValue: {
-            get () {
-                return this.value
+        computed: {
+            ...mapState({
+                'constants': state => state.template.constants
+            }),
+            constantArr: {
+                get () {
+                    if (this.constants) {
+                        return Object.keys(this.constants)
+                    }
+                    return []
+                },
+                set (val) {
+                    this.varList = val
+                }
             },
-            set (val) {
-                this.updateForm(val)
+
+            inputValue: {
+                get () {
+                    return this.value
+                },
+                set (val) {
+                    this.updateForm(val)
+                }
             }
-        }
-    },
-    created () {
-        window.addEventListener('click', this.handleListShow, false)
-    },
-    before () {
-        window.removeEventListener('click', this.handleListShow, false)
-    },
-    methods: {
-        handleListShow (e) {
-            if (!this.isListOpen) {
-                return
-            }
-            const listPanel = document.querySelector(".rf-select-list")
-            if (listPanel && !dom.nodeContains(listPanel, e.target)) {
+        },
+        created () {
+            window.addEventListener('click', this.handleListShow, false)
+        },
+        before () {
+            window.removeEventListener('click', this.handleListShow, false)
+        },
+        methods: {
+            handleListShow (e) {
+                if (!this.isListOpen) {
+                    return
+                }
+                const listPanel = document.querySelector('.rf-select-list')
+                if (listPanel && !dom.nodeContains(listPanel, e.target)) {
+                    this.isListOpen = false
+                }
+            },
+            onInput (val) {
+                const matchResult = val.match(VAR_REG)
+                if (matchResult && matchResult[0]) {
+                    const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
+                    const inputReg = new RegExp(regStr)
+                    this.varList = this.constantArr.filter(item => {
+                        return inputReg.test(item)
+                    })
+                } else {
+                    this.varList = []
+                }
+                this.isListOpen = !!this.varList.length
+            },
+            onSelectVal (val) {
+                const replacedValue = this.value.replace(VAR_REG, val)
+                this.updateForm(replacedValue)
                 this.isListOpen = false
             }
-        },
-        onInput (val) {
-            const matchResult = val.match(VAR_REG)
-            if (matchResult && matchResult[0]) {
-                const regStr = matchResult[0].replace(/[\$\{\}]/g, '\\$&')
-                const inputReg = new RegExp(regStr)
-                this.varList = this.constantArr.filter(item => {
-                    return inputReg.test(item)
-                })
-            } else {
-                this.varList = []
-            }
-            this.isListOpen = !!this.varList.length
-        },
-        onSelectVal (val) {
-            const replacedValue = this.value.replace(VAR_REG, val)
-            this.updateForm(replacedValue)
-            this.isListOpen = false
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
@@ -175,4 +175,3 @@ export default {
     }
 }
 </style>
-

@@ -20,7 +20,7 @@
                     <router-link
                         v-for="dms in dataDimension"
                         :key="dms.name"
-                        :class="['dms-item', {'active': $route.name === dms.name}]"
+                        :class="['dms-item', { 'active': $route.name === dms.name }]"
                         :to="dms.path">
                         {{dms.text}}
                     </router-link>
@@ -35,54 +35,54 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-const DATA_DIMENSION = [
-    {
-        text: gettext('流程统计'),
-        name: 'statisticsTemplate',
-        path: '/statistics/template/'
-    },
-    {
-        text: gettext('任务统计'),
-        name: 'statisticsInstance',
-        path: '/statistics/instance/'
-    },
-    {
-        text: gettext('标准插件统计'),
-        name: 'statisticsAtom',
-        path: '/statistics/atom/'
-    },
-    {
-        text: gettext('轻应用统计'),
-        name: 'statisticsAppmaker',
-        path: '/statistics/appmaker/'
+    import '@/utils/i18n.js'
+    const DATA_DIMENSION = [
+        {
+            text: gettext('流程统计'),
+            name: 'statisticsTemplate',
+            path: '/statistics/template/'
+        },
+        {
+            text: gettext('任务统计'),
+            name: 'statisticsInstance',
+            path: '/statistics/instance/'
+        },
+        {
+            text: gettext('标准插件统计'),
+            name: 'statisticsAtom',
+            path: '/statistics/atom/'
+        },
+        {
+            text: gettext('轻应用统计'),
+            name: 'statisticsAppmaker',
+            path: '/statistics/appmaker/'
+        }
+    ]
+    export default {
+        name: 'Statistics',
+        data () {
+            return {
+                dataDimension: DATA_DIMENSION,
+                i18n: {
+                    operationData: gettext('运营数据')
+                },
+                path: this.$router.currentRoute.path,
+                reloadComponent: true
+            }
+        },
+        watch: {
+            '$route' (to, from) {
+                this.reloadComponent = false
+                this.path = this.$router.currentRoute.path
+                this.reloadComponent = true
+            }
+        },
+        methods: {
+            onGotoPath (path) {
+                this.$router.push(path)
+            }
+        }
     }
-]
-export default {
-    name: 'Statistics',
-    data () {
-        return {
-            dataDimension: DATA_DIMENSION,
-            i18n: {
-                operationData: gettext('运营数据')
-            },
-            path: this.$router.currentRoute.path,
-            reloadComponent: true
-        }
-    },
-    watch: {
-        '$route' (to, from) {
-            this.reloadComponent = false
-            this.path = this.$router.currentRoute.path
-            this.reloadComponent = true
-        }
-    },
-    methods: {
-        onGotoPath (path) {
-            this.$router.push(path)
-        }
-    }
-}
 </script>
 <style lang="scss">
 @import "@/scss/config.scss";
@@ -143,5 +143,3 @@ export default {
     }
 }
 </style>
-
-

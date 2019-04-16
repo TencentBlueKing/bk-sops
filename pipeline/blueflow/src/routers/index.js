@@ -22,7 +22,7 @@ const Template = () => import('@/pages/template/index.vue')
 const TemplateEdit = () => import('@/pages/template/TemplateEdit/index.vue')
 const TemplateList = () => import('@/pages/template/TemplateList/index.vue')
 
-const Task = () => import( '@/pages/task/index.vue')
+const Task = () => import('@/pages/task/index.vue')
 const TaskList = () => import('@/pages/task/TaskList/index.vue')
 const TaskCreate = () => import('@/pages/task/TaskCreate/index.vue')
 const TaskExecute = () => import('@/pages/task/TaskExecute/index.vue')
@@ -261,9 +261,9 @@ const routers = new VueRouter({
     ]
 })
 
-routers.beforeEach ((to, from, next) => {
+routers.beforeEach((to, from, next) => {
     // 生产环境 404 页面头部导航跳转统一设置为首页
-    if (process.env.NODE_ENV === "production" && to.name === 'notFoundPage') {
+    if (process.env.NODE_ENV === 'production' && to.name === 'notFoundPage') {
         store.commit('setNotFoundPage', true)
     } else {
         store.commit('setNotFoundPage', false)
@@ -274,6 +274,5 @@ routers.beforeEach ((to, from, next) => {
     }
     next()
 })
-
 
 export default routers

@@ -23,48 +23,48 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const radioAttrs = {
-    items: {
-        type: Array,
-        required: true,
-        desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
-    },
-    value: {
-        required: false,
-        default: ''
-    }
-}
-export default {
-    name: 'TagRadio',
-    mixins: [getFormMixins(radioAttrs)],
-    computed: {
-        checkedValue: {
-            get () {
-                return this.value
-            },
-            set (val) {
-                this.updateForm(val)
-            }
+    const radioAttrs = {
+        items: {
+            type: Array,
+            required: true,
+            desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
         },
-        viewValue () {
-            if (this.checkedValue === '') {
-                return '--'
-            }
-
-            let label = this.checkedValue
-            this.items.some(item => {
-                if (item.value === this.checkedValue) {
-                    label = item.name
-                    return true
-                }
-            })
-            return label
+        value: {
+            required: false,
+            default: ''
         }
     }
-}
+    export default {
+        name: 'TagRadio',
+        mixins: [getFormMixins(radioAttrs)],
+        computed: {
+            checkedValue: {
+                get () {
+                    return this.value
+                },
+                set (val) {
+                    this.updateForm(val)
+                }
+            },
+            viewValue () {
+                if (this.checkedValue === '') {
+                    return '--'
+                }
+
+                let label = this.checkedValue
+                this.items.some(item => {
+                    if (item.value === this.checkedValue) {
+                        label = item.name
+                        return true
+                    }
+                })
+                return label
+            }
+        }
+    }
 </script>
 <style lang="scss" scoped>
     .radio-item {

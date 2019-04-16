@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper" v-bkloading="{isLoading: businessInfoLoading, opacity: 1}">
+    <div class="config-wrapper" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
         <div class="config-title">
             <span>{{i18n.basic_information}}</span>
         </div>
@@ -36,7 +36,7 @@
         <div class="common-form-item hide">
             <label>{{ i18n.timeout }}</label>
             <div class="common-form-content">
-                <BaseInput :value="timeout" @input="onChangeTimeout"/>
+                <BaseInput :value="timeout" @input="onChangeTimeout" />
             </div>
         </div>
         <div class="common-form-item">
@@ -51,108 +51,108 @@
 </template>
 
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations } from 'vuex'
-import BaseInput from '@/components/common/base/BaseInput.vue'
-export default {
-    name: 'TabTemplateConfig',
-    components: {
-        BaseInput
-    },
-    props: ['businessInfoLoading', 'isTemplateConfigValid'],
-    data () {
-        return {
-            i18n: {
-                basic_information: gettext('基础信息'),
-                type: gettext('分类'),
-                notify_type: gettext('通知方式'),
-                timeout: gettext('超时时间(分钟)'),
-                receiver_group: gettext('通知分组'),
-                categoryTip: gettext('必填项')
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations } from 'vuex'
+    import BaseInput from '@/components/common/base/BaseInput.vue'
+    export default {
+        name: 'TabTemplateConfig',
+        components: {
+            BaseInput
+        },
+        props: ['businessInfoLoading', 'isTemplateConfigValid'],
+        data () {
+            return {
+                i18n: {
+                    basic_information: gettext('基础信息'),
+                    type: gettext('分类'),
+                    notify_type: gettext('通知方式'),
+                    timeout: gettext('超时时间(分钟)'),
+                    receiver_group: gettext('通知分组'),
+                    categoryTip: gettext('必填项')
+                },
+                selectedTaskCategory: ''
+            }
+        },
+        computed: {
+            ...mapState({
+                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'timeout': state => state.template.time_out
+            }),
+            notifyGroup () {
+                if (this.businessBaseInfo.notify_group) {
+                    return this.businessBaseInfo.notify_group.map(item => {
+                        return {
+                            id: item.value,
+                            name: item.text
+                        }
+                    })
+                }
+                return []
             },
-            selectedTaskCategory: ''
-        }
-    },
-    computed: {
-        ...mapState({
-            'businessBaseInfo': state => state.template.businessBaseInfo,
-            'timeout': state => state.template.time_out
-        }),
-        notifyGroup () {
-            if (this.businessBaseInfo.notify_group) {
-                return this.businessBaseInfo.notify_group.map(item => {
-                    return {
-                        id: item.value,
-                        name: item.text
-                    }
-                })
-            }
-            return []
-        },
-        notifyTypeList () {
-            if (this.businessBaseInfo.notify_type_list) {
-                return this.businessBaseInfo.notify_type_list.map(item => {
-                    return {
-                        id: item.value,
-                        name: item.name
-                    }
-                })
-            }
-            return []
-        },
-        taskCategories () {
-            if (this.businessBaseInfo.task_categories) {
-                return this.businessBaseInfo.task_categories.map(item => {
-                    return {
-                        id: item.value,
-                        name: item.name
-                    }
-                })
-            }
-            return []
-        },
-        receiverGroup: {
-            get () {
-                return this.$store.state.template.notify_receivers.receiver_group
+            notifyTypeList () {
+                if (this.businessBaseInfo.notify_type_list) {
+                    return this.businessBaseInfo.notify_type_list.map(item => {
+                        return {
+                            id: item.value,
+                            name: item.name
+                        }
+                    })
+                }
+                return []
             },
-            set (value) {
-                this.setReceiversGroup(value)
-            }
-        },
-        notifyType: {
-            get () {
-                return this.$store.state.template.notify_type
+            taskCategories () {
+                if (this.businessBaseInfo.task_categories) {
+                    return this.businessBaseInfo.task_categories.map(item => {
+                        return {
+                            id: item.value,
+                            name: item.name
+                        }
+                    })
+                }
+                return []
             },
-            set (value) {
-                this.setNotifyType(value)
-            }
-        },
-        category: {
-            get () {
-                return this.$store.state.template.category
+            receiverGroup: {
+                get () {
+                    return this.$store.state.template.notify_receivers.receiver_group
+                },
+                set (value) {
+                    this.setReceiversGroup(value)
+                }
             },
-            set (value) {
-                this.setCategory(value)
-                this.$emit('onSelectCategory', value)
+            notifyType: {
+                get () {
+                    return this.$store.state.template.notify_type
+                },
+                set (value) {
+                    this.setNotifyType(value)
+                }
+            },
+            category: {
+                get () {
+                    return this.$store.state.template.category
+                },
+                set (value) {
+                    this.setCategory(value)
+                    this.$emit('onSelectCategory', value)
+                }
             }
-        }
-    },
-    methods: {
-        ...mapMutations ('template/', [
-            'setOutputs',
-            'setReceiversGroup',
-            'setNotifyType',
-            'setOvertime',
-            'setCategory'
-        ]),
-        onChangeTimeout (val) {
-            this.setOvertime(val)
         },
-        onChangeTaskCategories (id) {
-            this.selectedTaskCategory = id
+        methods: {
+            ...mapMutations('template/', [
+                'setOutputs',
+                'setReceiversGroup',
+                'setNotifyType',
+                'setOvertime',
+                'setCategory'
+            ]),
+            onChangeTimeout (val) {
+                this.setOvertime(val)
+            },
+            onChangeTaskCategories (id) {
+                this.selectedTaskCategory = id
+            }
         }
     }
-}
 </script>
 
 <style lang="scss" scoped>

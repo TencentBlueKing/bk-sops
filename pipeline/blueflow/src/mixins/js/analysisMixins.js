@@ -27,7 +27,7 @@ export const AnalysisMixins = {
     },
     mounted () {
         const ulList = document.querySelectorAll('.outside-ul')
-        for (let item of ulList) {
+        for (const item of ulList) {
             item.style['max-height'] = '250px'
         }
     },

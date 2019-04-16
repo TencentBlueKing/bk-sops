@@ -35,35 +35,35 @@
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'GatewaySelectDialog',
-    props: [
-        'isGatewaySelectDialogShow',
-        'gatewayBranches'
-    ],
-    data () {
-        return {
-            i18n: {
-                select_branch: gettext("请选择执行分支"),
-                branches: gettext("可选执行分支")
+    import '@/utils/i18n.js'
+    export default {
+        name: 'GatewaySelectDialog',
+        props: [
+            'isGatewaySelectDialogShow',
+            'gatewayBranches'
+        ],
+        data () {
+            return {
+                i18n: {
+                    select_branch: gettext('请选择执行分支'),
+                    branches: gettext('可选执行分支')
+                },
+                selectedBranch: this.gatewayBranches.length ? this.gatewayBranches[0].id : ''
+            }
+        },
+        methods: {
+            onSelectBranch (id) {
+                this.selectedBranch = id
             },
-            selectedBranch: this.gatewayBranches.length ? this.gatewayBranches[0].id : ''
-        }
-    },
-    methods: {
-        onSelectBranch (id) {
-            this.selectedBranch = id
-        },
-        onConfirm () {
-            const selected = this.gatewayBranches.filter(item => {
-                return item.id === this.selectedBranch
-            })[0]
-            this.$emit('onConfirm', selected)
-        },
-        onCancel () {
-            this.$emit('onCancel')
+            onConfirm () {
+                const selected = this.gatewayBranches.filter(item => {
+                    return item.id === this.selectedBranch
+                })[0]
+                this.$emit('onConfirm', selected)
+            },
+            onCancel () {
+                this.$emit('onCancel')
+            }
         }
     }
-}
 </script>

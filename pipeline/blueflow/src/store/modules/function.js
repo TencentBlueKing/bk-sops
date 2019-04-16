@@ -9,7 +9,6 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import Vue from 'vue'
 import api from '@/api/index.js'
 
 const functionTask = {
@@ -19,17 +18,17 @@ const functionTask = {
     mutations: {
     },
     actions: {
-        loadFunctionTaskList ({commit}, data) {
+        loadFunctionTaskList ({ commit }, data) {
             return api.getFunctionTaskList(data).then(
                 response => response.data
             )
         },
-        loadFunctionBusinessList ({commit}) {
+        loadFunctionBusinessList ({ commit }) {
             return api.loadFunctionBusinessList().then(
                 response => response.data
             )
         },
-        loadFunctionTemplateList ({commit},cc_id) {
+        loadFunctionTemplateList ({ commit }, cc_id) {
             return api.loadFunctionTemplateList(cc_id).then(
                 response => response.data
             )

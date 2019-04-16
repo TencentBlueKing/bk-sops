@@ -27,25 +27,25 @@
 </template>
 
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'revokeDialog',
-    props: ['isRevokeDialogShow'],
-    data () {
-        return {
-            i18n: {
-                revoke: gettext('是否撤销该任务？'),
-                title: gettext('任务撤销')
+    import '@/utils/i18n.js'
+    export default {
+        name: 'revokeDialog',
+        props: ['isRevokeDialogShow'],
+        data () {
+            return {
+                i18n: {
+                    revoke: gettext('是否撤销该任务？'),
+                    title: gettext('任务撤销')
+                }
+            }
+        },
+        methods: {
+            onConfirm () {
+                this.$emit('onConfirmRevokeTask')
+            },
+            onCancel () {
+                this.$emit('onCancelRevokeTask')
             }
         }
-    },
-    methods: {
-        onConfirm () {
-            this.$emit('onConfirmRevokeTask')
-        },
-        onCancel () {
-            this.$emit('onCancelRevokeTask')
-        }
     }
-}
 </script>
