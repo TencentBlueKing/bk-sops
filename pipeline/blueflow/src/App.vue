@@ -10,105 +10,104 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-<div id="app">
-    <navigator
-        v-if="!hideHeader"
-        :appmakerDataLoading="appmakerDataLoading"/>
-    <UserLoginModal ref="userLogin"></UserLoginModal>
-    <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
-    <router-view v-if="isRouterAlive"></router-view>
-</div>
+    <div id="app">
+        <navigator
+            v-if="!hideHeader"
+            :appmaker-data-loading="appmakerDataLoading" />
+        <UserLoginModal ref="userLogin"></UserLoginModal>
+        <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
+        <router-view v-if="isRouterAlive"></router-view>
+    </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import Vue from 'vue'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import bus from '@/utils/bus.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
-import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
-import Navigator from '@/components/layout/Navigator.vue'
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import bus from '@/utils/bus.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
+    import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
+    import Navigator from '@/components/layout/Navigator.vue'
 
-export default {
-    name: 'App',
-    components: {
-        Navigator,
-        UserLoginModal,
-        ErrorCodeModal
-    },
-    provide () {
-        return {
-            reload: this.reload
-        }
-    },
-    data () {
-        return {
-            isRouterAlive: true,
-            appmakerDataLoading: false // 轻应用加载 app 详情
-        }
-    },
-    computed: {
-        ...mapState({
-            'hideHeader': state => state.hideHeader,
-            'viewMode': state => state.view_mode,
-            'appId': state => state.app_id
-        })
-    },
-    created () {
-        /**
-         * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
-         */
-        window.show_msg = (message, type) => {
-            this.$bkMessage({
-                message,
-                theme: type
-            })
-        }
-
-        if (this.viewMode === 'appmaker') {
-            this.getAppmakerDetail()
-        }
-    },
-    mounted () {
-        bus.$on('showLoginModal', (src) => {
-            this.$refs.userLogin.show(src)
-        })
-        bus.$on('showErrorModal', (type, responseText) => {
-            this.$refs.errorModal.show(type, responseText)
-        })
-        bus.$on('showMessage', (info) => {
-            this.$bkMessage({
-                message: info.message,
-                theme: info.theme || 'error'
-            })
-        })
-    },
-    methods: {
-        ...mapActions('appmaker/', [
-            'loadAppmakerDetail'
-        ]),
-        ...mapMutations([
-            'setTemplateId'
-        ]),
-        async getAppmakerDetail () {
-            this.appmakerDataLoading = true
-            try {
-                const data = await this.loadAppmakerDetail(this.appId)
-                this.setTemplateId(data.template_id)
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.appmakerDataLoading = false
+    export default {
+        name: 'App',
+        components: {
+            Navigator,
+            UserLoginModal,
+            ErrorCodeModal
+        },
+        provide () {
+            return {
+                reload: this.reload
             }
         },
-        reload () {
-            this.isRouterAlive = false
-            this.$nextTick(() => {
-                this.isRouterAlive = true
+        data () {
+            return {
+                isRouterAlive: true,
+                appmakerDataLoading: false // 轻应用加载 app 详情
+            }
+        },
+        computed: {
+            ...mapState({
+                'hideHeader': state => state.hideHeader,
+                'viewMode': state => state.view_mode,
+                'appId': state => state.app_id
             })
+        },
+        created () {
+            /**
+             * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
+             */
+            window.show_msg = (message, type) => {
+                this.$bkMessage({
+                    message,
+                    theme: type
+                })
+            }
+
+            if (this.viewMode === 'appmaker') {
+                this.getAppmakerDetail()
+            }
+        },
+        mounted () {
+            bus.$on('showLoginModal', (src) => {
+                this.$refs.userLogin.show(src)
+            })
+            bus.$on('showErrorModal', (type, responseText, title) => {
+                this.$refs.errorModal.show(type, responseText, title)
+            })
+            bus.$on('showMessage', (info) => {
+                this.$bkMessage({
+                    message: info.message,
+                    theme: info.theme || 'error'
+                })
+            })
+        },
+        methods: {
+            ...mapActions('appmaker/', [
+                'loadAppmakerDetail'
+            ]),
+            ...mapMutations([
+                'setTemplateId'
+            ]),
+            async getAppmakerDetail () {
+                this.appmakerDataLoading = true
+                try {
+                    const data = await this.loadAppmakerDetail(this.appId)
+                    this.setTemplateId(data.template_id)
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.appmakerDataLoading = false
+                }
+            },
+            reload () {
+                this.isRouterAlive = false
+                this.$nextTick(() => {
+                    this.isRouterAlive = true
+                })
+            }
         }
     }
-}
 </script>
 <style lang="scss">
     @import './scss/app.scss';

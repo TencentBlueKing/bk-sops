@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="modify-time-container" v-bkloading="{isLoading: loading, opacity: 1}">
+    <div class="modify-time-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="panel-title">
             <h3>{{ i18n.reset_timer }}</h3>
         </div>
@@ -19,7 +19,7 @@
                 ref="renderForm"
                 v-if="!isEmptyParams"
                 :scheme="renderConfig"
-                :formOption="renderOption"
+                :form-option="renderOption"
                 v-model="renderData">
             </RenderForm>
             <NoData v-else></NoData>
@@ -31,130 +31,129 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import { checkDataType } from '@/utils/checkDataType.js'
-import NoData from '@/components/common/base/NoData.vue'
-import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-export default {
-    name: 'ModifyTime',
-    components: {
-        RenderForm,
-        NoData
-    },
-    props: ['nodeDetailConfig'],
-    data () {
-        return {
-            i18n: {
-                reset_timer: gettext("修改定时时间"),
-                confirm: gettext("确定"),
-                cancel: gettext("取消")
-            },
-            loading: true,
-            bkMessageInstance: null,
-            nodeInfo: {},
-            renderOption: {
-                showGroup: false,
-                showLabel: true,
-                showHook: false
-            },
-            renderConfig: [],
-            renderData: {}
-        }
-    },
-    computed: {
-        ...mapState({
-            'atomFormConfig': state => state.atomForm.config
-        }),
-        isEmptyParams () {
-            return Object.keys(this.renderData).length === 0
-        }
-    },
-    mounted () {
-        this.loadNodeInfo()
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getNodeActDetail',
-            'setSleepNode'
-        ]),
-        ...mapActions('atomForm/', [
-            'loadAtomConfig'
-        ]),
-        ...mapMutations ('atomForm/', [
-            'setAtomConfig'
-        ]),
-        async loadNodeInfo () {
-            this.loading = true
-            try {
-                const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
-                this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
-                this.nodeInfo = nodeDetailRes.data
-                if (nodeDetailRes.result) {
-                    for ( let key in this.nodeInfo.inputs) {
-                        this.$set(this.renderData, key, this.nodeInfo.inputs[key])
-                    }
-                } else {
-                    errorHandler(nodeDetailRes, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.loading = false
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    export default {
+        name: 'ModifyTime',
+        components: {
+            RenderForm,
+            NoData
+        },
+        props: ['nodeDetailConfig'],
+        data () {
+            return {
+                i18n: {
+                    reset_timer: gettext('修改定时时间'),
+                    confirm: gettext('确定'),
+                    cancel: gettext('取消')
+                },
+                loading: true,
+                bkMessageInstance: null,
+                nodeInfo: {},
+                renderOption: {
+                    showGroup: false,
+                    showLabel: true,
+                    showHook: false
+                },
+                renderConfig: [],
+                renderData: {}
             }
         },
-        async getNodeConfig (type) {
-            if (this.atomFormConfig[type]) {
-                return this.atomFormConfig[type]
-            } else {
+        computed: {
+            ...mapState({
+                'atomFormConfig': state => state.atomForm.config
+            }),
+            isEmptyParams () {
+                return Object.keys(this.renderData).length === 0
+            }
+        },
+        mounted () {
+            this.loadNodeInfo()
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getNodeActDetail',
+                'setSleepNode'
+            ]),
+            ...mapActions('atomForm/', [
+                'loadAtomConfig'
+            ]),
+            ...mapMutations('atomForm/', [
+                'setAtomConfig'
+            ]),
+            async loadNodeInfo () {
+                this.loading = true
                 try {
-                    await this.loadAtomConfig({atomType: type})
-                    this.setAtomConfig({atomType: type, configData: $.atoms[type]})
-                    return this.atomFormConfig[type]
+                    const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
+                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                    this.nodeInfo = nodeDetailRes.data
+                    if (nodeDetailRes.result) {
+                        for (const key in this.nodeInfo.inputs) {
+                            this.$set(this.renderData, key, this.nodeInfo.inputs[key])
+                        }
+                    } else {
+                        errorHandler(nodeDetailRes, this)
+                    }
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
-            }
-        },
-        async onModifyTime () {
-            let formvalid = true
-            if (this.$refs.renderForm) {
-                formvalid = this.$refs.renderForm.validate()
-            }
-            if (!formvalid) return
-
-            const  { instance_id, component_code, node_id } = this.nodeDetailConfig
-            const data = {
-                instance_id,
-                node_id,
-                component_code,
-                inputs: JSON.stringify(this.renderData)
-            }
-            this.retrying = true
-            try {
-                const res = await this.setSleepNode(data)
-                if (res.result) {
-                    this.$emit('modifyTimeSuccess', node_id)
-                    this.$bkMessage({
-                        message: gettext('修改成功'),
-                        theme: 'success'
-                    })
+            },
+            async getNodeConfig (type) {
+                if (this.atomFormConfig[type]) {
+                    return this.atomFormConfig[type]
                 } else {
-                    errorHandler(res, this)
+                    try {
+                        await this.loadAtomConfig({ atomType: type })
+                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
+                        return this.atomFormConfig[type]
+                    } catch (e) {
+                        errorHandler(e, this)
+                    }
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.retrying = false
+            },
+            async onModifyTime () {
+                let formvalid = true
+                if (this.$refs.renderForm) {
+                    formvalid = this.$refs.renderForm.validate()
+                }
+                if (!formvalid) return
+
+                const { instance_id, component_code, node_id } = this.nodeDetailConfig
+                const data = {
+                    instance_id,
+                    node_id,
+                    component_code,
+                    inputs: JSON.stringify(this.renderData)
+                }
+                this.retrying = true
+                try {
+                    const res = await this.setSleepNode(data)
+                    if (res.result) {
+                        this.$emit('modifyTimeSuccess', node_id)
+                        this.$bkMessage({
+                            message: gettext('修改成功'),
+                            theme: 'success'
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.retrying = false
+                }
+            },
+            onCancelRetry () {
+                const { node_id } = this.nodeDetailConfig
+                this.$emit('modifyTimeCancel', node_id)
             }
-        },
-        onCancelRetry () {
-            const  { node_id } = this.nodeDetailConfig
-            this.$emit('modifyTimeCancel', node_id)
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     @import '@/scss/config.scss';

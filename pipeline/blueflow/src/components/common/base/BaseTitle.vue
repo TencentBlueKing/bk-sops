@@ -17,11 +17,11 @@
 </template>
 
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'BaseTitle',
-    props: ['title']
-}
+    import '@/utils/i18n.js'
+    export default {
+        name: 'BaseTitle',
+        props: ['title']
+    }
 </script>
 
 <style lang='scss' scoped>

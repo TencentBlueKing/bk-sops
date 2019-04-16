@@ -24,37 +24,37 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const intAttrs = {
-    placeholder: {
-        type: String,
-        required: false,
-        default: '',
-        desc: 'placeholder'
-    },
-    value: {
-        type: [Number, String],
-        required: false,
-        default: 0
+    const intAttrs = {
+        placeholder: {
+            type: String,
+            required: false,
+            default: '',
+            desc: 'placeholder'
+        },
+        value: {
+            type: [Number, String],
+            required: false,
+            default: 0
+        }
     }
-}
-export default {
-    name: 'TagInt',
-    mixins: [getFormMixins(intAttrs)],
-    computed: {
-        intValue: {
-            get () {
-                return Number(this.value)
-            },
-            set (val) {
-                val = parseInt(val)
-                this.updateForm(val)
+    export default {
+        name: 'TagInt',
+        mixins: [getFormMixins(intAttrs)],
+        computed: {
+            intValue: {
+                get () {
+                    return Number(this.value)
+                },
+                set (val) {
+                    val = parseInt(val)
+                    this.updateForm(val)
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .tag-input {

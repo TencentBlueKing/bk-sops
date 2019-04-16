@@ -9,33 +9,31 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from "@/api/index.js"
-import tools from '@/utils/tools.js'
+import api from '@/api/index.js'
 
 const periodic = {
     namespaced: true,
-    mutations: {
-    },
+    mutations: {},
     actions: {
-        loadPeriodicList ({commit}, data) {
+        loadPeriodicList ({ commit }, data) {
             return api.getPeriodicList(data).then(response => response.data)
         },
-        createPeriodic ({state},data) {
+        createPeriodic ({ state }, data) {
             return api.createPeriodic(data).then(response => response.data)
         },
-        setPeriodicEnable ({commit}, data) {
+        setPeriodicEnable ({ commit }, data) {
             return api.setPeriodicEnable(data).then(response => response.data)
         },
-        modifyPeriodicCron ({commit}, data) {
+        modifyPeriodicCron ({ commit }, data) {
             return api.modifyPeriodicCron(data).then(response => response.data)
         },
-        getPeriodic ({commit}, data) {
+        getPeriodic ({ commit }, data) {
             return api.getPeriodic(data).then(response => response.data)
         },
-        modifyPeriodicConstants ({commit}, data) {
+        modifyPeriodicConstants ({ commit }, data) {
             return api.modifyPeriodicConstants(data).then(response => response.data)
         },
-        deletePeriodic ({commit}, taskId) {
+        deletePeriodic ({ commit }, taskId) {
             return api.deletePeriodic(taskId).then(response => response.data)
         }
     },

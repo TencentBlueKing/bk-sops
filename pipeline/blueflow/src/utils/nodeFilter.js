@@ -42,20 +42,22 @@ const nodeFilter = {
             case 'activities':
             case 'flows':
             case 'gateways':
-                for (let key in primaryData) {
+                for (const key in primaryData) {
                     const newKey = this.getNewValidId(key)
                     newData[newKey] = primaryData[key]
                     keysOfIdRelated.forEach(item => {
-                        let val = newData[newKey][item]
-                        if (val != undefined && val !== '') {
+                        const val = newData[newKey][item]
+                        if (val !== undefined && val !== '') {
                             if (typeof val === 'string') {
                                 newData[newKey][item] = this.getNewValidId(val)
                             } else if (Array.isArray(val)) {
-                                newData[newKey][item] = val.map(v => {return this.getNewValidId(v)})
+                                newData[newKey][item] = val.map(v => {
+                                    return this.getNewValidId(v)
+                                })
                             }
                             if (item === 'conditions') {
                                 const newVal = {}
-                                for (let conditionId in val) {
+                                for (const conditionId in val) {
                                     const newConditionId = this.getNewValidId(conditionId)
                                     newVal[newConditionId] = val[conditionId]
                                     newVal[newConditionId].tag = newVal[newConditionId].tag.split('_').map((id, index) => {
@@ -68,18 +70,16 @@ const nodeFilter = {
                     })
                 }
                 return newData
-                break
             case 'end_event':
             case 'start_event':
                 newData = Object.assign({}, primaryData)
                 keysOfIdRelated.forEach(item => {
-                    let val = newData[item]
-                    if (val != undefined && val !== '') {
+                    const val = newData[item]
+                    if (val !== undefined && val !== '') {
                         newData[item] = this.getNewValidId(val)
                     }
                 })
                 return newData
-                break
             case 'line':
                 newData = [...primaryData]
                 newData.forEach((item, index) => {
@@ -88,17 +88,14 @@ const nodeFilter = {
                     item.target.id = this.getNewValidId(item.target.id)
                 })
                 return newData
-                break
             case 'location':
                 newData = [...primaryData]
                 newData.forEach((item) => {
                     item.id = this.getNewValidId(item.id)
                 })
                 return newData
-                break
             default:
                 return primaryData
-                break
         }
     }
 }

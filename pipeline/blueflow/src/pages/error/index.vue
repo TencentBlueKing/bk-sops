@@ -18,41 +18,41 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import ErrorCode401 from '@/components/common/modal/ErrorCode401.vue'
-import ErrorCode403 from '@/components/common/modal/ErrorCode403.vue'
-import ErrorCode405 from '@/components/common/modal/ErrorCode405.vue'
-import ErrorCode406 from '@/components/common/modal/ErrorCode406.vue'
-import ErrorCode500 from '@/components/common/modal/ErrorCode500.vue'
-export default {
-    name: 'ErrorPage',
-    components: {
-        ErrorCode401,
-        ErrorCode403,
-        ErrorCode405,
-        ErrorCode406,
-        ErrorCode500
-    },
-    props: ['code'],
-    data () {
-        return {
-            errorModal: `ErrorCode${this.code}`,
-            expPic401: require('@/assets/images/expre_401.png'),
-            expPic403: require('@/assets/images/expre_403.png'),
-            expPic500: require('@/assets/images/expre_500.png')
-        }
-    },
-    computed: {
-        errorPic () {
-            if (this.code === '500') {
-                return this.expPic500
-            } else if (this.code === '401') {
-                return this.expPic401
+    import '@/utils/i18n.js'
+    import ErrorCode401 from '@/components/common/modal/ErrorCode401.vue'
+    import ErrorCode403 from '@/components/common/modal/ErrorCode403.vue'
+    import ErrorCode405 from '@/components/common/modal/ErrorCode405.vue'
+    import ErrorCode406 from '@/components/common/modal/ErrorCode406.vue'
+    import ErrorCode500 from '@/components/common/modal/ErrorCode500.vue'
+    export default {
+        name: 'ErrorPage',
+        components: {
+            ErrorCode401,
+            ErrorCode403,
+            ErrorCode405,
+            ErrorCode406,
+            ErrorCode500
+        },
+        props: ['code'],
+        data () {
+            return {
+                errorModal: `ErrorCode${this.code}`,
+                expPic401: require('@/assets/images/expre_401.png'),
+                expPic403: require('@/assets/images/expre_403.png'),
+                expPic500: require('@/assets/images/expre_500.png')
             }
-            return this.expPic403
+        },
+        computed: {
+            errorPic () {
+                if (this.code === '500') {
+                    return this.expPic500
+                } else if (this.code === '401') {
+                    return this.expPic401
+                }
+                return this.expPic403
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .error-page {

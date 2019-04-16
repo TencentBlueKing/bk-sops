@@ -35,7 +35,7 @@
                     <label>{{ i18n.new }}</label>
                     <div class="common-form-content">
                         <div class="new_variable-checkbox">
-                            <BaseCheckbox @checkCallback="onToggleCreateVar"/>
+                            <BaseCheckbox @checkCallback="onToggleCreateVar" />
                         </div>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                             <BaseInput
                                 name="variableName"
                                 v-model="varName"
-                                v-validate="variableNameRule"/>
+                                v-validate="variableNameRule" />
                             <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
                         </div>
                     </div>
@@ -56,7 +56,7 @@
                             <BaseInput
                                 name="variableKey"
                                 v-model="varKey"
-                                v-validate="variableKeyRule"/>
+                                v-validate="variableKeyRule" />
                             <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
                         </div>
                     </div>
@@ -66,115 +66,114 @@
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState } from 'vuex'
-import { Validator } from 'vee-validate'
-import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
-import BaseInput from '@/components/common/base/BaseInput.vue'
-export default {
-    name: 'ReuseVarDialog',
-    components: {
-        BaseCheckbox,
-        BaseInput
-    },
-    props: ['isReuseVarDialogShow', 'reuseVariable', 'reuseableVarList'],
-    data () {
-        return {
-            i18n: {
-                reuse: gettext("复用变量"),
-                new: gettext("新建变量"),
-                name: gettext("变量名称"),
-                key: gettext("变量KEY")
-            },
-            selectedVar: this.reuseVariable.useNewKey ? '' : this.reuseableVarList[0].id,
-            isCreateVar: this.reuseVariable.useNewKey,
-            varName: '',
-            varKey: '',
-            variableNameRule: {
-                required: true,
-                max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                regex: NAME_REG
-            },
-            variableKeyRule: {
-                required: true,
-                max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
-                regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
-                keyRepeat: true
-            },
-            isOverride: false
-        }
-    },
-    computed: {
-        ...mapState({
-            constants: state => state.template.constants
-        }),
-        isSelectDisabled () {
-            return this.isCreateVar
+    import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
+    import { Validator } from 'vee-validate'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
+    import BaseInput from '@/components/common/base/BaseInput.vue'
+    export default {
+        name: 'ReuseVarDialog',
+        components: {
+            BaseCheckbox,
+            BaseInput
         },
-        title () {
-            if (this.reuseVariable.useNewKey) {
-                return gettext('变量KEY已存在，请创建新变量')
+        props: ['isReuseVarDialogShow', 'reuseVariable', 'reuseableVarList'],
+        data () {
+            return {
+                i18n: {
+                    reuse: gettext('复用变量'),
+                    new: gettext('新建变量'),
+                    name: gettext('变量名称'),
+                    key: gettext('变量KEY')
+                },
+                selectedVar: this.reuseVariable.useNewKey ? '' : this.reuseableVarList[0].id,
+                isCreateVar: this.reuseVariable.useNewKey,
+                varName: '',
+                varKey: '',
+                variableNameRule: {
+                    required: true,
+                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
+                variableKeyRule: {
+                    required: true,
+                    max: STRING_LENGTH.VARIABLE_KEY_MAX_LENGTH,
+                    regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
+                    keyRepeat: true
+                },
+                isOverride: false
             }
-            return gettext('是否复用变量')
-        }
-    },
-    created () {
-        const self = this
-        this.validator = new Validator({})
-        this.validator.extend('keyRepeat', (value) => {
-            value = /^\$\{\w+\}$/.test(value) ? value : '${' + value + '}'
-            if (value in this.constants) {
-                return false
+        },
+        computed: {
+            ...mapState({
+                constants: state => state.template.constants
+            }),
+            isSelectDisabled () {
+                return this.isCreateVar
+            },
+            title () {
+                if (this.reuseVariable.useNewKey) {
+                    return gettext('变量KEY已存在，请创建新变量')
+                }
+                return gettext('是否复用变量')
             }
-            return true
-        })
-    },
-    methods: {
-        onSelect (id) {
-            this.selectedVar = id
         },
-        onToggleCreateVar (checked) {
-            this.isCreateVar = checked
-        },
-        onConfirm ($event) {
-            this.$nextTick(() => {
-                this.$validator.validateAll().then((result) => {
-                    if (!result && this.isCreateVar) return
-                    let variableConfig
-                    if (this.isCreateVar) { // 新变量
-                        if (!/^\$\{[\w]*\}$/.test(this.varKey)) {
-                            this.varKey = "${" + this.varKey + "}"
-                        }
-                        variableConfig = {
-                            type: 'create',
-                            name: this.varName,
-                            key: this.reuseVariable.key,
-                            varKey: this.varKey,
-                            source_tag: this.reuseVariable.source_tag,
-                            source_info: this.reuseVariable.source_info,
-                            value: this.reuseVariable.value
-                        }
-                    } else { // 复用
-                        variableConfig = {
-                            type: 'reuse',
-                            name: this.reuseVariable.name,
-                            key: this.reuseVariable.key,
-                            varKey: this.selectedVar,
-                            source_tag: this.reuseVariable.source_tag,
-                            source_info: this.reuseVariable.source_info,
-                            value: this.reuseVariable.value
-                        }
-                    }
-                    this.$emit('onConfirmReuseVar', variableConfig)
-                })
+        created () {
+            this.validator = new Validator({})
+            this.validator.extend('keyRepeat', (value) => {
+                value = /^\$\{\w+\}$/.test(value) ? value : '${' + value + '}'
+                if (value in this.constants) {
+                    return false
+                }
+                return true
             })
         },
-        onCancel () {
-            this.$emit('onCancelReuseVar', this.reuseVariable)
+        methods: {
+            onSelect (id) {
+                this.selectedVar = id
+            },
+            onToggleCreateVar (checked) {
+                this.isCreateVar = checked
+            },
+            onConfirm ($event) {
+                this.$nextTick(() => {
+                    this.$validator.validateAll().then((result) => {
+                        if (!result && this.isCreateVar) return
+                        let variableConfig
+                        if (this.isCreateVar) { // 新变量
+                            if (!/^\$\{[\w]*\}$/.test(this.varKey)) {
+                                this.varKey = '${' + this.varKey + '}'
+                            }
+                            variableConfig = {
+                                type: 'create',
+                                name: this.varName,
+                                key: this.reuseVariable.key,
+                                varKey: this.varKey,
+                                source_tag: this.reuseVariable.source_tag,
+                                source_info: this.reuseVariable.source_info,
+                                value: this.reuseVariable.value
+                            }
+                        } else { // 复用
+                            variableConfig = {
+                                type: 'reuse',
+                                name: this.reuseVariable.name,
+                                key: this.reuseVariable.key,
+                                varKey: this.selectedVar,
+                                source_tag: this.reuseVariable.source_tag,
+                                source_info: this.reuseVariable.source_info,
+                                value: this.reuseVariable.value
+                            }
+                        }
+                        this.$emit('onConfirmReuseVar', variableConfig)
+                    })
+                })
+            },
+            onCancel () {
+                this.$emit('onCancelReuseVar', this.reuseVariable)
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -253,4 +252,3 @@ export default {
 }
 
 </style>
-

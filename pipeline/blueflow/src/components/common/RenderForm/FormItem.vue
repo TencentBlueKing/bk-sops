@@ -35,7 +35,7 @@
         </div>
         <label
             v-if="option.showLabel"
-            :class="['rf-tag-label', {'required': isRequired()}]">
+            :class="['rf-tag-label', { 'required': isRequired() }]">
             {{scheme.attrs.name}}
         </label>
         <div v-show="hook" class="rf-tag-form">
@@ -47,11 +47,11 @@
             ref="tagComponent"
             :is="tagComponent"
             v-bind="getDefaultAttrs()"
-            :tagCode="scheme.tag_code"
-            :atomEvents="scheme.events"
-            :atomMethods="scheme.methods"
+            :tag-code="scheme.tag_code"
+            :atom-events="scheme.events"
+            :atom-methods="scheme.methods"
             :value="formValue"
-            :parentValue="parentValue"
+            :parent-value="parentValue"
             @change="updateForm"
             @onShow="onShowForm"
             @onHide="onHideForm">
@@ -64,249 +64,248 @@
                     customClass: 'offset-left-tooltip',
                     zIndex: 2002
                 }"
-                :isChecked="hook"
+                :is-checked="hook"
                 @checkCallback="onHookForm">
             </BaseCheckbox>
         </div>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import tools from '@/utils/tools.js'
-import { checkDataType } from '@/utils/checkDataType.js'
-import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
-import FormGroup from './FormGroup.vue'
+    import '@/utils/i18n.js'
+    import tools from '@/utils/tools.js'
+    import { checkDataType } from '@/utils/checkDataType.js'
+    import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
+    import FormGroup from './FormGroup.vue'
 
-// 导入 tag 文件注册为组件
-function registerTag () {
-    const innerComponent = require.context(
-        './tags/',
-        false,
-        /Tag[A-Z]\w+\.(vue|js)$/
-    )
-    const userComponent = require.context(
-        '../../tags/',
-        false,
-        /Tag[A-Z]\w+\.(vue|js)$/
-    )
-    const tagComponent = {}
-    const register = (fileName, context) => {
-        const componentConfig = context(fileName)
-        const comp = componentConfig.default
-        const typeName = comp.name.slice(3).replace(/[A-Z]/g, match => {
-            return `_${match.toLowerCase()}`
+    // 导入 tag 文件注册为组件
+    function registerTag () {
+        const innerComponent = require.context(
+            './tags/',
+            false,
+            /Tag[A-Z]\w+\.(vue|js)$/
+        )
+        const userComponent = require.context(
+            '../../tags/',
+            false,
+            /Tag[A-Z]\w+\.(vue|js)$/
+        )
+        const tagComponent = {}
+        const register = (fileName, context) => {
+            const componentConfig = context(fileName)
+            const comp = componentConfig.default
+            const typeName = comp.name.slice(3).replace(/[A-Z]/g, match => {
+                return `_${match.toLowerCase()}`
+            })
+            const name = 'tag' + typeName
+
+            tagComponent[name] = comp
+        }
+        innerComponent.keys().forEach(fileName => {
+            register(fileName, innerComponent)
         })
-        const name = 'tag' + typeName
+        userComponent.keys().forEach(fileName => {
+            register(fileName, userComponent)
+        })
 
-        tagComponent[name] = comp
+        return tagComponent
     }
-    innerComponent.keys().forEach(fileName => {
-        register(fileName, innerComponent)
-    })
-    userComponent.keys().forEach(fileName => {
-        register(fileName, userComponent)
-    })
 
-    return tagComponent
-}
-
-
-export default {
-    name: 'FormItem',
-    components: {
-        BaseCheckbox,
-        FormGroup
-    },
-    props: {
-        scheme: {
-            type: Object,
-            default () {
-                return {}
-            }
+    export default {
+        name: 'FormItem',
+        components: {
+            BaseCheckbox,
+            FormGroup
         },
-        option: {
-            type: Object,
-            default () {
-                return {}
-            }
-        },
-        value: {
-            type: [String, Number, Boolean, Array, Object]
-        },
-        parentValue: {
-            type: [String, Number, Boolean, Array, Object]
-        },
-        hook: {
-            type: Boolean,
-            default: false
-        }
-    },
-    data () {
-        let showForm = ('hidden' in this.scheme.attrs) ? !this.scheme.attrs.hidden : true
-        let showHook = ('hookable' in this.scheme.attrs) ?
-            (this.scheme.attrs.hookable && this.option.showHook) :
-            !!this.option.showHook
-        const formValue = this.getFormValue(this.value)
-
-        return {
-            tagComponent: `tag_${this.scheme.type}`,
-            showForm,
-            showHook,
-            formValue,
-            i18n: {
-                hooked: gettext('取消勾选'),
-                cancelHook: gettext('勾选参数作为全局变量')
-            }
-        }
-    },
-    watch: {
-        scheme (val) {
-            this.tagComponent = `tag_${this.scheme.type}`
-        },
-        value (val) {
-            this.formValue = this.getFormValue(val)
-        }
-    },
-    beforeCreate () {
-        const tagComponent = registerTag()
-        Object.keys(tagComponent).forEach(item => {
-            this.$options.components[item] = tagComponent[item]
-        })
-    },
-    methods: {
-        getDefaultAttrs () {
-            const attrs = tools.deepClone(this.scheme.attrs)
-            attrs.showVarList = this.option.showVarList // 是否自动显示变量列表
-            attrs.formEdit = this.option.formEdit
-            attrs.formMode = this.option.formMode
-
-            // UI 配置项里的 formEdit 优先于标准插件配置项里的 editable 属性
-            // if ('editable' in this.option) {
-            //     attrs.editable = this.option.editable
-            // }
-
-            return {...attrs}
-        },
-        getFormValue (val) {
-            const valueType = checkDataType(val)
-
-            if (valueType === 'Undefined') {
-                return
-            }
-
-            let defaultValueFormat
-            let formValue
-
-            if (this.hook) {
-                defaultValueFormat = {
-                    type: 'String',
-                    value: ''
+        props: {
+            scheme: {
+                type: Object,
+                default () {
+                    return {}
                 }
-            } else {
-                defaultValueFormat = this.getDefaultValueFormat()
+            },
+            option: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            value: {
+                type: [String, Number, Boolean, Array, Object]
+            },
+            parentValue: {
+                type: [String, Number, Boolean, Array, Object]
+            },
+            hook: {
+                type: Boolean,
+                default: false
             }
-
-            const isTypeValid = Array.isArray(defaultValueFormat.type) ?
-                defaultValueFormat.type.indexOf(valueType) > -1 :
-                defaultValueFormat.type === valueType
-
-            if (isTypeValid) {
-                formValue = tools.deepClone(val)
-            } else {
-                formValue = tools.deepClone(defaultValueFormat.value)
-                this.updateForm([this.scheme.tag_code], formValue)
-            }
-
-            return formValue
         },
-        getDefaultValueFormat () {
-            let valueFormat
-            switch (this.scheme.type) {
-                case 'input':
-                case 'textarea':
-                case 'radio':
-                case 'text':
-                case 'datetime':
-                case 'password':
-                    valueFormat = {
-                        type: ['String', 'Number'],
+        data () {
+            const showForm = ('hidden' in this.scheme.attrs) ? !this.scheme.attrs.hidden : true
+            const showHook = ('hookable' in this.scheme.attrs)
+                ? (this.scheme.attrs.hookable && this.option.showHook)
+                : !!this.option.showHook
+            const formValue = this.getFormValue(this.value)
+
+            return {
+                tagComponent: `tag_${this.scheme.type}`,
+                showForm,
+                showHook,
+                formValue,
+                i18n: {
+                    hooked: gettext('取消勾选'),
+                    cancelHook: gettext('勾选参数作为全局变量')
+                }
+            }
+        },
+        watch: {
+            scheme (val) {
+                this.tagComponent = `tag_${this.scheme.type}`
+            },
+            value (val) {
+                this.formValue = this.getFormValue(val)
+            }
+        },
+        beforeCreate () {
+            const tagComponent = registerTag()
+            Object.keys(tagComponent).forEach(item => {
+                this.$options.components[item] = tagComponent[item]
+            })
+        },
+        methods: {
+            getDefaultAttrs () {
+                const attrs = tools.deepClone(this.scheme.attrs)
+                attrs.showVarList = this.option.showVarList // 是否自动显示变量列表
+                attrs.formEdit = this.option.formEdit
+                attrs.formMode = this.option.formMode
+
+                // UI 配置项里的 formEdit 优先于标准插件配置项里的 editable 属性
+                // if ('editable' in this.option) {
+                //     attrs.editable = this.option.editable
+                // }
+
+                return { ...attrs }
+            },
+            getFormValue (val) {
+                const valueType = checkDataType(val)
+
+                if (valueType === 'Undefined') {
+                    return
+                }
+
+                let defaultValueFormat
+                let formValue
+
+                if (this.hook) {
+                    defaultValueFormat = {
+                        type: 'String',
                         value: ''
                     }
-                    break
-                case 'checkbox':
-                case 'datatable':
-                case 'tree':
-                case 'upload':
-                    valueFormat = {
-                        type: 'Array',
-                        value: []
-                    }
-                    break
-                case 'select':
-                    if (this.scheme.attrs.multiple) {
-                        valueFormat = {
-                            type: 'Array',
-                            value: []
-                        }
-                    } else {
+                } else {
+                    defaultValueFormat = this.getDefaultValueFormat()
+                }
+
+                const isTypeValid = Array.isArray(defaultValueFormat.type)
+                    ? defaultValueFormat.type.indexOf(valueType) > -1
+                    : defaultValueFormat.type === valueType
+
+                if (isTypeValid) {
+                    formValue = tools.deepClone(val)
+                } else {
+                    formValue = tools.deepClone(defaultValueFormat.value)
+                    this.updateForm([this.scheme.tag_code], formValue)
+                }
+
+                return formValue
+            },
+            getDefaultValueFormat () {
+                let valueFormat
+                switch (this.scheme.type) {
+                    case 'input':
+                    case 'textarea':
+                    case 'radio':
+                    case 'text':
+                    case 'datetime':
+                    case 'password':
                         valueFormat = {
                             type: ['String', 'Number'],
                             value: ''
                         }
-                    }
-                    break
-                case 'int':
-                    valueFormat = {
-                        type: 'Number',
-                        value: 0
-                    }
-                    break
-                case 'ip_selector':
-                    valueFormat = {
-                        type: 'Object',
-                        value: {
-                            selectors: [],
-                            ip: [],
-                            topo: [],
-                            filters: [],
-                            excludes: []
+                        break
+                    case 'checkbox':
+                    case 'datatable':
+                    case 'tree':
+                    case 'upload':
+                        valueFormat = {
+                            type: 'Array',
+                            value: []
                         }
-                    }
-                    break
-                default:
-                    valueFormat = {
-                        type: 'String',
-                        value: ''
-                    }
+                        break
+                    case 'select':
+                        if (this.scheme.attrs.multiple) {
+                            valueFormat = {
+                                type: 'Array',
+                                value: []
+                            }
+                        } else {
+                            valueFormat = {
+                                type: ['String', 'Number'],
+                                value: ''
+                            }
+                        }
+                        break
+                    case 'int':
+                        valueFormat = {
+                            type: 'Number',
+                            value: 0
+                        }
+                        break
+                    case 'ip_selector':
+                        valueFormat = {
+                            type: 'Object',
+                            value: {
+                                selectors: [],
+                                ip: [],
+                                topo: [],
+                                filters: [],
+                                excludes: []
+                            }
+                        }
+                        break
+                    default:
+                        valueFormat = {
+                            type: 'String',
+                            value: ''
+                        }
+                }
+                return valueFormat
+            },
+            isRequired () {
+                let required = false
+                if ('validation' in this.scheme.attrs) {
+                    required = this.scheme.attrs.validation.some(item => {
+                        return item.type === 'required'
+                    })
+                }
+                return required
+            },
+            updateForm (fieldArr, val) {
+                this.$emit('change', fieldArr, val)
+            },
+            onShowForm () {
+                this.showForm = true
+            },
+            onHideForm () {
+                this.showForm = false
+            },
+            onHookForm (val) {
+                this.$emit('onHook', this.scheme.tag_code, val)
+            },
+            validate (combineValue) {
+                return this.$refs.tagComponent ? this.$refs.tagComponent.validate(combineValue) : true
             }
-            return valueFormat
-        },
-        isRequired () {
-            let required = false
-            if ('validation' in this.scheme.attrs) {
-                required = this.scheme.attrs.validation.some(item => {
-                    return item.type === 'required'
-                })
-            }
-            return required
-        },
-        updateForm (fieldArr, val) {
-            this.$emit('change', fieldArr, val)
-        },
-        onShowForm () {
-            this.showForm = true
-        },
-        onHideForm () {
-            this.showForm = false
-        },
-        onHookForm (val) {
-            this.$emit('onHook', this.scheme.tag_code, val)
-        },
-        validate (combineValue) {
-            return this.$refs.tagComponent ? this.$refs.tagComponent.validate(combineValue) : true
         }
     }
-}
 </script>
 <style lang="scss">
 .rf-form-item {
@@ -364,4 +363,3 @@ export default {
     }
 }
 </style>
-

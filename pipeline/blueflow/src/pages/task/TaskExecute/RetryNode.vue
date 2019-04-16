@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="retry-node-container" v-bkloading="{isLoading: loading, opacity: 1}">
+    <div class="retry-node-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="panel-title">
             <h3>{{ i18n.retry }}</h3>
         </div>
@@ -19,7 +19,7 @@
                 ref="renderForm"
                 v-if="!isEmptyParams"
                 :scheme="renderConfig"
-                :formOption="renderOption"
+                :form-option="renderOption"
                 v-model="renderData">
             </RenderForm>
             <NoData v-else></NoData>
@@ -31,131 +31,130 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { checkDataType } from '@/utils/checkDataType.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-import NoData from '@/components/common/base/NoData.vue'
-import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-export default {
-    name: 'RetryNode',
-    components: {
-        RenderForm,
-        NoData
-    },
-    props: ['nodeDetailConfig'],
-    data () {
-        return {
-            i18n: {
-                retry: gettext("重试"),
-                confirm: gettext("确定"),
-                cancel: gettext("取消")
-            },
-            loading: true,
-            bkMessageInstance: null,
-            nodeInfo: {},
-            renderOption: {
-                showGroup: false,
-                showLabel: true,
-                showHook: false
-            },
-            renderConfig: [],
-            renderData: {}
-        }
-    },
-    computed: {
-        ...mapState({
-            'atomFormConfig': state => state.atomForm.config
-        }),
-        isEmptyParams () {
-            return this.renderConfig.length === 0
-        }
-    },
-    mounted () {
-        this.loadNodeInfo()
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getNodeActInfo',
-            'instanceRetry'
-        ]),
-        ...mapActions('atomForm/', [
-            'loadAtomConfig'
-        ]),
-        ...mapMutations ('atomForm/', [
-            'setAtomConfig'
-        ]),
-        async loadNodeInfo () {
-            this.loading = true
-            try {
-                this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
-                this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
-                if (this.nodeInfo.result) {
-                    if (this.nodeInfo) {
-                        for ( let key in this.nodeInfo.data.inputs) {
-                            this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
-                        }
-                    }
-                } else {
-                    errorHandler(this.nodeInfo, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.loading = false
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    export default {
+        name: 'RetryNode',
+        components: {
+            RenderForm,
+            NoData
+        },
+        props: ['nodeDetailConfig'],
+        data () {
+            return {
+                i18n: {
+                    retry: gettext('重试'),
+                    confirm: gettext('确定'),
+                    cancel: gettext('取消')
+                },
+                loading: true,
+                bkMessageInstance: null,
+                nodeInfo: {},
+                renderOption: {
+                    showGroup: false,
+                    showLabel: true,
+                    showHook: false
+                },
+                renderConfig: [],
+                renderData: {}
             }
         },
-        async getNodeConfig (type) {
-            if (this.atomFormConfig[type]) {
-                return this.atomFormConfig[type]
-            } else {
+        computed: {
+            ...mapState({
+                'atomFormConfig': state => state.atomForm.config
+            }),
+            isEmptyParams () {
+                return this.renderConfig.length === 0
+            }
+        },
+        mounted () {
+            this.loadNodeInfo()
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getNodeActInfo',
+                'instanceRetry'
+            ]),
+            ...mapActions('atomForm/', [
+                'loadAtomConfig'
+            ]),
+            ...mapMutations('atomForm/', [
+                'setAtomConfig'
+            ]),
+            async loadNodeInfo () {
+                this.loading = true
                 try {
-                    await this.loadAtomConfig({atomType: type})
-                    this.setAtomConfig({atomType: type, configData: $.atoms[type]})
-                    return this.atomFormConfig[type]
+                    this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
+                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                    if (this.nodeInfo.result) {
+                        if (this.nodeInfo) {
+                            for (const key in this.nodeInfo.data.inputs) {
+                                this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
+                            }
+                        }
+                    } else {
+                        errorHandler(this.nodeInfo, this)
+                    }
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
-            }
-        },
-        async onRetryTask () {
-            let formvalid = true
-            if (this.$refs.renderForm) {
-                formvalid = this.$refs.renderForm.validate()
-            }
-            if (!formvalid || this.retrying) return
-
-            const  { instance_id, component_code, node_id } = this.nodeDetailConfig
-            const data = {
-                instance_id,
-                node_id,
-                component_code,
-                inputs: JSON.stringify(this.renderData)
-            }
-            this.retrying = true
-            try {
-                const res = await this.instanceRetry(data)
-                if (res.result) {
-                    this.$bkMessage({
-                        message: gettext('重试成功'),
-                        theme: 'success'
-                    })
-                    this.$emit('retrySuccess', node_id)
+            },
+            async getNodeConfig (type) {
+                if (this.atomFormConfig[type]) {
+                    return this.atomFormConfig[type]
                 } else {
-                    errorHandler(res, this)
+                    try {
+                        await this.loadAtomConfig({ atomType: type })
+                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
+                        return this.atomFormConfig[type]
+                    } catch (e) {
+                        errorHandler(e, this)
+                    }
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.retrying = false
+            },
+            async onRetryTask () {
+                let formvalid = true
+                if (this.$refs.renderForm) {
+                    formvalid = this.$refs.renderForm.validate()
+                }
+                if (!formvalid || this.retrying) return
+
+                const { instance_id, component_code, node_id } = this.nodeDetailConfig
+                const data = {
+                    instance_id,
+                    node_id,
+                    component_code,
+                    inputs: JSON.stringify(this.renderData)
+                }
+                this.retrying = true
+                try {
+                    const res = await this.instanceRetry(data)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('重试成功'),
+                            theme: 'success'
+                        })
+                        this.$emit('retrySuccess', node_id)
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.retrying = false
+                }
+            },
+            onCancelRetry () {
+                const { node_id } = this.nodeDetailConfigs
+                this.$emit('retryCancel', node_id)
             }
-        },
-        onCancelRetry () {
-            const { node_id } = this.nodeDetailConfigs
-            this.$emit('retryCancel', node_id)
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     @import '@/scss/config.scss';

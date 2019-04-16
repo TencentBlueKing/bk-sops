@@ -14,23 +14,23 @@
         <div class="operation-header clearfix">
             <div class="bread-crumbs-wrapper">
                 <span
-                    :class="['path-item', {'name-ellipsis': nodeNav.length > 1}]"
+                    :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
                     v-for="(path, index) in nodeNav"
                     :key="path.id"
-                    :title="showNodeList.includes(index)? path.name: ''">
-                        <span v-if="!!index && showNodeList.includes(index) || index === 1">
-                            &gt;
-                        </span>
-                        <span
-                            v-if="showNodeList.includes(index)"
-                            class="node-name"
-                            :title="path.name"
-                            @click="onSelectSubflow(path.id)">
-                            {{path.name}}
-                        </span>
-                        <span class="node-ellipsis" v-else-if="index === 1">
-                            {{ellipsis}}
-                        </span>
+                    :title="showNodeList.includes(index) ? path.name : ''">
+                    <span v-if="!!index && showNodeList.includes(index) || index === 1">
+                        &gt;
+                    </span>
+                    <span
+                        v-if="showNodeList.includes(index)"
+                        class="node-name"
+                        :title="path.name"
+                        @click="onSelectSubflow(path.id)">
+                        {{path.name}}
+                    </span>
+                    <span class="node-ellipsis" v-else-if="index === 1">
+                        {{ellipsis}}
+                    </span>
                 </span>
             </div>
             <ul class="operation-container clearfix">
@@ -58,8 +58,8 @@
                     </div>
                 </li>
                 <li :class="['operation-line',
-                    {'disabled': state === 'REVOKED' || state === 'FINISHED'
-                }]">
+                             { 'disabled': state === 'REVOKED' || state === 'FINISHED'
+                             }]">
                 </li>
                 <li
                     :class="['operation-btn common-icon-dark-paper clickable',{
@@ -83,15 +83,15 @@
         </div>
         <div class="task-container">
             <div :class="['pipeline-nodes', {
-                    'task-params-show': isTaskParamsShow
-                }]">
+                'task-params-show': isTaskParamsShow
+            }]">
                 <PipelineCanvas
                     ref="pipelineCanvas"
                     v-if="!nodeSwitching"
-                    :isMenuBarShow="false"
-                    :isConfigBarShow="false"
-                    :isEdit="false"
-                    :canvasData="canvasData"
+                    :is-menu-bar-show="false"
+                    :is-config-bar-show="false"
+                    :is-edit="false"
+                    :canvas-data="canvasData"
                     @onNodeClick="onNodeClick">
                 </PipelineCanvas>
             </div>
@@ -100,29 +100,29 @@
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
                 <ViewParams
                     v-if="nodeInfoType === 'viewParams'"
-                    :nodeData="nodeData"
-                    :selectedFlowPath="selectedFlowPath"
-                    :nodeDetailConfig="nodeDetailConfig"
+                    :node-data="nodeData"
+                    :selected-flow-path="selectedFlowPath"
+                    :node-detail-config="nodeDetailConfig"
                     @onClickTreeNode="onClickTreeNode">
                 </ViewParams>
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
-                    :paramsCanBeModify="paramsCanBeModify"
+                    :params-can-be-modify="paramsCanBeModify"
                     :instance_id="instance_id">
                 </ModifyParams>
                 <ExecuteInfo
-                    v-if="nodeInfoType==='executeInfo'"
-                    :nodeDetailConfig="nodeDetailConfig">
+                    v-if="nodeInfoType === 'executeInfo'"
+                    :node-detail-config="nodeDetailConfig">
                 </ExecuteInfo>
                 <RetryNode
-                    v-if="nodeInfoType==='retryNode'"
-                    :nodeDetailConfig="nodeDetailConfig"
+                    v-if="nodeInfoType === 'retryNode'"
+                    :node-detail-config="nodeDetailConfig"
                     @retrySuccess="onRetrySuccess"
                     @retryCancel="onRetryCancel">
                 </RetryNode>
                 <ModifyTime
-                    v-if="nodeInfoType==='modifyTime'"
-                    :nodeDetailConfig="nodeDetailConfig"
+                    v-if="nodeInfoType === 'modifyTime'"
+                    :node-detail-config="nodeDetailConfig"
                     @modifyTimeSuccess="onModifyTimeSuccess"
                     @modifyTimeCancel="onModifyTimeCancel">
                 </ModifyTime>
@@ -133,980 +133,975 @@
         </transition>
         <gatewaySelectDialog
             v-if="isGatewaySelectDialogShow"
-            :isGatewaySelectDialogShow="isGatewaySelectDialogShow"
-            :gatewayBranches="gatewayBranches"
+            :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
+            :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
             @onCancel="onCancelGatewaySelect">
         </gatewaySelectDialog>
         <revokeDialog
-            :isRevokeDialogShow="isRevokeDialogShow"
+            :is-revoke-dialog-show="isRevokeDialogShow"
             @onConfirmRevokeTask="onConfirmRevokeTask"
             @onCancelRevokeTask="onCancelRevokeTask">
         </revokeDialog>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapActions } from 'vuex'
-import Tooltip from 'tooltip.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-import dom from '@/utils/dom.js'
-import { TASK_STATE_DICT } from '@/constants/index.js'
-import PipelineCanvas from '@/components/common/PipelineCanvas'
-import ViewParams from './ViewParams.vue'
-import ModifyParams from './ModifyParams.vue'
-import ExecuteInfo from './ExecuteInfo.vue'
-import RetryNode from './RetryNode.vue'
-import ModifyTime from './ModifyTime.vue'
-import gatewaySelectDialog from './GatewaySelectDialog.vue'
-import revokeDialog from './revokeDialog.vue'
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import Tooltip from 'tooltip.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import dom from '@/utils/dom.js'
+    import { TASK_STATE_DICT } from '@/constants/index.js'
+    import PipelineCanvas from '@/components/common/PipelineCanvas'
+    import ViewParams from './ViewParams.vue'
+    import ModifyParams from './ModifyParams.vue'
+    import ExecuteInfo from './ExecuteInfo.vue'
+    import RetryNode from './RetryNode.vue'
+    import ModifyTime from './ModifyTime.vue'
+    import gatewaySelectDialog from './GatewaySelectDialog.vue'
+    import revokeDialog from './revokeDialog.vue'
 
-const OPERATIONS = [
-    {
-        type: 'execute',
-        icon: 'common-icon-right-triangle',
-        text: gettext('执行'),
-        extraStyle: true
-    },
-    {
-        type: 'revoke',
-        icon: 'common-icon-return-arrow',
-        text: gettext('撤销')
-    }
-]
-// 执行按钮的变更
-const STATE_OPERATIONS = {
-    'RUNNING': {
-        type: 'pause',
-        icon: 'common-icon-double-vertical-line',
-        text: gettext('暂停'),
-        extraStyle: true
-    },
-    'SUSPENDED': {
-        type: 'resume',
-        icon: 'common-icon-right-triangle',
-        text: gettext('继续'),
-        extraStyle: true
-    },
-    'CREATED': {
-        type: 'execute',
-        icon: 'common-icon-right-triangle',
-        text: gettext('执行'),
-        extraStyle: true
-    },
-    'FAILED': {
-        type: 'pause',
-        icon: 'common-icon-double-vertical-line',
-        text: gettext('暂停'),
-        extraStyle: true
-    }
-}
-export default {
-    name: 'TaskOperation',
-    components: {
-        PipelineCanvas,
-        ViewParams,
-        ModifyParams,
-        ExecuteInfo,
-        RetryNode,
-        ModifyTime,
-        gatewaySelectDialog,
-        revokeDialog
-    },
-    props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName'],
-    data () {
-        const pipelineData =  JSON.parse(this.instanceFlow)
-        const path = []
-        path.push({
-            id: this.instance_id,
-            name: this.instanceName,
-            nodeId: pipelineData.id,
-            type: 'root'
-        })
-
-        return {
-            i18n: {
-                params: gettext('查看参数'),
-                changeParams: gettext('修改参数')
-            },
-            operationList: OPERATIONS.slice(0),
-            taskId: this.instance_id,
-            isTaskParamsShow: false,
-            isNodeInfoPanelShow: false,
-            nodeInfoType: '',
-            activeOperation: '',
-            state: '',
-            selectedFlowPath: path, // 选择面包屑路径
-            instanceStatus: {},
-            taskParamsType: '',
-            timer: null,
-            pipelineData: pipelineData,
-            nodeDetailConfig: {},
-            nodeSwitching: false,
-            isGatewaySelectDialogShow: false,
-            gatewayBranches: [],
-            nodeTooltipInstance: {},
-            pending: {
-                skip: false,
-                selectGateway: false,
-                task: false,
-                parseNodeResume: false,
-                subflowPause: false,
-                subflowResume: false
-            },
-            isRevokeDialogShow: false,
-            showNodeList: [0, 1, 2],
-            ellipsis: '...',
-            operateLoading: false
+    const OPERATIONS = [
+        {
+            type: 'execute',
+            icon: 'common-icon-right-triangle',
+            text: gettext('执行'),
+            extraStyle: true
+        },
+        {
+            type: 'revoke',
+            icon: 'common-icon-return-arrow',
+            text: gettext('撤销')
         }
-    },
-    computed: {
-        completePipelineData () {
-            return JSON.parse(this.instanceFlow)
+    ]
+    // 执行按钮的变更
+    const STATE_OPERATIONS = {
+        'RUNNING': {
+            type: 'pause',
+            icon: 'common-icon-double-vertical-line',
+            text: gettext('暂停'),
+            extraStyle: true
         },
-        canvasData () {
-            const {lines, locations, gateways} = this.pipelineData
-            const branchConditions = {}
-            for (let gKey in gateways) {
-                const item = gateways[gKey]
-                if (item.conditions) {
-                    branchConditions[item.id] = Object.assign({}, item.conditions)
-                }
-            }
-            return {
-                lines: this.pipelineData.line,
-                locations: this.pipelineData.location.map(item => {return {...item, mode: 'preview', checked: true}}),
-                branchConditions
-            }
-
+        'SUSPENDED': {
+            type: 'resume',
+            icon: 'common-icon-right-triangle',
+            text: gettext('继续'),
+            extraStyle: true
         },
-        nodeData () {
-            return [{
+        'CREATED': {
+            type: 'execute',
+            icon: 'common-icon-right-triangle',
+            text: gettext('执行'),
+            extraStyle: true
+        },
+        'FAILED': {
+            type: 'pause',
+            icon: 'common-icon-double-vertical-line',
+            text: gettext('暂停'),
+            extraStyle: true
+        }
+    }
+    export default {
+        name: 'TaskOperation',
+        components: {
+            PipelineCanvas,
+            ViewParams,
+            ModifyParams,
+            ExecuteInfo,
+            RetryNode,
+            ModifyTime,
+            gatewaySelectDialog,
+            revokeDialog
+        },
+        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        data () {
+            const pipelineData = JSON.parse(this.instanceFlow)
+            const path = []
+            path.push({
                 id: this.instance_id,
                 name: this.instanceName,
-                children: this.getOrderedTree(this.completePipelineData)
-            }]
-        },
-        taskState () {
-            return TASK_STATE_DICT[this.state]
-        },
-        nodeNav () {
-            return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
-        },
-        // mark the current canvas is root or not
-        isTopTask () {
-            return this.nodeNav.length === 1
-        },
-        paramsCanBeModify () {
-            return this.isTopTask && this.state === 'CREATED'
-        }
-    },
-    mounted () {
-        this.loadTaskStatus()
-        this.$el.addEventListener('click', this.handleNodeHoverClick, false)
-        window.addEventListener('click', this.handleNodeInfoPanelHide, false)
-    },
-    beforeDestroy () {
-        this.cancelTaskStatusTimer()
-        this.$el.removeEventListener('click', this.handleNodeHoverClick, false)
-        window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
-    },
-    watch: {
-        state (val) {
-            if (val in STATE_OPERATIONS) {
-                this.operationList[0] = STATE_OPERATIONS[val]
-            } else if (val === 'REVOKED' || val === 'FINISHED') {
-                this.operationList = []
+                nodeId: pipelineData.id,
+                type: 'root'
+            })
+
+            return {
+                i18n: {
+                    params: gettext('查看参数'),
+                    changeParams: gettext('修改参数')
+                },
+                operationList: OPERATIONS.slice(0),
+                taskId: this.instance_id,
+                isTaskParamsShow: false,
+                isNodeInfoPanelShow: false,
+                nodeInfoType: '',
+                activeOperation: '',
+                state: '',
+                selectedFlowPath: path, // 选择面包屑路径
+                instanceStatus: {},
+                taskParamsType: '',
+                timer: null,
+                pipelineData: pipelineData,
+                nodeDetailConfig: {},
+                nodeSwitching: false,
+                isGatewaySelectDialogShow: false,
+                gatewayBranches: [],
+                nodeTooltipInstance: {},
+                pending: {
+                    skip: false,
+                    selectGateway: false,
+                    task: false,
+                    parseNodeResume: false,
+                    subflowPause: false,
+                    subflowResume: false
+                },
+                isRevokeDialogShow: false,
+                showNodeList: [0, 1, 2],
+                ellipsis: '...',
+                operateLoading: false
             }
-            this.operateLoading = false
         },
-        nodeNav (val) {
-            if (val.length > 3) {
-                this.showNodeList = [0, val.length - 1 , val.length - 2]
-            } else {
-                this.showNodeList = [0, 1, 2]
-            }
-        }
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getInstanceStatus',
-            'instanceStart',
-            'instancePause',
-            'subInstancePause',
-            'instanceResume',
-            'subInstanceResume',
-            'instanceRevoke',
-            'instanceNodeSkip',
-            'instanceBranchSkip',
-            'skipExclusiveGateway',
-            'pauseNodeResume'
-        ]),
-        async loadTaskStatus () {
-            const data = {
-                instance_id: this.taskId,
-                cc_id: this.cc_id
-            }
-            try {
-                this.$emit('taskStatusLoadChange', true)
-                const instanceStatus = await this.getInstanceStatus(data)
-                if (instanceStatus.result) {
-                    this.state = instanceStatus.data.state
-                    this.instanceStatus = instanceStatus.data
-                    if (this.state === 'RUNNING') {
-                        this.setTaskStatusTimer()
+        computed: {
+            completePipelineData () {
+                return JSON.parse(this.instanceFlow)
+            },
+            canvasData () {
+                const { line, location, gateways } = this.pipelineData
+                const branchConditions = {}
+                for (const gKey in gateways) {
+                    const item = gateways[gKey]
+                    if (item.conditions) {
+                        branchConditions[item.id] = Object.assign({}, item.conditions)
                     }
-                    this.updateNodeInfo()
-                } else {
-                    this.cancelTaskStatusTimer()
-                    errorHandler(instanceStatus, this)
                 }
-            } catch (e) {
-                this.cancelTaskStatusTimer()
-                errorHandler(e, this)
-            } finally {
-                this.$emit('taskStatusLoadChange', false)
+                return {
+                    lines: line,
+                    locations: location.map(item => {
+                        return { ...item, mode: 'preview', checked: true }
+                    }),
+                    branchConditions
+                }
+            },
+            nodeData () {
+                return [{
+                    id: this.instance_id,
+                    name: this.instanceName,
+                    children: this.getOrderedTree(this.completePipelineData)
+                }]
+            },
+            taskState () {
+                return TASK_STATE_DICT[this.state]
+            },
+            nodeNav () {
+                return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
+            },
+            // mark the current canvas is root or not
+            isTopTask () {
+                return this.nodeNav.length === 1
+            },
+            paramsCanBeModify () {
+                return this.isTopTask && this.state === 'CREATED'
             }
         },
-        async taskExecute () {
-            // 这里的loading结束由state的改变来停止
-            this.operateLoading = true
-            try {
-                const res = await this.instanceStart(this.instance_id)
-                if (res.result) {
-                    this.setTaskStatusTimer()
-                    this.$bkMessage({
-                        message: gettext('任务开始执行'),
-                        theme: 'success'
-                    })
-                } else {
-                    errorHandler(res, this)
+        watch: {
+            state (val) {
+                if (val in STATE_OPERATIONS) {
+                    this.operationList[0] = STATE_OPERATIONS[val]
+                } else if (val === 'REVOKED' || val === 'FINISHED') {
+                    this.operationList = []
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.task = false
                 this.operateLoading = false
+            },
+            nodeNav (val) {
+                if (val.length > 3) {
+                    this.showNodeList = [0, val.length - 1, val.length - 2]
+                } else {
+                    this.showNodeList = [0, 1, 2]
+                }
             }
         },
-        async taskPause (subflowPause, nodeId) {
-            this.operateLoading = true
-            let res
-            try {
-                if (!this.isTopTask || subflowPause) { // 子流程画布暂停或子流程节点暂停
-                    const data = {
-                        instance_id: this.instance_id,
-                        node_id: nodeId || this.taskId
-                    }
-                    res = await this.subInstancePause(data)
-                } else {
-                    res = await this.instancePause(this.instance_id)
-                }
-                if (res.result) {
-                    this.$bkMessage({
-                        message: gettext('任务暂停成功'),
-                        theme: 'success'
-                    })
-                } else {
-                    errorHandler(res, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.task = false
-                this.operateLoading = false
-            }
-        },
-        async taskResume (subflowResume, nodeId) {
-            this.operateLoading = true
-            let res
-            try {
-                if (!this.isTopTask || subflowResume) {
-                    const data = {
-                        instance_id: this.instance_id,
-                        node_id: nodeId || this.taskId
-                    }
-                    res = await this.subInstanceResume(data)
-                } else {
-                    res = await this.instanceResume(this.instance_id)
-                }
-                if (res.result) {
-                    this.setTaskStatusTimer()
-                    this.$bkMessage({
-                        message: gettext('任务继续成功'),
-                        theme: 'success'
-                    })
-                } else {
-                    errorHandler(res, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.task = false
-                this.operateLoading = false
-            }
-        },
-        async taskRevoke () {
-            this.operateLoading = true
-            try {
-                const res = await this.instanceRevoke(this.instance_id)
-                if (res.result) {
-                    this.$bkMessage({
-                        message: gettext('任务撤销成功'),
-                        theme: 'success'
-                    })
-                    setTimeout(()=> {
-                        this.setTaskStatusTimer()
-                    }, 1000)
-                } else {
-                    errorHandler(res, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.task = false
-                this.operateLoading = false
-            }
-        },
-        async nodeTaskSkip (tooltipDom, data) {
-            tooltipDom.style.display = 'none'
-            this.pending.skip = true
-            try {
-                const res = await this.instanceNodeSkip(data)
-                if (res.result) {
-                    this.$bkMessage({
-                        message: gettext('跳过成功'),
-                        theme: 'success'
-                    })
-                    this.destroyTooltipInstance(data.id)
-                    setTimeout(()=> {
-                        this.setTaskStatusTimer()
-                    }, 1000)
-                } else {
-                    tooltipDom.style.display = 'block'
-                    errorHandler(res, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.skip = false
-            }
-        },
-        async selectGatewayBranch (data) {
-            this.pending.selectGateway = true
-            try {
-                const res = await this.skipExclusiveGateway(data)
-                if (res.result) {
-                    this.$bkMessage({
-                        message: gettext('跳过成功'),
-                        theme: 'success'
-                    })
-                    this.destroyTooltipInstance(data.id)
-                    setTimeout(()=> {
-                        this.setTaskStatusTimer()
-                    }, 1000)
-                } else {
-                    errorHandler(res, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.selectGateway = false
-            }
-        },
-        async nodeResume (data) {
-            this.pending.parseNodeResume = true
-            try {
-                const res = await this.pauseNodeResume(data)
-                if (res.result) {
-                    this.$bkMessage({
-                        message: gettext('继续成功'),
-                        theme: 'success'
-                    })
-                    this.destroyTooltipInstance(data.id)
-                    setTimeout(()=> {
-                        this.setTaskStatusTimer()
-                    }, 1000)
-                } else {
-                    errorHandler(res, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.parseNodeResume = false
-            }
-        },
-        setTaskStatusTimer () {
-            this.cancelTaskStatusTimer()
-            this.timer = setTimeout(()=>{
-                this.loadTaskStatus()
-            }, 2000)
-        },
-        cancelTaskStatusTimer () {
-            if (this.timer) {
-                clearTimeout(this.timer)
-                this.timer = null
-            }
-        },
-        updateTaskStatus (id) {
-            this.taskId = id
-            this.setCanvasData()
+        mounted () {
             this.loadTaskStatus()
+            this.$el.addEventListener('click', this.handleNodeHoverClick, false)
+            window.addEventListener('click', this.handleNodeInfoPanelHide, false)
         },
-        // 更新节点状态
-        updateNodeInfo () {
-            const nodes = this.instanceStatus.children
-            for (let id in nodes) {
-                const nodeActivities = this.pipelineData.activities[id]
-                const nodeEl = document.querySelector(`#${id}`)
-                let isSkipped = false
-                if (nodes[id].state === 'FINISHED') {
-                    isSkipped = nodes[id].skip || nodes[id].error_ignorable
-                    this.destroyTooltipInstance(id)
-                } else if (nodes[id].state === 'FAILED') { // 初始化失败节点重试 tooltip（任务节点、分支网关）
-                    const type = nodeEl ? nodeEl.dataset.type : 'undefined'
-                    if (type === 'tasknode') {
-                        const tpl = this.getFailedBtnTpl(id,nodeActivities.isSkipped, nodeActivities.can_retry)
-                        this.generateTooltipInstance(nodeEl, id, tpl)
-                    } else if (type === 'branchgateway') {
-                        const tpl = this.getGatewayBtnTpl(id)
-                        this.generateTooltipInstance(nodeEl, id, tpl)
-                    }
-                } else if ( // 初始化定时节点修改时间 tooltip
-                    nodes[id].state === 'RUNNING' &&
-                    nodeActivities &&
-                    nodeActivities.component &&
-                    nodeActivities.component.code === 'sleep_timer' &&
-                    !this.nodeTooltipInstance[id]
-                ) {
-                    const tpl = this.getModityTimeBtnTpl(id)
-                    this.generateTooltipInstance(nodeEl, id, tpl)
-                } else if ( // 初始化暂停节点继续 tooltip
-                    nodes[id].state === 'RUNNING' &&
-                    nodeActivities &&
-                    nodeActivities.component &&
-                    nodeActivities.component.code === 'pause_node' &&
-                    !this.nodeTooltipInstance[id]
-                ) {
-                    const tpl = this.getPauseResumeBtnTpl(id)
-                    this.generateTooltipInstance(nodeEl, id, tpl)
-                } else if ( // 初始化子流程节点暂停 tooltip
-                    nodes[id].state === 'RUNNING' &&
-                    nodeActivities &&
-                    nodeActivities.type === 'SubProcess'
-                ) {
-                    const tpl = this.getSubflowPauseBtnTpl(id)
-                    if (!this.nodeTooltipInstance[id]) {
-                        this.generateTooltipInstance(nodeEl, id, tpl)
+        beforeDestroy () {
+            this.cancelTaskStatusTimer()
+            this.$el.removeEventListener('click', this.handleNodeHoverClick, false)
+            window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getInstanceStatus',
+                'instanceStart',
+                'instancePause',
+                'subInstancePause',
+                'instanceResume',
+                'subInstanceResume',
+                'instanceRevoke',
+                'instanceNodeSkip',
+                'instanceBranchSkip',
+                'skipExclusiveGateway',
+                'pauseNodeResume'
+            ]),
+            async loadTaskStatus () {
+                const data = {
+                    instance_id: this.taskId,
+                    cc_id: this.cc_id
+                }
+                try {
+                    this.$emit('taskStatusLoadChange', true)
+                    const instanceStatus = await this.getInstanceStatus(data)
+                    if (instanceStatus.result) {
+                        this.state = instanceStatus.data.state
+                        this.instanceStatus = instanceStatus.data
+                        if (this.state === 'RUNNING') {
+                            this.setTaskStatusTimer()
+                        }
+                        this.updateNodeInfo()
                     } else {
-                        this.nodeTooltipInstance[id].updateTitleContent(tpl)
+                        this.cancelTaskStatusTimer()
+                        errorHandler(instanceStatus, this)
                     }
-                } else if ( // 初始化子流程节点继续 tooltip
-                    nodes[id].state === 'SUSPENDED' &&
-                    nodeActivities &&
-                    nodeActivities.type === 'SubProcess'
-                ) {
-                    const tpl = this.getSubflowResumeBtnTpl(id)
-                    if (!this.nodeTooltipInstance[id]) {
-                        this.generateTooltipInstance(nodeEl, id, tpl)
+                } catch (e) {
+                    this.cancelTaskStatusTimer()
+                    errorHandler(e, this)
+                } finally {
+                    this.$emit('taskStatusLoadChange', false)
+                }
+            },
+            async taskExecute () {
+                // 这里的loading结束由state的改变来停止
+                this.operateLoading = true
+                try {
+                    const res = await this.instanceStart(this.instance_id)
+                    if (res.result) {
+                        this.setTaskStatusTimer()
+                        this.$bkMessage({
+                            message: gettext('任务开始执行'),
+                            theme: 'success'
+                        })
                     } else {
-                        this.nodeTooltipInstance[id].updateTitleContent(tpl)
+                        errorHandler(res, this)
                     }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.task = false
+                    this.operateLoading = false
                 }
-                const data = {status: nodes[id].state, isSkipped}
-
-                // 暂停节点右上角显示暂停icon
-                if (nodes[id].state === 'RUNNING' &&
-                    nodeActivities &&
-                    nodeActivities.component &&
-                    nodeActivities.component.code === 'pause_node'
-                ) {
-                    data.status = 'SUSPENDED'
+            },
+            async taskPause (subflowPause, nodeId) {
+                this.operateLoading = true
+                let res
+                try {
+                    if (!this.isTopTask || subflowPause) { // 子流程画布暂停或子流程节点暂停
+                        const data = {
+                            instance_id: this.instance_id,
+                            node_id: nodeId || this.taskId
+                        }
+                        res = await this.subInstancePause(data)
+                    } else {
+                        res = await this.instancePause(this.instance_id)
+                    }
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('任务暂停成功'),
+                            theme: 'success'
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.task = false
+                    this.operateLoading = false
                 }
-
-                // 定时节点右上角显示时钟icon
-                if (nodes[id].state === 'RUNNING' &&
-                    nodeActivities &&
-                    nodeActivities.component &&
-                    nodeActivities.component.code === 'sleep_timer'
-                ) {
-                    data.isShowClockIcon = true
+            },
+            async taskResume (subflowResume, nodeId) {
+                this.operateLoading = true
+                let res
+                try {
+                    if (!this.isTopTask || subflowResume) {
+                        const data = {
+                            instance_id: this.instance_id,
+                            node_id: nodeId || this.taskId
+                        }
+                        res = await this.subInstanceResume(data)
+                    } else {
+                        res = await this.instanceResume(this.instance_id)
+                    }
+                    if (res.result) {
+                        this.setTaskStatusTimer()
+                        this.$bkMessage({
+                            message: gettext('任务继续成功'),
+                            theme: 'success'
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.task = false
+                    this.operateLoading = false
                 }
+            },
+            async taskRevoke () {
+                this.operateLoading = true
+                try {
+                    const res = await this.instanceRevoke(this.instance_id)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('任务撤销成功'),
+                            theme: 'success'
+                        })
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.task = false
+                    this.operateLoading = false
+                }
+            },
+            async nodeTaskSkip (tooltipDom, data) {
+                tooltipDom.style.display = 'none'
+                this.pending.skip = true
+                try {
+                    const res = await this.instanceNodeSkip(data)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('跳过成功'),
+                            theme: 'success'
+                        })
+                        this.destroyTooltipInstance(data.id)
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        tooltipDom.style.display = 'block'
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.skip = false
+                }
+            },
+            async selectGatewayBranch (data) {
+                this.pending.selectGateway = true
+                try {
+                    const res = await this.skipExclusiveGateway(data)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('跳过成功'),
+                            theme: 'success'
+                        })
+                        this.destroyTooltipInstance(data.id)
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.selectGateway = false
+                }
+            },
+            async nodeResume (data) {
+                this.pending.parseNodeResume = true
+                try {
+                    const res = await this.pauseNodeResume(data)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('继续成功'),
+                            theme: 'success'
+                        })
+                        this.destroyTooltipInstance(data.id)
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.parseNodeResume = false
+                }
+            },
+            setTaskStatusTimer () {
+                this.cancelTaskStatusTimer()
+                this.timer = setTimeout(() => {
+                    this.loadTaskStatus()
+                }, 2000)
+            },
+            cancelTaskStatusTimer () {
+                if (this.timer) {
+                    clearTimeout(this.timer)
+                    this.timer = null
+                }
+            },
+            updateTaskStatus (id) {
+                this.taskId = id
+                this.setCanvasData()
+                this.loadTaskStatus()
+            },
+            // 更新节点状态
+            updateNodeInfo () {
+                const nodes = this.instanceStatus.children
+                for (const id in nodes) {
+                    const nodeActivities = this.pipelineData.activities[id]
+                    const nodeEl = document.querySelector(`#${id}`)
+                    let isSkipped = false
+                    if (nodes[id].state === 'FINISHED') {
+                        isSkipped = nodes[id].skip || nodes[id].error_ignorable
+                        this.destroyTooltipInstance(id)
+                    } else if (nodes[id].state === 'FAILED') { // 初始化失败节点重试 tooltip（任务节点、分支网关）
+                        const type = nodeEl ? nodeEl.dataset.type : 'undefined'
+                        if (type === 'tasknode') {
+                            const tpl = this.getFailedBtnTpl(id, nodeActivities.isSkipped, nodeActivities.can_retry)
+                            this.generateTooltipInstance(nodeEl, id, tpl)
+                        } else if (type === 'branchgateway') {
+                            const tpl = this.getGatewayBtnTpl(id)
+                            this.generateTooltipInstance(nodeEl, id, tpl)
+                        }
+                    } else if ( // 初始化定时节点修改时间 tooltip
+                        nodes[id].state === 'RUNNING'
+                        && nodeActivities
+                        && nodeActivities.component
+                        && nodeActivities.component.code === 'sleep_timer'
+                        && !this.nodeTooltipInstance[id]
+                    ) {
+                        const tpl = this.getModityTimeBtnTpl(id)
+                        this.generateTooltipInstance(nodeEl, id, tpl)
+                    } else if ( // 初始化暂停节点继续 tooltip
+                        nodes[id].state === 'RUNNING'
+                        && nodeActivities
+                        && nodeActivities.component
+                        && nodeActivities.component.code === 'pause_node'
+                        && !this.nodeTooltipInstance[id]
+                    ) {
+                        const tpl = this.getPauseResumeBtnTpl(id)
+                        this.generateTooltipInstance(nodeEl, id, tpl)
+                    } else if ( // 初始化子流程节点暂停 tooltip
+                        nodes[id].state === 'RUNNING'
+                        && nodeActivities
+                        && nodeActivities.type === 'SubProcess'
+                    ) {
+                        const tpl = this.getSubflowPauseBtnTpl(id)
+                        if (!this.nodeTooltipInstance[id]) {
+                            this.generateTooltipInstance(nodeEl, id, tpl)
+                        } else {
+                            this.nodeTooltipInstance[id].updateTitleContent(tpl)
+                        }
+                    } else if ( // 初始化子流程节点继续 tooltip
+                        nodes[id].state === 'SUSPENDED'
+                        && nodeActivities
+                        && nodeActivities.type === 'SubProcess'
+                    ) {
+                        const tpl = this.getSubflowResumeBtnTpl(id)
+                        if (!this.nodeTooltipInstance[id]) {
+                            this.generateTooltipInstance(nodeEl, id, tpl)
+                        } else {
+                            this.nodeTooltipInstance[id].updateTitleContent(tpl)
+                        }
+                    }
+                    const data = { status: nodes[id].state, isSkipped }
 
-                this.setTaskNodeStatus(id, data)
-            }
-        },
-        setTaskNodeStatus (id, data) {
-            this.$refs.pipelineCanvas && this.$refs.pipelineCanvas.onUpdateNodeInfo(id, data)
-        },
-        getFailedBtnTpl (id, isSkipped, retry) {
-            const i18n_retry = gettext("重试")
-            const i18n_skip = gettext("跳过")
-            const atom_failed = gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
-            let content = `<div class="btn-wrapper">`
-            if (retry) {
-                content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
-            }
-            if (isSkipped) {
-                content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
-            }
-            // 兼容老数据
-            if (retry === undefined && isSkipped === undefined) {
-                content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
-                content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
-            } else if (!retry && !isSkipped) {
-                content += `<div class="atom-failed">${atom_failed}</div>`
-            }
-            content += `</div>`
-            return content
-        },
-        getModityTimeBtnTpl (id) {
-            const i18n_change_timer = gettext("修改时间")
-            return `<div class="btn-wrapper">
+                    // 暂停节点右上角显示暂停icon
+                    if (nodes[id].state === 'RUNNING'
+                        && nodeActivities
+                        && nodeActivities.component
+                        && nodeActivities.component.code === 'pause_node'
+                    ) {
+                        data.status = 'SUSPENDED'
+                    }
+
+                    // 定时节点右上角显示时钟icon
+                    if (nodes[id].state === 'RUNNING'
+                        && nodeActivities
+                        && nodeActivities.component
+                        && nodeActivities.component.code === 'sleep_timer'
+                    ) {
+                        data.isShowClockIcon = true
+                    }
+
+                    this.setTaskNodeStatus(id, data)
+                }
+            },
+            setTaskNodeStatus (id, data) {
+                this.$refs.pipelineCanvas && this.$refs.pipelineCanvas.onUpdateNodeInfo(id, data)
+            },
+            getFailedBtnTpl (id, isSkipped, retry) {
+                const i18n_retry = gettext('重试')
+                const i18n_skip = gettext('跳过')
+                const atom_failed = gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
+                let content = `<div class="btn-wrapper">`
+                if (retry) {
+                    content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
+                }
+                if (isSkipped) {
+                    content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
+                }
+                // 兼容老数据
+                if (retry === undefined && isSkipped === undefined) {
+                    content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
+                    content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
+                } else if (!retry && !isSkipped) {
+                    content += `<div class="atom-failed">${atom_failed}</div>`
+                }
+                content += `</div>`
+                return content
+            },
+            getModityTimeBtnTpl (id) {
+                const i18n_change_timer = gettext('修改时间')
+                return `<div class="btn-wrapper">
                 <div class="tooltip-btn modify-time-btn" data-id="${id}">${i18n_change_timer}</div>
             </div>`
-        },
-        getGatewayBtnTpl (id) {
-            const i18n_skip = gettext("跳过")
-            return `<div class="btn-wrapper">
+            },
+            getGatewayBtnTpl (id) {
+                const i18n_skip = gettext('跳过')
+                return `<div class="btn-wrapper">
                 <div class="tooltip-btn gateway-select-btn" data-id="${id}">${i18n_skip}</div>
             </div>`
-        },
-        getPauseResumeBtnTpl (id) {
-            const i18n_continue = gettext("继续")
-            return `<div class="btn-wrapper">
+            },
+            getPauseResumeBtnTpl (id) {
+                const i18n_continue = gettext('继续')
+                return `<div class="btn-wrapper">
                 <div class="tooltip-btn pause-resume-btn" data-id="${id}">${i18n_continue}</div>
             </div>`
-        },
-        getSubflowPauseBtnTpl (id) {
-            const i18n_pause = gettext("暂停")
-            return `<div class="btn-wrapper">
+            },
+            getSubflowPauseBtnTpl (id) {
+                const i18n_pause = gettext('暂停')
+                return `<div class="btn-wrapper">
                 <div class="tooltip-btn subflow-pause-btn" data-id="${id}">${i18n_pause}</div>
             </div>`
-        },
-        getSubflowResumeBtnTpl (id) {
-            const i18n_continue = gettext("继续")
-            return `<div class="btn-wrapper">
+            },
+            getSubflowResumeBtnTpl (id) {
+                const i18n_continue = gettext('继续')
+                return `<div class="btn-wrapper">
                 <div class="tooltip-btn subflow-resume-btn" data-id="${id}">${i18n_continue}</div>
             </div>`
-        },
-        generateTooltipInstance (el, id, tpl) {
-            this.destroyTooltipInstance(id)
-            this.nodeTooltipInstance[id] = new Tooltip(el, {
-                placement: 'bottom',
-                html: true,
-                title: tpl
-            })
-        },
-        setNodeDetailConfig (id) {
-            const nodeActivities = this.pipelineData.activities[id]
-            let subprocessStack = []
-            if (this.selectedFlowPath.length > 1){
-                subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
-            }
-            this.nodeDetailConfig = {
-                component_code: nodeActivities.component.code,
-                node_id: nodeActivities.id,
-                instance_id: this.instance_id,
-                subprocess_stack: JSON.stringify(subprocessStack)
-            }
-        },
-        // 节点 tooltip 操作
-        handleNodeHoverClick (e) {
-            const classList = e.target.classList
-            if (!classList) return
-            if (classList.contains('retry-btn')) {
-                this.handleNodeRetryClick(e)
-            } else if (classList.contains('skip-btn')) {
-                this.handleNodeSkipClick(e)
-            } else if (classList.contains('modify-time-btn')) {
-                this.handleNodeModifyTimeClick(e)
-            } else if (classList.contains('gateway-select-btn')) {
-                this.handleGatewaySelectClick(e)
-            } else if (classList.contains('pause-resume-btn')) {
-                this.handlePauseResumeClick(e)
-            } else if (classList.contains('subflow-pause-btn')) {
-                this.handleSubflowPauseClick(e)
-            } else if (classList.contains('subflow-resume-btn')) {
-                this.handleSubflowResumeClick(e)
-            }
-        },
-        handleNodeInfoPanelHide (e) {
-            if (e.target.classList[0] === 'operation-btn') {
-                return
-            }
-            const classList = e.target.classList
-            const isTooltipBtn = classList.contains('tooltip-btn')
-            if (!this.isNodeInfoPanelShow || isTooltipBtn) return
-            const NodeInfoPanel = document.querySelector('.node-info-panel')
-            if (NodeInfoPanel) {
-                if (!dom.nodeContains(NodeInfoPanel, e.target)) {
-                    this.isNodeInfoPanelShow = false
-                    this.nodeInfoType = ''
-                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                }
-            }
-        },
-        handleNodeRetryClick (e) {
-            const id = e.target.dataset.id
-            this.isNodeInfoPanelShow = true
-            this.nodeInfoType = 'retryNode'
-            this.setNodeDetailConfig(id)
-            this.updateNodeActived(id, true)
-        },
-        handleNodeSkipClick (e) {
-            if (this.pending.skip) return
-            const id = e.target.dataset.id
-            const nodeActivities = this.pipelineData.activities[id]
-            const data = {
-                instance_id: this.instance_id,
-                node_id: id
-            }
-            const tooltipDom = e.target.parentNode.parentNode.parentNode
-            this.nodeTaskSkip(tooltipDom, data)
-        },
-        handleNodeModifyTimeClick (e) {
-            const id = e.target.dataset.id
-            this.isNodeInfoPanelShow = true
-            this.nodeInfoType = 'modifyTime'
-            this.setNodeDetailConfig(id)
-            this.updateNodeActived(id, true)
-        },
-        handleGatewaySelectClick (e) {
-            const id = e.target.dataset.id
-            const nodeGateway = this.pipelineData.gateways[id]
-            const branches = []
-            for (let item in nodeGateway.conditions) {
-                branches.push({
-                    id: item,
-                    node_id: id,
-                    name: nodeGateway.conditions[item].evaluate
+            },
+            generateTooltipInstance (el, id, tpl) {
+                this.destroyTooltipInstance(id)
+                this.nodeTooltipInstance[id] = new Tooltip(el, {
+                    placement: 'bottom',
+                    html: true,
+                    title: tpl
                 })
-            }
-            this.gatewayBranches = branches
-            this.isGatewaySelectDialogShow = true
-        },
-        handlePauseResumeClick (e) {
-            if (this.pending.parseNodeResume) return
-            const id = e.target.dataset.id
-            const nodeActivities = this.pipelineData.activities[id]
-            const data = {
-                instance_id: this.instance_id,
-                node_id: id,
-                data: JSON.stringify({callback: 'resume'})
-            }
-            this.nodeResume(data)
-        },
-        handleSubflowPauseClick (e) {
-            if (this.pending.subflowPause) return
-            const id = e.target.dataset.id
-            this.taskPause(true, id)
-        },
-        handleSubflowResumeClick (e) {
-            if (this.pending.subflowResume) return
-            const id = e.target.dataset.id
-            this.taskResume(true, id)
-        },
-        // 设置画布数据，更新页面
-        setCanvasData () {
-            this.$nextTick(()=>{
-                this.nodeSwitching = false
-            })
-        },
-        getBtnClickAble (type) {
-            if (this.operateLoading) {
-                // loading过程不允许点击
-                return false
-            }
-            switch (type) {
-                case 'execute':
-                    return this.state === 'CREATED' && this.isTopTask
-                    break
-                case 'pause':
-                    return this.state === 'RUNNING'
-                    break
-                case 'resume':
-                    return this.state === 'SUSPENDED'
-                    break
-                case 'revoke':
-                    return this.isTopTask &&
-                        (this.state === 'RUNNING' ||
-                        this.state === 'SUSPENDED' ||
-                        this.state === 'NODE_SUSPENDED' ||
-                        this.state === 'FAILED')
-                    break
-                default:
-                    break
-            }
-        },
-        getOrderedTree (data) {
-            const fstLine = data.start_event.outgoing
-            const orderedData = this.retrieveLines(data, fstLine)
-            return orderedData
-        },
-        retrieveLines (data, line) {
-            let nodes = []
-            const {start_event, end_event, flows, activities, gateways} = data
-            const curNode = data.flows[line].target
-            const activityNode = activities[curNode]
-            if (activityNode) {
-                const node = Object.assign({}, activityNode)
-                if (node.pipeline) {
-                    node.children = this.getOrderedTree(node.pipeline)
-                }
-                nodes.push(node)
-                nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
-            } else {
-                const gatewayNode = gateways[curNode]
-                if (gatewayNode) {
-                    const gatewayOutLine = gatewayNode.outgoing
-                    if (Array.isArray(gatewayOutLine)) {
-                        const gatewayLinkedNodes = []
-                        gatewayOutLine.forEach(line => {
-                            const linkedNode = activities[flows[line].target]
-                            if (linkedNode) {
-                                if (linkedNode.pipeline) {
-                                    linkedNode.children = this.getOrderedTree(linkedNode.pipeline)
-                                }
-                                gatewayLinkedNodes.push(linkedNode)
-                                nodes.push(linkedNode)
-                            } else {
-                                nodes = nodes.concat(this.retrieveLines(data, line))
-                            }
-                        })
-                        gatewayLinkedNodes.forEach(node => {
-                            nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
-                        })
-                    }
-                }
-            }
-            return nodes
-        },
-        destroyTooltipInstance (id) {
-            if (this.nodeTooltipInstance[id]) {
-                this.nodeTooltipInstance[id].dispose()
-                delete this.nodeTooltipInstance[id]
-            }
-        },
-        clearTooltipInstance () {
-            Object.keys(this.nodeTooltipInstance).forEach(item => {
-                this.destroyTooltipInstance(item)
-            })
-        },
-        updateNodeActived (id, isActived) {
-            this.$refs.pipelineCanvas.onUpdateNodeInfo(id, { isActived })
-        },
-        // 查看参数、修改参数
-        onTaskParamsClick (type) {
-            this.nodeDetailConfig = {}
-            if (this.nodeInfoType === type) {
-                this.isNodeInfoPanelShow = false
-                this.nodeInfoType = ''
-            } else {
-                this.isNodeInfoPanelShow = true
-                this.nodeInfoType = type
-            }
-        },
-        onToggleNodeInfoPanel () {
-            this.isNodeInfoPanelShow = false
-            this.nodeInfoType = ''
-            this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-        },
-        onOperationClick (operation) {
-            if (this.operateLoading) {
-                return
-            }
-            const type = operation.type
-            if (!this.getBtnClickAble(type) || this.pending.task)  return
-            if (type === 'revoke') {
-                this.isRevokeDialogShow = true
-                return
-            }
-            this.pending.task = true
-            this.activeOperation = this.activeOperation ? '' : type
-            const actionType = 'task' + type.charAt(0).toUpperCase() + type.slice(1)
-            this[actionType]()
-        },
-        onNodeClick (id) {
-            const node = this.canvasData.locations.filter(item => item.id === id)[0]
-            if (node.type === 'tasknode') {
-                this.handleSingleNodeClick(id, 'singleAtom')
-            } else if (node.type === 'subflow') {
-                this.handleSubflowAtomClick(id)
-            } else {
-                this.handleSingleNodeClick(id, 'controlNode')
-            }
-        },
-        handleSingleNodeClick (id, type) {
-            const nodeState =  this.instanceStatus.children && this.instanceStatus.children[id]
-            const nodeActivities = this.pipelineData.activities[id]
-            const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
-            let isPanelShow = false
-            if (nodeState) {
-                if (type === 'singleAtom') {
-                    // 标准插件节点执行中、完成、失败状态，点击展开详情
-                    isPanelShow = ['RUNNING', 'FINISHED', 'FAILED'].indexOf(nodeState.state) > -1
-                } else {
-                    // 控制节点失败时点击展开详情
-                    isPanelShow = nodeState.state === 'FAILED'
-                }
-            }
-            if (isPanelShow) {
+            },
+            setNodeDetailConfig (id) {
+                const nodeActivities = this.pipelineData.activities[id]
                 let subprocessStack = []
-                if (this.selectedFlowPath.length > 1){
+                if (this.selectedFlowPath.length > 1) {
                     subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
                 }
-                this.isNodeInfoPanelShow = true
-                this.nodeInfoType = 'executeInfo'
-                if (this.nodeDetailConfig.node_id) {
-                    this.updateNodeActived(this.nodeDetailConfig.node_id, false)
-                }
                 this.nodeDetailConfig = {
-                    component_code: componentCode,
-                    node_id: id,
+                    component_code: nodeActivities.component.code,
+                    node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
-                this.updateNodeActived(id, true)
-            }
-        },
-        handleSubflowAtomClick (id) {
-            this.cancelTaskStatusTimer()
-            this.clearTooltipInstance()
-            const nodeActivities = this.pipelineData.activities[id]
-            this.nodeSwitching = true
-            this.selectedFlowPath.push({
-                id: nodeActivities.id,
-                name: nodeActivities.name,
-                nodeId: nodeActivities.id,
-                type: 'SubProcess'
-            })
-            this.pipelineData = this.pipelineData.activities[id].pipeline
-            this.updateTaskStatus(id)
-        },
-        // 面包屑点击
-        onSelectSubflow (id) {
-            let nodeIndex = 0
-            this.selectedFlowPath.some((item, index) => {
-                if (id === item.id) {
-                    nodeIndex = index
-                    return true
+            },
+            // 节点 tooltip 操作
+            handleNodeHoverClick (e) {
+                const classList = e.target.classList
+                if (!classList) return
+                if (classList.contains('retry-btn')) {
+                    this.handleNodeRetryClick(e)
+                } else if (classList.contains('skip-btn')) {
+                    this.handleNodeSkipClick(e)
+                } else if (classList.contains('modify-time-btn')) {
+                    this.handleNodeModifyTimeClick(e)
+                } else if (classList.contains('gateway-select-btn')) {
+                    this.handleGatewaySelectClick(e)
+                } else if (classList.contains('pause-resume-btn')) {
+                    this.handlePauseResumeClick(e)
+                } else if (classList.contains('subflow-pause-btn')) {
+                    this.handleSubflowPauseClick(e)
+                } else if (classList.contains('subflow-resume-btn')) {
+                    this.handleSubflowResumeClick(e)
                 }
-            })
-            if (nodeIndex === (this.selectedFlowPath.length - 1)) return // the last level node
-            this.nodeSwitching = true
-            this.selectedFlowPath.splice(nodeIndex + 1)
-            if (nodeIndex === 0) {
-                this.pipelineData = this.completePipelineData
-            } else {
-                const pathList = this.selectedFlowPath.slice(1)
-                let nodeActivities = this.completePipelineData.activities
-                pathList.forEach((item, index) => {
-                    nodeActivities = index ? nodeActivities.pipeline.activities[item.id] : nodeActivities[item.id]
-                })
-                this.pipelineData = nodeActivities.pipeline
-            }
-            this.isNodeInfoPanelShow = false
-            this.nodeDetailConfig = {}
-            this.clearTooltipInstance()
-            this.cancelTaskStatusTimer()
-            this.updateTaskStatus(id)
-        },
-        onClickTreeNode (nodeHeirarchy, nodeType) {
-            let nodeActivities
-            const nodePath = [{
-                id: this.instance_id,
-                name: this.instanceName,
-                nodeId: this.completePipelineData.id
-            }]
-            let heirarchyList = nodeHeirarchy.split('.').splice(1)
-            if (heirarchyList.length) { // not root node
-                nodeActivities = this.completePipelineData.activities
-                heirarchyList.forEach((key, index) => {
-                    nodeActivities = index ? nodeActivities.pipeline.activities[key] : nodeActivities[key]
-                    nodePath.push({
-                        id: nodeActivities.id,
-                        name: nodeActivities.name,
-                        nodeId: nodeActivities.id,
-                        type: nodeActivities.type
+            },
+            handleNodeInfoPanelHide (e) {
+                if (e.target.classList[0] === 'operation-btn') {
+                    return
+                }
+                const classList = e.target.classList
+                const isTooltipBtn = classList.contains('tooltip-btn')
+                if (!this.isNodeInfoPanelShow || isTooltipBtn) return
+                const NodeInfoPanel = document.querySelector('.node-info-panel')
+                if (NodeInfoPanel) {
+                    if (!dom.nodeContains(NodeInfoPanel, e.target)) {
+                        this.isNodeInfoPanelShow = false
+                        this.nodeInfoType = ''
+                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+                    }
+                }
+            },
+            handleNodeRetryClick (e) {
+                const id = e.target.dataset.id
+                this.isNodeInfoPanelShow = true
+                this.nodeInfoType = 'retryNode'
+                this.setNodeDetailConfig(id)
+                this.updateNodeActived(id, true)
+            },
+            handleNodeSkipClick (e) {
+                if (this.pending.skip) return
+                const id = e.target.dataset.id
+                const data = {
+                    instance_id: this.instance_id,
+                    node_id: id
+                }
+                const tooltipDom = e.target.parentNode.parentNode.parentNode
+                this.nodeTaskSkip(tooltipDom, data)
+            },
+            handleNodeModifyTimeClick (e) {
+                const id = e.target.dataset.id
+                this.isNodeInfoPanelShow = true
+                this.nodeInfoType = 'modifyTime'
+                this.setNodeDetailConfig(id)
+                this.updateNodeActived(id, true)
+            },
+            handleGatewaySelectClick (e) {
+                const id = e.target.dataset.id
+                const nodeGateway = this.pipelineData.gateways[id]
+                const branches = []
+                for (const item in nodeGateway.conditions) {
+                    branches.push({
+                        id: item,
+                        node_id: id,
+                        name: nodeGateway.conditions[item].evaluate
                     })
+                }
+                this.gatewayBranches = branches
+                this.isGatewaySelectDialogShow = true
+            },
+            handlePauseResumeClick (e) {
+                if (this.pending.parseNodeResume) return
+                const id = e.target.dataset.id
+                const data = {
+                    instance_id: this.instance_id,
+                    node_id: id,
+                    data: JSON.stringify({ callback: 'resume' })
+                }
+                this.nodeResume(data)
+            },
+            handleSubflowPauseClick (e) {
+                if (this.pending.subflowPause) return
+                const id = e.target.dataset.id
+                this.taskPause(true, id)
+            },
+            handleSubflowResumeClick (e) {
+                if (this.pending.subflowResume) return
+                const id = e.target.dataset.id
+                this.taskResume(true, id)
+            },
+            // 设置画布数据，更新页面
+            setCanvasData () {
+                this.$nextTick(() => {
+                    this.nodeSwitching = false
                 })
-                this.selectedFlowPath = nodePath
-                if (nodeActivities.type === 'SubProcess') { // click subprocess node
-                    this.nodeSwitching = true
-                    this.pipelineData = nodeActivities.pipeline
-                    this.cancelTaskStatusTimer()
-                    this.updateTaskStatus(nodeActivities.id)
-                    this.nodeDetailConfig = {}
-                } else { // click single task node
+            },
+            getBtnClickAble (type) {
+                if (this.operateLoading) {
+                    // loading过程不允许点击
+                    return false
+                }
+                switch (type) {
+                    case 'execute':
+                        return this.state === 'CREATED' && this.isTopTask
+                    case 'pause':
+                        return this.state === 'RUNNING'
+                    case 'resume':
+                        return this.state === 'SUSPENDED'
+                    case 'revoke':
+                        return this.isTopTask
+                            && (this.state === 'RUNNING'
+                            || this.state === 'SUSPENDED'
+                            || this.state === 'NODE_SUSPENDED'
+                            || this.state === 'FAILED')
+                    default:
+                        break
+                }
+            },
+            getOrderedTree (data) {
+                const fstLine = data.start_event.outgoing
+                const orderedData = this.retrieveLines(data, fstLine)
+                return orderedData
+            },
+            retrieveLines (data, line) {
+                let nodes = []
+                const { flows, activities, gateways } = data
+                const curNode = data.flows[line].target
+                const activityNode = activities[curNode]
+                if (activityNode) {
+                    const node = Object.assign({}, activityNode)
+                    if (node.pipeline) {
+                        node.children = this.getOrderedTree(node.pipeline)
+                    }
+                    nodes.push(node)
+                    nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
+                } else {
+                    const gatewayNode = gateways[curNode]
+                    if (gatewayNode) {
+                        const gatewayOutLine = gatewayNode.outgoing
+                        if (Array.isArray(gatewayOutLine)) {
+                            const gatewayLinkedNodes = []
+                            gatewayOutLine.forEach(line => {
+                                const linkedNode = activities[flows[line].target]
+                                if (linkedNode) {
+                                    if (linkedNode.pipeline) {
+                                        linkedNode.children = this.getOrderedTree(linkedNode.pipeline)
+                                    }
+                                    gatewayLinkedNodes.push(linkedNode)
+                                    nodes.push(linkedNode)
+                                } else {
+                                    nodes = nodes.concat(this.retrieveLines(data, line))
+                                }
+                            })
+                            gatewayLinkedNodes.forEach(node => {
+                                nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
+                            })
+                        }
+                    }
+                }
+                return nodes
+            },
+            destroyTooltipInstance (id) {
+                if (this.nodeTooltipInstance[id]) {
+                    this.nodeTooltipInstance[id].dispose()
+                    delete this.nodeTooltipInstance[id]
+                }
+            },
+            clearTooltipInstance () {
+                Object.keys(this.nodeTooltipInstance).forEach(item => {
+                    this.destroyTooltipInstance(item)
+                })
+            },
+            updateNodeActived (id, isActived) {
+                this.$refs.pipelineCanvas.onUpdateNodeInfo(id, { isActived })
+            },
+            // 查看参数、修改参数
+            onTaskParamsClick (type) {
+                this.nodeDetailConfig = {}
+                if (this.nodeInfoType === type) {
+                    this.isNodeInfoPanelShow = false
+                    this.nodeInfoType = ''
+                } else {
+                    this.isNodeInfoPanelShow = true
+                    this.nodeInfoType = type
+                }
+            },
+            onToggleNodeInfoPanel () {
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
+                this.updateNodeActived(this.nodeDetailConfig.node_id, false)
+            },
+            onOperationClick (operation) {
+                if (this.operateLoading) {
+                    return
+                }
+                const type = operation.type
+                if (!this.getBtnClickAble(type) || this.pending.task) return
+                if (type === 'revoke') {
+                    this.isRevokeDialogShow = true
+                    return
+                }
+                this.pending.task = true
+                this.activeOperation = this.activeOperation ? '' : type
+                const actionType = 'task' + type.charAt(0).toUpperCase() + type.slice(1)
+                this[actionType]()
+            },
+            onNodeClick (id) {
+                const node = this.canvasData.locations.filter(item => item.id === id)[0]
+                if (node.type === 'tasknode') {
+                    this.handleSingleNodeClick(id, 'singleAtom')
+                } else if (node.type === 'subflow') {
+                    this.handleSubflowAtomClick(id)
+                } else {
+                    this.handleSingleNodeClick(id, 'controlNode')
+                }
+            },
+            handleSingleNodeClick (id, type) {
+                const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
+                const nodeActivities = this.pipelineData.activities[id]
+                const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
+                let isPanelShow = false
+                if (nodeState) {
+                    if (type === 'singleAtom') {
+                        // 标准插件节点执行中、完成、失败状态，点击展开详情
+                        isPanelShow = ['RUNNING', 'FINISHED', 'FAILED'].indexOf(nodeState.state) > -1
+                    } else {
+                        // 控制节点失败时点击展开详情
+                        isPanelShow = nodeState.state === 'FAILED'
+                    }
+                }
+                if (isPanelShow) {
                     let subprocessStack = []
-                    if (this.selectedFlowPath.length > 1){
-                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                    if (this.selectedFlowPath.length > 1) {
+                        subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1)
+                    }
+                    this.isNodeInfoPanelShow = true
+                    this.nodeInfoType = 'executeInfo'
+                    if (this.nodeDetailConfig.node_id) {
+                        this.updateNodeActived(this.nodeDetailConfig.node_id, false)
                     }
                     this.nodeDetailConfig = {
-                        component_code: nodeActivities.component.code,
-                        node_id: nodeActivities.id,
+                        component_code: componentCode,
+                        node_id: id,
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
                     }
+                    this.updateNodeActived(id, true)
                 }
-            } else {
-                nodeActivities = this.completePipelineData
-                this.nodeSwitching = true
-                this.pipelineData = nodeActivities
+            },
+            handleSubflowAtomClick (id) {
                 this.cancelTaskStatusTimer()
-                this.updateTaskStatus(this.instance_id)
-                this.selectedFlowPath = nodePath
+                this.clearTooltipInstance()
+                const nodeActivities = this.pipelineData.activities[id]
+                this.nodeSwitching = true
+                this.selectedFlowPath.push({
+                    id: nodeActivities.id,
+                    name: nodeActivities.name,
+                    nodeId: nodeActivities.id,
+                    type: 'SubProcess'
+                })
+                this.pipelineData = this.pipelineData.activities[id].pipeline
+                this.updateTaskStatus(id)
+            },
+            // 面包屑点击
+            onSelectSubflow (id) {
+                let nodeIndex = 0
+                this.selectedFlowPath.some((item, index) => {
+                    if (id === item.id) {
+                        nodeIndex = index
+                        return true
+                    }
+                })
+                if (nodeIndex === (this.selectedFlowPath.length - 1)) return // the last level node
+                this.nodeSwitching = true
+                this.selectedFlowPath.splice(nodeIndex + 1)
+                if (nodeIndex === 0) {
+                    this.pipelineData = this.completePipelineData
+                } else {
+                    const pathList = this.selectedFlowPath.slice(1)
+                    let nodeActivities = this.completePipelineData.activities
+                    pathList.forEach((item, index) => {
+                        nodeActivities = index ? nodeActivities.pipeline.activities[item.id] : nodeActivities[item.id]
+                    })
+                    this.pipelineData = nodeActivities.pipeline
+                }
+                this.isNodeInfoPanelShow = false
                 this.nodeDetailConfig = {}
+                this.clearTooltipInstance()
+                this.cancelTaskStatusTimer()
+                this.updateTaskStatus(id)
+            },
+            onClickTreeNode (nodeHeirarchy, nodeType) {
+                let nodeActivities
+                const nodePath = [{
+                    id: this.instance_id,
+                    name: this.instanceName,
+                    nodeId: this.completePipelineData.id
+                }]
+                const heirarchyList = nodeHeirarchy.split('.').splice(1)
+                if (heirarchyList.length) { // not root node
+                    nodeActivities = this.completePipelineData.activities
+                    heirarchyList.forEach((key, index) => {
+                        nodeActivities = index ? nodeActivities.pipeline.activities[key] : nodeActivities[key]
+                        nodePath.push({
+                            id: nodeActivities.id,
+                            name: nodeActivities.name,
+                            nodeId: nodeActivities.id,
+                            type: nodeActivities.type
+                        })
+                    })
+                    this.selectedFlowPath = nodePath
+                    if (nodeActivities.type === 'SubProcess') { // click subprocess node
+                        this.nodeSwitching = true
+                        this.pipelineData = nodeActivities.pipeline
+                        this.cancelTaskStatusTimer()
+                        this.updateTaskStatus(nodeActivities.id)
+                        this.nodeDetailConfig = {}
+                    } else { // click single task node
+                        let subprocessStack = []
+                        if (this.selectedFlowPath.length > 1) {
+                            subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
+                        }
+                        this.nodeDetailConfig = {
+                            component_code: nodeActivities.component.code,
+                            node_id: nodeActivities.id,
+                            instance_id: this.instance_id,
+                            subprocess_stack: JSON.stringify(subprocessStack)
+                        }
+                    }
+                } else {
+                    nodeActivities = this.completePipelineData
+                    this.nodeSwitching = true
+                    this.pipelineData = nodeActivities
+                    this.cancelTaskStatusTimer()
+                    this.updateTaskStatus(this.instance_id)
+                    this.selectedFlowPath = nodePath
+                    this.nodeDetailConfig = {}
+                }
+            },
+            onRetrySuccess (id) {
+                this.isNodeInfoPanelShow = false
+                this.destroyTooltipInstance(id)
+                this.setTaskStatusTimer()
+                this.updateNodeActived(id, false)
+            },
+            onRetryCancel (id) {
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
+                this.updateNodeActived(id, false)
+            },
+            onModifyTimeSuccess (id) {
+                this.isNodeInfoPanelShow = false
+                this.destroyTooltipInstance(id)
+                this.setTaskStatusTimer()
+                this.updateNodeActived(id, false)
+            },
+            onModifyTimeCancel (id) {
+                this.isNodeInfoPanelShow = false
+                this.nodeInfoType = ''
+                this.updateNodeActived(id, false)
+            },
+            onConfirmGatewaySelect (selected) {
+                const data = {
+                    flow_id: selected.id,
+                    node_id: selected.node_id,
+                    instance_id: this.instance_id
+                }
+                this.isGatewaySelectDialogShow = false
+                this.selectGatewayBranch(data)
+            },
+            onCancelGatewaySelect () {
+                this.isGatewaySelectDialogShow = false
+            },
+            onConfirmRevokeTask () {
+                this.isRevokeDialogShow = false
+                this.taskRevoke()
+            },
+            onCancelRevokeTask () {
+                this.isRevokeDialogShow = false
+            },
+            unclickableOperation (type) {
+                // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击
+                return (this.state === 'FAILED' && type !== 'revoke') || (this.state === 'CREATED' && type === 'revoke') || this.operateLoading || !this.isTopTask
             }
-        },
-        onRetrySuccess (id) {
-            this.isNodeInfoPanelShow = false
-            this.destroyTooltipInstance(id)
-            this.setTaskStatusTimer()
-            this.updateNodeActived(id, false)
-        },
-        onRetryCancel (id) {
-            this.isNodeInfoPanelShow = false
-            this.nodeInfoType = ''
-            this.updateNodeActived(id, false)
-        },
-        onModifyTimeSuccess (id) {
-            this.isNodeInfoPanelShow = false
-            this.destroyTooltipInstance(id)
-            this.setTaskStatusTimer()
-            this.updateNodeActived(id, false)
-        },
-        onModifyTimeCancel (id) {
-            this.isNodeInfoPanelShow = false
-            this.nodeInfoType = ''
-            this.updateNodeActived(id, false)
-        },
-        onConfirmGatewaySelect (selected) {
-            const data = {
-                flow_id: selected.id,
-                node_id: selected.node_id,
-                instance_id: this.instance_id
-            }
-            this.isGatewaySelectDialogShow = false
-            this.selectGatewayBranch(data)
-        },
-        onCancelGatewaySelect () {
-            this.isGatewaySelectDialogShow = false
-        },
-        onConfirmRevokeTask () {
-            this.isRevokeDialogShow = false
-            this.taskRevoke()
-        },
-        onCancelRevokeTask () {
-            this.isRevokeDialogShow = false
-        },
-        unclickableOperation (type) {
-            // 失败时不允许点击暂停按钮，创建是不允许点击撤销按钮，操作执行过程不允许点击
-            return this.state === 'FAILED' && type !== 'revoke' || this.state === 'CREATED' && type === 'revoke' || this.operateLoading || !this.isTopTask
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -1450,5 +1445,3 @@ export default {
     }
 }
 </style>
-
-

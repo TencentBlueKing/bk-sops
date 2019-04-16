@@ -18,22 +18,22 @@ const appmaker = {
     mutations: {
     },
     actions: {
-        loadAppmakerSummary ({commit}, data) {
+        loadAppmakerSummary ({ commit }, data) {
             return api.loadAppmakerSummary(data).then(response => response.data)
         },
-        loadAppmakerDetail ({commit}, id) {
+        loadAppmakerDetail ({ commit }, id) {
             return api.loadAppmakerDetail(id).then(response => response.data)
         },
-        appmakerEdit ({commit}, data) {
+        appmakerEdit ({ commit }, data) {
             return api.appmakerEdit(data).then(response => response.data)
         },
-        appmakerDelete ({commit}, id) {
+        appmakerDelete ({ commit }, id) {
             return api.appmakerDelete(id).then(response => response.data)
         },
-        queryAppmakerData ({commit}, data) {
+        queryAppmakerData ({ commit }, data) {
             return api.queryAppmaker(data).then(response => response.data)
         },
-        loadAppmaker ({commit}, data) {
+        loadAppmaker ({ commit }, data) {
             return api.loadAppmaker(data).then(response => response.data)
         }
     }

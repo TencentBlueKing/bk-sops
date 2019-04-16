@@ -17,19 +17,19 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'ErrorCode500',
-    props: ['responseText'],
-    data () {
-        return {
-            i18n: {
-                except: gettext("应用出现异常"),
-                contact: gettext("系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!")
+    import '@/utils/i18n.js'
+    export default {
+        name: 'ErrorCode500',
+        props: ['responseText'],
+        data () {
+            return {
+                i18n: {
+                    except: gettext('应用出现异常'),
+                    contact: gettext('系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!')
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -42,4 +42,3 @@ export default {
     text-align: left;
 }
 </style>
-

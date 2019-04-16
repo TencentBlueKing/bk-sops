@@ -9,7 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import api from "@/api"
+import api from '@/api'
 
 const templateList = {
     namespaced: true,
@@ -19,7 +19,7 @@ const templateList = {
     },
     mutations: {
         setTemplateListData (state, payload) {
-            const {list, isCommon} = payload
+            const { list, isCommon } = payload
             if (isCommon) {
                 state.commonTemplateData = list
             } else {
@@ -28,28 +28,28 @@ const templateList = {
         }
     },
     actions: {
-        loadTemplateList ({commit}, data) {
+        loadTemplateList ({ commit }, data) {
             return api.getTemplateList(data).then(response => response.data)
         },
-        deleteTemplate ({commit}, template_id) {
+        deleteTemplate ({ commit }, template_id) {
             return api.deleteTemplate(template_id).then(response => response.data.objects)
         },
         getBizPerson () {
             return api.getBizPerson().then(response => response.data)
         },
-        getTemplatePersons ({commit}, data) {
+        getTemplatePersons ({ commit }, data) {
             return api.getTemplatePersons(data).then(response => response.data)
         },
-        saveTemplatePersons ({commit}, data) {
+        saveTemplatePersons ({ commit }, data) {
             return api.saveTemplatePersons(data).then(response => response.data)
         },
-        templateUploadCheck ({commit}, data) {
+        templateUploadCheck ({ commit }, data) {
             return api.templateUploadCheck(data).then(response => response.data)
         },
-        templateImport ({commit}, data) {
+        templateImport ({ commit }, data) {
             return api.templateImport(data).then(response => response.data)
         },
-        templateExport ({commit}, data) {
+        templateExport ({ commit }, data) {
             return api.templateExport(data).then(response => response.data)
         }
     },
