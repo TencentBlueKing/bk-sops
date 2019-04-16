@@ -136,15 +136,11 @@ import '@/utils/i18n.js'
 import { mapMutations, mapState } from 'vuex'
 import tools from '@/utils/tools.js'
 import draggable from 'vuedraggable'
-import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
-import BaseInput from '@/components/common/base/BaseInput.vue'
 import VariableEdit from './VariableEdit.vue'
 import NoData from '@/components/common/base/NoData.vue'
 export default {
     name: 'TabGlobalVariables',
     components: {
-        BaseInput,
-        BaseCheckbox,
         VariableEdit,
         draggable,
         NoData

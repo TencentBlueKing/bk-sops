@@ -159,7 +159,6 @@ import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
 import BaseTitle from '@/components/common/base/BaseTitle.vue'
 import BaseSearch from '@/components/common/base/BaseSearch.vue'
 import NoData from '@/components/common/base/NoData.vue'
-import BaseInput from '@/components/common/base/BaseInput.vue'
 import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
 import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
 export default {
@@ -169,7 +168,6 @@ export default {
         BaseTitle,
         BaseSearch,
         NoData,
-        BaseInput,
         ModifyPeriodicDialog,
         DeletePeriodicDialog
     },
