@@ -11,20 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+# -*- coding: utf-8 -*-
+from django.conf.urls import url
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bk_sops',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    },
-}
+from pipeline_plugins.variables import query
 
-REDIS = {
-    'host': 'localhost',
-    'port': 6379,
-    'db': 0
-}
+urlpatterns = [
+    url(r'^query_custom_variables_collection/$', query.query_custom_variables_collection),
+]

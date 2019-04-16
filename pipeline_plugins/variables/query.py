@@ -11,20 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import importlib
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bk_sops',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    },
-}
+from django.conf import settings
+from django.http import JsonResponse
 
-REDIS = {
-    'host': 'localhost',
-    'port': 6379,
-    'db': 0
-}
+constants = importlib.import_module('pipeline_plugins.variables.sites.%s.constants' % settings.RUN_VER)
+
+
+def query_custom_variables_collection(request):
+    ctx = {
+        'result': True,
+        'data': constants.VARIABLES_COLLECTION
+    }
+    return JsonResponse(ctx)

@@ -19,7 +19,10 @@
             :name="name"
             :cc_id="cc_id"
             :common="common"
+            :template_id="template_id"
+            :isTemplateDataChanged="isTemplateDataChanged"
             :templateSaving="templateSaving"
+            :createTaskSaving="createTaskSaving"
             @onChangeName="onChangeName"
             @onSaveTemplate="onSaveTemplate">
         </ConfigBar>
@@ -134,6 +137,9 @@ export default {
         templateSaving: {
             type: Boolean
         },
+        createTaskSaving: {
+            type: Boolean
+        },
         atomTypeList: {
             type: Object,
             required: false
@@ -158,37 +164,32 @@ export default {
             type: String,
             required: false
         },
+        template_id: {
+            type: String,
+            required: false
+        },
         common: {
             type: String,
             required: false
         },
+        isTemplateDataChanged: {
+            type: Boolean
+        },
         isSelectNode: {
             type: Boolean,
-            required: false,
-            default () {
-                return false
-            }
+            default: false
         },
         selectNodeType: {
             type: Boolean,
-            required: false,
-            default () {
-                return false
-            }
+            default: false
         },
         isPreviewMode: {
             type: Boolean,
-            required: false,
-            default () {
-                return false
-            }
+            default: false
         },
         isSelectAllNode: {
             type: Boolean,
-            required: false,
-            default () {
-                return false
-            }
+            default: false
         }
     },
     components: {
@@ -208,7 +209,7 @@ export default {
                 choiceAll: gettext('全选'),
                 cancelChoiceAll: gettext('反选'),
                 added: gettext('已添加'),
-                node: gettext('个节点')
+                node: gettext('个任务节点')
             },
             zoomRadio: 1,
             nodeTypeUniqueInCanvas: ['startpoint', 'endpoint'],
@@ -522,7 +523,7 @@ export default {
         onChangeName (name) {
             this.$emit('onChangeName', name)
         },
-        onSaveTemplate () {
+        onSaveTemplate (saveAndCreate) {
             const validateMessage = validatePipeline.isDataValid(this.canvasData)
             if (!validateMessage.result) {
                 this.$bkMessage({
@@ -531,7 +532,7 @@ export default {
                 })
                 return false
             }
-            this.$emit('onSaveTemplate')
+            this.$emit('onSaveTemplate', saveAndCreate)
         },
         onNewDraft (message) {
             this.$emit('onNewDraft', message)
@@ -681,5 +682,3 @@ export default {
     }
 }
 </style>
-
-

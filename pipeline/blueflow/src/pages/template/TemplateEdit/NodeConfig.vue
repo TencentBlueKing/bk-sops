@@ -406,13 +406,13 @@ export default {
         this.initData()
     },
     mounted () {
-        window.addEventListener('click', this.handleNodeConfigPanelShow, false)
+        window.addEventListener('click', this.handleNodeConfigPanelShow, true)
         if (this.errorCouldBeIgnored) {
             this.isDisable = true
         }
     },
     beforeDestroy (){
-        window.removeEventListener('click', this.handleNodeConfigPanelShow, false)
+        window.removeEventListener('click', this.handleNodeConfigPanelShow, true)
     },
     watch: {
         idOfNodeInConfigPanel (val) {
@@ -492,7 +492,7 @@ export default {
             const isSubAtomChanged = this.currentAtom !== this.nodeConfigData.template_id
             try {
                 this.subAtomConfigData = await this.loadSubflowConfig({templateId: id, version, common: this.common})
-                this.nodeConfigData.version = this.subAtomConfigData.version
+                const constants = {}
                 const inputConfig = []
                 const outputConfig = []
                 let variableArray = []
@@ -535,17 +535,21 @@ export default {
                         [ atomType, tagCode ] = source_tag.split('.')
                         classify = 'component'
                     }
+
                     if (!this.atomFormConfig[atomType]) {
                         await this.loadAtomConfig({atomType, classify})
                         this.setAtomConfig({atomType, configData: $.atoms[atomType]})
                     }
+
                     const atomConfig = this.atomFormConfig[atomType]
                     let currentFormConfig = {}
+
                     if (custom_type) {
                         currentFormConfig = atomConfig && atomConfig[0]
                     } else {
                         currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     }
+                    
                     if (currentFormConfig) {
                         if (form.is_meta || currentFormConfig.meta_transform) {
                             currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
@@ -560,9 +564,9 @@ export default {
                     // 子流程表单项的取值
                     // 首次添加、子流程切换、子流程更新时，取接口返回的 form
                     // 编辑时，取 activities 里对应的全局变量 form
-                    constantData = this.activities[this.nodeId].constants[key] || form
-                    this.$set(this.nodeConfigData.constants, key, tools.deepClone(constantData))
+                    constants[key] = this.activities[this.nodeId].constants[key] || form
                 }
+                this.$set(this.nodeConfigData, 'constants', tools.deepClone(constants))
                 for ( let key in this.subAtomConfigData.outputs ) {
                     const output = this.subAtomConfigData.outputs[key]
                     const item = {
@@ -633,7 +637,6 @@ export default {
                 }
             } else {
                 this.currentAtom = formData.template_id
-
                 for (let key in formData.constants) {
                     const form = formData.constants[key]
                     const tagCode = key.match(varKeyReg)[1]
@@ -697,7 +700,7 @@ export default {
             return false
         },
         /**
-         * 处理节点配置面板和全局变量面板之外的点击时间
+         * 处理节点配置面板和全局变量面板之外的点击事件
          */
         handleNodeConfigPanelShow (e) {
             if (!this.isNodeConfigPanelShow || this.isReuseVarDialogShow) {
@@ -791,9 +794,8 @@ export default {
         /**
          * 切换标准插件节点，清空勾选的变量
          */
-        clearHookedVaribles () {
-            const hookedVariables = this.getHookedInputVariables()
-            hookedVariables.forEach(item => {
+        clearHookedVaribles (hookedInputs, outputs) {
+            hookedInputs.forEach(item => {
                 const {id, variableKey, formKey, tagCode} = item
                 const variable = this.constants[variableKey]
                 this.setVariableSourceInfo({type: 'delete', id, key: variableKey, tagCode: formKey})
@@ -802,7 +804,7 @@ export default {
                 }
             })
             this.taskTypeEmpty = false
-            this.renderOutputData.forEach(item => {
+            outputs.forEach(item => {
                 if (item.hook) {
                     this.deleteVariable(item.key)
                 }
@@ -811,7 +813,7 @@ export default {
         onAtomSelect (id, data) {
             this.isAtomChanged = true
             let nodeName
-            this.clearHookedVaribles()
+            tthis.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
             this.currentAtom = id
             if (this.isSingleAtom) {
                 nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
@@ -843,7 +845,8 @@ export default {
          * 更新 store 数据状态
          */
         onUpdateSubflowVersion () {
-            this.clearHookedVaribles()
+            const oldInputAtomHook = this.inputAtomHook
+            const oldInputAtomData = this.inputAtomData
 
             // 清空 store 里的 constants 值
             this.subAtomConfigData.form = {}
@@ -851,7 +854,24 @@ export default {
             this.inputAtomData = {}
             this.updateActivities()
 
-            this.getSubflowConfig(this.currentAtom).then( ()=> {
+            this.getSubflowConfig(this.currentAtom).then(()=> {
+                const newInputAtomData = tools.deepClone(this.inputAtomData)
+                Object.keys(oldInputAtomData).forEach(key => {
+                    if (this.inputAtomData.hasOwnProperty(key)) {
+                        this.$set(this.inputAtomData, key, oldInputAtomData[key])
+                    } else if (oldInputAtomHook[key]) {
+                        const variable = [
+                            {
+                                variableKey: key,
+                                formKey: key,
+                                id: this.nodeId,
+                                tagCode: key
+                            }
+                        ]
+                        this.clearHookedVaribles(variable, [])
+                    }
+                })
+                this.updateActivities()
                 this.subflowHasUpdate = false
                 this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
                 this.setSubprocessUpdated({
@@ -948,6 +968,10 @@ export default {
             } else {  // cancel hook
                 variableKey = this.inputAtomData[key] // variable key
                 const variable = this.constants[variableKey]
+                if (!variable) {
+                    return
+                }
+
                 const formKey = this.isSingleAtom ? tagCode : key // input arguments form item key
                 this.inputAtomHook[formKey] = val
                 this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)

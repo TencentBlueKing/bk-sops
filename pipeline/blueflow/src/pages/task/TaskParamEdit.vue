@@ -122,7 +122,7 @@ export default {
                 const atomConfig = this.atomFormConfig[atomType]
                 var currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                 if (currentFormConfig) {
-                    // 若该变量是原型变量则进行转换操作
+                    // 若该变量是元变量则进行转换操作
                     if (variable.is_meta || currentFormConfig.meta_transform) {
                         currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
                         this.metaConfig[key] = tools.deepClone(variable)
@@ -178,34 +178,6 @@ export default {
 @import '@/scss/config.scss';
     .task-param-wrapper {
         /deep/ .render-form {
-            .rf-group-name {
-                margin-bottom: 12px;
-                h3 {
-                    display: inline-block;
-                    margin: 0;
-                    margin-bottom: -1px;
-                    padding: 5px 14px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: #313238;
-                }
-                &:before {
-                    content: '';
-                    display: inline-block;
-                    position: relative;
-                    top: 4px;
-                    width: 2px;
-                    height: 20px;
-                    background: #A3C5FD;
-                }
-            }
-            .rf-group-desc {
-                position: absolute;
-                right: 0;
-                top: 10px;
-                color: $yellowBg;
-                font-size: 14px;
-            }
             .form-item {
                 margin-bottom: 20px;
             }

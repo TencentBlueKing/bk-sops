@@ -103,6 +103,7 @@
             <bk-button
                 type="success"
                 size="small"
+                :disabled="atomConfigLoading"
                 @click.stop="saveVariable">
                 {{ i18n.save }}
             </bk-button>
@@ -443,6 +444,7 @@ export default {
         saveVariable () {
             return this.$validator.validateAll().then(result => {
                 let formValid = true
+                const constantsLength = Object.keys(this.constants).length
                 // 名称、key等校验，renderform表单校验
                 if (this.$refs.renderForm) {
                     if (!this.value && this.theEditingData.show_type === 'show') {
@@ -451,7 +453,9 @@ export default {
                         formValid = this.$refs.renderForm.validate()
                     }
                 }
-                if (!result || !formValid) {
+                if (this.atomConfigLoading || !result || !formValid) {
+                    const index = this.isNewVariable ? constantsLength : this.theEditingData.index
+                    this.$emit('scrollPanelToView', index)
                     return false
                 }
 
@@ -463,7 +467,7 @@ export default {
                 this.theEditingData.name = this.theEditingData.name.trim()
                 this.theEditingData.value = this.renderData['customVariable']
                 if (this.isNewVariable) { // 新增
-                    variable.index = Object.keys(this.constants).length
+                    variable.index = constantsLength
                     this.addVariable(Object.assign(variable))
                 } else { // 编辑
                     this.editVariable({key: this.variableData.key, variable})
@@ -500,11 +504,13 @@ export default {
     label {
         position: relative;
         float: left;
-        min-width: 55px;
+        width: 60px;
         margin-top: 8px;
         font-size: 14px;
         color: $greyDefault;
         text-align: right;
+        word-wrap: break-word;
+        word-break: break-all;
         &.required:before {
             content: '*';
             position: absolute;

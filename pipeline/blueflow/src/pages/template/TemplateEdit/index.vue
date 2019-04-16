@@ -16,11 +16,14 @@
                 ref="pipelineCanvas"
                 :singleAtomListLoading="singleAtomListLoading"
                 :subAtomListLoading="subAtomListLoading"
+                :isTemplateDataChanged="isTemplateDataChanged"
                 :templateSaving="templateSaving"
+                :createTaskSaving="createTaskSaving"
                 :canvasData="canvasData"
                 :name="name"
                 :cc_id="cc_id"
                 :common="common"
+                :template_id="template_id"
                 :atomTypeList="atomTypeList"
                 :searchAtomResult="searchAtomResult"
                 @onChangeName="onChangeName"
@@ -127,6 +130,8 @@ export default {
             businessInfoLoading: false,
             templateDataLoading: false,
             templateSaving: false,
+            createTaskSaving: false,
+            saveAndCreate: false,
             isTemplateConfigValid: true, // 模板基础配置是否合法
             isTemplateDataChanged: false,
             isSettingPanelShow: true,
@@ -414,8 +419,13 @@ export default {
             }
         },
         async saveTemplate () {
-            this.templateSaving = true
             const template_id = this.type === 'edit' ? this.template_id : undefined
+            if (this.saveAndCreate) {
+                this.createTaskSaving = true
+            } else {
+                this.templateSaving = true
+            }
+
             try {
                 const data = await this.saveTemplateData({'templateId': template_id,'ccId': this.cc_id, 'common': this.common})
                 if (template_id === undefined) {
@@ -431,10 +441,16 @@ export default {
                     this.allowLeave = true
                     this.$router.push({path: `/template/edit/${this.cc_id}/`, query: {'template_id': data.template_id, 'common': this.common}})
                 }
+                if (this.createTaskSaving) {
+                    const taskUrl = this.getTaskUrl()
+                    this.$router.push(taskUrl)
+                }
             } catch (e) {
                 errorHandler(e, this)
             } finally {
+                this.saveAndCreate = false
                 this.templateSaving = false
+                this.createTaskSaving = false
             }
         },
         addSingleAtomActivities (location, config) {
@@ -691,9 +707,19 @@ export default {
                 this.isTemplateConfigValid = true
             }
         },
+        getTaskUrl () {
+            let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
+            if (this.common) {
+                url += '&common=1'
+            }
+            return url
+        },
         // 点击保存模板按钮回调
-        onSaveTemplate () {
-            if (this.templateSaving) return
+        onSaveTemplate (saveAndCreate) {
+            if (this.templateSaving || this.createTaskSaving) {
+                return
+            }
+            this.saveAndCreate = saveAndCreate
             this.checkVariable() // 全局变量是否合法
         },
         // 校验全局变量
@@ -717,6 +743,8 @@ export default {
             // 模板分类是否选择
             if (!this.category) {
                 this.isTemplateConfigValid = false
+                this.templateSaving = false
+                this.createTaskSaving = false
                 templateSetting.setErrorTab('templateConfigTab')
                 return
             }
@@ -739,6 +767,7 @@ export default {
             const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
             if (nodeWithErrors && nodeWithErrors.length) {
                 this.templateSaving = false
+                this.createTaskSaving = false
                 errorHandler({message: i18n.error}, this)
                 return
             }
@@ -875,4 +904,3 @@ export default {
         height: 100%;
     }
 </style>
-
