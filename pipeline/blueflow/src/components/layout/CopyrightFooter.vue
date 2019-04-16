@@ -23,28 +23,28 @@
     </footer>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState } from 'vuex'
-import moment from 'moment-timezone'
-export default {
-    name: 'CopyrightFooter',
-    computed: {
-        ...mapState({
-            businessTimezone: state => state.businessTimezone
-        })
-    },
-    data () {
-        return {
-            year: moment.tz(this.businessTimezone).year(),
-            i18n: {
-                qq: gettext('QQ咨询'),
-                bk: gettext('蓝鲸官网'),
-                bkForum: gettext('蓝鲸论坛'),
-                copyRight: gettext('蓝鲸智云 版权所有')
+    import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
+    import moment from 'moment-timezone'
+    export default {
+        name: 'CopyrightFooter',
+        data () {
+            return {
+                year: moment.tz(this.businessTimezone).year(),
+                i18n: {
+                    qq: gettext('QQ咨询'),
+                    bk: gettext('蓝鲸官网'),
+                    bkForum: gettext('蓝鲸论坛'),
+                    copyRight: gettext('蓝鲸智云 版权所有')
+                }
             }
+        },
+        computed: {
+            ...mapState({
+                businessTimezone: state => state.businessTimezone
+            })
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .footer-wrapper {
@@ -76,4 +76,3 @@ export default {
     }
 }
 </style>
-

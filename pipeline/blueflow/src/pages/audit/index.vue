@@ -15,7 +15,7 @@
             <BaseTitle :title="i18n.auditList"></BaseTitle>
             <BaseSearch
                 v-model="searchStr"
-                :inputPlaceholader="i18n.placeholder"
+                :input-placeholader="i18n.placeholder"
                 @onShow="onAdvanceShow"
                 @input="onSearchInput">
             </BaseSearch>
@@ -64,11 +64,11 @@
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder"/>
+                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.operator}}</span>
-                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder"/>
+                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder" />
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.status}}</span>
@@ -90,7 +90,7 @@
                 </fieldset>
             </div>
             <div class="audit-table-content">
-                <table v-bkloading="{isLoading: listLoading, opacity: 1}">
+                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <thead>
                         <tr>
                             <th class="audit-id">ID</th>
@@ -135,7 +135,7 @@
                         </tr>
                         <tr v-if="!auditList || !auditList.length" class="empty-tr">
                             <td colspan="10">
-                                <div class="empty-data"><NoData/></div>
+                                <div class="empty-data"><NoData /></div>
                             </td>
                         </tr>
                     </tbody>
@@ -156,278 +156,278 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-import NoData from '@/components/common/base/NoData.vue'
-import BaseTitle from '@/components/common/base/BaseTitle.vue'
-import BaseSearch from '@/components/common/base/BaseSearch.vue'
-import toolsUtils from '@/utils/tools.js'
-import moment from 'moment-timezone'
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+    import NoData from '@/components/common/base/NoData.vue'
+    import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import toolsUtils from '@/utils/tools.js'
+    import moment from 'moment-timezone'
 
-export default {
-    name: 'auditTaskHome',
-    components: {
-        CopyrightFooter,
-        BaseTitle,
-        BaseSearch,
-        NoData
-    },
-    data () {
-        return {
-            i18n: {
-                auditList: gettext('审计中心'),
-                placeholder: gettext('请输入ID或流程名称'),
-                business: gettext('所属业务'),
-                startedTime: gettext('执行开始'),
-                finishedTime: gettext('执行结束'),
-                name: gettext('任务名称'),
-                category: gettext('任务类型'),
-                creator: gettext('创建人'),
-                operator: gettext('执行人'),
-                status: gettext('状态'),
-                operation: gettext('操作'),
-                view: gettext('查看'),
-                total: gettext('共'),
-                item: gettext('条记录'),
-                comma: gettext('，'),
-                currentPageTip: gettext('当前第'),
-                page: gettext('页'),
-                executing: gettext('执行中'),
-                pauseState: gettext('暂停'),
-                taskType: gettext('任务分类'),
-                query: gettext('搜索'),
-                reset: gettext('清空'),
-                taskTypePlaceholder: gettext('请选择分类'),
-                creatorPlaceholder: gettext('请输入创建人'),
-                executorPlaceholder: gettext('请输入执行人'),
-                statusPlaceholder: gettext('请选择状态')
+    export default {
+        name: 'auditTaskHome',
+        components: {
+            CopyrightFooter,
+            BaseTitle,
+            BaseSearch,
+            NoData
+        },
+        data () {
+            return {
+                i18n: {
+                    auditList: gettext('审计中心'),
+                    placeholder: gettext('请输入ID或流程名称'),
+                    business: gettext('所属业务'),
+                    startedTime: gettext('执行开始'),
+                    finishedTime: gettext('执行结束'),
+                    name: gettext('任务名称'),
+                    category: gettext('任务类型'),
+                    creator: gettext('创建人'),
+                    operator: gettext('执行人'),
+                    status: gettext('状态'),
+                    operation: gettext('操作'),
+                    view: gettext('查看'),
+                    total: gettext('共'),
+                    item: gettext('条记录'),
+                    comma: gettext('，'),
+                    currentPageTip: gettext('当前第'),
+                    page: gettext('页'),
+                    executing: gettext('执行中'),
+                    pauseState: gettext('暂停'),
+                    taskType: gettext('任务分类'),
+                    query: gettext('搜索'),
+                    reset: gettext('清空'),
+                    taskTypePlaceholder: gettext('请选择分类'),
+                    creatorPlaceholder: gettext('请输入创建人'),
+                    executorPlaceholder: gettext('请输入执行人'),
+                    statusPlaceholder: gettext('请选择状态')
+                },
+                taskBasicInfoLoading: true,
+                listLoading: true,
+                isAdvancedSerachShow: false,
+                currentPage: 1,
+                selectedCcId: -1,
+                totalPage: 1,
+                countPerPage: 15,
+                totalCount: 0,
+                taskSync: 0,
+                statusSync: 0,
+                searchStr: '',
+                bizCcId: undefined,
+                creator: undefined,
+                executor: undefined,
+                activeTaskCategory: undefined,
+                executeStartTime: undefined,
+                executeEndTime: undefined,
+                isStarted: undefined,
+                isFinished: undefined,
+                business: {
+                    list: [],
+                    loading: false,
+                    id: null,
+                    searchable: true,
+                    empty: false
+                },
+                auditList: [],
+                taskCategory: [],
+                statusList: [
+                    { 'id': 'nonExecution', 'name': gettext('未执行') },
+                    { 'id': 'runing', 'name': gettext('未完成') },
+                    { 'id': 'finished', 'name': gettext('完成') }
+                ],
+                executeStatus: [] // 任务执行态
+            }
+        },
+        created () {
+            this.loadFunctionTask()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            this.getBusinessList()
+            this.getBusinessBaseInfo()
+        },
+        methods: {
+            ...mapActions('auditTask/', [
+                'loadAuditTaskList'
+            ]),
+            ...mapActions('functionTask/', [
+                'loadFunctionBusinessList'
+            ]),
+            ...mapActions('task/', [
+                'getInstanceStatus'
+            ]),
+            ...mapActions('template/', [
+                'loadBusinessBaseInfo'
+            ]),
+            async loadFunctionTask () {
+                this.listLoading = true
+                try {
+                    const data = {
+                        limit: this.countPerPage,
+                        offset: (this.currentPage - 1) * this.countPerPage,
+                        business__cc_id: this.bizCcId,
+                        category: this.activeTaskCategory,
+                        audit__pipeline_instance__name__contains: this.searchStr,
+                        pipeline_instance__is_started: this.isStarted,
+                        pipeline_instance__is_finished: this.isFinished,
+                        pipeline_instance__creator__contains: this.creator,
+                        pipeline_instance__executor__contains: this.executor
+                    }
+                    if (this.executeEndTime) {
+                        if (this.common) {
+                            data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    const auditListData = await this.loadAuditTaskList(data)
+                    const list = auditListData.objects
+                    this.auditList = list
+                    this.totalCount = auditListData.meta.total_count
+                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
+                    this.executeStatus = list.map((item, index) => {
+                        const status = {}
+                        if (item.is_finished) {
+                            status.cls = 'finished bk-icon icon-check-circle-shape'
+                            status.text = gettext('完成')
+                        } else if (item.is_started) {
+                            status.cls = 'loading common-icon-loading'
+                            this.getExecuteDetail(item, index)
+                        } else {
+                            status.cls = 'created common-icon-dark-circle-shape'
+                            status.text = gettext('未执行')
+                        }
+                        return status
+                    })
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.listLoading = false
+                }
             },
-            taskBasicInfoLoading: true,
-            listLoading: true,
-            isAdvancedSerachShow: false,
-            currentPage: 1,
-            selectedCcId: -1,
-            totalPage: 1,
-            countPerPage: 15,
-            totalCount: 0,
-            taskSync: 0,
-            statusSync: 0,
-            searchStr: '',
-            bizCcId: undefined,
-            creator: undefined,
-            executor: undefined,
-            activeTaskCategory: undefined,
-            executeStartTime: undefined,
-            executeEndTime: undefined,
-            isStarted: undefined,
-            isFinished: undefined,
-            business: {
-                list: [],
-                loading: false,
-                id: null,
-                searchable: true,
-                empty: false
+            onPageChange (page) {
+                this.currentPage = page
+                this.loadFunctionTask()
             },
-            auditList: [],
-            taskCategory: [],
-            statusList: [
-                {'id': 'nonExecution', 'name': gettext('未执行')},
-                {'id': 'runing', 'name': gettext('未完成')},
-                {'id': 'finished', 'name': gettext('完成')}
-            ],
-            executeStatus: [] // 任务执行态
-        }
-    },
-    created () {
-        this.loadFunctionTask()
-        this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-        this.getBusinessList()
-        this.getBusinessBaseInfo()
-    },
-    methods: {
-        ...mapActions('auditTask/', [
-            'loadAuditTaskList'
-        ]),
-        ...mapActions('functionTask/', [
-            'loadFunctionBusinessList'
-        ]),
-        ...mapActions('task/', [
-            'getInstanceStatus'
-        ]),
-        ...mapActions('template/', [
-            'loadBusinessBaseInfo'
-        ]),
-        async loadFunctionTask () {
-            this.listLoading = true
-            try {
+            searchInputhandler () {
+                this.currentPage = 1
+                this.loadFunctionTask()
+            },
+            async getExecuteDetail (task, index) {
                 const data = {
-                    limit: this.countPerPage,
-                    offset: (this.currentPage - 1) * this.countPerPage,
-                    business__cc_id: this.bizCcId,
-                    category: this.activeTaskCategory,
-                    audit__pipeline_instance__name__contains: this.searchStr,
-                    pipeline_instance__is_started: this.isStarted,
-                    pipeline_instance__is_finished: this.isFinished,
-                    pipeline_instance__creator__contains: this.creator,
-                    pipeline_instance__executor__contains: this.executor
+                    instance_id: task.id,
+                    cc_id: task.business.cc_id
                 }
-                if (this.executeEndTime) {
-                    if (this.common) {
-                        data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
-                        data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1','d').format('YYYY-MM-DD')
+                try {
+                    const detailInfo = await this.getInstanceStatus(data)
+                    if (detailInfo.result) {
+                        const state = detailInfo.data.state
+                        const status = {}
+                        switch (state) {
+                            case 'RUNNING':
+                            case 'BLOCKED':
+                                status.cls = 'running common-icon-dark-circle-ellipsis'
+                                status.text = gettext('执行中')
+                                break
+                            case 'SUSPENDED':
+                                status.cls = 'execute common-icon-dark-circle-pause'
+                                status.text = gettext('暂停')
+                                break
+                            case 'NODE_SUSPENDED':
+                                status.cls = 'execute'
+                                status.text = gettext('节点暂停')
+                                break
+                            case 'FAILED':
+                                status.cls = 'failed common-icon-dark-circle-close'
+                                status.text = gettext('失败')
+                                break
+                            case 'REVOKED':
+                                status.cls = 'revoke common-icon-dark-circle-shape'
+                                status.text = gettext('撤销')
+                                break
+                            default:
+                                status.text = gettext('未知')
+                        }
+                        this.executeStatus.splice(index, 1, status)
                     } else {
-                        data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                        data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1','d').format('YYYY-MM-DD')
+                        errorHandler(detailInfo, this)
                     }
+                } catch (e) {
+                    errorHandler(e, this)
                 }
-                const auditListData = await this.loadAuditTaskList(data)
-                const list = auditListData.objects
-                this.auditList = list
-                this.totalCount = auditListData.meta.total_count
-                const totalPage = Math.ceil( this.totalCount / this.countPerPage)
-                if (!totalPage) {
-                    this.totalPage = 1
-                } else {
-                    this.totalPage = totalPage
+            },
+            async getBusinessList () {
+                this.business.loading = true
+                try {
+                    const businessData = await this.loadFunctionBusinessList()
+                    this.business.list = businessData.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.business.loading = false
                 }
-                this.executeStatus = list.map((item, index) => {
-                    const status = {}
-                    if (item.is_finished) {
-                        status.cls = 'finished bk-icon icon-check-circle-shape'
-                        status.text = gettext('完成')
-                    } else if (item.is_started) {
-                        status.cls = 'loading common-icon-loading'
-                        this.getExecuteDetail(item, index)
-                    } else {
-                        status.cls = 'created common-icon-dark-circle-shape'
-                        status.text = gettext('未执行')
-                    }
-                    return status
-                })
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.listLoading = false
-            }
-        },
-        onPageChange (page) {
-            this.currentPage = page
-            this.loadFunctionTask()
-        },
-        searchInputhandler () {
-            this.currentPage = 1
-            this.loadFunctionTask()
-        },
-        async getExecuteDetail (task, index) {
-            const data = {
-                instance_id: task.id,
-                cc_id: task.business.cc_id
-            }
-            try {
-                const detailInfo = await this.getInstanceStatus(data)
-                if (detailInfo.result) {
-                    const state = detailInfo.data.state
-                    const status = {}
-                    switch (state) {
-                        case 'RUNNING':
-                        case 'BLOCKED':
-                            status.cls = 'running common-icon-dark-circle-ellipsis'
-                            status.text = gettext('执行中')
-                            break
-                        case 'SUSPENDED':
-                            status.cls = 'execute common-icon-dark-circle-pause'
-                            status.text = gettext('暂停')
-                            break
-                        case 'NODE_SUSPENDED':
-                            status.cls = 'execute'
-                            status.text = gettext('节点暂停')
-                            break
-                        case 'FAILED':
-                            status.cls = 'failed common-icon-dark-circle-close'
-                            status.text = gettext('失败')
-                            break
-                        case 'REVOKED':
-                            status.cls = 'revoke common-icon-dark-circle-shape'
-                            status.text = gettext('撤销')
-                            break
-                        default:
-                            status.text = gettext('未知')
-                    }
-                    this.executeStatus.splice(index, 1, status)
-                } else {
-                    errorHandler(detailInfo, this)
+            },
+            async getBusinessBaseInfo () {
+                this.taskBasicInfoLoading = true
+                try {
+                    const data = await this.loadBusinessBaseInfo()
+                    this.taskCategory = data.task_categories
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.taskBasicInfoLoading = false
                 }
-            } catch (e) {
-                errorHandler(e, this)
+            },
+            onAdvanceShow () {
+                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onChangeExecuteTime (oldValue, newValue) {
+                const timeArray = newValue.split(' - ')
+                this.executeStartTime = timeArray[0]
+                this.executeEndTime = timeArray[1]
+            },
+            onClearCategory () {
+                this.activeTaskCategory = undefined
+            },
+            onSelectedCategory (name, value) {
+                this.activeTaskCategory = name
+            },
+            onResetForm () {
+                this.isStarted = undefined
+                this.isFinished = undefined
+                this.creator = undefined
+                this.executor = undefined
+                this.searchStr = undefined
+                this.statusSync = 0
+                this.selectedCcId = 0
+                this.taskSync = 0
+                this.activeTaskCategory = undefined
+                this.executeStartTime = undefined
+                this.executeEndTime = undefined
+            },
+            onSelectedStatus (id, name) {
+                this.isStarted = id !== 'nonExecution'
+                this.isFinished = id === 'finished'
+            },
+            onClearStatus () {
+                this.isStarted = undefined
+                this.isFinished = undefined
+            },
+            onSelectedBizCcId (name, value) {
+                if (this.bizCcId === name) {
+                    return
+                }
+                this.bizCcId = name
             }
-        },
-        async getBusinessList () {
-            this.business.loading = true
-            try {
-                let businessData = await this.loadFunctionBusinessList()
-                this.business.list = businessData.objects
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.business.loading = false
-            }
-        },
-        async getBusinessBaseInfo () {
-            this.taskBasicInfoLoading = true
-            try {
-                const data = await this.loadBusinessBaseInfo()
-                this.taskCategory = data.task_categories
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.taskBasicInfoLoading = false
-            }
-        },
-        onAdvanceShow () {
-            this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-        },
-        onChangeExecuteTime (oldValue, newValue) {
-            const timeArray = newValue.split(" - ")
-            this.executeStartTime = timeArray[0]
-            this.executeEndTime = timeArray[1]
-        },
-        onClearCategory (){
-            this.activeTaskCategory = undefined
-        },
-        onSelectedCategory (name, value) {
-            this.activeTaskCategory = name
-        },
-        onResetForm () {
-            this.isStarted = undefined
-            this.isFinished = undefined
-            this.creator = undefined
-            this.executor = undefined
-            this.searchStr = undefined
-            this.statusSync = 0
-            this.selectedCcId = 0
-            this.taskSync = 0
-            this.activeTaskCategory = undefined
-            this.executeStartTime = undefined
-            this.executeEndTime = undefined
-        },
-        onSelectedStatus (id, name) {
-            this.isStarted = id !== 'nonExecution'
-            this.isFinished = id === 'finished'
-        },
-        onClearStatus () {
-            this.isStarted = undefined
-            this.isFinished = undefined
-        },
-        onSelectedBizCcId (name, value) {
-            if (this.bizCcId === name) {
-                return
-            }
-            this.bizCcId = name
         }
     }
-}
 </script>
 <style lang='scss'>
 @import '@/scss/config.scss';
@@ -711,4 +711,3 @@ export default {
     }
 }
 </style>
-

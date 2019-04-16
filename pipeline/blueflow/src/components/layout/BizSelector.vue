@@ -11,24 +11,24 @@
 */
 <template>
     <div
-        :class="['biz-wrapper',]"
+        :class="['biz-wrapper']"
         v-clickout="onHideBizList">
         <div
-            :class="['current-biz-name', {'list-open': showList, 'disabled-biz-name': disabled}]"
+            :class="['current-biz-name', { 'list-open': showList, 'disabled-biz-name': disabled }]"
             :title="currentBizName"
             @click="onToggleBizList">
             {{currentBizName}}
         </div>
         <div class="biz-list" v-show="showList">
             <div class="search-wrapper">
-                <input class="search-input" v-model="searchStr"/>
+                <input class="search-input" v-model="searchStr" />
                 <i class="common-icon-search"></i>
             </div>
             <ul>
                 <li
                     v-for="biz in businessList"
                     :key="biz.cc_id"
-                    :class="['biz-item', { 'selected': Number(currentBizId) === biz.cc_id}]"
+                    :class="['biz-item', { 'selected': Number(currentBizId) === biz.cc_id }]"
                     :title="biz.cc_name"
                     @click.stop="onSelectBiz(biz.cc_id)">
                     {{biz.cc_name}}
@@ -38,109 +38,108 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import toolsUtils from '@/utils/tools.js'
-import { setAtomConfigApiUrls } from '@/config/setting.js'
-import { errorHandler } from '@/utils/errorHandler.js'
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { setAtomConfigApiUrls } from '@/config/setting.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
-export default {
-    name: 'BizSelector',
-    data () {
-        return {
-            showList: false,
-            searchStr: ''
-        }
-    },
-    props: ['disabled'],
-    computed: {
-        ...mapState({
-            site_url: state => state.site_url,
-            username: state => state.username,
-            cc_id: state => state.cc_id,
-            bizList: state => state.bizList
-        }),
-        businessList () {
-            if (this.searchStr === '') {
-                return this.bizList
-            } else {
-                const reg = new RegExp(this.searchStr)
-                return this.bizList.filter(item => {
-                    return reg.test(item.cc_name)
-                })
+    export default {
+        name: 'BizSelector',
+        props: ['disabled'],
+        data () {
+            return {
+                showList: false,
+                searchStr: ''
             }
         },
-        currentBizId: {
-            get () {
-                return this.cc_id
-            },
-            set (id) {
-                this.setBizId(id)
-            }
-        },
-        currentBizName () {
-            const crtIndex = this.bizList.findIndex(item => Number(this.currentBizId) === item.cc_id)
-            return crtIndex > -1 ? this.bizList[crtIndex].cc_name : ''
-        }
-    },
-    created () {
-        this.setTimezone(this.cc_id)
-    },
-    methods: {
-        ...mapActions([
-            'getBizList',
-            'changeDefaultBiz',
-            'getBusinessTimezone'
-        ]),
-        ...mapMutations([
-            'setBizId',
-            'setBusinessTimezone'
-        ]),
-        async onSelectBiz (id) {
-            this.showList = false
-            try {
-                const res = await this.changeDefaultBiz(id)
-                if (res.result) {
-                    await this.setTimezone(id)
-                    setAtomConfigApiUrls(this.site_url, id)
-                    this.$router.push({path: `/business/home/${id}/`})
-                    // notice: 清除标准插件配置项里的全局变量缓存
-                    $.atoms = {}
+        computed: {
+            ...mapState({
+                site_url: state => state.site_url,
+                username: state => state.username,
+                cc_id: state => state.cc_id,
+                bizList: state => state.bizList
+            }),
+            businessList () {
+                if (this.searchStr === '') {
+                    return this.bizList
                 } else {
-                    errorHandler(res, this)
+                    const reg = new RegExp(this.searchStr)
+                    return this.bizList.filter(item => {
+                        return reg.test(item.cc_name)
+                    })
                 }
-            } catch (e) {
-                errorHandler(e, this)
+            },
+            currentBizId: {
+                get () {
+                    return this.cc_id
+                },
+                set (id) {
+                    this.setBizId(id)
+                }
+            },
+            currentBizName () {
+                const crtIndex = this.bizList.findIndex(item => Number(this.currentBizId) === item.cc_id)
+                return crtIndex > -1 ? this.bizList[crtIndex].cc_name : ''
             }
         },
-        onToggleBizList () {
-            if (this.disabled) {
+        created () {
+            this.setTimezone(this.cc_id)
+        },
+        methods: {
+            ...mapActions([
+                'getBizList',
+                'changeDefaultBiz',
+                'getBusinessTimezone'
+            ]),
+            ...mapMutations([
+                'setBizId',
+                'setBusinessTimezone'
+            ]),
+            async onSelectBiz (id) {
                 this.showList = false
-            } else {
-                this.showList = !this.showList
-            }
-        },
-        onHideBizList () {
-            this.showList = false
-        },
-        async setTimezone (ccId) {
-            // 需要进行整型转换
-            const nowCCId = Number(ccId)
-            if (this.bizList.length !== 0) {
-                // 有业务列表不需要直接接口拉
-                let business = this.bizList.find((business) => business.cc_id === nowCCId)
-                let timezone = 'Asia/Shanghai'
-                if (business !== undefined) {
-                    // 业务如果不携带时区信息即undefined情况
-                    timezone = business.time_zone || 'Asia/Shanghai'
+                try {
+                    const res = await this.changeDefaultBiz(id)
+                    if (res.result) {
+                        await this.setTimezone(id)
+                        setAtomConfigApiUrls(this.site_url, id)
+                        this.$router.push({ path: `/business/home/${id}/` })
+                        // notice: 清除标准插件配置项里的全局变量缓存
+                        $.atoms = {}
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
                 }
-                this.setBusinessTimezone(timezone)
-            } else {
-                await this.getBusinessTimezone()
+            },
+            onToggleBizList () {
+                if (this.disabled) {
+                    this.showList = false
+                } else {
+                    this.showList = !this.showList
+                }
+            },
+            onHideBizList () {
+                this.showList = false
+            },
+            async setTimezone (ccId) {
+                // 需要进行整型转换
+                const nowCCId = Number(ccId)
+                if (this.bizList.length !== 0) {
+                    // 有业务列表不需要直接接口拉
+                    const business = this.bizList.find((business) => business.cc_id === nowCCId)
+                    let timezone = 'Asia/Shanghai'
+                    if (business !== undefined) {
+                        // 业务如果不携带时区信息即undefined情况
+                        timezone = business.time_zone || 'Asia/Shanghai'
+                    }
+                    this.setBusinessTimezone(timezone)
+                } else {
+                    await this.getBusinessTimezone()
+                }
             }
         }
     }
-}
 </script>
 
 <style lang="scss" scoped>
@@ -257,4 +256,3 @@ export default {
 }
 
 </style>
-

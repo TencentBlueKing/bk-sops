@@ -19,56 +19,56 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import Plotly from 'plotly.js/dist/plotly-basic.min.js'
-import NoData from '@/components/common/base/NoData.vue'
-export default {
-    name: 'TaskPercentChart',
-    components: {
-        NoData
-    },
-    props: ['taskCount', 'totalTask'],
-    data () {
-        return {
-            chart: null,
-            i18n: {
-                percent: gettext('任务分类占比')
+    import '@/utils/i18n.js'
+    import Plotly from 'plotly.js/dist/plotly-basic.min.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    export default {
+        name: 'TaskPercentChart',
+        components: {
+            NoData
+        },
+        props: ['taskCount', 'totalTask'],
+        data () {
+            return {
+                chart: null,
+                i18n: {
+                    percent: gettext('任务分类占比')
+                }
             }
-        }
-    },
-    mounted () {
-        if (this.totalTask) {
-            this.initChart()
-        }
-    },
-    methods: {
-        initChart () {
-            const colors = ['#7275ec', '#3c96ff', '#4bc6f3', '#f5c749', '#ed6b89', '#ff5256', '#85c030']
-            const values = []
-            const labels = []
-            this.taskCount.forEach(item => {
-                values.push(item.value)
-                labels.push(item.name)
-            })
-            const data = [{
-                values,
-                labels,
-                marker: {
-                    colors
-                },
-                hole: 0.6,
-                sort: false,
-                direction: 'clockwise',
-                type: 'pie'
-            }]
-            const layout = {
-                width: 500,
-                height: 340
+        },
+        mounted () {
+            if (this.totalTask) {
+                this.initChart()
             }
-            this.chart = Plotly.newPlot('chart-wrap', data, layout, {displayModeBar: false})
+        },
+        methods: {
+            initChart () {
+                const colors = ['#7275ec', '#3c96ff', '#4bc6f3', '#f5c749', '#ed6b89', '#ff5256', '#85c030']
+                const values = []
+                const labels = []
+                this.taskCount.forEach(item => {
+                    values.push(item.value)
+                    labels.push(item.name)
+                })
+                const data = [{
+                    values,
+                    labels,
+                    marker: {
+                        colors
+                    },
+                    hole: 0.6,
+                    sort: false,
+                    direction: 'clockwise',
+                    type: 'pie'
+                }]
+                const layout = {
+                    width: 500,
+                    height: 340
+                }
+                this.chart = Plotly.newPlot('chart-wrap', data, layout, { displayModeBar: false })
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -83,4 +83,3 @@ export default {
     }
 }
 </style>
-

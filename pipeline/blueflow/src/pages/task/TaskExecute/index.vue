@@ -10,121 +10,121 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['task-execute-container', {'task-function-container': currentStep === 'functionalization'}]"
+    <div :class="['task-execute-container', { 'task-function-container': currentStep === 'functionalization' }]"
         v-if="!exception.code"
-        v-bkloading="{isLoading: loading, opacity: 1}">
+        v-bkloading="{ isLoading: loading, opacity: 1 }">
         <TaskStep
             :list="stepList"
-            :currentStep="currentStep"
-            :allFinished="isAllStepsFinished">
+            :current-step="currentStep"
+            :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
             v-if="isFunctional && !loading"
             :cc_id="cc_id"
             :instance_id="instance_id"
-            :instanceName="instanceName"
-            :instanceFlow="instanceFlow">
+            :instance-name="instanceName"
+            :instance-flow="instanceFlow">
         </TaskFunctionalization>
         <TaskOperation
             v-if="!isFunctional && !loading"
             :cc_id="cc_id"
             :instance_id="instance_id"
-            :instanceName="instanceName"
-            :instanceFlow="instanceFlow"
+            :instance-name="instanceName"
+            :instance-flow="instanceFlow"
             @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import TaskStep from '../TaskStep.vue'
-import TaskOperation from './TaskOperation.vue'
-import TaskFunctionalization from './TaskFunctionalization.vue'
-const STEP_DICT = [
-    {
-        step: 'selectnode',
-        name: gettext('节点选择')
-    },
-    {
-        step: 'paramfill',
-        name: gettext('参数填写')
-    },
-    {
-        step: 'taskexecute',
-        name: gettext('任务执行')
-    }
-]
-export default {
-    name: 'TaskExecute',
-    components: {
-        TaskStep,
-        TaskOperation,
-        TaskFunctionalization
-    },
-    props: ['cc_id', 'instance_id'],
-    data () {
-        return {
-            taskDataLoading: true,
-            taskStatusLoading: true,
-            bkMessageInstance: null,
-            exception: {},
-            stepList: STEP_DICT,
-            currentStep: 'taskexecute',
-            isFunctional: false,
-            isAllStepsFinished: false,
-            instanceName: '',
-            instanceFlow: ''
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import TaskStep from '../TaskStep.vue'
+    import TaskOperation from './TaskOperation.vue'
+    import TaskFunctionalization from './TaskFunctionalization.vue'
+    const STEP_DICT = [
+        {
+            step: 'selectnode',
+            name: gettext('节点选择')
+        },
+        {
+            step: 'paramfill',
+            name: gettext('参数填写')
+        },
+        {
+            step: 'taskexecute',
+            name: gettext('任务执行')
         }
-    },
-    computed: {
-        loading () {
-            return this.isFunctional ? this.taskDataLoading : (this.taskDataLoading && this.taskStatusLoading)
-        }
-    },
-    created () {
-        this.getTaskData()
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getTaskInstanceData'
-        ]),
-        appendFunctionalization () {
-            const isHasFunctionalization = this.stepList.some(item => item.step === 'functionalization')
-            if (!isHasFunctionalization) {
-                this.stepList.splice(2, 0, {
-                    step: 'functionalization',
-                    name: gettext('职能化认领')
-                })
+    ]
+    export default {
+        name: 'TaskExecute',
+        components: {
+            TaskStep,
+            TaskOperation,
+            TaskFunctionalization
+        },
+        props: ['cc_id', 'instance_id'],
+        data () {
+            return {
+                taskDataLoading: true,
+                taskStatusLoading: true,
+                bkMessageInstance: null,
+                exception: {},
+                stepList: STEP_DICT,
+                currentStep: 'taskexecute',
+                isFunctional: false,
+                isAllStepsFinished: false,
+                instanceName: '',
+                instanceFlow: ''
             }
         },
-        async getTaskData () {
-            try {
-                const instanceData = await this.getTaskInstanceData(this.instance_id)
-                if (instanceData.flow_type === 'common_func') {
-                    this.appendFunctionalization()
-                    if (instanceData.current_flow === 'func_claim') {
-                        this.isFunctional = true
-                        this.currentStep = 'functionalization'
+        computed: {
+            loading () {
+                return this.isFunctional ? this.taskDataLoading : (this.taskDataLoading && this.taskStatusLoading)
+            }
+        },
+        created () {
+            this.getTaskData()
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getTaskInstanceData'
+            ]),
+            appendFunctionalization () {
+                const isHasFunctionalization = this.stepList.some(item => item.step === 'functionalization')
+                if (!isHasFunctionalization) {
+                    this.stepList.splice(2, 0, {
+                        step: 'functionalization',
+                        name: gettext('职能化认领')
+                    })
+                }
+            },
+            async getTaskData () {
+                try {
+                    const instanceData = await this.getTaskInstanceData(this.instance_id)
+                    if (instanceData.flow_type === 'common_func') {
+                        this.appendFunctionalization()
+                        if (instanceData.current_flow === 'func_claim') {
+                            this.isFunctional = true
+                            this.currentStep = 'functionalization'
+                        }
                     }
+                    this.instanceFlow = instanceData.pipeline_tree
+                    this.instanceName = instanceData.name
+                    if (instanceData.is_finished) {
+                        this.isAllStepsFinished = true
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.taskDataLoading = false
                 }
-                this.instanceFlow = instanceData.pipeline_tree
-                this.instanceName = instanceData.name
-                if (instanceData.is_finished) {
-                    this.isAllStepsFinished = true
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.taskDataLoading = false
+            },
+            taskStatusLoadChange (status) {
+                this.taskStatusLoading = status
             }
-        },
-        taskStatusLoadChange (status) {
-            this.taskStatusLoading = status
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     .task-execute-container {

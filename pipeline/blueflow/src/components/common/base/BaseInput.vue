@@ -22,32 +22,32 @@
         @keyup.enter="onKeyupEnter">
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'BaseInput',
-    model: {
-        prop: 'value',
-        event: 'input'
-    },
-    props: ['value', 'name','title'],
-    methods: {
-        focus () {
-            this.$refs.baseInput.focus()
+    import '@/utils/i18n.js'
+    export default {
+        name: 'BaseInput',
+        model: {
+            prop: 'value',
+            event: 'input'
         },
-        select () {
-            this.$refs.baseInput.select()
-        },
-        onInput (e) {
-            this.$emit('input', e.target.value)
-        },
-        onBlur (e) {
-            this.$emit('blur', e.target.value)
-        },
-        onKeyupEnter (e) {
-            this.$emit('enter', e.target.value)
+        props: ['value', 'name', 'title'],
+        methods: {
+            focus () {
+                this.$refs.baseInput.focus()
+            },
+            select () {
+                this.$refs.baseInput.select()
+            },
+            onInput (e) {
+                this.$emit('input', e.target.value)
+            },
+            onBlur (e) {
+                this.$emit('blur', e.target.value)
+            },
+            onKeyupEnter (e) {
+                this.$emit('enter', e.target.value)
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -76,5 +76,3 @@ export default {
     }
 }
 </style>
-
-

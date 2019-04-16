@@ -17,10 +17,10 @@
         </div>
         <div class="logo">
             <div v-if="isShowDefaultLogo" class="default-logo">
-                <i  class="common-icon-blueking"></i>
+                <i class="common-icon-blueking"></i>
             </div>
             <div v-else>
-                <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo"/>
+                <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo" />
             </div>
         </div>
         <div class="app-detail">
@@ -36,44 +36,43 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'AppCard',
-    props: ['appData', 'cc_id'],
-    data () {
-        return {
-            isShowDefaultLogo: false,
-            i18n: {
-                edit: gettext('编辑'),
-                delete: gettext('删除'),
-                template: gettext('流程模板：'),
-                appDesc: gettext('应用简介：')
+    import '@/utils/i18n.js'
+    export default {
+        name: 'AppCard',
+        props: ['appData', 'cc_id'],
+        data () {
+            return {
+                isShowDefaultLogo: false,
+                i18n: {
+                    edit: gettext('编辑'),
+                    delete: gettext('删除'),
+                    template: gettext('流程模板：'),
+                    appDesc: gettext('应用简介：')
+                }
             }
-        }
-    },
-    methods: {
-        useDefaultLogo () {
-            this.isShowDefaultLogo = true
         },
-        onCardEdit () {
-            this.$emit('onCardEdit', this.appData)
-        },
-        onCardDelete () {
-            this.$emit('onCardDelete', this.appData)
-        },
-        onGotoAppMaker () {
-            if (self === top) {
-                this.$bkMessage({
-                    'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
-                    'theme': 'warning'
-                })
-            }
-            else {
-                window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
+        methods: {
+            useDefaultLogo () {
+                this.isShowDefaultLogo = true
+            },
+            onCardEdit () {
+                this.$emit('onCardEdit', this.appData)
+            },
+            onCardDelete () {
+                this.$emit('onCardDelete', this.appData)
+            },
+            onGotoAppMaker () {
+                if (self === top) {
+                    this.$bkMessage({
+                        'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
+                        'theme': 'warning'
+                    })
+                } else {
+                    window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -159,5 +158,3 @@ export default {
     }
 }
 </style>
-
-
