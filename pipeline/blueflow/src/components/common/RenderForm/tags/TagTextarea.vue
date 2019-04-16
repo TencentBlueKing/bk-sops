@@ -15,9 +15,8 @@
             type="textarea"
             v-model="textareaValue"
             :class="{'rf-view-textarea-value': !formMode, 'rf-view-textarea': !editable}"
-            :autosize="true"
             :disabled="!editable || !formMode"
-            :rows="3"
+            :autosize="formMode ? {minRows: 2} : true"
             resize="none"
             :placeholder="placeholder">
         </el-input>
@@ -81,7 +80,7 @@ export default {
         @include scrollbar;
     }
 }
-.rf-view-textarea {
+.rf-view-textarea-value {
     /deep/ .el-textarea__inner {
         padding-left: 0px;
     }

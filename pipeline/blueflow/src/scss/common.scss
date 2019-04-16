@@ -96,9 +96,11 @@
     color: #ff5757;
 }
 
-// 覆盖原始弹窗按钮宽度
+// 弹窗按钮
 .bk-dialog-wrapper .bk-dialog-footer .bk-dialog-outer button {
     width: 90px;
+    height: 32px;
+    line-height: 30px;
 }
 .common-warning-tip {
     display: inline-block;
@@ -116,13 +118,35 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 }
-// 表单下拉框高度统一
+// 表单下拉框
 .bk-selector-wrapper {
+    .bk-selector-icon {
+        top: 10px;
+    }
     .bk-selector-icon.clear-icon {
         top: 7px;
     }
     .bk-selector-input {
         height: 32px;
         line-height: 32px;
+    }
+}
+// 列表分页
+.panagation {
+    .bk-page .page-item {
+        float: none;
+    }
+    .bk-page .page-item.cur-page {
+        background: #3c96ff;
+    }
+    .bk-page .page-item .page-button {
+        padding: 0 7px;
+    }
+    .bk-page .page-item.disabled .page-button {
+        padding: 0 5px;
+        color: #737987;
+         &:hover {
+              color: #737987;
+        }
     }
 }
