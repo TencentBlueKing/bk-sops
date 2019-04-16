@@ -52,7 +52,7 @@ def calculate_elapsed_time(started_time, archived_time):
         elapsed_time = (timezone.now() - started_time).total_seconds()
     else:
         elapsed_time = 0
-    return elapsed_time
+    return int(elapsed_time)
 
 
 class ActionResult(object):
