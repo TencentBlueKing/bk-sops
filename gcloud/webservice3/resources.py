@@ -265,11 +265,7 @@ class GCloudModelResource(ModelResource):
             query = applicable_filters.pop('q')
         else:
             query = None
-        queryset = super(GCloudModelResource, self)
-        try:
-            queryset = queryset.apply_filters(request, applicable_filters)
-        except AttributeError:
-            pass
+        queryset = super(GCloudModelResource, self).apply_filters(request, applicable_filters)
         return queryset.filter(query) if query else queryset
 
     def wrap_view(self, view):
