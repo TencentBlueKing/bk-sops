@@ -86,6 +86,14 @@ class S3ModuleImporter(NonstandardModuleImporter):
             logger.info('Use content in cache for s3 object: {key}'.format(key=key))
             return self.obj_cache[key]
 
+        obj_content = self._get_s3_obj_content(key)
+
+        if self.use_cache:
+            self.obj_cache[key] = obj_content
+
+        return obj_content
+
+    def _get_s3_obj_content(self, key):
         obj = self.s3.Object(bucket_name=self.bucket, key=key)
 
         try:
@@ -96,8 +104,5 @@ class S3ModuleImporter(NonstandardModuleImporter):
                 obj_content = None
             else:
                 raise
-
-        if self.use_cache:
-            self.obj_cache[key] = obj_content
 
         return obj_content
