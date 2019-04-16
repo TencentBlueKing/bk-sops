@@ -97,7 +97,7 @@
                             <div class="content-wrap-select">
                                 <span class="content-detail-label">{{i18n.choiceBusiness}}</span>
                                 <bk-selector
-                                    :list="bizList"
+                                    :list="allBusinessList"
                                     :display-key="'cc_name'"
                                     :setting-name="'cc_id'"
                                     :search-key="'cc_name'"
@@ -156,7 +156,7 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
-                                    :list="bizList"
+                                    :list="allBusinessList"
                                     :display-key="'cc_name'"
                                     :setting-name="'cc_id'"
                                     :search-key="'cc_name'"
@@ -385,16 +385,16 @@ export default {
     },
     computed: {
         ...mapState({
-            bizList: state => state.bizList,
+            allBusinessList: state => state.allBusinessList,
             categorys: state => state.categorys,
             site_url: state => state.site_url
         }),
         businessList () {
-            if (this.bizList.length === 0) {
-                this.getBizList()
+            if (this.allBusinessList.length === 0) {
+                this.getBizList(1)
             }
-            const list = tools.deepClone(this.bizList)
-            list.unshift({cc_id: 'all', cc_name: gettext('全部业务')})
+            const list = tools.deepClone(this.allBusinessList)
+            list.unshift({cc_id: undefined, cc_name: gettext('全部业务')})
             return list
         },
         categoryList () {

@@ -13,8 +13,81 @@
     <div class="audit-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.auditList"></BaseTitle>
-            <div class="operation-area">
-                <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
+            <BaseSearch
+                v-model="searchStr"
+                :inputPlaceholader="i18n.placeholder"
+                @onShow="onAdvanceShow"
+                @input="onSearchInput">
+            </BaseSearch>
+            <div class="audit-search" v-show="isAdvancedSerachShow">
+                <fieldset class="audit-fieldset">
+                    <div class="audit-query-content">
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.business}}</span>
+                            <bk-selector
+                                :list="business.list"
+                                :display-key="'cc_name'"
+                                :setting-name="'cc_id'"
+                                :search-key="'cc_name'"
+                                :setting-key="'cc_id'"
+                                :selected.sync="selectedCcId"
+                                :placeholder="i18n.choice"
+                                :searchable="true"
+                                :allow-clear="true"
+                                @item-selected="onSelectedBizCcId">
+                            </bk-selector>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.startedTime}}</span>
+                            <bk-date-range
+                                :range-separator="'-'"
+                                :quick-select="false"
+                                :start-date.sync="executeStartTime"
+                                :end-date.sync="executeEndTime"
+                                @change="onChangeExecuteTime">
+                            </bk-date-range>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.taskType}}</span>
+                            <bk-selector
+                                :placeholder="i18n.taskTypePlaceholder"
+                                :is-loading="taskBasicInfoLoading"
+                                :list="taskCategory"
+                                :selected.sync="taskSync"
+                                :setting-key="'value'"
+                                :display-key="'name'"
+                                :searchable="true"
+                                :allow-clear="true"
+                                @clear="onClearCategory"
+                                @item-selected="onSelectedCategory">
+                            </bk-selector>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.creator}}</span>
+                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder"/>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.operator}}</span>
+                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder"/>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.status}}</span>
+                            <bk-selector
+                                :placeholder="i18n.statusPlaceholder"
+                                :list="statusList"
+                                :selected.sync="statusSync"
+                                :allow-clear="true"
+                                :searchable="true"
+                                @clear="onClearStatus"
+                                @item-selected="onSelectedStatus">
+                            </bk-selector>
+                        </div>
+                        <div class="query-button">
+                            <bk-button class="query-primary" type="primary" @click="loadFunctionTask">{{i18n.query}}</bk-button>
+                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
+                        </div>
+                    </div>
+                </fieldset>
             </div>
             <div class="audit-table-content">
                 <table v-bkloading="{isLoading: listLoading, opacity: 1}">
@@ -91,6 +164,8 @@ import NoData from '@/components/common/base/NoData.vue'
 import BaseTitle from '@/components/common/base/BaseTitle.vue'
 import BaseSearch from '@/components/common/base/BaseSearch.vue'
 import toolsUtils from '@/utils/tools.js'
+import moment from 'moment-timezone'
+
 export default {
     name: 'auditTaskHome',
     components: {
@@ -133,12 +208,14 @@ export default {
             listLoading: true,
             isAdvancedSerachShow: false,
             currentPage: 1,
+            selectedCcId: -1,
             totalPage: 1,
             countPerPage: 15,
             totalCount: 0,
             taskSync: 0,
             statusSync: 0,
             searchStr: '',
+            bizCcId: undefined,
             creator: undefined,
             executor: undefined,
             activeTaskCategory: undefined,
@@ -146,24 +223,41 @@ export default {
             executeEndTime: undefined,
             isStarted: undefined,
             isFinished: undefined,
+            business: {
+                list: [],
+                loading: false,
+                id: null,
+                searchable: true,
+                empty: false
+            },
             auditList: [],
-            statusList: [],
             taskCategory: [],
+            statusList: [
+                {'id': 'nonExecution', 'name': gettext('未执行')},
+                {'id': 'runing', 'name': gettext('未完成')},
+                {'id': 'finished', 'name': gettext('完成')}
+            ],
             executeStatus: [] // 任务执行态
         }
-    },
-    computed: {
     },
     created () {
         this.loadFunctionTask()
         this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        this.getBusinessList()
+        this.getBusinessBaseInfo()
     },
     methods: {
         ...mapActions('auditTask/', [
             'loadAuditTaskList'
         ]),
+        ...mapActions('functionTask/', [
+            'loadFunctionBusinessList'
+        ]),
         ...mapActions('task/', [
             'getInstanceStatus'
+        ]),
+        ...mapActions('template/', [
+            'loadBusinessBaseInfo'
         ]),
         async loadFunctionTask () {
             this.listLoading = true
@@ -171,7 +265,22 @@ export default {
                 const data = {
                     limit: this.countPerPage,
                     offset: (this.currentPage - 1) * this.countPerPage,
-                    q: this.searchStr
+                    business__cc_id: this.bizCcId,
+                    category: this.activeTaskCategory,
+                    audit__pipeline_instance__name__contains: this.searchStr,
+                    pipeline_instance__is_started: this.isStarted,
+                    pipeline_instance__is_finished: this.isFinished,
+                    pipeline_instance__creator__contains: this.creator,
+                    pipeline_instance__executor__contains: this.executor
+                }
+                if (this.executeEndTime) {
+                    if (this.common) {
+                        data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
+                        data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1','d').format('YYYY-MM-DD')
+                    } else {
+                        data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                        data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1','d').format('YYYY-MM-DD')
+                    }
                 }
                 const auditListData = await this.loadAuditTaskList(data)
                 const list = auditListData.objects
@@ -254,6 +363,28 @@ export default {
                 errorHandler(e, this)
             }
         },
+        async getBusinessList () {
+            this.business.loading = true
+            try {
+                let businessData = await this.loadFunctionBusinessList()
+                this.business.list = businessData.objects
+            } catch (e) {
+                errorHandler(e, this)
+            } finally {
+                this.business.loading = false
+            }
+        },
+        async getBusinessBaseInfo () {
+            this.taskBasicInfoLoading = true
+            try {
+                const data = await this.loadBusinessBaseInfo()
+                this.taskCategory = data.task_categories
+            } catch (e) {
+                errorHandler(e, this)
+            } finally {
+                this.taskBasicInfoLoading = false
+            }
+        },
         onAdvanceShow () {
             this.isAdvancedSerachShow = !this.isAdvancedSerachShow
         },
@@ -265,8 +396,35 @@ export default {
         onClearCategory (){
             this.activeTaskCategory = undefined
         },
-        onSelectedCategory () {
+        onSelectedCategory (name, value) {
             this.activeTaskCategory = name
+        },
+        onResetForm () {
+            this.isStarted = undefined
+            this.isFinished = undefined
+            this.creator = undefined
+            this.executor = undefined
+            this.searchStr = undefined
+            this.statusSync = 0
+            this.selectedCcId = 0
+            this.taskSync = 0
+            this.activeTaskCategory = undefined
+            this.executeStartTime = undefined
+            this.executeEndTime = undefined
+        },
+        onSelectedStatus (id, name) {
+            this.isStarted = id !== 'nonExecution'
+            this.isFinished = id === 'finished'
+        },
+        onClearStatus () {
+            this.isStarted = undefined
+            this.isFinished = undefined
+        },
+        onSelectedBizCcId (name, value) {
+            if (this.bizCcId === name) {
+                return
+            }
+            this.bizCcId = name
         }
     }
 }
@@ -399,6 +557,21 @@ export default {
                 width: 260px;
             }
         }
+        .query-button {
+            padding: 10px;
+            min-width: 450px;
+            @media screen and (max-width: 1420px) {
+                min-width: 390px;
+            }
+            text-align: center;
+            .query-cancel {
+                margin-left: 5px;
+            }
+            .bk-button {
+                height: 32px;
+                line-height: 32px;
+            }
+        }
     }
 }
 .common-icon-dark-circle-pause {
@@ -425,6 +598,7 @@ export default {
             background: #fafafa;
         }
         .audit-id {
+            padding-left: 20px;
             width: 80px;
         }
         .audit-name {
@@ -522,12 +696,18 @@ export default {
     }
 }
 .panagation {
-    margin-top: 20px;
+    padding: 10px 20px;
     text-align: right;
+    border: 1px solid #dde4eb;
+    border-top: none;
+    background: #fafbfd;
     .page-info {
         float: left;
-        margin-top: 10px;
+        line-height: 36px;
         font-size: 14px;
+    }
+    .bk-page {
+        display: inline-block;
     }
 }
 </style>

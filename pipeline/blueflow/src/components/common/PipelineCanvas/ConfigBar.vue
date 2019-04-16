@@ -42,7 +42,7 @@
                 type="primary"
                 class="save-canvas"
                 :loading="templateSaving"
-                @click="onSaveTemplate">
+                @click="onSaveTemplate(false)">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
@@ -50,7 +50,7 @@
                 class="task-btn"
                 :loading="createTaskSaving"
                 @click="onSaveTemplate(true)">
-                {{ isSaveAndCreate ? i18n.saveTplAndcreateTask : i18n.addTask }}
+                {{ isTemplateDataChanged ? i18n.saveTplAndcreateTask : i18n.addTask }}
             </bk-button>
             <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
         </div>
@@ -59,6 +59,7 @@
 <script>
 import '@/utils/i18n.js'
 import { Validator } from 'vee-validate'
+import { mapMutations } from 'vuex'
 import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 import BaseInput from '@/components/common/base/BaseInput.vue'
 
@@ -67,16 +68,15 @@ export default {
     components: {
         BaseInput
     },
-    props: [
-        'name', 'cc_id', 'template_id', 'common', 'type',
-        'templateSaving', 'createTaskSaving', 'isTemplateDataChanged'
-    ],
+    props: ['name', 'cc_id', 'template_id', 'common', 'templateSaving', 'createTaskSaving', 'isTemplateDataChanged'],
     data () {
         return {
             i18n: {
                 placeholder: gettext('请输入名称'),
                 NewProcess: gettext('新建流程'),
                 editProcess: gettext('编辑流程'),
+                addTask: gettext('新建任务'),
+                saveTplAndcreateTask: gettext('保存并新建任务'),
                 save: gettext("保存"),
                 return: gettext("返回")
             },
@@ -97,24 +97,26 @@ export default {
     computed: {
         templateTitle () {
             return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
-        },
-        isSaveAndCreate () {
-            return this.type === 'new' || this.isTemplateDataChanged
         }
     },
     methods: {
+        ...mapMutations('template/', [
+            'setTemplateName'
+        ]),
         onInputName (val) {
             this.$emit('onChangeName', val)
         },
-        onSaveTemplate (saveCreateBtn = false) {
-            if (saveCreateBtn && !this.isSaveAndCreate) {
-                this.$router.push(this.getTaskUrl())
-                return
-            }
+        onSaveTemplate (saveAndCreate = false) {
             this.$validator.validateAll().then((result) => {
+                if (!result) return
                 this.tName = this.tName.trim()
                 this.setTemplateName(this.tName)
-                this.$emit('onSaveTemplate', saveCreateBtn)
+                if (saveAndCreate && !this.isTemplateDataChanged) {
+                    const taskUrl = this.getTaskUrl()
+                    this.$router.push(taskUrl)
+                } else {
+                    this.$emit('onSaveTemplate', saveAndCreate)
+                }
             })
         },
         getHomeUrl () {
@@ -152,6 +154,7 @@ export default {
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .config-wrapper {
+    position: relative;
     height: 60px;
     background: #f4f7fa;
     border-bottom: 1px solid $commonBorderColor;
@@ -171,10 +174,9 @@ export default {
         }
     }
     .config-name-wrapper {
-        display: inline-block;
-        margin: 15px auto 0;
+        margin: 0 auto;
+        padding-top: 15px;
         width: 430px;
-        height: 30px;
         .name-show-mode {
             display: inline-block;
         }
@@ -223,8 +225,9 @@ export default {
         }
     }
     .canvas-operation-wrapper {
-        float: right;
-        margin: 14px 20px 0 0;
+        position: absolute;
+        top: 14px;
+        right: 20px;
         .save-canvas {
             width: 90px;
             height: 32px;
@@ -237,7 +240,11 @@ export default {
             line-height: 32px;
             margin-left: 10px;
         }
+        .bk-button.bk-primary {
+            height: 32px;
+            line-height: 32px;
+            margin-left: 10px;
+        }
     }
 }
 </style>
-

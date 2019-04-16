@@ -10,7 +10,16 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['rf-form-item', 'clearfix', {'rf-has-hook': showHook}]" v-show="showForm">
+    <div
+        :class="[
+            'rf-form-item',
+            'clearfix',
+            {
+                'rf-has-hook': showHook,
+                'show-label': option.showLabel
+            }
+        ]"
+        v-show="showForm">
         <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
             <span class="name">{{scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
@@ -29,11 +38,11 @@
             :class="['rf-tag-label', {'required': isRequired()}]">
             {{scheme.attrs.name}}
         </label>
-        <div v-if="hook" class="rf-tag-form">
+        <div v-show="hook" class="rf-tag-form">
             <el-input :disabled="true" :value="String(value)"></el-input>
         </div>
         <component
-            v-else
+            v-show="!hook"
             class="rf-tag-form"
             ref="tagComponent"
             :is="tagComponent"
@@ -84,7 +93,11 @@ function registerTag () {
     const register = (fileName, context) => {
         const componentConfig = context(fileName)
         const comp = componentConfig.default
-        const name = 'tag-' + comp.name.slice(3).toLowerCase()
+        const typeName = comp.name.slice(3).replace(/[A-Z]/g, match => {
+            return `_${match.toLowerCase()}`
+        })
+        const name = 'tag' + typeName
+
         tagComponent[name] = comp
     }
     innerComponent.keys().forEach(fileName => {
@@ -136,7 +149,7 @@ export default {
         const formValue = this.getFormValue(this.value)
 
         return {
-            tagComponent: `tag-${this.scheme.type}`,
+            tagComponent: `tag_${this.scheme.type}`,
             showForm,
             showHook,
             formValue,
@@ -148,7 +161,7 @@ export default {
     },
     watch: {
         scheme (val) {
-            this.tagComponent = `tag-${this.scheme.type}`
+            this.tagComponent = `tag_${this.scheme.type}`
         },
         value (val) {
             this.formValue = this.getFormValue(val)
@@ -332,7 +345,7 @@ export default {
             }
         }
     }
-    .rf-tag-label + .rf-tag-form {
+    &.show-label > .rf-tag-form {
         margin-left: 120px;
     }
     .rf-tag-hook {
