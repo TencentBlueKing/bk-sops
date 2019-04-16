@@ -9,7 +9,6 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import Vue from 'vue'
 import api from '@/api/index.js'
 
 const auditTask = {
@@ -19,7 +18,7 @@ const auditTask = {
     mutations: {
     },
     actions: {
-        loadAuditTaskList ({commit}, data) {
+        loadAuditTaskList ({ commit }, data) {
             return api.loadAuditTaskList(data).then(
                 response => response.data
             )

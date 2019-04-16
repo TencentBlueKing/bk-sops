@@ -14,10 +14,10 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'NodeCanvas'
-}
+    import '@/utils/i18n.js'
+    export default {
+        name: 'NodeCanvas'
+    }
 </script>
 <style lang="scss" scoped>
     @import '../../../scss/config.scss';
@@ -28,5 +28,3 @@ export default {
         background-size: 10px 10px;
     }
 </style>
-
-

@@ -13,9 +13,9 @@
     <div class="task-feeds-content">
         <h3 class="title">{{i18n.feeds}}</h3>
         <router-link class="view-more-task" :to="`/taskflow/home/${cc_id}/`">{{i18n.viewMore}}</router-link>
-        <div v-if="top3TaskFeeds.length" class="feed-container">
+        <div v-if="topThreeTaskFeeds.length" class="feed-container">
             <ul class="feed-list">
-                <li v-for="(item, index) in top3TaskFeeds" :key="item.id" class="feed-item">
+                <li v-for="(item, index) in topThreeTaskFeeds" :key="item.id" class="feed-item">
                     <div class="item-mark-icon">
                         <i class="common-icon-clock"></i>
                     </div>
@@ -46,115 +46,115 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapActions } from 'vuex'
-import NoData from '@/components/common/base/NoData.vue'
-import tools from '@/utils/tools.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-export default {
-    name: 'TaskFeeds',
-    components: {
-        NoData
-    },
-    props: ['top3TaskFeeds', 'cc_id'],
-    data () {
-        return {
-            feedsStatus: this.getTaskStatus(),
-            i18n: {
-                feeds: gettext('业务动态'),
-                viewMore: gettext('查看更多'),
-                detail: gettext('查看详情'),
-                time: gettext('耗时')
-            }
-        }
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getInstanceStatus'
-        ]),
-        getActionTitle (task) {
-            let action
-            if (!task.is_started) {
-                action = gettext('创建了一个')
-            } else {
-                action = gettext('执行了一个')
-            }
-            const type = gettext(task.category_name)
-            const i18n_task = gettext('任务')
-            return `${task.executor_name || task.creator_name} ${action} ${type} ${i18n_task}`
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import NoData from '@/components/common/base/NoData.vue'
+    import tools from '@/utils/tools.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    export default {
+        name: 'TaskFeeds',
+        components: {
+            NoData
         },
-        getLastTime (task) {
-            return tools.timeTransform(task.elapsed_time)
-        },
-        getTaskStatus () {
-            return this.top3TaskFeeds.map((item, index) => {
-                let status = {}
-                if (item.is_finished) {
-                    status.cls = 'finished'
-                    status.icon = 'common-icon-done-thin'
-                    status.text = gettext('完成')
-                } else if (item.is_started) {
-                    status.cls = 'execute'
-                    status.icon = 'common-icon-loading'
-                    this.getExecuteDetail(item, index)
-                } else {
-                    status.cls = 'created'
-                    status.icon = 'task-created-icon'
-                    status.text = gettext('未执行')
+        props: ['topThreeTaskFeeds', 'cc_id'],
+        data () {
+            return {
+                feedsStatus: this.getTaskStatus(),
+                i18n: {
+                    feeds: gettext('业务动态'),
+                    viewMore: gettext('查看更多'),
+                    detail: gettext('查看详情'),
+                    time: gettext('耗时')
                 }
-                return status
-            })
-        },
-        async getExecuteDetail (task, index) {
-            const data = {
-                instance_id: task.id,
-                cc_id: task.business.cc_id
             }
-            try {
-                const detailInfo = await this.getInstanceStatus(data)
-                if (detailInfo.result) {
-                    const state = detailInfo.data.state
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getInstanceStatus'
+            ]),
+            getActionTitle (task) {
+                let action
+                if (!task.is_started) {
+                    action = gettext('创建了一个')
+                } else {
+                    action = gettext('执行了一个')
+                }
+                const type = gettext(task.category_name)
+                const i18n_task = gettext('任务')
+                return `${task.executor_name || task.creator_name} ${action} ${type} ${i18n_task}`
+            },
+            getLastTime (task) {
+                return tools.timeTransform(task.elapsed_time)
+            },
+            getTaskStatus () {
+                return this.topThreeTaskFeeds.map((item, index) => {
                     const status = {}
-                    switch (state) {
-                        case 'RUNNING':
-                        case 'BLOCKED':
-                            status.cls = 'execute'
-                            status.icon = 'common-icon-loading'
-                            status.text = gettext('执行中')
-                            break
-                        case 'SUSPENDED':
-                            status.cls = 'execute'
-                            status.icon = 'common-icon-double-vertical-line'
-                            status.text = gettext('暂停')
-                            break
-                        case 'NODE_SUSPENDED':
-                            status.cls = 'execute'
-                            status.icon = 'common-icon-double-vertical-line'
-                            status.text = gettext('节点暂停')
-                            break
-                        case 'FAILED':
-                            status.cls = 'failed'
-                            status.icon = 'common-icon-dark-circle-close'
-                            status.text = gettext('失败')
-                            break
-                        case 'REVOKED':
-                            status.cls = 'revoke'
-                            status.icon = 'common-icon-return-arrow'
-                            status.text = gettext('撤销')
-                            break
-                        default:
-                            status.text = gettext('未知')
+                    if (item.is_finished) {
+                        status.cls = 'finished'
+                        status.icon = 'common-icon-done-thin'
+                        status.text = gettext('完成')
+                    } else if (item.is_started) {
+                        status.cls = 'execute'
+                        status.icon = 'common-icon-loading'
+                        this.getExecuteDetail(item, index)
+                    } else {
+                        status.cls = 'created'
+                        status.icon = 'task-created-icon'
+                        status.text = gettext('未执行')
                     }
-                    this.feedsStatus.splice(index, 1, status)
-                } else {
-                    errorHandler(detailInfo, this)
+                    return status
+                })
+            },
+            async getExecuteDetail (task, index) {
+                const data = {
+                    instance_id: task.id,
+                    cc_id: task.business.cc_id
                 }
-            } catch (e) {
-                errorHandler(e, this)
+                try {
+                    const detailInfo = await this.getInstanceStatus(data)
+                    if (detailInfo.result) {
+                        const state = detailInfo.data.state
+                        const status = {}
+                        switch (state) {
+                            case 'RUNNING':
+                            case 'BLOCKED':
+                                status.cls = 'execute'
+                                status.icon = 'common-icon-loading'
+                                status.text = gettext('执行中')
+                                break
+                            case 'SUSPENDED':
+                                status.cls = 'execute'
+                                status.icon = 'common-icon-double-vertical-line'
+                                status.text = gettext('暂停')
+                                break
+                            case 'NODE_SUSPENDED':
+                                status.cls = 'execute'
+                                status.icon = 'common-icon-double-vertical-line'
+                                status.text = gettext('节点暂停')
+                                break
+                            case 'FAILED':
+                                status.cls = 'failed'
+                                status.icon = 'common-icon-dark-circle-close'
+                                status.text = gettext('失败')
+                                break
+                            case 'REVOKED':
+                                status.cls = 'revoke'
+                                status.icon = 'common-icon-return-arrow'
+                                status.text = gettext('撤销')
+                                break
+                            default:
+                                status.text = gettext('未知')
+                        }
+                        this.feedsStatus.splice(index, 1, status)
+                    } else {
+                        errorHandler(detailInfo, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
@@ -280,5 +280,3 @@ export default {
     }
 }
 </style>
-
-

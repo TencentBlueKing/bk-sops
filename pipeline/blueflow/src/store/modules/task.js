@@ -22,89 +22,89 @@ const task = {
         }
     },
     actions: {
-        loadTaskScheme ({commit}, payload) {
-            const { cc_id, template_id} = payload
-            return api.getTaskScheme({cc_id, template_id}).then(response => response.data.objects)
+        loadTaskScheme ({ commit }, payload) {
+            const { cc_id, template_id } = payload
+            return api.getTaskScheme({ cc_id, template_id }).then(response => response.data.objects)
         },
-        createTaskScheme ({commit}, payload) {
+        createTaskScheme ({ commit }, payload) {
             return api.createTaskScheme(payload).then(response => response.data)
         },
-        deleteTaskScheme ({commit}, schemeId) {
+        deleteTaskScheme ({ commit }, schemeId) {
             return api.deleteTaskScheme(schemeId).then(response => response.data)
         },
-        getSchemeDetail ({commit}, schemeId) {
+        getSchemeDetail ({ commit }, schemeId) {
             return api.getSchemeDetail(schemeId).then(response => response.data)
         },
-        loadPreviewNodeData ({commit}, payload) {
+        loadPreviewNodeData ({ commit }, payload) {
             return api.getPreviewNodeData(payload).then(response => response.data)
         },
-        createTask ({commit}, data) {
+        createTask ({ commit }, data) {
             return api.createTask(data).then(response => response.data)
         },
-        getTaskInstanceData ({commit}, instance_id) {
+        getTaskInstanceData ({ commit }, instance_id) {
             return api.getTaskInstanceData(instance_id).then(response => response.data)
         },
-        claimFuncTask ({commit}, data) {
+        claimFuncTask ({ commit }, data) {
             return api.claimFuncTask(data).then(response => response.data)
         },
-        getInstanceStatus ({commit}, data) {
+        getInstanceStatus ({ commit }, data) {
             return api.getInstanceStatus(data).then(response => response.data)
         },
-        instanceStart ({commit}, instance_id) {
+        instanceStart ({ commit }, instance_id) {
             return api.instanceStart(instance_id).then(response => response.data)
         },
-        instancePause ({commit}, instance_id) {
+        instancePause ({ commit }, instance_id) {
             return api.instancePause(instance_id).then(response => response.data)
         },
-        subInstancePause ({commit}, data) {
+        subInstancePause ({ commit }, data) {
             return api.subInstancePause(data).then(response => response.data)
         },
-        instanceResume ({commit}, instance_id) {
+        instanceResume ({ commit }, instance_id) {
             return api.instanceResume(instance_id).then(response => response.data)
         },
-        subInstanceResume ({commit}, data) {
+        subInstanceResume ({ commit }, data) {
             return api.subInstanceResume(data).then(response => response.data)
         },
-        instanceRevoke ({commit}, instance_id) {
+        instanceRevoke ({ commit }, instance_id) {
             return api.instanceRevoke(instance_id).then(response => response.data)
         },
-        instanceModifyParams ({commit}, data) {
+        instanceModifyParams ({ commit }, data) {
             return api.instanceModifyParams(data).then(response => response.data)
         },
-        getNodeActDetail ({commit}, data) {
+        getNodeActDetail ({ commit }, data) {
             return api.getNodeActDetail(data).then(response => response.data)
         },
-        getNodeActInfo ({commit}, data) {
+        getNodeActInfo ({ commit }, data) {
             return api.getNodeActInfo(data).then(response => response.data)
         },
-        instanceRetry ({commit}, data) {
+        instanceRetry ({ commit }, data) {
             return api.instanceRetry(data).then(response => response.data)
         },
-        setSleepNode ({commit}, data) {
+        setSleepNode ({ commit }, data) {
             return api.setSleepNode(data).then(response => response.data)
         },
-        instanceNodeSkip ({commit}, data) {
+        instanceNodeSkip ({ commit }, data) {
             return api.instanceNodeSkip(data).then(response => response.data)
         },
-        skipExclusiveGateway ({commit}, data) {
+        skipExclusiveGateway ({ commit }, data) {
             return api.instanceBranchSkip(data).then(response => response.data)
         },
-        pauseNodeResume ({commit}, data) {
+        pauseNodeResume ({ commit }, data) {
             return api.pauseNodeResume(data).then(response => response.data)
         },
         loadAppmakerSummary () {
             return api.loadAppmakerSummary().then(response => response.data)
         },
-        loadTaskCount ({commit}, params) {
+        loadTaskCount ({ commit }, params) {
             return api.loadTaskCount(params).then(response => response.data)
         },
-        queryInstanceData ({commit}, data) {
+        queryInstanceData ({ commit }, data) {
             return api.queryInstance(data).then(response => response.data)
         },
-        loadCreateMethod ({commit}) {
+        loadCreateMethod ({ commit }) {
             return api.loadCreateMethod().then(response => response.data)
         },
-        getJobInstanceLog ({commit}, data) {
+        getJobInstanceLog ({ commit }, data) {
             return api.getJobInstanceLog(data).then(response => response.data)
         }
     }

@@ -14,7 +14,7 @@ import api from '@/api/index.js'
 const config = {
     namespaced: true,
     actions: {
-        configBizExecutor ({commit}, data) {
+        configBizExecutor ({ commit }, data) {
             return api.configBizExecutor(data).then(response => response.data)
         },
         loadBizConfig () {

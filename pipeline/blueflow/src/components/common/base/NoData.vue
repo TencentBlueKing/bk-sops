@@ -20,25 +20,25 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'NoData',
-    props: {
-        message: {
-            type: String,
-            default () {
-                return ""
+    import '@/utils/i18n.js'
+    export default {
+        name: 'NoData',
+        props: {
+            message: {
+                type: String,
+                default () {
+                    return ''
+                }
             }
-        }
-    },
-    data () {
-        return {
-            i18n: {
-                no_data: gettext("无数据")
+        },
+        data () {
+            return {
+                i18n: {
+                    no_data: gettext('无数据')
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     .no-data-wrapper {
@@ -61,4 +61,3 @@ export default {
         font-size: 14px;
     }
 </style>
-

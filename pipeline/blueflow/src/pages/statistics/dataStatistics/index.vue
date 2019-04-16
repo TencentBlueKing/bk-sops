@@ -17,70 +17,70 @@
                 <p class="tool-name" :title="dimension.name || dimension.time">{{dimension.name || dimension.time}} </p>
             </div>
             <div
-                :class="[dimension.value ? 'chart-statistics-chart': 'chart-statistics-normal']"
-                :style="{width: `${dimension.value ? dealProcess(dimension.value, totalValue): 0.3}%`}">
+                :class="[dimension.value ? 'chart-statistics-chart' : 'chart-statistics-normal']"
+                :style="{ width: `${dimension.value ? dealProcess(dimension.value, totalValue) : 0.3}%` }">
             </div>
             <div class="chart-statistics-num">{{dimension.value}} / {{getPercentage(dimension.value)}}%</div>
         </div>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import tools from '@/utils/tools.js'
-import NoData from '@/components/common/base/NoData.vue'
+    import '@/utils/i18n.js'
+    import tools from '@/utils/tools.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
-export default {
-    name: 'DataStatistics',
-    components: {
-        NoData
-    },
-    props: {
-        dimensionList: {
-            type: Array,
-            default () {
-                return []
+    export default {
+        name: 'DataStatistics',
+        components: {
+            NoData
+        },
+        props: {
+            dimensionList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            totalValue: {
+                type: Number,
+                default () {
+                    return 0
+                }
+            },
+            timeTypeList: {
+                type: Array,
+                default () {
+                    return []
+                }
             }
         },
-        totalValue: {
-            type: Number,
-            default () {
-                return 0
+        data () {
+            return {
+                sortDimensionList: []
             }
         },
-        timeTypeList: {
-            type: Array,
-            default () {
-                return []
+        watch: {
+            dimensionList (val) {
+                this.sortDimensionList = tools.deepClone(this.dimensionList)
+                this.sortDimensionList.sort((val1, val2) => val2.value - val1.value)
+            },
+            timeTypeList (val) {
+                this.sortDimensionList = tools.deepClone(val)
             }
-        }
-    },
-    watch: {
-        dimensionList (val) {
-            this.sortDimensionList = tools.deepClone(this.dimensionList)
-            this.sortDimensionList.sort((val1, val2) => val2.value - val1.value)
         },
-        timeTypeList (val) {
-            this.sortDimensionList = tools.deepClone(val)
-        }
-    },
-    data () {
-        return {
-            sortDimensionList: []
-        }
-    },
-    methods: {
-        getPercentage (value) {
-            return (value / this.totalValue * 100 ).toFixed(2)
-        },
-        dealProcess (value, totalValue) {
-            let result = value / totalValue * 60
-            if (result > 0 && result < 0.06){
-                result = 0.6
+        methods: {
+            getPercentage (value) {
+                return (value / this.totalValue * 100).toFixed(2)
+            },
+            dealProcess (value, totalValue) {
+                let result = value / totalValue * 60
+                if (result > 0 && result < 0.06) {
+                    result = 0.6
+                }
+                return result
             }
-            return result
         }
     }
-}
 </script>
 
 <style lang="scss">

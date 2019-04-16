@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div :class="['step-wrapper',{'hidden-step-wrapper': hiddenBorder}]">
+    <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
                 <span>{{ taskTemplateTitle }}</span>
@@ -28,8 +28,8 @@
                 v-for="(item, index) in list"
                 :key="index"
                 :style="calChartSize(index)">
-                <div class="step-graph" >
-                    <div class="line"  v-if="index !== list.length - 1"></div>
+                <div class="step-graph">
+                    <div class="line" v-if="index !== list.length - 1"></div>
                     <div class="common-icon-done-thin step-done" v-if="allFinished || index < currentStepIndex"></div>
                     <div class="order" v-else>{{index + 1}}</div>
                 </div>
@@ -39,69 +39,69 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState } from 'vuex'
-export default {
-    name: 'TaskCreateStep',
-    props: ['list', 'currentStep', 'allFinished'],
-    data () {
-        return {
-            i18n: {
-                newTask: gettext('新建任务'),
-                taskExecution: gettext('任务执行')
-            }
-        }
-    },
-    computed: {
-        ...mapState({
-            'lang': state => state.lang
-        }),
-        currentStepIndex () {
-            return this.getCurrentStepIndex()
-        },
-        hiddenBorder () {
-            return this.getCurrentStepIndex() === this.list.length - 1 && this.list.length > 2
-        },
-        taskTemplateTitle () {
-            return this.$route.query.instance_id === undefined ? this.i18n.newTask : this.i18n.taskExecution
-        }
-    },
-    methods: {
-        getCurrentStepIndex () {
-            let currentStepIndex = 0
-            this.list.some((item, index) => {
-                if (item.step === this.currentStep) {
-                    currentStepIndex = index
-                    return true
+    import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
+    export default {
+        name: 'TaskCreateStep',
+        props: ['list', 'currentStep', 'allFinished'],
+        data () {
+            return {
+                i18n: {
+                    newTask: gettext('新建任务'),
+                    taskExecution: gettext('任务执行')
                 }
-            })
-            return currentStepIndex
-        },
-        calChartSize (index) {
-            const style = {}
-            const pencent = (100.0 / (this.list.length - 1)).toFixed(2)  + '%'
-            if (index !== this.list.length - 1) {
-                style['flex-basis'] =  pencent
-            } else {
-                style['max-length'] = pencent
-                style['line-height'] = '22px'
-                style['flex-basis'] = 'auto !important'
-                style['flex-shrink'] = 0
-                style['flex-grow'] = 0
             }
-            return style
         },
-        calNameSize (name) {
-            const style = {}
-            if (this.lang === 'en') {
-                // 减去一个空格
-                const nameLength = name.length - 1
-                style['left'] = nameLength * -2 + 'px'
+        computed: {
+            ...mapState({
+                'lang': state => state.lang
+            }),
+            currentStepIndex () {
+                return this.getCurrentStepIndex()
+            },
+            hiddenBorder () {
+                return this.getCurrentStepIndex() === this.list.length - 1 && this.list.length > 2
+            },
+            taskTemplateTitle () {
+                return this.$route.query.instance_id === undefined ? this.i18n.newTask : this.i18n.taskExecution
             }
-            return style
+        },
+        methods: {
+            getCurrentStepIndex () {
+                let currentStepIndex = 0
+                this.list.some((item, index) => {
+                    if (item.step === this.currentStep) {
+                        currentStepIndex = index
+                        return true
+                    }
+                })
+                return currentStepIndex
+            },
+            calChartSize (index) {
+                const style = {}
+                const pencent = (100.0 / (this.list.length - 1)).toFixed(2) + '%'
+                if (index !== this.list.length - 1) {
+                    style['flex-basis'] = pencent
+                } else {
+                    style['max-length'] = pencent
+                    style['line-height'] = '22px'
+                    style['flex-basis'] = 'auto !important'
+                    style['flex-shrink'] = 0
+                    style['flex-grow'] = 0
+                }
+                return style
+            },
+            calNameSize (name) {
+                const style = {}
+                if (this.lang === 'en') {
+                    // 减去一个空格
+                    const nameLength = name.length - 1
+                    style['left'] = nameLength * -2 + 'px'
+                }
+                return style
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -217,4 +217,3 @@ export default {
     border: 0px;
 }
 </style>
-

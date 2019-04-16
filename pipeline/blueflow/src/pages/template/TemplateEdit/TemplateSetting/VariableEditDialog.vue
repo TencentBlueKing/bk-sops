@@ -23,7 +23,7 @@
                 <RenderForm
                     ref="renderForm"
                     :scheme="renderConfig"
-                    :formOption="renderOption"
+                    :form-option="renderOption"
                     v-model="formData">
                 </RenderForm>
             </div>
@@ -31,37 +31,37 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import tools from '@/utils/tools.js'
-import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-export default {
-    name: 'VariableEditDialog',
-    components: {
-        RenderForm
-    },
-    props: ['isShow', 'renderConfig', 'renderData', 'renderOption'],
-    data () {
-        return {
-            i18n: {
-                edit: gettext("编辑变量")
-            },
-            formData: tools.deepClone(this.renderData)
-        }
-    },
-    methods: {
-        onConfirm () {
-            let formValid = true
-            if (this.$refs.renderForm) {
-                formValid = this.$refs.renderForm.validate()
-            }
-            if (!formValid) return
-            this.$emit('onConfirmDialogEdit', this.formData)
+    import '@/utils/i18n.js'
+    import tools from '@/utils/tools.js'
+    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    export default {
+        name: 'VariableEditDialog',
+        components: {
+            RenderForm
         },
-        onCancel () {
-            this.$emit('onCancelDialogEdit')
+        props: ['isShow', 'renderConfig', 'renderData', 'renderOption'],
+        data () {
+            return {
+                i18n: {
+                    edit: gettext('编辑变量')
+                },
+                formData: tools.deepClone(this.renderData)
+            }
+        },
+        methods: {
+            onConfirm () {
+                let formValid = true
+                if (this.$refs.renderForm) {
+                    formValid = this.$refs.renderForm.validate()
+                }
+                if (!formValid) return
+                this.$emit('onConfirmDialogEdit', this.formData)
+            },
+            onCancel () {
+                this.$emit('onCancelDialogEdit')
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .edit-dialog-wrapper {
@@ -74,5 +74,3 @@ export default {
     }
 }
 </style>
-
-

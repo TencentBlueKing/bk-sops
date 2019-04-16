@@ -14,9 +14,9 @@
         <div class="local-title">
             <span> {{i18n.localCache}} </span>
         </div>
-        <div :class="{'add-draft': true, 'unfold-add-draft': newDraftShow}">
+        <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
             <div class="draft-form" v-if="newDraftShow">
-                <BaseInput :placeholder="i18n.draftMessage" name="draftName" v-model="newDraftName" v-validate="draftNameRule"/>
+                <BaseInput :placeholder="i18n.draftMessage" name="draftName" v-model="newDraftName" v-validate="draftNameRule" />
                 <bk-button type="success" size="small" @click="onNewDraft">{{i18n.affirm}}</bk-button>
                 <bk-button size="small" @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
             </div>
@@ -59,7 +59,7 @@
                         </td>
                         <td class="col-time"><div class="content">{{draft.data.description.time}}</div></td>
                         <td class="col-delete" @click.stop="onDeleteDraft(draft.key)">
-                            <i class="bk-icon icon-close-circle"></i>
+                            <i class="close-btn common-icon-dark-circle-close"></i>
                         </td>
                     </tr>
                     <tr v-if="!draftArray.length" class="empty-draft-tip">
@@ -72,87 +72,87 @@
 </template>
 
 <script>
-import '@/utils/i18n.js'
-import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-import BaseInput from '@/components/common/base/BaseInput.vue'
-import NoData from '@/components/common/base/NoData.vue'
+    import '@/utils/i18n.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import BaseInput from '@/components/common/base/BaseInput.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
-export default {
-    name: 'TabLocalDraft',
-    components: {
-        BaseInput,
-        NoData
-    },
-    props: ['draftArray'],
-    data () {
-        return {
-            replaceData: null,
-            newDraftShow: false,
-            newDraftName: '',
-            draftNameRule: {
-                required: true,
-                max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
-                regex: NAME_REG
-            },
-            i18n: {
-                localCache: gettext('本地缓存'),
-                newDraft: gettext('新建'),
-                draftMessage: gettext('名称'),
-                replace: gettext('替换'),
-                saveTime: gettext('保存时间'),
-                delete: gettext('删除'),
-                emptyDraftTip: gettext('无数据，请手动添加缓存或等待自动保存'),
-                replaceTips: gettext('替换模板'),
-                replaceConfirm: gettext('是否替换模板？'),
-                serialNumber: gettext('序号'),
-                draftName: gettext('名称'),
-                sketch: gettext('简述：'),
-                draftSketch: gettext('本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。'),
-                affirm: gettext('保存'),
-                cancel: gettext('取消'),
-                resetTemplate: gettext('重置模板')
-            }
-        }
-    },
-    methods: {
-        // 单击模板记录
-        onReplaceTemplate (templateData) {
-            if (!this.isClickDraft) {
-                this.$emit('updateLocalTemplateData')
-            }
-            const data = {
-                templateData: templateData,
-                type: 'replace'
-            }
-            this.$emit('onReplaceTemplate', data)
-            this.$emit('hideConfigPanel')
+    export default {
+        name: 'TabLocalDraft',
+        components: {
+            BaseInput,
+            NoData
         },
-        // 删除本地缓存
-        onDeleteDraft (key) {
-            this.$emit('onDeleteDraft', key)
-        },
-        // 新增本地缓存
-        onShowDraftForm () {
-            this.newDraftShow = true
-            this.$emit('hideConfigPanel')
-        },
-        onNewDraft () {
-            this.$validator.validateAll().then((result) => {
-                if (!result) {
-                    return
+        props: ['draftArray'],
+        data () {
+            return {
+                replaceData: null,
+                newDraftShow: false,
+                newDraftName: '',
+                draftNameRule: {
+                    required: true,
+                    max: STRING_LENGTH.DRAFT_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
+                i18n: {
+                    localCache: gettext('本地缓存'),
+                    newDraft: gettext('新建'),
+                    draftMessage: gettext('名称'),
+                    replace: gettext('替换'),
+                    saveTime: gettext('保存时间'),
+                    delete: gettext('删除'),
+                    emptyDraftTip: gettext('无数据，请手动添加缓存或等待自动保存'),
+                    replaceTips: gettext('替换模板'),
+                    replaceConfirm: gettext('是否替换模板？'),
+                    serialNumber: gettext('序号'),
+                    draftName: gettext('名称'),
+                    sketch: gettext('简述：'),
+                    draftSketch: gettext('本地缓存可以用于记录当前流程所有信息，包括流程的节点编排、全局变量、名称、基础属性等信息。本地缓存支持每个流程最多保存50个最近记录，该数据存储至本地浏览器中，每个用户只能查看和编辑自己的本地缓存。'),
+                    affirm: gettext('保存'),
+                    cancel: gettext('取消'),
+                    resetTemplate: gettext('重置模板')
                 }
-                this.$emit('onNewDraft', this.newDraftName)
+            }
+        },
+        methods: {
+            // 单击模板记录
+            onReplaceTemplate (templateData) {
+                if (!this.isClickDraft) {
+                    this.$emit('updateLocalTemplateData')
+                }
+                const data = {
+                    templateData: templateData,
+                    type: 'replace'
+                }
+                this.$emit('onReplaceTemplate', data)
+                this.$emit('hideConfigPanel')
+            },
+            // 删除本地缓存
+            onDeleteDraft (key) {
+                this.$emit('onDeleteDraft', key)
+            },
+            // 新增本地缓存
+            onShowDraftForm () {
+                this.newDraftShow = true
+                this.$emit('hideConfigPanel')
+            },
+            onNewDraft () {
+                this.$validator.validateAll().then((result) => {
+                    if (!result) {
+                        return
+                    }
+                    this.$emit('onNewDraft', this.newDraftName)
+                    this.newDraftName = ''
+                    this.newDraftShow = false
+                    this.$emit('hideConfigPanel')
+                })
+            },
+            onCancelNewDraft () {
                 this.newDraftName = ''
                 this.newDraftShow = false
-                this.$emit('hideConfigPanel')
-            })
-        },
-        onCancelNewDraft () {
-            this.newDraftName = ''
-            this.newDraftShow = false
+            }
         }
     }
-}
 </script>
 
 <style lang="scss" scoped>
@@ -289,7 +289,7 @@ export default {
             cursor: pointer;
             tr:hover {
                 background: $blueStatus;
-                .icon-close-circle {
+                .close-btn {
                     display: inline-block;
                 }
             }
@@ -309,11 +309,14 @@ export default {
         .col-delete {
             position: relative;
             width: 20px;
-            .icon-close-circle {
-                position: absolute;
-                top: 14px;
-                right: 16px;
+            .close-btn {
                 display: none;
+                position: absolute;
+                top: 13px;
+                right: 14px;
+                font-size: 14px;
+                color: #979ba5;
+                cursor: pointer;
             }
         }
     }

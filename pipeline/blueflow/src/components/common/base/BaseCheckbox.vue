@@ -11,33 +11,33 @@
 */
 <template>
     <div class="base-checkbox" @click.stop="onCheck">
-        <span :class="['checkbox', {checked: this.checked}]">
+        <span :class="['checkbox', { checked: checked }]">
         </span>
         <slot></slot>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'BaseCheckbox',
-    props: ['isChecked'],
-    data () {
-        return {
-            checked: this.isChecked || false
-        }
-    },
-    methods: {
-        onCheck () {
-            this.checked = !this.checked
-            this.$emit('checkCallback', this.checked)
-        }
-    },
-    watch: {
-        isChecked (val) {
-            this.checked = val
+    import '@/utils/i18n.js'
+    export default {
+        name: 'BaseCheckbox',
+        props: ['isChecked'],
+        data () {
+            return {
+                checked: this.isChecked || false
+            }
+        },
+        watch: {
+            isChecked (val) {
+                this.checked = val
+            }
+        },
+        methods: {
+            onCheck () {
+                this.checked = !this.checked
+                this.$emit('checkCallback', this.checked)
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '../../../scss/config.scss';

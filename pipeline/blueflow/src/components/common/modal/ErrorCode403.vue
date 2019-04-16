@@ -19,19 +19,19 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'ErrorCode403',
-    data () {
-        return {
-            i18n: {
-                sorry: gettext("对不起，您没有当前应用的访问权限"),
-                try: gettext("请尝试如下操作："),
-                contact: gettext("联系应用“管理员”为您添加应用访问白名单或者 IP 白名单")
+    import '@/utils/i18n.js'
+    export default {
+        name: 'ErrorCode403',
+        data () {
+            return {
+                i18n: {
+                    sorry: gettext('对不起，您没有当前应用的访问权限'),
+                    try: gettext('请尝试如下操作：'),
+                    contact: gettext('联系应用“管理员”为您添加应用访问白名单或者 IP 白名单')
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     ul {
@@ -41,5 +41,3 @@ export default {
         list-style: disc;
     }
 </style>
-
-

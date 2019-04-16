@@ -11,17 +11,16 @@
 */
 import { NODE_DICT } from '@/constants/index.js'
 
-
 const NODE_RULE = {
-    "startpoint": {
+    'startpoint': {
         min_in: 0,
         max_in: 0,
         min_out: 1,
         max_out: 1,
-        allowed_out: ["tasknode", "branchgateway", "parallelgateway", "endpoint", "subflow"],
+        allowed_out: ['tasknode', 'branchgateway', 'parallelgateway', 'endpoint', 'subflow'],
         unique: true
     },
-    "endpoint": {
+    'endpoint': {
         min_in: 1,
         max_in: 1,
         min_out: 0,
@@ -29,44 +28,44 @@ const NODE_RULE = {
         allowed_out: [],
         unique: true
     },
-    "tasknode": {
+    'tasknode': {
         min_in: 1,
         max_in: 1,
         min_out: 1,
         max_out: 1,
-        allowed_out: ["tasknode", "subflow", "branchgateway", "parallelgateway", "convergegateway", "endpoint"],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
-    "branchgateway": {
+    'branchgateway': {
         min_in: 1,
         max_in: 1,
         min_out: 2,
         max_out: 1000,
-        allowed_out: ["tasknode", "subflow", "branchgateway", "parallelgateway", "convergegateway"],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
         unique: false
     },
-    "parallelgateway": {
+    'parallelgateway': {
         min_in: 1,
         max_in: 1,
         min_out: 2,
         max_out: 1000,
-        allowed_out: ["tasknode", "subflow", "branchgateway", "parallelgateway", "convergegateway"],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
         unique: false
     },
-    "convergegateway": {
+    'convergegateway': {
         min_in: 2,
         max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ["tasknode", "subflow", "branchgateway", "parallelgateway", "convergegateway", "endpoint"],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     },
-    "subflow": {
+    'subflow': {
         min_in: 1,
         max_in: 1,
         min_out: 1,
         max_out: 1,
-        allowed_out: ["tasknode", "subflow", "branchgateway", "parallelgateway", "endpoint", "convergegateway"],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'endpoint', 'convergegateway'],
         unique: false
     }
 }
@@ -94,19 +93,19 @@ const validatePipeline = {
         let isLoop = false
 
         if (sourceRule.max_out === 0) {
-            const i18n_text = gettext("只能添加输入连线")
+            const i18n_text = gettext('只能添加输入连线')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
             return this.getMessage(false, message)
         }
 
         if (targetRule.max_in === 0) {
-            const i18n_text = gettext("只能添加输出连线")
+            const i18n_text = gettext('只能添加输出连线')
             const message = `${NODE_DICT[targetNode.type]}${i18n_text}`
             return this.getMessage(false, message)
         }
 
         if (sourceRule.allowed_out.indexOf(targetNode.type) === -1) {
-            const i18n_text = gettext("不能连接")
+            const i18n_text = gettext('不能连接')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}${NODE_DICT[targetNode.type]}`
             return this.getMessage(false, message)
         }
@@ -126,22 +125,22 @@ const validatePipeline = {
         })
 
         if (isLoop) {
-            const message = gettext("相同节点不能回连")
+            const message = gettext('相同节点不能回连')
             return this.getMessage(false, message)
         }
 
         if (isSameLine) {
-            const message = gettext("重复添加连线")
+            const message = gettext('重复添加连线')
             return this.getMessage(false, message)
         } else {
-            const i18n_text1 = gettext("已达到")
+            const i18n_text1 = gettext('已达到')
             if (sourceLinesLinked >= sourceRule.max_out) {
-                const i18n_text2 = gettext("最大输出连线条数")
+                const i18n_text2 = gettext('最大输出连线条数')
                 const message = `${i18n_text1}${NODE_DICT[sourceNode.type]}${i18n_text2}`
                 return this.getMessage(false, message)
             }
             if (targetLinesLinked >= targetRule.max_in) {
-                const i18n_text2 = gettext("最大输入连线条数")
+                const i18n_text2 = gettext('最大输入连线条数')
                 const message = `${i18n_text1}${NODE_DICT[targetNode.type]}${i18n_text2}`
                 return this.getMessage(false, message)
             }
@@ -151,9 +150,11 @@ const validatePipeline = {
     isLocationValid (loc, data) {
         const rule = NODE_RULE[loc.type]
         if (rule.unique) { // 节点唯一性
-            const isLocationOverMount = data.some(item => { return item.type === loc.type && item.id !== loc.id})
+            const isLocationOverMount = data.some(item => {
+                return item.type === loc.type && item.id !== loc.id
+            })
             if (isLocationOverMount) {
-                const i18n_text = gettext("在模板中只能添加一个")
+                const i18n_text = gettext('在模板中只能添加一个')
                 const message = `${NODE_DICT[loc.type]}${i18n_text}`
                 return this.getMessage(false, message)
             }
@@ -185,21 +186,21 @@ const validatePipeline = {
                 subflow += 1
             }
             data.lines.forEach(line => {
-                if (line.source.id == loc.id) {
+                if (line.source.id === loc.id) {
                     targetLinesLinked += 1
                 }
                 if (line.target.id === loc.id) {
                     sourceLinesLinked += 1
                 }
             })
-            const i18n_text1 = gettext("至少需要")
+            const i18n_text1 = gettext('至少需要')
             if (sourceLinesLinked < rule.min_in) {
-                const i18n_text2 = gettext("条输入连线")
+                const i18n_text2 = gettext('条输入连线')
                 message = `${name}${i18n_text1}${rule.min_in}${i18n_text2}`
                 return false
             }
             if (targetLinesLinked < rule.min_out) {
-                const i18n_text2 = gettext("条输出连线")
+                const i18n_text2 = gettext('条输出连线')
                 message = `${name}${i18n_text1}${rule.min_out}${i18n_text2}`
                 return false
             }
@@ -211,12 +212,12 @@ const validatePipeline = {
         }
 
         if ((tasknode + subflow) === 0) {
-            message = gettext("请添加任务节点")
+            message = gettext('请添加任务节点')
             return this.getMessage(false, message)
         }
 
         if (branchAndParallelGateways !== convergegateways) {
-            message = gettext("并行网关、分支网关个数和汇聚网关个数必须一致，并且必须配对使用")
+            message = gettext('并行网关、分支网关个数和汇聚网关个数必须一致，并且必须配对使用')
             return this.getMessage(false, message)
         }
 

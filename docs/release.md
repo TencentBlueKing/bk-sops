@@ -270,4 +270,12 @@
     - 修复获取任务流程状态接口 API 返回的节点名与实际节点名不符的问题
 
 # 3.3.11
-#todo
+- bug fix
+    - 修复在 API 中调用 ESB 获取用户信息异常的问题
+
+# 3.3.12
+- bug fix
+    - 修复在 get_task_status API 返回的 elapsed_time 为 Float 的问题
+    
+# 3.3.13
+- todo

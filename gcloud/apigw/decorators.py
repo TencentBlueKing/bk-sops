@@ -27,7 +27,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.conf import settings
 
-if not sys.argv[1:2] == ['test'] and settings.RUN_VER != 'open':
+if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:
         from bkoauth.decorators import apigw_required
     except ImportError:
@@ -36,6 +36,7 @@ else:
     apigw_required = None
 
 WHITE_APPS = {'bk_fta', 'bk_bcs'}
+WHETHER_PREPARE_BIZ = getattr(settings, 'WHETHER_PREPARE_BIZ_IN_API_CALL', True)
 
 
 def check_white_apps(request):
@@ -172,7 +173,7 @@ def api_check_user_perm_of_business(permit):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
             # 应用白名单，免用户校验
-            if is_request_from_trust_apps_and_inject_user(request, prepare_biz=True):
+            if is_request_from_trust_apps_and_inject_user(request, prepare_biz=WHETHER_PREPARE_BIZ):
                 if not business_exist(kwargs):
                     return JsonResponse({
                         'result': False,
@@ -180,7 +181,7 @@ def api_check_user_perm_of_business(permit):
                     })
                 return view_func(request, *args, **kwargs)
 
-            info = get_user_and_biz_info_and_inject_user(request, kwargs, prepare_biz=True)
+            info = get_user_and_biz_info_and_inject_user(request, kwargs, prepare_biz=WHETHER_PREPARE_BIZ)
             if not info['result']:
                 return JsonResponse(info)
             user = info['data']['user']

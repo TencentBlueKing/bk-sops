@@ -14,10 +14,10 @@
         <div class="operation-header clearfix">
             <div class="bread-crumbs-wrapper">
                 <div
-                    :class="['path-item', {'name-ellipsis': previewBread.length > 1}]"
+                    :class="['path-item', { 'name-ellipsis': previewBread.length > 1 }]"
                     v-for="(path, index) in previewBread"
                     :key="index"
-                    :title="showBreakList.includes(index)? path.name: ''">
+                    :title="showBreakList.includes(index) ? path.name : ''">
                     <span
                         v-if="!!index && showBreakList.includes(index) || index === 1">
                         &gt;
@@ -35,73 +35,73 @@
                 </div>
             </div>
         </div>
-        <div class="canvas-wrapper" v-bkloading="{isLoading: previewDataLoading, opacity: 1}">
+        <div class="canvas-wrapper" v-bkloading="{ isLoading: previewDataLoading, opacity: 1 }">
             <PipelineCanvas
                 v-if="!previewDataLoading"
                 ref="pipelineCanvas"
-                :isMenuBarShow="false"
-                :isConfigBarShow="false"
-                :isEdit="false"
-                :isSelectNode="isSelectNode"
-                :isSelectAllNode="isSelectAllNode"
-                :isPreviewMode="isPreviewMode"
-                :canvasData="canvasData"
+                :is-menu-bar-show="false"
+                :is-config-bar-show="false"
+                :is-edit="false"
+                :is-select-node="isSelectNode"
+                :is-select-all-node="isSelectAllNode"
+                :is-preview-mode="isPreviewMode"
+                :canvas-data="canvasData"
                 @onNodeClick="onNodeClick">
             </PipelineCanvas>
         </div>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
-export default {
-    name: 'NodePreview',
-    components: {
-        PipelineCanvas
-    },
-    props: ['canvasData', 'previewBread', 'previewDataLoading', 'isSelectNode', 'isPreviewMode', 'isSelectAllNode'],
-    data () {
-        return {
-            ellipsis: '...',
-            showBreakList: [0, 1, 2],
-            isOmit: true
-        }
-    },
-    watch: {
-        previewBread (val) {
-            if (val.length > 3) {
-                this.showBreakList = [0, val.length - 1 , val.length - 2]
-            } else {
-                this.showBreakList = [0, 1, 2]
-            }
-        }
-    },
-    methods: {
-        onNodeClick (id) {
-            if (this.previewDataLoading) {
-                return
-            }
-            this.$emit('onNodeClick', id)
+    import '@/utils/i18n.js'
+    import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
+    export default {
+        name: 'NodePreview',
+        components: {
+            PipelineCanvas
         },
-        onSelectSubflow (data, index) {
-            if (this.previewDataLoading) {
-                return
+        props: ['canvasData', 'previewBread', 'previewDataLoading', 'isSelectNode', 'isPreviewMode', 'isSelectAllNode'],
+        data () {
+            return {
+                ellipsis: '...',
+                showBreakList: [0, 1, 2],
+                isOmit: true
             }
-            if (this.previewBread.length - 1 === index) {
-                return
-            }
-            this.$emit('onSelectSubflow', data, index)
         },
-        onUpdateNodeInfo (id, item) {
-            this.$refs.pipelineCanvas.onUpdateNodeInfo(item.id, item)
+        watch: {
+            previewBread (val) {
+                if (val.length > 3) {
+                    this.showBreakList = [0, val.length - 1, val.length - 2]
+                } else {
+                    this.showBreakList = [0, 1, 2]
+                }
+            }
+        },
+        methods: {
+            onNodeClick (id) {
+                if (this.previewDataLoading) {
+                    return
+                }
+                this.$emit('onNodeClick', id)
+            },
+            onSelectSubflow (data, index) {
+                if (this.previewDataLoading) {
+                    return
+                }
+                if (this.previewBread.length - 1 === index) {
+                    return
+                }
+                this.$emit('onSelectSubflow', data, index)
+            },
+            onUpdateNodeInfo (id, item) {
+                this.$refs.pipelineCanvas.onUpdateNodeInfo(item.id, item)
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .node-preview-wrapper {
-    height: 100%;
+    height: 460px;
 }
 .canvas-wrapper {
     height: calc(100% - 50px);

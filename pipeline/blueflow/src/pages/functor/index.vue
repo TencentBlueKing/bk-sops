@@ -15,7 +15,7 @@
             <BaseTitle :title="i18n.functorList"></BaseTitle>
             <BaseSearch
                 v-model="searchStr"
-                :inputPlaceholader="i18n.placeholder"
+                :input-placeholader="i18n.placeholder"
                 @onShow="onAdvanceShow"
                 @input="onSearchInput">
             </BaseSearch>
@@ -49,7 +49,7 @@
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder"/>
+                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.status}}</span>
@@ -71,7 +71,7 @@
                 </fieldset>
             </div>
             <div class="functor-table-content">
-                <table v-bkloading="{isLoading: listLoading, opacity: 1}">
+                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <thead>
                         <tr>
                             <th class="functor-id">ID</th>
@@ -119,7 +119,7 @@
                         </tr>
                         <tr v-if="!functorList || !functorList.length" class="empty-tr">
                             <td colspan="9">
-                                <div class="empty-data"><NoData/></div>
+                                <div class="empty-data"><NoData /></div>
                             </td>
                         </tr>
                     </tbody>
@@ -176,7 +176,7 @@
                             :selected.sync="template.selected"
                             :setting-key="'id'"
                             :display-key="'name'"
-                            :has-children='true'
+                            :has-children="true"
                             :is-loading="template.loading"
                             :searchable="template.searchable"
                             :disabled="template.disabled"
@@ -197,353 +197,351 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapActions, mapMutations, mapState } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-import NoData from '@/components/common/base/NoData.vue'
-import BaseTitle from '@/components/common/base/BaseTitle.vue'
-import BaseSearch from '@/components/common/base/BaseSearch.vue'
-import toolsUtils from '@/utils/tools.js'
-import moment from 'moment-timezone'
+    import '@/utils/i18n.js'
+    import { mapActions, mapMutations, mapState } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+    import NoData from '@/components/common/base/NoData.vue'
+    import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import toolsUtils from '@/utils/tools.js'
+    import moment from 'moment-timezone'
 
-export default {
-    name: 'functorTaskHome',
-    components: {
-        CopyrightFooter,
-        BaseSearch,
-        BaseTitle,
-        NoData
-    },
-    props: ['cc_id', 'app_id'],
-    data () {
-        return {
-            i18n: {
-                functorList: gettext('职能化中心'),
-                placeholder: gettext('请输入ID或流程名称'),
-                business: gettext('所属业务'),
-                createdTime: gettext('提单时间'),
-                claimedTime: gettext('认领时间'),
-                ownBusiness: gettext('所属业务'),
-                finishedTime: gettext('执行结束'),
-                name: gettext('任务名称'),
-                billTime: gettext('提单时间'),
-                billTimePlaceholder: gettext('请选择时间'),
-                creator: gettext('提单人'),
-                claimant: gettext('认领人'),
-                status: gettext('状态'),
-                operation: gettext('操作'),
-                claim: gettext('认领'),
-                view: gettext('查看'),
-                new: gettext('新建任务'),
-                choiceBusiness: gettext('选择业务'),
-                choiceTemplate: gettext('选择模板'),
-                tips: gettext('如果未找到模板，请联系业务运维在流程模板的权限管理中对你或所有职能化人员授予“新建任务权限”'),
-                total: gettext('共'),
-                item: gettext('条记录'),
-                comma: gettext('，'),
-                choice: gettext('请选择'),
-                currentPageTip: gettext('当前第'),
-                page: gettext('页'),
-                functorType: gettext('任务分类'),
-                functorTypePlaceholder: gettext('请选择分类'),
-                creatorPlaceholder: gettext('请输入提单人'),
-                query: gettext('搜索'),
-                reset: gettext('清空')
-            },
-            listLoading: true,
-            selectedCcId: -1,
-            currentPage: 1,
-            totalPage: 1,
-            countPerPage: 15,
-            totalCount: 0,
-            functorSync: 0,
-            statusSync: 0,
-            searchStr: undefined,
-            isShowNewTaskDialog: false,
-            functorBasicInfoLoading: true,
-            functorList: [],
-            business: {
-                list: [],
-                selected: 0,
-                loading: false,
-                id: null,
-                searchable: true,
-                empty: false
-            },
-            template: {
-                list: [
-                    {
-                        name: gettext('业务流程'),
-                        children: []
-                    },
-                    {
-                        name: gettext('公共流程'),
-                        children: []
+    export default {
+        name: 'functorTaskHome',
+        components: {
+            CopyrightFooter,
+            BaseSearch,
+            BaseTitle,
+            NoData
+        },
+        props: ['cc_id', 'app_id'],
+        data () {
+            return {
+                i18n: {
+                    functorList: gettext('职能化中心'),
+                    placeholder: gettext('请输入ID或流程名称'),
+                    business: gettext('所属业务'),
+                    createdTime: gettext('提单时间'),
+                    claimedTime: gettext('认领时间'),
+                    ownBusiness: gettext('所属业务'),
+                    finishedTime: gettext('执行结束'),
+                    name: gettext('任务名称'),
+                    billTime: gettext('提单时间'),
+                    billTimePlaceholder: gettext('请选择时间'),
+                    creator: gettext('提单人'),
+                    claimant: gettext('认领人'),
+                    status: gettext('状态'),
+                    operation: gettext('操作'),
+                    claim: gettext('认领'),
+                    view: gettext('查看'),
+                    new: gettext('新建任务'),
+                    choiceBusiness: gettext('选择业务'),
+                    choiceTemplate: gettext('选择模板'),
+                    tips: gettext('如果未找到模板，请联系业务运维在流程模板的权限管理中对你或所有职能化人员授予“新建任务权限”'),
+                    total: gettext('共'),
+                    item: gettext('条记录'),
+                    comma: gettext('，'),
+                    choice: gettext('请选择'),
+                    currentPageTip: gettext('当前第'),
+                    page: gettext('页'),
+                    functorType: gettext('任务分类'),
+                    functorTypePlaceholder: gettext('请选择分类'),
+                    creatorPlaceholder: gettext('请输入提单人'),
+                    query: gettext('搜索'),
+                    reset: gettext('清空')
+                },
+                listLoading: true,
+                selectedCcId: -1,
+                currentPage: 1,
+                totalPage: 1,
+                countPerPage: 15,
+                totalCount: 0,
+                functorSync: 0,
+                statusSync: 0,
+                searchStr: undefined,
+                isShowNewTaskDialog: false,
+                functorBasicInfoLoading: true,
+                functorList: [],
+                business: {
+                    list: [],
+                    selected: 0,
+                    loading: false,
+                    id: null,
+                    searchable: true,
+                    empty: false
+                },
+                template: {
+                    list: [
+                        {
+                            name: gettext('业务流程'),
+                            children: []
+                        },
+                        {
+                            name: gettext('公共流程'),
+                            children: []
+                        }
+                    ],
+                    selected: 0,
+                    loading: false,
+                    searchable: true,
+                    id: null,
+                    empty: false,
+                    disabled: true
+                },
+                bizCcId: undefined,
+                billTime: undefined,
+                creator: undefined,
+                executeStartTime: undefined,
+                executeEndTime: undefined,
+                isStarted: undefined,
+                isFinished: undefined,
+                isCommonTemplate: false,
+                isAdvancedSerachShow: false,
+                status: undefined,
+                functorCategory: [],
+                statusList: [
+                    { 'id': 'submitted', 'name': gettext('未认领') },
+                    { 'id': 'claimed', 'name': gettext('已认领') },
+                    { 'id': 'executed', 'name': gettext('已执行') },
+                    { 'id': 'finished', 'name': gettext('完成') }
+                ]
+            }
+        },
+        computed: {
+            ...mapState({
+                bizList: state => state.bizList,
+                categorys: state => state.categorys
+            })
+        },
+        created () {
+            this.loadFunctionTask()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+            this.getBusinessList()
+        },
+        methods: {
+            ...mapActions('functionTask/', [
+                'loadFunctionTaskList',
+                'loadFunctionBusinessList',
+                'loadFunctionTemplateList'
+            ]),
+            ...mapActions('templateList/', [
+                'loadTemplateList'
+            ]),
+            ...mapMutations('atomForm/', [
+                'clearAtomForm'
+            ]),
+            async loadFunctionTask () {
+                this.listLoading = true
+                try {
+                    const data = {
+                        limit: this.countPerPage,
+                        offset: (this.currentPage - 1) * this.countPerPage,
+                        task__pipeline_instance__name__contains: this.searchStr,
+                        creator: this.creator || undefined,
+                        pipeline_instance__is_started: this.isStarted,
+                        pipeline_instance__is_finished: this.isFinished,
+                        task__business__cc_id: this.bizCcId,
+                        status: this.status
                     }
-                ],
-                selected: 0,
-                loading: false,
-                searchable: true,
-                id: null,
-                empty: false,
-                disabled: true
-            },
-            bizCcId: undefined,
-            billTime: undefined,
-            creator: undefined,
-            executeStartTime: undefined,
-            executeEndTime: undefined,
-            isStarted: undefined,
-            isFinished: undefined,
-            isCommonTemplate: false,
-            isAdvancedSerachShow: false,
-            status: undefined,
-            functorCategory: [],
-            statusList: [
-                {'id': 'submitted', 'name': gettext('未认领')},
-                {'id': 'claimed', 'name': gettext('已认领')},
-                {'id': 'executed', 'name': gettext('已执行')},
-                {'id': 'finished', 'name': gettext('完成')}
-            ]
-        }
-    },
-    computed: {
-        ...mapState({
-            bizList: state => state.bizList,
-            categorys: state => state.categorys
-        })
-    },
-    created () {
-        this.loadFunctionTask()
-        this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-        this.getBusinessList()
-    },
-    methods: {
-        ...mapActions('functionTask/', [
-            'loadFunctionTaskList',
-            'loadFunctionBusinessList',
-            'loadFunctionTemplateList'
-        ]),
-        ...mapActions('templateList/',[
-            'loadTemplateList'
-        ]),
-        ...mapMutations('atomForm/', [
-            'clearAtomForm'
-        ]),
-        async loadFunctionTask () {
-            this.listLoading = true
-            try {
-                const data = {
-                    limit: this.countPerPage,
-                    offset: (this.currentPage - 1) * this.countPerPage,
-                    task__pipeline_instance__name__contains: this.searchStr,
-                    creator: this.creator || undefined,
-                    pipeline_instance__is_started: this.isStarted,
-                    pipeline_instance__is_finished: this.isFinished,
-                    task__business__cc_id: this.bizCcId,
-                    status: this.status
-                }
-                if (this.executeEndTime) {
-                    if (this.common) {
-                        data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
-                        data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1','d').format('YYYY-MM-DD')
+                    if (this.executeEndTime) {
+                        if (this.common) {
+                            data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['create_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                            data['create_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    const functorListData = await this.loadFunctionTaskList(data)
+                    const list = functorListData.objects
+                    this.functorList = list
+                    this.totalCount = functorListData.meta.total_count
+                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    if (!totalPage) {
+                        this.totalPage = 1
                     } else {
-                        data['create_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                        data['create_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1','d').format('YYYY-MM-DD')
+                        this.totalPage = totalPage
                     }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.listLoading = false
                 }
-                const functorListData = await this.loadFunctionTaskList(data)
-                const list = functorListData.objects
-                this.functorList = list
-                this.totalCount = functorListData.meta.total_count
-                const totalPage = Math.ceil( this.totalCount / this.countPerPage)
-                if (!totalPage) {
-                    this.totalPage = 1
-                } else {
-                    this.totalPage = totalPage
+            },
+            onPageChange (page) {
+                this.currentPage = page
+                this.loadFunctionTask()
+            },
+            searchInputhandler () {
+                this.currentPage = 1
+                this.loadFunctionTask()
+            },
+            statusMethod (status, status_name) {
+                if (status === 'finished') {
+                    return gettext('完成')
+                } else if (status === 'submitted') {
+                    return gettext('未认领')
+                } else if (status === 'rejected') {
+                    return gettext('已驳回')
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.listLoading = false
-            }
-        },
-        onPageChange (page) {
-            this.currentPage = page
-            this.loadFunctionTask()
-        },
-        searchInputhandler () {
-            this.currentPage = 1
-            this.loadFunctionTask()
-        },
-        statusMethod (status, status_name) {
-            if (status === 'finished') {
-                return gettext('完成')
-            }
-            else if (status === 'submitted'){
-                return gettext('未认领')
-            }
-            else if (status === 'rejected') {
-                return gettext('已驳回')
-            }
-            return status_name
-        },
-        statusClass (status) {
-            let cls
-            switch (status) {
-                case 'submitted': // 未认领
-                    cls = 'common-icon-flag-circle default'
-                    break
-                case 'claimed': // 已认领
-                    cls = 'common-icon-flag-circle success'
-                    break
-                case 'executed': // 已执行
-                    cls = 'common-icon-dark-circle-ellipsis primary'
-                    break
-                case 'rejected': // 已驳回
-                    cls = 'common-icon-dark-circle-close'
-                    break
-                case 'finished': // 完成
-                    cls = 'bk-icon icon-check-circle-shape default'
-                    break
-                default:
-                    cls = ''
-            }
+                return status_name
+            },
+            statusClass (status) {
+                let cls
+                switch (status) {
+                    case 'submitted': // 未认领
+                        cls = 'common-icon-flag-circle default'
+                        break
+                    case 'claimed': // 已认领
+                        cls = 'common-icon-flag-circle success'
+                        break
+                    case 'executed': // 已执行
+                        cls = 'common-icon-dark-circle-ellipsis primary'
+                        break
+                    case 'rejected': // 已驳回
+                        cls = 'common-icon-dark-circle-close'
+                        break
+                    case 'finished': // 完成
+                        cls = 'bk-icon icon-check-circle-shape default'
+                        break
+                    default:
+                        cls = ''
+                }
 
-            return cls
-        },
-        onNewTask () {
-            this.isShowNewTaskDialog = true
-        },
-        async getBusinessList () {
-            this.business.loading = true
-            try {
-                let businessData = await this.loadFunctionBusinessList()
-                this.business.list = businessData.objects
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.business.loading = false
-            }
-        },
-        async getTemplateList () {
-            this.template.loading = true
-            try {
-                // 查询职能化数据及公共流程数据
-                await Promise.all([this.loadFunctionTemplateList(this.business.id), this.loadTemplateList({common: 1})]).then(value =>{
-                    if (value[0].objects.length === 0) {
-                        this.template.list[0].children = [{'id': undefined, 'name': gettext('无数据')}]
-                    } else {
-                        this.template.list[0].children = value[0].objects
-                    }
-                    if (value[1].objects.length === 0) {
-                        this.template.list[1].children = [{'id': undefined, 'name': gettext('无数据')}]
-                    } else {
-                        this.template.list[1].children = value[1].objects
-                    }
-                    this.clearAtomForm()
-                    this.$nextTick(() => {
-                        this.changeNoDataTextStyle()
+                return cls
+            },
+            onNewTask () {
+                this.isShowNewTaskDialog = true
+            },
+            async getBusinessList () {
+                this.business.loading = true
+                try {
+                    const businessData = await this.loadFunctionBusinessList()
+                    this.business.list = businessData.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.business.loading = false
+                }
+            },
+            async getTemplateList () {
+                this.template.loading = true
+                try {
+                    // 查询职能化数据及公共流程数据
+                    await Promise.all([this.loadFunctionTemplateList(this.business.id), this.loadTemplateList({ common: 1 })]).then(value => {
+                        if (value[0].objects.length === 0) {
+                            this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据') }]
+                        } else {
+                            this.template.list[0].children = value[0].objects
+                        }
+                        if (value[1].objects.length === 0) {
+                            this.template.list[1].children = [{ 'id': undefined, 'name': gettext('无数据') }]
+                        } else {
+                            this.template.list[1].children = value[1].objects
+                        }
+                        this.clearAtomForm()
+                        this.$nextTick(() => {
+                            this.changeNoDataTextStyle()
+                        })
                     })
-                })
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.template.loading = false
-            }
-        },
-        onSelectedBizCcId (name, value) {
-            if (this.bizCcId === name) {
-                return
-            }
-            this.bizCcId = name
-        },
-        onSelectedBusiness (id, data) {
-            this.business.id = id
-            this.getTemplateList()
-            this.business.empty = false
-            this.template.disabled = false
-        },
-        onSelectedTemplate (id, data) {
-            if (id === undefined) {
-                return
-            }
-            this.isCommonTemplate = false
-            // 通过resource_uri查找是否是公共流程
-            if (data.resource_uri.search('common_template') !== -1) {
-                this.isCommonTemplate = true
-            }
-            this.template.id = id
-            this.template.empty = false
-        },
-        onConfirmlNewTask () {
-            if (this.business.id === null) {
-                this.business.empty = true
-                return
-            }
-            if (this.template.id === null) {
-                this.template.empty = true
-                return
-            }
-            if (this.isCommonTemplate) {
-                this.$router.push({path: `/template/newtask/${this.business.id}/selectnode/`, query: {template_id: this.template.id, common: 1}})
-            } else {
-                this.$router.push({path: `/template/newtask/${this.business.id}/selectnode/`, query: {template_id: this.template.id}})
-            }
-        },
-        onCancelNewTask () {
-            this.onClearTemplate()
-            this.onClearBusiness()
-            this.isShowNewTaskDialog = false
-        },
-        onClearTemplate () {
-            this.template.id = null
-            this.template.selected = 0
-        },
-        onClearBusiness () {
-            this.template.disabled = true
-            this.business.id = null
-            this.business.selected = 0
-        },
-        // 无数据文本修改样式
-        changeNoDataTextStyle () {
-            const textList = document.querySelectorAll('.text')
-            for (let item of textList) {
-                if (item.textContent === gettext(' 无数据 ')) {
-                    item.style['cursor'] = 'not-allowed'
-                    item.style['background-color'] = '#fafafa'
-                    item.style['color'] = '#aaaaaa'
-                    item.parentElement.style["background-color"] = '#fafafa'
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.template.loading = false
                 }
+            },
+            onSelectedBizCcId (name, value) {
+                if (this.bizCcId === name) {
+                    return
+                }
+                this.bizCcId = name
+            },
+            onSelectedBusiness (id, data) {
+                this.business.id = id
+                this.getTemplateList()
+                this.business.empty = false
+                this.template.disabled = false
+            },
+            onSelectedTemplate (id, data) {
+                if (id === undefined) {
+                    return
+                }
+                this.isCommonTemplate = false
+                // 通过resource_uri查找是否是公共流程
+                if (data.resource_uri.search('common_template') !== -1) {
+                    this.isCommonTemplate = true
+                }
+                this.template.id = id
+                this.template.empty = false
+            },
+            onConfirmlNewTask () {
+                if (this.business.id === null) {
+                    this.business.empty = true
+                    return
+                }
+                if (this.template.id === null) {
+                    this.template.empty = true
+                    return
+                }
+                if (this.isCommonTemplate) {
+                    this.$router.push({ path: `/template/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id, common: 1 } })
+                } else {
+                    this.$router.push({ path: `/template/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id } })
+                }
+            },
+            onCancelNewTask () {
+                this.onClearTemplate()
+                this.onClearBusiness()
+                this.isShowNewTaskDialog = false
+            },
+            onClearTemplate () {
+                this.template.id = null
+                this.template.selected = 0
+            },
+            onClearBusiness () {
+                this.template.disabled = true
+                this.business.id = null
+                this.business.selected = 0
+            },
+            // 无数据文本修改样式
+            changeNoDataTextStyle () {
+                const textList = document.querySelectorAll('.text')
+                for (const item of textList) {
+                    if (item.textContent === gettext(' 无数据 ')) {
+                        item.style['cursor'] = 'not-allowed'
+                        item.style['background-color'] = '#fafafa'
+                        item.style['color'] = '#aaaaaa'
+                        item.parentElement.style['background-color'] = '#fafafa'
+                    }
+                }
+            },
+            onAdvanceShow () {
+                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onChangeExecuteTime (oldValue, newValue) {
+                const timeArray = newValue.split(' - ')
+                this.executeStartTime = timeArray[0]
+                this.executeEndTime = timeArray[1]
+            },
+            onClearStatus () {
+                this.isStarted = undefined
+                this.isFinished = undefined
+            },
+            onResetForm () {
+                this.status = undefined
+                this.creator = undefined
+                this.statusSync = 0
+                this.selectedCcId = 0
+                this.funtorSync = 0
+                this.executeStartTime = undefined
+                this.executeEndTime = undefined
+            },
+            onSelectedStatus (id, name) {
+                this.status = id
             }
-        },
-        onAdvanceShow () {
-            this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-        },
-        onChangeExecuteTime (oldValue, newValue) {
-            const timeArray = newValue.split(" - ")
-            this.executeStartTime = timeArray[0]
-            this.executeEndTime = timeArray[1]
-        },
-        onClearStatus () {
-            this.isStarted = undefined
-            this.isFinished = undefined
-        },
-        onResetForm () {
-            this.status = undefined
-            this.creator = undefined
-            this.statusSync = 0
-            this.selectedCcId = 0
-            this.funtorSync = 0
-            this.executeStartTime = undefined
-            this.executeEndTime = undefined
-        },
-        onSelectedStatus (id, name) {
-            this.status = id
         }
     }
-}
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
@@ -703,6 +701,7 @@ label.required:after {
             background: $whiteNodeBg;
         }
         .functor-id {
+            padding-left: 20px;
             width: 80px;
         }
         .functor-name {
@@ -793,4 +792,3 @@ label.required:after {
 }
 
 </style>
-

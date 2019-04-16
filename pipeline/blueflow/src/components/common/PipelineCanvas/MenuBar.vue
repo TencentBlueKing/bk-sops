@@ -18,28 +18,29 @@
                     :class="[
                         'node-type-item',
                         `common-icon-node-${item.type}`,
-                        {'node-type-has-sub': isNodeTypeHasSub(item.type)},
-                        {'node-source': !isNodeTypeHasSub(item.type)},
-                        {'active-node-type' : activeNodeType === item.type && showNodeList},
-                        {'startpoint-unavailable':item.type === 'startpoint' ?  isDisableStartPoint : false},
-                        {'endpoint-unavailable':item.type === 'endpoint' ?  isDisableEndPoint : false}
+                        { 'node-type-has-sub': isNodeTypeHasSub(item.type) },
+                        { 'node-source': !isNodeTypeHasSub(item.type) },
+                        { 'active-node-type': activeNodeType === item.type && showNodeList },
+                        { 'startpoint-unavailable': item.type === 'startpoint' ? isDisableStartPoint : false },
+                        { 'endpoint-unavailable': item.type === 'endpoint' ? isDisableEndPoint : false }
                     ]"
                     :data-type="item.type"
                     v-bktooltips.right="item.name"
                     @click.stop="onSelectNode(item.type)">
-                    <span
-                        v-if="item.type === 'startpoint' || item.type === 'endpoint'">
+                    <div
+                        v-if="item.type === 'startpoint' || item.type === 'endpoint'"
+                        class="node-circle">
                         {{i18n[item.type]}}
-                    </span>
+                    </div>
                 </li>
             </ul>
         </div>
         <transition name="slideLeft">
             <div class="node-list" v-if="showNodeList">
-                <div class="list-container" v-bkloading="{isLoading: loading, opacity: 1}">
-                    <i :class="['common-icon-left-pin', 'node-list-pin', {actived: isPinActived}]" @click.stop="onClickPin"></i>
+                <div class="list-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
+                    <i :class="['common-icon-left-pin', 'node-list-pin', { actived: isPinActived }]" @click.stop="onClickPin"></i>
                     <div class="search-node-wraper">
-                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
+                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
                         <i class="common-icon-search"></i>
                     </div>
                     <div v-if="!showNoDataPanel" class="atom-list-wrapper">
@@ -51,7 +52,7 @@
                                 class="collapse-panel">
                                 <BaseCollapse>
                                     <template slot="header" class="panel-header">
-                                        <img class="header-icon" :src="item.group_icon||defaultTypeIcon"/>
+                                        <img class="header-icon" :src="item.group_icon || defaultTypeIcon" />
                                         <span class="header-title">{{item.group_name}}
                                             <span class="header-atom">
                                                 {{item.list.length}}{{i18n.num}}
@@ -99,141 +100,141 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
-import domUtils  from '@/utils/dom.js'
-import toolsUtils  from '@/utils/tools.js'
-import BaseCollapse from '../base/BaseCollapse.vue'
-import NoData from '../base/NoData.vue'
-import { NODE_DICT } from '@/constants/index.js'
-const nodeTypeList = ['startpoint', 'endpoint', 'parallelgateway', 'convergegateway', 'branchgateway', 'tasknode', 'subflow']
-const nodeTypeSubList = ['tasknode', 'subflow']
-const node_list = Object.keys(NODE_DICT).map(key => {
-    return {
-        type: key,
-        name: NODE_DICT[key]
-    }
-})
+    import '@/utils/i18n.js'
+    import domUtils from '@/utils/dom.js'
+    import toolsUtils from '@/utils/tools.js'
+    import BaseCollapse from '../base/BaseCollapse.vue'
+    import NoData from '../base/NoData.vue'
+    import { NODE_DICT } from '@/constants/index.js'
 
-export default {
-    name: 'MenuBar',
-    props: {
-        singleAtomListLoading: {
-            type: Boolean
-        },
-        subAtomListLoading: {
-            type: Boolean
-        },
-        atomTypeList: {
-            type: Object,
-            required: true
-        },
-        searchAtomResult: {
-            type: Array
-        },
-        isDisableStartPoint: {
-            type: Boolean
-        },
-        isDisableEndPoint: {
-            type: Boolean
-        }
-    },
-    components: {
-        BaseCollapse,
-        NoData
-    },
-    data () {
+    const nodeTypeList = ['startpoint', 'endpoint', 'parallelgateway', 'convergegateway', 'branchgateway', 'tasknode', 'subflow']
+    const nodeTypeSubList = ['tasknode', 'subflow']
+    const node_list = Object.keys(NODE_DICT).map(key => {
         return {
-            i18n: {
-                tools: gettext("工具"),
-                placeholder: gettext("请输入名称"),
-                startpoint: gettext('开始'),
-                endpoint: gettext('结束'),
-                num: gettext('个')
+            type: key,
+            name: NODE_DICT[key]
+        }
+    })
+
+    export default {
+        name: 'MenuBar',
+        components: {
+            BaseCollapse,
+            NoData
+        },
+        props: {
+            singleAtomListLoading: {
+                type: Boolean
             },
-            nodeDict: node_list,
-            nodeTypeList,
-            activeNodeType: null,
-            searchStr: '',
-            showNodeList: false,
-            isCollapseAll: false,
-            isPinActived: false,
-            searchMode: false,
-            defaultTypeIcon: require('@/assets/images/atom-type-default.svg')
-        }
-    },
-    computed: {
-        loading () {
-            if (this.activeNodeType === 'tasknode') {
-                return this.singleAtomListLoading
-            } else if (this.activeNodeType === 'subflow') {
-                return this.subAtomListLoading
+            subAtomListLoading: {
+                type: Boolean
+            },
+            atomTypeList: {
+                type: Object,
+                required: true
+            },
+            searchAtomResult: {
+                type: Array
+            },
+            isDisableStartPoint: {
+                type: Boolean
+            },
+            isDisableEndPoint: {
+                type: Boolean
             }
         },
-        listInPanel () {
-            if (this.searchMode) {
-                return this.searchAtomResult
-            } else {
-                return this.activeNodeType ? this.atomTypeList[this.activeNodeType] : []
+        data () {
+            return {
+                i18n: {
+                    tools: gettext('工具'),
+                    placeholder: gettext('请输入名称'),
+                    startpoint: gettext('开始'),
+                    endpoint: gettext('结束'),
+                    num: gettext('个')
+                },
+                nodeDict: node_list,
+                nodeTypeList,
+                activeNodeType: null,
+                searchStr: '',
+                showNodeList: false,
+                isCollapseAll: false,
+                isPinActived: false,
+                searchMode: false,
+                defaultTypeIcon: require('@/assets/images/atom-type-default.svg')
             }
         },
-        isGrouped () {
-            return !this.searchMode
-        },
-        showNoDataPanel () {
-            return this.activeNodeType && !this.listInPanel.length
-        }
-    },
-    created () {
-        this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-    },
-    mounted () {
-        window.addEventListener('click', this.handleOutOfMenuBarClick, false)
-    },
-    beforeDestroy () {
-        window.removeEventListener('click', this.handleOutOfMenuBarClick, false)
-    },
-    methods: {
-        onSelectNode (node) {
-            if (this.isNodeTypeHasSub(node)) {
-                this.activeNodeType = node
-                this.showNodeList = true
-            } else {
-                if (this.isPinActived) return
-                this.activeNodeType = null
-                this.showNodeList = false
-            }
-            this.isCollapseAll = true
-            this.searchMode = false
-            this.searchStr = ''
-            this.$emit('show', this.showNodeList)
-        },
-        onClickPin () {
-            this.isPinActived = !this.isPinActived
-        },
-        handleOutOfMenuBarClick (event) {
-            const nodeListDOM = document.querySelector(".node-list")
-            if (this.showNodeList && !this.isPinActived && !domUtils.nodeContains(nodeListDOM, event.target)) {
-                this.showNodeList = false
-                this.$emit('show', this.showNodeList)
+        computed: {
+            loading () {
+                if (this.activeNodeType === 'tasknode') {
+                    return this.singleAtomListLoading
+                } else {
+                    return this.subAtomListLoading
+                }
+            },
+            listInPanel () {
+                if (this.searchMode) {
+                    return this.searchAtomResult
+                } else {
+                    return this.activeNodeType ? this.atomTypeList[this.activeNodeType] : []
+                }
+            },
+            isGrouped () {
+                return !this.searchMode
+            },
+            showNoDataPanel () {
+                return this.activeNodeType && !this.listInPanel.length
             }
         },
-        searchInputhandler () {
-            if (this.searchStr.length){
-                this.searchMode = true
-                this.$emit('onSearchAtom', {
-                    type: this.activeNodeType,
-                    text: this.searchStr
-                })
-            } else {
+        created () {
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
+        mounted () {
+            window.addEventListener('click', this.handleOutOfMenuBarClick, false)
+        },
+        beforeDestroy () {
+            window.removeEventListener('click', this.handleOutOfMenuBarClick, false)
+        },
+        methods: {
+            onSelectNode (node) {
+                if (this.isNodeTypeHasSub(node)) {
+                    this.activeNodeType = node
+                    this.showNodeList = true
+                } else {
+                    if (this.isPinActived) return
+                    this.activeNodeType = null
+                    this.showNodeList = false
+                }
+                this.isCollapseAll = true
                 this.searchMode = false
+                this.searchStr = ''
+                this.$emit('show', this.showNodeList)
+            },
+            onClickPin () {
+                this.isPinActived = !this.isPinActived
+            },
+            handleOutOfMenuBarClick (event) {
+                const nodeListDOM = document.querySelector('.node-list')
+                if (this.showNodeList && !this.isPinActived && !domUtils.nodeContains(nodeListDOM, event.target)) {
+                    this.showNodeList = false
+                    this.$emit('show', this.showNodeList)
+                }
+            },
+            searchInputhandler () {
+                if (this.searchStr.length) {
+                    this.searchMode = true
+                    this.$emit('onSearchAtom', {
+                        type: this.activeNodeType,
+                        text: this.searchStr
+                    })
+                } else {
+                    this.searchMode = false
+                }
+            },
+            isNodeTypeHasSub (node) {
+                return nodeTypeSubList.indexOf(node) > -1
             }
-        },
-        isNodeTypeHasSub (node){
-            return nodeTypeSubList.indexOf(node) > -1
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -290,22 +291,24 @@ export default {
         }
     }
 }
-.common-icon-node-startpoint,
-.common-icon-node-endpoint{
-    display: flex;
+.node-circle{
+    margin: 0 auto;
     width: 32px;
     height: 32px;
-    margin: 12px;
+    line-height: 32px;
     font-size: 12px;
-    margin-bottom: 23px;
     border-radius: 50%;
     background-color: #ffffff;
     border: 1px solid #546a9e;
-    justify-content: center;
-    align-items: center;
 }
-.node-endpoint {
-    margin-top: 20px;
+.startpoint-unavailable,
+.endpoint-unavailable {
+    opacity: 0.3;
+    pointer-events: none;
+}
+.common-icon-node-tasknode,
+.common-icon-node-subflow {
+    font-size: 24px;
 }
 .node-list {
     position: absolute;
@@ -433,25 +436,5 @@ export default {
         }
         
     }
-}
-.startpoint-unavailable, .endpoint-unavailable {
-    display: flex;
-    width: 32px;
-    height: 32px;
-    line-height: 32px;
-    border-radius: 50%;
-    background-color: #ffffff;
-    border: 1px solid #546a9e;
-    justify-content: center;
-    align-items: center;
-    opacity: 0.3;
-    pointer-events: none;
-}
-.endpoint-unavailable {
-    margin-bottom: 12px;
-}
-.common-icon-node-tasknode,
-.common-icon-node-subflow {
-    font-size: 24px;
 }
 </style>
