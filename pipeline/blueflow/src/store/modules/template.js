@@ -47,7 +47,6 @@ function generateInitLocation () {
             type: 'endpoint'
         }
     ]
-
 }
 // 默认流程模板，activities 字段
 function generateInitActivities (location, line) {
@@ -174,8 +173,8 @@ const template = {
         setSubprocessUpdated (state, subflow) {
             state.subprocess_info.details.some(item => {
                 if (
-                    subflow.template_id === item.template_id &&
-                    subflow.subprocess_node_id === item.subprocess_node_id
+                    subflow.template_id === item.template_id
+                    && subflow.subprocess_node_id === item.subprocess_node_id
                 ) {
                     item.expired = false
                     subflow.version && (item.version = subflow.version)
@@ -204,7 +203,7 @@ const template = {
 
             pipelineTreeOrder.forEach(key => {
                 let val = pipelineData[key]
-                if (key !== 'constants'){
+                if (key !== 'constants') {
                     val = nodeFilter.convertInvalidIdData(key, val) // convert old invalid data =_=!
                 }
                 if (key === 'location') {
@@ -226,7 +225,6 @@ const template = {
                 }
                 state[key] = val
             })
-
         },
         setBusinessBaseInfo (state, data) {
             state.businessBaseInfo = data
@@ -256,7 +254,7 @@ const template = {
         // 重置模板数据
         resetTemplateData (state) {
             state.name = ''
-            state.activities  = {}
+            state.activities = {}
             state.end_event = {}
             state.flows = {}
             state.gateways = {}
@@ -287,7 +285,7 @@ const template = {
             const constant = state.constants[key]
             const { source_info } = constant
 
-            for (let id in source_info) {
+            for (const id in source_info) {
                 if (state.activities[id]) {
                     source_info[id].forEach(item => {
                         let data
@@ -310,7 +308,7 @@ const template = {
         },
         // 配置全局变量 source_info 字段
         setVariableSourceInfo (state, payload) {
-            const {type, id, key, tagCode} = payload
+            const { type, id, key, tagCode } = payload
             const constant = state.constants[key]
             if (!constant) return
             const sourceInfo = constant.source_info
@@ -325,7 +323,7 @@ const template = {
                     Vue.delete(sourceInfo, id)
                 } else {
                     let atomIndex
-                    sourceInfo[id].some((item, index)=> {
+                    sourceInfo[id].some((item, index) => {
                         if (item === tagCode) {
                             atomIndex = index
                             return true
@@ -337,7 +335,7 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const {id, nodeId, name} = condition
+            const { id, nodeId, name } = condition
             state.gateways[nodeId]['conditions'][id].evaluate = name
         },
         // 节点增加、删除、编辑操作，数据更新
@@ -364,7 +362,7 @@ const template = {
         },
         // 节点拖动，位置更新
         setLocationXY (state, location) {
-            const {id, x, y} = location
+            const { id, x, y } = location
             state.location.some(item => {
                 if (item.id === id) {
                     item.x = x
@@ -376,13 +374,11 @@ const template = {
         // 增加、删除节点连线操作，更新模板各相关字段数据
         setLine (state, payload) {
             const { type, line } = payload
-            let lineIndex
             const isLineExist = state.line.some((item, index) => {
                 if (
-                    item.source.id === line.source.id &&
-                    item.target.id === line.target.id
+                    item.source.id === line.source.id
+                    && item.target.id === line.target.id
                 ) {
-                    lineIndex = index
                     return true
                 }
             })
@@ -428,8 +424,8 @@ const template = {
                 state.line.push(newLine)
             } else if (type === 'delete') { // async activities、flows、gateways、start_event、end_event
                 let deletedLine
-                for (let item in state.flows) {
-                    const flow =  state.flows[item]
+                for (const item in state.flows) {
+                    const flow = state.flows[item]
                     if (flow.source === line.source.id && flow.target === line.target.id) {
                         deletedLine = Object.assign({}, flow)
                     }
@@ -444,7 +440,9 @@ const template = {
                 if (state.gateways[sourceNode]) {
                     const gatewayNode = state.gateways[sourceNode]
                     if (Array.isArray(gatewayNode.outgoing)) {
-                        gatewayNode.outgoing = gatewayNode.outgoing.filter(item => { return item !== deletedLine.id})
+                        gatewayNode.outgoing = gatewayNode.outgoing.filter(item => {
+                            return item !== deletedLine.id
+                        })
                         if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
                             const conditions = gatewayNode.conditions
                             conditions[deletedLine.id] && Vue.delete(conditions, deletedLine.id)
@@ -456,7 +454,9 @@ const template = {
                 if (state.gateways[targetNode]) {
                     const gatewayNode = state.gateways[targetNode]
                     if (Array.isArray(gatewayNode.incoming)) {
-                        gatewayNode.incoming = gatewayNode.incoming.filter(item => { return item !== deletedLine.id})
+                        gatewayNode.incoming = gatewayNode.incoming.filter(item => {
+                            return item !== deletedLine.id
+                        })
                     } else {
                         gatewayNode.incoming = ''
                     }
@@ -477,13 +477,13 @@ const template = {
                             },
                             error_ignorable: false,
                             id: location.id,
-                            incoming: "",
+                            incoming: '',
                             loop: null,
                             name: location.name,
                             optional: false,
-                            outgoing: "",
+                            outgoing: '',
                             stage_name: gettext('步骤1'),
-                            type: "ServiceActivity",
+                            type: 'ServiceActivity',
                             can_retry: true,
                             isSkipped: true
                         }
@@ -492,15 +492,15 @@ const template = {
                             constants: {},
                             hooked_constants: [],
                             id: location.id,
-                            incoming: "",
+                            incoming: '',
                             loop: null,
                             name: location.name,
                             optional: false,
-                            outgoing: "",
+                            outgoing: '',
                             stage_name: gettext('步骤1'),
                             template_id: location.atomId,
                             version: location.atomVersion,
-                            type: "SubProcess"
+                            type: 'SubProcess'
                         }
                     }
                 }
@@ -530,7 +530,9 @@ const template = {
                         if (state.gateways[sourceNode]) {
                             const gatewayNode = state.gateways[sourceNode]
                             if (Array.isArray(gatewayNode.outgoing)) {
-                                gatewayNode.outgoing = gatewayNode.outgoing.filter(item => { return item !== line})
+                                gatewayNode.outgoing = gatewayNode.outgoing.filter(item => {
+                                    return item !== line
+                                })
                                 if (gatewayNode.type === ATOM_TYPE_DICT['branchgateway']) {
                                     const conditions = gatewayNode.conditions
                                     conditions[line] && Vue.delete(conditions, line)
@@ -542,7 +544,9 @@ const template = {
                         if (state.gateways[targetNode]) {
                             const gatewayNode = state.gateways[targetNode]
                             if (Array.isArray(gatewayNode.incoming)) {
-                                gatewayNode.incoming = gatewayNode.incoming.filter(item => { return item !== line})
+                                gatewayNode.incoming = gatewayNode.incoming.filter(item => {
+                                    return item !== line
+                                })
                             } else {
                                 gatewayNode.incoming = ''
                             }
@@ -550,7 +554,7 @@ const template = {
                         Vue.delete(state.flows, line)
                     }
                 })
-                for (let cKey in state.constants) {
+                for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
 
@@ -603,7 +607,6 @@ const template = {
                                     return item !== line
                                 })
                             }
-
                         }
                         if (sourceGateway && sourceNode !== location.id) {
                             if (typeof sourceGateway.outgoing === 'string') {
@@ -630,16 +633,16 @@ const template = {
                 if (!state.start_event.id) {
                     state.start_event = {
                         id: location.id,
-                        incoming: "",
+                        incoming: '',
                         name: location.name,
-                        outgoing: "",
-                        type: "EmptyStartEvent"
+                        outgoing: '',
+                        type: 'EmptyStartEvent'
                     }
                 }
             } else if (type === 'delete') {
                 let targetNode
                 let lineId
-                for (let item in state.flows){
+                for (const item in state.flows) {
                     if (state.flows[item].source === location.id) {
                         targetNode = state.flows[item].target
                         lineId = state.flows[item].id
@@ -668,16 +671,16 @@ const template = {
                 if (!state.end_event.id) {
                     state.end_event = {
                         id: location.id,
-                        incoming: "",
+                        incoming: '',
                         name: location.name,
-                        outgoing: "",
-                        type: "EmptyEndEvent"
+                        outgoing: '',
+                        type: 'EmptyEndEvent'
                     }
                 }
             } else if (type === 'delete') {
                 let sourceNode
                 let lineId
-                for (let item in state.flows){
+                for (const item in state.flows) {
                     if (state.flows[item].target === location.id) {
                         sourceNode = state.flows[item].source
                         lineId = state.flows[item].id
@@ -717,7 +720,7 @@ const template = {
         // 修改state中的模板数据
         replaceTemplate (state, template) {
             if (template !== undefined) {
-                for (let prop in template) {
+                for (const prop in template) {
                     state[prop] = template[prop]
                 }
             }
@@ -725,7 +728,7 @@ const template = {
         // 修改lines和locations
         replaceLineAndLocation (state, payload) {
             //  需要做一次深层拷贝
-            const {lines, locations} = tools.deepClone(payload)
+            const { lines, locations } = tools.deepClone(payload)
             state.line = lines
             state.location = locations
         }
@@ -734,11 +737,11 @@ const template = {
         loadBusinessBaseInfo () {
             return api.getBusinessBaseInfo().then(response => response.data)
         },
-        loadTemplateData ({commit}, data) {
+        loadTemplateData ({ commit }, data) {
             return api.getTemplateData(data).then(response => response.data)
         },
         // 保存模板数据
-        saveTemplateData ({state}, {templateId, ccId, common}) {
+        saveTemplateData ({ state }, { templateId, ccId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type, time_out, category
             } = state
@@ -756,8 +759,15 @@ const template = {
             })
             // 完整的画布数据
             const fullCanvasData = JSON.stringify({
-                activities, constants, end_event, flows, gateways, line,
-                location: pureLocation, outputs,  start_event
+                activities,
+                constants,
+                end_event,
+                flows,
+                gateways,
+                line,
+                location: pureLocation,
+                outputs,
+                start_event
             })
             const data = {
                 ccId,
@@ -775,20 +785,20 @@ const template = {
             })
         },
         // 收藏模板，批量操作
-        templateCollectSelect ({commit}, list) {
+        templateCollectSelect ({ commit }, list) {
             return api.templateCollectSelect(list).then(response => response.data)
         },
         // 删除收藏模板，单个删除
-        templateCollectDelete ({commit}, id) {
+        templateCollectDelete ({ commit }, id) {
             return api.templateCollectDelete(id).then(response => response.data)
         },
-        queryTemplateData ({commit}, data) {
+        queryTemplateData ({ commit }, data) {
             return api.queryTemplate(data).then(response => response.data)
         },
-        loadTemplateSummary ({commit}, data) {
+        loadTemplateSummary ({ commit }, data) {
             return api.loadTemplateSummary(data).then(response => response.data)
         },
-        loadTemplateCollectList ({commit}) {
+        loadTemplateCollectList ({ commit }) {
             return api.loadTemplateCollectList().then(response => response.data)
         }
     },

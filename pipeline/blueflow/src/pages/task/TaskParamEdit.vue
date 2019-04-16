@@ -15,164 +15,162 @@
             ref="renderForm"
             v-if="!isConfigLoading"
             :scheme="renderConfig"
-            :formOption="renderOption"
+            :form-option="renderOption"
             v-model="renderData">
         </RenderForm>
         <NoData v-if="isNoData && !isConfigLoading"></NoData>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import atomFilter from '@/utils/atomFilter.js'
-import tools from '@/utils/tools.js'
-import { checkDataType } from '@/utils/checkDataType.js'
-import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-import NoData from '@/components/common/base/NoData.vue'
-export default {
-    name: 'TaskParamEdit',
-    components: {
-        RenderForm,
-        NoData
-    },
-    props: ['constants', 'editable'],
-    data () {
-        return {
-            variables: tools.deepClone(this.constants),
-            renderOption: {
-                showGroup: true,
-                showLabel: true,
-                showHook: false,
-                showDesc: true,
-                formEdit: this.editable
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import atomFilter from '@/utils/atomFilter.js'
+    import tools from '@/utils/tools.js'
+    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import NoData from '@/components/common/base/NoData.vue'
+    export default {
+        name: 'TaskParamEdit',
+        components: {
+            RenderForm,
+            NoData
+        },
+        props: ['constants', 'editable'],
+        data () {
+            return {
+                variables: tools.deepClone(this.constants),
+                renderOption: {
+                    showGroup: true,
+                    showLabel: true,
+                    showHook: false,
+                    showDesc: true,
+                    formEdit: this.editable
+                },
+                renderConfig: [],
+                metaConfig: {},
+                renderData: {},
+                isConfigLoading: true,
+                isNoData: false
+            }
+        },
+        computed: {
+            ...mapState({
+                'atomFormConfig': state => state.atomForm.config
+            })
+        },
+        watch: {
+            constants (val) {
+                this.variables = tools.deepClone(val)
+                this.getFormData()
             },
-            renderConfig: [],
-            metaConfig: {},
-            renderData: {},
-            isConfigLoading: true,
-            isNoData: false
-        }
-    },
-    computed: {
-        ...mapState({
-            'atomFormConfig': state => state.atomForm.config
-        })
-    },
-    watch: {
-        constants (val) {
-            this.variables = tools.deepClone(val)
+            editable (val) {
+                this.$set(this.renderOption, 'editable', val)
+            }
+        },
+        created () {
             this.getFormData()
         },
-        editable (val) {
-            this.$set(this.renderOption, 'editable', val)
-        }
-    },
-    created () {
-        this.getFormData()
-    },
-    methods: {
-        ...mapActions('atomForm/', [
-            'loadAtomConfig'
-        ]),
-        ...mapMutations ('atomForm/', [
-            'setAtomConfig'
-        ]),
-        ...mapMutations('atomForm/', [
-            'clearAtomForm'
-        ]),
-        /**
-         * 加载表单元素的标准插件配置文件
-         */
-        async getFormData () {
-            let variableArray = []
-            this.renderConfig = []
-            this.renderData = {}
-            for (let cKey in this.variables) {
-                const variable = tools.deepClone(this.variables[cKey])
-                // 输入参数只展示显示类型全局变量
-                if (variable.show_type === 'show') {
-                    variableArray.push(variable)
-                }
-            }
-            if (variableArray.length === 0) {
-                this.isNoData = true
-            } else {
-                this.isNoData = false
-            }
-            variableArray = variableArray.sort((a, b) => {
-                return a.index - b.index
-            })
-            for (let variable of variableArray) {
-                const { key, source_tag, custom_type } = variable
-                let atomType = ''
-                let tagCode = ''
-                let classify = ''
-                if (custom_type) {
-                    atomType = custom_type
-                    classify = 'variable'
-                } else {
-                    [ atomType, tagCode ] = source_tag.split('.')
-                    classify = 'component'
-                }
-                if (!this.atomFormConfig[atomType]) {
-                    this.isConfigLoading = true
-                    await this.loadAtomConfig({atomType, classify})
-                    this.setAtomConfig({atomType, configData: $.atoms[atomType]})
-                }
-                const atomConfig = this.atomFormConfig[atomType]
-                var currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                if (currentFormConfig) {
-                    // 若该变量是元变量则进行转换操作
-                    if (variable.is_meta || currentFormConfig.meta_transform) {
-                        currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                        this.metaConfig[key] = tools.deepClone(variable)
-                        if (!variable.meta) {
-                            variable.value = currentFormConfig.attrs.value
-                        }
+        beforeDestroy () {
+            this.clearAtomForm()
+        },
+        methods: {
+            ...mapActions('atomForm/', [
+                'loadAtomConfig'
+            ]),
+            ...mapMutations('atomForm/', [
+                'setAtomConfig'
+            ]),
+            ...mapMutations('atomForm/', [
+                'clearAtomForm'
+            ]),
+            /**
+             * 加载表单元素的标准插件配置文件
+             */
+            async getFormData () {
+                let variableArray = []
+                this.renderConfig = []
+                this.renderData = {}
+                for (const cKey in this.variables) {
+                    const variable = tools.deepClone(this.variables[cKey])
+                    // 输入参数只展示显示类型全局变量
+                    if (variable.show_type === 'show') {
+                        variableArray.push(variable)
                     }
-                    currentFormConfig.tag_code = key
-                    currentFormConfig.attrs.name = variable.name
-                    currentFormConfig.attrs.desc = variable.desc
-                    this.renderConfig.push(currentFormConfig)
                 }
-                this.renderData[key] = tools.deepClone(variable.value)
-            }
-            this.$nextTick(() => {
-                this.isConfigLoading = false
-                this.$emit('onChangeConfigLoading', false)
-            })
-        },
-        validate () {
-            return this.$refs.renderForm.validate()
-        },
-        getVariableData () {
-            const variables = tools.deepClone(this.constants)
-            for (let key in variables) {
-                const variable = variables[key]
-                if (key in this.renderData) {
-                    variable.value = this.renderData[key]
-                    variable.meta = this.metaConfig[key]
-                } else if (variable.is_meta) {
-                    const sourceTag = variable.source_tag
-                    const [ atomType, tagCode ] = sourceTag.split('.')
+
+                this.isNoData = !!variableArray.length
+               
+                variableArray = variableArray.sort((a, b) => {
+                    return a.index - b.index
+                })
+                
+                for (const variable of variableArray) {
+                    const { key, source_tag, custom_type } = variable
+                    let atomType = ''
+                    let tagCode = ''
+                    let classify = ''
+                    if (custom_type) {
+                        atomType = custom_type
+                        classify = 'variable'
+                    } else {
+                        [atomType, tagCode] = source_tag.split('.')
+                        classify = 'component'
+                    }
                     if (!this.atomFormConfig[atomType]) {
-                        this.loadAtomConfig({atomType})
-                        this.setAtomConfig({atomType, configData: $.atoms[atomType]})
+                        this.isConfigLoading = true
+                        await this.loadAtomConfig({ atomType, classify })
+                        this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
                     }
                     const atomConfig = this.atomFormConfig[atomType]
-                    var currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                    currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
-                    variable.meta = tools.deepClone(variable)
-                    variable.value = currentFormConfig.attrs.value
+                    let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                    if (currentFormConfig) {
+                        // 若该变量是元变量则进行转换操作
+                        if (variable.is_meta || currentFormConfig.meta_transform) {
+                            currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
+                            this.metaConfig[key] = tools.deepClone(variable)
+                            if (!variable.meta) {
+                                variable.value = currentFormConfig.attrs.value
+                            }
+                        }
+                        currentFormConfig.tag_code = key
+                        currentFormConfig.attrs.name = variable.name
+                        currentFormConfig.attrs.desc = variable.desc
+                        this.renderConfig.push(currentFormConfig)
+                    }
+                    this.renderData[key] = tools.deepClone(variable.value)
                 }
+                this.$nextTick(() => {
+                    this.isConfigLoading = false
+                    this.$emit('onChangeConfigLoading', false)
+                })
+            },
+            validate () {
+                return this.$refs.renderForm.validate()
+            },
+            getVariableData () {
+                const variables = tools.deepClone(this.constants)
+                for (const key in variables) {
+                    const variable = variables[key]
+                    if (key in this.renderData) {
+                        variable.value = this.renderData[key]
+                        variable.meta = this.metaConfig[key]
+                    } else if (variable.is_meta) {
+                        const sourceTag = variable.source_tag
+                        const [atomType, tagCode] = sourceTag.split('.')
+                        if (!this.atomFormConfig[atomType]) {
+                            this.loadAtomConfig({ atomType })
+                            this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                        }
+                        const atomConfig = this.atomFormConfig[atomType]
+                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                        currentFormConfig = currentFormConfig.meta_transform(variable.meta || variable)
+                        variable.meta = tools.deepClone(variable)
+                        variable.value = currentFormConfig.attrs.value
+                    }
+                }
+                return variables
             }
-            return variables
         }
-    },
-    beforeDestroy () {
-        this.clearAtomForm()
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -184,4 +182,3 @@ export default {
         }
     }
 </style>
-

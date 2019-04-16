@@ -9,6 +9,8 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
+import tools from '@/utils/tools.js'
+
 const gatewayShiftX = 210
 // 起始位置
 const startPointX = 40
@@ -75,17 +77,15 @@ let nowTier = -1
 // 用于计算线段比例
 let nextLineNodeY = 0
 
-import tools from '@/utils/tools.js'
-
 const formatPositionUtils = {
     formatPosition (oldLines, oldLocations) {
         lastLocations = oldLocations
         lines = oldLines
         overBorderLine = []
         // 分组信息
-        for (let line of lines) {
-            let sourceId = line.source.id
-            let targetId = line.target.id
+        for (const line of lines) {
+            const sourceId = line.source.id
+            const targetId = line.target.id
             if (group[sourceId]) {
                 group[sourceId].push(targetId)
             } else {
@@ -93,19 +93,17 @@ const formatPositionUtils = {
             }
         }
         // 循环旧节点
-        for (let location of oldLocations) {
-            let type = location['type']
+        for (const location of oldLocations) {
+            const type = location['type']
             if (type === 'startpoint') {
                 // 用于放置至最开始
                 lastPoint = location
                 nowId = location.id
-            }
-            else if (type === 'endpoint') {
+            } else if (type === 'endpoint') {
                 // 用于放置至最后
                 endPoint = location
-            }
-            else {
-                let locationId = location.id
+            } else {
+                const locationId = location.id
                 // 添加进入循环数组
                 newLocations[locationId] = location
                 // 获取一一对应的网关关系
@@ -113,24 +111,24 @@ const formatPositionUtils = {
                     gatewayCycleList[locationId] = {}
                     gatewayCycleExecute[locationId] = {}
                     // 递归获得分支或并行网关执行序列
-                    let [gatewayRecursionList] = this.recursionGateway(gatewayStack, locationId, oldLocations)
-                    for (let x in gatewayRecursionList) {
-                        for (let y in gatewayRecursionList[x]) {
-                            let nodeId = gatewayRecursionList[x][y]
+                    const [gatewayRecursionList] = this.recursionGateway(gatewayStack, locationId, oldLocations)
+                    for (const x in gatewayRecursionList) {
+                        for (const y in gatewayRecursionList[x]) {
+                            const nodeId = gatewayRecursionList[x][y]
                             gatewayCycleList[locationId][nodeId] = oldLocations.find(location => location.id === nodeId)
                         }
                         // 用于控制递归继续执行序列
                         // 需要减去最后的多余的结束节点数量
-                        gatewayCycleExecute[locationId][x] =  gatewayRecursionList[x].length - 1
+                        gatewayCycleExecute[locationId][x] = gatewayRecursionList[x].length - 1
                     }
                 }
             }
         }
         // 清除多余的locations中的相关节点
-        for (let x in gatewayCycleList){
-            for (let y in gatewayCycleList[x]) {
-                for (let z in gatewayCycleList[x][y]){
-                    let id = gatewayCycleList[x][y][z]
+        for (const x in gatewayCycleList) {
+            for (const y in gatewayCycleList[x]) {
+                for (const z in gatewayCycleList[x][y]) {
+                    const id = gatewayCycleList[x][y][z]
                     if (newLocations[id] === undefined) {
                         continue
                     }
@@ -141,7 +139,7 @@ const formatPositionUtils = {
         // 重新赋值节点位置
         locations = []
         // 先添加起始节点
-        let locationJson = tools.deepClone(lastPoint)
+        const locationJson = tools.deepClone(lastPoint)
         // 绘制开始节点
         locationJson['x'] = startPointX
         locationJson['y'] = startPointY
@@ -153,7 +151,7 @@ const formatPositionUtils = {
         // 结束节点最后绘制
         this.computeAndDrawNode(endPoint)
         // 需要重新赋值全局变量 防止第二次点击编排按钮时出现问题
-        const result = {'lines': lines, 'locations': locations, 'overBorderLine': overBorderLine}
+        const result = { 'lines': lines, 'locations': locations, 'overBorderLine': overBorderLine }
         this.initData()
         return result
     },
@@ -166,22 +164,22 @@ const formatPositionUtils = {
      */
     recursionGateway (gatewayStack, locationId, oldLocations, tier = 0) {
         // 全部分支递归分支数组
-        let gatewayRecursionList = []
+        const gatewayRecursionList = []
         // 获取网关的执行序列
-        let groupLocationList = group[locationId]
+        const groupLocationList = group[locationId]
         // 某一条分支的递归数组
         let recursionList = []
         // 当前id
         let findId = null
 
-        for (let locationIndex in groupLocationList) {
+        for (const locationIndex in groupLocationList) {
             gatewayStack.push(locationId)
             // 获得网关的第一个节点
             findId = groupLocationList[locationIndex]
             while (true) {
                 // 获取节点
-                let findLocation = oldLocations.find(location => location.id === findId)
-                let findType = findLocation['type']
+                const findLocation = oldLocations.find(location => location.id === findId)
+                const findType = findLocation['type']
                 if (findType === 'convergegateway') {
                     // 继续进行下一条分支 只有最后一次需要执行下面的逻辑
                     if (locationIndex + 1 !== groupLocationList.length) {
@@ -189,16 +187,14 @@ const formatPositionUtils = {
                         recursionList.push(findId)
                         break
                     }
-                }
-                else if (findType === 'parallelgateway' || findType === 'branchgateway') {
+                } else if (findType === 'parallelgateway' || findType === 'branchgateway') {
                     tier++
                     recursionList.push(findId)
                     // 进行递归 获取网关中最后节点
-                    let result = this.recursionGateway(gatewayStack, findId, oldLocations, tier)
+                    const result = this.recursionGateway(gatewayStack, findId, oldLocations, tier)
                     // 需要传递网关最后的节点
                     findId = result[1]
-                }
-                else {
+                } else {
                     recursionList.push(findId)
                 }
                 // 继续找下一个节点
@@ -216,24 +212,26 @@ const formatPositionUtils = {
      * @param {*} newLastNodeX 当前x值
      * @param {*} newLastNodeY 当前y值
      */
-    recursionData (newLocations, newLastNodeX = null , newLastNodeY = null) {
+    recursionData (newLocations, newLastNodeX = null, newLastNodeY = null) {
         // 循环执行节点
-        for (let i in newLocations) {
+        /* eslint-disable */
+        for (const i in newLocations) {
+        /* eslint-enable */
             // 某个节点的下一个执行序列
-            let lastList = group[nowId]
+            const lastList = group[nowId]
             // 出现undefined或空节点即可结束
             if (lastList === undefined || newLocations[lastList[0]] === undefined) {
                 break
             }
             // 上一个Id
-            let lastId = nowId
+            const lastId = nowId
             if (newLastNodeX === null) {
                 newLastNodeX = lastNodeX
             }
             if (newLastNodeY === null) {
                 newLastNodeY = lastNodeY
             }
-            let executeLength = lastList.length
+            const executeLength = lastList.length
             for (let executeNodeIndex = 0; executeNodeIndex < executeLength; executeNodeIndex++) {
                 nowId = lastList[executeNodeIndex]
                 let location = newLocations[nowId]
@@ -298,18 +296,18 @@ const formatPositionUtils = {
                 }
                 // 绘制汇聚网关
                 if (executeNodeIndex + 1 === executeLength && executeNodeIndex > 0) {
-                    let location = newLocations[gatewayGroup[lastId]]
+                    const location = newLocations[gatewayGroup[lastId]]
                     // 存储层级及最大高度
                     // 获得最大的X位置
                     const nowTierMaxWidth = convergegatewayMaxWidthTier[nowTier]
-                    if (nowTierMaxWidth){
+                    if (nowTierMaxWidth) {
                         convergegatewayMaxWidthTier[nowTier] = nowTierMaxWidth
                     } else {
                         convergegatewayMaxWidthTier[nowTier] = lastNodeX
                     }
                     const [resultNodeX] = this.computeAndDrawNode(location, executeLength, 0, convergegatewayMaxWidthTier[nowTier], newLastNodeY)
-                    if (nowTierMaxWidth){
-                        convergegatewayMaxWidthTier[nowTier] =  Math.max(resultNodeX, nowTierMaxWidth)
+                    if (nowTierMaxWidth) {
+                        convergegatewayMaxWidthTier[nowTier] = Math.max(resultNodeX, nowTierMaxWidth)
                     } else {
                         convergegatewayMaxWidthTier[nowTier] = resultNodeX
                     }
@@ -333,14 +331,14 @@ const formatPositionUtils = {
      * @param {*} gatewayIndex 节点所处网关节点的inex
      * @param {*} gatewayCycleExecuteLength 网关执行序列长度
      */
-    computeAndDrawNode (location, executeLength = null, executeNodeIndex = 0, newLastNodeX = null , newLastNodeY = null, gatewayIndex = 0, gatewayCycleExecuteLength = 0) {
+    computeAndDrawNode (location, executeLength = null, executeNodeIndex = 0, newLastNodeX = null, newLastNodeY = null, gatewayIndex = 0, gatewayCycleExecuteLength = 0) {
         if (location === undefined) {
             // 空节点不需要继续
             return
         }
         // 拷贝一份location用于替换x,y值
-        let locationJson = tools.deepClone(location)
-        let type = location['type']
+        const locationJson = tools.deepClone(location)
+        const type = location['type']
         if (type === 'tasknode' || type === 'subflow') {
             // 是否是在网关中的节点
             let gatewayFlag = null
@@ -352,15 +350,15 @@ const formatPositionUtils = {
             }
             // 在网关当中
             if (gatewayFlag) {
-                let nodeY = newLastNodeY - deviationY
+                const nodeY = newLastNodeY - deviationY
                 newLastNodeX += shiftX * 1.2
                 locationJson['x'] = newLastNodeX
                 locationJson['y'] = nodeY
                 locations.push(locationJson)
                 gatewayShiftYList.push(nodeY + deviationY)
 
-                let sourceLine = lines.find(line => line.target.id === location.id)
-                let targetLine = lines.find(line => line.source.id === location.id)
+                const sourceLine = lines.find(line => line.target.id === location.id)
+                const targetLine = lines.find(line => line.source.id === location.id)
                 // 入线模式尾箭头为左入
                 sourceLine.target.arrow = 'Left'
                 if (executeNodeIndex === 0) {
@@ -373,7 +371,7 @@ const formatPositionUtils = {
                         // 网关第N行（N>2）第一个节点
                         sourceLine.source.arrow = 'Bottom'
                         targetLine.source.arrow = 'Right'
-                        if ( gatewayCycleExecuteLength === 1) {
+                        if (gatewayCycleExecuteLength === 1) {
                             // 只有一个节点 连线需要接到汇聚网关下方
                             targetLine.target.arrow = 'Bottom'
                         } else {
@@ -422,13 +420,13 @@ const formatPositionUtils = {
             // 添加网关信号 用于重置Y轴值
             resetGatewayList.push(true)
             // 修改输出的箭头方向
-            let targetLine = lines.find(line => line.target.id === location.id)
+            const targetLine = lines.find(line => line.target.id === location.id)
             targetLine.target.arrow = 'Left'
             if (executeNodeIndex === 0) {
                 targetLine.source.arrow = 'Right'
             } else {
                 // 上一个节点的type
-                const {type: lastNodeType} = this.getPreviousPoint(location.id)
+                const { type: lastNodeType } = this.getPreviousPoint(location.id)
                 if (lastNodeType === 'parallelgateway' || lastNodeType === 'branchgateway') {
                     targetLine.source.arrow = 'Bottom'
                 } else {
@@ -470,7 +468,7 @@ const formatPositionUtils = {
                     newLastNodeX = lastNodeX
                     isStartPoint = false
                     const line = lines.find(line => line.target.id === location.id)
-                    this.addOverBorderLine({'source': line.source.id, 'target': line.target.id})
+                    this.addOverBorderLine({ 'source': line.source.id, 'target': line.target.id })
                 } else {
                     newLastNodeX += shiftX * 1.5
                     locationJson['x'] = newLastNodeX
@@ -486,9 +484,9 @@ const formatPositionUtils = {
                     locationJson['x'] = lastNodeX
                     isStartPoint = false
                     const line = lines.find(line => line.target.id === location.id)
-                    this.addOverBorderLine({'source': line.source.id, 'target': line.target.id})
+                    this.addOverBorderLine({ 'source': line.source.id, 'target': line.target.id })
                 } else {
-                    lastNodeX +=  shiftX / 1.2
+                    lastNodeX += shiftX / 1.2
                     locationJson['x'] = lastNodeX
                 }
                 locationJson['y'] = lastNodeY
@@ -511,14 +509,13 @@ const formatPositionUtils = {
             delete convergegatewayMaxWidthTier[nowTier]
             nowTier--
             return [lastNodeX, null]
-
         } else if (type === 'convergegateway') {
             resetGatewayList.pop()
             // 更换分支网关连接线段箭头
             const sourceLine = lines.find(line => line.target.id === location.id)
             const targetLine = lines.find(line => line.source.id === location.id)
             targetLine.source.arrow = 'Right'
-            if (lastLocations.find(location => sourceLine.source.id === location.id).type === 'convergegateway'){
+            if (lastLocations.find(location => sourceLine.source.id === location.id).type === 'convergegateway') {
                 // 设置连接分支网关的线在左部
                 sourceLine.target.arrow = 'Left'
             }
@@ -541,17 +538,16 @@ const formatPositionUtils = {
             } else {
                 return [lastNodeX, lastNodeY]
             }
-        }
-        else if (type === 'endpoint') {
+        } else if (type === 'endpoint') {
             // 需要切换箭头
-            let line = lines.find(line => line.target.id === location.id)
+            const line = lines.find(line => line.target.id === location.id)
             line.target.arrow = 'Left'
             line.source.arrow = 'Right'
             if (isStartPoint) {
                 lastNodeX = startPointX
                 isStartPoint = false
                 const line = lines.find(line => line.target.id === location.id)
-                this.addOverBorderLine({'source': line.source.id, 'target': line.target.id})
+                this.addOverBorderLine({ 'source': line.source.id, 'target': line.target.id })
             } else if (lastPointType === 'tasknode' || lastPointType === 'subflow' || lastPointType === 'startpoint') {
                 // 结束节点前是个标准插件节点需要增加1.5倍距离
                 lastNodeX += shiftX * 1.5
@@ -562,7 +558,6 @@ const formatPositionUtils = {
             locationJson['x'] = lastNodeX
             locationJson['y'] = lastNodeY
             locations.push(locationJson)
-            return
         }
     },
     isOverBorder () {
@@ -629,12 +624,12 @@ const formatPositionUtils = {
     },
     isLocationAllNode (locations) {
         const typeList = ['startpoint', 'endpoint', 'tasknode', 'subflow']
-        return locations.every((location) =>{
+        return locations.every((location) => {
             return typeList.includes(location.type)
         })
     },
-    addOverBorderLine ({source, target}) {
-        overBorderLine.push({'source': source, 'target': target ,'midpoint': Number(gatewayShiftY / nextLineNodeY).toFixed(2)})
+    addOverBorderLine ({ source, target }) {
+        overBorderLine.push({ 'source': source, 'target': target, 'midpoint': Number(gatewayShiftY / nextLineNodeY).toFixed(2) })
         gatewayShiftY = 0
     }
 }

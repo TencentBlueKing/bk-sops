@@ -10,15 +10,15 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-ip-selector" v-bkloading="{isLoading: loading, opacity: 1}">
+    <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div v-if="formMode" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
                 :editable="editable"
-                :isMultiple="isMultiple"
-                :staticIpList="staticIpList"
-                :dynamicIpList="dynamicIpList"
-                :topoModelList="topoModelList"
+                :is-multiple="isMultiple"
+                :static-ip-list="staticIpList"
+                :dynamic-ip-list="dynamicIpList"
+                :topo-model-list="topoModelList"
                 v-model="ipValue">
             </ip-selector>
         </div>
@@ -26,103 +26,103 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import {mapActions} from 'vuex'
-import { getFormMixins } from '../formMixins.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-import IpSelector from '../IpSelector/index.vue'
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { getFormMixins } from '../formMixins.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import IpSelector from '../IpSelector/index.vue'
 
-const intAttrs = {
-    isMultiple: {
-        type: Boolean,
-        required: false,
-        default: true,
-        desc: 'checkbox or radio'
-    },
-    value: {
-        type: [Object],
-        required: false,
-        default () {
+    const intAttrs = {
+        isMultiple: {
+            type: Boolean,
+            required: false,
+            default: true,
+            desc: 'checkbox or radio'
+        },
+        value: {
+            type: [Object],
+            required: false,
+            default () {
+                return {
+                    selectors: [],
+                    ip: [],
+                    topo: [],
+                    filters: [],
+                    excludes: []
+                }
+            }
+        }
+    }
+    export default {
+        name: 'TagIp_selector',
+        components: {
+            IpSelector
+        },
+        mixins: [getFormMixins(intAttrs)],
+        data () {
             return {
-                selectors: [],
-                ip: [],
-                topo: [],
-                filters: [],
-                excludes: []
+                loading: true,
+                staticIpList: [],
+                dynamicIpList: [],
+                topoModelList: []
             }
-        }
-    }
-}
-export default {
-    name: 'TagIp_selector',
-    components: {
-        IpSelector
-    },
-    mixins: [getFormMixins(intAttrs)],
-    data () {
-        return {
-            loading: true,
-            staticIpList: [],
-            dynamicIpList: [],
-            topoModelList: []
-        }
-    },
-    computed: {
-        ipValue: {
-            get () {
-                return this.value
+        },
+        computed: {
+            ipValue: {
+                get () {
+                    return this.value
+                },
+                set (val) {
+                    this.updateForm(val)
+                }
             },
-            set (val) {
-                this.updateForm(val)
+            viewValue () {
+                let val = ''
+                this.ipValue.selectors.forEach(selector => {
+                    if (selector === 'ip') {
+                        val += this.ipValue[selector].map(item => item.bk_host_innerip).join('; ')
+                    }
+                    if (selector === 'topo') {
+                        val += this.ipValue[selector].map(item => item.bk_inst_id).join('; ')
+                    }
+                })
+                return val || '--'
             }
         },
-        viewValue () {
-            let val = ''
-            this.ipValue.selectors.forEach(selector => {
-                if (selector === 'ip') {
-                    val += this.ipValue[selector].map(item => item.bk_host_innerip).join('; ')
-                }
-                if (selector === 'topo') {
-                    val += this.ipValue[selector].map(item => item.bk_inst_id).join('; ')
-                }
-            })
-            return val || '--'
-        }
-    },
-    created () {
-        this.getData()
-    },
-    methods: {
-        ...mapActions([
-            'getHostInCC',
-            'getTopoTreeInCC',
-            'getTopoModelInCC'
-        ]),
-        getData () {
-            this.loading = true
-            const staticIpExtraFields = ['agent']
-
-            Promise.all([
-                this.getHostInCC(staticIpExtraFields),
-                this.getTopoTreeInCC(),
-                this.getTopoModelInCC()
-            ]).then(values => {
-                if (Array.isArray(values)) {
-                    this.staticIpList = (values[0] && values[0].data) || []
-                    this.dynamicIpList = (values[1] && values[1].data) || []
-                    this.topoModelList = (values[2] && values[2].data) || []
-                }
-                this.loading = false
-            }).catch(e => {
-                this.loading = false
-                errorHandler(e, this)
-            })
+        created () {
+            this.getData()
         },
-        customValidate () {
-            return this.$refs.ipSelector.validate()
+        methods: {
+            ...mapActions([
+                'getHostInCC',
+                'getTopoTreeInCC',
+                'getTopoModelInCC'
+            ]),
+            getData () {
+                this.loading = true
+                const staticIpExtraFields = ['agent']
+
+                Promise.all([
+                    this.getHostInCC(staticIpExtraFields),
+                    this.getTopoTreeInCC(),
+                    this.getTopoModelInCC()
+                ]).then(values => {
+                    if (Array.isArray(values)) {
+                        this.staticIpList = (values[0] && values[0].data) || []
+                        this.dynamicIpList = (values[1] && values[1].data) || []
+                        this.topoModelList = (values[2] && values[2].data) || []
+                    }
+                    this.loading = false
+                }).catch(e => {
+                    this.loading = false
+                    errorHandler(e, this)
+                })
+            },
+            customValidate () {
+                return this.$refs.ipSelector.validate()
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {

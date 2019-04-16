@@ -23,10 +23,10 @@
         <div slot="content" class="template-container">
             <div
                 v-if="selectTemplateLoading || templateList.length" class="dialog-centent"
-                v-bkloading="{isLoading: submitting || selectTemplateLoading, opacity: 1}">
+                v-bkloading="{ isLoading: submitting || selectTemplateLoading, opacity: 1 }">
                 <div class="template-wrapper">
                     <div class="template-search">
-                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput"/>
+                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
                         <i class="common-icon-search"></i>
                     </div>
                     <div class="template-list">
@@ -46,7 +46,7 @@
                                             v-for="item in group.list"
                                             :key="item.id"
                                             @click="onSelectTemplate(item)">
-                                            <span :class="['checkbox', {checked: getItemStatus(item.id)}]"></span>
+                                            <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
                                             {{item.name}}
                                         </li>
                                     </ul>
@@ -60,7 +60,7 @@
                                     :key="item.id"
                                     @click="onSelectTemplate(item)"
                                     class="template-item">
-                                    <span :class="['checkbox', {checked: getItemStatus(item.id)}]"></span>
+                                    <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
                                     {{item.name}}
                                 </li>
                             </ul>
@@ -106,106 +106,105 @@
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-import toolsUtils from '@/utils/tools.js'
-import NoData from '@/components/common/base/NoData.vue'
-import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
-export default {
-    name: 'SelectTemplateDialog',
-    components: {
-        NoData
-    },
-    props: ['cc_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading'],
-    data () {
-        const selectedTemplate = this.quickTaskList.slice(0)
-        return {
-            isShow: false,
-            selectedTemplate,
-            searchMode: false,
-            searchStr: '',
-            searchList: [],
-            i18n: {
-                placeholder: gettext('请输入流程名称'),
-                addTasks: gettext('添加常用流程'),
-                selected: gettext('已选择'),
-                num: gettext('项'),
-                maxSelect: gettext('，最多可选'),
-                noSearchResult: gettext('搜索结果为空'),
-                noTemplate: gettext('该业务下暂无流程，'),
-                createTemplate: gettext('立即创建')
+    import '@/utils/i18n.js'
+    import toolsUtils from '@/utils/tools.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    export default {
+        name: 'SelectTemplateDialog',
+        components: {
+            NoData
+        },
+        props: ['cc_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading'],
+        data () {
+            const selectedTemplate = this.quickTaskList.slice(0)
+            return {
+                isShow: false,
+                selectedTemplate,
+                searchMode: false,
+                searchStr: '',
+                searchList: [],
+                i18n: {
+                    placeholder: gettext('请输入流程名称'),
+                    addTasks: gettext('添加常用流程'),
+                    selected: gettext('已选择'),
+                    num: gettext('项'),
+                    maxSelect: gettext('，最多可选'),
+                    noSearchResult: gettext('搜索结果为空'),
+                    noTemplate: gettext('该业务下暂无流程，'),
+                    createTemplate: gettext('立即创建')
+                }
             }
-        }
-    },
-    watch: {
-        isSelectTemplateDialogShow (val) {
-            this.isShow = val
         },
-        quickTaskList (val) {
-            this.selectedTemplate = val.slice(0)
-        }
-    },
-    computed: {
-        activeTemplateGrouped () {
-            return this.templateGrouped.filter(group =>{
-                return group.list.length
-            })
-        }
-    },
-    created () {
-        this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-    },
-    methods: {
-        getItemStatus (id) {
-            return this.selectedTemplate.some(item => item.id === id)
-        },
-        searchInputhandler () {
-            if (this.searchStr.length) {
-                this.searchMode = true
-                const reg = new RegExp(this.searchStr, 'g')
-                this.searchList = this.templateList.filter(item => {
-                    return reg.test(item.name)
+        computed: {
+            activeTemplateGrouped () {
+                return this.templateGrouped.filter(group => {
+                    return group.list.length
                 })
-            } else {
-                this.searchMode = false
-                this.searchList = []
             }
         },
-        onSelectTemplate (template) {
-            let index
-            const isSelected = this.selectedTemplate.some((item, i) => {
-                if (item.id === template.id) {
-                    index = i
-                    return true
-                }
-            })
-            if (isSelected) {
-                this.selectedTemplate.splice(index, 1)
-            } else {
-                if (this.selectedTemplate.length === 10) {
-                    this.$bkMessage({
-                        message: gettext('最多只能添加10项'),
-                        theme: 'warning'
+        watch: {
+            isSelectTemplateDialogShow (val) {
+                this.isShow = val
+            },
+            quickTaskList (val) {
+                this.selectedTemplate = val.slice(0)
+            }
+        },
+        created () {
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
+        methods: {
+            getItemStatus (id) {
+                return this.selectedTemplate.some(item => item.id === id)
+            },
+            searchInputhandler () {
+                if (this.searchStr.length) {
+                    this.searchMode = true
+                    const reg = new RegExp(this.searchStr, 'g')
+                    this.searchList = this.templateList.filter(item => {
+                        return reg.test(item.name)
                     })
-                    return
+                } else {
+                    this.searchMode = false
+                    this.searchList = []
                 }
-                this.selectedTemplate.push(template)
-            }
-        },
-        onConfirm () {
-            this.$emit('confirm', this.selectedTemplate)
-        },
-        onCancel () {
-            this.selectedTemplate = this.quickTaskList.slice(0)
-            this.$emit('cancel')
-        },
-        deleteTemplate (template) {
-            const deleteIndex = this.selectedTemplate.findIndex(item => item.id === template.id)
-            if (deleteIndex > -1) {
-                this.selectedTemplate.splice(deleteIndex, 1)[0]
+            },
+            onSelectTemplate (template) {
+                let index
+                const isSelected = this.selectedTemplate.some((item, i) => {
+                    if (item.id === template.id) {
+                        index = i
+                        return true
+                    }
+                })
+                if (isSelected) {
+                    this.selectedTemplate.splice(index, 1)
+                } else {
+                    if (this.selectedTemplate.length === 10) {
+                        this.$bkMessage({
+                            message: gettext('最多只能添加10项'),
+                            theme: 'warning'
+                        })
+                        return
+                    }
+                    this.selectedTemplate.push(template)
+                }
+            },
+            onConfirm () {
+                this.$emit('confirm', this.selectedTemplate)
+            },
+            onCancel () {
+                this.selectedTemplate = this.quickTaskList.slice(0)
+                this.$emit('cancel')
+            },
+            deleteTemplate (template) {
+                const deleteIndex = this.selectedTemplate.findIndex(item => item.id === template.id)
+                if (deleteIndex > -1) {
+                    this.selectedTemplate.splice(deleteIndex, 1)
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
@@ -377,4 +376,3 @@ export default {
     padding: 0px;
 }
 </style>
-

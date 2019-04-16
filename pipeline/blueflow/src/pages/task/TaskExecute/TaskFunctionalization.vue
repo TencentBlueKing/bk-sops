@@ -11,7 +11,7 @@
 */
 <template>
     <div class="functionalization-wrapper">
-        <div :class="['task-info', {'functor-task-info': this.userType === 'functor'}]">
+        <div :class="['task-info', { 'functor-task-info': userType === 'functor' }]">
             <span class="task-info-title">{{ i18n.task_info }}</span>
             <div class="task-info-division-line"></div>
             <div class="common-form-item">
@@ -41,7 +41,7 @@
                 :constants="pipelineData.constants">
             </TaskParamEdit>
         </div>
-         <div class="action-wrapper">
+        <div class="action-wrapper">
             <bk-button
                 class="preview-button"
                 @click="onShowPreviewDialog">
@@ -69,9 +69,9 @@
             <div slot="content">
                 <NodePreview
                     ref="nodePreviewRef"
-                    :previewDataLoading="previewDataLoading"
-                    :canvasData="formatCanvasData(previewData)"
-                    :previewBread="previewBread"
+                    :preview-data-loading="previewDataLoading"
+                    :canvas-data="formatCanvasData(previewData)"
+                    :preview-bread="previewBread"
                     @onNodeClick="onNodeClick"
                     @onSelectSubflow="onSelectSubflow">
                 </NodePreview>
@@ -80,150 +80,151 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapActions, mapMutations } from 'vuex'
-import tools from '@/utils/tools.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-import NoData from '@/components/common/base/NoData.vue'
-import BaseInput from '@/components/common/base/BaseInput.vue'
-import TaskParamEdit from '../TaskParamEdit.vue'
-import NodePreview from '../NodePreview.vue'
+    import '@/utils/i18n.js'
+    import { mapState, mapActions } from 'vuex'
+    import tools from '@/utils/tools.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import BaseInput from '@/components/common/base/BaseInput.vue'
+    import TaskParamEdit from '../TaskParamEdit.vue'
+    import NodePreview from '../NodePreview.vue'
 
-export default {
-    name: 'TaskFunctionalization',
-    inject: ['reload'],
-    components: {
-        NoData,
-        BaseInput,
-        TaskParamEdit,
-        NodePreview
-    },
-    props: ['cc_id','template_id','instance_id', 'instanceFlow', 'instanceName'],
-    data () {
-        return {
-            i18n: {
-                task_info: gettext('任务信息'),
-                taskName: gettext('任务名称'),
-                params: gettext('参数信息'),
-                preview: gettext('预览'),
-                claim: gettext('认领'),
-                taskPreview: gettext('任务流程预览')
-            },
-            isSubmit: false,
-            previewDialogShow: false,
-            previewDataLoading: false,
-            name: this.instanceName,
-            nodeSwitching: false,
-            pipelineData: JSON.parse(this.instanceFlow),
-            previewData: JSON.parse(this.instanceFlow),
-            taskNameRule: {
-                required: true,
-                max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
-                regex: NAME_REG
-            },
-            previewBread: []
-        }
-    },
-    computed: {
-        ...mapState({
-            'userType': state => state.userType
-        }),
-        isVariableEmpty () {
-            return Object.keys(this.pipelineData.constants).length === 0
-        }
-    },
-    methods: {
-        ...mapActions('task/', [
-            'claimFuncTask'
-        ]),
-        formatCanvasData (pipelineData) {
-            const {lines, locations, gateways} = pipelineData
-            const branchConditions = {}
-            for (let gKey in gateways) {
-                const item = gateways[gKey]
-                if (item.conditions) {
-                    branchConditions[item.id] = Object.assign({}, item.conditions)
-                }
-            }
+    export default {
+        name: 'TaskFunctionalization',
+        inject: ['reload'],
+        components: {
+            NoData,
+            BaseInput,
+            TaskParamEdit,
+            NodePreview
+        },
+        props: ['cc_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        data () {
             return {
-                lines: pipelineData.line,
-                locations: pipelineData.location.map(item => {return {...item, mode: 'preview', checked: true}}),
-                branchConditions
+                i18n: {
+                    task_info: gettext('任务信息'),
+                    taskName: gettext('任务名称'),
+                    params: gettext('参数信息'),
+                    preview: gettext('预览'),
+                    claim: gettext('认领'),
+                    taskPreview: gettext('任务流程预览')
+                },
+                isSubmit: false,
+                previewDialogShow: false,
+                previewDataLoading: false,
+                name: this.instanceName,
+                nodeSwitching: false,
+                pipelineData: JSON.parse(this.instanceFlow),
+                previewData: JSON.parse(this.instanceFlow),
+                taskNameRule: {
+                    required: true,
+                    max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
+                previewBread: []
             }
         },
-        updateCanvas () {
-            this.previewDataLoading = true
-            this.$nextTick(() => {
-                this.previewDataLoading = false
-            })
+        computed: {
+            ...mapState({
+                'userType': state => state.userType
+            }),
+            isVariableEmpty () {
+                return Object.keys(this.pipelineData.constants).length === 0
+            }
         },
-        onTaskClaim () {
-            if (this.isSubmit) return
-            this.isSubmit = true
-            this.$validator.validateAll().then(async (result) => {
-                if (!result) return
-                const formData = {}
-                if (this.$refs.TaskParamEdit) {
-                    const variables = this.$refs.TaskParamEdit.getVariableData()
-                    for (let key in variables) {
-                        formData[key] = variables[key].value
+        methods: {
+            ...mapActions('task/', [
+                'claimFuncTask'
+            ]),
+            formatCanvasData (pipelineData) {
+                const { line, location, gateways } = pipelineData
+                const branchConditions = {}
+                for (const gKey in gateways) {
+                    const item = gateways[gKey]
+                    if (item.conditions) {
+                        branchConditions[item.id] = Object.assign({}, item.conditions)
                     }
                 }
-                const data = {
-                    name: this.name,
-                    instance_id: this.instance_id,
-                    constants: JSON.stringify(formData)
+                return {
+                    lines: line,
+                    locations: location.map(item => {
+                        return { ...item, mode: 'preview', checked: true }
+                    }),
+                    branchConditions
                 }
-                try {
-                    const res = await this.claimFuncTask(data)
-                    if (res.result) {
-                        this.reload()
-                    } else {
+            },
+            updateCanvas () {
+                this.previewDataLoading = true
+                this.$nextTick(() => {
+                    this.previewDataLoading = false
+                })
+            },
+            onTaskClaim () {
+                if (this.isSubmit) return
+                this.isSubmit = true
+                this.$validator.validateAll().then(async (result) => {
+                    if (!result) return
+                    const formData = {}
+                    if (this.$refs.TaskParamEdit) {
+                        const variables = this.$refs.TaskParamEdit.getVariableData()
+                        for (const key in variables) {
+                            formData[key] = variables[key].value
+                        }
+                    }
+                    const data = {
+                        name: this.name,
+                        instance_id: this.instance_id,
+                        constants: JSON.stringify(formData)
+                    }
+                    try {
+                        const res = await this.claimFuncTask(data)
+                        if (res.result) {
+                            this.reload()
+                        } else {
+                            errorHandler(res, this)
+                        }
+                    } catch (e) {
                         errorHandler(e, this)
+                    } finally {
+                        this.isSubmit = false
                     }
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.isSubmit = false
+                })
+            },
+            onShowPreviewDialog () {
+                this.previewBread.push({
+                    name: this.name,
+                    data: this.previewData
+                })
+                this.previewDialogShow = true
+            },
+            onCancel () {
+                this.previewDialogShow = false
+                this.previewDataLoading = false
+                this.previewData = tools.deepClone(this.pipelineData)
+                this.previewBread = []
+            },
+            onSelectSubflow (data, index) {
+                this.previewData = data
+                this.previewBread.splice(index + 1)
+                this.updateCanvas()
+            },
+            onNodeClick (id) {
+                const activity = this.previewData.activities[id]
+                if (!activity || activity.type !== 'SubProcess') {
+                    return
                 }
-            })
-        },
-        onShowPreviewDialog () {
-            this.previewBread.push({
-                name: this.name,
-                data: this.previewData
-            })
-            this.previewDialogShow = true
-        },
-        onCancel () {
-            this.previewDialogShow = false
-            this.previewDataLoading = false
-            this.previewData = tools.deepClone(this.pipelineData)
-            this.previewBread = []
-        },
-        onSelectSubflow (data, index) {
-            this.previewData = data
-            this.previewBread.splice(index + 1)
-            this.updateCanvas()
-        },
-        onNodeClick (id) {
-            const activity = this.previewData.activities[id]
-            if (!activity || activity.type !== 'SubProcess') {
-                return
-            }
             
-            const templateId = activity.template_id
-            const previewData = activity.pipeline
-            this.previewBread.push({
-                data: previewData,
-                name: activity.name
-            })
-            this.previewData = previewData
-            this.updateCanvas()
+                const previewData = activity.pipeline
+                this.previewBread.push({
+                    data: previewData,
+                    name: activity.name
+                })
+                this.previewData = previewData
+                this.updateCanvas()
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';

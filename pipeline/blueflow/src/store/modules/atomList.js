@@ -19,10 +19,10 @@ const atomList = {
         searchAtomResult: []
     },
     mutations: {
-        setSingleAtom (state, data){
+        setSingleAtom (state, data) {
             state.singleAtom = [...data]
         },
-        setSubAtom (state, data){
+        setSubAtom (state, data) {
             state.subAtom = [...data]
         },
         searchAtom (state, payload) {
@@ -38,13 +38,13 @@ const atomList = {
         }
     },
     actions: {
-        loadSingleAtomList ({commit}) {
+        loadSingleAtomList ({ commit }) {
             return api.getSingleAtomList().then(response => response.data.objects)
         },
-        loadSubAtomList ({commit}, data) {
+        loadSubAtomList ({ commit }, data) {
             return api.getSubAtomList(data).then(response => response.data.objects)
         },
-        queryAtomData ({commit}, data) {
+        queryAtomData ({ commit }, data) {
             return api.queryAtom(data).then(response => response.data)
         }
     },

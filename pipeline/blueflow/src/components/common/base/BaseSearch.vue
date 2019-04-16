@@ -18,35 +18,35 @@
                 <i class="bk-icon icon-up-shape search-up-shape" v-if="shapeShow"></i>
             </div>
         </span>
-        <input class="search-input" :value="value" :placeholder="inputPlaceholader" @input="onInput"/>
+        <input class="search-input" :value="value" :placeholder="inputPlaceholader" @input="onInput" />
         <i class="common-icon-search"></i>
     </div>
 </template>
 
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'BaseSearch',
-    props: ['inputPlaceholader', 'value'],
-    data () {
-        return {
-            i18n: {
-                advancedSearch: gettext('高级搜索')
-            },
-            isAdvancedSerachShow: false,
-            shapeShow: false
-        }
-    },
-    methods: {
-        onShow () {
-            this.$emit('onShow', this.isAdvancedSerachShow)
-            this.shapeShow = !this.shapeShow
+    import '@/utils/i18n.js'
+    export default {
+        name: 'BaseSearch',
+        props: ['inputPlaceholader', 'value'],
+        data () {
+            return {
+                i18n: {
+                    advancedSearch: gettext('高级搜索')
+                },
+                isAdvancedSerachShow: false,
+                shapeShow: false
+            }
         },
-        onInput (e) {
-            this.$emit('input', e.target.value)
+        methods: {
+            onShow () {
+                this.$emit('onShow', this.isAdvancedSerachShow)
+                this.shapeShow = !this.shapeShow
+            },
+            onInput (e) {
+                this.$emit('input', e.target.value)
+            }
         }
     }
-}
 </script>
 
 <style lang='scss'>

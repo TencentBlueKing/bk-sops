@@ -16,17 +16,17 @@
     }">
         <TaskStep
             :list="stepList"
-            :currentStep="currentStep">
+            :current-step="currentStep">
         </TaskStep>
         <component
             :ref="currentComponent"
             :is="currentComponent"
-            :currentStep="currentStep"
+            :current-step="currentStep"
             :cc_id="cc_id"
             :common="common"
             :template_id="template_id"
-            :excludeNode="excludeNode"
-            :previewData="previewData"
+            :exclude-node="excludeNode"
+            :preview-data="previewData"
             @setFunctionalStep="setFunctionalStep"
             @setPeriodicStep="setPeriodicStep"
             @setPreviewData="setPreviewData"
@@ -35,134 +35,134 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import TaskStep from '../TaskStep.vue'
-import TaskSelectNode from './TaskSelectNode.vue'
-import TaskParamFill from './TaskParamFill.vue'
-import tools from '@/utils/tools.js'
+    import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
+    import TaskStep from '../TaskStep.vue'
+    import TaskSelectNode from './TaskSelectNode.vue'
+    import TaskParamFill from './TaskParamFill.vue'
+    import tools from '@/utils/tools.js'
 
-const STEP_DICT = [
-    {
-        step: 'selectnode',
-        name: gettext('节点选择'),
-        component: 'TaskSelectNode'
-    },
-    {
-        step: 'paramfill',
-        name: gettext('参数填写'),
-        component: 'TaskParamFill'
-    },
-    {
-        step: 'taskexecute',
-        name: gettext('任务执行')
-    }
-]
-export default {
-    name: 'TaskCreate',
-    components: {
-        TaskStep,
-        TaskSelectNode,
-        TaskParamFill
-    },
-    props: ['template_id', 'cc_id', 'step' ,'common'],
-    data () {
-        return {
-            stepList: STEP_DICT.slice(),
-            hasFunctionalStep: false,
-            hasPeriodicTask: false,
-            previewData: [],
-            excludeNode: []
-        }
-    },
-    computed: {
-        ...mapState({
-            locations: state => state.template.location,
-            lines: state => state.template.line,
-            userType: state => state.userType
-        }),
-        currentStep () {
-            return this.step || 'selectnode'
+    const STEP_DICT = [
+        {
+            step: 'selectnode',
+            name: gettext('节点选择'),
+            component: 'TaskSelectNode'
         },
-        currentComponent () {
-            return this.stepList.filter(item => item.step === this.currentStep)[0].component
+        {
+            step: 'paramfill',
+            name: gettext('参数填写'),
+            component: 'TaskParamFill'
+        },
+        {
+            step: 'taskexecute',
+            name: gettext('任务执行')
         }
-    },
-    watch: {
-        hasFunctionalStep (val) {
-            if (val) {
-                this.appendFunctionalization()
-            } else {
-                let stepIndex
-                this.stepList.some((item, index) => {
-                    if (item.step === 'functionalization') {
-                        stepIndex = index
-                        return true
+    ]
+    export default {
+        name: 'TaskCreate',
+        components: {
+            TaskStep,
+            TaskSelectNode,
+            TaskParamFill
+        },
+        props: ['template_id', 'cc_id', 'step', 'common'],
+        data () {
+            return {
+                stepList: STEP_DICT.slice(),
+                hasFunctionalStep: false,
+                hasPeriodicTask: false,
+                previewData: [],
+                excludeNode: []
+            }
+        },
+        computed: {
+            ...mapState({
+                locations: state => state.template.location,
+                lines: state => state.template.line,
+                userType: state => state.userType
+            }),
+            currentStep () {
+                return this.step || 'selectnode'
+            },
+            currentComponent () {
+                return this.stepList.filter(item => item.step === this.currentStep)[0].component
+            }
+        },
+        watch: {
+            hasFunctionalStep (val) {
+                if (val) {
+                    this.appendFunctionalization()
+                } else {
+                    let stepIndex
+                    this.stepList.some((item, index) => {
+                        if (item.step === 'functionalization') {
+                            stepIndex = index
+                            return true
+                        }
+                    })
+                    if (stepIndex) {
+                        this.stepList.splice(stepIndex, 1)
                     }
-                })
-                if (stepIndex) {
-                    this.stepList.splice(stepIndex, 1)
+                }
+            },
+            hasPeriodicTask (val) {
+                if (!val) {
+                    this.stepList.push({
+                        step: 'taskexecute',
+                        name: gettext('任务执行')
+                    })
+                } else if (!val.periodicType) {
+                    this.deletePeriodicCurrentStep()
+                } else if (val.periodicType && val.functionalType) {
+                    this.stepList.splice(2, 0, {
+                        step: 'functionalization',
+                        name: gettext('职能化认领'),
+                        component: 'TaskParamFill'
+                    })
+                    this.stepList.push({
+                        step: 'taskexecute',
+                        name: gettext('任务执行')
+                    })
+                } else {
+                    this.stepList.push({
+                        step: 'taskexecute',
+                        name: gettext('任务执行')
+                    })
                 }
             }
         },
-        hasPeriodicTask (val) {
-            if (!val) {
-                this.stepList.push({
-                    step: 'taskexecute',
-                    name: gettext('任务执行')
-                })
-            } else if (!val.periodicType) {
-                this.deletePeriodicCurrentStep()
-            } else if (val.periodicType && val.functionalType) {
+        mounted () {
+            if (this.userType === 'functor') {
+                this.setFunctionalStep(true)
+            }
+        },
+        methods: {
+            appendFunctionalization () {
                 this.stepList.splice(2, 0, {
                     step: 'functionalization',
                     name: gettext('职能化认领'),
                     component: 'TaskParamFill'
                 })
-                this.stepList.push({
-                    step: 'taskexecute',
-                    name: gettext('任务执行')
-                })
-            } else {
-                this.stepList.push({
-                    step: 'taskexecute',
-                    name: gettext('任务执行')
-                })
+            },
+            setFunctionalStep (isSelectFunctionalType) {
+                this.hasFunctionalStep = isSelectFunctionalType
+            },
+            setPeriodicStep (isSelectPeriodicType) {
+                this.hasPeriodicTask = isSelectPeriodicType
+            },
+            deletePeriodicCurrentStep () {
+                while (this.stepList.length !== 2) {
+                    this.stepList.pop()
+                }
+            },
+            setPreviewData (previewData) {
+                this.previewData = tools.deepClone(previewData)
+            },
+            setExcludeNode (excludeNode) {
+                this.excludeNode = excludeNode
             }
-        }
-    },
-    mounted () {
-        if (this.userType === 'functor') {
-            this.setFunctionalStep(true)
-        }
-    },
-    methods: {
-        appendFunctionalization () {
-            this.stepList.splice(2, 0, {
-                step: 'functionalization',
-                name: gettext('职能化认领'),
-                component: 'TaskParamFill'
-            })
-        },
-        setFunctionalStep (isSelectFunctionalType) {
-            this.hasFunctionalStep = isSelectFunctionalType
-        },
-        setPeriodicStep (isSelectPeriodicType) {
-            this.hasPeriodicTask = isSelectPeriodicType
-        },
-        deletePeriodicCurrentStep () {
-            while (this.stepList.length !== 2) {
-                this.stepList.pop()
-            }
-        },
-        setPreviewData (previewData) {
-            this.previewData = tools.deepClone(previewData)
-        },
-        setExcludeNode (excludeNode) {
-            this.excludeNode = excludeNode
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     .task-create-container {

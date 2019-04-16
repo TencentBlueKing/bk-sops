@@ -15,7 +15,7 @@
             <BaseTitle :title="i18n.task_list"></BaseTitle>
             <BaseSearch
                 v-model="flowName"
-                :inputPlaceholader="i18n.taskNamePlaceholder"
+                :input-placeholader="i18n.taskNamePlaceholder"
                 @onShow="onAdvanceShow"
                 @input="onSearchInput">
             </BaseSearch>
@@ -65,15 +65,15 @@
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder"/>
+                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.executor}}</span>
-                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder"/>
+                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder" />
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.status}}</span>
-                                <bk-selector
+                            <bk-selector
                                 :placeholder="i18n.statusPlaceholder"
                                 :list="statusList"
                                 :selected.sync="statusSync"
@@ -91,7 +91,7 @@
                 </fieldset>
             </div>
             <div class="task-table-content">
-                <table v-bkloading="{isLoading: listLoading, opacity: 1}">
+                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <thead>
                         <tr>
                             <th class="task-id">ID</th>
@@ -133,7 +133,7 @@
                         </tr>
                         <tr v-if="!taskList || !taskList.length" class="empty-tr">
                             <td colspan="10">
-                                <div class="empty-data"><NoData/></div>
+                                <div class="empty-data"><NoData /></div>
                             </td>
                         </tr>
                     </tbody>
@@ -153,8 +153,8 @@
         <CopyrightFooter></CopyrightFooter>
         <TaskCloneDialog
             v-if="isTaskCloneDialogShow"
-            :isTaskCloneDialogShow="isTaskCloneDialogShow"
-            :taskName="theCloneTaskName"
+            :is-task-clone-dialog-show="isTaskCloneDialogShow"
+            :task-name="theCloneTaskName"
             :pending="pending.clone"
             @confirm="onCloneConfirm"
             @cancel="onCloneCancel">
@@ -169,395 +169,393 @@
             :is-show.sync="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div slot="content" class="dialog-content" v-bkloading="{isLoading: pending.delete, opacity: 1}">
+            <div slot="content" class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
                 {{i18n.deleleTip + '"' + theDeleteTaskName + '"?'}}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import toolsUtils from '@/utils/tools.js'
-import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
-import BaseTitle from '@/components/common/base/BaseTitle.vue'
-import BaseSearch from '@/components/common/base/BaseSearch.vue'
-import NoData from '@/components/common/base/NoData.vue'
-import moment from 'moment-timezone'
-import TaskCloneDialog from './TaskCloneDialog.vue'
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import toolsUtils from '@/utils/tools.js'
+    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
+    import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import NoData from '@/components/common/base/NoData.vue'
+    import moment from 'moment-timezone'
+    import TaskCloneDialog from './TaskCloneDialog.vue'
 
-export default {
-    name: 'TaskList',
-    components: {
-        CopyrightFooter,
-        BaseTitle,
-        BaseSearch,
-        NoData,
-        TaskCloneDialog
-    },
-    props: ['cc_id', 'common', 'create_method'],
-    data () {
-        return {
-            listLoading: true,
-            templateId: this.$route.query.template_id,
-            taskCategory: [],
-            activeTaskCategory: undefined, // 任务类型筛选
-            searchStr: '',
-            executeStatus: [], // 任务执行状态
-            currentPage: 1,
-            totalPage: 1,
-            countPerPage: 15,
-            totalCount: 0,
-            isDeleteDialogShow: false,
-            shapeShow: false,
-            isAdvancedSerachShow: false,
-            theDeleteTaskId: undefined,
-            theDeleteTaskName: '',
-            isTaskCloneDialogShow: false,
-            theCloneTaskName: '',
-            theCloneTaskId: undefined,
-            pending: {
-                delete: false,
-                clone: false
-            },
-            i18n: {
-                allCategory: gettext("全部"),
-                placeholder: gettext("请输入ID或任务名称"),
-                task_list: gettext("任务记录"),
-                task_name: gettext("任务名称"),
-                start_time: gettext("执行开始"),
-                finish_time: gettext("执行结束"),
-                task_type: gettext("任务分类"),
-                creator: gettext("创建人"),
-                executor: gettext("执行人"),
-                status: gettext("状态"),
-                operation: gettext("操作"),
-                clone: gettext("克隆"),
-                delete: gettext("删除"),
-                deleleTip: gettext("确认删除"),
-                total: gettext("共"),
-                item: gettext("条记录"),
-                comma: gettext("，"),
-                currentPageTip: gettext("当前第"),
-                page: gettext("页"),
-                taskNamePlaceholder: gettext('请输入任务名称'),
-                taskTypePlaceholder: gettext('请选择分类'),
-                creatorPlaceholder: gettext('请输入创建人'),
-                executorPlaceholder: gettext('请输入执行人'),
-                statusPlaceholder: gettext('请选择状态'),
-                query: gettext('搜索'),
-                reset: gettext('清空'),
-                status: gettext('状态'),
-                createMethod: gettext('创建方式'),
-                createMethodApp: gettext('应用内'),
-                createMethodAppmaker: gettext('轻应用'),
-                createMethodPlaceholder: gettext('请选择创建方式'),
-                advanceSearch: gettext('高级搜索'),
-                executing: gettext('执行中'),
-                pauseState: gettext('暂停')
-            },
-            executeStartTime: undefined,
-            executeEndTime: undefined,
-            flowName: undefined,
-            category: undefined,
-            creator: undefined,
-            executor: undefined,
-            taskSync: 0,
-            statusList: [
-                {'id': 'nonExecution', 'name': gettext('未执行')},
-                {'id': 'runing', 'name': gettext('未完成')},
-                {'id': 'finished', 'name': gettext('完成')}
-            ],
-            taskBasicInfoLoading: true,
-            isStarted: undefined,
-            isFinished: undefined,
-            statusSync: 0,
-            taskCreateMethodList: [],
-            createMethodSync: 0,
-            createMethod: undefined
-        }
-    },
-    computed: {
-        ...mapState({
-            taskList: state => state.taskList.taskListData,
-            businessTimezone: state => state.businessTimezone
-        })
-    },
-    created () {
-        this.getData()
-        this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-    },
-    methods: {
-        ...mapActions('template/', [
-            'loadBusinessBaseInfo'
-        ]),
-        ...mapActions('task/', [
-            'getInstanceStatus',
-            'loadCreateMethod'
-        ]),
-        ...mapActions('taskList/', [
-            'loadTaskList',
-            'deleteTask',
-            'cloneTask'
-        ]),
-        ...mapMutations('template/', [
-            'setBusinessBaseInfo'
-        ]),
-        ...mapMutations('taskList/', [
-            'setTaskListData'
-        ]),
-        async getTaskList () {
-            // 空字符串需要转换为undefined，undefined数据在axios请求发送过程中会被删除
-            if (this.executeStartTime === '') {
-                this.executeStartTime = undefined
+    export default {
+        name: 'TaskList',
+        components: {
+            CopyrightFooter,
+            BaseTitle,
+            BaseSearch,
+            NoData,
+            TaskCloneDialog
+        },
+        props: ['cc_id', 'common', 'create_method'],
+        data () {
+            return {
+                listLoading: true,
+                templateId: this.$route.query.template_id,
+                taskCategory: [],
+                activeTaskCategory: undefined, // 任务类型筛选
+                searchStr: '',
+                executeStatus: [], // 任务执行状态
+                currentPage: 1,
+                totalPage: 1,
+                countPerPage: 15,
+                totalCount: 0,
+                isDeleteDialogShow: false,
+                shapeShow: false,
+                isAdvancedSerachShow: false,
+                theDeleteTaskId: undefined,
+                theDeleteTaskName: '',
+                isTaskCloneDialogShow: false,
+                theCloneTaskName: '',
+                theCloneTaskId: undefined,
+                pending: {
+                    delete: false,
+                    clone: false
+                },
+                i18n: {
+                    allCategory: gettext('全部'),
+                    placeholder: gettext('请输入ID或任务名称'),
+                    task_list: gettext('任务记录'),
+                    task_name: gettext('任务名称'),
+                    start_time: gettext('执行开始'),
+                    finish_time: gettext('执行结束'),
+                    task_type: gettext('任务分类'),
+                    creator: gettext('创建人'),
+                    executor: gettext('执行人'),
+                    status: gettext('状态'),
+                    operation: gettext('操作'),
+                    clone: gettext('克隆'),
+                    delete: gettext('删除'),
+                    deleleTip: gettext('确认删除'),
+                    total: gettext('共'),
+                    item: gettext('条记录'),
+                    comma: gettext('，'),
+                    currentPageTip: gettext('当前第'),
+                    page: gettext('页'),
+                    taskNamePlaceholder: gettext('请输入任务名称'),
+                    taskTypePlaceholder: gettext('请选择分类'),
+                    creatorPlaceholder: gettext('请输入创建人'),
+                    executorPlaceholder: gettext('请输入执行人'),
+                    statusPlaceholder: gettext('请选择状态'),
+                    query: gettext('搜索'),
+                    reset: gettext('清空'),
+                    createMethod: gettext('创建方式'),
+                    createMethodApp: gettext('应用内'),
+                    createMethodAppmaker: gettext('轻应用'),
+                    createMethodPlaceholder: gettext('请选择创建方式'),
+                    advanceSearch: gettext('高级搜索'),
+                    executing: gettext('执行中'),
+                    pauseState: gettext('暂停')
+                },
+                executeStartTime: undefined,
+                executeEndTime: undefined,
+                flowName: undefined,
+                category: undefined,
+                creator: undefined,
+                executor: undefined,
+                taskSync: 0,
+                statusList: [
+                    { 'id': 'nonExecution', 'name': gettext('未执行') },
+                    { 'id': 'runing', 'name': gettext('未完成') },
+                    { 'id': 'finished', 'name': gettext('完成') }
+                ],
+                taskBasicInfoLoading: true,
+                isStarted: undefined,
+                isFinished: undefined,
+                statusSync: 0,
+                taskCreateMethodList: [],
+                createMethodSync: 0,
+                createMethod: undefined
             }
-            this.listLoading = true
-            this.executeStatus = []
-            try {
+        },
+        computed: {
+            ...mapState({
+                taskList: state => state.taskList.taskListData,
+                businessTimezone: state => state.businessTimezone
+            })
+        },
+        created () {
+            this.getData()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
+        methods: {
+            ...mapActions('template/', [
+                'loadBusinessBaseInfo'
+            ]),
+            ...mapActions('task/', [
+                'getInstanceStatus',
+                'loadCreateMethod'
+            ]),
+            ...mapActions('taskList/', [
+                'loadTaskList',
+                'deleteTask',
+                'cloneTask'
+            ]),
+            ...mapMutations('template/', [
+                'setBusinessBaseInfo'
+            ]),
+            ...mapMutations('taskList/', [
+                'setTaskListData'
+            ]),
+            async getTaskList () {
+                // 空字符串需要转换为undefined，undefined数据在axios请求发送过程中会被删除
+                if (this.executeStartTime === '') {
+                    this.executeStartTime = undefined
+                }
+                this.listLoading = true
+                this.executeStatus = []
+                try {
+                    const data = {
+                        limit: this.countPerPage,
+                        offset: (this.currentPage - 1) * this.countPerPage,
+                        category: this.activeTaskCategory,
+                        template_id: this.templateId,
+                        common: this.common,
+                        pipeline_instance__creator__contains: this.creator,
+                        pipeline_instance__executor__contains: this.executor,
+                        pipeline_instance__name__contains: this.flowName,
+                        pipeline_instance__is_started: this.isStarted,
+                        pipeline_instance__is_finished: this.isFinished,
+                        create_method: this.createMethod || this.create_method
+                    }
+                    if (this.executeEndTime) {
+                        if (this.common) {
+                            data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
+                            data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
+                        } else {
+                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                        }
+                    }
+                    const taskListData = await this.loadTaskList(data)
+                    const list = taskListData.objects
+                    this.totalCount = taskListData.meta.total_count
+                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
+                    this.executeStatus = list.map((item, index) => {
+                        const status = {}
+                        if (item.is_finished) {
+                            status.cls = 'finished bk-icon icon-check-circle-shape'
+                            status.text = gettext('完成')
+                        } else if (item.is_started) {
+                            status.cls = 'loading common-icon-loading'
+                            this.getExecuteDetail(item, index)
+                        } else {
+                            status.cls = 'created common-icon-dark-circle-shape'
+                            status.text = gettext('未执行')
+                        }
+                        return status
+                    })
+                    this.setTaskListData(list)
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.listLoading = false
+                }
+            },
+            async getExecuteDetail (task, index) {
                 const data = {
-                    limit: this.countPerPage,
-                    offset: (this.currentPage - 1) * this.countPerPage,
-                    category: this.activeTaskCategory,
-                    template_id: this.templateId,
-                    common: this.common,
-                    pipeline_instance__creator__contains: this.creator,
-                    pipeline_instance__executor__contains: this.executor,
-                    pipeline_instance__name__contains: this.flowName,
-                    pipeline_instance__is_started: this.isStarted,
-                    pipeline_instance__is_finished: this.isFinished,
-                    create_method: this.createMethod || this.create_method
+                    instance_id: task.id,
+                    cc_id: task.business.cc_id
                 }
-                if (this.executeEndTime) {
-                    if (this.common) {
-                        data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
-                        data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1','d').format('YYYY-MM-DD')
+                try {
+                    const detailInfo = await this.getInstanceStatus(data)
+                    if (detailInfo.result) {
+                        const state = detailInfo.data.state
+                        const status = {}
+                        switch (state) {
+                            case 'RUNNING':
+                            case 'BLOCKED':
+                                status.cls = 'running common-icon-dark-circle-ellipsis'
+                                status.text = gettext('执行中')
+                                break
+                            case 'SUSPENDED':
+                                status.cls = 'execute common-icon-dark-circle-pause'
+                                status.text = gettext('暂停')
+                                break
+                            case 'NODE_SUSPENDED':
+                                status.cls = 'execute'
+                                status.text = gettext('节点暂停')
+                                break
+                            case 'FAILED':
+                                status.cls = 'failed common-icon-dark-circle-close'
+                                status.text = gettext('失败')
+                                break
+                            case 'REVOKED':
+                                status.cls = 'revoke common-icon-dark-circle-shape'
+                                status.text = gettext('撤销')
+                                break
+                            default:
+                                status.text = gettext('未知')
+                        }
+                        this.executeStatus.splice(index, 1, status)
                     } else {
-                        data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                        data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1','d').format('YYYY-MM-DD')
+                        errorHandler(detailInfo, this)
                     }
+                } catch (e) {
+                    errorHandler(e, this)
                 }
-                const taskListData = await this.loadTaskList(data)
-                const list = taskListData.objects
-                this.totalCount = taskListData.meta.total_count
-                const totalPage = Math.ceil( this.totalCount / this.countPerPage)
-                if (!totalPage) {
-                    this.totalPage = 1
-                } else {
-                    this.totalPage = totalPage
+            },
+            async getBizBaseInfo () {
+                try {
+                    const bizBasicInfo = await this.loadBusinessBaseInfo()
+                    this.taskCategory = bizBasicInfo.task_categories
+                    this.setBusinessBaseInfo(bizBasicInfo)
+                    this.taskBasicInfoLoading = false
+                } catch (e) {
+                    errorHandler(e, this)
                 }
-                this.executeStatus = list.map((item, index) => {
-                    const status = {}
-                    if (item.is_finished) {
-                        status.cls = 'finished bk-icon icon-check-circle-shape'
-                        status.text = gettext('完成')
-                    } else if (item.is_started) {
-                        status.cls = 'loading common-icon-loading'
-                        this.getExecuteDetail(item, index)
-                    } else {
-                        status.cls = 'created common-icon-dark-circle-shape'
-                        status.text = gettext('未执行')
+            },
+            onCategoryClick (category) {
+                this.activeTaskCategory = category
+                this.currentPage = 1
+                this.getTaskList()
+            },
+            searchInputhandler () {
+                this.currentPage = 1
+                this.getTaskList()
+            },
+            onDeleteTask (id, name) {
+                this.theDeleteTaskId = id
+                this.theDeleteTaskName = name
+                this.isDeleteDialogShow = true
+            },
+            async onDeleteConfirm () {
+                if (this.pending.delete) return
+                this.pending.delete = true
+                try {
+                    await this.deleteTask(this.theDeleteTaskId)
+                    this.theDeleteTaskId = undefined
+                    this.theDeleteTaskName = ''
+                    this.isDeleteDialogShow = false
+                    // 最后一页最后一条删除后，往前翻一页
+                    if (
+                        this.currentPage > 1
+                        && this.totalPage === this.currentPage
+                        && this.totalCount - (this.totalPage - 1) * this.countPerPage === 1
+                    ) {
+                        this.currentPage -= 1
                     }
-                    return status
-                })
-                this.setTaskListData(list)
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.listLoading = false
-            }
-        },
-        async getExecuteDetail (task, index) {
-            const data = {
-                instance_id: task.id,
-                cc_id: task.business.cc_id
-            }
-            try {
-                const detailInfo = await this.getInstanceStatus(data)
-                if (detailInfo.result) {
-                    const state = detailInfo.data.state
-                    const status = {}
-                    switch (state) {
-                        case 'RUNNING':
-                        case 'BLOCKED':
-                            status.cls = 'running common-icon-dark-circle-ellipsis'
-                            status.text = gettext('执行中')
-                            break
-                        case 'SUSPENDED':
-                            status.cls = 'execute common-icon-dark-circle-pause'
-                            status.text = gettext('暂停')
-                            break
-                        case 'NODE_SUSPENDED':
-                            status.cls = 'execute'
-                            status.text = gettext('节点暂停')
-                            break
-                        case 'FAILED':
-                            status.cls = 'failed common-icon-dark-circle-close'
-                            status.text = gettext('失败')
-                            break
-                        case 'REVOKED':
-                            status.cls = 'revoke common-icon-dark-circle-shape'
-                            status.text = gettext('撤销')
-                            break
-                        default:
-                            status.text = gettext('未知')
-                    }
-                    this.executeStatus.splice(index, 1, status)
-                } else {
-                    errorHandler(detailInfo, this)
+                    await this.getTaskList()
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.delete = false
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            }
-        },
-        async getBizBaseInfo () {
-            try {
-                const bizBasicInfo = await this.loadBusinessBaseInfo()
-                this.taskCategory = bizBasicInfo.task_categories
-                this.setBusinessBaseInfo(bizBasicInfo)
-                this.taskBasicInfoLoading = false
-
-            } catch (e) {
-                errorHandler(e, this)
-            }
-        },
-        onCategoryClick (category) {
-            this.activeTaskCategory = category
-            this.currentPage = 1
-            this.getTaskList()
-        },
-        searchInputhandler () {
-            this.currentPage = 1
-            this.getTaskList()
-        },
-        onDeleteTask (id, name) {
-            this.theDeleteTaskId = id
-            this.theDeleteTaskName = name
-            this.isDeleteDialogShow = true
-        },
-        async onDeleteConfirm () {
-            if (this.pending.delete) return
-            this.pending.delete = true
-            try {
-                await this.deleteTask(this.theDeleteTaskId)
+            },
+            onDeleteCancel () {
                 this.theDeleteTaskId = undefined
                 this.theDeleteTaskName = ''
                 this.isDeleteDialogShow = false
-                // 最后一页最后一条删除后，往前翻一页
-                if (
-                    this.currentPage > 1 &&
-                    this.totalPage === this.currentPage &&
-                    this.totalCount - (this.totalPage - 1) * this.countPerPage === 1
-                ) {
-                    this.currentPage -= 1
+            },
+            onCloneTaskClick (id, name) {
+                this.isTaskCloneDialogShow = true
+                this.theCloneTaskId = id
+                this.theCloneTaskName = name
+            },
+            async onCloneConfirm (name) {
+                if (this.pending.clone) return
+                this.pending.clone = true
+                const config = {
+                    name,
+                    task_id: this.theCloneTaskId
                 }
-                await this.getTaskList()
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.delete = false
+                try {
+                    const data = await this.cloneTask(config)
+                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: data.data.new_instance_id } })
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            onCloneCancel () {
+                this.isTaskCloneDialogShow = false
+                this.theCloneTaskName = ''
+            },
+            onClearCategory () {
+                this.activeTaskCategory = undefined
+            },
+            onSelectedCategory (name, value) {
+                this.activeTaskCategory = name
+            },
+            onSelectedCreateMethod (name, value) {
+                this.createMethod = name
+            },
+            onSelectedStatus (id, name) {
+                this.isStarted = id !== 'nonExecution'
+                this.isFinished = id === 'finished'
+            },
+            onClearCreateMethod () {
+                this.createMethod = undefined
+            },
+            onClearStatus () {
+                this.isStarted = undefined
+                this.isFinished = undefined
+            },
+            onPageChange (page) {
+                this.currentPage = page
+                this.getTaskList()
+            },
+            onResetForm () {
+                this.$refs.bkRanger.clear()
+                this.isStarted = undefined
+                this.isFinished = undefined
+                this.createMethod = undefined
+                this.creator = undefined
+                this.executor = undefined
+                this.flowName = undefined
+                this.createMethodSync = 0
+                this.statusSync = 0
+                this.taskSync = 0
+                this.executeStartTime = undefined
+                this.executeEndTime = undefined
+            },
+            onChangeExecuteTime (oldValue, newValue) {
+                const timeArray = newValue.split(' - ')
+                this.executeStartTime = timeArray[0]
+                this.executeEndTime = timeArray[1]
+            },
+            async getCreateMethod () {
+                try {
+                    const createMethodData = await this.loadCreateMethod()
+                    this.taskCreateMethodList = createMethodData.data
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            async getData () {
+                Promise.all([
+                    this.getTaskList(),
+                    this.getCreateMethod(),
+                    this.getBizBaseInfo()
+                ]).catch(e => {
+                    errorHandler(e, this)
+                })
+            },
+            transformCreateMethod (value) {
+                if (this.taskCreateMethodList.length === 0) {
+                    return ''
+                }
+                const taskCreateMethod = this.taskCreateMethodList.find((taskCreateMethod) => taskCreateMethod['value'] === value)
+                return taskCreateMethod['name']
+            },
+            onAdvanceShow () {
+                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
             }
-        },
-        onDeleteCancel () {
-            this.theDeleteTaskId = undefined
-            this.theDeleteTaskName = ''
-            this.isDeleteDialogShow = false
-        },
-        onCloneTaskClick (id, name) {
-            this.isTaskCloneDialogShow = true
-            this.theCloneTaskId = id
-            this.theCloneTaskName = name
-        },
-        async onCloneConfirm (name) {
-            if (this.pending.clone) return
-            this.pending.clone = true
-            const config = {
-                name,
-                task_id: this.theCloneTaskId
-            }
-            try {
-                const data = await this.cloneTask(config)
-                this.$router.push({path: `/taskflow/execute/${this.cc_id}/`, query: {instance_id: data.data.new_instance_id}})
-            } catch (e) {
-                errorHandler(e, this)
-            }
-        },
-        onCloneCancel () {
-            this.isTaskCloneDialogShow = false
-            this.theCloneTaskName = ''
-        },
-        onClearCategory () {
-            this.activeTaskCategory = undefined
-        },
-        onSelectedCategory (name, value) {
-            this.activeTaskCategory = name
-        },
-        onSelectedCreateMethod (name, value) {
-            this.createMethod = name
-        },
-        onSelectedStatus (id, name) {
-            this.isStarted = id !== 'nonExecution'
-            this.isFinished = id === 'finished'
-        },
-        onClearCreateMethod () {
-            this.createMethod = undefined
-        },
-        onClearStatus () {
-            this.isStarted = undefined
-            this.isFinished = undefined
-        },
-        onPageChange (page) {
-            this.currentPage = page
-            this.getTaskList()
-        },
-        onResetForm () {
-            this.$refs.bkRanger.clear()
-            this.isStarted = undefined
-            this.isFinished = undefined
-            this.createMethod = undefined
-            this.creator = undefined
-            this.executor = undefined
-            this.flowName = undefined
-            this.createMethodSync = 0
-            this.statusSync = 0
-            this.taskSync = 0
-            this.executeStartTime = undefined
-            this.executeEndTime = undefined
-        },
-        onChangeExecuteTime (oldValue, newValue) {
-            const timeArray = newValue.split(" - ")
-            this.executeStartTime = timeArray[0]
-            this.executeEndTime = timeArray[1]
-        },
-        async getCreateMethod () {
-            try {
-                const createMethodData = await this.loadCreateMethod()
-                this.taskCreateMethodList = createMethodData.data
-            } catch (e) {
-                errorHandler(e, this)
-            }
-        },
-        async getData () {
-            Promise.all([
-                this.getTaskList(),
-                this.getCreateMethod(),
-                this.getBizBaseInfo()
-            ]).catch(e => {
-                errorHandler(e, this)
-            })
-        },
-        transformCreateMethod (value) {
-            if (this.taskCreateMethodList.length === 0){
-                return ''
-            }
-            let taskCreateMethod = this.taskCreateMethodList.find((taskCreateMethod) => taskCreateMethod['value'] === value)
-            return taskCreateMethod['name']
-        },
-        onAdvanceShow () {
-            this.isAdvancedSerachShow = !this.isAdvancedSerachShow
         }
     }
-}
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';

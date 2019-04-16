@@ -20,7 +20,7 @@
         :is-show.sync="isAuthorityDialogShow"
         @confirm="onAuthorityConfirm"
         @cancel="onAuthorityCancel">
-        <div slot="content" v-bkloading="{isLoading: loading || pending, opacity: 1}">
+        <div slot="content" v-bkloading="{ isLoading: loading || pending, opacity: 1 }">
             <div class="common-form-item">
                 <label>{{i18n.createTaskAuth}}</label>
                 <div class="common-form-content">
@@ -28,7 +28,7 @@
                         :list="personGroupList"
                         :selected.sync="createdTaskPerList"
                         :multi-select="true"
-                        :has-children='true'
+                        :has-children="true"
                         :searchable="true"
                         :allow-clear="true">
                     </bk-selector>
@@ -41,7 +41,7 @@
                         :list="personGroupList"
                         :selected.sync="modifyParamsPerList"
                         :multi-select="true"
-                        :has-children='true'
+                        :has-children="true"
                         :searchable="true"
                         :allow-clear="true">
                     </bk-selector>
@@ -54,7 +54,7 @@
                         :list="personGroupList"
                         :selected.sync="executeTaskPerList"
                         :multi-select="true"
-                        :has-children='true'
+                        :has-children="true"
                         :searchable="true"
                         :allow-clear="true">
                     </bk-selector>
@@ -64,107 +64,107 @@
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-export default {
-    name: 'AthorityManageDialog',
-    props: ['isAuthorityDialogShow', 'templateId', 'pending', 'common'],
-    data () {
-        return {
-            loading: true,
-            personGroupList: [],
-            createdTaskPerList: [],
-            modifyParamsPerList: [],
-            executeTaskPerList: [],
-            i18n: {
-                title: gettext('权限管理'),
-                createTaskAuth: gettext('新建任务权限'),
-                modifyParamsAuth: gettext('认领任务权限'),
-                executeTaskAuth: gettext('执行任务权限')
-            }
-        }
-    },
-    created () {
-        this.loadData()
-    },
-    methods: {
-        ...mapActions('templateList/', [
-            'getBizPerson',
-            'getTemplatePersons'
-        ]),
-        async loadData () {
-            this.loading = true
-            try {
-                Promise.all([
-                    this.loadBizPerson(),
-                    this.loadTemplatePersons()
-                ]).then(values => {
-                    this.personGroupList = values[0].roles.map(item => {
-                        return {
-                            name: item.text,
-                            children: item.children.map(i => {
-                                return {
-                                    id: i.id,
-                                    name: i.text
-                                }
-                            })
-                        }
-                    })
-                    this.createdTaskPerList = values[1].create_task.map(item => item.show_name)
-                    this.modifyParamsPerList = values[1].fill_params.map(item => item.show_name)
-                    this.executeTaskPerList = values[1].execute_task.map(item => item.show_name)
-                    this.loading = false
-                })
-            } catch (e) {
-                errorHandler(e, this)
-            }
-        },
-        async loadBizPerson () {
-            try {
-                const res = await this.getBizPerson()
-                if (res.result) {
-                    return res.data
-                } else {
-                    errorHandler(res, this)
-                    return []
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    export default {
+        name: 'AthorityManageDialog',
+        props: ['isAuthorityDialogShow', 'templateId', 'pending', 'common'],
+        data () {
+            return {
+                loading: true,
+                personGroupList: [],
+                createdTaskPerList: [],
+                modifyParamsPerList: [],
+                executeTaskPerList: [],
+                i18n: {
+                    title: gettext('权限管理'),
+                    createTaskAuth: gettext('新建任务权限'),
+                    modifyParamsAuth: gettext('认领任务权限'),
+                    executeTaskAuth: gettext('执行任务权限')
                 }
-            } catch (e) {
-                errorHandler(e, this)
             }
         },
-        async loadTemplatePersons () {
-            try {
+        created () {
+            this.loadData()
+        },
+        methods: {
+            ...mapActions('templateList/', [
+                'getBizPerson',
+                'getTemplatePersons'
+            ]),
+            async loadData () {
+                this.loading = true
+                try {
+                    Promise.all([
+                        this.loadBizPerson(),
+                        this.loadTemplatePersons()
+                    ]).then(values => {
+                        this.personGroupList = values[0].roles.map(item => {
+                            return {
+                                name: item.text,
+                                children: item.children.map(i => {
+                                    return {
+                                        id: i.id,
+                                        name: i.text
+                                    }
+                                })
+                            }
+                        })
+                        this.createdTaskPerList = values[1].create_task.map(item => item.show_name)
+                        this.modifyParamsPerList = values[1].fill_params.map(item => item.show_name)
+                        this.executeTaskPerList = values[1].execute_task.map(item => item.show_name)
+                        this.loading = false
+                    })
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            async loadBizPerson () {
+                try {
+                    const res = await this.getBizPerson()
+                    if (res.result) {
+                        return res.data
+                    } else {
+                        errorHandler(res, this)
+                        return []
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            async loadTemplatePersons () {
+                try {
+                    const data = {
+                        templateId: this.templateId,
+                        common: this.common
+                    }
+                    const res = await this.getTemplatePersons(data)
+                    if (res.result) {
+                        return res.data
+                    } else {
+                        errorHandler(res, this)
+                        return []
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            onAuthorityConfirm () {
                 const data = {
                     templateId: this.templateId,
+                    createTask: this.createdTaskPerList,
+                    fillParams: this.modifyParamsPerList,
+                    executeTask: this.executeTaskPerList,
                     common: this.common
                 }
-                const res = await this.getTemplatePersons(data)
-                if (res.result) {
-                    return res.data
-                } else {
-                    errorHandler(res, this)
-                    return []
-                }
-            } catch (e) {
-                errorHandler(e, this)
+                this.$emit('onAuthorityConfirm', data)
+            },
+            onAuthorityCancel () {
+                this.$emit('onAuthorityCancel')
             }
-        },
-        onAuthorityConfirm () {
-            const data = {
-                templateId: this.templateId,
-                createTask: this.createdTaskPerList,
-                fillParams: this.modifyParamsPerList,
-                executeTask: this.executeTaskPerList,
-                common: this.common
-            }
-            this.$emit('onAuthorityConfirm', data)
-        },
-        onAuthorityCancel () {
-            this.$emit('onAuthorityCancel')
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .common-form-item {
@@ -176,5 +176,3 @@ export default {
     margin-right: 20px;
 }
 </style>
-
-

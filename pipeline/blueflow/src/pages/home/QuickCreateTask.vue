@@ -46,149 +46,148 @@
         <SelectTemplateDialog
             :cc_id="cc_id"
             :submitting="submitting"
-            :isSelectTemplateDialogShow="isSelectTemplateDialogShow"
-            :templateList="templateList"
-            :quickTaskList="quickTaskList"
-            :templateGrouped="templateGrouped"
-            :selectTemplateLoading="selectTemplateLoading"
+            :is-select-template-dialog-show="isSelectTemplateDialogShow"
+            :template-list="templateList"
+            :quick-task-list="quickTaskList"
+            :template-grouped="templateGrouped"
+            :select-template-loading="selectTemplateLoading"
             @confirm="onConfirm"
             @cancel="onCancel">
         </SelectTemplateDialog>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import NoData from '@/components/common/base/NoData.vue'
-import SelectTemplateDialog from './SelectTemplateDialog.vue'
-export default {
-    name: 'QuickCreateTask',
-    components: {
-        NoData,
-        SelectTemplateDialog
-    },
-    props: ['quickTaskList', 'cc_id', 'templateClassify', 'totalTemplate'],
-    data () {
-        return {
-            isSelectTemplateDialogShow: false,
-            submitting: false,
-            i18n: {
-                myTasks: gettext('快速新建任务'),
-                cancelCollect: gettext('取消常用流程'),
-                addTasks: gettext('添加常用流程'),
-                addTips1: gettext('业务下无常用流程，'),
-                addTips2: gettext('立即添加')
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import SelectTemplateDialog from './SelectTemplateDialog.vue'
+    export default {
+        name: 'QuickCreateTask',
+        components: {
+            NoData,
+            SelectTemplateDialog
+        },
+        props: ['quickTaskList', 'cc_id', 'templateClassify', 'totalTemplate'],
+        data () {
+            return {
+                isSelectTemplateDialogShow: false,
+                submitting: false,
+                i18n: {
+                    myTasks: gettext('快速新建任务'),
+                    cancelCollect: gettext('取消常用流程'),
+                    addTasks: gettext('添加常用流程'),
+                    addTips1: gettext('业务下无常用流程，'),
+                    addTips2: gettext('立即添加')
+                },
+                selectTemplateLoading: false,
+                templateList: [],
+                templateGrouped: []
+            }
+        },
+        methods: {
+            ...mapActions('template/', [
+                'templateCollectSelect',
+                'templateCollectDelete'
+            ]),
+            ...mapActions('templateList/', [
+                'loadTemplateList'
+            ]),
+            async onDeleteTemplate (id) {
+                const list = this.getDeletedList(id)
+                try {
+                    const resp = await this.templateCollectDelete(id)
+                    if (resp.result) {
+                        this.$emit('updateQuickTaskList', list)
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
             },
-            selectTemplateLoading: false,
-            templateList: [],
-            templateGrouped: []
-        }
-    },
-    methods: {
-        ...mapActions('template/', [
-            'templateCollectSelect',
-            'templateCollectDelete'
-        ]),
-        ...mapActions('templateList/', [
-            'loadTemplateList'
-        ]),
-        async onDeleteTemplate (id) {
-            const list = this.getDeletedList(id)
-            try {
-                const resp = await this.templateCollectDelete(id)
-                if (resp.result) {
-                    this.$emit('updateQuickTaskList', list)
-                } else {
-                    errorHandler(resp, this)
+            onSelectTemplate () {
+                this.isSelectTemplateDialogShow = true
+                if (this.templateList.length === 0) {
+                    this.getTemplateData()
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            }
-        },
-        onSelectTemplate () {
-            this.isSelectTemplateDialogShow = true
-            if (this.templateList.length === 0) {
-                this.getTemplateData()
-            }
-        },
-        async onConfirm (selectedTemplate) {
-            if (this.submitting) return
-            this.submitting = true
-            try {
-                const list = selectedTemplate.map(item => item.id)
-                const resp = await this.templateCollectSelect(JSON.stringify(list))
-                if (resp.result) {
-                    this.isSelectTemplateDialogShow = false
-                    this.$emit('updateQuickTaskList', selectedTemplate)
-                } else {
-                    errorHandler(resp, this)
+            },
+            async onConfirm (selectedTemplate) {
+                if (this.submitting) return
+                this.submitting = true
+                try {
+                    const list = selectedTemplate.map(item => item.id)
+                    const resp = await this.templateCollectSelect(JSON.stringify(list))
+                    if (resp.result) {
+                        this.isSelectTemplateDialogShow = false
+                        this.$emit('updateQuickTaskList', selectedTemplate)
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                    this.submitting = false
+                } catch (e) {
+                    errorHandler(e, this)
                 }
-                this.submitting = false
-            } catch (e) {
-                errorHandler(e, this)
-            }
-        },
-        onCancel () {
-            this.isSelectTemplateDialogShow = false
-        },
-        getDeletedList (id) {
-            let index
-            const list = this.quickTaskList.slice(0)
-            list.some((item, i) => {
-                if (item.id === id) {
-                    index = i
-                    return true
-                }
-            })
-            list.splice(index, 1)
-            return list
-        },
-        async getTemplateData () {
-            if (this.totalTemplate === 0) {
-                this.$bkMessage({
-                    'message': gettext('业务下无流程模板，为您跳转至新建流程'),
-                    'theme': 'success'
-                })
-                this.$router.push(`/template/new/${this.cc_id}`)
-                return
-            }
-            this.selectTemplateLoading = true
-            try {
-                const templateData = await this.loadTemplateList()
-                this.templateList = templateData.objects
-                // 如果没有数据跳转至新建页面
-                this.templateGrouped = this.getGroupData(this.templateList, this.templateClassify)
-            } catch (e) {
-                errorHandler(templateData, this)
-            } finally {
-                this.selectTemplateLoading = false
-            }
-            
-        },
-        getGroupData (list, classify) {
-            const groupData = []
-            classify.forEach(item => {
-                groupData.push({
-                    code: item.code,
-                    name: item.name,
-                    list: []
-                })
-            })
-            list.forEach(item => {
+            },
+            onCancel () {
+                this.isSelectTemplateDialogShow = false
+            },
+            getDeletedList (id) {
                 let index
-                classify.some((cls, i) => {
-                    if (item.category === cls.code) {
+                const list = this.quickTaskList.slice(0)
+                list.some((item, i) => {
+                    if (item.id === id) {
                         index = i
                         return true
                     }
                 })
-                groupData[index].list.push(item)
-            })
-            return groupData
+                list.splice(index, 1)
+                return list
+            },
+            async getTemplateData () {
+                if (this.totalTemplate === 0) {
+                    this.$bkMessage({
+                        'message': gettext('业务下无流程模板，为您跳转至新建流程'),
+                        'theme': 'success'
+                    })
+                    this.$router.push(`/template/new/${this.cc_id}`)
+                    return
+                }
+                this.selectTemplateLoading = true
+                try {
+                    const templateData = await this.loadTemplateList()
+                    this.templateList = templateData.objects
+                    // 如果没有数据跳转至新建页面
+                    this.templateGrouped = this.getGroupData(this.templateList, this.templateClassify)
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.selectTemplateLoading = false
+                }
+            },
+            getGroupData (list, classify) {
+                const groupData = []
+                classify.forEach(item => {
+                    groupData.push({
+                        code: item.code,
+                        name: item.name,
+                        list: []
+                    })
+                })
+                list.forEach(item => {
+                    let index
+                    classify.some((cls, i) => {
+                        if (item.category === cls.code) {
+                            index = i
+                            return true
+                        }
+                    })
+                    groupData[index].list.push(item)
+                })
+                return groupData
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -286,4 +285,3 @@ export default {
     }
 }
 </style>
-

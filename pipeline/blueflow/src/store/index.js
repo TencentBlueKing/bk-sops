@@ -12,7 +12,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import modules from './modules/index.js'
-import api from "@/api"
+import api from '@/api'
 
 Vue.use(Vuex)
 
@@ -74,10 +74,10 @@ const store = new Vuex.Store({
         setNotFoundPage (state, val) {
             state.notFoundPage = val
         },
-        setCategorys (state,data) {
+        setCategorys (state, data) {
             state.categorys = data
         },
-        setSingleAtomList (state,data) {
+        setSingleAtomList (state, data) {
             state.components = data
         },
         setBusinessTimezone (state, data) {
@@ -88,7 +88,7 @@ const store = new Vuex.Store({
         }
     },
     actions: {
-        getBizList ({commit}, isAll) {
+        getBizList ({ commit }, isAll) {
             api.getBizList(isAll).then(response => {
                 if (isAll) {
                     commit('setAllBusinessList', response.data.objects)
@@ -97,20 +97,20 @@ const store = new Vuex.Store({
                 }
             })
         },
-        changeDefaultBiz ({commit}, ccId) {
+        changeDefaultBiz ({ commit }, ccId) {
             return api.changeDefaultBiz(ccId).then(response => response.data)
         },
-        getCategorys ({commit}) {
+        getCategorys ({ commit }) {
             api.getCategorys().then(response => {
                 commit('setCategorys', response.data.data)
             })
         },
-        getSingleAtomList ({commit}) {
+        getSingleAtomList ({ commit }) {
             api.getSingleAtomList().then(response => {
                 commit('setSingleAtomList', response.data.objects)
             })
         },
-        getBusinessTimezone ({commit}) {
+        getBusinessTimezone ({ commit }) {
             api.getBusinessTimezone().then(response => {
                 const data = response.data
                 if (data.time_zone === undefined) {
@@ -118,16 +118,15 @@ const store = new Vuex.Store({
                 } else {
                     commit('setBusinessTimezone', data.time_zone)
                 }
-                
             })
         },
-        getHostInCC ({commmit}, fields) {
+        getHostInCC ({ commmit }, fields) {
             return api.loadHostInCC(fields).then(response => response.data)
         },
-        getTopoTreeInCC ({commmit}) {
+        getTopoTreeInCC ({ commmit }) {
             return api.loadTopoTreeInCC().then(response => response.data)
         },
-        getTopoModelInCC ({commit}) {
+        getTopoModelInCC ({ commit }) {
             return api.loadTopoModelInCC().then(response => response.data)
         }
     },

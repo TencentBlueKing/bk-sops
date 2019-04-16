@@ -25,29 +25,29 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '@/components/common/RenderForm/formMixins.js'
-const datetimeAttrs = {
-    placeholder: {
-        type: String,
-        required: false,
-        default () {
-            return gettext("请选择日期时间")
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '@/components/common/RenderForm/formMixins.js'
+    const datetimeAttrs = {
+        placeholder: {
+            type: String,
+            required: false,
+            default () {
+                return gettext('请选择日期时间')
+            },
+            desc: 'placeholder'
         },
-        desc: "placeholder"
-    },
-    value: {
-        type: String,
-        required: false,
-        default () {
-            return ''
+        value: {
+            type: String,
+            required: false,
+            default () {
+                return ''
+            }
         }
     }
-}
-export default {
-    name: 'TagTestDatetime',
-    mixins: [getFormMixins(datetimeAttrs)]
-}
+    export default {
+        name: 'TagTestDatetime',
+        mixins: [getFormMixins(datetimeAttrs)]
+    }
 </script>
 <style lang="scss" scoped>
 .tag-testdatetime {

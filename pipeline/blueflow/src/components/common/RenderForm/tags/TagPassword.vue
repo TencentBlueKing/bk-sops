@@ -27,74 +27,75 @@
 </template>
 
 <script>
-import '@/utils/i18n.js'
-import { mapState } from 'vuex'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { mapState } from 'vuex'
+    import { JSEncrypt } from 'jsencrypt'
+    import { getFormMixins } from '../formMixins.js'
 
-const passwordAttrs = {
-    value: {
-        type: [String, Boolean],
-        required: false,
-        default: ''
-    }
-}
-export default {
-    name: "TagPassword",
-    mixins: [getFormMixins(passwordAttrs)],
-    data () {
-        return {
-            encrypted: false,
-            passwordPlaceholder: '*****',
-            i18n: {
-                placeholder: gettext("要修改密码请点击后重新输入密码")
-            }
+    const passwordAttrs = {
+        value: {
+            type: [String, Boolean],
+            required: false,
+            default: ''
         }
-    },
-    computed: {
-        ...mapState({
-            'rsa_pub_key': state => state.rsa_pub_key
-        }),
-        password: {
-            get () {
-                return this.encrypted ? this.tempValue : this.value
+    }
+    export default {
+        name: 'TagPassword',
+        mixins: [getFormMixins(passwordAttrs)],
+        data () {
+            return {
+                encrypted: false,
+                passwordPlaceholder: '*****',
+                i18n: {
+                    placeholder: gettext('要修改密码请点击后重新输入密码')
+                }
+            }
+        },
+        computed: {
+            ...mapState({
+                'rsa_pub_key': state => state.rsa_pub_key
+            }),
+            password: {
+                get () {
+                    return this.encrypted ? this.tempValue : this.value
+                },
+                set (val) {
+                    this.tempValue = val
+                    this.updateForm(val)
+                }
+            }
+        },
+        methods: {
+            _tag_init () {
+                if (this.value) {
+                    this.encrypted = true
+                    this.tempValue = this.passwordPlaceholder
+                }
             },
-            set (val) {
-                this.tempValue = val
-                this.updateForm(val)
-            }
-        }
-    },
-    methods: {
-        _tag_init () {
-            if (this.value) {
-                this.encrypted = true
-                this.tempValue = this.passwordPlaceholder
-            }
-        },
-        clearPassword () {
-            this.password = ''
-            this.tempValue = ''
-            this.encrypted = false
-        },
-        encryptPassword () {
-            let val
-            if (this.password === this.passwordPlaceholder) {
-                return
-            }
-            if (this.password === '' || this.password === undefined) {
-                val = ''
-                return
-            }
-            var crypt = new JSEncrypt()
-            crypt.setKey(this.rsa_pub_key)
-            val = crypt.encrypt(this.password)
+            clearPassword () {
+                this.password = ''
+                this.tempValue = ''
+                this.encrypted = false
+            },
+            encryptPassword () {
+                let val
+                if (this.password === this.passwordPlaceholder) {
+                    return
+                }
+                if (this.password === '' || this.password === undefined) {
+                    val = ''
+                    return
+                }
+                const crypt = new JSEncrypt()
+                crypt.setKey(this.rsa_pub_key)
+                val = crypt.encrypt(this.password)
             
-            this.encrypted = true
-            this.tempValue = this.password
-            this.$emit('change', [this.tagCode], val)
+                this.encrypted = true
+                this.tempValue = this.password
+                this.$emit('change', [this.tagCode], val)
+            }
         }
     }
-}
 </script>
 
 <style>

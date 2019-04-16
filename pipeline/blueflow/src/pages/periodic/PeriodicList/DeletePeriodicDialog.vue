@@ -19,39 +19,38 @@
         :is-show.sync="isDeleteDialogShow"
         @confirm="onDeletePeriodicConfrim"
         @cancel="onDeletePeriodicCancel">
-        <div slot="content" v-bkloading="{isLoading: deleting, opacity: 1}">
+        <div slot="content" v-bkloading="{ isLoading: deleting, opacity: 1 }">
             <div class="information-tips">{{deleteInfo}}</div>
         </div>
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { errorHandler } from '@/utils/errorHandler.js'
+    import '@/utils/i18n.js'
 
-export default {
-    name: 'DeletePeriodicDialog',
-    props: ['isDeleteDialogShow', 'templateName', 'deleting'],
-    data () {
-        return {
-            i18n: {
-                deleteTips: gettext('确认删除')
+    export default {
+        name: 'DeletePeriodicDialog',
+        props: ['isDeleteDialogShow', 'templateName', 'deleting'],
+        data () {
+            return {
+                i18n: {
+                    deleteTips: gettext('确认删除')
+                }
+            }
+        },
+        computed: {
+            deleteInfo () {
+                return this.i18n.deleteTips + '"' + this.templateName + '"' + gettext('？')
+            }
+        },
+        methods: {
+            onDeletePeriodicCancel () {
+                this.$emit('onDeletePeriodicCancel')
+            },
+            onDeletePeriodicConfrim () {
+                this.$emit('onDeletePeriodicConfirm')
             }
         }
-    },
-    computed: {
-        deleteInfo (){
-            return this.i18n.deleteTips + '"' + this.templateName + '"' + gettext("？")
-        }
-    },
-    methods: {
-        onDeletePeriodicCancel () {
-            this.$emit('onDeletePeriodicCancel')
-        },
-        onDeletePeriodicConfrim () {
-            this.$emit('onDeletePeriodicConfirm')
-        }
     }
-}
 </script>
 
 <style lang="scss" scoped>
@@ -59,4 +58,3 @@ export default {
         word-break: break-all;
     }
 </style>
-

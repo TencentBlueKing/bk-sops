@@ -16,7 +16,7 @@
                 <bk-button type="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
                 <BaseSearch
                     v-model="searchStr"
-                    :inputPlaceholader="i18n.placeholder"
+                    :input-placeholader="i18n.placeholder"
                     @onShow="onAdvanceShow"
                     @input="onSearchInput">
                 </BaseSearch>
@@ -26,17 +26,17 @@
                     <div class="advanced-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder"/>
+                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creatorTime}}</span>
-                                <bk-date-range
-                                    :range-separator="'-'"
-                                    :quick-select="false"
-                                    :start-date.sync="editStartTime"
-                                    :end-date.sync="editEndTime"
-                                    @change="onChangeEditTime">
-                                </bk-date-range>
+                            <bk-date-range
+                                :range-separator="'-'"
+                                :quick-select="false"
+                                :start-date.sync="editStartTime"
+                                :end-date.sync="editEndTime"
+                                @change="onChangeEditTime">
+                            </bk-date-range>
                         </div>
                         <div class="query-button">
                             <div class="query-button">
@@ -47,15 +47,15 @@
                     </div>
                 </fieldset>
             </div>
-            <div v-bkloading="{isLoading: loading, opacity: 1}">
+            <div v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <div v-if="appList.length" class="app-list clearfix">
                     <AppCard
                         v-for="item in appList"
                         :key="item.id"
-                        :appData="item"
+                        :app-data="item"
                         :cc_id="cc_id"
                         @onCardEdit="onCardEdit"
-                        @onCardDelete="onCardDelete"/>
+                        @onCardDelete="onCardDelete" />
                 </div>
                 <div v-else class="empty-app-list">
                     <NoData>
@@ -66,10 +66,10 @@
         </div>
         <AppEditDialog
             v-if="isEditDialogShow"
-            :isEditDialogShow="isEditDialogShow"
-            :isCreateNewApp="isCreateNewApp"
+            :is-edit-dialog-show="isEditDialogShow"
+            :is-create-new-app="isCreateNewApp"
             :cc_id="cc_id"
-            :currentAppData="currentAppData"
+            :current-app-data="currentAppData"
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
         </AppEditDialog>
@@ -83,194 +83,194 @@
             :is-show.sync="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div slot="content" class="delete-tips" v-bkloading="{isLoading: pending.delete, opacity: 1}">
+            <div slot="content" class="delete-tips" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
                 {{i18n.deleteTips}}
             </div>
         </bk-dialog>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapActions, mapState } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import toolsUtils from '@/utils/tools.js'
-import NoData from '@/components/common/base/NoData.vue'
-import AppCard from './AppCard.vue'
-import AppEditDialog from './AppEditDialog.vue'
-import BaseSearch from '@/components/common/base/BaseSearch.vue'
-// moment用于时区使用
-import moment from 'moment-timezone'
+    import '@/utils/i18n.js'
+    import { mapActions, mapState } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import toolsUtils from '@/utils/tools.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import AppCard from './AppCard.vue'
+    import AppEditDialog from './AppEditDialog.vue'
+    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    // moment用于时区使用
+    import moment from 'moment-timezone'
 
-export default {
-    name: 'AppMaker',
-    components: {
-        AppCard,
-        NoData,
-        AppEditDialog,
-        BaseSearch
-    },
-    props: ['cc_id', 'common'],
-    data () {
-        return {
-            loading: true,
-            list: [],
-            searchMode: false,
-            searchList: [],
-            searchStr: '',
-            currentAppData: undefined,
-            isCreateNewApp: false,
-            isEditDialogShow: false,
-            isDeleteDialogShow: false,
-            isAdvancedSerachShow: false,
-            creator: undefined,
-            editStartTime: undefined,
-            editEndTime: undefined,
-            pending: {
-                edit: false,
-                delete: false
+    export default {
+        name: 'AppMaker',
+        components: {
+            AppCard,
+            NoData,
+            AppEditDialog,
+            BaseSearch
+        },
+        props: ['cc_id', 'common'],
+        data () {
+            return {
+                loading: true,
+                list: [],
+                searchMode: false,
+                searchList: [],
+                searchStr: '',
+                currentAppData: undefined,
+                isCreateNewApp: false,
+                isEditDialogShow: false,
+                isDeleteDialogShow: false,
+                isAdvancedSerachShow: false,
+                creator: undefined,
+                editStartTime: undefined,
+                editEndTime: undefined,
+                pending: {
+                    edit: false,
+                    delete: false
+                },
+                i18n: {
+                    addApp: gettext('新建轻应用'),
+                    placeholder: gettext('请输入轻应用名称'),
+                    delete: gettext('删除'),
+                    deleteTips: gettext('确认删除轻应用？'),
+                    creator: gettext('创建人'),
+                    creatorPlaceholder: gettext('请输入创建人'),
+                    creatorTime: gettext('创建时间'),
+                    query: gettext('搜索'),
+                    reset: gettext('清空')
+                }
+            }
+        },
+        computed: {
+            ...mapState({
+                'businessTimezone': state => state.businessTimezone
+            }),
+            appList () {
+                return this.searchMode ? this.searchList : this.list
             },
-            i18n: {
-                addApp: gettext('新建轻应用'),
-                placeholder: gettext('请输入轻应用名称'),
-                delete: gettext('删除'),
-                deleteTips: gettext('确认删除轻应用？'),
-                creator: gettext('创建人'),
-                creatorPlaceholder: gettext('请输入创建人'),
-                creatorTime: gettext('创建时间'),
-                query: gettext('搜索'),
-                reset: gettext('清空')
+            emptyTips () {
+                return this.searchMode ? gettext('未找到相关轻应用') : gettext('暂未添加轻应用')
             }
-        }
-    },
-    computed: {
-        ...mapState({
-            'businessTimezone': state => state.businessTimezone
-        }),
-        appList () {
-            return this.searchMode ? this.searchList : this.list
         },
-        emptyTips () {
-            return this.searchMode ? gettext('未找到相关轻应用') : gettext('暂未添加轻应用')
-        }
-    },
-    created () {
-        this.loadData()
-        this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-    },
-    methods: {
-        ...mapActions('appmaker', [
-            'loadAppmaker',
-            'appmakerEdit',
-            'appmakerDelete'
-        ]),
-        async loadData () {
-            this.loading = true
+        created () {
+            this.loadData()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
+        methods: {
+            ...mapActions('appmaker', [
+                'loadAppmaker',
+                'appmakerEdit',
+                'appmakerDelete'
+            ]),
+            async loadData () {
+                this.loading = true
 
-            if (this.editStartTime === '') {
-                this.editStartTime = undefined
-            }
+                if (this.editStartTime === '') {
+                    this.editStartTime = undefined
+                }
 
-            try {
-                const data = {
-                    creator: this.creator || undefined
+                try {
+                    const data = {
+                        creator: this.creator || undefined
+                    }
+                    if (this.editEndTime) {
+                        data['create_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                        data['create_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                    }
+                    const resp = await this.loadAppmaker(data)
+                    this.list = resp.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
-                if (this.editEndTime) {
-                    data['create_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                    data['create_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1','d').format('YYYY-MM-DD')
-                }
-                const resp = await this.loadAppmaker(data)
-                this.list = resp.objects
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.loading = false
-            }
-        },
-        searchInputhandler () {
-            if (this.searchStr.length) {
-                this.searchMode = true
-                const reg = new RegExp(this.searchStr, 'i')
-                this.searchList = this.list.filter(item => {
-                    return reg.test(item.name)
-                })
-            } else {
-                this.searchMode = false
-                this.searchList = []
-            }
-        },
-        onCreateApp () {
-            this.isEditDialogShow = true
-            this.isCreateNewApp = true
-            this.currentAppData = undefined
-        },
-        onCardEdit (app) {
-            this.isEditDialogShow = true
-            this.isCreateNewApp = false
-            this.currentAppData = app
-        },
-        onCardDelete (app) {
-            this.isDeleteDialogShow = true
-            this.currentAppData = app
-        },
-        async onDeleteConfirm () {
-            if (this.pending.delete) return
-            this.pending.delete = true
-            this.isDeleteDialogShow = false
-            try {
-                await this.appmakerDelete(this.currentAppData.id)
-                this.loadData()
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.delete = false
-            }
-        },
-        onDeleteCancel () {
-            this.isDeleteDialogShow = false
-        },
-        async onEditConfirm (app) {
-            if (this.pending.edit) return
-            this.pending.edit = true
-            const id = this.isCreateNewApp ? '0' : this.currentAppData.id
-            try {
-                const formData = new FormData()
-                formData.append('id', id)
-                formData.append('template_id', app.appTemplate)
-                formData.append('name', app.appName)
-                formData.append('template_scheme_id', app.appScheme)
-                formData.append('desc', app.appDesc)
-                formData.append('logo', app.appLogo)
-                const resp = await this.appmakerEdit(formData)
-                if (resp.result) {
-                    this.isEditDialogShow = false
-                    this.loadData()
+            },
+            searchInputhandler () {
+                if (this.searchStr.length) {
+                    this.searchMode = true
+                    const reg = new RegExp(this.searchStr, 'i')
+                    this.searchList = this.list.filter(item => {
+                        return reg.test(item.name)
+                    })
                 } else {
-                    errorHandler(resp, this)
+                    this.searchMode = false
+                    this.searchList = []
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending.edit = false
+            },
+            onCreateApp () {
+                this.isEditDialogShow = true
+                this.isCreateNewApp = true
+                this.currentAppData = undefined
+            },
+            onCardEdit (app) {
+                this.isEditDialogShow = true
+                this.isCreateNewApp = false
+                this.currentAppData = app
+            },
+            onCardDelete (app) {
+                this.isDeleteDialogShow = true
+                this.currentAppData = app
+            },
+            async onDeleteConfirm () {
+                if (this.pending.delete) return
+                this.pending.delete = true
+                this.isDeleteDialogShow = false
+                try {
+                    await this.appmakerDelete(this.currentAppData.id)
+                    this.loadData()
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.delete = false
+                }
+            },
+            onDeleteCancel () {
+                this.isDeleteDialogShow = false
+            },
+            async onEditConfirm (app) {
+                if (this.pending.edit) return
+                this.pending.edit = true
+                const id = this.isCreateNewApp ? '0' : this.currentAppData.id
+                try {
+                    const formData = new FormData()
+                    formData.append('id', id)
+                    formData.append('template_id', app.appTemplate)
+                    formData.append('name', app.appName)
+                    formData.append('template_scheme_id', app.appScheme)
+                    formData.append('desc', app.appDesc)
+                    formData.append('logo', app.appLogo)
+                    const resp = await this.appmakerEdit(formData)
+                    if (resp.result) {
+                        this.isEditDialogShow = false
+                        this.loadData()
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.edit = false
+                }
+            },
+            onEditCancel () {
+                this.isEditDialogShow = false
+            },
+            onAdvanceShow () {
+                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onChangeEditTime (oldValue, newValue) {
+                const dateArray = newValue.split(' - ')
+                this.editStartTime = dateArray[0]
+                this.editEndTime = dateArray[1]
+            },
+            onResetForm () {
+                this.creator = undefined
+                this.editStartTime = undefined
+                this.editEndTime = undefined
             }
-        },
-        onEditCancel () {
-            this.isEditDialogShow = false
-        },
-        onAdvanceShow () {
-            this.isAdvancedSerachShow = !this.isAdvancedSerachShow
-        },
-        onChangeEditTime (oldValue, newValue) {
-            const dateArray = newValue.split(' - ')
-            this.editStartTime = dateArray[0]
-            this.editEndTime = dateArray[1]
-        },
-        onResetForm () {
-            this.creator = undefined
-            this.editStartTime = undefined
-            this.editEndTime = undefined
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -466,5 +466,3 @@ export default {
     margin: 0px;
 }
 </style>
-
-
