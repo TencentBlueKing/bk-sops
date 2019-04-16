@@ -15,7 +15,7 @@ from gcloud.conf import settings
 
 
 def get_user_info(request):
-    client = settings.ESB_GET_CLIENT_BY_REQUEST(request)
+    client = settings.ESB_GET_CLIENT_BY_USER(request.user.username)
     auth = getattr(client, settings.ESB_AUTH_COMPONENT_SYSTEM)
     _get_user_info = getattr(auth, settings.ESB_AUTH_GET_USER_INFO)
     user_info = _get_user_info({})
