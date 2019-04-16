@@ -275,3 +275,7 @@
 - bug fix
     - 修复在 API 中调用 ESB 获取用户信息异常的问题
     
+# 3.3.12
+- bug fix
+    - 修复在 get_task_status API 返回的 elapsed_time 为 Float 的问题
+    
