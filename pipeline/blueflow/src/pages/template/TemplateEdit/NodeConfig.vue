@@ -817,7 +817,7 @@ export default {
         onAtomSelect (id, data) {
             this.isAtomChanged = true
             let nodeName
-            this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
+            tthis.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
             this.currentAtom = id
             if (this.isSingleAtom) {
                 nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
