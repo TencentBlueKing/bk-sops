@@ -16,6 +16,7 @@ SYS_META_PATH = 'sys.meta_path'
 IMP_ACQUIRE_LOCK = 'imp.acquire_lock'
 IMP_RELEASE_LOCK = 'imp.release_lock'
 REQUESTS_GET = 'requests.get'
+BOTO3_RESOURCE = 'boto3.resource'
 
 IMPORTLIB_IMPORT_MODULE = 'importlib.import_module'
 

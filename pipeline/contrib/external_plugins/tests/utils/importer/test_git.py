@@ -36,9 +36,11 @@ class GitRepoModuleImporterTestCase(TestCase):
     def test__init__(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
         self.assertEqual(importer.repo_raw_url, self.repo_raw_url)
+        self.assertEqual(importer.branch, self.branch)
 
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url_without_slash, branch=self.branch)
         self.assertEqual(importer.repo_raw_url, self.repo_raw_url)
+        self.assertEqual(importer.branch, self.branch)
 
         self.assertRaises(ValueError,
                           GitRepoModuleImporter,
