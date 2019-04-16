@@ -36,7 +36,7 @@ else:
     apigw_required = None
 
 WHITE_APPS = {'bk_fta', 'bk_bcs'}
-WHETHER_PREPARE_BIZ = settings.RUN_VER != 'ieod'
+WHETHER_PREPARE_BIZ = getattr(settings, 'WHETHER_PREPARE_BIZ_IN_API_CALL', True)
 
 
 def check_white_apps(request):
