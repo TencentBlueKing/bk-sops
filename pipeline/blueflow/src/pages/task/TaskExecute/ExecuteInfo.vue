@@ -137,6 +137,7 @@ import { URL_REG } from '@/constants/index.js'
 import { errorHandler } from '@/utils/errorHandler.js'
 import { checkDataType } from '@/utils/checkDataType.js'
 import NoData from '@/components/common/base/NoData.vue'
+import BaseCollapse from '@/components/common/base/BaseCollapse.vue'
 import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
 import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
 export default {
@@ -145,6 +146,7 @@ export default {
         VueJsonPretty,
         RenderForm,
         NoData,
+        BaseCollapse,
         IpLogContent
     },
     props: ['nodeDetailConfig'],

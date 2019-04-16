@@ -44,38 +44,37 @@
                     </div>
                     <div v-if="!showNoDataPanel" class="atom-list-wrapper">
                         <template v-if="isGrouped">
-                            <template v-for="item in listInPanel">
-                                <div
-                                    :key="item.type"
-                                    v-if="item.list && item.list.length"
-                                    class="collapse-panel">
-                                    <BaseCollapse>
-                                        <template slot="header" class="panel-header">
-                                            <img class="header-icon" :src="item.group_icon||defaultTypeIcon"/>
-                                            <span class="header-title">{{item.group_name}}
-                                                <span class="header-atom">
-                                                    {{item.list.length}}{{i18n.num}}
-                                                </span>
+                            <div
+                                v-for="item in listInPanel"
+                                :key="item.type"
+                                v-if="item.list && item.list.length"
+                                class="collapse-panel">
+                                <BaseCollapse>
+                                    <template slot="header" class="panel-header">
+                                        <img class="header-icon" :src="item.group_icon||defaultTypeIcon"/>
+                                        <span class="header-title">{{item.group_name}}
+                                            <span class="header-atom">
+                                                {{item.list.length}}{{i18n.num}}
                                             </span>
-                                        </template>
-                                        <template slot="content">
-                                            <div
-                                                v-for="atom in item.list"
-                                                class="atom-item node-source"
-                                                :title="atom.name"
-                                                :key="activeNodeType === 'tasknode' ? atom.tag_code : atom.id"
-                                                :data-atomid="activeNodeType === 'tasknode' ? atom.code : atom.template_id"
-                                                :data-version="activeNodeType === 'tasknode' ? '' : atom.version"
-                                                :data-atomname="atom.name.replace(/\s/g, '')"
-                                                :data-type="activeNodeType">
-                                                <div class="name-wrapper">
-                                                    <p>{{atom.name}}</p>
-                                                </div>
+                                        </span>
+                                    </template>
+                                    <template slot="content">
+                                        <div
+                                            v-for="atom in item.list"
+                                            class="atom-item node-source"
+                                            :title="atom.name"
+                                            :key="activeNodeType === 'tasknode' ? atom.tag_code : atom.id"
+                                            :data-atomid="activeNodeType === 'tasknode' ? atom.code : atom.template_id"
+                                            :data-version="activeNodeType === 'tasknode' ? '' : atom.version"
+                                            :data-atomname="atom.name.replace(/\s/g, '')"
+                                            :data-type="activeNodeType">
+                                            <div class="name-wrapper">
+                                                <p>{{atom.name}}</p>
                                             </div>
-                                        </template>
-                                    </BaseCollapse>
-                                </div>
-                            </template>
+                                        </div>
+                                    </template>
+                                </BaseCollapse>
+                            </div>
                         </template>
                         <div v-else class="list-content clearfix">
                             <div
@@ -167,7 +166,7 @@ export default {
         loading () {
             if (this.activeNodeType === 'tasknode') {
                 return this.singleAtomListLoading
-            } else {
+            } else if (this.activeNodeType === 'subflow') {
                 return this.subAtomListLoading
             }
         },

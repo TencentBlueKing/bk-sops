@@ -121,12 +121,15 @@ import tools from '@/utils/tools.js'
 import NoData from '@/components/common/base/NoData.vue'
 import BaseInput from '@/components/common/base/BaseInput.vue'
 import TaskParamEdit from '../TaskParamEdit.vue'
+import NodePreview from '../NodePreview.vue'
 
 export default {
     name: 'TaskParamFill',
     components: {
+        NoData,
         BaseInput,
-        TaskParamEdit
+        TaskParamEdit,
+        NodePreview
     },
     props: ['cc_id', 'template_id', 'common', 'previewData'],
     data () {

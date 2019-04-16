@@ -81,12 +81,14 @@ import { errorHandler } from '@/utils/errorHandler.js'
 import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
 import NoData from '@/components/common/base/NoData.vue'
 import BaseTitle from '@/components/common/base/BaseTitle.vue'
+import BaseSearch from '@/components/common/base/BaseSearch.vue'
 import toolsUtils from '@/utils/tools.js'
 export default {
     name: 'appmakerTaskHome',
     components: {
         CopyrightFooter,
         BaseTitle,
+        BaseSearch,
         NoData
     },
     props: ['cc_id','app_id'],
