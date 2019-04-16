@@ -35,7 +35,7 @@ export function setAtomConfigApiUrls (SITE_URL, BIZ_CC_ID) {
 // 在这里对ajax请求做一些统一公用处理
 export function setJqueryAjaxConfig () {
     $.ajaxSetup({
-        //	timeout: 8000,
+        // timeout: 8000,
         statusCode: {
             // tastypie args error
             400: function (xhr) {
@@ -52,14 +52,9 @@ export function setJqueryAjaxConfig () {
             },
             402: function (xhr) {
                 // 功能开关
-                var _src = xhr.responseText
-                var ajax_content = '<iframe name="403_iframe" frameborder="0" src="' + _src + '" style="width:570px;height:400px;"></iframe>'
-                art.dialog({
-                    title: gettext("提示"),
-                    lock: true,
-                    content: ajax_content
-                })
-                return
+                const src = xhr.responseText
+                const ajaxContent = '<iframe name="403_iframe" frameborder="0" src="' + src + '" style="width:570px;height:400px;"></iframe>'
+                bus.$emit('showErrorModal', 'default', ajaxContent, gettext('提示'))
             },
             403: function (xhr) {
                 bus.$emit('showErrorModal', '403')
@@ -76,4 +71,3 @@ export function setJqueryAjaxConfig () {
         }
     })
 }
-

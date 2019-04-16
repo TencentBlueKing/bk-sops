@@ -57,99 +57,98 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { Validator } from 'vee-validate'
-import { mapMutations } from 'vuex'
-import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-import BaseInput from '@/components/common/base/BaseInput.vue'
+    import '@/utils/i18n.js'
+    import { mapMutations } from 'vuex'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import BaseInput from '@/components/common/base/BaseInput.vue'
 
-export default {
-    name: "ConfigBar",
-    components: {
-        BaseInput
-    },
-    props: ['name', 'cc_id', 'template_id', 'common', 'templateSaving', 'createTaskSaving', 'isTemplateDataChanged'],
-    data () {
-        return {
-            i18n: {
-                placeholder: gettext('请输入名称'),
-                NewProcess: gettext('新建流程'),
-                editProcess: gettext('编辑流程'),
-                addTask: gettext('新建任务'),
-                saveTplAndcreateTask: gettext('保存并新建任务'),
-                save: gettext("保存"),
-                return: gettext("返回")
-            },
-            tName: this.name.trim(),
-            templateNameRule: {
-                required: true,
-                max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
-                regex: NAME_REG
-            },
-            isShowMode: true
-        }
-    },
-    watch: {
-        name (val) {
-            this.tName = val
-        }
-    },
-    computed: {
-        templateTitle () {
-            return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
-        }
-    },
-    methods: {
-        ...mapMutations('template/', [
-            'setTemplateName'
-        ]),
-        onInputName (val) {
-            this.$emit('onChangeName', val)
+    export default {
+        name: 'ConfigBar',
+        components: {
+            BaseInput
         },
-        onSaveTemplate (saveAndCreate = false) {
-            this.$validator.validateAll().then((result) => {
-                if (!result) return
-                this.tName = this.tName.trim()
-                this.setTemplateName(this.tName)
-                if (saveAndCreate && !this.isTemplateDataChanged) {
-                    const taskUrl = this.getTaskUrl()
-                    this.$router.push(taskUrl)
-                } else {
-                    this.$emit('onSaveTemplate', saveAndCreate)
-                }
-            })
-        },
-        getHomeUrl () {
-            let url = `/template/home/${this.cc_id}/`
-            if (this.common) {
-                url += '?common=1'
+        props: ['name', 'cc_id', 'template_id', 'common', 'templateSaving', 'createTaskSaving', 'isTemplateDataChanged'],
+        data () {
+            return {
+                i18n: {
+                    placeholder: gettext('请输入名称'),
+                    NewProcess: gettext('新建流程'),
+                    editProcess: gettext('编辑流程'),
+                    addTask: gettext('新建任务'),
+                    saveTplAndcreateTask: gettext('保存并新建任务'),
+                    save: gettext('保存'),
+                    return: gettext('返回')
+                },
+                tName: this.name.trim(),
+                templateNameRule: {
+                    required: true,
+                    max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
+                isShowMode: true
             }
-            return url
         },
-        getTaskUrl () {
-            let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
-            if (this.common) {
-                url += '&common=1'
+        computed: {
+            templateTitle () {
+                return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
             }
-            return url
         },
-        onNameEditing () {
-            this.isShowMode = false
-            this.$nextTick(()=>{
-                this.$refs.canvasNameInput.focus()
-                this.$refs.canvasNameInput.select()
-            })
+        watch: {
+            name (val) {
+                this.tName = val
+            }
         },
-        onInputBlur () {
-            this.$validator.validateAll().then((result) => {
-                if (!result) {
-                    return
+        methods: {
+            ...mapMutations('template/', [
+                'setTemplateName'
+            ]),
+            onInputName (val) {
+                this.$emit('onChangeName', val)
+            },
+            onSaveTemplate (saveAndCreate = false) {
+                this.$validator.validateAll().then((result) => {
+                    if (!result) return
+                    this.tName = this.tName.trim()
+                    this.setTemplateName(this.tName)
+                    if (saveAndCreate && !this.isTemplateDataChanged) {
+                        const taskUrl = this.getTaskUrl()
+                        this.$router.push(taskUrl)
+                    } else {
+                        this.$emit('onSaveTemplate', saveAndCreate)
+                    }
+                })
+            },
+            getHomeUrl () {
+                let url = `/template/home/${this.cc_id}/`
+                if (this.common) {
+                    url += '?common=1'
                 }
-                this.isShowMode = true
-            })
+                return url
+            },
+            getTaskUrl () {
+                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
+                if (this.common) {
+                    url += '&common=1'
+                }
+                return url
+            },
+            onNameEditing () {
+                this.isShowMode = false
+                this.$nextTick(() => {
+                    this.$refs.canvasNameInput.focus()
+                    this.$refs.canvasNameInput.select()
+                })
+            },
+            onInputBlur () {
+                this.$validator.validateAll().then((result) => {
+                    if (!result) {
+                        return
+                    }
+                    this.isShowMode = true
+                })
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';

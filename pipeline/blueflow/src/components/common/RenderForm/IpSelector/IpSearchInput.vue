@@ -16,41 +16,41 @@
             class="search-input"
             :placeholder="placeholder"
             v-model="keyword"
-            @input="onInputChange"/>
+            @input="onInputChange" />
         <i class="bk-icon icon-search search-icon"></i>
     </div>
 </template>
 <script>
-import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
-const i18n = {
-    placeholder: gettext('搜索IP，多个以逗号隔开')
-}
+    const i18n = {
+        placeholder: gettext('搜索IP，多个以逗号隔开')
+    }
 
-export default {
-    name: 'IpSearchInput',
-    props: {
-        placeholder: {
-            type: String,
-            default: i18n.placeholder
-        }
-    },
-    data () {
-        return {
-            keyword: '',
-            delay: 500,
-            timer: null
-        }
-    },
-    methods: {
-        onInputChange () {
-            clearTimeout(this.timer)
-            this.timer = setTimeout(()=>{
-                this.$emit('search', this.keyword)
-            }, this.delay)
+    export default {
+        name: 'IpSearchInput',
+        props: {
+            placeholder: {
+                type: String,
+                default: i18n.placeholder
+            }
+        },
+        data () {
+            return {
+                keyword: '',
+                delay: 500,
+                timer: null
+            }
+        },
+        methods: {
+            onInputChange () {
+                clearTimeout(this.timer)
+                this.timer = setTimeout(() => {
+                    this.$emit('search', this.keyword)
+                }, this.delay)
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .search-input {

@@ -27,7 +27,7 @@
                 v-if="item.children"
                 class="sub-tree"
                 :data="item.children"
-                :selectedFlowPath="selectedFlowPath"
+                :selected-flow-path="selectedFlowPath"
                 :heirarchy="heirarchy ? `${heirarchy}.${item.id}` : String(item.id)"
                 :level="level + 1"
                 @onSelectNode="onSelectNode">
@@ -36,49 +36,49 @@
     </ul>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: 'NodeTree',
-    props: {
-        data: {
-            type: Array,
-            default () {
-                return []
+    import '@/utils/i18n.js'
+    export default {
+        name: 'NodeTree',
+        props: {
+            data: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            selectedFlowPath: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            heirarchy: {
+                type: String,
+                default: ''
+            },
+            level: {
+                type: Number,
+                default: 1
             }
         },
-        selectedFlowPath: {
-            type: Array,
-            default () {
-                return []
+        methods: {
+            getNodeActivedState (id) {
+                const len = this.selectedFlowPath.length
+                if (this.selectedFlowPath[len - 1].id === id) {
+                    return true
+                }
+                return false
+            },
+            onSelectNode (node, isClick, type) {
+                let nodeHeirarchy = node
+                const nodeType = node.children ? 'subflow' : 'tasknode'
+                if (isClick) {
+                    nodeHeirarchy = this.heirarchy ? `${this.heirarchy}.${node.id}` : String(node.id)
+                }
+                this.$emit('onSelectNode', nodeHeirarchy, false, nodeType)
             }
-        },
-        heirarchy: {
-            type: String,
-            default: ''
-        },
-        level: {
-            type: Number,
-            default: 1
-        }
-    },
-    methods: {
-        getNodeActivedState (id) {
-            const len = this.selectedFlowPath.length
-            if (this.selectedFlowPath[len - 1].id === id) {
-                return true
-            }
-            return false
-        },
-        onSelectNode (node, isClick, type) {
-            let nodeHeirarchy = node
-            const nodeType = node.children ? 'subflow' : 'tasknode'
-            if (isClick) {
-                nodeHeirarchy = this.heirarchy ? `${this.heirarchy}.${node.id}` : String(node.id)
-            }
-            this.$emit('onSelectNode', nodeHeirarchy, false, nodeType)
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -149,5 +149,3 @@ export default {
     }
 }
 </style>
-
-

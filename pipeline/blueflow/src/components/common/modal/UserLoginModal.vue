@@ -32,23 +32,22 @@
     </bk-dialog>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations} from 'vuex'
-export default {
-    name: 'UserLoginModal',
-    data () {
-        return {
-            isModalShow: false,
-            src: ''
-        }
-    },
-    methods: {
-        show (src) {
-            this.isModalShow = true
-            this.src = src
+    import '@/utils/i18n.js'
+    export default {
+        name: 'UserLoginModal',
+        data () {
+            return {
+                isModalShow: false,
+                src: ''
+            }
+        },
+        methods: {
+            show (src) {
+                this.isModalShow = true
+                this.src = src
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     .login-wrapper {
@@ -56,4 +55,3 @@ export default {
         height:440px;
     }
 </style>
-

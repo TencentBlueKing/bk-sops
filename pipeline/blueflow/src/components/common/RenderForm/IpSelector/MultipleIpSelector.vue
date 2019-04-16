@@ -15,9 +15,9 @@
             <div
                 v-for="selector in selectorTabs"
                 :key="selector.type"
-                :class="['ip-tab-checkbox', {'disabled': !editable}]"
+                :class="['ip-tab-checkbox', { 'disabled': !editable }]"
                 @click="onChooseSelector(selector.id)">
-                <span :class="['checkbox', {'checked': selectors.indexOf(selector.id) > -1}]"></span>
+                <span :class="['checkbox', { 'checked': selectors.indexOf(selector.id) > -1 }]"></span>
                 <span class="checkbox-text">{{selector.name}}</span>
             </div>
         </div>
@@ -27,7 +27,7 @@
                     <div
                         v-if="selectors.indexOf(selector.id) > -1"
                         :key="selector.type"
-                        :class="['tab-item', {'tab-item-active': activeSelector === selector.id}]"
+                        :class="['tab-item', { 'tab-item-active': activeSelector === selector.id }]"
                         :editable="editable"
                         @click="onChangeTab(selector.id)">
                         {{selector.name}}
@@ -40,86 +40,86 @@
                 v-show="activeSelector === 'ip'"
                 ref="ip"
                 :editable="editable"
-                :staticIpList="staticIpList"
-                :staticIps="staticIps"
+                :static-ip-list="staticIpList"
+                :static-ips="staticIps"
                 @change="onStaticIpChange">
             </static-ip>
             <dynamic-ip
                 v-show="activeSelector === 'topo'"
                 ref="topo"
                 :editable="editable"
-                :dynamicIpList="dynamicIpList"
-                :dynamicIps="dynamicIps"
+                :dynamic-ip-list="dynamicIpList"
+                :dynamic-ips="dynamicIps"
                 @change="onDynamicIpChange">
             </dynamic-ip>
         </div>
     </div>
 </template>
 <script>
-import StaticIp from './StaticIp.vue'
-import DynamicIp from './DynamicIp.vue'
+    import StaticIp from './StaticIp.vue'
+    import DynamicIp from './DynamicIp.vue'
 
-export default {
-    name: 'MultipleIpSelector',
-    components: {
-        StaticIp,
-        DynamicIp
-    },
-    props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'dynamicIps', 'staticIps'],
-    data () {
-        return {
-            activeSelector: this.selectors[0]
-        }
-    },
-    watch: {
-        selectors (val, oldVal) {
-            if (val.toString() !== oldVal.toString()) {
-                this.activeSelector = val[0]
+    export default {
+        name: 'MultipleIpSelector',
+        components: {
+            StaticIp,
+            DynamicIp
+        },
+        props: ['editable', 'selectorTabs', 'selectors', 'staticIpList', 'dynamicIpList', 'dynamicIps', 'staticIps'],
+        data () {
+            return {
+                activeSelector: this.selectors[0]
             }
-        }
-    },
-    methods: {
-        onChooseSelector (id) {
-            if (!this.editable) {
-                return
+        },
+        watch: {
+            selectors (val, oldVal) {
+                if (val.toString() !== oldVal.toString()) {
+                    this.activeSelector = val[0]
+                }
             }
-            const selectors = this.selectors.slice(0)
-            const index = selectors.indexOf(id)
-            if (index > -1) {
-                if (selectors.length === 1) {
+        },
+        methods: {
+            onChooseSelector (id) {
+                if (!this.editable) {
                     return
                 }
-                selectors.splice(index, 1)
-                if (id === this.activeSelector) {
-                    this.activeSelector = selectors[0]
+                const selectors = this.selectors.slice(0)
+                const index = selectors.indexOf(id)
+                if (index > -1) {
+                    if (selectors.length === 1) {
+                        return
+                    }
+                    selectors.splice(index, 1)
+                    if (id === this.activeSelector) {
+                        this.activeSelector = selectors[0]
+                    }
+                } else {
+                    selectors.push(id)
                 }
-            } else {
-                selectors.push(id)
+                this.$emit('change', 'selectors', selectors)
+            },
+            onChangeTab (id) {
+                this.activeSelector = id
+            },
+            onStaticIpChange (val) {
+                this.$emit('change', 'ip', val)
+            },
+            onDynamicIpChange (val) {
+                this.$emit('change', 'topo', val)
+            },
+            validate () {
+                let isValidate = true
+                this.selectors.forEach(item => {
+                    const result = this.$refs[item].validate()
+                    if (!result) {
+                        // this.onChangeTab(item)
+                        isValidate = false
+                    }
+                })
+                return isValidate
             }
-            this.$emit('change', 'selectors', selectors)
-        },
-        onChangeTab (id) {
-            this.activeSelector = id
-        },
-        onStaticIpChange (val) {
-            this.$emit('change', 'ip', val)
-        },
-        onDynamicIpChange (val) {
-            this.$emit('change', 'topo', val)
-        },
-        validate () {
-            let isValidate = true
-            this.selectors.forEach(item => {
-                const result = this.$refs[item].validate()
-                if (!result) {
-                    // this.onChangeTab(item)
-                    isValidate = false
-                }
-            })
-            return isValidate
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .selector-choose-wrap {
@@ -202,5 +202,3 @@ export default {
     }
 }
 </style>
-
-

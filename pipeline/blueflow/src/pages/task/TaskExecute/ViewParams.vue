@@ -14,11 +14,11 @@
         <div class="select-node">
             <NodeTree
                 :data="nodeData"
-                :selectedFlowPath="selectedFlowPath"
+                :selected-flow-path="selectedFlowPath"
                 @onSelectNode="onSelectNode">
             </NodeTree>
         </div>
-        <div class="view-params" v-bkloading="{isLoading: loading, opacity: 1}">
+        <div class="view-params" v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="params-panel" v-if="!isEmptyParams">
                 <h4 class="panel-title">{{ i18n.atom_params }}</h4>
                 <div class="params-content">
@@ -26,7 +26,7 @@
                         v-if="!loading"
                         :key="currentNode"
                         :scheme="renderConfig"
-                        :formOption="renderOption"
+                        :form-option="renderOption"
                         v-model="renderData">
                     </RenderForm>
                 </div>
@@ -36,125 +36,125 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import NoData from '@/components/common/base/NoData.vue'
-import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-import NodeTree from './NodeTree.vue'
-export default {
-    name: 'ViewParams',
-    components: {
-        NodeTree,
-        RenderForm,
-        NoData
-    },
-    props: [
-        'nodeData',
-        'selectedFlowPath',
-        'nodeDetailConfig'
-    ],
-    data () {
-        return {
-            i18n: {
-                atom_params: gettext("查看标准插件参数")
-            },
-            loading: true,
-            bkMessageInstance: null,
-            renderOption: {
-                showGroup: false,
-                showLabel: true,
-                showHook: false,
-                formEdit: false,
-                formMode: false
-            },
-            renderConfig: [],
-            renderData: {}
-        }
-    },
-    computed: {
-        ...mapState({
-            'atomFormConfig': state => state.atomForm.config
-        }),
-        isEmptyParams () {
-            return !this.renderConfig || this.renderConfig.length === 0
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import NodeTree from './NodeTree.vue'
+    export default {
+        name: 'ViewParams',
+        components: {
+            NodeTree,
+            RenderForm,
+            NoData
         },
-        isSubflowNode () {
-            return !this.nodeDetailConfig.component_code
-        },
-        noDataMessage () {
-            return this.isSubflowNode ? gettext('请点击标准插件节点查看参数') : gettext('无数据')
-        },
-        currentNode () {
-            return this.selectedFlowPath.slice(-1)[0].id
-        }
-    },
-    watch: {
-        nodeDetailConfig (val) {
-            this.upDataParamsData(val)
-        }
-    },
-    mounted () {
-        this.upDataParamsData(this.nodeDetailConfig)
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getNodeActInfo',
-            'instanceRetry'
-        ]),
-        ...mapActions('atomForm/', [
-            'loadAtomConfig'
-        ]),
-        ...mapMutations ('atomForm/', [
-            'setAtomConfig'
-        ]),
-        async loadNodeInfo () {
-            this.loading = true
-            try {
-                this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
-                this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
-                if (this.nodeInfo.result) {
-                    for ( let key in this.nodeInfo.data.inputs) {
-                        this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
-                    }
-                } else {
-                    errorHandler(this.nodeInfo, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.loading = false
+        props: [
+            'nodeData',
+            'selectedFlowPath',
+            'nodeDetailConfig'
+        ],
+        data () {
+            return {
+                i18n: {
+                    atom_params: gettext('查看标准插件参数')
+                },
+                loading: true,
+                bkMessageInstance: null,
+                renderOption: {
+                    showGroup: false,
+                    showLabel: true,
+                    showHook: false,
+                    formEdit: false,
+                    formMode: false
+                },
+                renderConfig: [],
+                renderData: {}
             }
         },
-        async getNodeConfig (type) {
-            if (this.atomFormConfig[type]) {
-                return this.atomFormConfig[type]
-            } else {
+        computed: {
+            ...mapState({
+                'atomFormConfig': state => state.atomForm.config
+            }),
+            isEmptyParams () {
+                return !this.renderConfig || this.renderConfig.length === 0
+            },
+            isSubflowNode () {
+                return !this.nodeDetailConfig.component_code
+            },
+            noDataMessage () {
+                return this.isSubflowNode ? gettext('请点击标准插件节点查看参数') : gettext('无数据')
+            },
+            currentNode () {
+                return this.selectedFlowPath.slice(-1)[0].id
+            }
+        },
+        watch: {
+            nodeDetailConfig (val) {
+                this.upDataParamsData(val)
+            }
+        },
+        mounted () {
+            this.upDataParamsData(this.nodeDetailConfig)
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getNodeActInfo',
+                'instanceRetry'
+            ]),
+            ...mapActions('atomForm/', [
+                'loadAtomConfig'
+            ]),
+            ...mapMutations('atomForm/', [
+                'setAtomConfig'
+            ]),
+            async loadNodeInfo () {
+                this.loading = true
                 try {
-                    await this.loadAtomConfig({atomType: type})
-                    this.setAtomConfig({atomType: type, configData: $.atoms[type]})
-                    return this.atomFormConfig[type]
+                    this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
+                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                    if (this.nodeInfo.result) {
+                        for (const key in this.nodeInfo.data.inputs) {
+                            this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])
+                        }
+                    } else {
+                        errorHandler(this.nodeInfo, this)
+                    }
                 } catch (e) {
                     errorHandler(e, this)
-                }
-            }
-        },
-        upDataParamsData (config) {
-            if (config.component_code) {
-                this.loadNodeInfo()
-            } else {
-                this.$nextTick(()=>{
+                } finally {
                     this.loading = false
-                    this.renderConfig = []
-                    this.renderData = {}
-                })
+                }
+            },
+            async getNodeConfig (type) {
+                if (this.atomFormConfig[type]) {
+                    return this.atomFormConfig[type]
+                } else {
+                    try {
+                        await this.loadAtomConfig({ atomType: type })
+                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
+                        return this.atomFormConfig[type]
+                    } catch (e) {
+                        errorHandler(e, this)
+                    }
+                }
+            },
+            upDataParamsData (config) {
+                if (config.component_code) {
+                    this.loadNodeInfo()
+                } else {
+                    this.$nextTick(() => {
+                        this.loading = false
+                        this.renderConfig = []
+                        this.renderData = {}
+                    })
+                }
+            },
+            onSelectNode (nodeHeirarchy, isClick, nodeType) {
+                this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
             }
-        },
-        onSelectNode (nodeHeirarchy, isClick, nodeType) {
-            this.$emit('onClickTreeNode', nodeHeirarchy, isClick, nodeType)
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
@@ -194,4 +194,3 @@ export default {
     }
 }
 </style>
-

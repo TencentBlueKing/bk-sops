@@ -20,7 +20,7 @@
                 <condition-item
                     :ref="`conditionItem_${index}`"
                     :data="condition"
-                    :fieldsList="conditionFields"
+                    :fields-list="conditionFields"
                     :index="index"
                     :editable="editable"
                     @changeCondition="changeCondition"
@@ -33,63 +33,63 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
-import ConditionItem from './ConditionItem.vue'
+    import ConditionItem from './ConditionItem.vue'
 
-const i18n = {
-    allSatisfy: gettext('（同时满足）'),
-    addItem: gettext('增加一条筛选条件')
-}
+    const i18n = {
+        allSatisfy: gettext('（同时满足）'),
+        addItem: gettext('增加一条筛选条件')
+    }
 
-export default {
-    name: 'SelectCondition',
-    components: {
-        ConditionItem
-    },
-    props: ['editable', 'label', 'conditions', 'conditionFields'],
-    data () {
-        return {
-            i18n
-        }
-    },
-    methods: {
-        changeCondition (data, index) {
-            const conditions = this.conditions.slice(0)
-            conditions.splice(index, 1, data)
-            this.$emit('change', conditions)
+    export default {
+        name: 'SelectCondition',
+        components: {
+            ConditionItem
         },
-        addCondition (index = 0) {
-            if (!this.editable) {
-                return
+        props: ['editable', 'label', 'conditions', 'conditionFields'],
+        data () {
+            return {
+                i18n
             }
-            const conditions = this.conditions.slice(0)
-            conditions.splice(index + 1, 0, {
-                field: '',
-                value: []
-            })
-            this.$emit('change', conditions)
         },
-        deleteCondition (index) {
-            const conditions = this.conditions.slice(0)
-            conditions.splice(index, 1)
-            this.$emit('change', conditions)
-        },
-        validate () {
-            let isValid = true
-            if (this.conditions.length) {
-                this.conditions.forEach((item, index) => {
-                    const condition = `conditionItem_${index}`
-                    const result = this.$refs[condition][0].validate()
-                    if (!result) {
-                        isValid = false
-                    }
+        methods: {
+            changeCondition (data, index) {
+                const conditions = this.conditions.slice(0)
+                conditions.splice(index, 1, data)
+                this.$emit('change', conditions)
+            },
+            addCondition (index = 0) {
+                if (!this.editable) {
+                    return
+                }
+                const conditions = this.conditions.slice(0)
+                conditions.splice(index + 1, 0, {
+                    field: '',
+                    value: []
                 })
+                this.$emit('change', conditions)
+            },
+            deleteCondition (index) {
+                const conditions = this.conditions.slice(0)
+                conditions.splice(index, 1)
+                this.$emit('change', conditions)
+            },
+            validate () {
+                let isValid = true
+                if (this.conditions.length) {
+                    this.conditions.forEach((item, index) => {
+                        const condition = `conditionItem_${index}`
+                        const result = this.$refs[condition][0].validate()
+                        if (!result) {
+                            isValid = false
+                        }
+                    })
+                }
+                return isValid
             }
-            return isValid
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .condition-label {
@@ -113,5 +113,3 @@ export default {
     }
 }
 </style>
-
-

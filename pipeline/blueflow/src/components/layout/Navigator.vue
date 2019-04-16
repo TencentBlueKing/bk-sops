@@ -12,23 +12,23 @@
 <template>
     <header>
         <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(businessHomeRoute)">
-            <img :src="logo" class="logo"/>
+            <img :src="logo" class="logo" />
         </router-link>
-        <img v-else :src="logo" class="logo"/>
+        <img v-else :src="logo" class="logo" />
         <nav>
             <div class="navigator" v-if="!appmakerDataLoading">
                 <template v-for="route in routeList">
                     <div
                         v-if="route.children && route.children.length"
                         :key="route.key"
-                        :class="['nav-item', { 'active': isNavActived(route)}]">
+                        :class="['nav-item', { 'active': isNavActived(route) }]">
                         <span>{{route.name}}</span>
                         <div class="sub-nav">
                             <router-link
                                 v-for="subRoute in route.children"
                                 tag="a"
                                 :key="subRoute.key"
-                                :class="['sub-nav-item', {'selected': isSubNavActived(subRoute)}]"
+                                :class="['sub-nav-item', { 'selected': isSubNavActived(subRoute) }]"
                                 :to="getPath(subRoute)"
                                 @click.native="onGoToPath(subRoute)">
                                 {{subRoute.name}}
@@ -39,7 +39,7 @@
                         v-else
                         tag="a"
                         :key="route.key"
-                        :class="['nav-item', { 'active': isNavActived(route)}]"
+                        :class="['nav-item', { 'active': isNavActived(route) }]"
                         :to="getPath(route)"
                         @click.native="onGoToPath(route)">
                         {{route.name}}
@@ -71,257 +71,252 @@
     </header>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import { setAtomConfigApiUrls } from '@/config/setting.js'
-import BizSelector from './BizSelector.vue'
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import BizSelector from './BizSelector.vue'
 
-const ROUTE_LIST = {
-    // 职能化中心导航
-    functor_router_list: [
-        {
-            key: 'function',
-            path: '/function/home/',
-            name: gettext('职能化中心')
-        }
-    ],
-    // 职能化中心导航
-    auditor_router_list: [
-        {
-            key: 'audit',
-            path: '/audit/home/',
-            name: gettext('审计中心')
-        }
-    ],
-    // 通用导航
-    maintainer_router_list: [
-        {
-            key: 'template',
-            name: gettext('流程模板'),
-            children: [
-                {
-                    key: 'template',
-                    name: gettext('业务流程'),
-                    path: '/template/home/'
-                },
-                {
-                    key: 'commonTemplate',
-                    name: gettext('公共流程'),
-                    path: '/template/home/',
-                    query: {common: 1, common_template: 'common'}
-                }
-            ]
-        },
-        {
-            key: 'periodic',
-            path: '/periodic/home/',
-            name: gettext('周期任务')
-        },
-        {
-            key: 'taskflow',
-            path: '/taskflow/home/',
-            name: gettext('任务记录')
-        },
-        {
-            key: 'config',
-            path: '/config/home/',
-            name: gettext('业务配置')
-        },
-        {
-            key: 'appmaker',
-            path: '/appmaker/home/',
-            name: gettext('轻应用')
-        },
-        {
-            key: 'administrator',
-            name: gettext('管理员入口'),
-            children: [
-                {
-                    key: 'statistics',
-                    name: gettext('运营数据'),
-                    path: '/statistics/template/'
-                },
-                {
-                    key: 'common',
-                    name: gettext('公共流程'),
-                    path: '/template/home/',
-                    query: {common: 1}
-                }
-            ]
-        }
-    ]
-}
-
-export default {
-    inject: ['reload'],
-    name: 'Navigator',
-    components: {
-        BizSelector
-    },
-    props: ['appmakerDataLoading'],
-    data () {
-        return {
-            subNavKey: '',
-            logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
-            i18n: {
-                help: gettext("帮助文档")
-            },
-            businessHomeRoute: {
-                key: 'business',
-                path: '/business/home/'
+    const ROUTE_LIST = {
+        // 职能化中心导航
+        functor_router_list: [
+            {
+                key: 'function',
+                path: '/function/home/',
+                name: gettext('职能化中心')
             }
-        }
-    },
-    computed: {
-        ...mapState({
-            site_url: state => state.site_url,
-            username: state => state.username,
-            userType: state => state.userType,
-            cc_id: state => state.cc_id,
-            app_id: state => state.app_id,
-            view_mode: state => state.view_mode,
-            bizList: state => state.bizList,
-            templateId: state => state.templateId,
-            notFoundPage: state => state.notFoundPage,
-            isSuperUser: state => state.isSuperUser
-        }),
-        showHeaderRight () {
-            return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.bizList.length
-        },
-        routeList () {
-            if (this.view_mode === 'appmaker') {
-                return [
+        ],
+        // 职能化中心导航
+        auditor_router_list: [
+            {
+                key: 'audit',
+                path: '/audit/home/',
+                name: gettext('审计中心')
+            }
+        ],
+        // 通用导航
+        maintainer_router_list: [
+            {
+                key: 'template',
+                name: gettext('流程模板'),
+                children: [
                     {
-                        key: 'appmakerTaskCreate',
-                        path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode`,
-                        query: {template_id: this.template_id},
-                        name: gettext('新建任务')
+                        key: 'template',
+                        name: gettext('业务流程'),
+                        path: '/template/home/'
                     },
                     {
-                        key: 'appmakerTaskList',
-                        path: `/appmaker/${this.app_id}/task_home/`,
-                        name: gettext('任务记录')
+                        key: 'commonTemplate',
+                        name: gettext('公共流程'),
+                        path: '/template/home/',
+                        query: { common: 1, common_template: 'common' }
                     }
                 ]
-            } else {
-                let routes = ROUTE_LIST[`${this.userType}_router_list`]
+            },
+            {
+                key: 'periodic',
+                path: '/periodic/home/',
+                name: gettext('周期任务')
+            },
+            {
+                key: 'taskflow',
+                path: '/taskflow/home/',
+                name: gettext('任务记录')
+            },
+            {
+                key: 'config',
+                path: '/config/home/',
+                name: gettext('业务配置')
+            },
+            {
+                key: 'appmaker',
+                path: '/appmaker/home/',
+                name: gettext('轻应用')
+            },
+            {
+                key: 'administrator',
+                name: gettext('管理员入口'),
+                children: [
+                    {
+                        key: 'statistics',
+                        name: gettext('运营数据'),
+                        path: '/statistics/template/'
+                    },
+                    {
+                        key: 'common',
+                        name: gettext('公共流程'),
+                        path: '/template/home/',
+                        query: { common: 1 }
+                    }
+                ]
+            }
+        ]
+    }
 
-                // 非管理员用户去掉管理员入口
-                if (!this.isSuperUser) {
-                    routes = routes.filter(item => item.key !== 'administrator')
+    export default {
+        inject: ['reload'],
+        name: 'Navigator',
+        components: {
+            BizSelector
+        },
+        props: ['appmakerDataLoading'],
+        data () {
+            return {
+                subNavKey: '',
+                logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
+                i18n: {
+                    help: gettext('帮助文档')
+                },
+                businessHomeRoute: {
+                    key: 'business',
+                    path: '/business/home/'
                 }
-                return routes
             }
         },
-        disabled () {
-            const route = this.$route
-            if (
-                route.path.indexOf('/statistics/') > -1 ||
-                route.query &&
-                route.query.common &&
-                !route.query.common_template &&
-                route.name !== 'templateStep' &&
-                route.name !== 'taskList'
-            ) {
-                return true
-            }
-            return false
-        }
-    },
-    mounted () {
-        this.initHome()
-    },
-    methods: {
-        initHome () {
-            if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                this.getBizList()
-            }
-        },
-        ...mapActions([
-            'getBizList',
-            'changeDefaultBiz'
-        ]),
-        ...mapMutations([
-            'setBizId'
-        ]),
-        isNavActived (route) {
-            const key = route.key
-
-            // 轻应用打开
-            if (this.view_mode === 'appmaker') {
-                if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {
-                    return key === 'appmakerTaskList'
+        computed: {
+            ...mapState({
+                site_url: state => state.site_url,
+                username: state => state.username,
+                userType: state => state.userType,
+                cc_id: state => state.cc_id,
+                app_id: state => state.app_id,
+                view_mode: state => state.view_mode,
+                bizList: state => state.bizList,
+                templateId: state => state.templateId,
+                notFoundPage: state => state.notFoundPage,
+                isSuperUser: state => state.isSuperUser
+            }),
+            showHeaderRight () {
+                return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.bizList.length
+            },
+            routeList () {
+                if (this.view_mode === 'appmaker') {
+                    return [
+                        {
+                            key: 'appmakerTaskCreate',
+                            path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode`,
+                            query: { template_id: this.template_id },
+                            name: gettext('新建任务')
+                        },
+                        {
+                            key: 'appmakerTaskList',
+                            path: `/appmaker/${this.app_id}/task_home/`,
+                            name: gettext('任务记录')
+                        }
+                    ]
                 } else {
-                    return key === 'appmakerTaskCreate'
-                }
-            }
+                    let routes = ROUTE_LIST[`${this.userType}_router_list`]
 
-            // 职能化中心、审计中心打开
-            if (this.userType === 'functor') {
-                return key === 'function'
-            } else if (this.userType === 'auditor') {
-                return key === 'audit'
-            }
-            // 二级导航被选中
-            if (route.children && route.children.length) {
-                return route.children.some(item => {
-                    return this.matchPathResult(item.key)
-                })
-            }
-
-            return this.matchPathResult(key)
-        },
-        isSubNavActived (route) {
-            return this.matchPathResult(route.key)
-        },
-        matchPathResult (key) {
-            if (this.$route.query !== undefined && Object.keys(this.$route.query).length !== 0 && this.$route.query.common) {
-                if (this.$route.query.common_template || this.$route.name === 'templateStep') {
-                    return key === 'commonTemplate'
-                } else if (this.$route.name !== 'taskList'){
-                    return key === 'common'
+                    // 非管理员用户去掉管理员入口
+                    if (!this.isSuperUser) {
+                        routes = routes.filter(item => item.key !== 'administrator')
+                    }
+                    return routes
                 }
-            }
-            return new RegExp('^\/' + key).test(this.$route.path)
-        },
-        getPath (route) {
-            /** 404 页面时，导航统一跳转到首页 */
-            if (this.notFoundPage) {
-                if (['functor', 'auditor'].indexOf(this.userType) === -1
-                    && this.view_mode !== 'appmaker'
+            },
+            disabled () {
+                const route = this.$route
+                if (route.path.indexOf('/statistics/') > -1
+                    || (route.query
+                    && route.query.common
+                    && !route.query.common_template
+                    && route.name !== 'templateStep'
+                    && route.name !== 'taskList')
                 ) {
-                    return '/'
+                    return true
                 }
-                
+                return false
             }
+        },
+        mounted () {
+            this.initHome()
+        },
+        methods: {
+            initHome () {
+                if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
+                    this.getBizList()
+                }
+            },
+            ...mapActions([
+                'getBizList',
+                'changeDefaultBiz'
+            ]),
+            ...mapMutations([
+                'setBizId'
+            ]),
+            isNavActived (route) {
+                const key = route.key
 
-            let path
-            if (route.key === 'appmakerTaskCreate') {
-                path = `${route.path}?template_id=${this.templateId}`
-            } else if (this.userType !== 'maintainer' || route.key === 'statistics') {
-                path = `${route.path}`
-            } else {
-                path =  {path: `${route.path}${this.cc_id}/`, query: route.query}
+                // 轻应用打开
+                if (this.view_mode === 'appmaker') {
+                    if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {
+                        return key === 'appmakerTaskList'
+                    } else {
+                        return key === 'appmakerTaskCreate'
+                    }
+                }
+
+                // 职能化中心、审计中心打开
+                if (this.userType === 'functor') {
+                    return key === 'function'
+                } else if (this.userType === 'auditor') {
+                    return key === 'audit'
+                }
+                // 二级导航被选中
+                if (route.children && route.children.length) {
+                    return route.children.some(item => {
+                        return this.matchPathResult(item.key)
+                    })
+                }
+
+                return this.matchPathResult(key)
+            },
+            isSubNavActived (route) {
+                return this.matchPathResult(route.key)
+            },
+            matchPathResult (key) {
+                if (this.$route.query !== undefined && Object.keys(this.$route.query).length !== 0 && this.$route.query.common) {
+                    if (this.$route.query.common_template || this.$route.name === 'templateStep') {
+                        return key === 'commonTemplate'
+                    } else if (this.$route.name !== 'taskList') {
+                        return key === 'common'
+                    }
+                }
+                return new RegExp('^\/' + key).test(this.$route.path)
+            },
+            getPath (route) {
+                /** 404 页面时，导航统一跳转到首页 */
+                if (this.notFoundPage) {
+                    if (['functor', 'auditor'].indexOf(this.userType) === -1
+                        && this.view_mode !== 'appmaker'
+                    ) {
+                        return '/'
+                    }
+                }
+
+                let path
+                if (route.key === 'appmakerTaskCreate') {
+                    path = `${route.path}?template_id=${this.templateId}`
+                } else if (this.userType !== 'maintainer' || route.key === 'statistics') {
+                    path = `${route.path}`
+                } else {
+                    path = { path: `${route.path}${this.cc_id}/`, query: route.query }
+                }
+                return path
+            },
+            onGoToPath (route) {
+                const path = this.getPath(route)
+                // 点击当前导航刷新页面
+                if (path === this.$route.path || path.path === this.$route.path) {
+                    this.refreshCurrentPage()
+                }
+            },
+            onClickSubNav (route) {
+                this.onGoToPath(route)
+            },
+            refreshCurrentPage () {
+                this.reload()
             }
-            return path
-        },
-        onGoToPath (route) {
-            let path = this.getPath(route)
-            // 点击当前导航刷新页面
-            if (path === this.$route.path || path.path === this.$route.path) {
-                this.refreshCurrentPage()
-            }
-            return
-        },
-        onClickSubNav (route) {
-            this.onGoToPath(route)
-        },
-        refreshCurrentPage () {
-            this.reload()
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';

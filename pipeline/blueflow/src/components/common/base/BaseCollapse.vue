@@ -11,8 +11,8 @@
 */
 <template>
     <div class="base-collapse">
-        <div :class="['header-wrapper', {actived: showContent}]" @click="onHeaderClick">
-            <slot name="header" ></slot>
+        <div :class="['header-wrapper', { actived: showContent }]" @click="onHeaderClick">
+            <slot name="header"></slot>
             <i class="common-icon-arrow-down toggle-arrow"></i>
         </div>
         <div class="content-wrapper clearfix" v-show="showContent">
@@ -21,31 +21,31 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-export default {
-    name: "BaseCollapse",
-    props: {
-        isCollapse: {
-            type: Boolean,
-            default: true
-        }
-    },
-    data () {
-        return {
-            showContent: !this.isCollapse
-        }
-    },
-    watch: {
-        isCollapse (val) {
-            this.showContent = !val
-        }
-    },
-    methods: {
-        onHeaderClick () {
-            this.showContent = !this.showContent
+    import '@/utils/i18n.js'
+    export default {
+        name: 'BaseCollapse',
+        props: {
+            isCollapse: {
+                type: Boolean,
+                default: true
+            }
+        },
+        data () {
+            return {
+                showContent: !this.isCollapse
+            }
+        },
+        watch: {
+            isCollapse (val) {
+                this.showContent = !val
+            }
+        },
+        methods: {
+            onHeaderClick () {
+                this.showContent = !this.showContent
+            }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '../../../scss/config.scss';

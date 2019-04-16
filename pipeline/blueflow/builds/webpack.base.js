@@ -68,14 +68,17 @@ module.exports = {
                 enforce: 'pre',
                 test: /\.(js|vue)$/,
                 loader: 'eslint-loader',
-                exclude: /node_modules/
+                exclude: /node_modules/,
+                options: {
+                    formatter: require('eslint-friendly-formatter')
+                }
             },
             {
                 test: /\.s?[ac]ss$/,
                 use: [
-                    process.env.NODE_ENV === 'development' ?
-                        'style-loader' :
-                        MiniCssExtractPlugin.loader,
+                    process.env.NODE_ENV === 'development'
+                        ? 'style-loader'
+                        : MiniCssExtractPlugin.loader,
                     'css-loader',
                     'postcss-loader',
                     'sass-loader'
@@ -94,14 +97,14 @@ module.exports = {
                     }
                 ],
                 exclude: [
-                    path.join(__dirname, "../node_modules")
+                    path.join(__dirname, '../node_modules')
                 ]
             },
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
                 exclude: [
-                    path.join(__dirname, "../node_modules")
+                    path.join(__dirname, '../node_modules')
                 ]
             },
             {

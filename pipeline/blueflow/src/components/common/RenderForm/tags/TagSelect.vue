@@ -39,188 +39,187 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import tools from '@/utils/tools.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const selectAttrs = {
-    value: {
-        required: false,
-        default: ''
-    },
-    items: {
-        type: Array,
-        required: false,
-        default () {
-            return []
+    const selectAttrs = {
+        value: {
+            required: false,
+            default: ''
         },
-        desc: "array like [{text: '', value: ''}, {text: '', value: ''}]"
-    },
-    multiple: {
-        type: Boolean,
-        required: false,
-        default: false,
-        desc: 'set multiple selected items'
-    },
-    multiple_limit: {
-        type: Number,
-        required: false,
-        default: 0,
-        desc: 'limit of selected items when multiple is true'
-    },
-    remote: {
-        type: Boolean,
-        required: false,
-        default: false,
-        desc: 'use remote data or not'
-    },
-    remote_url: {
-        type: String,
-        required: false,
-        default: '',
-        desc: 'remote url when remote is true'
-    },
-    remote_data_init: {
-        type: Function,
-        required: false,
-        default: function (data) {
-            return data
-        },
-        desc: 'how to process data after getting remote data'
-    },
-    placeholder: {
-        type: String,
-        required: false,
-        default: '',
-        desc: 'placeholder'
-    },
-    empty_text: {
-        type: String,
-        required: false,
-        default: gettext('无数据'),
-        desc: 'tips when data is empty'
-    }
-}
-export default {
-    name: 'TagSelect',
-    mixins: [getFormMixins(selectAttrs)],
-    data () {
-        return {
-            loading: false,
-            remote_cache: null,
-            loading_text: gettext('加载中')
-        }
-    },
-    computed: {
-        seletedValue: {
-            get () {
-                return this.value
+        items: {
+            type: Array,
+            required: false,
+            default () {
+                return []
             },
-            set (val) {
-                this.updateForm(val)
-            }
+            desc: "array like [{text: '', value: ''}, {text: '', value: ''}]"
         },
-        viewValue () {
-            if (Array.isArray(this.seletedValue)) { // 多选
-                if (!this.seletedValue.length) {
-                    return '--'
-                }
-                if (this.items.length) {
-                    return this.seletedValue.map(val => {
-                        return this.filterLabel(val)
-                    }).join(',')
-                } else {
-                    return this.value.join(',')
-                }
-            } else { // 单选
-                if (this.seletedValue === 'undefined') {
-                    return '--'
-                }
-                if (this.items.length) {
-                    return this.filterLabel(this.seletedValue)
-                } else {
-                    return this.value
-                }
-            }
+        multiple: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'set multiple selected items'
+        },
+        multiple_limit: {
+            type: Number,
+            required: false,
+            default: 0,
+            desc: 'limit of selected items when multiple is true'
+        },
+        remote: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'use remote data or not'
+        },
+        remote_url: {
+            type: String,
+            required: false,
+            default: '',
+            desc: 'remote url when remote is true'
+        },
+        remote_data_init: {
+            type: Function,
+            required: false,
+            default: function (data) {
+                return data
+            },
+            desc: 'how to process data after getting remote data'
+        },
+        placeholder: {
+            type: String,
+            required: false,
+            default: '',
+            desc: 'placeholder'
+        },
+        empty_text: {
+            type: String,
+            required: false,
+            default: gettext('无数据'),
+            desc: 'tips when data is empty'
         }
-    },
-    mounted () {
-        this.remoteMethod()
-    },
-    methods: {
-        filterLabel (val) {
-            let label = val
-            this.items.some(item => {
-                if (item.value === val) {
-                    label = item.text
-                    return true
+    }
+    export default {
+        name: 'TagSelect',
+        mixins: [getFormMixins(selectAttrs)],
+        data () {
+            return {
+                loading: false,
+                remote_cache: null,
+                loading_text: gettext('加载中')
+            }
+        },
+        computed: {
+            seletedValue: {
+                get () {
+                    return this.value
+                },
+                set (val) {
+                    this.updateForm(val)
                 }
-            })
-            return label
-        },
-        _set_value (value) {
-            if (this.remote && this.remote_cache === null) {
-                this.remoteMethod("")
+            },
+            viewValue () {
+                if (Array.isArray(this.seletedValue)) { // 多选
+                    if (!this.seletedValue.length) {
+                        return '--'
+                    }
+                    if (this.items.length) {
+                        return this.seletedValue.map(val => {
+                            return this.filterLabel(val)
+                        }).join(',')
+                    } else {
+                        return this.value.join(',')
+                    }
+                } else { // 单选
+                    if (this.seletedValue === 'undefined') {
+                        return '--'
+                    }
+                    if (this.items.length) {
+                        return this.filterLabel(this.seletedValue)
+                    } else {
+                        return this.value
+                    }
+                }
             }
-            this.updateForm(value)
         },
-        _get_value () {
-            return this.value
+        mounted () {
+            this.remoteMethod()
         },
-        onFocus () {
-            if (this.remote && this.remote_cache === null) {
-                this.remoteMethod("")
-            }
-        },
-        remoteMethod (query) {
-            var $this = this
-            var remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url
-            if (!remote_url) return
-
-            this.loading = true
-            // 请求远程数据
-            if (this.remote_cache === null && remote_url) {
-                $.ajax({
-                    url: remote_url,
-                    method: "GET",
-                    success: function (res) {
-                        var data = $this.remote_data_init(res)
-                        $this.remote_cache = data
-
-                        if ($this.remote_cache !== null) {
-                            if (query) {
-                                $this.items = $this.remote_cache.filter(item => {
-                                    return item.text.toLowerCase()
-                                        .indexOf(query.toLowerCase()) > -1
-                                })
-                            } else {
-                                $this.items = $this.remote_cache
-                            }
-                        } else {
-                            $this.items = []
-                        }
-
-                        $this.loading = false
-                    },
-                    error: function (resp) {
-                        $this.placeholder = gettext("请求数据失败")
-                        $this.loading = false
+        methods: {
+            filterLabel (val) {
+                let label = val
+                this.items.some(item => {
+                    if (item.value === val) {
+                        label = item.text
+                        return true
                     }
                 })
-            } else {
-                if (query) {
-                    this.items = this.remote_cache.filter(item => {
-                        return item.text.toLowerCase()
-                            .indexOf(query.toLowerCase()) > -1
+                return label
+            },
+            _set_value (value) {
+                if (this.remote && this.remote_cache === null) {
+                    this.remoteMethod('')
+                }
+                this.updateForm(value)
+            },
+            _get_value () {
+                return this.value
+            },
+            onFocus () {
+                if (this.remote && this.remote_cache === null) {
+                    this.remoteMethod('')
+                }
+            },
+            remoteMethod (query) {
+                const $this = this
+                const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url
+                if (!remote_url) return
+
+                this.loading = true
+                // 请求远程数据
+                if (this.remote_cache === null && remote_url) {
+                    $.ajax({
+                        url: remote_url,
+                        method: 'GET',
+                        success: function (res) {
+                            const data = $this.remote_data_init(res)
+                            $this.remote_cache = data
+
+                            if ($this.remote_cache !== null) {
+                                if (query) {
+                                    $this.items = $this.remote_cache.filter(item => {
+                                        return item.text.toLowerCase()
+                                            .indexOf(query.toLowerCase()) > -1
+                                    })
+                                } else {
+                                    $this.items = $this.remote_cache
+                                }
+                            } else {
+                                $this.items = []
+                            }
+
+                            $this.loading = false
+                        },
+                        error: function (resp) {
+                            $this.placeholder = gettext('请求数据失败')
+                            $this.loading = false
+                        }
                     })
                 } else {
-                    this.items = this.remote_cache
+                    if (query) {
+                        this.items = this.remote_cache.filter(item => {
+                            return item.text.toLowerCase()
+                                .indexOf(query.toLowerCase()) > -1
+                        })
+                    } else {
+                        this.items = this.remote_cache
+                    }
+                    this.loading = false
                 }
-                this.loading = false
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     .el-select {

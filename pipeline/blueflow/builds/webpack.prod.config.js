@@ -19,7 +19,7 @@ const webpackBaseConfig = require('./webpack.base.js')
 
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
-module.exports = merge( webpackBaseConfig, {
+module.exports = merge(webpackBaseConfig, {
     plugins: [
         new webpack.DefinePlugin({
             'process.env': {

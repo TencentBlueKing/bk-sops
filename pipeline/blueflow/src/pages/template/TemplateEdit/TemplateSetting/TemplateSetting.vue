@@ -11,19 +11,19 @@
 */
 <template>
     <div class="setting-area-wrap">
-        <div :class="['setting-tab-wrap', {'vertical-fold': !showPanel}]">
+        <div :class="['setting-tab-wrap', { 'vertical-fold': !showPanel }]">
             <div class="setting-panel-tab" @click="onTemplateSettingShow('globalVariableTab')">
-                <div :class="['setting-menu-icon', {'activeTab': activeTab === 'globalVariableTab'}]">
+                <div :class="['setting-menu-icon', { 'activeTab': activeTab === 'globalVariableTab' }]">
                     <i class="common-icon-square-code" :title="i18n.globalVariable"></i>
                 </div>
             </div>
             <div class="setting-panel-tab" @click="onTemplateSettingShow('templateConfigTab')">
-                <div :class="['setting-menu-icon', {'activeTab': activeTab === 'templateConfigTab'}]">
+                <div :class="['setting-menu-icon', { 'activeTab': activeTab === 'templateConfigTab' }]">
                     <i class="common-icon-square-attribute" :title="i18n.basicInformation"></i>
                 </div>
             </div>
             <div class="setting-panel-tab" @click="onTemplateSettingShow('localDraftTab')">
-                <div :class="['setting-menu-icon', {'activeTab': activeTab === 'localDraftTab'}]">
+                <div :class="['setting-menu-icon', { 'activeTab': activeTab === 'localDraftTab' }]">
                     <i class="common-icon-clock-reload" :title="i18n.localCache"></i>
                 </div>
             </div>
@@ -35,7 +35,7 @@
                         v-show="activeTab === 'globalVariableTab'"
                         ref="globalVariable"
                         class="panel-item"
-                        :isVariableEditing="isVariableEditing"
+                        :is-variable-editing="isVariableEditing"
                         @changeVariableEditing="onVariableEditingChange"
                         @variableDataChanged="onVariableDataChange"
                         @onDeleteConstant="onDeleteConstant">
@@ -43,14 +43,14 @@
                     <TabTemplateConfig
                         class="panel-item"
                         v-show="activeTab === 'templateConfigTab'"
-                        :isTemplateConfigValid="isTemplateConfigValid"
-                        :businessInfoLoading="businessInfoLoading"
+                        :is-template-config-valid="isTemplateConfigValid"
+                        :business-info-loading="businessInfoLoading"
                         @onSelectCategory="onSelectCategory">
                     </TabTemplateConfig>
                     <TabLocalDraft
                         class="panel-item"
                         v-show="activeTab === 'localDraftTab'"
-                        :draftArray="draftArray"
+                        :draft-array="draftArray"
                         @onDeleteDraft="onDeleteDraft"
                         @onReplaceTemplate="onReplaceTemplate"
                         @onNewDraft="onNewDraft"
@@ -62,129 +62,128 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations } from 'vuex'
-import tools from '@/utils/tools.js'
-import TabGlobalVariables from './TabGlobalVariables.vue'
-import TabTemplateConfig from './TabTemplateConfig.vue'
-import TabLocalDraft from './TabLocalDraft.vue'
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations } from 'vuex'
+    import TabGlobalVariables from './TabGlobalVariables.vue'
+    import TabTemplateConfig from './TabTemplateConfig.vue'
+    import TabLocalDraft from './TabLocalDraft.vue'
 
-export default {
-    name: 'TemplateSetting',
-    components: {
-        TabGlobalVariables,
-        TabTemplateConfig,
-        TabLocalDraft
-    },
-    props: ['businessInfoLoading', 'isTemplateConfigValid', 'isSettingPanelShow', 'draftArray'],
-    data () {
-        return {
-            i18n: {
-                globalVariable: gettext('全局变量'),
-                basicInformation: gettext('基础信息'),
-                localCache: gettext('本地缓存')
+    export default {
+        name: 'TemplateSetting',
+        components: {
+            TabGlobalVariables,
+            TabTemplateConfig,
+            TabLocalDraft
+        },
+        props: ['businessInfoLoading', 'isTemplateConfigValid', 'isSettingPanelShow', 'draftArray'],
+        data () {
+            return {
+                i18n: {
+                    globalVariable: gettext('全局变量'),
+                    basicInformation: gettext('基础信息'),
+                    localCache: gettext('本地缓存')
+                },
+                showPanel: true,
+                isVariableEditing: false,
+                activeTab: 'globalVariableTab'
+            }
+        },
+        computed: {
+            ...mapState({
+                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'outputs': state => state.template.outputs,
+                'constants': state => state.template.constants,
+                'timeout': state => state.template.time_out
+            }),
+            variableData () {
+                if (this.theKeyOfEditing) {
+                    return this.constants[this.theKeyOfEditing]
+                } else {
+                    return {
+                        custom_type: 'input',
+                        desc: '',
+                        key: '',
+                        name: '',
+                        show_type: 'show',
+                        source_info: {},
+                        source_tag: '',
+                        source_type: 'custom',
+                        validation: '^.+$',
+                        validator: [],
+                        value: ''
+                    }
+                }
+            }
+        },
+        watch: {
+            isSettingPanelShow (val) {
+                this.showPanel = val
+            }
+        },
+        methods: {
+            ...mapMutations('template/', [
+                'editVariable',
+                'deleteVariable',
+                'setOutputs',
+                'setReceiversGroup',
+                'setNotifyType',
+                'setOvertime',
+                'setCategory'
+            ]),
+            togglePanel (val) {
+                this.$emit('toggleSettingPanel', val)
             },
-            showPanel: true,
-            isVariableEditing: false,
-            activeTab: 'globalVariableTab'
-        }
-    },
-    computed: {
-        ...mapState({
-            'businessBaseInfo': state => state.template.businessBaseInfo,
-            'outputs': state => state.template.outputs,
-            'constants': state => state.template.constants,
-            'timeout': state => state.template.time_out
-        }),
-        variableData () {
-            if (this.theKeyOfEditing) {
-                return this.constants[this.theKeyOfEditing]
-            } else {
-                return {
-                    custom_type: 'input',
-                    desc: '',
-                    key: '',
-                    name: '',
-                    show_type: 'show',
-                    source_info: {},
-                    source_tag: '',
-                    source_type: 'custom',
-                    validation: '^.+$',
-                    validator: [],
-                    value: ''
+            // 变量编辑是否展开
+            isEditPanelOpen () {
+                return this.isVariableEditing
+            },
+            // 变量保存
+            saveVariable () {
+                return this.$refs.globalVariable.saveVariable()
+            },
+            // 激活表单不合法的tab项
+            setErrorTab (tab) {
+                this.activeTab = tab
+                this.togglePanel(true)
+            },
+            onVariableDataChange () {
+                this.$emit('variableDataChanged')
+            },
+            onDeleteConstant (key) {
+                this.$emit('onDeleteConstant', key)
+            },
+            onSelectCategory (value) {
+                this.$emit('onSelectCategory', value)
+            },
+            onDeleteDraft (key) {
+                this.$emit('onDeleteDraft', key)
+            },
+            onReplaceTemplate (data) {
+                this.$emit('onReplaceTemplate', data)
+            },
+            onNewDraft (name) {
+                this.$emit('onNewDraft', name)
+            },
+            hideConfigPanel () {
+                this.$emit('hideConfigPanel')
+            },
+            updateLocalTemplateData () {
+                this.$emit('updateLocalTemplateData')
+            },
+            onVariableEditingChange (val) {
+                this.isVariableEditing = val
+            },
+            onTemplateSettingShow (val) {
+                if (this.activeTab === val) {
+                    this.activeTab = undefined
+                    this.togglePanel(false)
+                } else {
+                    this.activeTab = val
+                    this.togglePanel(true)
                 }
             }
         }
-    },
-    watch: {
-        isSettingPanelShow (val) {
-            this.showPanel = val
-        }
-    },
-    methods: {
-        ...mapMutations ('template/', [
-            'editVariable',
-            'deleteVariable',
-            'setOutputs',
-            'setReceiversGroup',
-            'setNotifyType',
-            'setOvertime',
-            'setCategory'
-        ]),
-        togglePanel (val) {
-            this.$emit('toggleSettingPanel', val)
-        },
-        // 变量编辑是否展开
-        isEditPanelOpen () {
-            return this.isVariableEditing
-        },
-        // 变量保存
-        saveVariable () {
-            return this.$refs.globalVariable.saveVariable()
-        },
-        // 激活表单不合法的tab项
-        setErrorTab (tab) {
-            this.activeTab = tab
-            this.togglePanel(true)
-        },
-        onVariableDataChange () {
-            this.$emit('variableDataChanged')
-        },
-        onDeleteConstant (key) {
-            this.$emit('onDeleteConstant', key)
-        },
-        onSelectCategory (value) {
-            this.$emit('onSelectCategory', value)
-        },
-        onDeleteDraft (key) {
-            this.$emit('onDeleteDraft', key)
-        },
-        onReplaceTemplate (data) {
-            this.$emit('onReplaceTemplate', data)
-        },
-        onNewDraft (name) {
-            this.$emit('onNewDraft', name)
-        },
-        hideConfigPanel () {
-            this.$emit('hideConfigPanel')
-        },
-        updateLocalTemplateData () {
-            this.$emit('updateLocalTemplateData')
-        },
-        onVariableEditingChange (val) {
-            this.isVariableEditing = val
-        },
-        onTemplateSettingShow (val) {
-            if (this.activeTab === val) {
-                this.activeTab = undefined
-                this.togglePanel(false)
-            } else {
-                this.activeTab = val
-                this.togglePanel(true)
-            }
-        }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';

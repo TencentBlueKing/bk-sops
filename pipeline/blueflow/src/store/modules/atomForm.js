@@ -11,7 +11,6 @@
 */
 import Vue from 'vue'
 import api from '@/api/index.js'
-import { debug } from 'util'
 
 const VAR_TYPE = {
     'var_ip_picker': 'variable',
@@ -36,7 +35,7 @@ const atomForm = {
             state.fetching = status
         },
         setAtomForm (state, payload) {
-            let atomType = payload.isMeta ? META_FORM_TYPE[payload.atomType] : payload.atomType
+            const atomType = payload.isMeta ? META_FORM_TYPE[payload.atomType] : payload.atomType
             Vue.set(state.form, atomType, payload.data)
         },
         setAtomConfig (state, payload) {
@@ -53,7 +52,7 @@ const atomForm = {
         }
     },
     actions: {
-        loadAtomConfig ({commit, state}, payload) {
+        loadAtomConfig ({ commit, state }, payload) {
             const { atomType, isMeta } = payload
             const atomClassify = VAR_TYPE[atomType] || 'component'
             return api.$getAtomForm(atomType, atomClassify, isMeta || 0).then(
@@ -62,7 +61,7 @@ const atomForm = {
                 Promise.reject(e)
             })
         },
-        loadSubflowConfig ({commit}, payload) {
+        loadSubflowConfig ({ commit }, payload) {
             const { templateId, version, common } = payload
             return api.getFormByTemplateId(templateId, version, common).then(
                 response => response.data

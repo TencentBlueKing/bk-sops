@@ -26,36 +26,36 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { getFormMixins } from '../formMixins.js'
+    import '@/utils/i18n.js'
+    import { getFormMixins } from '../formMixins.js'
 
-const datetimeAttrs = {
-    placeholder: {
-        type: String,
-        required: false,
-        default: gettext("请选择日期时间"),
-        desc: "placeholder"
-    },
-    value: {
-        type: String,
-        required: false,
-        default: ''
+    const datetimeAttrs = {
+        placeholder: {
+            type: String,
+            required: false,
+            default: gettext('请选择日期时间'),
+            desc: 'placeholder'
+        },
+        value: {
+            type: String,
+            required: false,
+            default: ''
+        }
     }
-}
-export default {
-    name: 'TagDatetime',
-    mixins: [getFormMixins(datetimeAttrs)],
-    computed: {
-        dateValue: {
-            get () {
-                return this.value
-            },
-            set (val) {
-                this.updateForm(val)
+    export default {
+        name: 'TagDatetime',
+        mixins: [getFormMixins(datetimeAttrs)],
+        computed: {
+            dateValue: {
+                get () {
+                    return this.value
+                },
+                set (val) {
+                    this.updateForm(val)
+                }
             }
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .tag-datetime {
@@ -69,4 +69,3 @@ export default {
     }
 }
 </style>
-

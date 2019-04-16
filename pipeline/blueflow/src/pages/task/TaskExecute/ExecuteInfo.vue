@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="execute-info" v-bkloading="{isLoading: loading, opacity: 1}">
+    <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <h3 class="panel-title">{{ i18n.execute_detail }}</h3>
         <section class="info-section">
             <h4 class="common-section-title">{{ i18n.execute_info }}</h4>
@@ -43,7 +43,7 @@
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
                     :scheme="renderConfig"
-                    :formOption="renderOption"
+                    :form-option="renderOption"
                     v-model="renderData">
                 </RenderForm>
                 <NoData v-else></NoData>
@@ -71,7 +71,7 @@
             <div v-html="failInfo"></div>
             <IpLogContent
                 v-if="nodeInfo.ex_data.show_ip_log"
-                :nodeInfo="nodeInfo">
+                :node-info="nodeInfo">
             </IpLogContent>
         </section>
         <section class="info-section" v-if="nodeInfo && nodeInfo.histories && nodeInfo.histories.length">
@@ -129,187 +129,183 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import { mapState, mapMutations, mapActions } from 'vuex'
-import VueJsonPretty from 'vue-json-pretty'
-import tools from '@/utils/tools.js'
-import { URL_REG } from '@/constants/index.js'
-import { errorHandler } from '@/utils/errorHandler.js'
-import { checkDataType } from '@/utils/checkDataType.js'
-import NoData from '@/components/common/base/NoData.vue'
-import BaseCollapse from '@/components/common/base/BaseCollapse.vue'
-import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
-export default {
-    name: 'ExecuteInfo',
-    components: {
-        VueJsonPretty,
-        RenderForm,
-        NoData,
-        BaseCollapse,
-        IpLogContent
-    },
-    props: ['nodeDetailConfig'],
-    data () {
-        return {
-            i18n: {
-                execute_detail: gettext("执行详情"),
-                execute_info: gettext("执行信息"),
-                start_time: gettext("开始时间"),
-                finish_time: gettext("结束时间"),
-                last_time: gettext("耗时"),
-                task_skipped: gettext("失败后跳过"),
-                error_ignorable: gettext("失败自动忽略"),
-                inputs_params: gettext("输入参数"),
-                outputs_params: gettext("输出参数"),
-                name: gettext("参数名"),
-                value: gettext("参数值"),
-                exception: gettext("异常信息"),
-                retries: gettext("执行记录"),
-                index: gettext("序号"),
-                yes: gettext("是"),
-                no: gettext("否"),
-                manuallyRetry: gettext('手动重试')
-            },
-            loading: true,
-            bkMessageInstance: null,
-            nodeInfo: {},
-            failInfo: '',
-            renderOption: {
-                showGroup: false,
-                showLabel: true,
-                showHook: false,
-                formEdit: false,
-                formMode: false
-            },
-            renderConfig: [],
-            renderData: {}
-        }
-    },
-    computed: {
-        ...mapState({
-            'atomFormConfig': state => state.atomForm.config
-        }),
-        isSingleAtom () {
-            return !!this.nodeDetailConfig.component_code
+    import '@/utils/i18n.js'
+    import { mapState, mapMutations, mapActions } from 'vuex'
+    import VueJsonPretty from 'vue-json-pretty'
+    import tools from '@/utils/tools.js'
+    import { URL_REG } from '@/constants/index.js'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import IpLogContent from '@/components/common/Individualization/IpLogContent.vue'
+    export default {
+        name: 'ExecuteInfo',
+        components: {
+            VueJsonPretty,
+            RenderForm,
+            NoData,
+            IpLogContent
         },
-        isEmptyParams () {
-            return this.renderConfig && this.renderConfig.length === 0
-        }
-    },
-    watch: {
-        'nodeDetailConfig.node_id' (val) {
-            if (val !== undefined) {
-                this.loadNodeInfo()
-            }
-        }
-    },
-    mounted () {
-        this.loadNodeInfo()
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getNodeActDetail'
-        ]),
-        ...mapActions('atomForm/', [
-            'loadAtomConfig'
-        ]),
-        ...mapMutations ('atomForm/', [
-            'setAtomConfig'
-        ]),
-        async loadNodeInfo () {
-            this.loading = true
-            try {
-                const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
-                if (this.isSingleAtom) {
-                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
-                }
-                if (nodeDetailRes.result) {
-                    this.nodeInfo = nodeDetailRes.data
-                    this.nodeInfo.histories.forEach(item => {
-                        item.last_time = this.getLastTime(item.elapsed_time)
-                    })
-                    for ( let key in this.nodeInfo.inputs) {
-                        this.$set(this.renderData, key, this.nodeInfo.inputs[key])
-                    }
-                    if (this.nodeDetailConfig.component_code === 'job_execute_task') {
-                        this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => {
-                            const outputIndex = this.nodeInfo.inputs['job_global_var'].findIndex(prop => prop.name === output.key)
-                            if (!output.preset && outputIndex === -1) {
-                                return false
-                            }
-                            return true
-                        })
-                    } else {
-                        this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => output.preset)
-                    }
-                    this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
-                    
-                    if (this.nodeInfo.ex_data && this.nodeInfo.ex_data.show_ip_log){
-                        this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data.exception_msg)
-                    } else {
-                        this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
-                    }
-                } else {
-                    errorHandler(nodeDetailRes, this)
-                }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.loading = false
+        props: ['nodeDetailConfig'],
+        data () {
+            return {
+                i18n: {
+                    execute_detail: gettext('执行详情'),
+                    execute_info: gettext('执行信息'),
+                    start_time: gettext('开始时间'),
+                    finish_time: gettext('结束时间'),
+                    last_time: gettext('耗时'),
+                    task_skipped: gettext('失败后跳过'),
+                    error_ignorable: gettext('失败自动忽略'),
+                    inputs_params: gettext('输入参数'),
+                    outputs_params: gettext('输出参数'),
+                    name: gettext('参数名'),
+                    value: gettext('参数值'),
+                    exception: gettext('异常信息'),
+                    retries: gettext('执行记录'),
+                    index: gettext('序号'),
+                    yes: gettext('是'),
+                    no: gettext('否'),
+                    manuallyRetry: gettext('手动重试')
+                },
+                loading: true,
+                bkMessageInstance: null,
+                nodeInfo: {},
+                failInfo: '',
+                renderOption: {
+                    showGroup: false,
+                    showLabel: true,
+                    showHook: false,
+                    formEdit: false,
+                    formMode: false
+                },
+                renderConfig: [],
+                renderData: {}
             }
         },
-        async getNodeConfig (type) {
-            if (this.atomFormConfig[type]) {
-                return this.atomFormConfig[type]
-            } else {
+        computed: {
+            ...mapState({
+                'atomFormConfig': state => state.atomForm.config
+            }),
+            isSingleAtom () {
+                return !!this.nodeDetailConfig.component_code
+            },
+            isEmptyParams () {
+                return this.renderConfig && this.renderConfig.length === 0
+            }
+        },
+        watch: {
+            'nodeDetailConfig.node_id' (val) {
+                if (val !== undefined) {
+                    this.loadNodeInfo()
+                }
+            }
+        },
+        mounted () {
+            this.loadNodeInfo()
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getNodeActDetail'
+            ]),
+            ...mapActions('atomForm/', [
+                'loadAtomConfig'
+            ]),
+            ...mapMutations('atomForm/', [
+                'setAtomConfig'
+            ]),
+            async loadNodeInfo () {
+                this.loading = true
                 try {
-                    await this.loadAtomConfig({atomType: type})
-                    this.setAtomConfig({atomType: type, configData: $.atoms[type]})
-                    return this.atomFormConfig[type]
+                    const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
+                    if (this.isSingleAtom) {
+                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                    }
+                    if (nodeDetailRes.result) {
+                        this.nodeInfo = nodeDetailRes.data
+                        this.nodeInfo.histories.forEach(item => {
+                            item.last_time = this.getLastTime(item.elapsed_time)
+                        })
+                        for (const key in this.nodeInfo.inputs) {
+                            this.$set(this.renderData, key, this.nodeInfo.inputs[key])
+                        }
+                        if (this.nodeDetailConfig.component_code === 'job_execute_task') {
+                            this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => {
+                                const outputIndex = this.nodeInfo.inputs['job_global_var'].findIndex(prop => prop.name === output.key)
+                                if (!output.preset && outputIndex === -1) {
+                                    return false
+                                }
+                                return true
+                            })
+                        } else {
+                            this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => output.preset)
+                        }
+                        this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
+                    
+                        if (this.nodeInfo.ex_data && this.nodeInfo.ex_data.show_ip_log) {
+                            this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data.exception_msg)
+                        } else {
+                            this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
+                        }
+                    } else {
+                        errorHandler(nodeDetailRes, this)
+                    }
                 } catch (e) {
-                    this.$bkMessage({
-                        message: e,
-                        theme: 'error'
-                    })
+                    errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
-            }
-        },
-        getOutputValue (output) {
-            if (output.value === 'undefined' || output.value === '') {
-                return '--'
-            } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
-                return output.value
-            } else {
-                if (URL_REG.test(output.value)) {
-                    return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
+            },
+            async getNodeConfig (type) {
+                if (this.atomFormConfig[type]) {
+                    return this.atomFormConfig[type]
+                } else {
+                    try {
+                        await this.loadAtomConfig({ atomType: type })
+                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
+                        return this.atomFormConfig[type]
+                    } catch (e) {
+                        this.$bkMessage({
+                            message: e,
+                            theme: 'error'
+                        })
+                    }
                 }
-                return output.value
+            },
+            getOutputValue (output) {
+                if (output.value === 'undefined' || output.value === '') {
+                    return '--'
+                } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
+                    return output.value
+                } else {
+                    if (URL_REG.test(output.value)) {
+                        return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
+                    }
+                    return output.value
+                }
+            },
+            transformFailInfo (data) {
+                if (!data) {
+                    return ''
+                }
+                if (typeof data === 'string') {
+                    const info = data.replace(/\n/g, '<br>')
+                    return info
+                } else {
+                    return data
+                }
+            },
+            getLastTime (time) {
+                return tools.timeTransform(time)
+            },
+            getOutputName (output) {
+                if (this.nodeDetailConfig.component_code === 'job_execute_task' && output.perset) {
+                    return output.key
+                }
+                return output.name
             }
-
-        },
-        transformFailInfo (data) {
-            if (!data) {
-                return ''
-            }
-            if (typeof data === 'string') {
-                const info = data.replace(/\n/g, '<br>')
-                return info
-            } else {
-                return data
-            }
-        },
-        getLastTime (time) {
-            return tools.timeTransform(time)
-        },
-        getOutputName (output) {
-            if (this.nodeDetailConfig.component_code === 'job_execute_task' && output.perset) {
-                return output.key
-            }
-            return output.name
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';

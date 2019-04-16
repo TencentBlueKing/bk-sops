@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="modify-params-container" v-bkloading="{isLoading: loading, opacity: 1}">
+    <div class="modify-params-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="panel-title">
             <h3>{{ i18n.change_params }}</h3>
         </div>
@@ -30,108 +30,108 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js'
-import {mapActions} from 'vuex'
-import { errorHandler } from '@/utils/errorHandler.js'
-import NoData from '@/components/common/base/NoData.vue'
-import TaskParamEdit from '../TaskParamEdit.vue'
-export default {
-    name: 'ModifyParams',
-    components: {
-        TaskParamEdit,
-        NoData
-    },
-    props: ['instance_id', 'paramsCanBeModify'],
-    data () {
-        return {
-            bkMessageInstance: null,
-            constants: [],
-            cntLoading: true, // 全局变量加载
-            configLoading: true, // 变量配置项加载
-            pending: false, // 提交修改中
-            i18n: {
-                change_params: gettext("修改全局参数"),
-                save: gettext("保存")
-            }
-        }
-    },
-    computed: {
-        isParamsEmpty () {
-            return !Object.keys(this.constants).length
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
+    import TaskParamEdit from '../TaskParamEdit.vue'
+    export default {
+        name: 'ModifyParams',
+        components: {
+            TaskParamEdit,
+            NoData
         },
-        loading () {
-            return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
-        }
-    },
-    created () {
-        this.getTaskData()
-    },
-    methods: {
-        ...mapActions('task/', [
-            'getTaskInstanceData',
-            'instanceModifyParams'
-        ]),
-        async getTaskData () {
-            this.cntLoading = true
-            try {
-                const instanceData = await this.getTaskInstanceData(this.instance_id)
-                const pipelineData = JSON.parse(instanceData.pipeline_tree)
-                const constants = {}
-                Object.keys(pipelineData.constants).forEach(key => {
-                    const cnt = pipelineData.constants[key]
-                    if (cnt.show_type === 'show') {
-                        constants[key] = cnt
-                    }
-                })
-                this.constants = constants
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.cntLoading = false
-            }
-        },
-        async onModifyParams () {
-            if (this.pending) {
-                return
-            }
-            const paramEditComp = this.$refs.TaskParamEdit
-            const formData = {}
-            let formValid = true
-            if (paramEditComp) {
-                formValid = paramEditComp.validate()
-                if (!formValid) return
-                const variables = paramEditComp.getVariableData()
-                for (let key in variables) {
-                    formData[key] = variables[key].value
+        props: ['instance_id', 'paramsCanBeModify'],
+        data () {
+            return {
+                bkMessageInstance: null,
+                constants: [],
+                cntLoading: true, // 全局变量加载
+                configLoading: true, // 变量配置项加载
+                pending: false, // 提交修改中
+                i18n: {
+                    change_params: gettext('修改全局参数'),
+                    save: gettext('保存')
                 }
             }
-
-            const data = {
-                instance_id: this.instance_id,
-                constants: JSON.stringify(formData)
+        },
+        computed: {
+            isParamsEmpty () {
+                return !Object.keys(this.constants).length
+            },
+            loading () {
+                return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
             }
-            try {
-                this.pending = true
-                const res = await this.instanceModifyParams(data)
-                if (res.result) {
-                    this.$bkMessage({
-                        message: gettext('参数修改成功'),
-                        theme: 'success'
+        },
+        created () {
+            this.getTaskData()
+        },
+        methods: {
+            ...mapActions('task/', [
+                'getTaskInstanceData',
+                'instanceModifyParams'
+            ]),
+            async getTaskData () {
+                this.cntLoading = true
+                try {
+                    const instanceData = await this.getTaskInstanceData(this.instance_id)
+                    const pipelineData = JSON.parse(instanceData.pipeline_tree)
+                    const constants = {}
+                    Object.keys(pipelineData.constants).forEach(key => {
+                        const cnt = pipelineData.constants[key]
+                        if (cnt.show_type === 'show') {
+                            constants[key] = cnt
+                        }
                     })
-                } else {
-                    errorHandler(res, this)
+                    this.constants = constants
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.cntLoading = false
                 }
-            } catch (e) {
-                errorHandler(e, this)
-            } finally {
-                this.pending = false
+            },
+            async onModifyParams () {
+                if (this.pending) {
+                    return
+                }
+                const paramEditComp = this.$refs.TaskParamEdit
+                const formData = {}
+                let formValid = true
+                if (paramEditComp) {
+                    formValid = paramEditComp.validate()
+                    if (!formValid) return
+                    const variables = paramEditComp.getVariableData()
+                    for (const key in variables) {
+                        formData[key] = variables[key].value
+                    }
+                }
+
+                const data = {
+                    instance_id: this.instance_id,
+                    constants: JSON.stringify(formData)
+                }
+                try {
+                    this.pending = true
+                    const res = await this.instanceModifyParams(data)
+                    if (res.result) {
+                        this.$bkMessage({
+                            message: gettext('参数修改成功'),
+                            theme: 'success'
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending = false
+                }
+            },
+            onChangeConfigLoading (val) {
+                this.configLoading = val
             }
-        },
-        onChangeConfigLoading (val) {
-            this.configLoading = val
         }
     }
-}
 </script>
 <style lang="scss" scoped>
     @import '@/scss/config.scss';
@@ -162,5 +162,3 @@ export default {
         }
     }
 </style>
-
-

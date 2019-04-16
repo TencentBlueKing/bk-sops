@@ -38,7 +38,7 @@
                         <tr v-for="item in listInPage" :key="item.bk_host_id">
                             <td>
                                 <span
-                                    :class="['checkbox', {'checked': selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id) > -1}]"
+                                    :class="['checkbox', { 'checked': selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id) > -1 }]"
                                     @click="onHostItemClick(item)">
                                 </span>
                             </td>
@@ -69,112 +69,112 @@
     </div>
 </template>
 <script>
-import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
+    import '@/utils/i18n.js' // ip选择器兼容标准运维国际化
 
-import IpSearchInput from './IpSearchInput.vue'
+    import IpSearchInput from './IpSearchInput.vue'
 
-const i18n = {
-    add: gettext('添加'),
-    cloudArea: gettext('云区域'),
-    status: gettext('状态'),
-    error: gettext('异常'),
-    noData: gettext('无数据'),
-    normal: gettext('正常'),
-    cancel: gettext('取消')
-}
+    const i18n = {
+        add: gettext('添加'),
+        cloudArea: gettext('云区域'),
+        status: gettext('状态'),
+        error: gettext('异常'),
+        noData: gettext('无数据'),
+        normal: gettext('正常'),
+        cancel: gettext('取消')
+    }
 
-export default {
-    name: 'StaticIpAddingPanel',
-    components: {
-        IpSearchInput
-    },
-    props: ['staticIpList', 'staticIps'],
-    data () {
-        const listCountPerPage = 10
-        const listInPage = this.staticIpList.slice(0, listCountPerPage)
-        const totalPage = Math.ceil(this.staticIpList.length / listCountPerPage)
-
-        return {
-            listAllSelected: false,
-            isPaginationShow: totalPage > 1,
-            selectedIp: this.staticIps.slice(0),
-            currentPage: 1,
-            totalPage,
-            listCountPerPage,
-            listInPage,
-            i18n
-        }
-    },
-    watch: {
-        staticIpList (val) {
-            this.setPanigation(val)
-        }
-    },
-    methods: {
-        setPanigation (list = []) {
-            this.listInPage = list.slice(0, this.listCountPerPage)
-            this.totalPage = Math.ceil(list.length / this.listCountPerPage)
-            this.isPaginationShow = this.totalPage > 1
-            this.currentPage = 1
+    export default {
+        name: 'StaticIpAddingPanel',
+        components: {
+            IpSearchInput
         },
-        onIpSearch (keyword) {
-            if (keyword) {
-                const keyArr = keyword.split(',')
-                const list = this.staticIpList.filter(item => {
-                    return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
-                })
-                this.setPanigation(list)
-            } else {
-                this.setPanigation(this.staticIpList)
+        props: ['staticIpList', 'staticIps'],
+        data () {
+            const listCountPerPage = 10
+            const listInPage = this.staticIpList.slice(0, listCountPerPage)
+            const totalPage = Math.ceil(this.staticIpList.length / listCountPerPage)
+
+            return {
+                listAllSelected: false,
+                isPaginationShow: totalPage > 1,
+                selectedIp: this.staticIps.slice(0),
+                currentPage: 1,
+                totalPage,
+                listCountPerPage,
+                listInPage,
+                i18n
             }
         },
-        onSelectAllClick () {
-            if (this.listAllSelected) {
-                this.listInPage.forEach(item => {
-                    const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
-                    this.selectedIp.splice(index, 1)
-                })
-                this.listAllSelected = false
-            } else {
-                this.listInPage.forEach(item => {
-                    const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
-                    if (index === -1) {
-                        this.selectedIp.push(item)
+        watch: {
+            staticIpList (val) {
+                this.setPanigation(val)
+            }
+        },
+        methods: {
+            setPanigation (list = []) {
+                this.listInPage = list.slice(0, this.listCountPerPage)
+                this.totalPage = Math.ceil(list.length / this.listCountPerPage)
+                this.isPaginationShow = this.totalPage > 1
+                this.currentPage = 1
+            },
+            onIpSearch (keyword) {
+                if (keyword) {
+                    const keyArr = keyword.split(',')
+                    const list = this.staticIpList.filter(item => {
+                        return keyArr.some(str => item.bk_host_innerip.indexOf(str) > -1)
+                    })
+                    this.setPanigation(list)
+                } else {
+                    this.setPanigation(this.staticIpList)
+                }
+            },
+            onSelectAllClick () {
+                if (this.listAllSelected) {
+                    this.listInPage.forEach(item => {
+                        const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
+                        this.selectedIp.splice(index, 1)
+                    })
+                    this.listAllSelected = false
+                } else {
+                    this.listInPage.forEach(item => {
+                        const index = this.selectedIp.findIndex(el => el.bk_host_id === item.bk_host_id)
+                        if (index === -1) {
+                            this.selectedIp.push(item)
+                        }
+                    })
+                    this.listAllSelected = true
+                }
+            },
+            onHostItemClick (host) {
+                const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
+                let checkedNumInPage = 0
+            
+                this.listInPage.forEach(el => {
+                    if (this.selectedIp.findIndex(item => item.bk_host_id === el.bk_host_id) > -1) {
+                        checkedNumInPage += 1
                     }
                 })
-                this.listAllSelected = true
-            }
-        },
-        onHostItemClick (host) {
-            const index = this.selectedIp.findIndex(el => el.bk_host_id === host.bk_host_id)
-            let checkedNumInPage = 0
-            
-            this.listInPage.forEach(el => {
-                if (this.selectedIp.findIndex(item => item.bk_host_id === el.bk_host_id) > -1) {
-                    checkedNumInPage += 1
+                if (index > -1) {
+                    this.selectedIp.splice(index, 1)
+                    this.listAllSelected = checkedNumInPage > 1 ? 'half' : false
+                } else {
+                    this.selectedIp.push(host)
+                    this.listAllSelected = checkedNumInPage === this.listInPage.length - 1 ? true : 'half'
                 }
-            })
-            if (index > -1) {
-                this.selectedIp.splice(index, 1)
-                this.listAllSelected = checkedNumInPage > 1 ? 'half' : false
-            } else {
-                this.selectedIp.push(host)
-                this.listAllSelected = checkedNumInPage === this.listInPage.length - 1 ? true : 'half'
+            },
+            onPageChange (page) {
+                this.currentPage = page
+                this.listAllSelected = false
+                this.listInPage = this.staticIpList.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
+            },
+            onAddIpConfirm () {
+                this.$emit('onAddIpConfirm', this.selectedIp.slice(0))
+            },
+            onAddIpCancel () {
+                this.$emit('onAddIpCancel')
             }
-        },
-        onPageChange (page) {
-            this.currentPage = page
-            this.listAllSelected = false
-            this.listInPage = this.staticIpList.slice((page - 1) * this.listCountPerPage, page * this.listCountPerPage)
-        },
-        onAddIpConfirm () {
-            this.$emit('onAddIpConfirm', this.selectedIp.slice(0))
-        },
-        onAddIpCancel () {
-            this.$emit('onAddIpCancel')
         }
     }
-}
 </script>
 <style lang="scss" scoped>
 .ip-added-number {
