@@ -17,7 +17,6 @@ import traceback
 from django.apps import AppConfig
 from django.conf import settings
 
-
 logger = logging.getLogger('root')
 
 
@@ -35,7 +34,8 @@ class CoreConfig(AppConfig):
                     'port': EnvironmentVariables.objects.get_var('BKAPP_REDIS_PORT'),
                     'password': EnvironmentVariables.objects.get_var('BKAPP_REDIS_PASSWORD'),
                     'service_name': EnvironmentVariables.objects.get_var('BKAPP_REDIS_SERVICE_NAME'),
-                    'mode': EnvironmentVariables.objects.get_var('BKAPP_REDIS_MODE')
+                    'mode': EnvironmentVariables.objects.get_var('BKAPP_REDIS_MODE'),
+                    'db': EnvironmentVariables.objects.get_var('BKAPP_REDIS_DB'),
                 }
             except Exception:
                 logger.error(traceback.format_exc())

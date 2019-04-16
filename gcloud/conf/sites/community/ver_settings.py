@@ -50,6 +50,10 @@ APP_MAKER_UPLOAD_LOGO_USER_KEY = 'bk_token_null'
 
 IMPORT_V1_TEMPLATE_FLAG = False
 
+USE_BK_OAUTH = False
+
+WHETHER_PREPARE_BIZ_IN_API_CALL = True
+
 RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
               "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA2XZvbf++4M6YLSgS93kYJS34\\n" + \
               "e2TZvq/s6r0yFDz0je38ekW02aH5efPTNijbJgHIbqfXzm8lBpmBbk9VlUHaJVyZ\\n" + \
