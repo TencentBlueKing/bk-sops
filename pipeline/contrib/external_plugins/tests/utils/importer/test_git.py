@@ -36,9 +36,11 @@ class GitRepoModuleImporterTestCase(TestCase):
     def test__init__(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
         self.assertEqual(importer.repo_raw_url, self.repo_raw_url)
+        self.assertEqual(importer.branch, self.branch)
 
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url_without_slash, branch=self.branch)
         self.assertEqual(importer.repo_raw_url, self.repo_raw_url)
+        self.assertEqual(importer.branch, self.branch)
 
         self.assertRaises(ValueError,
                           GitRepoModuleImporter,
@@ -74,6 +76,7 @@ class GitRepoModuleImporterTestCase(TestCase):
 
         with patch(REQUESTS_GET, MagicMock(return_value=MockResponse(ok=False))):
             self.assertIsNone(importer._fetch_repo_file(self.module_url))
+            self.assertEqual(importer.file_cache, {})
 
     def test__fetch_repo_file__use_cache(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
@@ -135,6 +138,7 @@ class GitRepoModuleImporterTestCase(TestCase):
 
     def test_get_path(self):
         importer = GitRepoModuleImporter(modules=[], repo_raw_url=self.repo_raw_url, branch=self.branch)
+
         self.assertEqual(importer.get_path(self.fullname), ['https://test-git-repo-raw/master/module1/module2/module3'])
 
     def test_get_file(self):

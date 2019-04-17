@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 from abc import abstractmethod
 
-from django.db import models
+from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.contrib.external_plugins import exceptions
@@ -69,10 +69,15 @@ class SourceManager(models.Manager):
             defaults = deepcopy(config['details'])
             defaults['packages'] = config['packages']
 
-            self.update_or_create(
-                name=config['name'],
-                from_config=True,
-                defaults=defaults)
+            try:
+                self.update_or_create(
+                    name=config['name'],
+                    from_config=True,
+                    defaults=defaults)
+            except IntegrityError:
+                raise exceptions.InvalidOperationException(
+                    'There is a external source named "{source_name}" but not create from config, '
+                    'can not do source update operation'.format(source_name=config['name']))
 
 
 class ExternalPackageSource(models.Model):
@@ -107,7 +112,7 @@ class ExternalPackageSource(models.Model):
     def update_package_source_from_config(source_configs):
         classified_config = {source_type: [] for source_type in source_cls_factory.keys()}
 
-        for config in source_configs:
+        for config in deepcopy(source_configs):
             classified_config.setdefault(config.pop('type'), []).append(config)
 
         for source_type, configs in classified_config.items():

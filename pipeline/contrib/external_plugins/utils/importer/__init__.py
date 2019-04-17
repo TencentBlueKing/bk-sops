@@ -13,3 +13,5 @@ specific language governing permissions and limitations under the License.
 
 from pipeline.contrib.external_plugins.utils.importer.utils import importer_context  # noqa
 from pipeline.contrib.external_plugins.utils.importer.git import GitRepoModuleImporter  # noqa
+from pipeline.contrib.external_plugins.utils.importer.s3 import S3ModuleImporter  # noqa
+from pipeline.contrib.external_plugins.utils.importer.fs import FSModuleImporter  # noqa
