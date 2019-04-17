@@ -74,15 +74,18 @@
                 <p class="jurisdictionHint">{{i18n.jurisdictionHint}}</p>
                 <div class="box">
                     <span class="addJurisdiction">{{i18n.addJurisdiction}}{{':'}}</span>
-                    <span>{{createdTaskPerList}}</span>
+                    <span>{{createdTaskPerList|| '--'}}</span>
                 </div>
                 <div class="box">
                     <span class="getJurisdiction">{{i18n.getJurisdiction}}{{':'}}</span>
-                    <span>{{modifyParamsPerList}}</span>
+                    <span>{{modifyParamsPerList|| '--'}}</span>
                 </div>
-                <div class="box">
+                <div>
                     <span class="executeJurisdiction">{{i18n.executeJurisdiction}}{{':'}}</span>
-                    <span>{{executeTaskPerList}}</span>
+                    <span>{{executeTaskPerList|| '--'}}</span>
+                </div>
+                <div class="exit-btn">
+                    <div class="btn" @click ="onExit">{{i18n.close}}</div>
                 </div>
             </div>
         </bk-dialog>
@@ -136,7 +139,8 @@ export default {
                 getJurisdiction: gettext('领取任务权限'),
                 executeJurisdiction: gettext('执行任务权限'),
                 delete: gettext('删除'),
-                deleteTips: gettext('确认删除轻应用？')
+                deleteTips: gettext('确认删除轻应用？'),
+                close: gettext('关闭')
             }
         }
     },
@@ -246,6 +250,9 @@ export default {
         onSurveyCancel () {
             this.isjurisdictionUser = false
         },
+        onExit () {
+            this.isjurisdictionUser = false
+        },
         async onEditConfirm (app) {
             if (this.pending.edit) return
             this.pending.edit = true
@@ -282,7 +289,7 @@ export default {
 .appmaker-page {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteMainBg;
+    background: #f4f7fa;
     .page-content {
         width: 1200px;
         padding-bottom: 40px;
@@ -354,9 +361,9 @@ export default {
     .card-wrapper {
         float: left;
         margin: 0 20px 20px 0;
-        &:hover {
-            box-shadow: -1px 1px 8px rgba(100, 100, 100, .15), 1px -1px 8px rgba(100, 100, 100, .15);
-        }
+        // &:hover {
+        //     box-shadow: -1px 1px 8px rgba(100, 100, 100, .15), 1px -1px 8px rgba(100, 100, 100, .15);
+        // }
     }
     .empty-app-list {
         padding: 200px 0;
@@ -364,14 +371,34 @@ export default {
         border: 1px solid $commonBorderColor;
     }
     .jurisdictionHint {
-        height:32px;
+        padding: 0 10PX;
         line-height: 32px;
         background:rgba(240,241,245,1);
         border-radius:2px;
         font-size:12px;
     }
     .box{
-        margin: 18px 0px;
+        margin: 20px 0px;
+    }
+    .exit-btn{
+            width: 220px;
+            height: 50px;
+            top: 191px;
+            left: 550px;
+            position: absolute;
+            background: #fafafa;
+            .btn{
+                float: right;
+                margin: 8px 24px 0 0;
+                width:100px;
+                height:32px;
+                font-size:14px;
+                line-height: 32px;
+                text-align: center;
+                cursor: pointer;
+                border-radius:2px;
+                border:1px solid rgba(196,198,204,1);
+            }
     }
     .addJurisdiction,.getJurisdiction,.executeJurisdiction{
         margin-right: 10px;

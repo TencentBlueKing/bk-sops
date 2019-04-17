@@ -26,9 +26,9 @@
             {{appData.name}}
             </a>
             <div class="card-operation">
-                <span class="common-icon-box-pen operate-btn" @click.stop="onCardEdit"></span>
-                <span class="common-icon-black-figure operate-btn" @click.stop="onJurisdiction"></span>
-                <span class="common-icon-gray-edit operate-btn" @mouseenter="onOperation" @mouseleave.stop="onWithdraw" @click.stop=""></span>
+                <span class="common-icon-box-pen operate-btn" :title="i18n.modifier" @click.stop="onCardEdit"></span>
+                <span class="common-icon-black-figure operate-btn" :title="i18n.jurisdiction"  @click.stop="onJurisdiction"></span>
+                <span class="common-icon-gray-edit operate-btn"  @mouseenter="onOperation" @mouseleave.stop="onWithdraw" @click.stop=""></span>
             </div>
             <div class="edit-box-background" v-if=isShowEdit @mouseenter="onOperation" @mouseleave="onWithdraw">
                 <ul class="edit-box">
@@ -75,7 +75,9 @@ export default {
                 appDesc: gettext('应用简介'),
                 editor: gettext('更新人'),
                 editTime: gettext('更新时间'),
-                executive: gettext('执行记录')
+                executive: gettext('执行记录'),
+                modifier: gettext('修改轻应用'),
+                jurisdiction: gettext('使用权限')
             }
         }
     },
@@ -244,19 +246,16 @@ export default {
     width: 207px;
     height: 100%;
     float: left;
-    overflow: hidden;
-    background: $whiteMainBg;
-    &:hover{
-        .app-synopsis{
-            transform: translateX(-100%);
-            transition-duration: 0.35s
-        }
-    }
     .app-detail {
         padding: 20px;
         font-size: 12px;
         .app-template,.editor-name,.edit-time{
             margin-bottom: 10px;
+            font-weight:bold;
+            p{
+                margin-top: 3px;
+                font-weight: 400;
+            }
         }
         & > p {
             width: 220px;
@@ -266,17 +265,25 @@ export default {
             text-overflow: ellipsis;
         }
     }
+    &:hover{
+        .app-synopsis{
+            display: block;
+        }
+    }
     .app-synopsis{
-        position: relative;
-        background: $whiteDefault;
-        transform: translateX(100%);
-        transition-duration: 0.35s;
+        background: #f7f9fa;
+        display: none;
+        position: absolute;
+        font-weight: bold;
         padding: 20px;
         font-size: 12px;
         height: 100%;
         width: 206px;
-        left: 206px;
-        bottom: 166px;
+        bottom: 0px;
+        p{
+            margin-top: 3px;
+            font-weight: 400;
+        }
     }
 }
 </style>
