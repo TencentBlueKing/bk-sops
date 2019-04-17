@@ -145,8 +145,14 @@ def revoke_pipeline(pipeline_id):
         return action_result
 
     process = PipelineModel.objects.get(id=pipeline_id).process
-    process.revoke_subprocess()
-    process.destroy_all()
+
+    if not process:
+        return ActionResult(result=False, message='relate process is none, this pipeline may be revoked.')
+
+    with transaction.atomic():
+        PipelineProcess.objects.select_for_update().get(id=process.id)
+        process.revoke_subprocess()
+        process.destroy_all()
 
     return action_result
 
