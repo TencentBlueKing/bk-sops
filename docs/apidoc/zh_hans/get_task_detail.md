@@ -331,7 +331,7 @@
 |-----------|----------|-----------|
 |  start_event      |    dict    |      开始节点信息     |
 |  end_event      |    dict    |      结束节点信息    |
-|  activities      |    dict    |      任务节点（原子和子流程）信息    |
+|  activities      |    dict    |      任务节点（标准插件和子流程）信息    |
 |  gateways      |    dict    |      网关节点（并行网关、分支网关和汇聚网关）信息    |
 |  flows      |    dict    |     顺序流（节点连线）信息    |
 |  constants      |    dict    |  全局变量信息，详情见下面    |
