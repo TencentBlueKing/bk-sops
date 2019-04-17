@@ -63,9 +63,7 @@
     @import '../../../static/style/app.scss';
     /*navbar*/
     .navbar{
-        position: fixed;
         width: 100%;
-        z-index: 1;
 
         .van-nav-bar{
             height: 60px;
@@ -78,7 +76,10 @@
             }
             .van-nav-bar__title{
                 color: $white;
-                font-size: $font-size-16;
+                font-size: $fs-16;
+            }
+            &:after{
+                border-bottom: none;
             }
         }
         &-list{
@@ -91,7 +92,7 @@
                 background-color: #182132;
                 margin: 0 10px;
                 padding: 0 10px;
-                font-size: 14px;
+                font-size: $fs-14;
                 text-align: left;
 
                 &:first-child{
@@ -106,9 +107,13 @@
                     border-top: none;
                 }
                 &:after{
-                    border-top-color: #202738;
+                    border-top-color: #262f44;
                 }
             }
+        }
+        .van-popup-slide-top-enter,
+        .van-popup-slide-top-leave-active {
+            transform: translate3d(-50%, -20%, 0);
         }
     }
 </style>
