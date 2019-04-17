@@ -29,6 +29,10 @@ class Component(object):
         outputs = map(lambda oi: oi._asdict(), outputs)
         return outputs
 
+    @classmethod
+    def form_is_embedded(cls):
+        return getattr(cls, 'embedded_form', False)
+
     def clean_execute_data(self, context):
         return self.data_dict
 

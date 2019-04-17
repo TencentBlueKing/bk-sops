@@ -16,6 +16,12 @@ from __future__ import absolute_import
 from mock import MagicMock, patch, call  # noqa
 
 
+def mock_s3_resource(resource, **kwargs):
+    ret = {'resource': resource}
+    ret.update(kwargs)
+    return ret
+
+
 class Object(object):
     pass
 

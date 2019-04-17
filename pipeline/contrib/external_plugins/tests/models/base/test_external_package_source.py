@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from copy import deepcopy
+
 from django.test import TestCase
 
 from pipeline.contrib.external_plugins import exceptions
@@ -220,3 +222,12 @@ class ExternalPackageSourceTestCase(TestCase):
             }
         ]
         self.assertRaises(KeyError, ExternalPackageSource.update_package_source_from_config, source_configs)
+
+    def test_update_source_from_config__name_conflict(self):
+        source = deepcopy(SOURCE_1)
+        source['type'] = 'git'
+        ExternalPackageSource.update_package_source_from_config([source])
+        GitRepoSource.objects.filter(name=source['name']).update(from_config=False)
+        self.assertRaises(exceptions.InvalidOperationException,
+                          ExternalPackageSource.update_package_source_from_config,
+                          [source])

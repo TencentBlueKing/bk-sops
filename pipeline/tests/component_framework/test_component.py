@@ -43,8 +43,16 @@ class TestComponent(TestCase):
             code = 'cc_update_module'
             form = 'form path'
 
+        class CCUpdateHostModuleComponentEmbeddedForm(Component):
+            name = u'修改主机所属模块'
+            bound_service = CCUpdateHostModuleService
+            code = 'cc_update_module_embedded_form'
+            embedded_form = True
+            form = 'form path'
+
         self.service = CCUpdateHostModuleService
         self.component = CCUpdateHostModuleComponent
+        self.component_embedded_form = CCUpdateHostModuleComponentEmbeddedForm
 
     def tearDown(self):
         ComponentModel.objects.all().delete()
@@ -92,3 +100,7 @@ class TestComponent(TestCase):
         }
         component = self.component(data)
         self.assertRaises(ComponentDataLackException, execution_data=component.data_for_execution, args=[None, None])
+
+    def test_form_is_embedded(self):
+        self.assertFalse(self.component.form_is_embedded())
+        self.assertTrue(self.component_embedded_form.form_is_embedded())
