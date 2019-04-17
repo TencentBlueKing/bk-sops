@@ -84,7 +84,7 @@ class VarCmdbIpSelector(LazyVariable):
         bk_biz_id = self.pipeline_data['biz_cc_id']
         bk_supplier_account = self.pipeline_data['biz_supplier_account']
 
-        value = self.value
-        ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, value)
+        ip_selector = self.value
+        ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
         ip = ','.join([host['bk_host_innerip'] for host in ip_result['data']])
         return ip
