@@ -2,6 +2,7 @@
     <div class="page-view">
         <!-- 搜索 -->
         <van-search
+            background="false"
             :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"
@@ -17,7 +18,7 @@
                 <template slot="title">
                     <div class="bk-text">{{ item.name }}</div>
                     <div class="bk-name">{{ item.creator_name }}</div>
-                    <div class="bk-time">{{ item.create_time }} 至 {{ item.finish_time || '--' }}</div>
+                    <div class="bk-time">{{ item.create_time }} <p>至 {{ item.finish_time || '--' }}</p></div>
                 </template>
                 <van-icon slot="right-icon" name="more" :class="item.status_class" />
             </van-cell>

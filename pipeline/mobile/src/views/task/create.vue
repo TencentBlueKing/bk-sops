@@ -79,7 +79,7 @@
                 schemes: [],
                 scheme: '执行所有节点',
                 i18n: {
-                    btnCreate: window.gettext('执行任务')
+                    btnCreate: window.gettext('新建任务')
                 },
                 taskName: '',
                 taskNameRule: {
