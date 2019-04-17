@@ -43,7 +43,7 @@
 
     const i18n = {
         select: gettext('请选择'),
-        desc: gettext('输入筛选条件，多条筛选条件换行隔开'),
+        desc: gettext('请输入拓扑实例名称，多个用换行符分隔'),
         notEmpty: gettext('必填项')
     }
 
@@ -127,7 +127,7 @@
         clear: both;
     }
 }
-    
+
 .select-field {
     float: left;
     width: 120px;
