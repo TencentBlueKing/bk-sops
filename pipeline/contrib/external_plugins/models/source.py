@@ -41,7 +41,9 @@ class GitRepoSource(ExternalPackageSource):
         return GitRepoModuleImporter(repo_raw_url=self.repo_raw_address,
                                      branch=self.branch,
                                      modules=self.packages.keys(),
-                                     proxy=getattr(settings, 'EXTERNAL_SOURCE_PROXY'))
+                                     proxy=getattr(settings, 'EXTERNAL_SOURCE_PROXY'),
+                                     secure_only=getattr(settings,
+                                                         'EXTERNAL_SOURCE_SECURE_RESTRICT', {}).get(self.name, True))
 
 
 @package_source
@@ -60,7 +62,9 @@ class S3Source(ExternalPackageSource):
                                 service_address=self.service_address,
                                 bucket=self.bucket,
                                 access_key=self.access_key,
-                                secret_key=self.secret_key)
+                                secret_key=self.secret_key,
+                                secure_only=getattr(settings,
+                                                    'EXTERNAL_SOURCE_SECURE_RESTRICT', {}).get(self.name, True))
 
 
 @package_source
