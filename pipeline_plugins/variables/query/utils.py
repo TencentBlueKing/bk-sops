@@ -14,14 +14,7 @@ specific language governing permissions and limitations under the License.
 import importlib
 
 from django.conf import settings
-from django.http import JsonResponse
 
-constants = importlib.import_module('pipeline_plugins.variables.sites.%s.constants' % settings.RUN_VER)
+site_utils = importlib.import_module('pipeline_plugins.variables.query.sites.%s.utils' % settings.RUN_VER)
 
-
-def query_custom_variables_collection(request):
-    ctx = {
-        'result': True,
-        'data': constants.VARIABLES_COLLECTION
-    }
-    return JsonResponse(ctx)
+get_ip_by_zoneid = getattr(site_utils, 'get_ip_by_zoneid')
