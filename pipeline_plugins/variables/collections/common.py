@@ -14,14 +14,42 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from pipeline.conf import settings
-from pipeline.core.data.var import LazyVariable
+from pipeline.core.data.var import (
+    SpliceVariable,
+    LazyVariable,
+    RegisterVariableMeta
+)
 
 logger = logging.getLogger('root')
 
 
+class CommonPlainVariable(SpliceVariable):
+    __metaclass__ = RegisterVariableMeta
+
+
+class Input(CommonPlainVariable):
+    code = 'input'
+    form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+
+
+class Textarea(CommonPlainVariable):
+    code = 'textarea'
+    form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+
+
+class Datetime(CommonPlainVariable):
+    code = 'datetime'
+    form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+
+
+class Int(CommonPlainVariable):
+    code = 'int'
+    form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+
+
 class Password(LazyVariable):
     code = 'password'
-    form = '%svariables/password.js' % settings.STATIC_URL
+    form = '%svariables/%s.js' % (settings.STATIC_URL, code)
 
     def get_value(self):
         return self.value
@@ -29,8 +57,7 @@ class Password(LazyVariable):
 
 class Select(LazyVariable):
     code = 'select'
-    meta_form = '%svariables/select_meta.js' % settings.STATIC_URL
-    form = '%svariables/select.js' % settings.STATIC_URL
+    form = '%svariables/%s.js' % (settings.STATIC_URL, code)
 
     def get_value(self):
         # multiple select
