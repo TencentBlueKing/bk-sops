@@ -11,16 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+import importlib
 
+from django.conf import settings
 
-VARIABLES_COLLECTION = [
-    {'name': _(u"输入框"), 'key': 'input', 'type': 'general'},
-    {'name': _(u"文本框"), 'key': 'textarea', 'type': 'general'},
-    {'name': _(u"日期时间"), 'key': 'datetime', 'type': 'general'},
-    {'name': _(u"整数"), 'key': 'int', 'type': 'general'},
-    {'name': _(u"IP选择器(简单版)"), 'key': 'ip', 'type': 'general'},
-    {'name': _(u"IP选择器"), 'key': 'ip_selector', 'type': 'general'},
-    {'name': _(u"密码"), 'key': 'password', 'type': 'general'},
-    {'name': _(u"下拉框"), 'key': 'select', 'type': 'meta'},
-]
+site_constants = importlib.import_module('pipeline_plugins.variables.query.sites.%s.constants' % settings.RUN_VER)
+
+VARIABLES_COLLECTION = getattr(site_constants, 'VARIABLES_COLLECTION')
