@@ -11,10 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
 
-from django.conf import settings
-
-utils = importlib.import_module('pipeline_plugins.variables.sites.%s.utils' % settings.RUN_VER)
-
-get_ip_by_zoneid = getattr(utils, 'get_ip_by_zoneid')
+def get_ip_by_zoneid():
+    """
+    @summary: multiple versions compatible
+    @return:
+    """
+    result = {
+        'result': True,
+        'code': 0,
+        'data': {},
+        'message': 'fake api'
+    }
+    return result
