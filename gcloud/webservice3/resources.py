@@ -31,7 +31,6 @@ from tastypie.serializers import Serializer
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
-from pipeline.core.data.library import VariableLibrary
 from pipeline.variable_framework.models import VariableModel
 from gcloud import exceptions
 from gcloud.core.models import Business
