@@ -18,9 +18,14 @@
                 <template slot="title">
                     <div class="bk-text">{{ item.name }}</div>
                     <div class="bk-name">{{ item.creator_name }}</div>
-                    <div class="bk-time">{{ item.create_time }} <p>至 {{ item.finish_time || '--' }}</p></div>
+                    <div class="bk-time">
+                        {{ item.create_time }}
+                        <template v-if="item.finish_time">
+                            至 <p>{{ item.finish_time || '--' }}</p>
+                        </template>
+                    </div>
                 </template>
-                <van-icon slot="right-icon" name="more" :class="item.status_class" />
+                <van-icon slot="right-icon" :name="item.status_icon_name" :class="item.status_class" />
             </van-cell>
         </section>
     </div>

@@ -38,7 +38,7 @@ const routes = [
     {
         path: '/task/create',
         name: 'task_create',
-        title: '任务信息',
+        title: '新建任务',
         isActionSheetShow: true,
         component: TaskCreate
     },
@@ -76,6 +76,7 @@ const routes = [
     {
         path: '/task/canvas',
         name: 'task_canvas',
+        title: '执行任务',
         component: TaskCanvas
     },
     {
@@ -122,6 +123,8 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
+    console.log(from)
+    console.log(to)
     canceling = true
     await cancelRequest()
     canceling = false
@@ -129,12 +132,16 @@ router.beforeEach(async (to, from, next) => {
     if (to.name && routerConfig[to.name]) {
         ({ title: store.state.title, isActionSheetShow: store.state.isActionSheetShow } = routerConfig[to.name])
     }
+    if (to.query.biz_selected) {
+        store.commit('setActionSheetShow', true)
+    }
     if (bizId) {
         store.commit('setBizId', bizId)
         store.commit('setActionSheetShow', true)
         // cookies记录用户第一次选择的biz_id,如果为空，则跳转至选择业务页面
         VueCookies.set('biz_id', store.state.bizId)
-        if (to.name === 'home') {
+        VueCookies.set('isSelectedBiz', true)
+        if (to.name === 'home' && !to.query.biz_selected) {
             next({ path: '/template', query: { bizId: bizId } })
         } else {
             next()

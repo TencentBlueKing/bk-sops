@@ -23,6 +23,8 @@
 <script>
     import { getBusinessList } from '@/store/modules/businessList'
 
+    const BIZ_TAG_COLORS = ['blue', 'red', 'orange', 'green', 'gray']
+
     export default {
         name: 'home',
         props: { title: String },
@@ -34,7 +36,6 @@
                 finished: false
             }
         },
-
         methods: {
             onLoad () {
                 // 异步更新数据
@@ -63,8 +64,8 @@
                 if (tagColor) {
                     return { tagColor: tagColor, tag: tag }
                 } else {
-                    const color = parseInt(Math.random() * 5, 10) + 1
-                    const tagColor = `tag-${color}`
+                    const color = parseInt(Math.random() * 4, 10) + 1
+                    const tagColor = `tag-${BIZ_TAG_COLORS[color]}`
                     this.$cookies.set(biz.cc_id, tagColor)
                     return { tagColor: tagColor, tag: tag }
                 }
