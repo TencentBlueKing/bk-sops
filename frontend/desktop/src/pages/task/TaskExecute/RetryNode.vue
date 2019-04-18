@@ -150,7 +150,7 @@
                 }
             },
             onCancelRetry () {
-                const { node_id } = this.nodeDetailConfigs
+                const { node_id } = this.nodeDetailConfig
                 this.$emit('retryCancel', node_id)
             }
         }
