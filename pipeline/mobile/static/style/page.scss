@@ -187,3 +187,52 @@ a{
 .van-dialog__confirm, .van-dialog__confirm:active{
     color: $blue;
 }
+/*执行任务状态*/
+.task-status{
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    padding: 10px;
+    text-align: center;
+    font-size: $fs-14;
+}
+.task-status.info{
+    background: #CFDFFB;
+    border-bottom-color: #C0D4F8;
+    color: $blue;
+}
+.task-status.warning{
+    background: #FFE8C3;
+    border-bottom-color: #E6CFAA;
+    color: #D78300;
+}
+.task-status.danger{
+    background: #F2D0D3;
+    border-bottom-color: #EFB9BE;
+    color: #EA3636;
+}
+/*标签栏*/
+.van-tabbar{
+    background-color: $background-color;
+
+    .van-tabbar-item__icon{
+        font-size: 22px;
+        margin-bottom: 0;
+
+        .icon-pause,.icon-pause{
+            color: $blue;
+        }
+        .icon-revoke{
+            color: #EA3636;
+        }
+        .icon-file{
+            color: #4E4E4E;
+        }
+        .disabled{
+            opacity: 0.4;
+        }
+    }
+
+    &:after{
+        border-color: #E5E5E5;
+    }
+}
