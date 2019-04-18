@@ -527,7 +527,7 @@
                         let tagCode = ''
                         let classify = ''
                         if (custom_type) {
-                            atomType = form.custom_type
+                            atomType = tagCode = form.custom_type
                             classify = 'variable'
                         } else {
                             [atomType, tagCode] = source_tag.split('.')
@@ -538,12 +538,7 @@
                             this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
                         }
                         const atomConfig = this.atomFormConfig[atomType]
-                        let currentFormConfig = {}
-                        if (custom_type) {
-                            currentFormConfig = atomConfig && atomConfig[0]
-                        } else {
-                            currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        }
+                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
                         if (currentFormConfig) {
                             if (form.is_meta || currentFormConfig.meta_transform) {
