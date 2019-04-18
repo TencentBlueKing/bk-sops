@@ -169,14 +169,16 @@
                 if (typeof tagCode === 'string' && tagCode !== '') {
                     this.$children.some(item => {
                         if (item.scheme && item.scheme.tag_code === tagCode) {
-                            childComponent = item.$children[0]
+                            // combine组件或tag组件
+                            childComponent = tagCode === 'combine' ? item : item.$refs.tagComponent
                             return true
                         }
                     })
                 } else {
-                    childComponent = this.$children
+                    childComponent = this.$children.map(item => {
+                        return item.scheme.tag_code === 'combine' ? item : item.$refs.tagComponent
+                    })
                 }
-
                 return childComponent
             },
             emit_event (name, type, data) {
