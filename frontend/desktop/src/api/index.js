@@ -154,6 +154,17 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取自定义全局变量列表
+     */
+    getCustomVarCollection () {
+        const prefixUrl = this.getPrefix('query_custom_variables_collection')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程列表
      */
     getSubAtomList (data) {

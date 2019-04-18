@@ -740,6 +740,9 @@ const template = {
         loadTemplateData ({ commit }, data) {
             return api.getTemplateData(data).then(response => response.data)
         },
+        loadCustomVarCollection () {
+            return api.getCustomVarCollection().then(response => response.data)
+        },
         // 保存模板数据
         saveTemplateData ({ state }, { templateId, ccId, common }) {
             const { activities, constants, end_event, flows, gateways, line,

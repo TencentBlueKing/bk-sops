@@ -93,6 +93,7 @@
                             <VariableEdit
                                 ref="editVariablePanel"
                                 :variable-data="variableData"
+                                :variable-type-list="variableTypeList"
                                 :is-new-variable="false"
                                 @scrollPanelToView="scrollPanelToView"
                                 @onChangeEdit="onChangeEdit">
@@ -104,6 +105,7 @@
                     <VariableEdit
                         ref="addVariablePanel"
                         :variable-data="variableData"
+                        :variable-type-list="variableTypeList"
                         :is-new-variable="true"
                         @scrollPanelToView="scrollPanelToView"
                         @onChangeEdit="onChangeEdit">
@@ -144,7 +146,7 @@
             draggable,
             NoData
         },
-        props: ['isVariableEditing'],
+        props: ['isVariableEditing', 'variableTypeList'],
         data () {
             return {
                 i18n: {

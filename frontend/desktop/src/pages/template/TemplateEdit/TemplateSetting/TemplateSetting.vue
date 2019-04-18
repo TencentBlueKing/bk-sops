@@ -35,6 +35,7 @@
                     ref="globalVariable"
                     class="panel-item"
                     :is-variable-editing="isVariableEditing"
+                    :variable-type-list="variableTypeList"
                     @changeVariableEditing="onVariableEditingChange"
                     @variableDataChanged="onVariableDataChange"
                     @onDeleteConstant="onDeleteConstant">
@@ -73,7 +74,7 @@
             TabTemplateConfig,
             TabLocalDraft
         },
-        props: ['businessInfoLoading', 'isTemplateConfigValid', 'isSettingPanelShow', 'draftArray'],
+        props: ['businessInfoLoading', 'isTemplateConfigValid', 'isSettingPanelShow', 'draftArray', 'variableTypeList'],
         data () {
             return {
                 i18n: {
