@@ -14,6 +14,9 @@ mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/
 rm -rf $WORK_PATH/frontend/desktop/static/
 
 pybabel extract -F babel.cfg --copyright-holder=blueking . -o django.pot || exit 1
+# first time
+# pybabel init -i django.pot -D django -d locale -l en --no-wrap
+# pybabel init -i django.pot -D django -d locale -l zh_hans --no-wrap
 pybabel update -i django.pot -d locale -D django --no-wrap || exit 1
 django-admin makemessages -d djangojs -e vue,js -i '*node_modules*' --no-wrap || exit 1
 
