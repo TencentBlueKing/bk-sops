@@ -11,12 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 
-def get_ip_by_zoneid():
-    result = {
+from pipeline_plugins.variables.query import constants
+
+
+@require_GET
+def query_custom_variables_collection(request):
+    ctx = {
         'result': True,
-        'code': 0,
-        'data': {},
-        'message': 'fake api'
+        'data': constants.VARIABLES_COLLECTION
     }
-    return result
+    return JsonResponse(ctx)

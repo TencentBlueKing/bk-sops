@@ -99,13 +99,13 @@ class SpliceVariable(Variable):
         return self.__repr__()
 
 
-class LazyVariableMeta(type):
+class RegisterVariableMeta(type):
     def __new__(cls, name, bases, attrs):
-        super_new = super(LazyVariableMeta, cls).__new__
+        super_new = super(RegisterVariableMeta, cls).__new__
 
         # Also ensure initialization is only performed for subclasses of Model
         # (excluding Model class itself).
-        parents = [b for b in bases if isinstance(b, LazyVariableMeta)]
+        parents = [b for b in bases if isinstance(b, RegisterVariableMeta)]
         if not parents:
             return super_new(cls, name, bases, attrs)
 
@@ -124,7 +124,7 @@ class LazyVariableMeta(type):
 
 
 class LazyVariable(SpliceVariable):
-    __metaclass__ = LazyVariableMeta
+    __metaclass__ = RegisterVariableMeta
 
     def __init__(self, name, value, context, pipeline_data):
         super(LazyVariable, self).__init__(name, value, context)
