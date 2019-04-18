@@ -13,12 +13,26 @@
     <div class="task-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.task_list"></BaseTitle>
-            <BaseSearch
-                v-model="flowName"
-                :input-placeholader="i18n.taskNamePlaceholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="task-table-content">
+                <div class="operation-area clearfix">
+                    <bk-button
+                        type="primary"
+                        class="task-btn"
+                        size="small"
+                        @click="onCreateTask">
+                        {{i18n.create}}
+                    </bk-button>
+                    <div class="task-advanced-search">
+                        <BaseSearch
+                            class="base-search"
+                            v-model="flowName"
+                            :input-placeholader="i18n.taskNamePlaceholder"
+                            @onShow="onAdvanceShow"
+                            @input="onSearchInput">
+                        </BaseSearch>
+                    </div>
+                </div>
+            </div>
             <div class="task-search" v-show="isAdvancedSerachShow">
                 <fieldset class="task-fieldset">
                     <div class="task-query-content">
@@ -151,6 +165,15 @@
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
+        <TaskCreateDialog
+            v-if="isNewTaskDialogShow"
+            :common="common"
+            :cc_id="cc_id"
+            :is-new-task-dialog-show="isNewTaskDialogShow"
+            :business-info-loading="businessInfoLoading"
+            :export-pending="pending.export"
+            @onCreateTaskCancel="onCreateTaskCancel">
+        </TaskCreateDialog>
         <TaskCloneDialog
             v-if="isTaskCloneDialogShow"
             :is-task-clone-dialog-show="isTaskCloneDialogShow"
@@ -183,6 +206,7 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
     import TaskCloneDialog from './TaskCloneDialog.vue'
@@ -194,6 +218,7 @@
             BaseTitle,
             BaseSearch,
             NoData,
+            TaskCreateDialog,
             TaskCloneDialog
         },
         props: ['cc_id', 'common', 'create_method'],
@@ -215,6 +240,8 @@
                 theDeleteTaskId: undefined,
                 theDeleteTaskName: '',
                 isTaskCloneDialogShow: false,
+                isNewTaskDialogShow: false,
+                businessInfoLoading: true, // 模板分类信息 loading
                 theCloneTaskName: '',
                 theCloneTaskId: undefined,
                 pending: {
@@ -254,7 +281,8 @@
                     createMethodPlaceholder: gettext('请选择创建方式'),
                     advanceSearch: gettext('高级搜索'),
                     executing: gettext('执行中'),
-                    pauseState: gettext('暂停')
+                    pauseState: gettext('暂停'),
+                    create: gettext('新建')
                 },
                 executeStartTime: undefined,
                 executeEndTime: undefined,
@@ -553,6 +581,12 @@
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onCreateTask () {
+                this.isNewTaskDialogShow = true
+            },
+            onCreateTaskCancel () {
+                this.isNewTaskDialogShow = false
             }
         }
     }
@@ -576,6 +610,16 @@
 }
 .operation-area {
     margin: 20px 0;
+    .template-btn {
+        margin-left: 5px;
+        color:#313238;
+    }
+    .task-advanced-search {
+        float: right;
+        .base-search {
+            margin: 0px;
+        }
+    }
 }
 .task-fieldset {
     width: 100%;
