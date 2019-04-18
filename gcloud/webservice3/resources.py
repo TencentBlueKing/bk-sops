@@ -404,4 +404,3 @@ class VariableModelResource(ModelResource):
         ordering = ['id']
         authorization = ReadOnlyAuthorization()
         limit = 0
-
