@@ -253,7 +253,7 @@ class RuntimeTestCase(TestCase):
 
         with patch('pipeline.engine.core.runtime.FLOW_NODE_HANDLERS', mock_handlers):
             # 6.1. test should return
-            current_node = IdentifyObject()
+            current_node = IdentifyObject(name='name')
             process = MockPipelineProcess(top_pipeline=PipelineObject(node=current_node),
                                           destination_id=uniqid(),
                                           current_node_id=current_node.id)
@@ -275,7 +275,7 @@ class RuntimeTestCase(TestCase):
             Status.objects.transit.assert_called_with(id=current_node.id,
                                                       to_state=states.RUNNING,
                                                       start=True,
-                                                      name=str(current_node.__class__))
+                                                      name=current_node.name)
 
             process.refresh_current_node.assert_called_once_with(current_node.id)
 

@@ -76,6 +76,13 @@ class MockTaskFlowInstance(object):
                                        'side_effect': kwargs.get('get_status_raise')})
         self.format_pipeline_status = MagicMock(**{'return_value': kwargs.get('format_pipeline_status_return'),
                                                    'side_effect': kwargs.get('format_pipeline_status_raise')})
+        self.url = kwargs.get('url', 'url')
+        self.pipeline_tree = kwargs.get('pipeline_tree', 'pipeline_tree')
+        self.callback = MagicMock(return_value=kwargs.get('callback_return', {'result': True,
+                                                                              'message': 'success'}))
+        self.get_task_detail = MagicMock(return_value=kwargs.get('get_task_detail_return', 'task_detail'))
+        self.get_node_detail = MagicMock(return_value=kwargs.get('get_node_detail_return', {'result': True,
+                                                                                            'data': 'data'}))
 
 
 class MockPeriodicTask(object):
