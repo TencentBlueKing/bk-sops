@@ -81,7 +81,6 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         taskCreateMethod: SITE_URL + 'taskflow/api/get_task_create_method/',
         cc_search_host: SITE_URL + 'pipeline/cc_search_host/' + BIZ_CC_ID + '/',
         cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + BIZ_CC_ID + '/',
-        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + BIZ_CC_ID + '/',
-        query_custom_variables_collection: SITE_URL + 'pipeline/query_custom_variables_collection/'
+        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + BIZ_CC_ID + '/'
     }
 }
