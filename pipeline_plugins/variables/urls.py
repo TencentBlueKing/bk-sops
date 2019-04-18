@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License.
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
 
-from pipeline_plugins.variables import query
+from pipeline_plugins.variables.query import api
 
 urlpatterns = [
-    url(r'^query_custom_variables_collection/$', query.query_custom_variables_collection),
+    url(r'^query_custom_variables_collection/$', api.query_custom_variables_collection),
 ]

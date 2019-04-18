@@ -6,21 +6,15 @@
 
 - framework
 
-  蓝鲸基于 django 框架的二次封装架构，主要提供 saas 运营在蓝鲸 paas 上的基础配置和服务。
+  蓝鲸基于 django 框架的二次封装架构，主要提供 SaaS 运营在蓝鲸 PaaS 上的基础配置和服务。
 
-  conf：工程各部署环境配置，如本地环境、测试环境、正式环境。
+  config：工程各部署环境配置，如本地环境、测试环境、正式环境，以及路由配置。
 
-  common：主要是一些公共函数。
+  blueapps：新版开发框架核心模块，包括蓝鲸统一登录、鉴权、中间件和公共函数。
 
-  blueapps：也是一些公共函数，单独作为一个模块主要是为了向后兼容新版开发框架。
+  packages：蓝鲸 API Gateway SDK，包括配置平台、作业平台等提供的API。
 
-  bk_api：蓝鲸 paas 提供的 API。
-
-  blueking：蓝鲸 API Gateway SDK，包括配置平台、作业平台等提供的API。
-
-  account：蓝鲸统一登录和鉴权。
-
-- pipeline
+- pipeline、pipeline_web、pipeline_plugins
 
   自研的流程引擎框架，主要包含任务流程编排页面和任务流程执行服务。
 
@@ -38,11 +32,15 @@
 
   validators：数据校验，如环状结构检测和数据合法性校验。
 
-  components：原子框架和原子定义。
+  component_framework：插件框架和插件定义。
 
   variables：全局变量定义。
 
   contrib：扩展功能，如数据统计和前端 API。
+  
+  pipeline_web：前端数据适配层，支持前端画布生成的流程数据。
+  
+  pipeline_plugins：标准运维官方插件库和全局自定义变量。
 
 - gcloud
 
@@ -68,9 +66,9 @@
 
   前端资源，包括 webpack 配置和静态资源。
 
-  pipeline.blueflow：主要包括流程编排 pipeline/blueflow 模块，该模块是基于 vue 实现的。
+  frontend：主要包括流程编排 desktop 模块，该模块是基于 vue 实现的。
 
-  static：原子 components 和变量 variables 的前端定义文件，都放在各自模块的 static 目录下。
+  static：插件 components 和变量 variables 的前端定义文件，都放在各自模块的 static 目录下。
 
   templates：包含首页和 django admin 需要的页面。
 
