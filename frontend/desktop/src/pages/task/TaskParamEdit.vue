@@ -97,7 +97,7 @@
                     }
                 }
 
-                this.isNoData = !!variableArray.length
+                this.isNoData = !variableArray.length
                
                 variableArray = variableArray.sort((a, b) => {
                     return a.index - b.index
