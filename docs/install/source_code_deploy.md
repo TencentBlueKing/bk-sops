@@ -6,13 +6,13 @@
 
 ## 打包并收集前端静态资源
 1）安装依赖包  
-进入 pipeline/blueflow/，执行以下命令安装
+进入 frontend/desktop/，执行以下命令安装
 ```bash
 npm install
 ```
 
 2）本地打包
-在 pipeline/blueflow/ 目录下，继续执行以下命令打包前端静态资源
+在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 ```bash
 npm run build -- --STATIC_ENV=dev
 ```
@@ -33,7 +33,7 @@ python manage.py collectstatic --noinput
 
 
 ## 开通 API 白名单
-手动在你部署的蓝鲸社区版的中控机执行如下命令，开通标准运维访问蓝鲸PaaS平台API网关的白名单，以便标准运维原子可以正常调用 API。
+手动在你部署的蓝鲸社区版的中控机执行如下命令，开通标准运维访问蓝鲸PaaS平台API网关的白名单，以便标准插件可以正常调用 API。
 ```bash
 source /data/install/utils.fc
 add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "标准运维定制版"
