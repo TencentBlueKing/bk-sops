@@ -52,7 +52,7 @@ a{
         line-height: 30px;
     }
     .van-cell{
-        padding: 12px 25px;
+        padding: 14px 25px;
         -webkit-box-align: center;
         -webkit-align-items: center;
         align-items: center;
@@ -87,6 +87,9 @@ a{
             width: 30px;
             text-align: right;
         }
+        .checked{
+            color: #2fca55;
+        }
         .close{
             color: #ea3636;
         }
@@ -96,9 +99,10 @@ a{
         .pause{
             color: #ff9c01;
         }
-        .circle{
-            width: 10px;
-            height: 10px;
+        .circle:before{
+            content: "";
+            width: 14px;
+            height: 14px;
             background-color: #979ba5;
             border-radius: 50%;
         }
@@ -118,11 +122,14 @@ a{
         border-bottom-color: #F1F4F8;
     }
     .van-cell__title{
-        max-width: 90px;
+        max-width: 120px;
     }
     .van-cell__value{
         text-align: left;
-        color: $text-color;
+        color: $text-color-light;
+        .van-field__control{
+            color: $text-color-light;
+        }
     }
 }
 /*popup*/
@@ -171,6 +178,9 @@ a{
     border-color: $blue;
 }
 /*dialog*/
+.van-dialog__message{
+    font-size: $fs-16;
+}
 .van-dialog__cancel{
     color: #979BA5;
 }

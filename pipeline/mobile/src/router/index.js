@@ -14,6 +14,10 @@ const TaskList = () => import(/* webpackChunkName: 'home' */'../views/task/list'
 const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
 const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/reset')
 const TaskDetail = () => import(/* webpackChunkName: 'home' */'../views/task/detail')
+const TaskDetail2 = () => import(/* webpackChunkName: 'home' */'../views/task/detail2')
+const TaskParameter = () => import(/* webpackChunkName: 'home' */'../views/task/parameter')
+const TaskCanvas = () => import(/* webpackChunkName: 'home' */'../views/task/canvas')
+const TaskConfirm = () => import(/* webpackChunkName: 'home' */'../views/task/confirm')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
 
 const routes = [
@@ -54,6 +58,30 @@ const routes = [
         path: '/task/detail',
         name: 'task_detal',
         component: TaskDetail
+    },
+    {
+        path: '/task/detail2',
+        name: 'task_detal2',
+        title: '执行详情',
+        isActionSheetShow: true,
+        component: TaskDetail2
+    },
+    {
+        path: '/task/parameter',
+        name: 'task_parameter',
+        title: '输入参数',
+        isActionSheetShow: true,
+        component: TaskParameter
+    },
+    {
+        path: '/task/canvas',
+        name: 'task_canvas',
+        component: TaskCanvas
+    },
+    {
+        path: '/task/confirm',
+        name: 'task_confirm',
+        component: TaskConfirm
     },
     // 404
     {

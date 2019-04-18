@@ -12,16 +12,6 @@
             <van-button size="large" type="info">确定</van-button>
         </div>
         <van-button @click="show11 = true" type="info">99999</van-button>
-        <van-popup
-            v-model="show11"
-            position="bottom"
-            :overlay="true">
-            <van-picker
-                show-toolbar
-                :columns="columns"
-                @confirm="show11 = false"
-                @cancel="show11 = false" />
-        </van-popup>
     </div>
 </template>
 <script>
@@ -31,8 +21,6 @@
         name: 'TaskReset',
         data () {
             return {
-                show11: false,
-                columns: ['杭州', '宁波', '温州', '嘉兴', '湖州'],
                 templateData: {
                     name: '',
                     creator_name: '',
