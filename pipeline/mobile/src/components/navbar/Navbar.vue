@@ -35,7 +35,7 @@
                     },
                     {
                         name: '业务选择',
-                        router: 'home'
+                        router: '/'
                     }
                 ]
             }
@@ -50,10 +50,7 @@
             onSelect (item) {
                 // 点击选项时默认不会关闭菜单，可以手动关闭
                 this.show = false
-                if (item.router === 'home') {
-                    this.$cookies.remove('biz_id')
-                }
-                this.$router.push({ path: item.router })
+                this.$router.push({ path: item.router, query: { 'biz_selected': '1' } })
             }
         }
     }
