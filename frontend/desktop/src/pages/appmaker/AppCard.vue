@@ -11,7 +11,7 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-left" @click="onGotoAppMaker">
+        <div class="card-basic" @click.self="onGotoAppMaker">
             <div class="logo">
                 <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
@@ -26,20 +26,24 @@
                 {{appData.name}}
             </a>
             <div class="card-operation">
-                <span class="common-icon-box-pen operate-btn" :title="i18n.modifier" @click.stop="onCardEdit"></span>
-                <span class="common-icon-black-figure operate-btn" :title="i18n.jurisdiction" @click.stop="onJurisdiction"></span>
-                <span class="common-icon-gray-edit operate-btn" @mouseenter="onOperation" @mouseleave.stop="onWithdraw" @click.stop=""></span>
+                <span class="common-icon-box-pen operate-btn"
+                    :title="i18n.modifier" @click.stop="onCardEdit"></span>
+                <span class="common-icon-black-figure operat-btn"
+                    :title="i18n.jurisdiction" @click.stop="onJurisdiction"></span>
+                <span class="common-icon-gray-edit operate-btn"
+                    @mouseenter="onShowOperation" @mouseleave="onHideOperation"></span>
             </div>
-            <div class="edit-box-background" v-if="isShowEdit" @mouseenter="onOperation" @mouseleave="onWithdraw">
+            <div class="edit-box-background"
+                v-if="isShowEdit" @mouseenter="onShowOperation" @mouseleave="onHideOperation">
                 <ul class="edit-box">
-                    <li class="executive-record edit-operation" @click.stop="">
+                    <li class="executive-record edit-operation">
                         <router-link :to="getExecuteHistoryUrl(appData.template_id)">{{i18n.executive}}</router-link>
                     </li>
                     <li class="edit-delete edit-operation" @click.stop="onCardDelete">{{i18n.delete}}</li>
                 </ul>
             </div>
         </div>
-        <div class="card-right">
+        <div class="card-particular">
             <div class="app-detail">
                 <div class="app-template" v-if="appData.template_name" :title="appData.template_name">{{i18n.template}}
                     <p>{{appData.template_name}}</p>
@@ -85,10 +89,10 @@
             useDefaultLogo () {
                 this.isShowDefaultLogo = true
             },
-            onOperation () {
+            onShowOperation () {
                 this.isShowEdit = true
             },
-            onWithdraw () {
+            onHideOperation () {
                 this.isShowEdit = false
             },
             onCardEdit () {
@@ -112,10 +116,7 @@
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {
-                let url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
-                if (this.common || this.common_template) {
-                    url += '&common=1'
-                }
+                const url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
                 return url
             }
         }
@@ -132,30 +133,30 @@
     border-radius: 2px;
 }
 .card-operation{
-    font-size: 24px;
-    color: #979BA5;
-    text-align: center;
     position: relative;
+    font-size: 24px;
+    color: #979ba5;
+    text-align: center;
     transform: translateY(130%);
     transition-duration: 0.25s;
     bottom: -40px;
     .operate-btn{
         cursor: pointer;
         &:hover{
-            color:#63656E;
+            color:#63656e;
         }
     }
 }
 .edit-box-background{
     width: 102px;
-    cursor: pointer;
     position: absolute;
     left: 111px;
     top: 142px;
     z-index: 10;
     padding-left: 6px;
+    cursor: pointer;
 }
-.card-left{
+.card-basic{
     float: left;
     width: 136px;
     height: 100%;
@@ -211,7 +212,7 @@
 .edit-box{
         width: 96px;
         height: 84px;
-        background: rgba(255,255,255,1);
+        background: rgb(255,255,255);
         box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.2);
         border-radius: 2px;
         &:hover{
@@ -220,42 +221,34 @@
         .edit-operation{
             width: 96px;
             height: 42px;
-            color: #63656E;
+            color: #63656e;
             font-size: 12px;
             font-weight: 400;
             line-height: 42px;
             text-align: center;
-            background: rgba(255,255,255,1);
+            background: rgb(255,255,255,);
             &:hover{
-                color: rgba(58,132,255,1);
-                background: rgba(235,244,255,1);
+                color: rgb(58,132,255,);
+                background: rgb(235,244,255,);
             }
         }
 }
 .edit-box>li>a {
-    color: #63656E;
     display: block;
+    color: #63656e;
     height: 42px;
     &:hover{
-        color: rgba(58,132,255,1);
-        background: rgba(235,244,255,1);
+        color: rgb(58,132,255);
+        background: rgb(235,244,255);
     }
 }
-.card-right{
+.card-particular{
     width: 207px;
     height: 100%;
     float: left;
     .app-detail {
         padding: 20px;
         font-size: 12px;
-        .app-template,.editor-name,.edit-time{
-            margin-bottom: 10px;
-            font-weight:bold;
-            p{
-                margin-top: 3px;
-                font-weight: 400;
-            }
-        }
         & > p {
             width: 220px;
             color: $greyDark;
@@ -264,20 +257,28 @@
             text-overflow: ellipsis;
         }
     }
+    .app-template,.editor-name,.edit-time{
+            margin-bottom: 10px;
+            font-weight:bold;
+            p{
+                margin-top: 3px;
+                font-weight: 400;
+            }
+        }
     &:hover{
         .app-synopsis{
             display: block;
         }
     }
     .app-synopsis{
-        background: #f7f9fa;
         display: none;
         position: absolute;
-        font-weight: bold;
-        padding: 20px;
-        font-size: 12px;
         height: 100%;
         width: 206px;
+        background: #f7f9fa;
+        font-weight: bold;
+        font-size: 12px;
+        padding: 20px;
         bottom: 0px;
         p{
             margin-top: 3px;
