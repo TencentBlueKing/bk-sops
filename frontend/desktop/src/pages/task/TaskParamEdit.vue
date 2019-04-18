@@ -109,7 +109,7 @@
                     let tagCode = ''
                     let classify = ''
                     if (custom_type) {
-                        atomType = custom_type
+                        atomType = tagCode = custom_type
                         classify = 'variable'
                     } else {
                         [atomType, tagCode] = source_tag.split('.')
@@ -122,6 +122,7 @@
                     }
                     const atomConfig = this.atomFormConfig[atomType]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                    
                     if (currentFormConfig) {
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {

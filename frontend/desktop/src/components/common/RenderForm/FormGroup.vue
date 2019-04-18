@@ -24,7 +24,7 @@
                 </i>
             </div>
         </div>
-        <div v-if="hook" class="rf-form-item rf-has-hook">
+        <div v-if="hook" class="rf-form-item rf-has-hook show-label">
             <label v-if="option.showLabel" class="rf-tag-label">
                 {{scheme.attrs.name}}
             </label>
