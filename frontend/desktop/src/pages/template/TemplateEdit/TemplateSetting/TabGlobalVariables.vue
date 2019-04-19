@@ -192,7 +192,7 @@
                         name: '',
                         show_type: 'show',
                         source_info: {},
-                        source_tag: '',
+                        source_tag: 'input.input',
                         source_type: 'custom',
                         validation: '^.+$',
                         validator: [],
