@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 import logging
 import re
 
+from django.utils.translation import ugettext_lazy as _
+
 from pipeline.conf import settings
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.components.utils import (
@@ -27,7 +29,10 @@ logger = logging.getLogger('root')
 
 
 class VarIpPickerVariable(LazyVariable):
-    code = 'var_ip_picker'
+    code = 'ip'
+    name = _(u"IP选择器(简单版)")
+    type = 'general'
+    tag = 'var_ip_picker.ip_picker'
     form = '%svariables/sites/%s/var_ip_picker.js' % (settings.STATIC_URL, settings.RUN_VER)
 
     def get_value(self):
@@ -76,7 +81,10 @@ class VarIpPickerVariable(LazyVariable):
 
 
 class VarCmdbIpSelector(LazyVariable):
-    code = 'var_cmdb_ip_selector'
+    code = 'ip_selector'
+    name = _(u"IP选择器")
+    type = 'general'
+    tag = 'var_cmdb_ip_selector.ip_selector'
     form = '%svariables/sites/%s/var_cmdb_ip_selector.js' % (settings.STATIC_URL, settings.RUN_VER)
 
     def get_value(self):
@@ -84,7 +92,7 @@ class VarCmdbIpSelector(LazyVariable):
         bk_biz_id = self.pipeline_data['biz_cc_id']
         bk_supplier_account = self.pipeline_data['biz_supplier_account']
 
-        value = self.value
-        ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, value)
+        ip_selector = self.value
+        ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
         ip = ','.join([host['bk_host_innerip'] for host in ip_result['data']])
         return ip

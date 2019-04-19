@@ -17,11 +17,12 @@ import traceback
 
 from pipeline.core.flow.activity import SubProcess
 from pipeline.engine import states
-from pipeline.engine.models import Status, NodeRelationship, FunctionSwitch
+from pipeline.engine.models import Status, NodeRelationship, FunctionSwitch, NAME_MAX_LENGTH
 from pipeline.engine.core.handlers import FLOW_NODE_HANDLERS
 from pipeline.conf import settings as pipeline_settings
 
 logger = logging.getLogger('celery')
+
 RERUN_MAX_LIMIT = pipeline_settings.PIPELINE_RERUN_MAX_TIMES
 
 
@@ -74,7 +75,7 @@ def run_loop(process):
                 return
 
                 # try to transit current node to running state
-            name = (current_node.name or str(current_node.__class__))[:64]
+            name = (current_node.name or str(current_node.__class__))[:NAME_MAX_LENGTH]
             action = Status.objects.transit(id=current_node.id, to_state=states.RUNNING, start=True, name=name)
 
             # check rerun limit

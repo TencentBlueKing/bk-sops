@@ -31,10 +31,3 @@ class PipelineInstanceAdmin(admin.ModelAdmin):
     list_filter = ['is_started', 'is_finished', 'is_deleted']
     search_fields = ['name']
     raw_id_fields = ['template', 'snapshot', 'execution_snapshot']
-
-
-@admin.register(models.VariableModel)
-class VariableModelAdmin(admin.ModelAdmin):
-    list_display = ['id', 'code', 'status']
-    list_filter = ['status']
-    search_fields = ['code', 'status']

@@ -124,7 +124,8 @@ class NotifyService(Service):
         return {
             'receiver__username': receivers,
             'title': title,
-            'content': content
+            # 保留通知内容中的换行和空格
+            'content': u"<pre>%s</pre>" % content
         }
 
     def _weixin_args(self, receivers, title, content):

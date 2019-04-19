@@ -51,9 +51,9 @@ class DataObject(object):
 
 
 class IdentifyObject(object):
-    def __init__(self, id=None, name=None):
+    def __init__(self, id=None, name=''):
         self.id = id or uniqid()
-        self.name = name or ''
+        self.name = name
 
 
 class StartEventObject(IdentifyObject):
