@@ -103,9 +103,11 @@
 <style lang="scss" scoped>
     @import '../../../static/style/app.scss';
     .bk-block .status{
+        .task-icon{
+            vertical-align: middle;
+        }
         .text{
             margin-left: 5px;
-            vertical-align: text-bottom;
             font-size: $fs-12;
             color: $text-color-light;
         }
