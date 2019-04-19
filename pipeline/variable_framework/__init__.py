@@ -11,16 +11,4 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
-
-from pipeline_plugins.variables.query import constants
-
-
-@require_GET
-def query_custom_variables_collection(request):
-    ctx = {
-        'result': True,
-        'data': constants.VARIABLES_COLLECTION
-    }
-    return JsonResponse(ctx)
+default_app_config = 'pipeline.variable_framework.apps.VariableFrameworkConfig'

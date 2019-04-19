@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 import logging
 import re
 
+from django.utils.translation import ugettext_lazy as _
+
 from pipeline.conf import settings
 from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.components.utils import (
@@ -27,7 +29,10 @@ logger = logging.getLogger('root')
 
 
 class VarIpPickerVariable(LazyVariable):
-    code = 'var_ip_picker'
+    code = 'ip'
+    name = _(u"IP选择器(简单版)")
+    type = 'general'
+    tag = 'var_ip_picker.ip_picker'
     form = '%svariables/sites/%s/var_ip_picker.js' % (settings.STATIC_URL, settings.RUN_VER)
 
     def get_value(self):
@@ -76,7 +81,10 @@ class VarIpPickerVariable(LazyVariable):
 
 
 class VarCmdbIpSelector(LazyVariable):
-    code = 'var_cmdb_ip_selector'
+    code = 'ip_selector'
+    name = _(u"IP选择器")
+    type = 'general'
+    tag = 'var_cmdb_ip_selector.ip_selector'
     form = '%svariables/sites/%s/var_cmdb_ip_selector.js' % (settings.STATIC_URL, settings.RUN_VER)
 
     def get_value(self):

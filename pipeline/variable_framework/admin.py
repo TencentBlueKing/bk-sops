@@ -11,4 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'pipeline.variables.apps.VariablesConfig'
+from django.contrib import admin
+
+from pipeline.variable_framework import models
+
+
+@admin.register(models.VariableModel)
+class VariableModelAdmin(admin.ModelAdmin):
+    list_display = ['id', 'code', 'status']
+    search_fields = ['code']
+    list_filter = ['status']
