@@ -30,6 +30,12 @@ class Component(object):
         return outputs
 
     @classmethod
+    def inputs_format(cls):
+        inputs = cls.bound_service().inputs()
+        inputs = map(lambda ii: ii._asdict(), inputs)
+        return inputs
+
+    @classmethod
     def form_is_embedded(cls):
         return getattr(cls, 'embedded_form', False)
 

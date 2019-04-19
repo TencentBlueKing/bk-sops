@@ -393,15 +393,17 @@ class PipelineTemplate(models.Model):
             setattr(self, key, value)
         self.save()
 
-    def gen_instance(self, **kwargs):
+    def gen_instance(self, inputs=None, **kwargs):
         """
         使用该模板创建实例
+        @param inputs: 自定义输入
         @param kwargs: 其他参数
         @return: 实例对象
         """
         return PipelineInstance.objects.create_instance(
             template=self,
             exec_data=copy.deepcopy(self.data),
+            inputs=inputs,
             **kwargs
         )
 
@@ -507,19 +509,26 @@ class TemplateScheme(models.Model):
 
 class InstanceManager(models.Manager):
 
-    def create_instance(self, template, exec_data, spread=False, **kwargs):
+    def create_instance(self, template, exec_data, spread=False, inputs=None, **kwargs):
         """
         创建流程实例对象
         @param template: 流程模板
         @param exec_data: 执行用流程数据
         @param spread: exec_data 是否已经展开
         @param kwargs: 其他参数
+        @param inputs: 自定义输入
         @return: 实例对象
         """
         if not spread:
             PipelineTemplate.objects.unfold_subprocess(exec_data)
         else:
             PipelineTemplate.objects.replace_id(exec_data)
+
+        inputs = inputs or {}
+
+        for key, val in inputs.items():
+            if key in exec_data['data']['inputs']:
+                exec_data['data']['inputs'][key]['value'] = val
 
         instance_id = node_uniqid()
         exec_data['id'] = instance_id

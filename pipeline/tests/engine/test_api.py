@@ -741,16 +741,6 @@ class TestEngineAPI(TestCase):
             history = api.get_activity_histories(self.node_id)
             self.assertEqual(history, self.dummy_return)
 
-    def test_get_single_state(self):
-        s = MockStatus()
-        with patch(PIPELINE_STATUS_GET, MagicMock(return_value=s)):
-            state = api.get_single_state(self.node_id)
-            self.assertEqual(state, {'state': s.state,
-                                     'started_time': s.started_time,
-                                     'finished_time': s.archived_time,
-                                     'retry': s.retry,
-                                     'skip': s.skip})
-
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_PROCESS_GET, MagicMock(side_effect=PipelineProcess.DoesNotExist))
