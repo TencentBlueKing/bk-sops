@@ -105,7 +105,7 @@
         </section>
         <!-- 按钮 -->
         <div class="btn-group">
-            <van-button size="large" type="info" :to="`/task/canvas?taskId=${taskId}`">{{ i18n.btnCreate }}</van-button>
+            <van-button size="large" type="info" @click="createTaskAndStart">{{ i18n.btnCreate }}</van-button>
         </div>
     </div>
 </template>
@@ -161,6 +161,7 @@
             ...mapActions('template', [
                 'getTemplate',
                 'collectTemplate',
+                'createTask',
                 'getTemplateConstants',
                 'getSchemes'
             ]),
@@ -172,8 +173,9 @@
                 this.collected = this.templateData.is_favorite
                 this.columns = [{ text: '执行所有节点' }, ...this.schemes]
             },
-            async createTask () {
+            async createTaskAndStart () {
                 this.taskId = await this.createTask()
+                this.$router.push({ path: '/task/canvas', query: { 'taskId': JSON.stringify(this.taskId) } })
             },
             getDefaultTaskName () {
                 return this.templateData.name + '_' + moment().format('YYYYMMDDHHmmss')

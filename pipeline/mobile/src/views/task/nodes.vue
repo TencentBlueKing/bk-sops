@@ -13,21 +13,21 @@
         <section class="bk-block">
             <h2 class="bk-text-title">执行信息</h2>
             <div class="bk-text-list">
-                <van-cell title="开始时间" value="2018-10-17 17:35:45 +0800" />
-                <van-cell title="结束时间" value="2018-10-17 17:35:45 +0800" />
-                <van-cell title="耗时" value="34秒" />
-                <van-cell title="失败后跳过" value="否" />
-                <van-cell title="失败后自动忽略" value="34秒" />
-                <van-cell title="重试次数" value="0" />
+                <van-cell title="开始时间" :value="nodeDetail.start_time" />
+                <van-cell title="结束时间" :value="nodeDetail.finish_time" />
+                <van-cell title="耗时" :value="nodeDetail.elapsed_time" />
+                <van-cell title="失败后跳过" :value="nodeDetail.skip ? '是' : '否'" />
+                <van-cell title="失败后自动忽略" :value="nodeDetail.error_ignorable ? '是' : '否'" />
+                <van-cell title="重试次数" :value="nodeDetail.retry" />
             </div>
         </section>
         <!-- 输入参数 -->
         <section class="bk-block">
             <h2 class="bk-text-title">输入参数</h2>
-            <div class="parameter-info">
-                { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false] }, { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false ] },
-                { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false] }, { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false ] },
-            </div>
+            <VueJsonPretty
+                class="parameter-info"
+                :data="nodeDetail.inputs">
+            </VueJsonPretty>
             <van-button type="default" class="view-btn">查看全部</van-button>
         </section>
         <!-- 输入参数 -->
@@ -67,13 +67,17 @@
     </div>
 </template>
 <script>
+    import VueJsonPretty from 'vue-json-pretty'
     import { mapActions } from 'vuex'
 
     export default {
         name: 'TaskDetail',
+        components: {
+            VueJsonPretty
+        },
         data () {
             return {
-                task: {}
+                nodeDetail: {}
             }
         },
         mounted () {
@@ -81,11 +85,11 @@
         },
         methods: {
             ...mapActions('task', [
-                'getTask'
+                'getNodeDetail'
             ]),
 
             async loadData () {
-                this.task = await this.getTask()
+                this.nodeDetail = await this.getNodeDetail()
             }
         }
     }
