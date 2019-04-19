@@ -47,7 +47,7 @@
                 <label class="required">{{ i18n.type }}</label>
                 <div class="form-content">
                     <bk-selector
-                        setting-key="key"
+                        setting-key="code"
                         :list="valTypeList"
                         :has-children="true"
                         :selected.sync="currentValType"
@@ -76,7 +76,7 @@
                     </template>
                 </div>
             </li>
-            <li class="form-item clearfix" v-if="theEditingData.custom_type === 'input'">
+            <li class="form-item clearfix" v-show="theEditingData.custom_type === 'input'">
                 <label class="form-label">{{ i18n.validation }}</label>
                 <div class="form-content">
                     <el-input
@@ -231,12 +231,16 @@
                 }
             },
             valTypeList () {
-                return this.isDisabledValType ? [{ key: 'component', name: gettext('组件') }] : [...this.variableTypeList]
+                return this.isDisabledValType ? [{ code: 'component', name: gettext('组件') }] : [...this.variableTypeList]
             },
-            atomType () { // 变量的tag类型，input、select、int等
-                const { custom_type, source_tag } = this.theEditingData
-                if (source_tag) {
-                    return source_tag.split('.')[0]
+            /**
+             * 变量配置项code
+             */
+            atomType () {
+                const { custom_type, source_tag, source_type } = this.theEditingData
+
+                if (source_type === 'component_inputs') {
+                    return custom_type || source_tag.split('.')[0]
                 } else {
                     return custom_type
                 }
@@ -320,9 +324,14 @@
              * 加载表单标准插件配置文件
              */
             async getAtomConfig () {
-                const realAtomType = this.metaTag ? this.metaTag.split('.')[0] : this.atomType
+                const { source_tag, custom_type } = this.theEditingData
+                const tagStr = this.metaTag ? this.metaTag : source_tag
+
+                // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
+                const atom = tagStr.split('.')[0] || custom_type
+
                 const isMeta = this.varType === 'meta' ? 1 : 0
-                if ($.atoms[realAtomType]) {
+                if ($.atoms[atom]) {
                     this.getRenderConfig()
                     return
                 }
@@ -335,7 +344,7 @@
                 }
                 try {
                     await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta })
-                    this.setAtomConfig({ atomType: realAtomType, configData: $.atoms[realAtomType] })
+                    this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)
@@ -345,16 +354,19 @@
             },
             getRenderConfig () {
                 const { source_tag, custom_type } = this.theEditingData
-                const realAtomType = this.metaTag ? this.metaTag.split('.')[0] : this.atomType
-                const atom = this.atomFormConfig[realAtomType]
-                let config = {}
+                const tagStr = this.metaTag || source_tag
+                let [atom, tag] = tagStr.split('.')
+
+                // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 if (custom_type) {
-                    config = tools.deepClone(atomFilter.formFilter(custom_type, atom))
-                } else {
-                    const tag_code = source_tag.split('.')[1]
-                    config = tools.deepClone(atomFilter.formFilter(tag_code, atom))
+                    atom = atom || custom_type
+                    tag = tag || custom_type
                 }
+                
+                const atomConfig = this.atomFormConfig[atom]
+                const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
+
                 this.renderConfig = [config]
             },
             /**

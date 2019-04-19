@@ -424,9 +424,19 @@
                     for (const key in constants) {
                         const form = constants[key]
                         if (form.source_tag) {
-                            const [atomType, tagCode] = form.source_tag.split('.')
+                            const { source_tag, custom_type } = form
+                            let atomType = ''
+                            let tagCode = ''
+                            let classify = ''
+                            if (custom_type) {
+                                atomType = tagCode = form.custom_type
+                                classify = 'variable'
+                            } else {
+                                [atomType, tagCode] = source_tag.split('.')
+                                classify = 'component'
+                            }
                             if (!this.atomFormConfig[atomType]) {
-                                await this.loadAtomConfig({ atomType })
+                                await this.loadAtomConfig({ atomType, classify })
                                 this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
                             }
                             const atomConfig = this.atomFormConfig[atomType]
