@@ -57,7 +57,7 @@ INSTALLED_APPS += (
     'gcloud.periodictask',
     'pipeline',
     'pipeline.component_framework',
-    'pipeline.variables',
+    'pipeline.variable_framework',
     'pipeline.engine',
     'pipeline.log',
     'pipeline.contrib.statistics',
