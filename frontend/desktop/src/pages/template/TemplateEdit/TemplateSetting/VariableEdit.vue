@@ -238,7 +238,12 @@
              */
             atomType () {
                 const { custom_type, source_tag, source_type } = this.theEditingData
-                return source_type === 'component_inputs' ? source_tag.split('.')[0] : custom_type
+
+                if (source_type === 'component_inputs') {
+                    return custom_type || source_tag.split('.')[0]
+                } else {
+                    return custom_type
+                }
             }
         },
         watch: {
@@ -357,7 +362,7 @@
                     atom = atom || custom_type
                     tag = tag || custom_type
                 }
-
+                
                 const atomConfig = this.atomFormConfig[atom]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
