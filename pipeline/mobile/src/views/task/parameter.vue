@@ -2,21 +2,23 @@
     <div class="page-view">
         <!-- 输入参数 -->
         <section class="bk-block">
-            <div class="parameter-info">
-                { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false] }, { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false ] },
-                { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false] }, { "activities":{ "error_ignorable":false, "component":{ "code":"bk_notify", "data":{ "bk_notify_type":{ "hook":false ] },
-            </div>
+            <VueJsonPretty :data="parameters" class="parameter-info" />
         </section>
     </div>
 </template>
 <script>
+    import VueJsonPretty from 'vue-json-pretty'
     import { mapActions } from 'vuex'
 
     export default {
-        name: 'TaskParameter',
+        name: 'task_node_parameter',
+        components: {
+            VueJsonPretty
+        },
+        // props: { taskId: String, parameters: Object },
         data () {
             return {
-                task: {}
+                parameters: {}
             }
         },
         mounted () {
@@ -28,7 +30,7 @@
             ]),
 
             async loadData () {
-                this.task = await this.getTask()
+                this.parameters = JSON.parse(this.$route.params.parameters)
             }
         }
     }
@@ -45,5 +47,7 @@
         position: absolute;
         top: 0;
         bottom: 0;
+        left: 0;
+        right: 0;
     }
 </style>

@@ -14,7 +14,7 @@ const TaskList = () => import(/* webpackChunkName: 'home' */'../views/task/list'
 const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
 const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/reset')
 const TaskDetail = () => import(/* webpackChunkName: 'home' */'../views/task/detail')
-const TaskDetail2 = () => import(/* webpackChunkName: 'home' */'../views/task/nodes')
+const TaskNodes = () => import(/* webpackChunkName: 'home' */'../views/task/nodes')
 const TaskParameter = () => import(/* webpackChunkName: 'home' */'../views/task/parameter')
 const TaskCanvas = () => import(/* webpackChunkName: 'home' */'../views/task/canvas')
 const TaskConfirm = () => import(/* webpackChunkName: 'home' */'../views/task/confirm')
@@ -64,11 +64,11 @@ const routes = [
         name: 'task_nodes',
         title: '执行详情',
         isActionSheetShow: true,
-        component: TaskDetail2
+        component: TaskNodes
     },
     {
-        path: '/task/parameter',
-        name: 'task_parameter',
+        path: '/task/nodes/parameter',
+        name: 'task_node_parameter',
         title: '输入参数',
         isActionSheetShow: true,
         component: TaskParameter
@@ -124,6 +124,7 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
+    console.log(to)
     canceling = true
     await cancelRequest()
     canceling = false
