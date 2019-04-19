@@ -46,11 +46,7 @@ const atomForm = {
         }
     },
     actions: {
-<<<<<<< HEAD:pipeline/blueflow/src/store/modules/atomForm.js
-        loadAtomConfig ({commit, state}, payload) {
-=======
         loadAtomConfig ({ commit, state }, payload) {
->>>>>>> V3.3.X:frontend/desktop/src/store/modules/atomForm.js
             const { atomType, classify, isMeta } = payload
             const atomClassify = classify || 'component'
             return api.$getAtomForm(atomType, atomClassify, isMeta || 0).then(
