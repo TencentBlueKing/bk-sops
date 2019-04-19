@@ -24,6 +24,8 @@ const store = new Vuex.Store({
         lang: 'zh-cn',
         bizId: 0,
         title: '业务选择',
+        template: {},
+        task: {},
         isActionSheetShow: true,
         // 系统当前登录用户
         user: {}
@@ -69,6 +71,13 @@ const store = new Vuex.Store({
         },
         setActionSheetShow (state, isActionSheetShow) {
             state.isActionSheetShow = isActionSheetShow
+        },
+        setTask (state, task) {
+            console.log(task)
+            state.task = task
+        },
+        setTemplate (state, template) {
+            state.template = template
         }
     },
     actions: {

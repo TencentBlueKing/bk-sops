@@ -26,7 +26,7 @@ export default {
         },
 
         createTask() {
-            // url = ${AJAX_URL_PREFIX}/api/v3/taskflow/1/
+            // url = '${AJAX_URL_PREFIX}/api/v3/taskflow/1/'
             return 1
         }
     }

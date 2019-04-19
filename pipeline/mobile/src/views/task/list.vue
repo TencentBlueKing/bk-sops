@@ -14,7 +14,8 @@
                 clickable
                 v-for="item in taskList"
                 :key="item.id"
-                :to="`/task/detail?taskId=${item.id}`">
+                :to="`/task/canvas?taskId=${item.id}`">
+                <!--:to="`/task/detail?taskId=${item.id}`">-->
                 <template slot="title">
                     <div class="bk-text">{{ item.name }}</div>
                     <div class="bk-name">{{ item.creator_name }}</div>
