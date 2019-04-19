@@ -40,14 +40,9 @@
     @import '../../../static/style/app.scss';
     .parameter-info{
         background: #313238;
-        min-height: 100px;
+        min-height: calc(100vh - 60px);
         color: $white;
         font-size: $fs-14;
         padding: 15px 25px;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
     }
 </style>
