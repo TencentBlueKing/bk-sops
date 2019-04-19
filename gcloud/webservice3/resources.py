@@ -31,8 +31,7 @@ from tastypie.serializers import Serializer
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
-from pipeline.core.data.library import VariableLibrary
-from pipeline.models import VariableModel
+from pipeline.variable_framework.models import VariableModel
 from gcloud import exceptions
 from gcloud.core.models import Business
 from gcloud.core.utils import (
@@ -340,7 +339,7 @@ class ComponentModelResource(ModelResource):
         null=True)
 
     class Meta:
-        queryset = ComponentModel.objects.filter(status=1).order_by('name')
+        queryset = ComponentModel.objects.filter(status=True).order_by('name')
         resource_name = 'component'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
@@ -376,27 +375,32 @@ class ComponentModelResource(ModelResource):
 
 
 class VariableModelResource(ModelResource):
+    name = fields.CharField(
+        attribute='name',
+        readonly=True,
+        null=True)
+    form = fields.CharField(
+        attribute='form',
+        readonly=True,
+        null=True)
+    type = fields.CharField(
+        attribute='type',
+        readonly=True,
+        null=True)
+    tag = fields.CharField(
+        attribute='tag',
+        readonly=True,
+        null=True)
+    meta_tag = fields.CharField(
+        attribute='meta_tag',
+        readonly=True,
+        null=True)
+
     class Meta:
-        queryset = VariableModel.objects.filter(status=1)
+        queryset = VariableModel.objects.filter(status=True)
         resource_name = 'variable'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
         ordering = ['id']
         authorization = ReadOnlyAuthorization()
         limit = 0
-
-    def alter_list_data_to_serialize(self, request, data):
-        for bundle in data['objects']:
-            var = VariableLibrary.get_var_class(bundle.data['code'])
-            bundle.data['form'] = var.form
-
-        return data
-
-    def alter_detail_data_to_serialize(self, request, data):
-        bundle = data
-        var = VariableLibrary.get_var_class(bundle.data['code'])
-        is_meta = request.GET.get('meta', False)
-        form = getattr(var, 'meta_form') if bool(int(is_meta)) else var.form
-        bundle.data['form'] = form
-
-        return data

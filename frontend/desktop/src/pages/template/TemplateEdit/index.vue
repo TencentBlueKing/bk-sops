@@ -357,28 +357,24 @@
                 this.customVarCollectionLoading = true
                 try {
                     const customVarCollection = await this.loadCustomVarCollection()
-                    if (customVarCollection.result) {
-                        const listData = [
-                            {
-                                name: gettext('普通变量'),
-                                children: []
-                            },
-                            {
-                                name: gettext('元变量'),
-                                children: []
-                            }
-                        ]
-                        customVarCollection.data.forEach(item => {
-                            if (item.type === 'general') {
-                                listData[0].children.push(item)
-                            } else {
-                                listData[1].children.push(item)
-                            }
-                        })
-                        this.variableTypeList = listData
-                    } else {
-                        errorHandler(customVarCollection, this)
-                    }
+                    const listData = [
+                        {
+                            name: gettext('普通变量'),
+                            children: []
+                        },
+                        {
+                            name: gettext('元变量'),
+                            children: []
+                        }
+                    ]
+                    customVarCollection.forEach(item => {
+                        if (item.type === 'general') {
+                            listData[0].children.push(item)
+                        } else {
+                            listData[1].children.push(item)
+                        }
+                    })
+                    this.variableTypeList = listData
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -521,7 +517,7 @@
                         atomGrouped[index].list.push(item)
                     }
                 })
-                
+
                 this.subAtomGrouped = atomGrouped
             },
             toggleSettingPanel (isSettingPanelShow) {
