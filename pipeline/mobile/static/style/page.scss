@@ -10,6 +10,7 @@ a{
     top: 60px;
     bottom: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     z-index: 1;
 }
