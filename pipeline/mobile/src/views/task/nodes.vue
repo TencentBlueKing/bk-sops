@@ -4,9 +4,12 @@
         <section class="bk-block">
             <van-cell>
                 <template slot="title">
-                    <div class="bk-text">定时</div>
+                    <div class="bk-text">{{ nodeDetail.name }}</div>
                 </template>
-                <div class="status"><van-icon slot="right-icon" name="clear" class="task-icon close" /><span class="text">失败</span></div>
+                <div class="status">
+                    <van-icon slot="right-icon" name="clear" class="task-icon close" />
+                    <span class="text">失败</span>
+                </div>
             </van-cell>
         </section>
         <!-- 执行信息 -->
@@ -30,38 +33,34 @@
             </VueJsonPretty>
             <van-button type="default" class="view-btn" @click="showParameters">查看全部</van-button>
         </section>
-        <!-- 输入参数 -->
+        <!-- 输出参数 -->
         <section class="bk-block">
-            <h2 class="bk-text-title">输入参数</h2>
+            <h2 class="bk-text-title">输出参数</h2>
             <div class="bk-text-list">
-                <van-cell title="JOB任务ID" value="--" />
-                <van-cell title="JOB任务链接" value="--" />
-                <van-cell title="执行结果" value="false" />
+                <van-cell
+                    v-for="item in nodeDetail.outputs"
+                    :key="item.index"
+                    :title="item.name"
+                    :value="item.value === '' ? '--' : JSON.stringify(item.value)" />
             </div>
         </section>
         <!-- 异常信息 -->
         <section class="bk-block">
             <h2 class="bk-text-title">异常信息</h2>
             <div class="bk-text-list">
-                <van-cell value="Parameter [91global_vars] does not contain IP" />
+                <van-cell :value="nodeDetail.ex_data" />
             </div>
         </section>
-        <!-- 执行记录01 -->
-        <section class="bk-block">
+        <!-- 执行记录 -->
+        <section
+            class="bk-block"
+            v-for="history in nodeDetail.histories"
+            :key="history.index">
             <h2 class="bk-text-title">执行记录01</h2>
             <div class="bk-text-list">
-                <van-cell title="开始时间" value="2018-10-17 17:35:45 +0800" />
-                <van-cell title="结束时间" value="2018-10-17 17:35:45 +0800" />
-                <van-cell title="耗时（s）" value="34" />
-            </div>
-        </section>
-        <!-- 执行记录02 -->
-        <section class="bk-block">
-            <h2 class="bk-text-title">执行记录02</h2>
-            <div class="bk-text-list">
-                <van-cell title="开始时间" value="2018-10-17 17:35:45 +0800" />
-                <van-cell title="结束时间" value="2018-10-17 17:35:45 +0800" />
-                <van-cell title="耗时（s）" value="34" />
+                <van-cell title="开始时间" :value="history.start_time" />
+                <van-cell title="结束时间" :value="history.finish_time" />
+                <van-cell title="耗时（s）" :value="history.elapsed_time" />
             </div>
         </section>
     </div>
@@ -90,6 +89,7 @@
 
             async loadData () {
                 this.nodeDetail = await this.getNodeDetail()
+                console.log(this.nodeDetail)
             },
 
             showParameters () {
