@@ -28,7 +28,7 @@
                 class="parameter-info"
                 :data="nodeDetail.inputs">
             </VueJsonPretty>
-            <van-button type="default" class="view-btn">查看全部</van-button>
+            <van-button type="default" class="view-btn" @click="showParameters">查看全部</van-button>
         </section>
         <!-- 输入参数 -->
         <section class="bk-block">
@@ -71,7 +71,7 @@
     import { mapActions } from 'vuex'
 
     export default {
-        name: 'TaskDetail',
+        name: 'TaskNodes',
         components: {
             VueJsonPretty
         },
@@ -90,6 +90,11 @@
 
             async loadData () {
                 this.nodeDetail = await this.getNodeDetail()
+            },
+
+            showParameters () {
+                // pass
+                this.$router.push({ name: 'task_node_parameter', params: { parameters: JSON.stringify(this.nodeDetail.inputs) } })
             }
         }
     }
