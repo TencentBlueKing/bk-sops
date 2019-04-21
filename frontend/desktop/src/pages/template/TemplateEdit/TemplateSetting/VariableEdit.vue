@@ -430,6 +430,7 @@
                 return this.$validator.validateAll().then(result => {
                     let formValid = true
                     const constantsLength = Object.keys(this.constants).length
+                    
                     // 名称、key等校验，renderform表单校验
                     if (this.$refs.renderForm) {
                         if (!this.value && this.theEditingData.show_type === 'show') {
@@ -443,17 +444,31 @@
                         this.$emit('scrollPanelToView', index)
                         return false
                     }
+
                     const variable = this.theEditingData
+                    let varValue = {}
+                    this.theEditingData.name = this.theEditingData.name.trim()
+
+                    // value为空且不渲染RenderForm组件的变量取表单默认值
+                    if (this.renderData.hasOwnProperty('customVariable')) {
+                        varValue = this.renderData
+                    } else {
+                        varValue = atomFilter.getFormItemDefaultValue(this.renderConfig)
+                    }
+                    
+                    // 变量key值格式统一
                     if (!/^\$\{\w+\}$/.test(variable.key)) {
                         variable.key = '${' + variable.key + '}'
                     }
+
+                    this.theEditingData.value = varValue['customVariable']
+                    
                     this.$emit('onChangeEdit', false)
-                    this.theEditingData.name = this.theEditingData.name.trim()
-                    this.theEditingData.value = this.renderData['customVariable']
-                    if (this.isNewVariable) { // 新增
+
+                    if (this.isNewVariable) { // 新增变量
                         variable.index = constantsLength
-                        this.addVariable(Object.assign(variable))
-                    } else { // 编辑
+                        this.addVariable(tools.deepClone(variable))
+                    } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })
                     }
                     return true

@@ -523,21 +523,24 @@
                     // 遍历加载标准插件表单配置文件
                     for (const form of variableArray) {
                         const { key, source_tag, custom_type } = form
-                        let atomType = ''
+                        let atomType = '' // 需要加载标准插件文件的code
+                        let atom = '' // 标准插件名称，对应绑定在$.atoms上的key
                         let tagCode = ''
                         let classify = ''
                         if (custom_type) {
                             atomType = tagCode = form.custom_type
+                            atom = source_tag ? source_tag.split('.')[0] : custom_type // 兼容旧数据自定义变量source_tag为空
                             classify = 'variable'
                         } else {
                             [atomType, tagCode] = source_tag.split('.')
+                            atom = atomType
                             classify = 'component'
                         }
                         if (!this.atomFormConfig[atomType]) {
                             await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                         }
-                        const atomConfig = this.atomFormConfig[atomType]
+                        const atomConfig = this.atomFormConfig[atom]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
                         if (currentFormConfig) {
