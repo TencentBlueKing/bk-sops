@@ -306,6 +306,17 @@
             })
         },
         mounted () {
+            const { is_meta, custom_type } = this.theEditingData
+
+            // 若当前编辑变量为元变量，则取meta_tag
+            if (is_meta) {
+                this.variableTypeList[1].children.some(item => {
+                    if (item.code === custom_type) {
+                        this.metaTag = item.meta_tag
+                        return true
+                    }
+                })
+            }
             this.getAtomConfig()
         },
         methods: {
