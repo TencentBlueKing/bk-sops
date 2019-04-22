@@ -34,8 +34,11 @@ class TestComponent(TestCase):
                     self.OutputItem(name='key_2', key='key_2', type='str')
                 ]
 
-            def outputs_format(self):
-                pass
+            def inputs(self):
+                return [
+                    self.InputItem(name='key_3', key='key_3', type='int', required=True),
+                    self.InputItem(name='key_4', key='key_4', type='int', required=False),
+                ]
 
         class CCUpdateHostModuleComponent(Component):
             name = u'修改主机所属模块'
@@ -66,6 +69,13 @@ class TestComponent(TestCase):
         self.assertEqual(outputs_format, [
             {'name': 'key_1', 'key': 'key_1', 'type': 'int'},
             {'name': 'key_2', 'key': 'key_2', 'type': 'str'}
+        ])
+
+    def test_inputs_format(self):
+        inputs_format = self.component({}).inputs_format()
+        self.assertEqual(inputs_format, [
+            {'name': 'key_3', 'key': 'key_3', 'type': 'int', 'required': True},
+            {'name': 'key_4', 'key': 'key_4', 'type': 'int', 'required': False}
         ])
 
     def test_clean_execution_data(self):

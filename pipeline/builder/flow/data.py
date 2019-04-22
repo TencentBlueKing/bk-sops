@@ -79,6 +79,7 @@ class NodeOutput(Var):
     def __init__(self, source_act, source_key, *args, **kwargs):
         self.source_act = source_act
         self.source_key = source_key
+        kwargs['value'] = None
         super(NodeOutput, self).__init__(*args, **kwargs)
 
     def to_dict(self):

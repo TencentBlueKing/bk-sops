@@ -430,22 +430,6 @@ def get_activity_histories(node_id):
     return History.objects.get_histories(node_id)
 
 
-def get_single_state(node_id):
-    """
-    get state for single node
-    :param node_id:
-    :return:
-    """
-    s = Status.objects.get(id=node_id)
-    return {
-        'state': s.state,
-        'started_time': s.started_time,
-        'finished_time': s.archived_time,
-        'retry': s.retry,
-        'skip': s.skip
-    }
-
-
 @_frozen_check
 @_node_existence_check
 def forced_fail(node_id, kill=False, ex_data=''):

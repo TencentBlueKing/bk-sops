@@ -18,8 +18,7 @@ import json
 import logging
 import jsonschema
 
-from django.test import TestCase
-from django.test import Client
+from django.test import TestCase, Client
 
 from pipeline.exceptions import PipelineException
 
@@ -57,8 +56,14 @@ TEST_BIZ_CC_NAME = 'biz name'
 TEST_APP_CODE = 'app_code'
 TEST_TEMPLATE_ID = '1'  # do not change this to non number
 TEST_TASKFLOW_ID = '2'  # do not change this to non number
+TEST_TASKFLOW_URL = 'url'
+TEST_TASKFLOW_PIPELINE_TREE = 'pipeline_tree'
 TEST_PERIODIC_TASK_ID = '3'  # do not change to this non number
 TEST_DATA = 'data'
+TEST_NODE_ID = 'node_id'
+TEST_CALLBACK_DATA = 'callback_data'
+TEST_COMPONENT_CODE = 'component_code'
+TEST_SUBPROCESS_STACK = '[1, 2, 3]'
 
 
 class APITest(TestCase):
@@ -78,6 +83,9 @@ class APITest(TestCase):
         cls.SET_PERIODIC_TASK_ENABLED_URL = '/apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/'
         cls.MODIFY_PERIODIC_TASK_CRON_URL = '/apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/'
         cls.MODIFY_PERIODIC_TASK_CONSTANTS_URL = '/apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/'
+        cls.GET_TASK_DETAIL = '/apigw/get_task_detail/{task_id}/{bk_biz_id}/'
+        cls.GET_TASK_NODE_DETAIL = '/apigw/get_task_node_detail/{task_id}/{bk_biz_id}/'
+        cls.NODE_CALLBACK = '/apigw/node_callback/{task_id}/{bk_biz_id}/'
 
         super(APITest, cls).setUpClass()
 
@@ -296,15 +304,16 @@ class APITest(TestCase):
     @mock.patch(TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__success(self):
-        pt1 = MockPipelineTemplate(id=1,
-                                   name='pt1')
+        pt1 = MockPipelineTemplate(id=1, name='pt1')
 
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
         biz = MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)
 
         with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
             with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
-                assert_data = {'task_id': TEST_TASKFLOW_ID}
+                assert_data = {'task_id': TEST_TASKFLOW_ID,
+                               'task_url': TEST_TASKFLOW_URL,
+                               'pipeline_tree': TEST_TASKFLOW_PIPELINE_TREE}
                 response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                              bk_biz_id=TEST_BIZ_CC_ID),
                                             data=json.dumps({'name': 'name',
@@ -345,7 +354,9 @@ class APITest(TestCase):
             tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
 
             with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
-                assert_data = {'task_id': TEST_TASKFLOW_ID}
+                assert_data = {'task_id': TEST_TASKFLOW_ID,
+                               'task_url': TEST_TASKFLOW_URL,
+                               'pipeline_tree': TEST_TASKFLOW_PIPELINE_TREE}
                 response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                              bk_biz_id=TEST_BIZ_CC_ID),
                                             data=json.dumps({'name': 'name',
@@ -941,3 +952,97 @@ class APITest(TestCase):
 
                 self.assertFalse(data['result'])
                 self.assertTrue('message' in data)
+
+    def test_get_task_detail__success(self):
+        mock_taskflow = MockTaskFlowInstance(get_task_detail_return=TEST_DATA)
+        with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_taskflow)):
+            assert_data = TEST_DATA
+            response = self.client.get(path=self.GET_TASK_DETAIL.format(task_id=TEST_TASKFLOW_ID,
+                                                                        bk_biz_id=TEST_BIZ_CC_ID))
+
+            data = json.loads(response.content)
+
+            self.assertTrue(data['result'])
+            self.assertEqual(data['data'], assert_data)
+
+    @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
+    def test_get_task_detail__success__taskflow_does_not_exists(self):
+        response = self.client.get(path=self.GET_TASK_DETAIL.format(task_id=TEST_TASKFLOW_ID,
+                                                                    bk_biz_id=TEST_BIZ_CC_ID))
+
+        data = json.loads(response.content)
+
+        self.assertFalse(data['result'])
+        self.assertTrue('message' in data)
+
+    def test_get_task_node_detail__success(self):
+        mock_taskflow = MockTaskFlowInstance(get_node_detail_return={'result': True, 'data': TEST_DATA})
+        with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_taskflow)):
+            assert_data = TEST_DATA
+            response = self.client.get(path=self.GET_TASK_NODE_DETAIL.format(task_id=TEST_TASKFLOW_ID,
+                                                                             bk_biz_id=TEST_BIZ_CC_ID),
+                                       data={'node_id': TEST_NODE_ID,
+                                             'component_code': TEST_COMPONENT_CODE,
+                                             'subprocess_stack': TEST_SUBPROCESS_STACK})
+
+            data = json.loads(response.content)
+
+            self.assertTrue(data['result'])
+            self.assertEqual(data['data'], assert_data)
+            mock_taskflow.get_node_detail.assert_called_once_with(TEST_NODE_ID,
+                                                                  TEST_COMPONENT_CODE,
+                                                                  json.loads(TEST_SUBPROCESS_STACK))
+
+    @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
+    def test_get_task_node_detail__taskflow_doest_not_exist(self):
+        response = self.client.get(path=self.GET_TASK_NODE_DETAIL.format(task_id=TEST_TASKFLOW_ID,
+                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                   data={'node_id': TEST_NODE_ID,
+                                         'component_code': TEST_COMPONENT_CODE,
+                                         'subprocess_stack': TEST_SUBPROCESS_STACK})
+
+        data = json.loads(response.content)
+        self.assertFalse(data['result'])
+        self.assertTrue('message' in data)
+
+    def test_get_task_node_detail__with_invalid_subprocess_stack(self):
+        response = self.client.get(path=self.GET_TASK_NODE_DETAIL.format(task_id=TEST_TASKFLOW_ID,
+                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                   data={'node_id': TEST_NODE_ID,
+                                         'component_code': TEST_COMPONENT_CODE,
+                                         'subprocess_stack': 'abcdefg'})
+
+        data = json.loads(response.content)
+        self.assertFalse(data['result'])
+        self.assertTrue('message' in data)
+
+    def test_node_callback__success(self):
+        mock_instance = MockTaskFlowInstance()
+        with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_instance)):
+            response = self.client.post(path=self.NODE_CALLBACK.format(task_id=TEST_TASKFLOW_ID,
+                                                                       bk_biz_id=TEST_BIZ_CC_ID),
+                                        data=json.dumps({
+                                            'node_id': TEST_NODE_ID,
+                                            'callback_data': TEST_CALLBACK_DATA
+                                        }),
+                                        content_type='application/json')
+
+            data = json.loads(response.content)
+
+            self.assertTrue(data['result'])
+            mock_instance.callback.assert_called_once_with(TEST_NODE_ID, TEST_CALLBACK_DATA)
+
+    @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
+    def test_node_callback__taskflow_does_not_exists(self):
+        response = self.client.post(path=self.NODE_CALLBACK.format(task_id=TEST_TASKFLOW_ID,
+                                                                   bk_biz_id=TEST_BIZ_CC_ID),
+                                    data=json.dumps({
+                                        'node_id': TEST_NODE_ID,
+                                        'callback_data': TEST_CALLBACK_DATA
+                                    }),
+                                    content_type='application/json')
+
+        data = json.loads(response.content)
+
+        self.assertFalse(data['result'])
+        self.assertTrue('message' in data)
