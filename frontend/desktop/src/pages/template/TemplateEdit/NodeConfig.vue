@@ -528,8 +528,9 @@
                         let tagCode = ''
                         let classify = ''
                         if (custom_type) {
-                            atomType = tagCode = form.custom_type
+                            atomType = custom_type
                             atom = source_tag ? source_tag.split('.')[0] : custom_type // 兼容旧数据自定义变量source_tag为空
+                            tagCode = source_tag ? source_tag.split('.')[1] : custom_type
                             classify = 'variable'
                         } else {
                             [atomType, tagCode] = source_tag.split('.')

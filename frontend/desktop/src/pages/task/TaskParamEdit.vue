@@ -110,8 +110,9 @@
                     let tagCode = ''
                     let classify = ''
                     if (custom_type) {
-                        atomType = tagCode = custom_type
+                        atomType = custom_type
                         atom = source_tag ? source_tag.split('.')[0] : custom_type // 兼容旧数据自定义变量source_tag为空
+                        tagCode = source_tag ? source_tag.split('.')[1] : custom_type
                         classify = 'variable'
                     } else {
                         [atomType, tagCode] = source_tag.split('.')
@@ -125,7 +126,7 @@
                     }
                     const atomConfig = this.atomFormConfig[atom]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                    // debugger
+                    
                     if (currentFormConfig) {
                         // 若该变量是元变量则进行转换操作
                         if (variable.is_meta || currentFormConfig.meta_transform) {
