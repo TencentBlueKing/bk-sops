@@ -522,22 +522,15 @@
                     })
                     // 遍历加载标准插件表单配置文件
                     for (const form of variableArray) {
-                        const { key, source_tag, custom_type } = form
-                        let atomType = ''
-                        let tagCode = ''
-                        let classify = ''
-                        if (custom_type) {
-                            atomType = tagCode = form.custom_type
-                            classify = 'variable'
-                        } else {
-                            [atomType, tagCode] = source_tag.split('.')
-                            classify = 'component'
-                        }
+                        const { key } = form
+                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+
                         if (!this.atomFormConfig[atomType]) {
                             await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                         }
-                        const atomConfig = this.atomFormConfig[atomType]
+                        
+                        const atomConfig = this.atomFormConfig[atom]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
                         if (currentFormConfig) {

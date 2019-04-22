@@ -241,8 +241,8 @@
                 return this.$refs.addVariablePanel.saveVariable()
             },
             scrollPanelToView (index) {
-                const itemHeight = document.querySelector('.variable-content').offsetHeight
                 if (index > 0) {
+                    const itemHeight = document.querySelector('.variable-content').offsetHeight
                     this.$refs.variableList.scrollTop = itemHeight * index
                 }
             },
