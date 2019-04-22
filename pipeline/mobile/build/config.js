@@ -15,6 +15,7 @@ export default {
     },
     dev: {
         env: devEnv,
+        host: 'localhost',
         port: 9001,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
