@@ -26,6 +26,7 @@ module.exports = {
             },
             browsers: ['last 2 versions']
         },
+
         // 这个插件可以在写 nested 样式时省略开头的 &
         // @see https://github.com/postcss/postcss-nested#postcss-nested-
         'postcss-nested': {},
@@ -46,6 +47,12 @@ module.exports = {
 
         // 类似于 stylus，直接引用属性而不需要变量定义
         // @see https://github.com/simonsmith/postcss-property-lookup#postcss-property-lookup-
-        'postcss-property-lookup': {}
+        'postcss-property-lookup': {},
+
+        // rem 适配
+        'postcss-pxtorem': {
+            rootValue: 37.5,
+            propList: ['*']
+        }
     }
 }

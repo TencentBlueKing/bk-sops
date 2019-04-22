@@ -52,9 +52,28 @@ export default {
                             source: 'src',
                             img: 'src',
                             image: 'xlink:href'
-                        }
+                        },
+                        scss: 'vue-style-loader!css-loader!px2rem-loader!sass-loader',
+                        sass: 'vue-style-loader!css-loader!px2rem-loader!sass-loader?indentedSyntax',
                     }
                 }
+            },
+            {
+                test: /\.scss$/,
+                use: [{
+                    loader: 'style-loader'
+                }, {
+                    loader: 'css-loader'
+                }, {
+                    loader: 'px2rem-loader',
+                    // options here
+                    options: {
+                        remUnit: 37.5,
+                        remPrecision: 8//换算的rem保留几位小数点
+                    }
+                },{
+                    loader: 'sass-loader'
+                }]
             },
             {
                 test: /\.js$/,
@@ -101,7 +120,6 @@ export default {
             }
         ]
     },
-
     plugins: [
         new VueLoaderPlugin(),
         // moment 优化，只提取本地包

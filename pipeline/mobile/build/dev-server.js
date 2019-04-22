@@ -8,7 +8,6 @@ import bodyParser from 'body-parser'
 import history from 'connect-history-api-fallback'
 
 import devConf from './webpack.dev.conf.babel'
-import ajaxMiddleware from './ajax-middleware'
 import config from './config'
 import checkVer from './check-versions'
 
@@ -65,7 +64,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }))
 
-app.use(ajaxMiddleware)
+// app.use(ajaxMiddleware)
 
 // const staticMiddleware = express.static('dist')
 // app.use(staticMiddleware)
