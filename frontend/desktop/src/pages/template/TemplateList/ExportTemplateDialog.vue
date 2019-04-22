@@ -22,13 +22,25 @@
         @cancel="onCancel">
         <div slot="content" class="export-container">
             <div class="template-wrapper">
-                <div class="template-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
-                    <i class="common-icon-search"></i>
+                <div class="search-wrapper">
+                    <div class="business-selector">
+                        <bk-selector
+                            :list="taskCategories"
+                            :display-key="'name'"
+                            :setting-name="'value'"
+                            :search-key="'name'"
+                            :setting-key="'name'"
+                            :selected.sync="filterCondition.type">
+                        </bk-selector>
+                    </div>
+                    <div class="template-search">
+                        <input class="search-input" :placeholder="i18n.placeholder" v-model="filterCondition.keywords" />
+                        <i class="common-icon-search"></i>
+                    </div>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
                     <ul v-if="!searchMode" class="grouped-list">
-                        <template v-for="item in templateList">
+                        <template v-for="item in templates">
                             <li
                                 v-if="item.children.length"
                                 :key="item.id"
@@ -39,13 +51,13 @@
                                 </h5>
                                 <ul>
                                     <li
-                                        class="template-item"
                                         v-for="group in item.children"
                                         :key="group.id"
                                         :title="group.name"
+                                        :class="['template-item', { 'template-item-selected': group.ischecked }]"
                                         @click="onSelectTemplate(group)">
-                                        <span :class="['checkbox', { checked: group.ischecked }]"></span>
-                                        {{group.name}}
+                                        <div class="template-item-icon">{{group.name.substr(0,1).toUpperCase()}}</div>
+                                        <div class="template-item-name">{{group.name}}</div>
                                     </li>
                                 </ul>
                             </li>
@@ -54,13 +66,18 @@
                     <div v-else class="search-list">
                         <ul v-if="searchList.length">
                             <li
-                                class="template-item"
                                 v-for="item in searchList"
                                 :key="item.id"
                                 :title="item.name"
+                                :class="[{
+                                    'template-item': !item.ischecked,
+                                    'template-item-selected': item.ischecked
+                                }]"
                                 @click="onSelectTemplate(item)">
-                                <span :class="['checkbox', { checked: item.ischecked }]"></span>
-                                {{item.name}}
+                                <div class="template-item-icon">{{item.name.substr(0,1).toUpperCase()}}</div>
+                                <div class="template-item-name">
+                                    <span>{{item.name}}</span>
+                                </div>
                             </li>
                         </ul>
                         <NoData v-else class="empty-task">{{i18n.noSearchResult}}</NoData>
@@ -78,10 +95,13 @@
                         class="selected-item"
                         v-for="item in selectedTemplate"
                         :key="item.id">
-                        <span class="selected-name" :title="item.name">{{item.name}}</span>
-                        <span class="selected-delete">
-                            <i class="bk-icon icon-close-circle-shape" @click="deleteTemplate(item)"></i>
-                        </span>
+                        <div class="selected-item-icon">
+                            <span class="selected-name" :title="item.name">{{item.name.substr(0,1).toUpperCase()}}</span>
+                        </div>
+                        <div class="selected-item-name">
+                            <span class="item-name">{{item.name}}</span>
+                        </div>
+                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(item)"></i>
                     </li>
                 </ul>
             </div>
@@ -112,8 +132,8 @@
                 isCheckedDisabled: false,
                 selectedTemplate: [],
                 templateList: [],
+                templates: [],
                 searchList: [],
-                selectedList: [],
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -123,24 +143,58 @@
                     selected: gettext('已选择'),
                     num: gettext('项'),
                     selectAll: gettext('全选'),
-                    delete: gettext('删除')
+                    delete: gettext('删除'),
+                    allCategories: gettext('全部分类')
                 },
                 templateEmpty: false,
-                searchStr: ''
+                selectedTaskCategory: '',
+                category: '',
+                filterCondition: {
+                    type: gettext('全部分类'),
+                    keywords: ''
+                }
             }
         },
         computed: {
             ...mapState({
                 'businessBaseInfo': state => state.template.businessBaseInfo
-            })
+            }),
+            taskCategories () {
+                if (this.businessBaseInfo.task_categories.length === 0) {
+                    this.getCategorys()
+                }
+                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
+                list.unshift({ value: 'all', name: gettext('全部分类') })
+                return list
+            }
+        },
+        watch: {
+            filterCondition: {
+                deep: true,
+                handler (condition) {
+                    // 过滤出一级分类信息
+                    const sourceList = JSON.parse(JSON.stringify(this.templateList))
+                    const template = sourceList.find(item => item.name === condition.type)
+                    let filteredList = sourceList
+                    if (template) {
+                        filteredList = [template]
+                    }
+                    this.templates = filteredList.filter(item => {
+                        item.children = item.children.filter(childItem => childItem.name.includes(condition.keywords))
+                        return item.children.length
+                    })
+                }
+            }
         },
         created () {
             this.getTemplateData()
-            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions('templateList/', [
                 'loadTemplateList'
+            ]),
+            ...mapActions([
+                'getCategorys'
             ]),
             async getTemplateData () {
                 this.exportPending = true
@@ -155,9 +209,9 @@
                     this.templateList.forEach((item) => {
                         item.children.forEach((group) => {
                             this.$set(group, 'ischecked', false)
-                            this.selectedList.push(group)
                         })
                     })
+                    this.templates = this.templateList
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -188,18 +242,6 @@
                 const listGroup = atomGrouped.filter(item => item.children.length)
                 return listGroup
             },
-            searchInputhandler () {
-                if (this.searchStr.length) {
-                    this.searchMode = true
-                    const reg = new RegExp(this.searchStr, 'g')
-                    this.searchList = this.selectedList.filter(item => {
-                        return reg.test(item.name)
-                    })
-                } else {
-                    this.searchMode = false
-                    this.searchList = []
-                }
-            },
             onSelectTemplate (group, clearAll) {
                 group.ischecked = !group.ischecked
                 if (group.ischecked) {
@@ -226,9 +268,9 @@
                 }
                 this.selectedTemplate = []
                 this.ischecked = !this.ischecked
-                this.templateList.forEach((item) => {
-                    item.children.forEach((group) => {
-                        group.ischecked = this.ischecked
+                this.templates.filter(item => {
+                    item.children.filter(childItem => {
+                        childItem.ischecked = this.ischecked
                     })
                     if (this.ischecked) {
                         this.selectedTemplate.push(...item.children)
@@ -257,16 +299,22 @@
 .export-container {
     position: relative;
     height: 340px;
-    .common-form-content {
-        margin-right: 30px;
+    .search-wrapper {
+        padding: 0 14px 0 20px;
+    }
+    .business-selector {
+        position: absolute;
+        top: 20px;
+        width: 255px;
+        height: 32px;
     }
     .template-search {
         position: relative;
+        margin-left: 265px;
         margin-bottom: 20px;
-        text-align: right;
         .search-input {
             padding: 0 40px 0 10px;
-            width: 362px;
+            width: 255px;
             height: 32px;
             line-height: 32px;
             font-size: 14px;
@@ -290,17 +338,20 @@
             top: 9px;
             color: $commonBorderColor;
         }
+        .bk-selector {
+            width: 255px;
+        }
     }
     .template-wrapper {
         float: left;
-        padding: 20px;
-        width: 590px;
+        padding: 20px 0;
+        width: 557px;
         height: 100%;
         .template-list {
+            padding: 0 14px 0 20px;
             height: 268px;
             overflow-y: auto;
             @include scrollbar;
-
         }
         .template-group {
             margin-bottom: 30px;
@@ -309,64 +360,57 @@
             padding-top: 40px;
         }
         .group-name {
-            margin: 0 0 14px;
-            font-size: 16px;
-            font-weight: bold;
-            .list-count {
-                color: $blueDefault;
-            }
+            margin-bottom: 8px;
+            font-size: 12px;
         }
-        .template-item {
-            display: inline-block;
-            margin-bottom: 7px;
-            width: 250px;
+    }
+    .template-item {
+        display: inline-block;
+        margin: 0 0 7px 10px;
+        width: 254px;
+        background: #dcdee5;
+        border-radius: 2px;
+        cursor: pointer;
+        &:nth-child(2n + 1) {
+            margin-left: 0;
+        }
+        .template-item-icon {
+            float: left;
+            width: 56px;
+            height: 56px;
+            line-height: 56px;
+            background: #c4c6cc;
+            font-size: 28px;
+            color: #ffffff;
+            text-align: center;
+        }
+        .template-item-name {
+            margin-left: 56px;
+            padding: 0 12px;
+            height: 56px;
+            line-height: 56px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            &:nth-child(2n) {
-                margin-right: 0;
-            }
-            &:hover {
-                color: $blueDefault;
-                cursor: pointer;
-            }
-            .checkbox {
-                display: inline-block;
-                position: relative;
-                width: 14px;
-                height: 14px;
-                color: $whiteDefault;
-                border: 1px solid $formBorderColor;
-                border-radius: 2px;
-                text-align: center;
-                vertical-align: -2px;
-                &:hover {
-                    border-color: $greyDark;
-                }
-                &.checked {
-                    background: $blueDefault;
-                    border-color: $blueDefault;
-                    &::after {
-                        content: "";
-                        position: absolute;
-                        left: 2px;
-                        top: 2px;
-                        height: 4px;
-                        width: 8px;
-                        border-left: 1px solid;
-                        border-bottom: 1px solid;
-                        border-color: $whiteDefault;
-                        transform: rotate(-45deg);
-                    }
-                }
-            }
+            color: #313238;
+        }
+        &:nth-child(2n) {
+            margin-right: 0;
+        }
+    }
+    .template-item-selected {
+        .template-item-icon {
+            background: #666a7c;
+        }
+        .template-item-name {
+            background: #838799;
+            color: #ffffff;
         }
     }
     .selected-wrapper {
-        margin-left: 590px;
-        width: 260px;
+        width: 292px;
         height: 100%;
-        margin-left: 590px;
+        margin-left: 557px;
         border-left:1px solid #dde4eb;
         .selected-area-title {
             padding: 28px 20px 22px;
@@ -378,48 +422,63 @@
                 color: #3a84ff;
             }
         }
-        .selected-list {
-            height: 276px;
-            overflow-y: auto;
-            @include scrollbar;
-            .selected-item {
-                position: relative;
-                padding-left: 20px;
-                height: 33px;
-                line-height: 33px;
-                &:hover {
-                    background-color: #F6F6F6;
-                }
+    }
+    .selected-list {
+        padding-top: 8px;
+        height: 276px;
+        overflow-y: auto;
+        @include scrollbar;
+        .selected-item {
+            position: relative;
+            margin: 0 0 10px 14px;
+            width: 254px;
+            height: 56px;
+            border-radius: 2px;
+            &:hover .selected-delete {
+                display: inline-block;
             }
+        }
+        .selected-item-icon {
+            float: left;
+            width: 56px;
+            height: 56px;
+            line-height: 56px;
+            background: #666a7c;
             .selected-name {
-                display: inline-block;
-                margin-bottom: 7px;
-                width: 200px;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 28px;
+                color: #ffffff;
             }
-            .selected-delete {
-                position: absolute;
-                top: 1px;
-                right: 20px;
-            }
-            .icon-close-circle-shape {
-                display: none;
-                margin-left: 10px;
-                cursor: pointer;
-            }
-            .selected-item:hover .icon-close-circle-shape {
-                display: inline-block;
-                margin-left: 10px;
-                bottom: 20px;
-            }
+        }
+        .selected-item-name {
+            margin-left: 56px;
+            padding: 0 12px;
+            height: 56px;
+            line-height: 56px;
+            background: #838799;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: #ffffff;
+        }
+        .selected-delete {
+            display: none;
+            position: absolute;
+            top: -7px;
+            right: -7px;
+            color: #cecece;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
         }
     }
     .template-checkbox {
         position: absolute;
         left: 20px;
         bottom: -42px;
+        cursor: pointer;
         .checkbox {
             display: inline-block;
             position: relative;
@@ -429,7 +488,6 @@
             border: 1px solid $formBorderColor;
             border-radius: 2px;
             text-align: center;
-            cursor: pointer;
             vertical-align: -2px;
             &:hover {
                 border-color: $greyDark;

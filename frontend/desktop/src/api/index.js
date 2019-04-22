@@ -154,6 +154,17 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取自定义全局变量列表
+     */
+    getCustomVarCollection () {
+        const prefixUrl = this.getPrefix('variable')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程列表
      */
     getSubAtomList (data) {
@@ -1280,14 +1291,14 @@ const api = {
         }
         return request(opts)
     },
-    
+
     /**
      * 查询业务在 CMDB 的主机
      * @param {Array} filels 主机查询字段
      */
     loadHostInCC (fields) {
         const prefixUrl = this.getPrefix('cc_search_host')
-        
+
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -1302,7 +1313,7 @@ const api = {
      */
     loadTopoTreeInCC () {
         const prefixUrl = this.getPrefix('cc_search_topo_tree')
-        
+
         const opts = {
             method: 'GET',
             url: prefixUrl
@@ -1314,7 +1325,7 @@ const api = {
      */
     loadTopoModelInCC () {
         const prefixUrl = this.getPrefix('cc_get_mainline_object_topo')
-        
+
         const opts = {
             method: 'GET',
             url: prefixUrl

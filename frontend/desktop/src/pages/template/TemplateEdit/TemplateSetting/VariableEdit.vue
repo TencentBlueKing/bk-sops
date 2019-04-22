@@ -47,6 +47,7 @@
                 <label class="required">{{ i18n.type }}</label>
                 <div class="form-content">
                     <bk-selector
+                        setting-key="code"
                         :list="valTypeList"
                         :has-children="true"
                         :selected.sync="currentValType"
@@ -75,7 +76,7 @@
                     </template>
                 </div>
             </li>
-            <li class="form-item clearfix" v-if="theEditingData.custom_type === 'input'">
+            <li class="form-item clearfix" v-show="theEditingData.custom_type === 'input'">
                 <label class="form-label">{{ i18n.validation }}</label>
                 <div class="form-content">
                     <el-input
@@ -136,43 +137,12 @@
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import VariableEditDialog from './VariableEditDialog.vue'
-    const ATOM_FORM = {
-        'ip': 'var_ip_picker.ip_picker',
-        'password': 'password.password',
-        'select': 'select.select',
-        'ip_selector': 'var_cmdb_ip_selector.ip_selector'
-    }
-    const META_ATOM_FORM = {
-        'select': 'select_meta'
-    }
-    // const META_FORM_TYPE = {
-    //     'var_ip_picker': 'var_ip_picker',
-    //     'password': 'password',
-    //     'select': 'select_meta'
-    // }
-    const VAL_TYPE_LIST = [
-        {
-            name: gettext('普通变量'),
-            children: [
-                { id: 'input', name: gettext('输入框') },
-                { id: 'textarea', name: gettext('文本框') },
-                { id: 'datetime', name: gettext('日期时间') },
-                { id: 'int', name: gettext('整数') },
-                { id: 'ip', name: gettext('IP选择器(简单版)') },
-                { id: 'password', name: gettext('密码') }
-            ]
-        },
-        {
-            name: gettext('元变量'),
-            children: [
-                { id: 'select', name: gettext('下拉框') }
-            ]
-        }
-    ]
+
     const SHOW_TYPE_LIST = [
         { id: 'show', name: gettext('显示') },
         { id: 'hide', name: gettext('隐藏') }
     ]
+
     export default {
         name: 'VariableEdit',
         components: {
@@ -180,7 +150,7 @@
             VariableEditDialog,
             BaseInput
         },
-        props: ['variableData', 'isNewVariable'],
+        props: ['variableData', 'isNewVariable', 'variableTypeList'],
         data () {
             const theEditingData = tools.deepClone(this.variableData)
             const renderData = ('value' in theEditingData) ? { 'customVariable': theEditingData.value } : {}
@@ -201,6 +171,8 @@
                 bkMessageInstance: null,
                 showTypeList: [...SHOW_TYPE_LIST],
                 theEditingData,
+                metaTag: undefined, // 元变量tag名称
+                varType: '', // 变量类型，general、meta
                 renderData,
                 renderConfig: [],
                 renderOption: {
@@ -259,12 +231,16 @@
                 }
             },
             valTypeList () {
-                return this.isDisabledValType ? [{ id: 'component', name: gettext('组件') }] : [...VAL_TYPE_LIST]
+                return this.isDisabledValType ? [{ code: 'component', name: gettext('组件') }] : [...this.variableTypeList]
             },
+            /**
+             * 变量配置项code
+             */
             atomType () {
-                const { custom_type, source_tag } = this.theEditingData
-                if (source_tag) {
-                    return source_tag.split('.')[0]
+                const { custom_type, source_tag, source_type } = this.theEditingData
+
+                if (source_type === 'component_inputs') {
+                    return custom_type || source_tag.split('.')[0]
                 } else {
                     return custom_type
                 }
@@ -348,9 +324,14 @@
              * 加载表单标准插件配置文件
              */
             async getAtomConfig () {
-                const realAtomType = META_ATOM_FORM[this.atomType] || this.atomType
-                const isMeta = META_ATOM_FORM[this.atomType] ? 1 : 0
-                if ($.atoms[realAtomType]) {
+                const { source_tag, custom_type } = this.theEditingData
+                const tagStr = this.metaTag ? this.metaTag : source_tag
+
+                // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
+                const atom = tagStr.split('.')[0] || custom_type
+
+                const isMeta = this.varType === 'meta' ? 1 : 0
+                if ($.atoms[atom]) {
                     this.getRenderConfig()
                     return
                 }
@@ -363,7 +344,7 @@
                 }
                 try {
                     await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta })
-                    this.setAtomConfig({ atomType: realAtomType, configData: $.atoms[realAtomType] })
+                    this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)
@@ -373,41 +354,38 @@
             },
             getRenderConfig () {
                 const { source_tag, custom_type } = this.theEditingData
-                const realAtomType = META_ATOM_FORM[this.atomType] || this.atomType
-                const atom = this.atomFormConfig[realAtomType]
-                let config = {}
+                const tagStr = this.metaTag || source_tag
+                let [atom, tag] = tagStr.split('.')
+
+                // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 if (custom_type) {
-                    config = tools.deepClone(atom[0])
-                } else {
-                    const tag_code = source_tag.split('.')[1]
-                    config = tools.deepClone(atomFilter.formFilter(tag_code, atom))
+                    atom = atom || custom_type
+                    tag = tag || custom_type
                 }
+                
+                const atomConfig = this.atomFormConfig[atom]
+                const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
+
                 this.renderConfig = [config]
             },
             /**
              * 切换变量类型
              */
-            onValTypeChange (id, data) {
+            onValTypeChange (key, data) {
                 this.renderData = {}
                 // input 类型需要正则校验
-                if (id === 'input') {
+                if (key === 'input') {
                     this.theEditingData.validation = '^.+$'
                 } else {
                     this.theEditingData.validation = ''
                 }
-                // 普通原子类型变量需要增加 source_tag 字段
-                if (ATOM_FORM[this.theEditingData.custom_type]) {
-                    this.theEditingData.source_tag = ATOM_FORM[this.theEditingData.custom_type]
-                } else {
-                    this.theEditingData.source_tag = ''
-                }
-                // 元变量需要增加 meta 字段
-                if (META_ATOM_FORM[this.theEditingData.custom_type]) {
-                    this.theEditingData.is_meta = true
-                } else {
-                    this.theEditingData.is_meta = false
-                }
+
+                this.theEditingData.source_tag = data.tag
+                this.theEditingData.is_meta = data.type === 'meta'
+                this.metaTag = data.meta_tag
+                this.varType = data.type
+
                 this.getAtomConfig()
             },
             /**

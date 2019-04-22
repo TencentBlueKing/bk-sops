@@ -57,6 +57,7 @@
                 :business-info-loading="businessInfoLoading"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
+                :variable-type-list="variableTypeList"
                 :local-template-data="localTemplateData"
                 :is-click-draft="isClickDraft"
                 @toggleSettingPanel="toggleSettingPanel"
@@ -137,6 +138,8 @@
                 isSettingPanelShow: true,
                 isNodeConfigPanelShow: false,
                 isLeaveDialogShow: false,
+                variableTypeList: [], // 自定义变量类型列表
+                customVarCollectionLoading: false,
                 allowLeave: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
@@ -260,6 +263,7 @@
         mounted () {
             this.getSingleAtomList()
             this.getBusinessBaseInfo()
+            this.getCustomVarCollection()
         },
         beforeDestroy () {
             this.resetTemplateData()
@@ -273,7 +277,8 @@
                 'loadBusinessBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
-                'loadCommonTemplateData'
+                'loadCommonTemplateData',
+                'loadCustomVarCollection'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -348,6 +353,34 @@
                     this.subAtomListLoading = false
                 }
             },
+            async getCustomVarCollection () {
+                this.customVarCollectionLoading = true
+                try {
+                    const customVarCollection = await this.loadCustomVarCollection()
+                    const listData = [
+                        {
+                            name: gettext('普通变量'),
+                            children: []
+                        },
+                        {
+                            name: gettext('元变量'),
+                            children: []
+                        }
+                    ]
+                    customVarCollection.forEach(item => {
+                        if (item.type === 'general') {
+                            listData[0].children.push(item)
+                        } else {
+                            listData[1].children.push(item)
+                        }
+                    })
+                    this.variableTypeList = listData
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.customVarCollectionLoading = false
+                }
+            },
             async getTemplateData () {
                 this.templateDataLoading = true
                 try {
@@ -360,10 +393,6 @@
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
                     this.setTemplateData(templateData)
-                // const business = data.business
-                // if (business !== undefined) {
-                //     this.businessTimeZone = data.business.timezone
-                // }
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -395,9 +424,19 @@
                     for (const key in constants) {
                         const form = constants[key]
                         if (form.source_tag) {
-                            const [atomType, tagCode] = form.source_tag.split('.')
+                            const { source_tag, custom_type } = form
+                            let atomType = ''
+                            let tagCode = ''
+                            let classify = ''
+                            if (custom_type) {
+                                atomType = tagCode = form.custom_type
+                                classify = 'variable'
+                            } else {
+                                [atomType, tagCode] = source_tag.split('.')
+                                classify = 'component'
+                            }
                             if (!this.atomFormConfig[atomType]) {
-                                await this.loadAtomConfig({ atomType })
+                                await this.loadAtomConfig({ atomType, classify })
                                 this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
                             }
                             const atomConfig = this.atomFormConfig[atomType]
@@ -488,7 +527,7 @@
                         atomGrouped[index].list.push(item)
                     }
                 })
-                
+
                 this.subAtomGrouped = atomGrouped
             },
             toggleSettingPanel (isSettingPanelShow) {
