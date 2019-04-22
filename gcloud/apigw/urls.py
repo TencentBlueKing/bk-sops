@@ -32,4 +32,5 @@ urlpatterns = [
         views.modify_constants_for_periodic_task),
     url(r'^get_task_detail/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.get_task_detail),
     url(r'^get_task_node_detail/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.get_task_node_detail),
+    url(r'^node_callback/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.node_callback),
 ]

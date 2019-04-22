@@ -60,3 +60,16 @@ class ActionResult(object):
         self.result = result
         self.message = message
         self.extra = extra
+
+    def _as_dict(self):
+        return {
+            'result': self.result,
+            'message': self.message,
+            'extra': self.extra
+        }
+
+    def __repr__(self):
+        return self._as_dict().__repr__()
+
+    def __str__(self):
+        return self._as_dict().__str__()
