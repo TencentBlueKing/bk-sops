@@ -22,10 +22,6 @@
                         @onShow="onAdvanceShow"
                         @input="onSearchInput">
                     </BaseSearch>
-                    <div class="app-search">
-                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
-                        <i class="common-icon-search"></i>
-                    </div>
                 </div>
             </div>
             <div class="app-search" v-show="isAdvancedSerachShow">
@@ -372,7 +368,7 @@
     }
     @media screen and (max-width: 1505px) {
         .page-content {
-            width: 1200px;
+            width: 1077px;
         }
         .card-wrapper:nth-child(3n) {
             margin-right: 0;
@@ -380,7 +376,7 @@
     }
     @media screen and (min-width: 1506px) and (max-width: 1810px) {
         .page-content {
-            width: 1505px;
+            width: 1443px;
         }
         .card-wrapper:nth-child(4n) {
             margin-right: 0;
@@ -545,10 +541,7 @@
     }
     .card-wrapper {
         float: left;
-        margin: 0 20px 20px 0;
-        // &:hover {
-        //     box-shadow: -1px 1px 8px rgba(100, 100, 100, .15), 1px -1px 8px rgba(100, 100, 100, .15);
-        // }
+        margin: 0 21px 20px 0;
     }
     .empty-app-list {
         padding: 200px 0;

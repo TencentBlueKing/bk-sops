@@ -28,7 +28,7 @@
             <div class="card-operation">
                 <span class="common-icon-box-pen operate-btn"
                     :title="i18n.modifier" @click.stop="onCardEdit"></span>
-                <span class="common-icon-black-figure operat-btn"
+                <span class="common-icon-black-figure operate-btn"
                     :title="i18n.jurisdiction" @click.stop="onJurisdiction"></span>
                 <span class="common-icon-gray-edit operate-btn"
                     @mouseenter="onShowOperation" @mouseleave="onHideOperation"></span>
