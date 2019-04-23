@@ -299,7 +299,7 @@ class GCloudModelResource(ModelResource):
 
 class BusinessResource(GCloudModelResource):
     class Meta:
-        queryset = Business.objects.exclude(life_cycle__in=['3', _(u"停运")]) \
+        queryset = Business.objects.exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")]) \
                                    .exclude(status='disabled')
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
