@@ -392,17 +392,20 @@ def prepare_user_business(request, use_cache=True):
             }
 
             if defaults['status'] == 'disabled':
+                # do not create model for archived business
                 try:
                     Business.objects.get(cc_id=biz['bk_biz_id'])
                 except Business.DoesNotExist:
                     continue
 
+            # update business status
             obj, _ = Business.objects.update_or_create(
                 cc_id=biz['bk_biz_id'],
                 defaults=defaults
             )
 
-            if obj not in data and is_user_relate_business(user, biz):
+            # only append business which relate to user and not been archived
+            if obj not in data and is_user_relate_business(user, biz) and obj.status != 'disabled':
                 data.append(obj)
 
                 if user.username in set(str(biz[maintainer_key]).split(',')):
