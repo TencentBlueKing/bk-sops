@@ -319,7 +319,7 @@
             line-height: 32px;
             font-size: 14px;
             background: $whiteDefault;
-            border: 1px solid $commonBorderColor;
+            border: 1px solid #c3cdd7;
             border-radius: 4px;
             outline: none;
             &:hover {

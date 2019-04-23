@@ -13,12 +13,15 @@
     <div class="functor-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.functorList"></BaseTitle>
-            <BaseSearch
-                v-model="searchStr"
-                :input-placeholader="i18n.placeholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="operation-area clearfix">
+                <bk-button type="primary" size="small" @click="onCreateTask">{{i18n.new}}</bk-button>
+                <BaseSearch
+                    v-model="searchStr"
+                    :input-placeholader="i18n.placeholder"
+                    @onShow="onAdvanceShow"
+                    @input="onSearchInput">
+                </BaseSearch>
+            </div>
             <div class="functor-search" v-show="isAdvancedSerachShow">
                 <fieldset class="functor-fieldset">
                     <div class="functor-query-content">
@@ -411,7 +414,7 @@
 
                 return cls
             },
-            onNewTask () {
+            onCreateTask () {
                 this.isShowNewTaskDialog = true
             },
             async getBusinessList () {
@@ -570,7 +573,6 @@ label.required:after {
         color: #FF9C01;
     }
 }
-
 .common-form-item {
     label {
         width: 60px;
@@ -581,9 +583,15 @@ label.required:after {
         margin-right: 30px;
     }
 }
+.operation-area {
+    margin: 20px 0;
+}
+.advanced-search {
+    margin: 0;
+}
 .functor-fieldset {
     width: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .functor-query-content {
