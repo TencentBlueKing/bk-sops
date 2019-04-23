@@ -410,9 +410,6 @@
             width: 100%;
             color: #e4e5e7;
             border-collapse: collapse;
-            // tr:last-child td{
-            //     border-bottom: none;
-            // }
             th,td {
                 padding: 10px 10px;
                 height: 42px;
