@@ -22,7 +22,7 @@
             </div>
             <a
                 class="app-name"
-                :title="appData.name">
+                :title="appData.name" @click.self="onGotoAppMaker">
                 {{appData.name}}
             </a>
             <div class="card-operation">
@@ -128,6 +128,7 @@
     position: relative;
     width: 345px;
     height: 184px;
+    color: #63656e;
     background: $whiteDefault;
     border: 1px solid $commonBorderColor;
     border-radius: 2px;
@@ -193,7 +194,7 @@
         margin: 10px 0;
         font-size: 14px;
         font-weight: bold;
-        color: $greyDefault;
+        color: #63656e;
         text-align: center;
         text-overflow: ellipsis;
         cursor: pointer;
