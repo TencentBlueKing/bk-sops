@@ -116,9 +116,8 @@ def modify_app_logo(operator, app_maker_code, logo):
 
 
 def get_app_logo_url(app_code):
-    url_prefix = settings.BK_URL if settings.OPEN_VER == 'enterprise' else settings.BK_PAAS_HOST
 
     return '%s/media/applogo/%s.png?v=%s' % (
-        url_prefix,
+        settings.BK_PAAS_HOST,
         app_code,
         time.time())
