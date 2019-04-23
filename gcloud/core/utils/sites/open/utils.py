@@ -353,7 +353,7 @@ def prepare_business(request, cc_id, use_cache=True):
         obj, created, extras = get_business_obj(request, cc_id, use_cache)
 
     # access archived business is not allowed
-    if obj.status == 'disabled':
+    if not obj.available():
         raise exceptions.Forbidden()
 
     # then, update business object relationships
@@ -412,7 +412,7 @@ def prepare_user_business(request, use_cache=True):
             )
 
             # only append business which relate to user and not been archived
-            if obj not in data and is_user_relate_business(user, biz) and obj.status != 'disabled':
+            if obj not in data and is_user_relate_business(user, biz) and obj.available():
                 data.append(obj)
 
                 if user.username in set(str(biz[maintainer_key]).split(',')):

@@ -58,6 +58,9 @@ class Business(models.Model):
     def __unicode__(self):
         return u"%s_%s" % (self.cc_id, self.cc_name)
 
+    def available(self):
+        return self.status != 'disabled' and self.life_cycle == '2'
+
 
 class UserBusiness(models.Model):
     """
