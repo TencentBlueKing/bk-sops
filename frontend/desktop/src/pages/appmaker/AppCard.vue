@@ -20,21 +20,29 @@
                     <img class="logo-pic" :src="appData.logo_url" @error="useDefaultLogo" />
                 </div>
             </div>
-            <a
-                class="app-name"
-                :title="appData.name" @click.self="onGotoAppMaker">
-                {{appData.name}}
-            </a>
+            <div class="app-name-wrap">
+                <a
+                    class="app-name"
+                    :title="appData.name"
+                    @click.self="onGotoAppMaker">
+                    {{appData.name}}
+                </a>
+            </div>
             <div class="card-operation">
                 <span class="common-icon-box-pen operate-btn"
-                    :title="i18n.modifier" @click.stop="onCardEdit"></span>
+                    :title="i18n.modifier"
+                    @click.stop="onCardEdit"></span>
                 <span class="common-icon-black-figure operate-btn"
-                    :title="i18n.jurisdiction" @click.stop="onJurisdiction"></span>
+                    :title="i18n.jurisdiction"
+                    @click.stop="onPermissions"></span>
                 <span class="common-icon-gray-edit operate-btn"
-                    @mouseenter="onShowOperation" @mouseleave="onHideOperation"></span>
+                    @mouseenter="onShowOperation"
+                    @mouseleave="onHideOperation"></span>
             </div>
             <div class="edit-box-background"
-                v-if="isShowEdit" @mouseenter="onShowOperation" @mouseleave="onHideOperation">
+                v-if="isShowEdit"
+                @mouseenter="onShowOperation"
+                @mouseleave="onHideOperation">
                 <ul class="edit-box">
                     <li class="executive-record edit-operation">
                         <router-link :to="getExecuteHistoryUrl(appData.template_id)">{{i18n.executive}}</router-link>
@@ -45,13 +53,13 @@
         </div>
         <div class="card-particular">
             <div class="app-detail">
-                <div class="app-template" v-if="appData.template_name" :title="appData.template_name">{{i18n.template}}
+                <div class="app-template">{{i18n.template}}
                     <p>{{appData.template_name}}</p>
                 </div>
-                <div class="editor-name" v-if="appData.editor_name" :title="appData.editor_name">{{i18n.editor}}
+                <div class="editor-name">{{i18n.editor}}
                     <p>{{appData.editor_name}}</p>
                 </div>
-                <div class="edit-time" v-if="appData.edit_time" :title="appData.edit_time">{{i18n.editTime}}
+                <div class="edit-time">{{i18n.editTime}}
                     <p>{{appData.edit_time}}</p>
                 </div>
             </div>
@@ -98,8 +106,8 @@
             onCardEdit () {
                 this.$emit('onCardEdit', this.appData)
             },
-            onJurisdiction (id) {
-                this.$emit('onJurisdiction', this.appData)
+            onPermissions (id) {
+                this.$emit('onPermissions', this.appData)
             },
             onCardDelete () {
                 this.$emit('onCardDelete', this.appData)
@@ -116,14 +124,14 @@
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {
-                const url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
-                return url
+                return `/taskflow/home/${this.cc_id}/?template_id=${id}`
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/multiLineELLipsis.scss';
 .card-wrapper {
     position: relative;
     width: 345px;
@@ -133,31 +141,30 @@
     border: 1px solid $commonBorderColor;
     border-radius: 2px;
 }
-.card-operation{
+.card-operation {
     position: relative;
     font-size: 24px;
     color: #979ba5;
     text-align: center;
     transform: translateY(130%);
     transition-duration: 0.25s;
-    bottom: -40px;
-    .operate-btn{
+    .operate-btn {
         cursor: pointer;
-        &:hover{
-            color:#63656e;
+        &:hover {
+            color: #63656e;
         }
     }
 }
-.edit-box-background{
-    width: 102px;
+.edit-box-background {
     position: absolute;
     left: 111px;
     top: 142px;
     z-index: 10;
     padding-left: 6px;
+    width: 102px;
     cursor: pointer;
 }
-.card-basic{
+.card-basic {
     float: left;
     width: 136px;
     height: 100%;
@@ -165,9 +172,9 @@
     overflow: hidden;
     border-right: 1px solid $commonBorderColor;
     .logo {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto;
+        width: 60px;
+        height: 60px;
+        margin: 0 auto;
         .logo-pic {
             width: 60px;
             height: 60px;
@@ -187,39 +194,41 @@
             font-size: 40px;
         }
     }
-    .app-name {
-        display: block;
-        height: 40px;
-        overflow: hidden;
+    .app-name-wrap {
         margin: 10px 0;
-        font-size: 14px;
-        font-weight: bold;
-        color: #63656e;
-        text-align: center;
-        text-overflow: ellipsis;
-        cursor: pointer;
-        &:hover {
-            color: $blueDefault;
+        height: 40px;
+        .app-name {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            color: #63656e;
+            text-align: center !important;
+            word-break: break-all;
+            cursor: pointer;
+            @include multiLineEllipsis(1.2em, 2);
+            &:hover {
+                color: $blueDefault;
+            }
         }
     }
     &:hover {
-        .card-operation{
-            transform: translateY(-130%);
+        .card-operation {
+            transform: translateY(-10%);
             transition-duration: 0.25s;
             z-index: 1;
         }
     }
 }
-.edit-box{
+.edit-box {
         width: 96px;
         height: 84px;
-        background: rgb(255,255,255);
+        background: white;
         box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.2);
         border-radius: 2px;
-        &:hover{
+        &:hover {
             z-index: 10;
         }
-        .edit-operation{
+        .edit-operation {
             width: 96px;
             height: 42px;
             color: #63656e;
@@ -227,10 +236,10 @@
             font-weight: 400;
             line-height: 42px;
             text-align: center;
-            background: rgb(255,255,255,);
-            &:hover{
-                color: rgb(58,132,255,);
-                background: rgb(235,244,255,);
+            background: rgb(255,255,255);
+            &:hover {
+                color: rgb(58,132,255);
+                background: rgb(235,244,255);
             }
         }
 }
@@ -238,15 +247,15 @@
     display: block;
     color: #63656e;
     height: 42px;
-    &:hover{
+    &:hover {
         color: rgb(58,132,255);
         background: rgb(235,244,255);
     }
 }
-.card-particular{
+.card-particular {
+    float: left;
     width: 207px;
     height: 100%;
-    float: left;
     .app-detail {
         padding: 20px;
         font-size: 12px;
@@ -258,30 +267,30 @@
             text-overflow: ellipsis;
         }
     }
-    .app-template,.editor-name,.edit-time{
-            margin-bottom: 10px;
-            font-weight:bold;
-            p{
-                margin-top: 3px;
-                font-weight: 400;
-            }
+    .app-template, .editor-name, .edit-time {
+        margin-bottom: 10px;
+        font-weight:bold;
+        p {
+            margin-top: 3px;
+            font-weight: 400;
         }
-    &:hover{
-        .app-synopsis{
+    }
+    &:hover {
+        .app-synopsis {
             display: block;
         }
     }
-    .app-synopsis{
+    .app-synopsis {
         display: none;
         position: absolute;
+        bottom: 0px;
         height: 100%;
         width: 206px;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;
         padding: 20px;
-        bottom: 0px;
-        p{
+        p {
             margin-top: 3px;
             font-weight: 400;
         }

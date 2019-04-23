@@ -58,7 +58,7 @@
                     :cc_id="cc_id"
                     @onCardEdit="onCardEdit"
                     @onCardDelete="onCardDelete"
-                    @onJurisdiction="onJurisdiction" />
+                    @onPermissions="onPermissions" />
             </div>
             <div v-else class="empty-app-list">
                 <NoData>
@@ -66,7 +66,6 @@
                 </NoData>
             </div>
         </div>
-        <!-- 编辑 -->
         <AppEditDialog
             v-if="isEditDialogShow"
             :is-edit-dialog-show="isEditDialogShow"
@@ -76,7 +75,6 @@
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
         </AppEditDialog>
-        <!-- 删除 -->
         <bk-dialog
             :quick-close="false"
             :has-header="true"
@@ -91,7 +89,6 @@
                 {{i18n.deleteTips}}
             </div>
         </bk-dialog>
-        <!-- 权限查看 -->
         <bk-dialog
             :quick-close="false"
             :ext-cls="'common-dialog'"
@@ -100,18 +97,18 @@
             padding="30px"
             :is-show.sync="isjurisdictionUser"
             @cancel="onSurveyCancel">
-            <div slot="content" v-bkloading="{ isLoading: loadingAauthority,opacity: 1 }">
+            <div slot="content" v-bkloading="{ isLoading: loadingAuthority, opacity: 1 }">
                 <p class="jurisdictionHint">{{i18n.jurisdictionHint}}</p>
                 <div class="box">
-                    <span class="addJurisdiction">{{i18n.addJurisdiction}}{{':'}}</span>
+                    <span class="addJurisdiction">{{i18n.addJurisdiction }}:</span>
                     <span>{{createdTaskPerList || '--'}}</span>
                 </div>
                 <div class="box">
-                    <span class="getJurisdiction">{{i18n.getJurisdiction}}{{':'}}</span>
+                    <span class="getJurisdiction">{{i18n.getJurisdiction}}:</span>
                     <span>{{modifyParamsPerList || '--'}}</span>
                 </div>
                 <div>
-                    <span class="executeJurisdiction">{{i18n.executeJurisdiction}}{{':'}}</span>
+                    <span class="executeJurisdiction">{{i18n.executeJurisdiction}}:</span>
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
                 <div class="exit-btn">
@@ -146,7 +143,7 @@
         data () {
             return {
                 loading: true,
-                loadingAauthority: false,
+                loadingAuthority: false,
                 list: [],
                 searchMode: false,
                 searchList: [],
@@ -226,8 +223,6 @@
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
-                    // const data = await this.loadAppmaker()
-                    // this.list = data.objects
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -246,25 +241,22 @@
                     this.searchList = []
                 }
             },
-            // 卡牌创建
             onCreateApp () {
                 this.isEditDialogShow = true
                 this.isCreateNewApp = true
                 this.currentAppData = undefined
             },
-            // 卡牌编辑
             onCardEdit (app) {
                 this.isEditDialogShow = true
                 this.isCreateNewApp = false
                 this.currentAppData = app
             },
-            // 卡牌权限
-            onJurisdiction (app) {
+            onPermissions (app) {
                 this.isjurisdictionUser = true
                 this.loadTemplatePersons(app.template_id)
             },
             async loadTemplatePersons (id) {
-                this.loadingAauthority = true
+                this.loadingAuthority = true
                 try {
                     const data = {
                         templateId: id
@@ -274,7 +266,7 @@
                         this.createdTaskPerList = res.data.create_task.map(item => item.show_name).join('、')
                         this.modifyParamsPerList = res.data.fill_params.map(item => item.show_name).join('、')
                         this.executeTaskPerList = res.data.execute_task.map(item => item.show_name).join('、')
-                        this.loadingAauthority = false
+                        this.loadingAuthority = false
                     } else {
                         errorHandler(res, this)
                         return []
@@ -283,7 +275,6 @@
                     errorHandler(e, this)
                 }
             },
-            // 卡牌删除
             onCardDelete (app) {
                 this.isDeleteDialogShow = true
                 this.currentAppData = app
@@ -393,8 +384,8 @@
     .operation-wrapper {
         margin: 18px 0 20px;
         .bk-button {
-            width:120px;
-            height:32px;
+            width: 120px;
+            height: 32px;
             line-height: 32px;
         }
         .app-search {
@@ -402,9 +393,9 @@
             position: relative;
         }
         .search-input {
-            padding: 0 40px 0 10px;
             width: 300px;
             height: 36px;
+            padding: 0 40px 0 10px;
             line-height: 36px;
             font-size: 14px;
             background: $whiteDefault;
@@ -516,7 +507,7 @@
                     position: relative;
                     right: 15px;
                     top: 11px;
-                    color:#dddddd;
+                    color: #dddddd;
                 }
                 .search-input.placeholder {
                     color: $formBorderColor;
@@ -551,38 +542,38 @@
     .jurisdictionHint {
         padding: 0 10PX;
         line-height: 32px;
-        background:rgba(240,241,245,1);
-        border-radius:2px;
-        font-size:12px;
+        background: #f0f1f5;
+        border-radius: 2px;
+        font-size: 12px;
     }
-    .box{
+    .box {
         margin: 20px 0px;
     }
-    .exit-btn{
-            width: 220px;
-            height: 50px;
-            top: 191px;
-            left: 550px;
-            position: absolute;
-            background: #fafafa;
-            .btn{
-                float: right;
-                margin: 8px 24px 0 0;
-                width:100px;
-                height:32px;
-                font-size:14px;
-                line-height: 32px;
-                text-align: center;
-                cursor: pointer;
-                border-radius:2px;
-                border:1px solid rgba(196,198,204,1);
-            }
+    .exit-btn {
+        position: absolute;
+        width: 220px;
+        height: 50px;
+        top: 191px;
+        left: 550px;
+        background: #fafafa;
+        .btn {
+            float: right;
+            margin: 8px 24px 0 0;
+            width: 100px;
+            height: 32px;
+            font-size: 14px;
+            line-height: 32px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 2px;
+            border:1px solid #c4c4cc;
+        }
     }
-    .addJurisdiction,.getJurisdiction,.executeJurisdiction{
+    .addJurisdiction, .getJurisdiction, .executeJurisdiction {
         margin-right: 10px;
     }
     .advanced-search {
-    margin: 0px;
+        margin: 0px;
     }
 }
 </style>
