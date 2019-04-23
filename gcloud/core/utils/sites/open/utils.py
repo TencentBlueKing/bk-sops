@@ -144,7 +144,10 @@ def _get_business_info(request, app_id, use_cache=True, use_maintainer=False):
                 'bk_biz_id': int(app_id)
             }
         })
+
         if result['result']:
+            if not result['data']['info']:
+                raise exceptions.Forbidden()
             data = result['data']['info'][0]
         elif result.get('code') in ('20101', 20101):
             raise exceptions.Unauthorized(result['message'])
@@ -348,6 +351,10 @@ def prepare_business(request, cc_id, use_cache=True):
             extras = {}
     else:
         obj, created, extras = get_business_obj(request, cc_id, use_cache)
+
+    # access archived business is not allowed
+    if obj.status == 'disabled':
+        raise exceptions.Forbidden()
 
     # then, update business object relationships
     if extras:
