@@ -465,11 +465,9 @@ def get_biz_maintainer_info(biz_cc_id, username='', use_in_context=False):
     # 随机取包含 ESB 鉴权信息的运维
     authorized_maintainer = ''
     auth_token = ''
-    for item in maintainers:
-        if item.auth_token:
-            authorized_maintainer = item.username
-            auth_token = item.auth_token
-            break
+    if maintainers:
+        authorized_maintainer = maintainers[0].username
+        auth_token = maintainers[0].auth_token
 
     return authorized_maintainer, auth_token
 
