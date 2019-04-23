@@ -82,8 +82,8 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         filter_modules = get_modules_by_condition(new_topo_tree, filters_dct)
         filter_modules_id = get_modules_id(filter_modules)
         data = [host for host in data if set(host['host_modules_id']) & set(filter_modules_id)]
-        if 'ip' in filters_dct:
-            data = [host for host in data if host['bk_host_innerip'] in filters_dct['ip']]
+        if 'host' in filters_dct:
+            data = [host for host in data if host['bk_host_innerip'] in filters_dct['host']]
 
     # 过滤条件
     excludes = kwargs['excludes']
@@ -96,8 +96,8 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
         exclude_modules = get_modules_by_condition(new_topo_tree, excludes_dct)
         exclude_modules_id = get_modules_id(exclude_modules)
         data = [host for host in data if not set(host['host_modules_id']) & set(exclude_modules_id)]
-        if 'ip' in excludes_dct:
-            data = [host for host in data if host['bk_host_innerip'] not in excludes_dct['ip']]
+        if 'host' in excludes_dct:
+            data = [host for host in data if host['bk_host_innerip'] not in excludes_dct['host']]
 
     result = {
         'result': True,
