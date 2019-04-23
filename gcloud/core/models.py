@@ -47,6 +47,10 @@ class Business(models.Model):
 
     objects = BusinessManager()
 
+    LIFE_CYCLE_TESTING = '1'  # 测试中
+    LIFE_CYCLE_ONLINE = '2'  # 已上线
+    LIFE_CYCLE_CLOSE_DOWN = '3'  # 停运
+
     class Meta:
         verbose_name = _(u"业务 Business")
         verbose_name_plural = _(u"业务 Business")
@@ -57,6 +61,9 @@ class Business(models.Model):
 
     def __unicode__(self):
         return u"%s_%s" % (self.cc_id, self.cc_name)
+
+    def available(self):
+        return self.status != 'disabled' and self.life_cycle == self.LIFE_CYCLE_ONLINE
 
 
 class UserBusiness(models.Model):
