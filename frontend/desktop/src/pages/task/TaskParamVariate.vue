@@ -12,15 +12,16 @@
 <template>
     <div>
         <TaskParamEdit
+            v-bkloading="{ isLoading: templateLoading, opacity: 1 }"
             class="task-param-wrapper"
-            v-if="pipelinedata"
+            v-if="quotevariable"
             ref="TaskParamEdit"
             :constants="pipelinedata"
             @onChangeConfigLoading="onChangeConfigLoading">
         </TaskParamEdit>
         <div
             class="variable-wrap"
-            v-if="true">
+            v-if="isNoData">
             <div class="title-background" @click="onUnreferenced">
                 <div :class="[isunreferenced ? 'triangle-show' : 'triangle-hide']"></div>
                 <span class="title">{{i18n.title}}</span>
@@ -37,21 +38,18 @@
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
         </div>
-        <NoData v-if="isNoData"></NoData>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import TaskParamEdit from './TaskParamEdit.vue'
-    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'taskParamVariate',
         components: {
-            TaskParamEdit,
-            NoData
+            TaskParamEdit
         },
-        props: ['pipelinedata', 'unreferenced'],
+        props: ['quotevariable', 'unreferencedvariable'],
         data () {
             return {
                 i18n: {
@@ -65,9 +63,8 @@
                 isNoData: false,
                 isunreferenced: false,
                 configLoading: true,
-                taskParamEditLoading: true,
-                noneData: false,
-                referencedShow: false
+                DataLoading: true,
+                templateLoading: true
             }
         },
         watch: {
@@ -75,12 +72,17 @@
                 if (!loading) {
                     this.templateLoading = false
                 }
-                this.$emit('send', this.templateLoading)
+                this.$emit('onTemplateLoading', this.templateLoading)
+                if (Object.keys(this.unreferenced).length === 0) {
+                    this.isNoData = false
+                } else {
+                    this.isNoData = true
+                }
             }
         },
         created () {
             const parent = this.$parent
-            this.$on('send', parent.getData)
+            this.$on('onTemplateLoading', parent.getData)
         },
         methods: {
             onChangeConfigLoading (loading) {
@@ -96,23 +98,21 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-.task-param-wrapper{
-    margin-left: 20px;
-    padding-bottom: 20px;
+.task-param-wrapper {
+    margin: 0 20px 20px 20px;
 }
-.unreferenced{
-            background: #f0f1f5;
-        }
-.variable-wrap{
-    .title-background{
-        background: #f0f1f5;
+.variable-wrap {
+    background: #f0f1f5;
+    .unreferenced {
+       padding-bottom: 20px;
+    }
+    .title-background {
         padding-left: 20px;
-        background: #f0f1f5;
-            &:hover{
+            &:hover {
                 background: #e4e6ed;
             }
         cursor: pointer;
-        .triangle-hide{
+        .triangle-hide {
             display: inline-block;
             width: 0;
             height: 0;
@@ -121,11 +121,11 @@
             border-right: 5px solid transparent;
             border-bottom: 5px solid transparent;
         }
-        .template-tooltip{
+        .template-tooltip {
             float: right;
             margin: 20px;
         }
-        .triangle-show{
+        .triangle-show {
             display: inline-block;
             width: 0;
             height: 0;
@@ -137,7 +137,7 @@
             border-right: 5px solid transparent;
             border-bottom: 5px solid transparent;
         }
-        .title{
+        .title {
             line-height: 60px;
             font-size: 14px
         }
