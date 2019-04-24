@@ -12,8 +12,9 @@
 <template>
     <div class="param-fill-wrapper" v-bkloading="{ isLoading: templateLoading, opacity: 1 }" v-show="!templateLoading">
         <div :class="['task-info', { 'functor-task-info': userType === 'functor' }]">
-            <span class="task-info-title">{{ i18n.taskInfo }}</span>
-            <div class="task-info-division-line"></div>
+            <div class="task-info-title">
+                <span>{{ i18n.taskInfo }}</span>
+            </div>
             <div class="common-form-item">
                 <label class="required">{{ i18n.taskName }}</label>
                 <div class="common-form-content">
@@ -86,12 +87,11 @@
             </div>
             <div class="param-info-division-line"></div>
             <template>
-                <TaskParamEdit
-                    v-if="!taskParamEditLoading"
-                    ref="TaskParamEdit"
-                    :constants="pipelineData.constants"
-                    @onChangeConfigLoading="onChangeConfigLoading">
-                </TaskParamEdit>
+                <TaskParamVariate
+                    v-bkloading="{ isLoading: templateLoading }"
+                    :pipelinedata="pipelineData.constants"
+                    :unreferenced="unreferred">
+                </TaskParamVariate>
             </template>
         </div>
         <div class="action-wrapper" v-if="!templateLoading">
@@ -119,13 +119,13 @@
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
-    import TaskParamEdit from '../TaskParamEdit.vue'
+    import TaskParamVariate from '../TaskParamVariate.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
             BaseInput,
-            TaskParamEdit
+            TaskParamVariate
         },
         props: ['cc_id', 'template_id', 'common', 'previewData'],
         data () {
@@ -150,6 +150,7 @@
                 isSelectFunctionalType: false,
                 taskName: '',
                 pipelineData: {},
+                unreferred: {},
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
@@ -165,7 +166,6 @@
                 lastTaskName: '',
                 node: {},
                 templateData: {},
-                configLoading: true,
                 taskParamEditLoading: true
             }
         },
@@ -190,13 +190,6 @@
                 return !this.common && this.viewMode === 'app' && this.userType !== 'functor'
             }
         },
-        watch: {
-            configLoading (loading) {
-                if (!loading) {
-                    this.templateLoading = false
-                }
-            }
-        },
         mounted () {
             this.loadData()
         },
@@ -216,6 +209,7 @@
             ]),
             async loadData () {
                 this.templateLoading = true
+                console.log(this.templateLoading)
                 try {
                     const data = {
                         templateId: this.template_id,
@@ -224,21 +218,17 @@
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
                     this.setTemplateData(templateData)
-                    // 用户直接刷新当前页面 可选数据丢失，可直接获取pipelineTree
-                    if (this.previewData.length === 0) {
-                        const params = {
-                            templateId: this.template_id,
-                            excludeTaskNodesId: JSON.stringify([]),
-                            common: this.common,
-                            cc_id: this.cc_id,
-                            template_source: templateSource,
-                            version: templateData.version
-                        }
-                        const previewData = await this.loadPreviewNodeData(params)
-                        this.pipelineData = previewData.data.pipeline_tree
-                    } else {
-                        this.pipelineData = tools.deepClone(this.previewData)
+                    const params = {
+                        templateId: this.template_id,
+                        excludeTaskNodesId: JSON.stringify([]),
+                        common: this.common,
+                        cc_id: this.cc_id,
+                        template_source: templateSource,
+                        version: templateData.version
                     }
+                    const previewData = await this.loadPreviewNodeData(params)
+                    this.pipelineData = previewData.data.pipeline_tree
+                    this.unreferred = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
                     errorHandler(e, this)
@@ -371,8 +361,8 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            onChangeConfigLoading (loading) {
-                this.configLoading = loading
+            getData (val) {
+                this.templateLoading = val
             }
         }
     }
@@ -380,11 +370,10 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .param-fill-wrapper {
-    margin: 0 40px;
     padding-top: 30px;
-    width: calc(100% - 80px);
+    width: calc(100% - 40px);
     @media screen and (max-width: 1300px){
-        width: calc(100% - 80px);
+        width: calc(100% - 40px);
     }
     /deep/ .no-data-wrapper {
         margin: 50px 0;
@@ -394,15 +383,15 @@
     margin-top: 15px;
     padding-bottom: 20px;
     .task-info-title, .param-info-title {
+        margin: 0 0 30px 20px;
         font-size: 14px;
+        line-height: 32px;
         font-weight: 600;
         color: #313238;
+        border-bottom: 1px solid #cacedb;
     }
-    .task-info-division-line, .param-info-division-line {
-        margin: 5px 0 30px;
-        height: 1px;
-        border: 0px;
-        background-color: #cacedb;
+    .task-info-title{
+        margin: 0 0 30px 40px;
     }
     .common-form-item {
         label {
@@ -413,15 +402,13 @@
 }
 .param-info  {
     padding-bottom: 80px;
+    margin-left: 20px;
 }
 .functor-task-info {
     padding-bottom: 0px;
 }
 .common-section-title {
     margin-bottom: 24px;
-}
-.task-param-wrapper {
-    width: 720px;
 }
 .bk-button-group {
     .bk-button {
@@ -488,7 +475,6 @@
 .action-wrapper {
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
-    margin: 0 -40px;
     button {
         margin-top: -7px;
     }
