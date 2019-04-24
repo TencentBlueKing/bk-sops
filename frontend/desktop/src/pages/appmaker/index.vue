@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="appmaker-page" v-bkloading="{ isLoading: false, opacity: 1 }">
+    <div class="appmaker-page" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="page-content" v-if="!loading">
             <div class="appmaker-table-content">
                 <BaseTitle :title="i18n.title"></BaseTitle>
@@ -95,8 +95,8 @@
             :title="i18n.jurisdiction"
             width="800"
             padding="30px"
-            :is-show.sync="isjurisdictionUser"
-            @cancel="onSurveyCancel">
+            :is-show.sync="isPermissionsDialog"
+            @cancel="onCloseWindows">
             <div slot="content" v-bkloading="{ isLoading: loadingAuthority, opacity: 1 }">
                 <p class="jurisdictionHint">{{i18n.jurisdictionHint}}</p>
                 <div class="box">
@@ -112,7 +112,7 @@
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
                 <div class="exit-btn">
-                    <div class="btn" @click="onExit">{{i18n.close}}</div>
+                    <div class="btn" @click="onCloseWindows">{{i18n.close}}</div>
                 </div>
             </div>
         </bk-dialog>
@@ -156,7 +156,7 @@
                 creator: undefined,
                 editStartTime: undefined,
                 editEndTime: undefined,
-                isjurisdictionUser: false,
+                isPermissionsDialog: false,
                 createdTaskPerList: undefined,
                 modifyParamsPerList: undefined,
                 executeTaskPerList: undefined,
@@ -252,7 +252,7 @@
                 this.currentAppData = app
             },
             onOpenPermissions (app) {
-                this.isjurisdictionUser = true
+                this.isPermissionsDialog = true
                 this.loadTemplatePersons(app.template_id)
             },
             async loadTemplatePersons (id) {
@@ -295,11 +295,8 @@
             onDeleteCancel () {
                 this.isDeleteDialogShow = false
             },
-            onSurveyCancel () {
-                this.isjurisdictionUser = false
-            },
-            onExit () {
-                this.isjurisdictionUser = false
+            onCloseWindows () {
+                this.isPermissionsDialog = false
             },
             async onEditConfirm (app) {
                 if (this.pending.edit) return
