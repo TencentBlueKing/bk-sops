@@ -417,13 +417,13 @@
             this.initData()
         },
         mounted () {
-            window.addEventListener('click', this.handleNodeConfigPanelShow, true)
+            document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
             if (this.errorCouldBeIgnored) {
                 this.isDisable = true
             }
         },
         beforeDestroy () {
-            window.removeEventListener('click', this.handleNodeConfigPanelShow, true)
+            document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
         },
         methods: {
             ...mapMutations('atomForm/', [
