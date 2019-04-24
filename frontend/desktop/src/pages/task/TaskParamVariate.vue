@@ -10,13 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div>
+    <div v-bkloading="{ isLoading: taskParamEditLoading, opacity: 1 }">
         <TaskParamEdit
-            v-bkloading="{ isLoading: templateLoading, opacity: 1 }"
+            v-show="isParameterMessage"
             class="task-param-wrapper"
-            v-if="quotevariable"
             ref="TaskParamEdit"
-            :constants="pipelinedata"
+            :constants="quotevariable"
             @onChangeConfigLoading="onChangeConfigLoading">
         </TaskParamEdit>
         <div
@@ -26,28 +25,30 @@
                 <div :class="[isunreferenced ? 'triangle-show' : 'triangle-hide']"></div>
                 <span class="title">{{i18n.title}}</span>
                 <a class="bk-text-main bk-icon icon-info-circle template-tooltip mr15"
-                    v-bktooltips.bottom="{ content: longConfig.content, placements: ['bottom'] }">
+                    v-bktooltips.bottom="{ content: NoQuotePrompt.content, placements: ['bottom'] }">
                 </a>
             </div>
             <TaskParamEdit
                 class="unreferenced"
                 v-show="isunreferenced"
                 ref="TaskParamEdit"
-                :constants="unreferenced"
+                :constants="unreferencedvariable"
                 :editable="false"
                 @onChangeConfigLoading="onChangeConfigLoading">
             </TaskParamEdit>
         </div>
+        <NoData v-if="NoData"></NoData>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import TaskParamEdit from './TaskParamEdit.vue'
-
+    import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'taskParamVariate',
         components: {
-            TaskParamEdit
+            TaskParamEdit,
+            NoData
         },
         props: ['quotevariable', 'unreferencedvariable'],
         data () {
@@ -55,7 +56,7 @@
                 i18n: {
                     title: gettext('查看未引用变量')
                 },
-                longConfig: {
+                NoQuotePrompt: {
                     content: '在创建流程时可选择“变量”是否被引用，未被引用的“变量”则在创建任务时（当前步骤）不可编辑。',
                     width: 500
                 },
@@ -63,8 +64,10 @@
                 isNoData: false,
                 isunreferenced: false,
                 configLoading: true,
-                DataLoading: true,
-                templateLoading: true
+                templateLoading: true,
+                isParameterMessage: false,
+                taskParamEditLoading: true,
+                NoData: true
             }
         },
         watch: {
@@ -73,22 +76,41 @@
                     this.templateLoading = false
                 }
                 this.$emit('onTemplateLoading', this.templateLoading)
-                if (Object.keys(this.unreferenced).length === 0) {
-                    this.isNoData = false
-                } else {
-                    this.isNoData = true
-                }
+            },
+            taskParamEditLoading () {
+                this.$emit('onButtonDisabled', this.taskParamEditLoading)
             }
         },
         created () {
             const parent = this.$parent
             this.$on('onTemplateLoading', parent.getData)
+            this.$on('onButtonDisabled', parent.onButton)
         },
         methods: {
             onChangeConfigLoading (loading) {
                 this.configLoading = loading
-                console.log(this.pipelinedata)
-                console.log(this.unreferenced)
+                console.log(this.quotevariable)
+                console.log(this.unreferencedvariable)
+                if (Object.keys(this.unreferencedvariable).length === 0) {
+                    this.isNoData = false
+                } else {
+                    this.isNoData = true
+                }
+                if (Object.keys(this.quotevariable).length === 0) {
+                    this.isParameterMessage = false
+                } else {
+                    this.isParameterMessage = true
+                }
+                if (this.quotevariable.constructor === Object && this.unreferencedvariable.constructor === Object) {
+                    this.taskParamEditLoading = false
+                } else {
+                    this.taskParamEditLoading = true
+                }
+                if (this.isNoData === false && this.isParameterMessage === false) {
+                    this.NoData = true
+                } else {
+                    this.NoData = false
+                }
             },
             onUnreferenced () {
                 this.isunreferenced = !this.isunreferenced
