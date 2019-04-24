@@ -85,12 +85,10 @@
                     {{ i18n.paramsInfo }}
                 </span>
             </div>
-            <div class="param-info-division-line"></div>
             <template>
                 <TaskParamVariate
-                    v-bkloading="{ isLoading: templateLoading }"
-                    :pipelinedata="pipelineData.constants"
-                    :unreferenced="unreferred">
+                    :quotevariable="pipelineData.constants"
+                    :unreferencedvariable="unreferred">
                 </TaskParamVariate>
             </template>
         </div>
@@ -370,8 +368,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .param-fill-wrapper {
-    padding-top: 30px;
-    width: calc(100% - 40px);
+    padding-top: 50px;
     @media screen and (max-width: 1300px){
         width: calc(100% - 40px);
     }
@@ -380,18 +377,14 @@
     }
 }
 .task-info, .param-info {
-    margin-top: 15px;
-    padding-bottom: 20px;
+    margin: 0 40px 50px 40px;
     .task-info-title, .param-info-title {
-        margin: 0 0 30px 20px;
         font-size: 14px;
         line-height: 32px;
         font-weight: 600;
         color: #313238;
         border-bottom: 1px solid #cacedb;
-    }
-    .task-info-title{
-        margin: 0 0 30px 40px;
+        margin-bottom: 30px;
     }
     .common-form-item {
         label {
@@ -400,9 +393,11 @@
         }
     }
 }
-.param-info  {
-    padding-bottom: 80px;
-    margin-left: 20px;
+.param-info{
+    margin: 0 20px 50px 20px;
+}
+.param-info-title {
+    margin: 0 20px 0 20px;
 }
 .functor-task-info {
     padding-bottom: 0px;
