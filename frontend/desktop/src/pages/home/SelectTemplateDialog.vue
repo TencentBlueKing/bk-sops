@@ -206,7 +206,7 @@
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';
 .template-container {

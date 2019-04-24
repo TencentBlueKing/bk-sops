@@ -192,7 +192,7 @@
                         name: '',
                         show_type: 'show',
                         source_info: {},
-                        source_tag: '',
+                        source_tag: 'input.input',
                         source_type: 'custom',
                         validation: '^.+$',
                         validator: [],
@@ -241,8 +241,8 @@
                 return this.$refs.addVariablePanel.saveVariable()
             },
             scrollPanelToView (index) {
-                const itemHeight = document.querySelector('.variable-content').offsetHeight
                 if (index > 0) {
+                    const itemHeight = document.querySelector('.variable-content').offsetHeight
                     this.$refs.variableList.scrollTop = itemHeight * index
                 }
             },
