@@ -49,6 +49,7 @@ class TestConverter(TestCase):
 
         self.key = '${ip}'
         self.info = {
+            'custom_type': 'ip',
             'source_tag': u'var_ip_picker.ip_picker',
             'type': 'lazy',
             'value': {
@@ -72,7 +73,7 @@ class TestConverter(TestCase):
         self.assertEqual(variable2.name, '${ip}')
         self.assertEqual(variable2.value, self.info["value"])
         self.assertEqual(variable2._refs, {})
-        self.assertEqual(variable2.code, 'var_ip_picker')
+        self.assertEqual(variable2.code, 'ip')
 
         self.info["type"] = 'exception'
         self.assertRaises(exceptions.DataTypeErrorException, get_variable, self.key, self.info, self.context,

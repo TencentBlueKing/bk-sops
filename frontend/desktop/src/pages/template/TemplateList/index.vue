@@ -13,39 +13,37 @@
     <div class="template-container">
         <div class="list-wrapper">
             <BaseTitle :title="common ? i18n.commonFlow : i18n.businessFlow"></BaseTitle>
-            <div class="template-table-content">
-                <div class="operation-area clearfix">
-                    <router-link
-                        class="bk-button bk-primary create-template"
-                        v-show="!isNewTaskCommonTemplate"
-                        :to="getNewTemplateUrl()">
-                        {{i18n.new}}
-                    </router-link>
-                    <bk-button
-                        type="default"
-                        class="template-btn"
-                        size="small"
-                        v-show="!isNewTaskCommonTemplate"
-                        @click="onExportTemplate">
-                        {{i18n.export}}
-                    </bk-button>
-                    <bk-button
-                        type="default"
-                        class="template-btn"
-                        size="small"
-                        v-show="!isNewTaskCommonTemplate"
-                        @click="onImportTemplate">
-                        {{ i18n.import }}
-                    </bk-button>
-                    <div class="template-advanced-search">
-                        <BaseSearch
-                            class="base-search"
-                            v-model="flowName"
-                            :input-placeholader="i18n.templateNamePlaceholder"
-                            @onShow="onAdvanceShow"
-                            @input="onSearchInput">
-                        </BaseSearch>
-                    </div>
+            <div class="operation-area clearfix">
+                <router-link
+                    class="bk-button bk-primary create-template"
+                    v-show="showOperationBtn"
+                    :to="getNewTemplateUrl()">
+                    {{i18n.new}}
+                </router-link>
+                <bk-button
+                    type="default"
+                    class="template-btn"
+                    size="small"
+                    v-show="showOperationBtn"
+                    @click="onExportTemplate">
+                    {{i18n.export}}
+                </bk-button>
+                <bk-button
+                    type="default"
+                    class="template-btn"
+                    size="small"
+                    v-show="showOperationBtn"
+                    @click="onImportTemplate">
+                    {{ i18n.import }}
+                </bk-button>
+                <div class="template-advanced-search">
+                    <BaseSearch
+                        class="base-search"
+                        v-model="flowName"
+                        :input-placeholader="i18n.templateNamePlaceholder"
+                        @onShow="onAdvanceShow"
+                        @input="onSearchInput">
+                    </BaseSearch>
                 </div>
             </div>
             <div class="template-search" v-show="isAdvancedSerachShow">
@@ -379,6 +377,9 @@
             }),
             listData () {
                 return this.common === 1 ? this.commonTemplateData : this.templateList
+            },
+            showOperationBtn () {
+                return this.common === 1 ? this.common_template === undefined : true
             }
         },
         created () {
@@ -421,15 +422,10 @@
                         has_subprocess: this.isHasSubprocess
                     }
                     if (isCommon) {
-                        // 公共流程
                         data['common'] = 1
-                        this.isNewTaskCommonTemplate = true
-                    } else {
-                        // 业务流程
-                        this.isNewTaskCommonTemplate = false
                     }
                     if (this.editEndTime) {
-                        if (this.isNewTaskCommonTemplate) {
+                        if (isCommon) {
                             data['pipeline_template__edit_time__gte'] = moment(this.editStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__edit_time__lte'] = moment(this.editEndTime).add('1', 'd').format('YYYY-MM-DD')
                         // 无时区的公共流程使用本地的时间
