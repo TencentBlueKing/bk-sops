@@ -48,7 +48,7 @@ JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
 
 __group_name__ = _(u"作业平台(JOB)")
-__group_icon__ = '%scomponents/icons/job.png' % settings.STATIC_URL
+__group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
 
