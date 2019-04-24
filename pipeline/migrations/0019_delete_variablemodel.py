@@ -11,10 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
+from __future__ import unicode_literals
 
-from django.conf import settings
+from django.db import migrations
 
-site_utils = importlib.import_module('pipeline_plugins.variables.query.sites.%s.utils' % settings.RUN_VER)
 
-get_ip_by_zoneid = getattr(site_utils, 'get_ip_by_zoneid')
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('pipeline', '0018_set_has_subprocess'),
+    ]
+
+    operations = [
+        migrations.DeleteModel(
+            name='VariableModel',
+        ),
+    ]

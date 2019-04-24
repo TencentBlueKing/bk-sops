@@ -48,7 +48,7 @@ JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
 
 __group_name__ = _(u"作业平台(JOB)")
-__group_icon__ = '%scomponents/icons/job.png' % settings.STATIC_URL
+__group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
 
@@ -316,4 +316,4 @@ class JobFastExecuteScriptComponent(Component):
     name = _(u'快速执行脚本')
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
-    form = '%scomponents/atoms/job/job_fast_execute_script.js' % settings.STATIC_URL
+    form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)

@@ -81,17 +81,17 @@ class TaskTemplateManager(BaseTemplateManager):
                                         ).values_list('business__cc_id', flat=True)
         is_multiple_relate = len(set(relate_biz_cc_ids)) > 1
         is_across_override = relate_biz_cc_ids and relate_biz_cc_ids[0] != int(biz_cc_id)
+        has_common_template = not all([tmpl.get('business_id') for _, tmpl in template_data['template'].items()])
 
-        can_override = not (is_multiple_relate or is_across_override)
+        can_override = not (is_multiple_relate or is_across_override or has_common_template)
 
-        override_template = []
-        if can_override:
-            override_template = data['override_template']
+        if not can_override:
+            data['override_template'] = []
 
         result = {
             'can_override': can_override,
             'new_template': data['new_template'],
-            'override_template': override_template
+            'override_template': data['override_template']
         }
         return result
 
@@ -105,7 +105,7 @@ class TaskTemplateManager(BaseTemplateManager):
         if override and (not check_info['can_override']):
             return {
                 'result': False,
-                'message': 'Unable to override template across business',
+                'message': 'Unable to override flows across business',
                 'data': 0
             }
 
