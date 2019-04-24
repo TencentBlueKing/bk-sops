@@ -316,4 +316,4 @@ class JobFastExecuteScriptComponent(Component):
     name = _(u'快速执行脚本')
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
-    form = '%scomponents/atoms/job/job_fast_execute_script.js' % settings.STATIC_URL
+    form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)
