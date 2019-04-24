@@ -50,7 +50,7 @@
                 class="task-btn"
                 :loading="createTaskSaving"
                 @click="onSaveTemplate(true)">
-                {{ isTemplateDataChanged ? i18n.saveTplAndcreateTask : i18n.addTask }}
+                {{ createTaskBtnText }}
             </bk-button>
             <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
         </div>
@@ -67,7 +67,10 @@
         components: {
             BaseInput
         },
-        props: ['name', 'cc_id', 'template_id', 'common', 'templateSaving', 'createTaskSaving', 'isTemplateDataChanged'],
+        props: [
+            'name', 'cc_id', 'template_id', 'type', 'common', 'templateSaving',
+            'createTaskSaving', 'isTemplateDataChanged'
+        ],
         data () {
             return {
                 i18n: {
@@ -91,6 +94,9 @@
         computed: {
             templateTitle () {
                 return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
+            },
+            createTaskBtnText () {
+                return (this.isTemplateDataChanged || this.type === 'new') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
             }
         },
         watch: {
@@ -110,7 +116,7 @@
                     if (!result) return
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
-                    if (saveAndCreate && !this.isTemplateDataChanged) {
+                    if (saveAndCreate && !this.isTemplateDataChanged && this.type !== 'new') {
                         const taskUrl = this.getTaskUrl()
                         this.$router.push(taskUrl)
                     } else {
