@@ -77,8 +77,8 @@
                 <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <thead>
                         <tr>
-                            <th class="functor-id">ID</th>
                             <th class="functor-business">{{i18n.business}}</th>
+                            <th class="functor-id">ID</th>
                             <th class="functor-name">{{ i18n.name }}</th>
                             <th class="functor-time">{{ i18n.createdTime }}</th>
                             <th class="functor-time">{{ i18n.claimedTime }}</th>
@@ -90,8 +90,8 @@
                     </thead>
                     <tbody>
                         <tr v-for="item in functorList" :key="item.id">
-                            <td class="functor-id">{{item.id}}</td>
                             <td class="functor-business">{{item.task.business.cc_name}}</td>
+                            <td class="functor-id">{{item.task.id}}</td>
                             <td class="functor-name">
                                 <router-link
                                     :title="item.task.name"
@@ -709,7 +709,6 @@ label.required:after {
             background: $whiteNodeBg;
         }
         .functor-id {
-            padding-left: 20px;
             width: 80px;
         }
         .functor-name {
@@ -743,6 +742,7 @@ label.required:after {
             white-space: nowrap;
         }
         .functor-business {
+            padding-left: 20px;
             width: 130px;
             overflow:hidden;
             text-overflow:ellipsis;
