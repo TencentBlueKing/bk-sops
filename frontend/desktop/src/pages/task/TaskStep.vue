@@ -119,7 +119,7 @@
     }
     .step-list {
         display: flex;
-        margin: 0 0 7px 0;
+        margin: 0 0 16px 0;
         min-width: 1320px;
             
     }
