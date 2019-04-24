@@ -164,7 +164,7 @@
                             :search-key="'cc_name'"
                             :is-loading="business.loading"
                             :searchable="business.searchable"
-                            @item-selected="onSelectedBizCcId"
+                            @item-selected="onSelectedBusiness"
                             @clear="onClearBusiness">
                         </bk-selector>
                         <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
@@ -174,11 +174,12 @@
                     <label>{{i18n.choiceTemplate}}</label>
                     <div class="common-form-content">
                         <bk-selector
+                            setting-key="id"
+                            display-key="name"
+                            ext-cls="template-selector"
                             :allow-clear="true"
                             :list="template.list"
-                            :selected.sync="template.selected"
-                            :setting-key="'id'"
-                            :display-key="'name'"
+                            :selected="template.selected"
                             :has-children="true"
                             :is-loading="template.loading"
                             :searchable="template.searchable"
@@ -432,9 +433,12 @@
                 this.template.loading = true
                 try {
                     // 查询职能化数据及公共流程数据
-                    await Promise.all([this.loadFunctionTemplateList(this.business.id), this.loadTemplateList({ common: 1 })]).then(value => {
+                    await Promise.all([
+                        this.loadFunctionTemplateList(this.business.id),
+                        this.loadTemplateList({ common: 1 })
+                    ]).then(value => {
                         if (value[0].objects.length === 0) {
-                            this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据') }]
+                            this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据'), disabled: true }]
                         } else {
                             this.template.list[0].children = value[0].objects
                         }
@@ -475,6 +479,7 @@
                 if (data.resource_uri.search('common_template') !== -1) {
                     this.isCommonTemplate = true
                 }
+                this.template.selected = id
                 this.template.id = id
                 this.template.empty = false
             },
@@ -509,13 +514,13 @@
             },
             // 无数据文本修改样式
             changeNoDataTextStyle () {
-                const textList = document.querySelectorAll('.text')
-                for (const item of textList) {
-                    if (item.textContent === gettext(' 无数据 ')) {
-                        item.style['cursor'] = 'not-allowed'
-                        item.style['background-color'] = '#fafafa'
-                        item.style['color'] = '#aaaaaa'
-                        item.parentElement.style['background-color'] = '#fafafa'
+                const templateEls = document.querySelector('.template-selector').querySelectorAll('.bk-selector-node')
+                for (const item of templateEls) {
+                    if (item.classList.contains('template-empty')) {
+                        item.classList.remove('template-empty')
+                    }
+                    if (item.querySelector('.text').textContent === gettext(' 无数据 ')) {
+                        item.classList.add('template-empty')
                     }
                 }
             },
@@ -798,5 +803,11 @@ label.required:after {
 .success {
     color: #2dcb56;
 }
-
+.template-selector {
+    /deep/ .template-empty {
+        background-color: #fafafa;
+        color: #aaaaaa;
+        cursor: not-allowed;
+    }
+}
 </style>
