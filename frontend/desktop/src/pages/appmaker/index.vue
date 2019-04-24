@@ -58,7 +58,7 @@
                     :cc_id="cc_id"
                     @onCardEdit="onCardEdit"
                     @onCardDelete="onCardDelete"
-                    @onPermissions="onPermissions" />
+                    @onOpenPermissions="onOpenPermissions" />
             </div>
             <div v-else class="empty-app-list">
                 <NoData>
@@ -251,7 +251,7 @@
                 this.isCreateNewApp = false
                 this.currentAppData = app
             },
-            onPermissions (app) {
+            onOpenPermissions (app) {
                 this.isjurisdictionUser = true
                 this.loadTemplatePersons(app.template_id)
             },
@@ -566,7 +566,7 @@
             text-align: center;
             cursor: pointer;
             border-radius: 2px;
-            border:1px solid #c4c4cc;
+            border: 1px solid #c4c4cc;
         }
     }
     .addJurisdiction, .getJurisdiction, .executeJurisdiction {

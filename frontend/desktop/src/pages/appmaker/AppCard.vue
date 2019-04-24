@@ -31,13 +31,16 @@
             <div class="card-operation">
                 <span class="common-icon-box-pen operate-btn"
                     :title="i18n.modifier"
-                    @click.stop="onCardEdit"></span>
+                    @click.stop="onCardEdit">
+                </span>
                 <span class="common-icon-black-figure operate-btn"
                     :title="i18n.jurisdiction"
-                    @click.stop="onPermissions"></span>
+                    @click.stop="onOpenPermissions">
+                </span>
                 <span class="common-icon-gray-edit operate-btn"
                     @mouseenter="onShowOperation"
-                    @mouseleave="onHideOperation"></span>
+                    @mouseleave="onHideOperation">
+                </span>
             </div>
             <div class="edit-box-background"
                 v-if="isShowEdit"
@@ -106,8 +109,8 @@
             onCardEdit () {
                 this.$emit('onCardEdit', this.appData)
             },
-            onPermissions (id) {
-                this.$emit('onPermissions', this.appData)
+            onOpenPermissions (id) {
+                this.$emit('onOpenPermissions', this.appData)
             },
             onCardDelete () {
                 this.$emit('onCardDelete', this.appData)
@@ -202,10 +205,10 @@
             font-size: 14px;
             font-weight: bold;
             color: #63656e;
-            text-align: center !important;
             word-break: break-all;
             cursor: pointer;
             @include multiLineEllipsis(1.2em, 2);
+            text-align: center;
             &:hover {
                 color: $blueDefault;
             }
@@ -222,7 +225,7 @@
 .edit-box {
         width: 96px;
         height: 84px;
-        background: white;
+        background: #fff;
         box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.2);
         border-radius: 2px;
         &:hover {
@@ -236,10 +239,10 @@
             font-weight: 400;
             line-height: 42px;
             text-align: center;
-            background: rgb(255,255,255);
+            background: #fff;
             &:hover {
-                color: rgb(58,132,255);
-                background: rgb(235,244,255);
+                color: #3a84ff;
+                background: #ebf4ff;
             }
         }
 }
@@ -248,8 +251,8 @@
     color: #63656e;
     height: 42px;
     &:hover {
-        color: rgb(58,132,255);
-        background: rgb(235,244,255);
+        color: #3a84ff;
+        background: rgb#ebf4ff;
     }
 }
 .card-particular {
@@ -269,7 +272,7 @@
     }
     .app-template, .editor-name, .edit-time {
         margin-bottom: 10px;
-        font-weight:bold;
+        font-weight: bold;
         p {
             margin-top: 3px;
             font-weight: 400;
