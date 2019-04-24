@@ -28,8 +28,6 @@ from pipeline_plugins.cmdb_ip_picker.utils import (
 
 from pipeline_plugins.tests.utils import mock_get_client_by_user
 
-mock_get_client_by_user.success = True
-
 
 class TestGetObjects(TestCase):
     def setUp(self):
@@ -246,12 +244,14 @@ class TestGetObjects(TestCase):
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_cmdb_topo_tree(self):
+        mock_get_client_by_user.success = True
         topo_tree = get_cmdb_topo_tree('admin', '2', '')
         self.assertTrue(topo_tree['result'])
         self.assertEquals(topo_tree['data'][0], self.topo_tree)
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__boundary_value(self):
+        mock_get_client_by_user.success = True
         topo_kwargs = {
             'bk_biz_id': self.bk_biz_id,
             'selectors': ['topo'],
@@ -307,6 +307,7 @@ class TestGetObjects(TestCase):
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__selector_ip(self):
+        mock_get_client_by_user.success = True
         topo_kwargs = {
             'bk_biz_id': self.bk_biz_id,
             'selectors': ['ip'],
@@ -357,6 +358,7 @@ class TestGetObjects(TestCase):
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__filters(self):
+        mock_get_client_by_user.success = True
         topo_kwargs = {
             'bk_biz_id': self.bk_biz_id,
             'selectors': ['topo'],
@@ -378,6 +380,7 @@ class TestGetObjects(TestCase):
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__excludes(self):
+        mock_get_client_by_user.success = True
         topo_kwargs = {
             'bk_biz_id': self.bk_biz_id,
             'selectors': ['topo'],
