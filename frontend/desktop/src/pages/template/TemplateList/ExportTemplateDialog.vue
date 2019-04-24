@@ -314,7 +314,7 @@
     position: relative;
     height: 340px;
     .search-wrapper {
-        padding: 0 14px 0 20px;
+        padding: 0 18px 0 20px;
     }
     .business-selector {
         position: absolute;
@@ -358,7 +358,7 @@
     }
     .template-wrapper {
         float: left;
-        padding: 20px 0;
+        padding: 20px 4px 20px 0;
         width: 557px;
         height: 100%;
         .template-list {
@@ -381,7 +381,7 @@
     .template-item {
         display: inline-block;
         margin: 0 0 7px 10px;
-        width: 254px;
+        width: 252px;
         background: #dcdee5;
         border-radius: 2px;
         cursor: pointer;
@@ -394,7 +394,7 @@
             height: 56px;
             line-height: 56px;
             background: #c4c6cc;
-            font-size: 28px;
+            font-size: 24px;
             color: #ffffff;
             text-align: center;
         }
@@ -425,6 +425,7 @@
         width: 292px;
         height: 100%;
         margin-left: 557px;
+        padding-right: 4px;
         border-left:1px solid #dde4eb;
         .selected-area-title {
             padding: 28px 20px 22px;
@@ -462,7 +463,7 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                font-size: 28px;
+                font-size: 24px;
                 color: #ffffff;
             }
         }
@@ -482,6 +483,7 @@
             position: absolute;
             top: -7px;
             right: -7px;
+            padding: 2px;
             color: #cecece;
             background: #ffffff;
             border-radius: 50%;
