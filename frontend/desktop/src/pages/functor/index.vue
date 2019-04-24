@@ -78,7 +78,7 @@
                     <thead>
                         <tr>
                             <th class="functor-business">{{i18n.business}}</th>
-                            <th class="functor-id">ID</th>
+                            <th class="functor-id">{{i18n.taskId}}</th>
                             <th class="functor-name">{{ i18n.name }}</th>
                             <th class="functor-time">{{ i18n.createdTime }}</th>
                             <th class="functor-time">{{ i18n.claimedTime }}</th>
@@ -225,6 +225,7 @@
                     functorList: gettext('职能化中心'),
                     placeholder: gettext('请输入ID或流程名称'),
                     business: gettext('所属业务'),
+                    taskId: gettext('任务ID'),
                     createdTime: gettext('提单时间'),
                     claimedTime: gettext('认领时间'),
                     ownBusiness: gettext('所属业务'),
