@@ -107,7 +107,7 @@
 @import '@/scss/config.scss';
 .step-wrapper {
     background: #f4f7fa;
-    border: 1px solid #cacedb;
+    border-bottom: 1px solid #cacedb;
     .step-header {
         background-color: #f4f7fa;
     }
