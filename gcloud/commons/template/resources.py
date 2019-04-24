@@ -134,6 +134,10 @@ class CommonTemplateResource(GCloudModelResource):
         use_in='list',
         readonly=True
     )
+    has_subprocess = fields.BooleanField(
+        attribute='has_subprocess',
+        readonly=True
+    )
 
     class Meta:
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)

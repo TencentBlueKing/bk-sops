@@ -423,20 +423,21 @@
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
-                        if (form.source_tag) {
-                            const [atomType, tagCode] = form.source_tag.split('.')
-                            if (!this.atomFormConfig[atomType]) {
-                                await this.loadAtomConfig({ atomType })
-                                this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
-                            }
-                            const atomConfig = this.atomFormConfig[atomType]
-                            let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                            if (currentFormConfig) {
-                                if (form.is_meta || currentFormConfig.meta_transform) {
-                                    currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
-                                    if (!form.meta) {
-                                        form.value = currentFormConfig.attrs.value
-                                    }
+                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+
+                        if (!this.atomFormConfig[atomType]) {
+                            await this.loadAtomConfig({ atomType, classify })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        }
+
+                        const atomConfig = this.atomFormConfig[atom]
+                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                        
+                        if (currentFormConfig) {
+                            if (form.is_meta || currentFormConfig.meta_transform) {
+                                currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
+                                if (!form.meta) {
+                                    form.value = currentFormConfig.attrs.value
                                 }
                             }
                         }

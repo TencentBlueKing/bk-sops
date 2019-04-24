@@ -144,7 +144,10 @@ def _get_business_info(request, app_id, use_cache=True, use_maintainer=False):
                 'bk_biz_id': int(app_id)
             }
         })
+
         if result['result']:
+            if not result['data']['info']:
+                raise exceptions.Forbidden()
             data = result['data']['info'][0]
         elif result.get('code') in ('20101', 20101):
             raise exceptions.Unauthorized(result['message'])
@@ -349,6 +352,10 @@ def prepare_business(request, cc_id, use_cache=True):
     else:
         obj, created, extras = get_business_obj(request, cc_id, use_cache)
 
+    # access archived business is not allowed
+    if not obj.available():
+        raise exceptions.Forbidden()
+
     # then, update business object relationships
     if extras:
         update_relationships(request, obj, extras)
@@ -392,17 +399,20 @@ def prepare_user_business(request, use_cache=True):
             }
 
             if defaults['status'] == 'disabled':
+                # do not create model for archived business
                 try:
                     Business.objects.get(cc_id=biz['bk_biz_id'])
                 except Business.DoesNotExist:
                     continue
 
+            # update business status
             obj, _ = Business.objects.update_or_create(
                 cc_id=biz['bk_biz_id'],
                 defaults=defaults
             )
 
-            if obj not in data and is_user_relate_business(user, biz):
+            # only append business which relate to user and not been archived
+            if obj not in data and is_user_relate_business(user, biz) and obj.available():
                 data.append(obj)
 
                 if user.username in set(str(biz[maintainer_key]).split(',')):
@@ -455,11 +465,9 @@ def get_biz_maintainer_info(biz_cc_id, username='', use_in_context=False):
     # 随机取包含 ESB 鉴权信息的运维
     authorized_maintainer = ''
     auth_token = ''
-    for item in maintainers:
-        if item.auth_token:
-            authorized_maintainer = item.username
-            auth_token = item.auth_token
-            break
+    if maintainers:
+        authorized_maintainer = maintainers[0].username
+        auth_token = maintainers[0].auth_token
 
     return authorized_maintainer, auth_token
 
