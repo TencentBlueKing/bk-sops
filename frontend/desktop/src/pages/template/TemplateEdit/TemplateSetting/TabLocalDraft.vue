@@ -271,7 +271,7 @@
         th {
             font-size: 14px;
             font-weight: normal;
-            background: $greyDash;
+            background: #ecf0f4;
         }
         td {
             font-size: 12px;
@@ -317,6 +317,16 @@
                 font-size: 14px;
                 color: #979ba5;
                 cursor: pointer;
+            }
+        }
+        .empty-draft-tip {
+            td {
+                width: 419px;
+                border-bottom: none;
+            }
+            .no-data-wrapper {
+                margin-top: 120px;
+                line-height: 1;
             }
         }
     }
