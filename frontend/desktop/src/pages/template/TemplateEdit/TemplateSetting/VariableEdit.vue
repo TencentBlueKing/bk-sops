@@ -317,7 +317,10 @@
                     }
                 })
             }
-            this.getAtomConfig()
+            // 非输出参数变量需要加载标准插件配置项
+            if (!this.isOutputVar) {
+                this.getAtomConfig()
+            }
         },
         methods: {
             ...mapMutations('atomForm/', [
