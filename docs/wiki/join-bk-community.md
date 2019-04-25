@@ -1,7 +1,7 @@
 # 参与蓝鲸开源
 
 ## 图解快速共建蓝鲸开源项目
-![](img/wiki_join_bk_community.png.png)
+![](img/wiki_join_bk_community.png)
 
 ## 1. 搭建部署蓝鲸社区版
 
