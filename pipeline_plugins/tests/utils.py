@@ -193,33 +193,67 @@ def mock_get_client_by_user(username):
             }
 
         def search_host(self, kwargs):
+            info = [
+                {
+                    'host': {
+                        'bk_host_innerip': '1.1.1.1',
+                        'bk_host_outerip': '1.1.1.1',
+                        'bk_host_name': '1.1.1.1',
+                        'bk_host_id': 1,
+                        'bk_cloud_id': [{
+                            'bk_obj_name': '',
+                            'id': '0',
+                            'bk_obj_id': 'plat',
+                            'bk_obj_icon': '',
+                            'bk_inst_id': 0,
+                            'bk_inst_name': 'default area'
+                        }]
+                    },
+                    'module': [
+                        {
+                            'bk_module_id': 3,
+                            'bk_module_name': u"空闲机"
+                        }
+                    ]
+                },
+                {
+                    'host': {
+                        'bk_host_innerip': '2.2.2.2',
+                        'bk_host_outerip': '2.2.2.2',
+                        'bk_host_name': '2.2.2.2',
+                        'bk_host_id': 1,
+                        'bk_cloud_id': [{
+                            'bk_obj_name': '',
+                            'id': '0',
+                            'bk_obj_id': 'plat',
+                            'bk_obj_icon': '',
+                            'bk_inst_id': 0,
+                            'bk_inst_name': 'default area'
+                        }]
+                    },
+                    'module': [
+                        {
+                            'bk_module_id': 5,
+                            'bk_module_name': 'test1'
+                        }
+                    ]
+                }
+            ]
+            if kwargs.get('condition', []):
+                for cond in kwargs['condition']:
+                    if cond['bk_obj_id'] == 'module' and cond.get('condition') \
+                            and cond['condition'][0]['operator'] == '$in':
+                        in_module = set(cond['condition'][0]['value'])
+                        info = [host for host in info
+                                if (set([mod['bk_module_id'] for mod in host['module']]) & in_module)]
+                    if cond['bk_obj_id'] == 'host' and cond.get('condition') \
+                            and cond['condition'][0]['operator'] == '$in':
+                        in_host = cond['condition'][0]['value']
+                        info = [host for host in info if host['host']['bk_host_innerip'] in in_host]
             return {
                 'result': self.success,
                 'data': {
-                    'info': [
-                        {
-                            'host': {
-                                'bk_host_innerip': '1.0.0.1',
-                                'bk_host_outerip': '1.0.0.1',
-                                'bk_host_name': '1.0.0.1',
-                                'bk_host_id': 1,
-                                'bk_cloud_id': {
-                                    'bk_obj_name': '',
-                                    'id': '0',
-                                    'bk_obj_id': 'plat',
-                                    'bk_obj_icon': '',
-                                    'bk_inst_id': 0,
-                                    'bk_inst_name': 'default area'
-                                }
-                            },
-                            'module': [
-                                {
-                                    'bk_module_id': 2,
-                                    'bk_module_name': 'test2'
-                                }
-                            ]
-                        },
-                    ]
+                    'info': info
                 },
                 'message': 'error'
             }
