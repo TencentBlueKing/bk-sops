@@ -29,7 +29,7 @@
 ![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_future.png)
 
 ## 关于开源协议
-标准运维采用的是MIT开源协议。MIT是和BSD一样宽范的许可协议，作者只想保留版权，而无任何其他的限制。也就是说，你必须在你的发行版里包含原许可协议的声明，无论你是以二进制发布的还是以源代码发布的。
+标准运维采用的是MIT开源协议。MIT是和BSD一样宽范的许可协议，作者只想保留版权，而无任何其他的限制。使用者必须在发行版里包含原许可协议的声明，无论是以二进制发布的还是以源代码发布的。
 
 ## 欢迎一起交流
 ![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_communication.png)
