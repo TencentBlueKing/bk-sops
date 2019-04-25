@@ -322,13 +322,13 @@
 @import '@/scss/config.scss';
 header {
     min-width: 1320px;
+    padding: 0 25px;
     height: 50px;
     font-size: 14px;
     background: #182131;
     .logo {
         float: left;
         margin-top: 11px;
-        margin-left: 25px;
         width: 110px;
     }
     nav {
@@ -390,7 +390,6 @@ header {
     /*导航右侧区域*/
     .header-right {
         float: right;
-        padding-right: 20px;
         .help-doc {
             float: left;
             margin-left: 25px;
