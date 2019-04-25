@@ -179,7 +179,7 @@
                 })
             },
             getFormValue (atom) {
-                return this.value[atom.tag_code]
+                return this.formData[atom.tag_code]
             },
             updateForm (fieldArr, val) {
                 const field = fieldArr.slice(-1)[0]
