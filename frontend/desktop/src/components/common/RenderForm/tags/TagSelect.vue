@@ -224,8 +224,5 @@
 <style lang="scss" scoped>
     .el-select {
         width: 100%;
-        /deep/ .el-input__inner {
-            padding-left: 10px;
-        }
     }
 </style>
