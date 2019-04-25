@@ -79,7 +79,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             filters_dct.setdefault(ft['field'], [])
             filters_dct[ft['field']] += format_condition_value(ft['value'])
         new_topo_tree = process_topo_tree_by_condition(biz_topo_tree, filters_dct)
-        filter_host = filters_dct.pop('host', [])
+        filter_host = set(filters_dct.pop('host', []))
         # 把拓扑筛选条件转换成 modules 筛选条件
         filter_modules = get_modules_by_condition(new_topo_tree, filters_dct)
         filter_modules_id = get_modules_id(filter_modules)
@@ -95,7 +95,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             excludes_dct.setdefault(ex['field'], [])
             excludes_dct[ex['field']] += format_condition_value(ex['value'])
         new_topo_tree = process_topo_tree_by_condition(biz_topo_tree, excludes_dct)
-        exclude_host = excludes_dct.pop('host', [])
+        exclude_host = set(excludes_dct.pop('host', []))
         # 把拓扑排除条件转换成 modules 排除条件
         exclude_modules = [] if not excludes_dct else get_modules_by_condition(new_topo_tree, excludes_dct)
         exclude_modules_id = get_modules_id(exclude_modules)
