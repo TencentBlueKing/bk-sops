@@ -78,13 +78,13 @@ python manage.py createcachetable django_cache
 ## 打包并收集前端静态资源
 
 1）安装依赖包  
-进入 pipeline/blueflow/，执行以下命令安装
+进入 frontend/desktop/，执行以下命令安装
 ```bash
 npm install
 ```
 
 2）本地打包
-在 pipeline/blueflow/ 目录下，继续执行以下命令打包前端静态资源
+在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 ```bash
 npm run build -- --STATIC_ENV=dev
 ```
@@ -98,8 +98,8 @@ python manage.py collectstatic --noinput
 前端资源文件需要单独拷贝收集，执行如下命令
 ```bash
 rm -rf static/dev static/images
-mv pipeline/blueflow/static/dev static/
-mv pipeline/blueflow/static/images static/
+mv frontend/desktop/static/dev static/
+mv frontend/desktop/static/images static/
 ```
 
 

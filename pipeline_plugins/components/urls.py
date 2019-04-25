@@ -11,14 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf.urls import url
-
 from pipeline_plugins.components import query
-from pipeline_plugins.components.query import common_query
 
-urlpatterns = [
-    url(r'^cc_get_set_list/(?P<biz_cc_id>\d+)/$', common_query.cc_get_set_list),
-    url(r'^cc_get_module_name_list/(?P<biz_cc_id>\d+)/$', common_query.cc_get_module_name_list),
-    url(r'^cc_get_plat_id/(?P<biz_cc_id>\d+)/$', common_query.cc_get_plat_id),
-]
-urlpatterns += query.urlpatterns
+urlpatterns = query.urlpatterns
