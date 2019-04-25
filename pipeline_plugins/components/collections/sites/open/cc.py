@@ -26,7 +26,7 @@ from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
 logger = logging.getLogger('celery')
 
 __group_name__ = _(u"配置平台(CMDB)")
-__group_icon__ = '%scomponents/icons/cc.png' % settings.STATIC_URL
+__group_icon__ = '%scomponents/atoms/sites/%s/cc/cc.png' % (settings.STATIC_URL, settings.RUN_VER)
 
 
 def cc_handle_api_error(api_name, params, error):
@@ -369,11 +369,11 @@ class CCReplaceFaultMachineService(Service):
             new_host = host_dict.get(new_ip)
 
             if not fault_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % fault_host)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % fault_ip)
                 return False
 
             if not new_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % new_host)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % new_ip)
                 return False
 
             update_item = {
@@ -435,7 +435,9 @@ class CCReplaceFaultMachineService(Service):
                                            kwargs,
                                            transfer_result['message'])
                 logger.error(message)
-                data.outputs.ex_data = '%s, %s'.format(_(u"成功替换的机器: %s") % success)
+                data.outputs.ex_data = u"{msg}\n{success}".format(
+                    msg=message,
+                    success=_(u"成功替换的机器: %s") % ','.join(success))
                 return False
 
             success.append(host_id_to_ip[kwargs['bk_host_id'][0]])

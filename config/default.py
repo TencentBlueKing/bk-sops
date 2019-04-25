@@ -57,7 +57,7 @@ INSTALLED_APPS += (
     'gcloud.periodictask',
     'pipeline',
     'pipeline.component_framework',
-    'pipeline.variables',
+    'pipeline.variable_framework',
     'pipeline.engine',
     'pipeline.log',
     'pipeline.contrib.statistics',
@@ -110,7 +110,7 @@ MIDDLEWARE += (
 # Django模板中：<script src="/a.js?v="></script>
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
-STATIC_VERSION = '3.04'
+STATIC_VERSION = '3.13'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')

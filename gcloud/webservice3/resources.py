@@ -12,12 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
+import logging
 
 from django.utils import timezone
 from django.db.models import Q
 from django.forms.fields import BooleanField
 from django.utils.translation import ugettext_lazy as _
-from django.http.response import HttpResponseForbidden, HttpResponse
+from django.http.response import HttpResponseForbidden
 from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
@@ -30,14 +31,18 @@ from tastypie.serializers import Serializer
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
-from pipeline.core.data.library import VariableLibrary
-from pipeline.models import VariableModel
-
+from pipeline.variable_framework.models import VariableModel
 from gcloud import exceptions
 from gcloud.core.models import Business
+from gcloud.core.utils import (
+    name_handler,
+    prepare_user_business,
+)
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
-from gcloud.core.utils import name_handler, prepare_user_business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
+
+
+logger = logging.getLogger('root')
 
 
 def pipeline_node_name_handle(pipeline_tree):
@@ -259,9 +264,7 @@ class GCloudModelResource(ModelResource):
             query = applicable_filters.pop('q')
         else:
             query = None
-        queryset = super(GCloudModelResource, self).apply_filters(
-            request,
-            applicable_filters)
+        queryset = super(GCloudModelResource, self).apply_filters(request, applicable_filters)
         return queryset.filter(query) if query else queryset
 
     def wrap_view(self, view):
@@ -296,7 +299,7 @@ class GCloudModelResource(ModelResource):
 
 class BusinessResource(GCloudModelResource):
     class Meta:
-        queryset = Business.objects.exclude(life_cycle__in=['3', _(u"停运")]) \
+        queryset = Business.objects.exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")]) \
                                    .exclude(status='disabled')
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
@@ -322,13 +325,9 @@ class BusinessResource(GCloudModelResource):
         try:
             # fetch business from CMDB
             biz_list = prepare_user_business(request)
-        except exceptions.Unauthorized:
-            return HttpResponse(status=401)
-        except exceptions.Forbidden:
-            # target business does not exist (irregular request)
-            return HttpResponseForbidden()
-        except exceptions.APIError as e:
-            return HttpResponse(status=503, content=e.error)
+        except (exceptions.Unauthorized, exceptions.Forbidden, exceptions.APIError) as e:
+            logger.error(u'get business list[username=%s] from CMDB raise error: %s' % (request.user.username, e))
+            return super(BusinessResource, self).get_object_list(request)
         cc_id_list = [biz.cc_id for biz in biz_list]
         return super(BusinessResource, self).get_object_list(request).filter(cc_id__in=cc_id_list)
 
@@ -340,7 +339,7 @@ class ComponentModelResource(ModelResource):
         null=True)
 
     class Meta:
-        queryset = ComponentModel.objects.filter(status=1).order_by('name')
+        queryset = ComponentModel.objects.filter(status=True).order_by('name')
         resource_name = 'component'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
@@ -376,27 +375,32 @@ class ComponentModelResource(ModelResource):
 
 
 class VariableModelResource(ModelResource):
+    name = fields.CharField(
+        attribute='name',
+        readonly=True,
+        null=True)
+    form = fields.CharField(
+        attribute='form',
+        readonly=True,
+        null=True)
+    type = fields.CharField(
+        attribute='type',
+        readonly=True,
+        null=True)
+    tag = fields.CharField(
+        attribute='tag',
+        readonly=True,
+        null=True)
+    meta_tag = fields.CharField(
+        attribute='meta_tag',
+        readonly=True,
+        null=True)
+
     class Meta:
-        queryset = VariableModel.objects.filter(status=1)
+        queryset = VariableModel.objects.filter(status=True)
         resource_name = 'variable'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
         ordering = ['id']
         authorization = ReadOnlyAuthorization()
         limit = 0
-
-    def alter_list_data_to_serialize(self, request, data):
-        for bundle in data['objects']:
-            var = VariableLibrary.get_var_class(bundle.data['code'])
-            bundle.data['form'] = var.form
-
-        return data
-
-    def alter_detail_data_to_serialize(self, request, data):
-        bundle = data
-        var = VariableLibrary.get_var_class(bundle.data['code'])
-        is_meta = request.GET.get('meta', False)
-        form = getattr(var, 'meta_form') if bool(int(is_meta)) else var.form
-        bundle.data['form'] = form
-
-        return data

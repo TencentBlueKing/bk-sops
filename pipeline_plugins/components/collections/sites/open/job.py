@@ -48,7 +48,7 @@ JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
 
 __group_name__ = _(u"作业平台(JOB)")
-__group_icon__ = '%scomponents/icons/job.png' % settings.STATIC_URL
+__group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
 
@@ -133,10 +133,14 @@ class JobExecuteTaskService(JobService):
                     ip_str=_value['value'],
                     use_cache=False)
                 ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
-                global_vars.append({
-                    'name': _value['name'],
-                    'ip_list': ip_list,
-                })
+                if _value['value'].strip() and not ip_list:
+                    data.outputs.ex_data = _(u"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+                    return False
+                if ip_list:
+                    global_vars.append({
+                        'name': _value['name'],
+                        'ip_list': ip_list,
+                    })
             else:
                 global_vars.append({
                     'name': _value['name'],
@@ -312,4 +316,4 @@ class JobFastExecuteScriptComponent(Component):
     name = _(u'快速执行脚本')
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
-    form = '%scomponents/atoms/job/job_fast_execute_script.js' % settings.STATIC_URL
+    form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)
