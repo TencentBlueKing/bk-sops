@@ -342,14 +342,12 @@
                             'execData': JSON.stringify(pipelineData)
                         }
                         try {
-                            const periodicData = await this.createPeriodic(data)
-                            if (periodicData.result) {
-                                this.$bkMessage({
-                                    'message': gettext('创建周期任务成功'),
-                                    'theme': 'success'
-                                })
-                                this.$router.push({ path: `/periodic/home/${this.cc_id}/` })
-                            }
+                            await this.createPeriodic(data)
+                            this.$bkMessage({
+                                'message': gettext('创建周期任务成功'),
+                                'theme': 'success'
+                            })
+                            this.$router.push({ path: `/periodic/home/${this.cc_id}/` })
                         } catch (e) {
                             errorHandler(e, this)
                         } finally {
