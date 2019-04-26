@@ -35,7 +35,7 @@
                     },
                     {
                         name: '业务选择',
-                        router: 'home'
+                        router: '/'
                     }
                 ]
             }
@@ -50,10 +50,7 @@
             onSelect (item) {
                 // 点击选项时默认不会关闭菜单，可以手动关闭
                 this.show = false
-                if (item.router === 'home') {
-                    this.$cookies.remove('biz_id')
-                }
-                this.$router.push({ path: item.router })
+                this.$router.push({ path: item.router, query: { 'biz_selected': '1' } })
             }
         }
     }
@@ -63,9 +60,10 @@
     @import '../../../static/style/app.scss';
     /*navbar*/
     .navbar{
-        position: fixed;
         width: 100%;
-        z-index: 1;
+        position: fixed;
+        top:0;
+        z-index: 999;
 
         .van-nav-bar{
             height: 60px;
@@ -78,7 +76,10 @@
             }
             .van-nav-bar__title{
                 color: $white;
-                font-size: $font-size-16;
+                font-size: $fs-16;
+            }
+            &:after{
+                border-bottom: none;
             }
         }
         &-list{
@@ -91,7 +92,7 @@
                 background-color: #182132;
                 margin: 0 10px;
                 padding: 0 10px;
-                font-size: 14px;
+                font-size: $fs-14;
                 text-align: left;
 
                 &:first-child{
@@ -106,9 +107,13 @@
                     border-top: none;
                 }
                 &:after{
-                    border-top-color: #202738;
+                    border-top-color: #262f44;
                 }
             }
+        }
+        .van-popup-slide-top-enter,
+        .van-popup-slide-top-leave-active {
+            transform: translate3d(-50%, -20%, 0);
         }
     }
 </style>

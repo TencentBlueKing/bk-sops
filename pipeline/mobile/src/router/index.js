@@ -14,6 +14,10 @@ const TaskList = () => import(/* webpackChunkName: 'home' */'../views/task/list'
 const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
 const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/reset')
 const TaskDetail = () => import(/* webpackChunkName: 'home' */'../views/task/detail')
+const TaskNodes = () => import(/* webpackChunkName: 'home' */'../views/task/nodes')
+const TaskParameter = () => import(/* webpackChunkName: 'home' */'../views/task/parameter')
+const TaskCanvas = () => import(/* webpackChunkName: 'home' */'../views/task/canvas')
+const TaskConfirm = () => import(/* webpackChunkName: 'home' */'../views/task/confirm')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
 
 const routes = [
@@ -34,7 +38,7 @@ const routes = [
     {
         path: '/task/create',
         name: 'task_create',
-        title: '任务信息',
+        title: '新建任务',
         isActionSheetShow: true,
         component: TaskCreate
     },
@@ -54,6 +58,32 @@ const routes = [
         path: '/task/detail',
         name: 'task_detal',
         component: TaskDetail
+    },
+    {
+        path: '/task/nodes',
+        name: 'task_nodes',
+        title: '执行详情',
+        isActionSheetShow: true,
+        component: TaskNodes
+    },
+    {
+        path: '/task/nodes/parameter',
+        name: 'task_node_parameter',
+        title: '输入参数',
+        isActionSheetShow: true,
+        component: TaskParameter
+    },
+    {
+        path: '/task/canvas',
+        name: 'task_canvas',
+        title: '执行任务',
+        component: TaskCanvas
+    },
+    {
+        path: '/task/confirm',
+        name: 'task_confirm',
+        title: '重试',
+        component: TaskConfirm
     },
     // 404
     {
@@ -94,6 +124,7 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
+    console.log(to)
     canceling = true
     await cancelRequest()
     canceling = false
@@ -101,12 +132,16 @@ router.beforeEach(async (to, from, next) => {
     if (to.name && routerConfig[to.name]) {
         ({ title: store.state.title, isActionSheetShow: store.state.isActionSheetShow } = routerConfig[to.name])
     }
+    if (to.query.biz_selected) {
+        store.commit('setActionSheetShow', true)
+    }
     if (bizId) {
         store.commit('setBizId', bizId)
         store.commit('setActionSheetShow', true)
         // cookies记录用户第一次选择的biz_id,如果为空，则跳转至选择业务页面
         VueCookies.set('biz_id', store.state.bizId)
-        if (to.name === 'home') {
+        VueCookies.set('isSelectedBiz', true)
+        if (to.name === 'home' && !to.query.biz_selected) {
             next({ path: '/template', query: { bizId: bizId } })
         } else {
             next()

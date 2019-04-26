@@ -12,7 +12,7 @@
                     :key="item.cc_id"
                     :title="item.cc_name">
                     <template slot="title">
-                        <van-tag :class="item.tagColor">{{ item.tag }}</van-tag>
+                        <van-tag color="false" :class="item.tagColor">{{ item.tag }}</van-tag>
                         <span class="title">{{ item.cc_name }}</span>
                     </template>
                 </van-cell>
@@ -22,6 +22,8 @@
 </template>
 <script>
     import { getBusinessList } from '@/store/modules/businessList'
+
+    const BIZ_TAG_COLORS = ['blue', 'red', 'orange', 'green', 'gray']
 
     export default {
         name: 'home',
@@ -34,7 +36,6 @@
                 finished: false
             }
         },
-
         methods: {
             onLoad () {
                 // 异步更新数据
@@ -63,8 +64,8 @@
                 if (tagColor) {
                     return { tagColor: tagColor, tag: tag }
                 } else {
-                    const color = parseInt(Math.random() * 5, 10) + 1
-                    const tagColor = `tag-${color}`
+                    const color = parseInt(Math.random() * 4, 10) + 1
+                    const tagColor = `tag-${BIZ_TAG_COLORS[color]}`
                     this.$cookies.set(biz.cc_id, tagColor)
                     return { tagColor: tagColor, tag: tag }
                 }
@@ -74,55 +75,52 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '../../../static/style/app.scss';
-  .page-view {
-    .van-cell {
-      background-color: $white;
-      height: 90px;
-      margin: 20px 25px;
-      width: auto;
-      border-radius: 10px;
-      padding: 15px;
-      box-sizing: border-box;
-
-      .van-tag {
-        width: 60px;
-        height: 60px;
-        line-height: 60px;
-        border-radius: 4px;
-        text-align: center;
-        display: inline-block;
-        padding: 0;
-        font-size: 28px;
-        color: $white;
-      }
-
-      .tag-1 {
-        background-color: #3A84FF !important;
-      }
-
-      .tag-2 {
-        background-color: #EA3636 !important;
-      }
-
-      .tag-3 {
-        background-color: #FF9C01 !important;
-      }
-
-      .tag-4 {
-        background-color: #2DCB56 !important;
-      }
-
-      .tag-5 {
-        background-color: #C4C6CC !important;
-      }
-
-      .title {
-        font-size: 16px;
-        font-weight: bold;
-        margin-left: 10px;
-        color: $black;
-      }
+    @import '../../../static/style/app.scss';
+    .page-view {
+        .van-cell {
+            background-color: $white;
+            height: 90px;
+            margin: 20px 25px;
+            width: auto;
+            border-radius: 10px;
+            padding: 15px;
+            &:after{
+                border-bottom: none;
+            }
+            .van-tag {
+                width: 60px;
+                height: 60px;
+                line-height: 60px;
+                border-radius: 4px;
+                text-align: center;
+                display: inline-block;
+                padding: 0;
+                font-size: 28px;
+                color: $white;
+                vertical-align: middle;
+            }
+            .tag-blue {
+                background-color: #3A84FF;
+            }
+            .tag-red {
+                background-color: #EA3636;
+            }
+            .tag-orange {
+                background-color: #FF9C01;
+            }
+            .tag-green {
+                background-color: #2DCB56;
+            }
+            .tag-gray {
+                background-color: #C4C6CC;
+            }
+            .title {
+                font-size: $fs-16;
+                font-weight: bold;
+                margin-left: 10px;
+                color: $black;
+                vertical-align: middle;
+            }
+        }
     }
-  }
 </style>

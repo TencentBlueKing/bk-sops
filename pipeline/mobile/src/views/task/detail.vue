@@ -1,16 +1,5 @@
 <template>
     <div class="page-view">
-        <!-- 信息 -->
-        <section class="bk-block">
-            <van-cell>
-                <template slot="title">
-                    <div class="bk-text">Troytu的测试流程模版任务</div>
-                    <div class="bk-name">Troytu</div>
-                    <div class="bk-time">2019-03-10 13:49:20</div>
-                </template>
-                <van-icon slot="right-icon" name="star" class="star-icon collection" clickable />
-            </van-cell>
-        </section>
         <!-- 任务信息 -->
         <section class="bk-block">
             <h2 class="bk-text-title">任务信息</h2>
@@ -27,7 +16,13 @@
                 <van-cell title="参数02" value="参数值" />
             </div>
         </section>
-
+        <!-- 暂无数据 -->
+        <section class="bk-block">
+            <h2 class="bk-text-title">参数信息</h2>
+            <div class="bk-text-list">
+                <van-cell title="" value="暂无数据" />
+            </div>
+        </section>
     </div>
 </template>
 <script>
