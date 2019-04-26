@@ -1,5 +1,14 @@
 # 开发环境后台部署
 
+## 部署蓝鲸社区版
+标准运维 SaaS 的登录鉴权依赖于蓝鲸智云PaaS平台，业务信息需要从蓝鲸智云配置平台提供的接口获取，所以你需要先下载部署蓝鲸社区版，作为开发联调环境。
+
+- [下载网址](https://bk.tencent.com/download/)
+- [部署指南](https://docs.bk.tencent.com/bkce_install_guide/)
+- [产品论坛](https://bk.tencent.com/s-mart/community)
+- QQ交流群:495299374
+
+
 ## 准备本地 rabbitmq 资源  
 在本地安装 rabbitmq，并启动 rabbitmq-server，服务监听的端口保持默认（5672）。
 
