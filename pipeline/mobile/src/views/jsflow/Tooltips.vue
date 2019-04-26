@@ -3,16 +3,16 @@
         <div v-if="node.type === 'endpoint'">
             <div class="tooltip-arrow"></div>
             <div class="tooltip-inner">
-                <div class="tooltip-btn">执行详情</div>
-                <div class="tooltip-btn retry-btn">重试</div>
-                <div class="tooltip-btn skip-btn">跳过</div>
+                <div class="tooltip-btn" @click="onNodeExecuteClick">执行详情</div>
+                <div class="tooltip-btn" @click="onRetryClick">重试</div>
+                <div class="tooltip-btn">跳过</div>
             </div>
         </div>
         <div v-if="node.type === 'tasknode'">
             <div class="tooltip-arrow"></div>
             <div class="tooltip-inner">
-                <div class="tooltip-btn">执行详情</div>
-                <div class="tooltip-btn skip-btn">跳过</div>
+                <div class="tooltip-btn" @click="onNodeExecuteClick">执行详情</div>
+                <div class="tooltip-btn">跳过</div>
             </div>
         </div>
         <div v-if="node.type === 'startpoint'">
@@ -33,6 +33,12 @@
                 default () {
                     return {}
                 }
+            },
+            task: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -44,7 +50,12 @@
 
         },
         methods: {
-
+            onNodeExecuteClick () {
+                this.$router.push({ path: '/task/nodes', query: { taskId: this.task.id } })
+            },
+            onRetryClick () {
+                this.$router.push({ path: '/task/reset', query: { taskId: this.task.id } })
+            }
         }
     }
 </script>
@@ -53,13 +64,14 @@
     @import '../../../static/style/app.scss';
     .tooltip{
         position: absolute;
+        top: 105px;
         &-arrow{
              position: absolute;
              margin: 6px 0 0 -3px;
              width: 0;
              height: 0;
              border-style: solid;
-             border-color: #333333;
+             border-color: #333;
              border-width: 0 6px 6px 6px;
              border-left-color: transparent;
              border-right-color: transparent;

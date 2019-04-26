@@ -62,42 +62,42 @@
             }
         }
     ]
-    /* 除第一个和最后一个y：95，其它都是80，第一个节点和第二个相差130，其它节点之间相差230*/
+    /* 第一个节点和第二个相差130，其它节点之间相差230*/
     const nodes = [
         {
             id: 'nodeb662bc1afb5e60daa67e69f48de1',
             x: 20,
-            y: 95,
+            y: 0,
             type: 'start'
         },
         {
             id: 'node74b1ec6275b60d5c22c9848466f1',
             x: 150,
-            y: 80,
+            y: 0,
             type: 'endpoint'
         },
         {
             id: 'noded782259a6895c557a452252ec65a',
             x: 380,
-            y: 80,
+            y: 0,
             type: 'tasknode'
         },
         {
             id: 'noded782259a6895c557a452252ec781',
             x: 610,
-            y: 80,
+            y: 0,
             type: 'startpoint'
         },
         {
             id: 'node74b1ec6275b60d5c22c984525211',
             x: 840,
-            y: 95,
+            y: 0,
             type: 'end'
         }
     ]
 
     export default {
-        name: 'Home',
+        name: 'JsFlowIndex',
         components: {
             JsFlow,
             NodeTemplate

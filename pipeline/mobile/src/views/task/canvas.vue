@@ -8,7 +8,7 @@
         </div>
         <!--演示试用 start-->
 
-        <Home></Home>
+        <JsFlowIndex v-bind:task="task"></JsFlowIndex>
         <!--演示试用 end-->
         <van-tabbar>
             <van-tabbar-item>
@@ -28,6 +28,7 @@
                     class-prefix="icon"
                     name="revoke"
                     class="disabled"
+                    @click="onBackClick"
                     disabled />
             </van-tabbar-item>
             <van-tabbar-item>
@@ -45,13 +46,13 @@
 </template>
 <script>
     import store from '@/store'
-    import Home from '../jsflow/index.vue'
+    import JsFlowIndex from '../jsflow/index.vue'
     import { mapActions, mapState } from 'vuex'
 
     export default {
         name: '',
         components: {
-            Home
+            JsFlowIndex
         },
         props: { taskId: String },
         data () {
@@ -91,6 +92,9 @@
             onDetailClick () {
                 this.$router.push({ path: '/task/detail', query: { taskId: this.task.id } })
             },
+            onBackClick () {
+                this.$router.push({ path: '/task/list', query: { taskId: this.task.id } })
+            },
             onRevokeConfirm () {
                 this.$dialog.confirm({
                     message: '撤销任务?'
@@ -111,30 +115,7 @@
 
 <style lang="scss" scoped>
     @import '../../../static/style/app.scss';
-    /*以下为演示试用可删除*/
-    .canvas-demo{
-        align-items: center;
-        display: flex;
-        justify-content: center;
-        height: calc(100% - 90px);
-        .container{
-            width: 100%;
-            text-align: center;
-            position: relative;
-            .box{
-                width: 120px;
-                height: 60px;
-                line-height: 60px;
-                border:1px solid #EA3636;
-                background: #fff;
-                margin: auto;
-                font-size: 14px;
-            }
-            .tips-bar{
-                position: absolute;
-                width: 100%;
-                top: -60px;
-            }
-        }
+    .page-view{
+        -webkit-overflow-scrolling: auto;
     }
 </style>

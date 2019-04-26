@@ -21,6 +21,7 @@
             ref="canvasFlowWrap"
             class="canvas-flow-wrap"
             :style="canvasWrapStyle"
+            @click="hideToolTips"
             @[mousedown]="onCanvasMouseDown"
             @[mouseup]="onCanvasMouseUp">
             <div
@@ -99,7 +100,7 @@
         },
         editable: {
             type: Boolean,
-            default: true
+            default: false
         },
         selector: {
             type: String,
@@ -139,10 +140,10 @@
                 return {
                     paintStyle: {
                         strokeWidth: 1,
-                        stroke: '#666',
+                        stroke: '#aaa',
                         outlineWidth: 1
                     },
-                    overlays: [['Arrow', { width: 6, length: 6, location: 1 }]],
+                    Overlays: [['Arrow', { width: 6, length: 6, location: 1 }]],
                     connector: ['Straight']
                 }
             }
@@ -166,7 +167,8 @@
     const eventDict = {
         'mousedown': 'ontouchstart' in document.documentElement ? 'touchstart' : 'mousedown',
         'mousemove': 'ontouchmove' in document.documentElement ? 'touchmove' : 'mousemove',
-        'mouseup': 'ontouchend' in document.documentElement ? 'touchend' : 'mouseup'
+        'mouseup': 'ontouchend' in document.documentElement ? 'touchend' : 'mouseup',
+        'click': 'ontouchstart' in document.documentElement ? 'touchstart' : 'click'
     }
 
     export default {
@@ -240,15 +242,19 @@
         },
         mounted () {
             this.initCanvas()
-            this.registerEvent()
+            // this.registerEvent()
             this.renderData()
             this.canvasRect = this.$refs.canvasFlow.getBoundingClientRect()
-            this.paletteRect = this.$refs.palettePanel ? this.$refs.palettePanel.$el.getBoundingClientRect() : {}
+            if (this.$refs.palettePanel) {
+                this.paletteRect = this.$refs.palettePanel ? this.$refs.palettePanel.$el.getBoundingClientRect() : {}
+            }
         },
         beforeDestroy () {
-            this.$refs.palettePanel.$el.removeEventListener(this.mousedown, this.nodeCreateHandler)
-            this.$el.removeEventListener(this.mousemove, this.nodeMovingHandler)
-            document.removeEventListener(this.mouseup, this.nodeMoveEndHandler)
+            if (this.$refs.palettePanel) {
+                this.$refs.palettePanel.$el.removeEventListener(this.mousedown, this.nodeCreateHandler)
+            }
+            // this.$el.removeEventListener(this.mousemove, this.nodeMovingHandler)
+            // document.removeEventListener(this.mouseup, this.nodeMoveEndHandler)
         },
         methods: {
             initCanvas () {
@@ -454,9 +460,6 @@
                         y: this.canvasPos.y + e.pageY - this.mouseDownPos.y
                     }
                 }
-                if (this.canvasOffset.y <= -80) {
-                    this.canvasOffset.y = -80
-                }
             },
             onCanvasMouseUp (e) {
                 if (this.isFrameSelecting) {
@@ -466,12 +469,14 @@
                     this.$refs.canvasFlowWrap.removeEventListener(this.mousemove, this.canvasFlowMoveHandler)
                     this.canvasPos = {
                         x: this.canvasOffset.x,
-                        y: this.canvasOffset.y <= -80 ? -80 : this.canvasOffset.y
+                        y: this.canvasOffset.y
                     }
                 }
             },
             registerPaletteEvent () {
-                this.$refs.palettePanel.$el.addEventListener(this.mousedown, this.nodeCreateHandler, false)
+                if (this.$refs.palettePanel) {
+                    this.$refs.palettePanel.$el.addEventListener(this.mousedown, this.nodeCreateHandler, false)
+                }
             },
             nodeCreateHandler (e) {
                 console.info('mousedown:', e.target)
@@ -500,7 +505,6 @@
                 })
             },
             nodeMovingHandler (e) {
-                console.log('moving:', e.pageX, e.pageY)
                 const nodePos = this.getAddingNodePos(e)
                 this.$set(this.addingNodeConfig, 'x', nodePos.x)
                 this.$set(this.addingNodeConfig, 'y', nodePos.y)
@@ -510,8 +514,13 @@
                 document.removeEventListener(this.mouseup, this.nodeMoveEndHandler)
 
                 this.showAddingNode = false
-
-                if (e.pageX > (this.paletteRect.left + this.paletteRect.width)) {
+                let pageX
+                if (e.touches && e.touches.length > 0) {
+                    pageX = e.touches[0].pageX
+                } else {
+                    pageX = e.pageX
+                }
+                if (pageX > (this.paletteRect.left + this.paletteRect.width)) {
                     const nodeX = this.addingNodeConfig.x - this.paletteRect.width - this.canvasOffset.x
                     const nodeY = this.addingNodeConfig.y - this.canvasOffset.y
                     this.$set(this.addingNodeConfig, 'x', nodeX)
@@ -521,12 +530,19 @@
 
                 this.addingNodeConfig = {}
                 this.addingNodeRect = {}
-                console.info('move end:', e.pageX, e.pageY)
             },
             getAddingNodePos (e) {
+                let pageX, pageY
+                if (e.touches && e.touches.length > 0) {
+                    pageX = e.touches[0].pageX
+                    pageY = e.touches[0].pageY
+                } else {
+                    pageX = e.pageX
+                    pageY = e.pageY
+                }
                 return {
-                    x: e.pageX - this.paletteRect.left - (this.addingNodeRect.width / 2),
-                    y: e.pageY - this.paletteRect.top - (this.addingNodeRect.height / 2)
+                    x: pageX - this.paletteRect.left - (this.addingNodeRect.width / 2),
+                    y: pageY - this.paletteRect.top - (this.addingNodeRect.height / 2)
                 }
             },
             onToolClick (tool) {
@@ -561,16 +577,36 @@
                 this.isFrameSelecting = true
             },
             frameSelectHandler (e) {
-                this.mouseDownPos = {
-                    x: e.pageX - this.canvasRect.left,
-                    y: e.pageY - this.canvasRect.top
+                if (e.touches && e.touches.length > 0) {
+                    const pageX = e.touches[0].pageX
+                    const pageY = e.touches[0].pageY
+                    this.mouseDownPos = {
+                        x: pageX - this.canvasRect.left,
+                        y: pageY - this.canvasRect.top
+                    }
+                } else {
+                    this.mouseDownPos = {
+                        x: e.pageX - this.canvasRect.left,
+                        y: e.pageY - this.canvasRect.top
+                    }
                 }
+
                 this.$refs.canvasFlowWrap.addEventListener(this.mousemove, this.frameSelectMovingHandler, false)
             },
             // 节点框选选框大小、位置设置
             frameSelectMovingHandler (e) {
-                const widthGap = e.pageX - this.mouseDownPos.x - this.canvasRect.left
-                const heightGap = e.pageY - this.mouseDownPos.y - this.canvasRect.top
+                let widthGap
+                let heightGap
+                if (e.touches && e.touches.length > 0) {
+                    const pageX = e.touches[0].pageX
+                    const pageY = e.touches[0].pageY
+                    widthGap = pageX - this.mouseDownPos.x - this.canvasRect.left
+                    heightGap = pageY - this.mouseDownPos.y - this.canvasRect.top
+                } else {
+                    widthGap = e.pageX - this.mouseDownPos.x - this.canvasRect.left
+                    heightGap = e.pageY - this.mouseDownPos.y - this.canvasRect.top
+                }
+
                 this.frameSelectorRect = {
                     width: Math.abs(widthGap),
                     height: Math.abs(heightGap)
@@ -641,6 +677,12 @@
                     })
                     this.cancelFrameSelectorHandler()
                 }
+            },
+            hideToolTips () {
+                this.nodes.forEach(function (node) {
+                    const $tool = document.getElementById('tool' + node.id)
+                    $tool.style.display = 'none'
+                })
             }
         }
     }
@@ -649,10 +691,11 @@
     @import '../../../static/style/app.scss';
     .jsflow {
         position: absolute;
-        top: 60px;
+        top: 0;
         left: 0;
-        bottom: 0;
+        bottom: 50px;
         right: 0;
+        z-index: auto;
         .tool-panel-wrap {
             position: absolute;
             top: 20px;
@@ -673,11 +716,11 @@
             position: relative;
             height: 100%;
             overflow: hidden;
+            display: flex;
+            align-items: center;
         }
         .canvas-flow {
             position: relative;
-            min-width: 100%;
-            min-height: 100%;
         }
         .canvas-frame-selector {
             position: absolute;
@@ -686,6 +729,9 @@
         }
         .jsflow-node {
             position: absolute;
+            height: 90px;
+            display: flex;
+            align-items: center;
             .node-default {
                 width: 120px;
                 height: 80px;
