@@ -50,7 +50,8 @@
     "vue": "^2.5.22",
     "vue-cookies": "^1.5.13",
     "vue-router": "^3.0.2",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "jsplumb": "^2.8.4"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",

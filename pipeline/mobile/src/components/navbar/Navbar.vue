@@ -61,6 +61,9 @@
     /*navbar*/
     .navbar{
         width: 100%;
+        position: fixed;
+        top:0;
+        z-index: 999;
 
         .van-nav-bar{
             height: 60px;

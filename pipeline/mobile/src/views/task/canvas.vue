@@ -7,16 +7,8 @@
             失败
         </div>
         <!--演示试用 start-->
-        <div class="canvas-demo" v-if="taskState === 'FAILED'">
-            <div class="container">
-                <div class="box" @click="testShow = true">演示点我</div>
-                <div class="tips-bar" v-if="testShow">
-                    <van-button type="default" class="" @click="onNodeExecuteClick">执行详情</van-button>
-                    <van-button type="default" class="" @click="onRetryClick">重试</van-button>
-                    <van-button type="default" class="">跳过</van-button>
-                </div>
-            </div>
-        </div>
+
+        <Home></Home>
         <!--演示试用 end-->
         <van-tabbar>
             <van-tabbar-item>
@@ -53,10 +45,14 @@
 </template>
 <script>
     import store from '@/store'
+    import Home from '../jsflow/index.vue'
     import { mapActions, mapState } from 'vuex'
 
     export default {
         name: '',
+        components: {
+            Home
+        },
         props: { taskId: String },
         data () {
             return {
