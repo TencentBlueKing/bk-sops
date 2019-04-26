@@ -24,12 +24,6 @@ GIT = 'git'
 S3 = 's3'
 FILE_SYSTEM = 'fs'
 
-package_source_types = frozenset({
-    GIT,
-    S3,
-    FILE_SYSTEM
-})
-
 source_cls_factory = {}
 
 
@@ -99,6 +93,10 @@ class ExternalPackageSource(models.Model):
     def importer(self):
         raise NotImplementedError()
 
+    @abstractmethod
+    def details(self):
+        raise NotImplementedError()
+
     @property
     def modules(self):
         modules = []
@@ -121,3 +119,7 @@ class ExternalPackageSource(models.Model):
             except KeyError:
                 raise KeyError('Unsupported external source type: %s' % source_type)
             source_model_cls.objects.update_source_from_config(configs=configs)
+
+    @staticmethod
+    def package_source_types():
+        return list(source_cls_factory.keys())

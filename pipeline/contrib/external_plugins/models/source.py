@@ -25,7 +25,8 @@ from pipeline.contrib.external_plugins.models.base import (
     S3,
     FILE_SYSTEM,
     package_source,
-    ExternalPackageSource)
+    ExternalPackageSource
+)
 
 
 @package_source
@@ -44,6 +45,12 @@ class GitRepoSource(ExternalPackageSource):
                                      proxy=getattr(settings, 'EXTERNAL_SOURCE_PROXY'),
                                      secure_only=getattr(settings,
                                                          'EXTERNAL_SOURCE_SECURE_RESTRICT', {}).get(self.name, True))
+
+    def details(self):
+        return {
+            'repo_raw_address': self.repo_raw_address,
+            'branch': self.branch
+        }
 
 
 @package_source
@@ -66,6 +73,14 @@ class S3Source(ExternalPackageSource):
                                 secure_only=getattr(settings,
                                                     'EXTERNAL_SOURCE_SECURE_RESTRICT', {}).get(self.name, True))
 
+    def details(self):
+        return {
+            'service_address': self.service_address,
+            'bucket': self.bucket,
+            'access_key': self.access_key,
+            'secret_key': self.secret_key
+        }
+
 
 @package_source
 class FileSystemSource(ExternalPackageSource):
@@ -78,3 +93,8 @@ class FileSystemSource(ExternalPackageSource):
     def importer(self):
         return FSModuleImporter(modules=self.packages.keys(),
                                 path=self.path)
+
+    def details(self):
+        return {
+            'path': self.path
+        }
