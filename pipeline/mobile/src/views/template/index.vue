@@ -2,6 +2,7 @@
     <div class="page-view">
         <!-- 搜索 -->
         <van-search
+            background="false"
             :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"

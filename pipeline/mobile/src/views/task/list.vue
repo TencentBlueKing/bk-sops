@@ -2,6 +2,7 @@
     <div class="page-view">
         <!-- 搜索 -->
         <van-search
+            background="false"
             :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"
@@ -13,13 +14,19 @@
                 clickable
                 v-for="item in taskList"
                 :key="item.id"
-                :to="`/task/detail?taskId=${item.id}`">
+                :to="`/task/canvas?taskId=${item.id}`">
+                <!--:to="`/task/detail?taskId=${item.id}`">-->
                 <template slot="title">
                     <div class="bk-text">{{ item.name }}</div>
                     <div class="bk-name">{{ item.creator_name }}</div>
-                    <div class="bk-time">{{ item.create_time }} 至 {{ item.finish_time || '--' }}</div>
+                    <div class="bk-time">
+                        {{ item.create_time }}
+                        <template v-if="item.finish_time">
+                            至 <p>{{ item.finish_time || '--' }}</p>
+                        </template>
+                    </div>
                 </template>
-                <van-icon slot="right-icon" name="more" :class="item.status_class" />
+                <van-icon slot="right-icon" :name="item.status_icon_name" :class="item.status_class" />
             </van-cell>
         </section>
     </div>

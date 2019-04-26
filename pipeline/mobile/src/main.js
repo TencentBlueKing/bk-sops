@@ -21,6 +21,7 @@ import {
     Popup,
     Locale,
     Picker,
+    DatetimePicker,
     Actionsheet
 } from 'vant'
 import enUS from 'vant/lib/locale/lang/en-US'
@@ -41,6 +42,7 @@ Vue.use(NavBar)
     .use(Dialog)
     .use(Popup)
     .use(Picker)
+    .use(DatetimePicker)
     .use(Actionsheet)
 
 Vue.component('app-exception', Exception)

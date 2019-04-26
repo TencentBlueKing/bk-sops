@@ -315,3 +315,17 @@ export function getWindowHeight () {
 
     return windowHeight
 }
+
+/**
+ * 日期格式化 按照yyyy-MM-dd HH:MM:SS格式化
+ * @param date
+ * @returns {string}
+ */
+export function dateFormatter (date) {
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const strDate = date.getDate().toString().padStart(2, '0')
+    const hh = date.getHours().toString().padStart(2, '0')
+    const mm = date.getMinutes().toString().padStart(2, '0')
+    const ss = date.getSeconds().toString().padStart(2, '0')
+    return `${date.getFullYear()}-${month}-${strDate} ${hh}:${mm}:${ss}`
+}

@@ -8,31 +8,19 @@
             </div>
         </section>
         <div class="btn-group">
-            <van-button size="large" type="default">取消</van-button>
-            <van-button size="large" type="info">确定</van-button>
+            <van-button size="large" type="default" @click="onClick">取消</van-button>
+            <van-button size="large" type="info" @click="onClick">确定</van-button>
         </div>
-        <van-button @click="show11 = true" type="info">99999</van-button>
-        <van-popup
-            v-model="show11"
-            position="bottom"
-            :overlay="true">
-            <van-picker
-                show-toolbar
-                :columns="columns"
-                @confirm="show11 = false"
-                @cancel="show11 = false" />
-        </van-popup>
     </div>
 </template>
 <script>
-    import { mapActions } from 'vuex'
+    import store from '@/store'
+    import { mapActions, mapState } from 'vuex'
 
     export default {
         name: 'TaskReset',
         data () {
             return {
-                show11: false,
-                columns: ['杭州', '宁波', '温州', '嘉兴', '湖州'],
                 templateData: {
                     name: '',
                     creator_name: '',
@@ -44,6 +32,11 @@
                 }
             }
         },
+        computed: {
+            ...mapState({
+                task: state => state.task
+            })
+        },
         mounted () {
             this.loadData()
         },
@@ -53,8 +46,10 @@
                 'getTemplateConstants'
             ]),
             async loadData () {
-                this.templateData = await this.getTemplate()
-                this.templateConstants = await this.getTemplateConstants()
+                console.log(store.state.task)
+            },
+            onClick () {
+                this.$router.push({ path: '/task/canvas', query: { taskId: store.state.task.id } })
             }
         }
     }
