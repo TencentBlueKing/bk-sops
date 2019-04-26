@@ -1,6 +1,5 @@
 <template>
-    <div ref="nodeLocation" v-if="node.type !== 'start' && node.type !== 'end'" class="bk-flow-location suspended"
-        @mousedown="moveFlag = false" @mousemove="moveFlag = true" @mouseup="onNodeClick(node, $event)">
+    <div ref="nodeLocation" v-if="node.type !== 'start' && node.type !== 'end'" class="bk-flow-location" @click="onNodeClick(node, $event)">
         <div class="node-name" v-if="node.type === 'startpoint'"><p class="name">startPointstartPointstartPointstartPointstartPointstartPoint</p></div>
         <div class="node-name" v-if="node.type === 'endpoint'"><p class="name">endpoint</p></div>
         <div class="node-name" v-if="node.type === 'tasknode'"><p class="name">tasknode</p></div>
@@ -22,7 +21,7 @@
         },
         data () {
             return {
-                moveFlag: false
+
             }
         },
         mounted () {
@@ -30,16 +29,15 @@
         },
         methods: {
             onNodeClick (node, event) {
-                if (!this.moveFlag) {
-                    console.log(node.x, node.y)
-                    const $tool = document.getElementById('tool' + this.node.id)
-                    if ($tool.style.display === 'none') {
-                        $tool.style.display = ''
-                    } else {
-                        $tool.style.display = 'none'
-                    }
-                    this.showToolPosition(node)
+                console.log(node.x, node.y)
+                const $tool = document.getElementById('tool' + this.node.id)
+                if ($tool.style.display === 'none') {
+                    $tool.style.display = ''
+                } else {
+                    $tool.style.display = 'none'
                 }
+                this.showToolPosition(node)
+                event.stopPropagation()
             },
             showNodePosition () {
                 const $node = document.getElementById(this.node.id)
@@ -63,18 +61,16 @@
                         toolLeft = nodeLeft + (this.$refs.nodeLocation.offsetWidth - $tool.offsetWidth) / 2
                     }
                     $tool.style.left = toolLeft + 'px'
-                    $tool.style.top = '190px'
                 }
             },
             nextNodePosition () {
                 const node = this.node
-                setTimeout(function () {
-                    if (node.type === 'tasknode') {
-                        const canvas = document.getElementById('canvas-flow')
-                        const left = document.getElementById(node.id).offsetLeft
-                        canvas.style.left = canvas.offsetLeft - left + 'px'
-                    }
-                }, 5000)
+                //  用于执行中的节点，状态结束后，定位到某个节点位置
+                if (node.type === 'tasknode') {
+                    const canvas = document.getElementById('canvas-flow')
+                    const left = document.getElementById(node.id).offsetLeft
+                    canvas.style.left = canvas.offsetLeft - left + 'px'
+                }
             }
         }
     }
