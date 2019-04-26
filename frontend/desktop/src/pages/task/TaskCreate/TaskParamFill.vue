@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="param-fill-wrapper" v-show="!templateLoading">
+    <div class="param-fill-wrapper">
         <div :class="['task-info', { 'functor-task-info': userType === 'functor' }]">
             <div class="task-info-title">
                 <span>{{ i18n.taskInfo }}</span>
@@ -70,7 +70,7 @@
                             name="periodicCron"
                             v-model="periodicCron"
                             v-validate="periodicRule" />
-                        <bk-tooltip placement="left-end" class="periodic-img-tooltip" v-if="!templateLoading">
+                        <bk-tooltip placement="left-end" class="periodic-img-tooltip">
                             <i class="common-icon-tooltips"></i>
                             <div slot="content">
                                 <img :src="periodicCronImg" class="">
@@ -88,23 +88,23 @@
                 </span>
             </div>
             <div>
-                <TaskParamVariate
-                    :quotevariable="pipelineData.constants"
-                    :unreferencedvariable="unreferred">
-                </TaskParamVariate>
+                <ParameterInfo
+                    :referenced-variable="pipelineData"
+                    :no-referenced-variable="Unreferenced"
+                    @onParameterInfoLoading="onParameterInfoLoading">
+                </ParameterInfo>
             </div>
         </div>
-        <div class="action-wrapper" v-if="!templateLoading">
+        <div class="action-wrapper">
             <bk-button
                 class="preview-step-button"
-                :disabled="DisabledButton"
                 @click="onGotoSelectNode">
                 {{ i18n.previous }}
             </bk-button>
             <bk-button
                 class="next-step-button"
                 type="success"
-                :disabled="DisabledButton"
+                :disabled="disabledButton"
                 :loading="isSubmit"
                 @click="onCreateTask">
                 {{i18n.new}}
@@ -121,13 +121,13 @@
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
-    import TaskParamVariate from '../TaskParamVariate.vue'
+    import ParameterInfo from '../ParameterInfo.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
             BaseInput,
-            TaskParamVariate
+            ParameterInfo
         },
         props: ['cc_id', 'template_id', 'common', 'previewData'],
         data () {
@@ -146,13 +146,12 @@
                     periodicCron: gettext('周期表达式'),
                     startMethod: gettext('执行计划')
                 },
-                templateLoading: true,
                 bkMessageInstance: null,
                 isSubmit: false,
                 isSelectFunctionalType: false,
                 taskName: '',
                 pipelineData: {},
-                unreferred: {},
+                Unreferenced: {},
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
@@ -170,7 +169,7 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
-                DisabledButton: true
+                disabledButton: true
             }
         },
         computed: {
@@ -212,7 +211,6 @@
                 'createPeriodic'
             ]),
             async loadData () {
-                this.templateLoading = true
                 this.taskMessageLoading = true
                 try {
                     const data = {
@@ -231,8 +229,8 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    this.pipelineData = previewData.data.pipeline_tree
-                    this.unreferred = previewData.data.constants_not_referred
+                    this.pipelineData = previewData.data.pipeline_tree.constants
+                    this.Unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
                     errorHandler(e, this)
@@ -365,11 +363,10 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            getData (val) {
-                this.templateLoading = val
-            },
-            onButton (val) {
-                this.DisabledButton = val
+            onParameterInfoLoading (val) {
+                if (this.taskMessageLoading === this.ParameterInfoLoading === false) {
+                    this.disabledButton = false
+                }
             }
         }
     }
@@ -456,7 +453,7 @@
 /deep/ .bk-tooltip-inner {
     max-width: 600px;
     border:1px solid #c4c6cc;
-    background-color: #ffffff;
+    background-color: #000;
 }
 .step-form-content {
     /deep/ .bk-tooltip-arrow {
