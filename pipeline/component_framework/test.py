@@ -18,7 +18,7 @@ from abc import abstractproperty
 
 from pipeline.core.data.base import DataObject
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('root')
 
 
 class ComponentTestMixin(object):
@@ -58,63 +58,37 @@ class ComponentTestMixin(object):
 
         data = kwargs.get('data') or args[0]
 
-        if assertion.exc:
-            # raise assertion
+        result = getattr(service, method)(*args, **kwargs)
 
-            try:
-                getattr(service, method)(*args, **kwargs)
-            except Exception as e:
-                assert e.__class__ == assertion.exc, self._format_failure_message(
-                    no=no,
-                    name=name,
-                    msg='{method} raise assertion failed,\nexcept: {e}\nactual: {a}'.format(
-                        method=method,
-                        e=assertion.exc,
-                        a=e.__class__
-                    ))
-                do_continue = True
-            else:
-                self.assertTrue(False, msg=self._format_failure_message(
-                    no=no,
-                    name=name,
-                    msg='{method} raise assertion failed, {method} not raise any exception'.format(
-                        method=method
-                    )
-                ))
+        if result is None or result is True:
+            self.assertTrue(assertion.success, msg=self._format_failure_message(
+                no=no,
+                name=name,
+                msg='{method} success assertion failed, {method} execute success'.format(
+                    method=method
+                )
+            ))
+
+            self.assertDictEqual(data.outputs, assertion.outputs, msg=self._format_failure_message(
+                no=no,
+                name=name,
+                msg='{method} outputs assertion failed,\nexcept: {e}\nactual: {a}'.format(
+                    method=method,
+                    e=data.outputs,
+                    a=assertion.outputs
+                )
+            ))
 
         else:
+            self.assertFalse(assertion.success, msg=self._format_failure_message(
+                no=no,
+                name=name,
+                msg='{method} success assertion failed, {method} execute failed'.format(
+                    method=method
+                )
+            ))
 
-            result = getattr(service, method)(*args, **kwargs)
-
-            if result is None or result is True:
-                self.assertTrue(assertion.success, msg=self._format_failure_message(
-                    no=no,
-                    name=name,
-                    msg='{method} success assertion failed, {method} execute success'.format(
-                        method=method
-                    )
-                ))
-
-                self.assertDictEqual(data.outputs, assertion.outputs, msg=self._format_failure_message(
-                    no=no,
-                    name=name,
-                    msg='{method} outputs assertion failed,\nexcept: {e}\nactual: {a}'.format(
-                        method=method,
-                        e=data.outputs,
-                        a=assertion.outputs
-                    )
-                ))
-
-            else:
-                self.assertFalse(assertion.success, msg=self._format_failure_message(
-                    no=no,
-                    name=name,
-                    msg='{method} success assertion failed, {method} execute failed'.format(
-                        method=method
-                    )
-                ))
-
-                do_continue = True
+            do_continue = True
 
         return do_continue
 
@@ -134,9 +108,9 @@ class ComponentTestMixin(object):
     def test_component(self):
         component = self.component_cls({})
 
-        bound_service = component.service()
-
         for no, case in enumerate(self.cases):
+            bound_service = component.service()
+
             for patcher in case.patchers:
                 patcher.start()
 
@@ -182,6 +156,16 @@ class ComponentTestMixin(object):
                                                            assertion=assertion,
                                                            no=no,
                                                            name=case.name)
+
+                        self.assertEqual(assertion.schedule_finished,
+                                         bound_service.is_schedule_finished(),
+                                         msg=self._format_failure_message(
+                                             no=no,
+                                             name=case.name,
+                                             msg='schedule_finished assertion failed:'
+                                                 '\nexpected: {expected}\nactual: {actual}'.format(
+                                                 expected=assertion.schedule_finished,
+                                                 actual=bound_service.is_schedule_finished())))
 
                         if do_continue:
                             break
@@ -245,10 +229,9 @@ class CallAssertion(object):
 
 
 class Assertion(object):
-    def __init__(self, success, outputs, exc=None):
+    def __init__(self, success, outputs):
         self.success = success
         self.outputs = outputs
-        self.exc = exc
 
 
 class ExecuteAssertion(Assertion):
@@ -256,6 +239,7 @@ class ExecuteAssertion(Assertion):
 
 
 class ScheduleAssertion(Assertion):
-    def __init__(self, callback_data, *args, **kwargs):
+    def __init__(self, callback_data=None, schedule_finished=False, *args, **kwargs):
         self.callback_data = callback_data
+        self.schedule_finished = schedule_finished
         super(ScheduleAssertion, self).__init__(*args, **kwargs)
