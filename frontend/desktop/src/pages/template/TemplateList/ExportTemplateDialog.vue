@@ -28,6 +28,7 @@
                             setting-key="value"
                             :list="taskCategories"
                             :selected="filterCondition.classifyId"
+                            :disabled="exportPending"
                             @item-selected="onSelectClassify">
                         </bk-selector>
                     </div>
