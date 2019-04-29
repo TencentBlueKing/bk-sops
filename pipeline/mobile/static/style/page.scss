@@ -12,7 +12,6 @@ a{
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    z-index: 1;
 }
 /*search*/
 .bk-search{
@@ -190,6 +189,8 @@ a{
 }
 /*执行任务状态*/
 .task-status{
+    position: fixed;
+    width: 100%;
     border-bottom-style: solid;
     border-bottom-width: 1px;
     padding: 10px;
