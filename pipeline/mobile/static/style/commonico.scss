@@ -1,10 +1,10 @@
 @font-face {
     font-family: 'commonico';
-    src:  url('/static/fonts/commonico.eot?tmv25c');
-    src:  url('/static/fonts/commonico.eot?tmv25c#iefix') format('embedded-opentype'),
-    url('/static/fonts/commonico.ttf?tmv25c') format('truetype'),
-    url('/static/fonts/commonico.woff?tmv25c') format('woff'),
-    url('/static/fonts/commonico.svg?tmv25c#commonico') format('svg');
+    src:  url('/static/fonts/commonico.eot?y3zayp');
+    src:  url('/static/fonts/commonico.eot?y3zayp#iefix') format('embedded-opentype'),
+    url('/static/fonts/commonico.ttf?y3zayp') format('truetype'),
+    url('/static/fonts/commonico.woff?y3zayp') format('woff'),
+    url('/static/fonts/commonico.svg?y3zayp#commonico') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -24,6 +24,15 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+.icon-node-branchgateway:before {
+    content: "\e904";
+}
+.icon-node-convergegateway:before {
+    content: "\e905";
+}
+.icon-node-parallelgateway:before {
+    content: "\e906";
+}
 .icon-file:before {
     content: "\e900";
 }

@@ -2,9 +2,12 @@
     <div
         v-if="node.type !== 'startpoint' && node.type !== 'endpoint'"
         ref="nodeLocation"
-        class="bk-flow-location"
+        class="bk-flow-location node-subflow"
         @click="onNodeClick(node, $event)">
         <div class="node-name">
+            <div class="subflow-node-icon">
+                <van-icon name="plus" />
+            </div>
             <p class="name">{{ node.name }}</p>
         </div>
         <div class="task-name">{{ node.stage_name }}</div>
@@ -92,6 +95,7 @@
         height: 90px;
         text-align: center;
         background: $white;
+        position: relative;
         .node-name {
             width: 100%;
             font-size: $fs-12;
@@ -99,24 +103,44 @@
             line-height: 60px;
             background: #fafafa;
             border: 1px solid #a9adb5;
+            border-bottom: none;
             overflow: hidden;
             .name{
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 padding: 0 10px;
+                height: 100%;
             }
         }
         .task-name {
             height: 30px;
             line-height: 30px;
-            font-size: $fs-12;
+            font-size: $fs-14;
             color: $white;
             background: #53699d;
-            border-top: none;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+    }
+    .node-subflow{
+        border-top: 5px solid #53699d;
+        .node-name{
+            height: 55px;
+        }
+        .subflow-node-icon{
+            position: absolute;
+            top: -2px;
+            left: 0;
+            width: 24px;
+            height: 19px;
+            line-height: 19px;
+            color: $white;
+            background: #53699d;
+            > i{
+                vertical-align: middle;
+            }
         }
     }
     .bk-flow-location.failed {
