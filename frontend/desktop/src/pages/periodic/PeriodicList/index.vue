@@ -19,6 +19,13 @@
                 @onShow="onAdvanceShow"
                 @input="onSearchInput">
             </BaseSearch>
+            <bk-button
+                type="primary"
+                class="task-create-btn"
+                size="small"
+                @click="onCreatePeriodTask">
+                {{i18n.createPeriodTask}}
+            </bk-button>
             <div class="periodic-search" v-show="isAdvancedSerachShow">
                 <fieldset class="periodic-fieldset">
                     <div class="periodic-query-content">
@@ -128,6 +135,16 @@
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
+        <TaskCreateDialog
+            v-if="isNewTaskDialogShow"
+            :common="common"
+            :cc_id="cc_id"
+            :is-new-task-dialog-show="isNewTaskDialogShow"
+            :business-info-loading="businessInfoLoading"
+            :period-entrance="periodEntrance"
+            :template-type-search="templateTypeSearch"
+            @onCreateTaskCancel="onCreateTaskCancel">
+        </TaskCreateDialog>
         <ModifyPeriodicDialog
             v-if="isModifyDialogShow"
             :loading="modifyDialogLoading"
@@ -158,6 +175,7 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
     export default {
@@ -167,13 +185,15 @@
             BaseTitle,
             BaseSearch,
             NoData,
+            TaskCreateDialog,
             ModifyPeriodicDialog,
             DeletePeriodicDialog
         },
-        props: ['cc_id'],
+        props: ['cc_id', 'common'],
         data () {
             return {
                 i18n: {
+                    createPeriodTask: gettext('新建'),
                     lastRunAt: gettext('上次运行时间'),
                     periodicRule: gettext('周期规则'),
                     periodicTask: gettext('周期任务'),
@@ -202,6 +222,8 @@
                     query: gettext('搜索'),
                     reset: gettext('清空')
                 },
+                businessInfoLoading: true,
+                isNewTaskDialogShow: false,
                 listLoading: true,
                 deleting: false,
                 currentPage: 1,
@@ -224,7 +246,9 @@
                 modifyDialogLoading: false,
                 selectedTemplateName: undefined,
                 periodicName: undefined,
-                enabledSync: -1
+                enabledSync: -1,
+                periodEntrance: '',
+                templateTypeSearch: false
             }
         },
         created () {
@@ -243,6 +267,7 @@
                 try {
                     const data = {
                         limit: this.countPerPage,
+                        common: this.commom,
                         offset: (this.currentPage - 1) * this.countPerPage,
                         task__celery_task__enabled: this.enabled,
                         task__creator__contains: this.creator,
@@ -369,6 +394,14 @@
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onCreatePeriodTask () {
+                this.isNewTaskDialogShow = true
+                this.periodEntrance = 1
+                this.templateTypeSearch = true
+            },
+            onCreateTaskCancel () {
+                this.isNewTaskDialogShow = false
             }
         }
     }
@@ -385,6 +418,10 @@
     min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 20px 0px;
+    }
+    .task-create-btn {
+        position: relative;
+        top: 20px;
     }
 }
 .periodic-fieldset {

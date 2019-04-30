@@ -127,7 +127,7 @@
             BaseInput,
             TaskParamEdit
         },
-        props: ['cc_id', 'template_id', 'common', 'previewData'],
+        props: ['cc_id', 'template_id', 'common', 'previewData', 'periodEntrance', 'recordEntrance'],
         data () {
             return {
                 i18n: {
@@ -166,7 +166,8 @@
                 node: {},
                 templateData: {},
                 configLoading: true,
-                taskParamEditLoading: true
+                taskParamEditLoading: true,
+                taskInformationStyle: ''
             }
         },
         computed: {
@@ -187,7 +188,17 @@
                 return !this.pipelineData.constants || Object.keys(this.pipelineData.constants).length === 0
             },
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor'
+                if (this.periodEntrance === '1' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
+                    this.taskInformationStyle = false
+                    this.isStartNow = false
+                } else if (this.recordEntrance === '2' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
+                    this.taskInformationStyle = false
+                } else if (!this.common && this.viewMode === 'app' && this.userType !== 'functor') {
+                    this.taskInformationStyle = true
+                } else {
+                    this.taskInformationStyle = false
+                }
+                return this.taskInformationStyle
             }
         },
         watch: {
@@ -268,7 +279,13 @@
                     if (this.common) {
                         this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
                     } else {
-                        this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                        if (this.periodEntrance === '1') {
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, periodEntrance: this.periodEntrance } })
+                        } else if (this.recordEntrance === '2') {
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, recordEntrance: this.recordEntrance } })
+                        } else {
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                        }
                     }
                 }
             },
