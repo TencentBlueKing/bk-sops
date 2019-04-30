@@ -120,7 +120,7 @@
             BaseInput,
             NodePreview
         },
-        props: ['cc_id', 'template_id', 'common', 'excludeNode'],
+        props: ['cc_id', 'template_id', 'common', 'excludeNode', 'periodEntrance', 'recordEntrance'],
         data () {
             return {
                 i18n: {
@@ -471,7 +471,13 @@
                         if (this.common) {
                             this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
                         } else {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                            if (this.periodEntrance === '1') {
+                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, periodEntrance: this.periodEntrance } })
+                            } else if (this.recordEntrance === '2') {
+                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, recordEntrance: this.recordEntrance } })
+                            } else {
+                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                            }
                         }
                     }
                 } catch (e) {
