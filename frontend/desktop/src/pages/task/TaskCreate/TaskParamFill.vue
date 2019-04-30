@@ -90,7 +90,7 @@
             <div>
                 <ParameterInfo
                     :referenced-variable="pipelineData"
-                    :no-referenced-variable="Unreferenced"
+                    :un-referenced-variable="unreferenced"
                     @onParameterInfoLoading="onParameterInfoLoading">
                 </ParameterInfo>
             </div>
@@ -151,7 +151,7 @@
                 isSelectFunctionalType: false,
                 taskName: '',
                 pipelineData: {},
-                Unreferenced: {},
+                unreferenced: {},
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
@@ -230,7 +230,7 @@
                     }
                     const previewData = await this.loadPreviewNodeData(params)
                     this.pipelineData = previewData.data.pipeline_tree.constants
-                    this.Unreferenced = previewData.data.constants_not_referred
+                    this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
                     errorHandler(e, this)
@@ -364,7 +364,7 @@
                 }
             },
             onParameterInfoLoading (val) {
-                if (this.taskMessageLoading === this.ParameterInfoLoading === false) {
+                if (this.taskMessageLoading === false && val === false) {
                     this.disabledButton = false
                 }
             }
