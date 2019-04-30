@@ -20,8 +20,6 @@ a{
 
     .van-search__content{
         background-color: rgba(142,142,147,0.12);
-        -webkit-border-radius: 10px;
-        -moz-border-radius: 10px;
         border-radius: 10px;
 
         .van-cell{
@@ -39,7 +37,6 @@ a{
         left: 25px;
         right: 25px;
         border-bottom-color: $border-color;
-        -webkit-transform: scaleY(1);
         transform: scaleY(1);
     }
     &-title {
@@ -53,8 +50,6 @@ a{
     }
     .van-cell{
         padding: 14px 25px;
-        -webkit-box-align: center;
-        -webkit-align-items: center;
         align-items: center;
         color: $text-color;
 
@@ -211,6 +206,11 @@ a{
     background: #F2D0D3;
     border-bottom-color: #EFB9BE;
     color: #EA3636;
+}
+.task-status.success{
+    background: #beeac9;
+    border-bottom-color: #7de095;
+    color: #12b93b;
 }
 /*标签栏*/
 .van-tabbar{

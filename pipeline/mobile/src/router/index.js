@@ -10,6 +10,7 @@ Vue.use(VueCookies)
 
 const Home = () => import(/* webpackChunkName: 'home' */'../views/home')
 const Template = () => import(/* webpackChunkName: 'home' */'../views/template/index')
+const TemplatePreview = () => import(/* webpackChunkName: 'home' */'../views/template/preview')
 const TaskList = () => import(/* webpackChunkName: 'home' */'../views/task/list')
 const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
 const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/reset')
@@ -34,6 +35,13 @@ const routes = [
         title: '流程模板',
         isActionSheetShow: true,
         component: Template
+    },
+    {
+        path: '/template/preview',
+        name: 'template_preview',
+        title: '预览',
+        isActionSheetShow: true,
+        component: TemplatePreview
     },
     {
         path: '/task/create',
@@ -124,7 +132,6 @@ let canceling = true
 let pageMethodExecuting = true
 
 router.beforeEach(async (to, from, next) => {
-    console.log(to)
     canceling = true
     await cancelRequest()
     canceling = false

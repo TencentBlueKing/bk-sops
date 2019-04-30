@@ -1,15 +1,7 @@
 <template>
     <div class="page-view">
-        <div class="task-status warning" v-if="taskState === 'RUNNING'">
-            执行中
-        </div>
-        <div class="task-status danger" v-else-if="taskState === 'FAILED'">
-            失败
-        </div>
-        <!--演示试用 start-->
-
-        <JsFlowIndex v-bind:task="task"></JsFlowIndex>
-        <!--演示试用 end-->
+        <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
+        <JsFlowIndex :task="currTask"></JsFlowIndex>
         <van-tabbar>
             <van-tabbar-item>
                 <van-icon slot="icon" class-prefix="icon" name="pause" v-if="taskState === 'RUNNING'" />
@@ -28,8 +20,8 @@
                     class-prefix="icon"
                     name="revoke"
                     class="disabled"
-                    @click="onBackClick"
-                    disabled />
+                    disabled
+                    @click="onBackClick" />
             </van-tabbar-item>
             <van-tabbar-item>
                 <van-icon
@@ -45,9 +37,18 @@
     </div>
 </template>
 <script>
-    import store from '@/store'
     import JsFlowIndex from '../jsflow/index.vue'
     import { mapActions, mapState } from 'vuex'
+
+    const TASK_STATE = {
+        'CREATED': [window.gettext('未执行'), 'info'],
+        'RUNNING': [window.gettext('执行中'), 'info'],
+        'SUSPENDED': [window.gettext('暂停'), 'warning'],
+        'NODE_SUSPENDED': [window.gettext('节点暂停'), 'warning'],
+        'FAILED': [window.gettext('失败'), 'danger'],
+        'FINISHED': [window.gettext('完成'), 'danger'],
+        'REVOKED': [window.gettext('撤销'), 'danger']
+    }
 
     export default {
         name: '',
@@ -60,12 +61,15 @@
                 // 演示用flag，当做画布的某个原子
                 testShow: false,
                 revokeConfirmShow: false,
-                taskState: ''
+                taskStateClass: '',
+                taskStateName: '',
+                taskStateColor: ''
             }
         },
         computed: {
             ...mapState({
-                task: state => state.task
+                currTask: state => state.task,
+                currTaskState: state => state.taskState
             })
         },
         mounted () {
@@ -73,15 +77,16 @@
         },
         methods: {
             ...mapActions('task', [
-                'getTask'
+                'getTask',
+                'getTaskState'
             ]),
             async loadData () {
-                const taskInfo = await this.getTask(this.$route.query.taskId)
-                console.log('==============')
-                console.log(taskInfo[0])
-                console.log(taskInfo[1])
-                this.taskState = taskInfo[1]
-                store.commit('setTask', taskInfo[0])
+                const taskId = this.$route.query.taskId
+                const task = await this.getTask(taskId)
+                const taskState = await this.getTaskState(taskId);
+                ([this.taskStateClass, this.taskStateName, this.taskStateColor] = ['task-status', ...TASK_STATE[taskState]])
+                this.$store.commit('setTaskState', taskState)
+                this.$store.commit('setTask', task)
             },
             onNodeExecuteClick () {
                 this.$router.push({ path: '/task/nodes', query: { taskId: this.task.id } })
@@ -99,13 +104,9 @@
                 this.$dialog.confirm({
                     message: '撤销任务?'
                 }).then(() => {
-                    // on confirm
-                    console.log('on confirm')
                     this.revokeConfirmShow = false
                     this.$router.push({ path: '/task/list' })
                 }).catch(() => {
-                    // on cancel
-                    console.log('on cancel')
                     this.revokeConfirmShow = false
                 })
             }

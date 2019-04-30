@@ -1,17 +1,23 @@
 <template>
-    <div ref="nodeLocation" v-if="node.type !== 'start' && node.type !== 'end'" class="bk-flow-location" @click="onNodeClick(node, $event)">
-        <div class="node-name" v-if="node.type === 'startpoint'"><p class="name">startPointstartPointstartPointstartPointstartPointstartPoint</p></div>
-        <div class="node-name" v-if="node.type === 'endpoint'"><p class="name">endpoint</p></div>
-        <div class="node-name" v-if="node.type === 'tasknode'"><p class="name">tasknode</p></div>
-        <div class="task-name" title="步骤1" v-if="node.type !== 'start' && node.type !== 'end'">
-            步骤1a步骤1步骤1步骤1步骤1步骤1步骤1步骤1步骤1步骤1
+    <div
+        v-if="node.type !== 'startpoint' && node.type !== 'endpoint'"
+        ref="nodeLocation"
+        class="bk-flow-location"
+        @click="onNodeClick(node, $event)">
+        <div class="node-name">
+            <p class="name">{{ node.name }}</p>
         </div>
+        <div class="task-name">{{ node.stage_name }}</div>
     </div>
 </template>
 <script>
     export default {
         name: 'NodeTemplate',
         props: {
+            isPreview: {
+                type: Boolean,
+                default: false
+            },
             node: {
                 type: Object,
                 default () {
@@ -25,10 +31,14 @@
             }
         },
         mounted () {
+            console.log(`this.isPreview=${this.isPreview}`)
             this.showNodePosition()
         },
         methods: {
             onNodeClick (node, event) {
+                if (this.isPreview) {
+                    return false
+                }
                 console.log(node.x, node.y)
                 const $tool = document.getElementById('tool' + this.node.id)
                 if ($tool.style.display === 'none') {
