@@ -172,6 +172,7 @@
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
             :export-pending="pending.export"
+            :record-entrance="recordEntrance"
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <TaskCloneDialog
@@ -302,7 +303,8 @@
                 statusSync: 0,
                 taskCreateMethodList: [],
                 createMethodSync: 0,
-                createMethod: undefined
+                createMethod: undefined,
+                recordEntrance: ''
             }
         },
         computed: {
@@ -584,6 +586,7 @@
             },
             onCreateTask () {
                 this.isNewTaskDialogShow = true
+                this.recordEntrance = 2
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
