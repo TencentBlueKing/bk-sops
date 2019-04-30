@@ -41,7 +41,7 @@
                     v-for="item in nodeDetail.outputs"
                     :key="item.index"
                     :title="item.name"
-                    :value="item.value === '' ? '--' : JSON.stringify(item.value)" />
+                    :value="item.value === '' ? '--' : str(item.value)" />
             </div>
         </section>
         <!-- 异常信息 -->
