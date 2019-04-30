@@ -102,6 +102,10 @@
             type: Boolean,
             default: false
         },
+        isPreview: {
+            type: Boolean,
+            default: false
+        },
         selector: {
             type: String,
             default: 'palette-item'
@@ -144,7 +148,7 @@
                         outlineWidth: 1
                     },
                     Overlays: [['Arrow', { width: 6, length: 6, location: 1 }]],
-                    connector: ['Straight']
+                    connector: ['Flowchart']
                 }
             }
         },
@@ -172,7 +176,7 @@
     }
 
     export default {
-        name: 'JsFlow',
+        name: 'MobileNodeCanvas',
         components: {
             PalettePanel,
             ToolPanel,

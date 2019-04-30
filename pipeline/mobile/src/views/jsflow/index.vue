@@ -1,18 +1,20 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <js-flow
-        ref="jsFlow"
-        selector="entry-item"
-        v-model="canvasData">
+    <MobileNodeCanvas ref="mobileNodeCanvas" selector="entry-item" v-model="canvasData" :is-preview="isPreview">
         <template v-slot:nodeTemplate="{ node }">
-            <node-template :node="node"></node-template>
-            <div class="node-circle finished" v-if="node.type === 'start'"><van-icon name="play-circle-o"></van-icon></div>
-            <div class="node-circle finished" v-if="node.type === 'end'"><van-icon name="stop-circle-o"></van-icon></div>
+            <node-template :node="node" :is-preview="isPreview"></node-template>
+            <div v-if="node.type === 'startpoint'" :class="['node-circle', isPreview ? '' : 'finished']">
+                <van-icon name="play-circle-o" />
+            </div>
+            <div v-if="node.type === 'endpoint'" :class="['node-circle', isPreview ? '' : 'finished']">
+                <van-icon name="stop-circle-o" />
+            </div>
         </template>
-    </js-flow>
+    </MobileNodeCanvas>
 
 </template>
 <script>
-    import JsFlow from './JsFlow.vue'
+    import { mapState } from 'vuex'
+    import MobileNodeCanvas from './MobileNodeCanvas.vue'
     import { uuid } from '../../../static/jsflow/uuid.js'
     import NodeTemplate from './NodeTemplate.vue'
 
@@ -97,24 +99,33 @@
     ]
 
     export default {
-        name: 'JsFlowIndex',
+        name: 'MobileCanvas',
         components: {
-            JsFlow,
+            MobileNodeCanvas,
             NodeTemplate
+        },
+        props: {
+            isPreview: Boolean,
+            canvasData: Object
         },
         data () {
             return {
-                nodes: nodes,
-                canvasData: {
-                    nodes,
-                    lines
-                }
+
             }
         },
+        computed: {
+            ...mapState({
+                currTask: state => state.task
+            })
+        },
         mounted () {
+            console.log(nodes)
+            console.log(lines)
+            console.log(`isPreview=${this.isPreview}`)
+            console.log(JSON.stringify(this.canvasData.lines))
+            console.log(JSON.stringify(this.canvasData.nodes))
             // this.$refs.jsFlow.addLineOverlay(lines[1], {type: 'Label', name: 'test', location: -100})
             // this.$refs.jsFlow.setCanvasPosition(100, 100)
-
         },
         methods: {
 
