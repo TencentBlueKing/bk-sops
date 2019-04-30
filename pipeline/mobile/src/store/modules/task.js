@@ -4,16 +4,17 @@ export default {
     state: {},
     mutations: {},
     actions: {
-        getTask ({ commit, state, dispatch }, params, config) {
+        getTask ({ commit, state, dispatch } = {}, params) {
             // url = '${AJAX_URL_PREFIX}/api/v3/taskflow/{taskflow_id}'
             // const p = params
-            console.log(`params=${params}`)
-            if (params == 1) {
-                return [runningTask, runningTaskStatus.data.state]
-            } else {
-                return [failedTask, failedTaskStatus.data.state]
-            }
+            const task = params == 1 ? runningTask : failedTask
+            return task
 
+        },
+
+        getTaskState ({ commit }, params) {
+            const state = params == 1 ? runningTaskStatus.data.state : failedTaskStatus.data.state
+            return state
         },
 
         getNodeDetail ({ commit, state, dispatch }, params, config) {

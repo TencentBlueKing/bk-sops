@@ -10,33 +10,33 @@
                     <div class="bk-time">{{ templateData.create_time }}</div>
                 </template>
                 <van-icon
+                    v-if="collected"
                     slot="right-icon"
-                    @click="collect"
                     name="star"
                     class="star-icon collection"
-                    v-if="collected" />
+                    @click="collect" />
                 <van-icon
+                    v-else
                     slot="right-icon"
-                    @click="collect"
                     name="star"
                     class="star-icon"
-                    v-else />
+                    @click="collect" />
             </van-cell>
         </section>
         <!-- 任务信息 -->
         <section class="bk-block">
-            <h2 class="bk-text-title">任务信息</h2>
+            <h2 class="bk-text-title">{{ i18n.taskInfo }}</h2>
             <div class="bk-text-list">
                 <van-field
-                    label="任务名称"
+                    :label="i18n.taskName"
                     v-validate="taskNameRule"
                     v-model="taskName" />
                 <van-cell
-                    @click="show = true"
-                    title="方案"
-                    :value="scheme" />
+                    :title="i18n.scheme"
+                    :value="scheme"
+                    @click="show = true" />
                 <van-cell>
-                    <router-link to="">预览流程图</router-link>
+                    <router-link to="/template/preview">{{ i18n.canvasPreview }}</router-link>
                 </van-cell>
             </div>
         </section>
@@ -56,32 +56,40 @@
             position="bottom"
             :overlay="true">
             <van-datetime-picker
+                type="datetime"
                 show-toolbar
                 v-model="currentDate"
                 @confirm="onDatetimePickerConfirm"
-                @cancel="onDatetimePickerCancel"
-                type="datetime" />
+                @cancel="onDatetimePickerCancel" />
         </van-popup>
         <!-- 参数信息 -->
         <section class="bk-block">
-            <h2 class="bk-text-title">参数信息</h2>
+            <h2 class="bk-text-title">{{ i18n.paramInfo }}</h2>
             <div class="bk-text-list">
                 <template v-for="item in templateConstants">
                     <van-field
-                        v-if="item.custom_type === 'input' || item.custom_type === 'int'"
+                        v-if="item.custom_type === 'input'"
                         :key="item.id"
                         :label="item.name"
-                        placeholder="输入参数值"
+                        :placeholder="i18n.paramInput"
                         v-validate="variableInputRule"
+                        v-model="item.value"
+                        :value="item.value" />
+                    <van-field
+                        v-else-if="item.custom_type === 'int'"
+                        type="number"
+                        :key="item.id"
+                        :label="item.name"
+                        :placeholder="i18n.paramInput"
                         v-model="item.value"
                         :value="item.value" />
                     <van-cell
                         v-else-if="item.custom_type === 'datetime'"
+                        :placeholder="i18n.datetimeInput"
                         :key="item.id"
                         :title="item.name"
-                        placeholder="请选择日期时间"
-                        @click="datetimePickerShow = true"
-                        :value="item.value">
+                        :value="item.value"
+                        @click="datetimePickerShow = true">
                         <template v-if="datetimeVariable">
                             {{ datetimeVariable }}
                         </template>
@@ -91,19 +99,18 @@
                     </van-cell>
                     <van-field
                         v-if="item.custom_type === 'textarea'"
-                        :key="item.id"
-                        :label="item.name"
+                        v-model="item.value"
                         type="textarea"
-                        placeholder="输入参数值"
+                        :placeholder="i18n.paramInput"
                         v-validate="variableInputRule"
                         rows="1"
                         autosize
-                        v-model="item.value"
+                        :key="item.id"
+                        :label="item.name"
                         :value="item.value" />
                 </template>
             </div>
         </section>
-        <!-- 按钮 -->
         <div class="btn-group">
             <van-button size="large" type="info" @click="createTaskAndStart">{{ i18n.btnCreate }}</van-button>
         </div>
@@ -116,7 +123,7 @@
     import { dateFormatter } from '@/common/util.js'
 
     const NAME_REG = /^[A-Za-z0-9\_\-\[\]\【\】\(\)\（\）\u4e00-\u9fa5]+$/
-    const INT_INPUT_REG = /^[0-9]+$/
+    const DEFAULT_SCHEMES_NAME = window.gettext('执行所有节点')
 
     export default {
         name: 'TaskCreate',
@@ -136,9 +143,16 @@
                 },
                 templateConstants: {},
                 schemes: [],
-                scheme: '执行所有节点',
+                scheme: DEFAULT_SCHEMES_NAME,
                 i18n: {
-                    btnCreate: window.gettext('执行任务')
+                    btnCreate: window.gettext('执行任务'),
+                    taskName: window.gettext('任务名称'),
+                    scheme: window.gettext('方案'),
+                    canvasPreview: window.gettext('预览流程图'),
+                    paramInfo: window.gettext('参数信息'),
+                    paramInput: window.gettext('输入参数值'),
+                    datetimeInput: window.gettext('请选择日期时间'),
+                    taskInfo: window.gettext('任务信息')
                 },
                 taskId: 0,
                 taskName: '',
@@ -149,8 +163,7 @@
                 },
                 variableInputRule: {
                     required: true,
-                    max: 20,
-                    regex: INT_INPUT_REG
+                    max: 20
                 }
             }
         },
@@ -171,11 +184,12 @@
                 this.schemes = await this.getSchemes()
                 this.taskName = this.getDefaultTaskName()
                 this.collected = this.templateData.is_favorite
-                this.columns = [{ text: '执行所有节点' }, ...this.schemes]
+                this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
+                this.$store.commit('setTemplate', this.templateData)
             },
             async createTaskAndStart () {
                 this.taskId = await this.createTask()
-                this.$router.push({ path: '/task/canvas', query: { 'taskId': JSON.stringify(this.taskId) } })
+                this.$router.push({ path: '/task/canvas', query: { 'taskId': String(this.taskId) } })
             },
             getDefaultTaskName () {
                 return this.templateData.name + '_' + moment().format('YYYYMMDDHHmmss')
