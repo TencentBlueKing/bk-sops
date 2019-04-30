@@ -105,14 +105,12 @@
             NodeTemplate
         },
         props: {
-            isPreview: Boolean
+            isPreview: Boolean,
+            canvasData: Object
         },
         data () {
             return {
-                canvasData: {
-                    nodes: nodes,
-                    lines: lines
-                }
+
             }
         },
         computed: {
