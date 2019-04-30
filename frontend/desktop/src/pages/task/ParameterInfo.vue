@@ -10,20 +10,19 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div v-bkloading="{ isLoading: ParameterInfoLoading, opacity: 1 }">
+    <div v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
         <TaskParamEdit
-            v-if="isReferencedVariables"
+            v-if="isReferencedShow"
             class="task-param-wrapper"
             ref="TaskParamEdit"
             :constants="referencedVariable"
-            @onChangeConfigLoading="onReferencedConfigLoading">
+            @onChangeConfigLoading="onRefVarLoadingChange">
         </TaskParamEdit>
         <div
             class="variable-wrap"
-            v-if="isUnreferencedVariableBar">
+            v-if="isUnreferencedShow">
             <div class="title-background" @click="onToggleUnReferenceShow">
-                <div class="UnreferencedVariable"
-                    :class=" { UnReferenceShow: isUnreferencedVariables } ">
+                <div :class="['un-referencedvariable', { 'unreference-show': isUnrefVarShow }]">
                 </div>
                 <span class="title">{{i18n.title}}</span>
                 <bk-tooltip placement="bottom-end" width="400" class="desc-tooltip">
@@ -35,11 +34,11 @@
             </div>
             <TaskParamEdit
                 class="unreferenced"
-                v-show="isUnreferencedVariables"
+                v-show="isUnrefVarShow"
                 ref="TaskParamEdit"
-                :constants="noReferencedVariable"
+                :constants="unReferencedVariable"
                 :editable="false"
-                @onChangeConfigLoading="onUnreferencedConfigLoading">
+                @onChangeConfigLoading="onUnRefVarLoadingChange">
             </TaskParamEdit>
         </div>
         <NoData v-if="isNoData"></NoData>
@@ -50,77 +49,80 @@
     import TaskParamEdit from './TaskParamEdit.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
-        name: 'taskParamVariate',
+        name: 'ParameterInfo',
         components: {
             TaskParamEdit,
             NoData
         },
-        props: ['referencedVariable', 'noReferencedVariable'],
+        props: ['referencedVariable', 'unReferencedVariable'],
         data () {
             return {
                 i18n: {
                     title: gettext('查看未引用变量'),
                     executorTips: gettext('在创建流程时可选择“变量”是否被引用，未被引用的“变量”则在创建任务时（当前步骤）不可编辑。')
                 },
-                ParameterInfoLoading: true,
-                isReferencedVariables: false,
-                isUnreferencedVariables: false,
-                isUnreferencedVariableBar: false,
-                isNoData: false,
-                ReferencedVariablesLoading: false,
-                UnreferencedVariablesLoading: false
+                isUnrefVarShow: false,
+                isRefVarLoadingChange: false,
+                isUnRefVarLoadingChange: false,
+                referenceVariableData: true,
+                unReferencedVariableData: true,
+                parameterInfoLoading: true
+            }
+        },
+        computed: {
+            isParameterInfoLoading () {
+                if (this.isRefVarLoadingChange === true && this.isUnRefVarLoadingChange === true) {
+                    this.parameterInfoLoading = false
+                } else if (this.referenceVariableData === false && this.isUnRefVarLoadingChange === true) {
+                    this.parameterInfoLoading = false
+                } else if (this.unReferencedVariableData === false && this.isRefVarLoadingChange === true) {
+                    this.parameterInfoLoading = false
+                } else if (this.unReferencedVariableData === false && this.referenceVariableData === false) {
+                    this.parameterInfoLoading = false
+                } else {
+                    this.parameterInfoLoading = true
+                }
+                this.$nextTick(() => {
+                    this.$emit('onParameterInfoLoading', this.parameterInfoLoading)
+                })
+                return this.parameterInfoLoading
+            },
+            isReferencedShow () {
+                if (Object.keys(this.referencedVariable).length === 0) {
+                    this.referenceVariableData = false
+                } else {
+                    this.referenceVariableData = true
+                }
+                return this.referenceVariableData
+            },
+            isUnreferencedShow () {
+                if (Object.keys(this.unReferencedVariable).length === 0) {
+                    this.unReferencedVariableData = false
+                } else {
+                    this.unReferencedVariableData = true
+                }
+                return this.unReferencedVariableData
+            },
+            isNoData () {
+                return this.referenceVariableData === false && this.unReferencedVariableData === false
             }
         },
         watch: {
-            referencedVariable () {
-                if (Object.keys(this.referencedVariable).length === 0) {
-                    this.isReferencedVariables = false
-                    if (this.isUnreferencedVariableBar === false) {
-                        this.ParameterInfoLoading = false
-                        this.isNoData = true
-                    }
-                } else {
-                    this.isReferencedVariables = true
-                    this.isNoData = false
-                }
-            },
-            noReferencedVariable () {
-                if (Object.keys(this.noReferencedVariable).length === 0) {
-                    this.isUnreferencedVariableBar = false
-                    if (this.isReferencedVariables === false) {
-                        this.ParameterInfoLoading = false
-                        this.isNoData = true
-                    }
-                } else {
-                    this.isUnreferencedVariableBar = true
-                    this.isNoData = false
-                }
-            },
-            ParameterInfoLoading () {
+            parameterInfoLoading () {
                 this.$nextTick(() => {
-                    this.$emit('onParameterInfoLoading', this.ParameterInfoLoading)
+                    this.$emit('onParameterInfoLoading', this.parameterInfoLoading)
                 })
             }
         },
         methods: {
-            onReferencedConfigLoading () {
-                this.ReferencedVariablesLoading = true
-                if (this.isUnreferencedVariableBar === false) {
-                    this.ParameterInfoLoading = false
-                } else if (this.UnreferencedVariablesLoading === true) {
-                    this.ParameterInfoLoading = false
-                }
-            },
-            onUnreferencedConfigLoading () {
-                this.UnreferencedVariablesLoading = true
-                if (this.isReferencedVariables === false) {
-                    this.ParameterInfoLoading = false
-                } else if (this.ReferencedVariablesLoading === true) {
-                    this.ParameterInfoLoading = false
-                }
-            },
             onToggleUnReferenceShow () {
-                this.isUnreferencedVariables = !this.isUnreferencedVariables
+                this.isUnrefVarShow = !this.isUnrefVarShow
+            },
+            onRefVarLoadingChange () {
+                this.isRefVarLoadingChange = true
+            },
+            onUnRefVarLoadingChange () {
+                this.isUnRefVarLoadingChange = true
             }
         }
     }
@@ -149,7 +151,7 @@
                 display: block;
             }
         }
-        .UnreferencedVariable {
+        .un-referencedvariable {
             display: inline-block;
             position: relative;
             width: 0;
@@ -176,7 +178,7 @@
                 border-right: 8px solid transparent;
                 border-bottom: 8px solid black;
         }
-        .UnReferenceShow {
+        .unreference-show {
             top: 2px;
             transform: rotate(90deg);
         }
