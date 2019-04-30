@@ -3,10 +3,10 @@
         <template v-slot:nodeTemplate="{ node }">
             <node-template :node="node" :is-preview="isPreview"></node-template>
             <div v-if="node.type === 'startpoint'" :class="['node-circle', isPreview ? '' : 'finished']">
-                <van-icon name="play-circle-o" />
+                <div class="node-type-status">开始</div>
             </div>
             <div v-if="node.type === 'endpoint'" :class="['node-circle', isPreview ? '' : 'finished']">
-                <van-icon name="stop-circle-o" />
+                <van-icon slot="icon" class-prefix="icon" name="node-branchgateway" />
             </div>
         </template>
     </MobileNodeCanvas>
@@ -70,13 +70,13 @@
             id: 'nodeb662bc1afb5e60daa67e69f48de1',
             x: 20,
             y: 0,
-            type: 'start'
+            type: 'startpoint'
         },
         {
             id: 'node74b1ec6275b60d5c22c9848466f1',
             x: 150,
             y: 0,
-            type: 'endpoint'
+            type: 'tasknode'
         },
         {
             id: 'noded782259a6895c557a452252ec65a',
@@ -88,13 +88,13 @@
             id: 'noded782259a6895c557a452252ec781',
             x: 610,
             y: 0,
-            type: 'startpoint'
+            type: 'tasknode'
         },
         {
             id: 'node74b1ec6275b60d5c22c984525211',
             x: 840,
             y: 0,
-            type: 'end'
+            type: 'endpoint'
         }
     ]
 
@@ -138,18 +138,39 @@
         width: 60px;
         height: 60px;
         line-height: 60px;
-        font-size: 32px;
+        font-size: 30px;
         color: #53699d;
         text-align: center;
-        background: #fafafa;
+        background: #fff;
         border-radius: 50%;
         border: 1px dashed #b1b5bc;
-        .van-icon{
+        .icon{
+            display: block;
             margin-top: 14px;
+        }
+        .node-type-status{
+            background: #53699d;
+            border-radius: 25px;
+            display: block;
+            font-size: $fs-12;
+            color: $white;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            vertical-align: middle;
+            margin: 4px;
         }
     }
     .finished{
-        border-color: #30d878;
-        color: #30d878;
+        border-color: #2fca55;
+        color: #2fca55;
+    }
+    .failed{
+        border-color: #ea3636;
+        color: #ea3636;
+    }
+    .suspended{
+        border-color: #ff9c01;
+        color: #ff9c01;
     }
 </style>

@@ -337,9 +337,9 @@
             // 设置节点端点
             setNodeEndPoint (node, options) {
                 let endpoints
-                if (node.type === 'start') {
+                if (node.type === 'startpoint') {
                     endpoints = ['Right']
-                } else if (node.type === 'end') {
+                } else if (node.type === 'endpoint') {
                     endpoints = ['Left']
                 } else {
                     endpoints = options.anchor
