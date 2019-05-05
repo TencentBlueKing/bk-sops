@@ -164,8 +164,8 @@ class ComponentTestMixin(object):
                                              name=case.name,
                                              msg='schedule_finished assertion failed:'
                                                  '\nexpected: {expected}\nactual: {actual}'.format(
-                                                 expected=assertion.schedule_finished,
-                                                 actual=bound_service.is_schedule_finished())))
+                                                 expected=assertion.schedule_finished,  # noqa
+                                                 actual=bound_service.is_schedule_finished())))  # noqa
 
                         if do_continue:
                             break
