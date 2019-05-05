@@ -127,7 +127,7 @@
             BaseInput,
             TaskParamEdit
         },
-        props: ['cc_id', 'template_id', 'common', 'previewData', 'periodEntrance', 'recordEntrance'],
+        props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance'],
         data () {
             return {
                 i18n: {
@@ -188,10 +188,10 @@
                 return !this.pipelineData.constants || Object.keys(this.pipelineData.constants).length === 0
             },
             isStartNowShow () {
-                if (this.periodEntrance === '1' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
+                if (this.entrance === '0' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
                     this.taskInformationStyle = false
                     this.isStartNow = false
-                } else if (this.recordEntrance === '2' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
+                } else if (this.entrance === '1' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
                     this.taskInformationStyle = false
                 } else if (!this.common && this.viewMode === 'app' && this.userType !== 'functor') {
                     this.taskInformationStyle = true
@@ -279,10 +279,10 @@
                     if (this.common) {
                         this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
                     } else {
-                        if (this.periodEntrance === '1') {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, periodEntrance: this.periodEntrance } })
-                        } else if (this.recordEntrance === '2') {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, recordEntrance: this.recordEntrance } })
+                        if (this.entrance === '0') {
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
+                        } else if (this.entrance === '1') {
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
                         } else {
                             this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
                         }

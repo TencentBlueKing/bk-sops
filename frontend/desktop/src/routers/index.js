@@ -121,8 +121,7 @@ const routers = new VueRouter({
                         step: route.params.step,
                         template_id: route.query.template_id,
                         common: route.query.common,
-                        periodEntrance: route.query.periodEntrance,
-                        recordEntrance: route.query.recordEntrance
+                        entrance: route.query.entrance
                     })
                 }]
         },
