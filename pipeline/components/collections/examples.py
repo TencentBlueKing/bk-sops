@@ -31,7 +31,7 @@ class SimpleExampleService(Service):
 
 
 class SimpleExampleComponent(Component):
-    name = u'example component'
+    name = 'example component'
     code = 'example_component'
     bound_service = SimpleExampleService
 
@@ -47,6 +47,6 @@ class PipeExampleService(Service):
 
 
 class PipeExampleComponent(Component):
-    name = u'pipe example component'
+    name = 'pipe example component'
     code = 'pipe_example_component'
     bound_service = PipeExampleService
