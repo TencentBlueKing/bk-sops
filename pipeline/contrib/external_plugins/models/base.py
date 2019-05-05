@@ -24,12 +24,6 @@ GIT = 'git'
 S3 = 's3'
 FILE_SYSTEM = 'fs'
 
-package_source_types = frozenset({
-    GIT,
-    S3,
-    FILE_SYSTEM
-})
-
 source_cls_factory = {}
 
 
@@ -81,7 +75,7 @@ class SourceManager(models.Manager):
 
 
 class ExternalPackageSource(models.Model):
-    name = models.CharField(_(u'包源名'), max_length=128, unique=True)
+    name = models.CharField(_(u"包源名"), max_length=128, unique=True)
     from_config = models.BooleanField(_(u"是否是从配置文件中读取的"), default=False)
     packages = JSONTextField(_(u"模块配置"))
 
@@ -97,6 +91,10 @@ class ExternalPackageSource(models.Model):
 
     @abstractmethod
     def importer(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def details(self):
         raise NotImplementedError()
 
     @property
@@ -121,3 +119,7 @@ class ExternalPackageSource(models.Model):
             except KeyError:
                 raise KeyError('Unsupported external source type: %s' % source_type)
             source_model_cls.objects.update_source_from_config(configs=configs)
+
+    @staticmethod
+    def package_source_types():
+        return list(source_cls_factory.keys())

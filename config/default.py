@@ -55,6 +55,7 @@ INSTALLED_APPS += (
     'gcloud.apigw',
     'gcloud.commons.template',
     'gcloud.periodictask',
+    'gcloud.external_plugins',
     'pipeline',
     'pipeline.component_framework',
     'pipeline.variable_framework',
