@@ -116,3 +116,13 @@ class SyncPackageSourceTestCase(TestCase):
 
         self.assertEqual(source.root_packages, self.ROOT_PACKAGES)
         RootPackage.objects.packages_for_source.assert_called_once_with(source)
+
+    @patch(ROOT_PACKAGES_DELETE_PACKAGES_IN_SOURCE, MagicMock())
+    def test_delete(self):
+        source = GitRepoSyncSource.objects.create_source(name=self.SOURCE_NAME,
+                                                         root_packages=self.ROOT_PACKAGES,
+                                                         **self.CREATE_KWARGS)
+        source_id = source.id
+        source.delete()
+        RootPackage.objects.delete_packages_in_source.assert_called_once_with(source)
+        self.assertRaises(GitRepoSyncSource.DoesNotExist, GitRepoSyncSource.objects.get, id=source_id)

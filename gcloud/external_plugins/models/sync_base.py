@@ -57,9 +57,7 @@ class SyncPackageSourceManager(models.Manager):
 
     @transaction.atomic()
     def delete_source(self, source_id):
-        source = self.get(id=source_id)
-        RootPackage.objects.delete_packages_in_source(source)
-        return source.delete()
+        return self.get(id=source_id).delete()
 
 
 class SyncPackageSource(models.Model):
