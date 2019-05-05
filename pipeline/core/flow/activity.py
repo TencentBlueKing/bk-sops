@@ -160,7 +160,7 @@ class Service(object):
     InputItem = namedtuple('InputItem', 'name key type required')
     OutputItem = namedtuple('OutputItem', 'name key type')
     interval = None
-    _result_output = OutputItem(name=_(u'执行结果'), key='_result', type='bool')
+    _result_output = OutputItem(name=_(u"执行结果"), key='_result', type='bool')
 
     def __init__(self, name=None):
         self.name = name

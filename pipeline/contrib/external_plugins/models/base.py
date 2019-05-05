@@ -75,7 +75,7 @@ class SourceManager(models.Manager):
 
 
 class ExternalPackageSource(models.Model):
-    name = models.CharField(_(u'包源名'), max_length=128, unique=True)
+    name = models.CharField(_(u"包源名"), max_length=128, unique=True)
     from_config = models.BooleanField(_(u"是否是从配置文件中读取的"), default=False)
     packages = JSONTextField(_(u"模块配置"))
 

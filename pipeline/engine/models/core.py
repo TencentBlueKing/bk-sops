@@ -521,7 +521,7 @@ class PipelineModelManager(models.Manager):
 
 
 class PipelineModel(models.Model):
-    id = models.CharField(u'pipeline ID', unique=True, primary_key=True, max_length=32)
+    id = models.CharField('pipeline ID', unique=True, primary_key=True, max_length=32)
     process = models.ForeignKey(PipelineProcess, null=True, on_delete=models.SET_NULL)
 
     objects = PipelineModelManager()

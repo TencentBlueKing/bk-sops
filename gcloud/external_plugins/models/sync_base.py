@@ -39,7 +39,7 @@ class RootPackageManager(models.Manager):
 
 
 class RootPackage(models.Model):
-    name = models.CharField(_(u'包名'), max_length=128)
+    name = models.CharField(_(u"包名"), max_length=128)
     source_type = models.CharField(_(u"包源类型"), max_length=64)
     source_id = models.IntegerField(_(u"同步源 ID"))
 
@@ -61,7 +61,7 @@ class SyncPackageSourceManager(models.Manager):
 
 
 class SyncPackageSource(models.Model):
-    name = models.CharField(_(u'同步源名'), max_length=128)
+    name = models.CharField(_(u"同步源名"), max_length=128)
 
     objects = SyncPackageSourceManager()
 
