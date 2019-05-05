@@ -141,8 +141,8 @@
             :cc_id="cc_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
-            :period-entrance="periodEntrance"
-            :template-type-search="templateTypeSearch"
+            :create-entrance="false"
+            :task-category="taskCategory"
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <ModifyPeriodicDialog
@@ -164,7 +164,6 @@
             @onDeletePeriodicCancel="onDeletePeriodicCancel">
         </DeletePeriodicDialog>
     </div>
-    
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -248,11 +247,12 @@
                 periodicName: undefined,
                 enabledSync: -1,
                 periodEntrance: '',
-                templateTypeSearch: false
+                taskCategory: []
             }
         },
         created () {
             this.getPeriodicList()
+            this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -261,6 +261,9 @@
                 'setPeriodicEnable',
                 'getPeriodic',
                 'deletePeriodic'
+            ]),
+            ...mapActions('template/', [
+                'loadBusinessBaseInfo'
             ]),
             async getPeriodicList () {
                 this.listLoading = true
@@ -287,6 +290,14 @@
                     errorHandler(e, this)
                 } finally {
                     this.listLoading = false
+                }
+            },
+            async getBizBaseInfo () {
+                try {
+                    const bizBasicInfo = await this.loadBusinessBaseInfo()
+                    this.taskCategory = bizBasicInfo.task_categories
+                } catch (e) {
+                    errorHandler(e, this)
                 }
             },
             searchInputhandler () {
@@ -397,8 +408,6 @@
             },
             onCreatePeriodTask () {
                 this.isNewTaskDialogShow = true
-                this.periodEntrance = 1
-                this.templateTypeSearch = true
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
