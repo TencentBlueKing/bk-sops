@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
 from pipeline.contrib.external_plugins.models import GIT
 
 from gcloud.external_plugins.models.sync_base import (
