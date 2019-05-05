@@ -120,7 +120,7 @@
             BaseInput,
             NodePreview
         },
-        props: ['cc_id', 'template_id', 'common', 'excludeNode', 'periodEntrance', 'recordEntrance'],
+        props: ['cc_id', 'template_id', 'common', 'excludeNode', 'entrance'],
         data () {
             return {
                 i18n: {
@@ -471,10 +471,10 @@
                         if (this.common) {
                             this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
                         } else {
-                            if (this.periodEntrance === '1') {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, periodEntrance: this.periodEntrance } })
-                            } else if (this.recordEntrance === '2') {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, recordEntrance: this.recordEntrance } })
+                            if (this.entrance === '0') {
+                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
+                            } else if (this.entrance === '1') {
+                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
                             } else {
                                 this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
                             }

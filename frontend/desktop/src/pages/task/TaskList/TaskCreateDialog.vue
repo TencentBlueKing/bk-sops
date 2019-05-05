@@ -21,17 +21,19 @@
                         :list="taskCategories"
                         :search-key="'name'"
                         :setting-key="'name'"
+                        :disabled="exportPending"
                         :selected.sync="filterCondition.type"
                         @item-selected="onChooseTemplateType">
                     </bk-selector>
                 </div>
                 <div class="task-search flow-types"
-                    :class="{ 'templateTypeSearch': templateTypeSearch }">
+                    v-if="createEntrance">
                     <bk-selector
                         :list="templateCategories"
                         :search-key="'name'"
                         :setting-key="'name'"
-                        :selected.sync="templateCategories.type"
+                        :disabled="exportPending"
+                        :selected.sync="defaultselected.type"
                         @item-selected="onChooseFlowType">
                     </bk-selector>
                 </div>
@@ -73,7 +75,7 @@
 <script>
     import '@/utils/i18n.js'
     import toolsUtils from '@/utils/tools.js'
-    import { mapState, mapActions } from 'vuex'
+    import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
@@ -81,7 +83,7 @@
         components: {
             NoData
         },
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'cc_id', 'periodEntrance', 'recordEntrance', 'templateTypeSearch'],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'cc_id', 'taskCategory', 'createEntrance'],
         data () {
             return {
                 i18n: {
@@ -92,7 +94,6 @@
                     cancel: gettext('取消'),
                     errorInfo: gettext('请选择流程模版')
                 },
-                commonality: '',
                 searchStr: '',
                 selectedTaskCategory: '',
                 selectedId: '',
@@ -109,10 +110,15 @@
                     type: gettext('全部分类'),
                     keywords: ''
                 },
+                defaultselected: {
+                    type: gettext('业务流程'),
+                    keywords: ''
+                },
                 templateCategories: [
                     {
                         value: 'BusinessProcess',
-                        name: gettext('业务流程')
+                        name: gettext('业务流程'),
+                        keywords: ''
                     },
                     {
                         value: 'PublicProcess',
@@ -122,39 +128,13 @@
             }
         },
         computed: {
-            ...mapState({
-                'businessBaseInfo': state => state.template.businessBaseInfo
-            }),
             taskCategories () {
-                if (this.businessBaseInfo.task_categories.length === 0) {
+                if (this.taskCategory.length === 0) {
                     this.getCategorys()
                 }
-                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
-                list.unshift({ value: 'all', name: gettext('所有类型流程') })
+                const list = toolsUtils.deepClone(this.taskCategory)
+                list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
-            }
-        },
-        watch: {
-            filterCondition: {
-                deep: true,
-                handler (condition) {
-                    // 过滤出一级分类信息
-                    const sourceList = JSON.parse(JSON.stringify(this.taskList))
-                    const template = sourceList.find(item => item.name === condition.type)
-                    let filteredList = sourceList
-                    if (template) {
-                        filteredList = [template]
-                    }
-                    this.templates = filteredList.filter(item => {
-                        item.children = item.children.filter(childItem => childItem.name.includes(condition.keywords))
-                        return item.children.length
-                    })
-                }
-            },
-            periodEntrance () {
-                if (this.periodEntrance === 1) {
-                    this.templateTypeSearch = true
-                }
             }
         },
         created () {
@@ -173,19 +153,17 @@
                     const data = {
                         common: this.common
                     }
+                    const list = ''
                     const respData = await this.loadTemplateList(data)
                     const flowList = respData.objects
-                    this.publicData.common = this.commonality
-                    const publicRespData = await this.loadTemplateList(this.publicData)
-                    const publicList = publicRespData.objects
-                    const list = ''
-                    if (this.publicData.common === 1) {
-                        this.list = publicList
+                    if (this.createEntrance === true) {
+                        this.publicData.common = 1
+                        const publicRespData = await this.loadTemplateList(this.publicData)
+                        const publicList = publicRespData.objects
                         this.publicWarehouse = publicList
-                    } else {
-                        this.list = flowList
-                        this.businessWarehouse = flowList
                     }
+                    this.list = flowList
+                    this.businessWarehouse = flowList
                     this.taskList = this.getGroupedList(list)
                     this.taskList.forEach((item) => {
                         item.children.forEach((group) => {
@@ -202,7 +180,7 @@
             getGroupedList (list) {
                 const groups = []
                 const atomGrouped = []
-                this.businessBaseInfo.task_categories.forEach(item => {
+                this.taskCategory.forEach(item => {
                     groups.push(item.value)
                     atomGrouped.push({
                         name: item.name,
@@ -228,13 +206,13 @@
                     return
                 }
                 let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.selectedId}`
-                if (this.publicData.common) {
+                if (this.defaultselected.type === '公共流程') {
                     url += '&common=1'
                 }
-                if (this.periodEntrance === 1) {
-                    url += '&periodEntrance=1'
-                } else if (this.recordEntrance === 2) {
-                    url += '&recordEntrance=2'
+                if (this.createEntrance === false) {
+                    url += '&entrance=0'
+                } else if (this.createEntrance === true) {
+                    url += '&entrance=1'
                 }
                 this.$router.push(url)
             },
@@ -247,37 +225,21 @@
                 template.ischecked = !template.ischecked
             },
             onChooseTemplateType () {
-                console.log(this.filterCondition.type)
-                if ((this.templates.length !== 1) && (this.filterCondition.type !== '全部分类')) {
-                    this.templates = []
-                }
+                this.onFiltrationTemplate()
             },
             onChooseFlowType () {
-                console.log(this.templateCategories.type)
-                if (this.templateCategories.type === '业务流程') {
+                if (this.defaultselected.type === '业务流程') {
                     this.list = this.businessWarehouse
-                    this.taskList = this.getGroupedList(this.list)
-                    this.taskList.forEach((item) => {
-                        item.children.forEach((group) => {
-                            this.$set(group, 'ischecked', false)
-                        })
-                    })
-                    this.onFiltrationTemplate()
-                } else if (this.templateCategories.type === '公共流程') {
-                    this.commonality = 1
-                    if (Object.keys(this.publicWarehouse).length === 0) {
-                        this.getTaskData()
-                    } else {
-                        this.list = this.publicWarehouse
-                        this.taskList = this.getGroupedList(this.list)
-                        this.taskList.forEach((item) => {
-                            item.children.forEach((group) => {
-                                this.$set(group, 'ischecked', false)
-                            })
-                        })
-                        this.onFiltrationTemplate()
-                    }
+                } else if (this.defaultselected.type === '公共流程') {
+                    this.list = this.publicWarehouse
                 }
+                this.taskList = this.getGroupedList(this.list)
+                this.taskList.forEach((item) => {
+                    item.children.forEach((group) => {
+                        this.$set(group, 'ischecked', false)
+                    })
+                })
+                this.onFiltrationTemplate()
             },
             onFiltrationTemplate () {
                 const sourceList = JSON.parse(JSON.stringify(this.taskList))
@@ -286,14 +248,15 @@
                 if (template) {
                     filteredList = [template]
                 }
+                this.searchMode = false
                 this.templates = filteredList.filter(item => {
                     item.children = item.children.filter(childItem => childItem.name.includes(this.filterCondition.keywords))
                     return item.children.length
                 })
                 if ((this.templates.length !== 1) && (this.filterCondition.type !== '全部分类')) {
                     this.templates = []
+                    this.searchMode = true
                 }
-                return this.templates
             }
         }
     }
@@ -327,9 +290,6 @@
             font-size: 12px;
             font-weight:400;
         }
-    }
-    .templateTypeSearch {
-        display: none;
     }
     .task-search {
         position: relative;
