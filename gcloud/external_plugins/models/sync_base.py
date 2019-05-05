@@ -82,3 +82,7 @@ class SyncPackageSource(models.Model):
     @property
     def root_packages(self):
         return RootPackage.objects.packages_for_source(self)
+
+    def delete(self, using=None, keep_parents=False):
+        RootPackage.objects.delete_packages_in_source(self)
+        super(SyncPackageSource, self).delete(using=using, keep_parents=keep_parents)
