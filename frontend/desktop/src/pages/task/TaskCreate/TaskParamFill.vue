@@ -318,7 +318,11 @@
                                     this.$router.push({ path: `/taskflow/home/${this.cc_id}/` })
                                 }
                             } else {
-                                this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id } })
+                                if (this.common) {
+                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id, common: this.common } })
+                                } else {
+                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id } })
+                                }
                             }
                         } catch (e) {
                             errorHandler(e, this)
