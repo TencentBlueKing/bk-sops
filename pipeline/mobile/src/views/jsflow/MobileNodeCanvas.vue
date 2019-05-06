@@ -158,8 +158,8 @@
             default: function _default () {
                 return {
                     endpoint: 'Rectangle',
-                    anchor: ['Left', 'Right'],
-                    isSource: true,
+                    anchor: ['Top', 'Right', 'Bottom', 'Left'],
+                    isSource: false,
                     isTarget: true,
                     paintStyle: {},
                     hoverPaintStyle: {}
@@ -312,7 +312,7 @@
             renderData () {
                 this.instance.batch(() => {
                     this.nodes.forEach(node => {
-                        // this.setNodeDraggable(node)
+                        // 节点拖拽// this.setNodeDraggable(node)
                         this.setNodeEndPoint(node, this.endpointOptions)
                     })
                     this.lines.forEach(line => {
@@ -336,14 +336,7 @@
             },
             // 设置节点端点
             setNodeEndPoint (node, options) {
-                let endpoints
-                if (node.type === 'startpoint') {
-                    endpoints = ['Right']
-                } else if (node.type === 'endpoint') {
-                    endpoints = ['Left']
-                } else {
-                    endpoints = options.anchor
-                }// const endpoints = node.endpoints || ['Top', 'Right', 'Bottom', 'Left']
+                const endpoints = options.anchor
                 endpoints.forEach(item => {
                     this.instance.addEndpoint(node.id, {
                         ...options,
@@ -697,7 +690,7 @@
         position: absolute;
         top: 0;
         left: 0;
-        bottom: 50px;
+        bottom: 0;
         right: 0;
         z-index: auto;
         .tool-panel-wrap {
@@ -717,11 +710,13 @@
             border-right: 1px solid #cccccc;
         }
         .canvas-flow-wrap {
-            position: relative;
-            height: 100%;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
+            position: fixed;
+            /*height: 100%;*/
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            bottom: 0;
+            /*overflow: hidden;*/
         }
         .canvas-flow {
             position: relative;
