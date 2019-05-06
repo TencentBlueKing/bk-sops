@@ -16,6 +16,7 @@
         <TaskStep
             :list="stepList"
             :current-step="currentStep"
+            :common="common"
             :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
@@ -63,7 +64,7 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['cc_id', 'instance_id'],
+        props: ['cc_id', 'instance_id', 'common'],
         data () {
             return {
                 taskDataLoading: true,
