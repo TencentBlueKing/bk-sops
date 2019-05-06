@@ -16,6 +16,7 @@
     }">
         <TaskStep
             :list="stepList"
+            :common="common"
             :current-step="currentStep">
         </TaskStep>
         <component

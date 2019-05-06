@@ -14,6 +14,7 @@
         <div class="step-header">
             <div class="step-section-title">
                 <span>{{ taskTemplateTitle }}</span>
+                <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
             </div>
         </div>
         <div class="division-line"></div>
@@ -43,12 +44,13 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished'],
+        props: ['list', 'currentStep', 'allFinished', 'common'],
         data () {
             return {
                 i18n: {
                     newTask: gettext('新建任务'),
-                    taskExecution: gettext('任务执行')
+                    taskExecution: gettext('任务执行'),
+                    return: gettext('返回')
                 }
             }
         },
@@ -99,6 +101,13 @@
                     style['left'] = nameLength * -2 + 'px'
                 }
                 return style
+            },
+            getHomeUrl () {
+                let url = `/template/home/${this.cc_id}/`
+                if (this.common) {
+                    url += '?common=1&common_template=common'
+                }
+                return url
             }
         }
     }
@@ -110,6 +119,13 @@
     border: 1px solid #cacedb;
     .step-header {
         background-color: #f4f7fa;
+        .bk-button-default {
+            float: right;
+            position: relative;
+            top: 16px;
+            right: 20px;
+            width: 90px
+        }
     }
     .division-line {
         margin: 0 20px 10px 20px;
