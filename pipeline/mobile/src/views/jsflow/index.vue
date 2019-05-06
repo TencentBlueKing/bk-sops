@@ -1,12 +1,12 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <MobileNodeCanvas ref="mobileNodeCanvas" selector="entry-item" v-model="canvasData" :is-preview="isPreview">
         <template v-slot:nodeTemplate="{ node }">
-            <node-template :node="node" :is-preview="isPreview"></node-template>
+            <node-template v-if="node.type !== 'startpoint' && node.type !== 'endpoint'" :node="node" :is-preview="isPreview"></node-template>
             <div v-if="node.type === 'startpoint'" :class="['node-circle', isPreview ? '' : 'finished']">
                 <div class="node-type-status">开始</div>
             </div>
             <div v-if="node.type === 'endpoint'" :class="['node-circle', isPreview ? '' : 'finished']">
-                <van-icon slot="icon" class-prefix="icon" name="node-branchgateway" />
+                <div class="node-type-status">结束</div>
             </div>
         </template>
     </MobileNodeCanvas>
@@ -122,8 +122,11 @@
             console.log(nodes)
             console.log(lines)
             console.log(`isPreview=${this.isPreview}`)
-            console.log(JSON.stringify(this.canvasData.lines))
+            // this.canvasData.nodes.map(node => {
+            //     node.y = node.y - node.y
+            // })
             console.log(JSON.stringify(this.canvasData.nodes))
+            console.log(JSON.stringify(this.canvasData.lines))
             // this.$refs.jsFlow.addLineOverlay(lines[1], {type: 'Label', name: 'test', location: -100})
             // this.$refs.jsFlow.setCanvasPosition(100, 100)
         },
