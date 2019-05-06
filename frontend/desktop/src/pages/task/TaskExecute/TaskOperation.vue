@@ -52,13 +52,13 @@
                 </div>
                 <div class="task-params-btns">
                     <bk-button
-                        :class="['params-btn', '', {
+                        :class="['params-btn', {
                             actived: nodeInfoType === 'viewParams'
                         }]"
                         type="default"
                         size="mini"
                         hide-text="true"
-                        icon="common-icon common-icon-dark-paper"
+                        icon="common-icon common-icon-dark-paper params-btn-icon"
                         v-bktooltips.bottom="i18n.params"
                         @click="onTaskParamsClick('viewParams')">
                     </bk-button>
@@ -69,7 +69,7 @@
                         type="default"
                         size="mini"
                         hide-text="true"
-                        icon="common-icon common-icon-edit"
+                        icon="common-icon common-icon-edit params-btn-icon"
                         v-bktooltips.bottom="i18n.changeParams"
                         @click="onTaskParamsClick('modifyParams')">
                     </bk-button>
@@ -375,6 +375,7 @@
                 try {
                     const res = await this.instanceStart(this.instance_id)
                     if (res.result) {
+                        this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
                             message: gettext('任务开始执行'),
@@ -402,6 +403,7 @@
                         res = await this.instancePause(this.instance_id)
                     }
                     if (res.result) {
+                        this.state = 'SUSPENDED'
                         this.$bkMessage({
                             message: gettext('任务暂停成功'),
                             theme: 'success'
@@ -428,6 +430,7 @@
                         res = await this.instanceResume(this.instance_id)
                     }
                     if (res.result) {
+                        this.state = 'RUNNING'
                         this.setTaskStatusTimer()
                         this.$bkMessage({
                             message: gettext('任务继续成功'),
@@ -446,6 +449,7 @@
                 try {
                     const res = await this.instanceRevoke(this.instance_id)
                     if (res.result) {
+                        this.state = 'REVOKE'
                         this.$bkMessage({
                             message: gettext('任务撤销成功'),
                             theme: 'success'
@@ -727,7 +731,7 @@
             },
             handleNodeInfoPanelHide (e) {
                 const classList = e.target.classList
-                const isParamsBtn = classList.contains('params-btn')
+                const isParamsBtn = classList.contains('params-btn-icon')
                 const isTooltipBtn = classList.contains('tooltip-btn')
                 if (!this.isNodeInfoPanelShow || isParamsBtn || isTooltipBtn) {
                     return
@@ -1237,11 +1241,15 @@
                 margin-right: 35px;
                 height: 32px;
                 line-height: 32px;
+                font-size: 14px;
             }
             .execute-btn {
                 width: 140px;
                 color: #ffffff;
                 background: #2dcb56 !important; // 覆盖 bk-button important 规则
+                &:hover {
+                    background: #1f9c40 !important; // 覆盖 bk-button important 规则
+                }
                 &.is-disabled {
                     color: #ffffff !important; // 覆盖 bk-button important 规则
                     opacity: 0.4;
@@ -1250,7 +1258,6 @@
             .revoke-btn {
                 padding: 0;
                 background: transparent !important; // 覆盖 bk-button important 规则
-                font-size: 14px;
                 color: #ea3636;
                 &:hover {
                     color: #c32929;
@@ -1264,8 +1271,11 @@
             .params-btn {
                 margin-right: 24px;
                 padding: 0;
-                color: #9795a5;
-                font-size: 14px;
+                color: #979ba5;
+                font-size: 16px;
+                &.actived {
+                    color: #63656e;
+                }
             }
         }
     }
