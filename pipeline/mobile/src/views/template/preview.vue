@@ -1,5 +1,7 @@
 <template>
-    <MobileCanvas :is-preview="true" :canvas-data="canvasData"></MobileCanvas>
+    <div class="page-view">
+        <MobileCanvas :is-preview="true" :canvas-data="canvasData"></MobileCanvas>
+    </div>
 </template>
 
 <script>
