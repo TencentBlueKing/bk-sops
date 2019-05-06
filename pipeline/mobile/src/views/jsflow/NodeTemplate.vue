@@ -1,6 +1,16 @@
 <template>
     <div
-        v-if="node.type !== 'startpoint' && node.type !== 'endpoint'"
+        v-if="node.type !== 'startpoint' && node.type !== 'endpoint' && node.type === 'tasknode'"
+        ref="nodeLocation"
+        class="bk-flow-location"
+        @click="onNodeClick(node, $event)">
+        <div class="node-name">
+            <p class="name">{{ node.name }}</p>
+        </div>
+        <div class="task-name">{{ node.stage_name }}</div>
+    </div>
+    <div
+        v-else-if="node.type !== 'startpoint' && node.type !== 'endpoint' && node.type === 'subflow'"
         ref="nodeLocation"
         class="bk-flow-location node-subflow"
         @click="onNodeClick(node, $event)">
@@ -12,6 +22,13 @@
         </div>
         <div class="task-name">{{ node.stage_name }}</div>
     </div>
+    <div
+        v-else
+        ref="nodeLocation"
+        class="node-circle">
+        <van-icon slot="icon" class-prefix="icon" :name="`node-${node.type}`" />
+    </div>
+
 </template>
 <script>
     export default {
@@ -34,7 +51,6 @@
             }
         },
         mounted () {
-            console.log(`this.isPreview=${this.isPreview}`)
             this.showNodePosition()
         },
         methods: {
@@ -42,7 +58,6 @@
                 if (this.isPreview) {
                     return false
                 }
-                console.log(node.x, node.y)
                 const $tool = document.getElementById('tool' + this.node.id)
                 if ($tool.style.display === 'none') {
                     $tool.style.display = ''
