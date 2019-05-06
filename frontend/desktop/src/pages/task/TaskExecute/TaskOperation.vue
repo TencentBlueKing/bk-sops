@@ -102,7 +102,7 @@
                     v-if="nodeInfoType === 'viewParams'"
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
-                    :node-detail-config="nodeDetailConfig"
+                    :tree-node-config="treeNodeConfig"
                     @onClickTreeNode="onClickTreeNode">
                 </ViewParams>
                 <ModifyParams
@@ -228,6 +228,7 @@
                 taskParamsType: '',
                 timer: null,
                 pipelineData: pipelineData,
+                treeNodeConfig: {},
                 nodeDetailConfig: {},
                 nodeSwitching: false,
                 isGatewaySelectDialogShow: false,
@@ -893,7 +894,6 @@
             },
             // 查看参数、修改参数
             onTaskParamsClick (type) {
-                this.nodeDetailConfig = {}
                 if (this.nodeInfoType === type) {
                     this.isNodeInfoPanelShow = false
                     this.nodeInfoType = ''
@@ -1030,13 +1030,13 @@
                         this.pipelineData = nodeActivities.pipeline
                         this.cancelTaskStatusTimer()
                         this.updateTaskStatus(nodeActivities.id)
-                        this.nodeDetailConfig = {}
+                        this.treeNodeConfig = {}
                     } else { // click single task node
                         let subprocessStack = []
                         if (this.selectedFlowPath.length > 1) {
                             subprocessStack = this.selectedFlowPath.map(item => item.nodeId).slice(1, -1)
                         }
-                        this.nodeDetailConfig = {
+                        this.treeNodeConfig = {
                             component_code: nodeActivities.component.code,
                             node_id: nodeActivities.id,
                             instance_id: this.instance_id,
@@ -1050,7 +1050,7 @@
                     this.cancelTaskStatusTimer()
                     this.updateTaskStatus(this.instance_id)
                     this.selectedFlowPath = nodePath
-                    this.nodeDetailConfig = {}
+                    this.treeNodeConfig = {}
                 }
             },
             onRetrySuccess (id) {
