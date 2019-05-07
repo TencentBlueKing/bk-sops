@@ -13,15 +13,16 @@ specific language governing permissions and limitations under the License.
 
 import json
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.components.utils import handle_api_error
 
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_REQUEST as get_client_by_request
-
 from .utils import get_cmdb_topo_tree
 from .constants import NO_ERROR, ERROR_CODES
+
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def cmdb_search_topo_tree(request, bk_biz_id, bk_supplier_account=''):
