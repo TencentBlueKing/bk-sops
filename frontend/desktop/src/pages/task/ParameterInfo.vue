@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
+    <div class="parameter-info-wrap" v-bkloading="{ isLoading: isParameterInfoLoading, opacity: 1 }">
         <TaskParamEdit
             v-if="isReferencedShow"
             class="task-param-wrapper"
@@ -54,7 +54,7 @@
             TaskParamEdit,
             NoData
         },
-        props: ['referencedVariable', 'unReferencedVariable'],
+        props: ['referencedVariable', 'unReferencedVariable', 'taskMessageLoading'],
         data () {
             return {
                 i18n: {
@@ -62,56 +62,38 @@
                     executorTips: gettext('在创建流程时可选择“变量”是否被引用，未被引用的“变量”则在创建任务时（当前步骤）不可编辑。')
                 },
                 isUnrefVarShow: false,
-                isRefVarLoadingChange: false,
-                isUnRefVarLoadingChange: false,
-                referenceVariableData: true,
-                unReferencedVariableData: true,
-                parameterInfoLoading: true
+                isRefVarLoading: true,
+                isUnRefVarLoading: true
+
             }
         },
         computed: {
-            isParameterInfoLoading () {
-                if (this.isRefVarLoadingChange === true && this.isUnRefVarLoadingChange === true) {
-                    this.parameterInfoLoading = false
-                } else if (this.referenceVariableData === false && this.isUnRefVarLoadingChange === true) {
-                    this.parameterInfoLoading = false
-                } else if (this.unReferencedVariableData === false && this.isRefVarLoadingChange === true) {
-                    this.parameterInfoLoading = false
-                } else if (this.unReferencedVariableData === false && this.referenceVariableData === false) {
-                    this.parameterInfoLoading = false
-                } else {
-                    this.parameterInfoLoading = true
-                }
-                this.$nextTick(() => {
-                    this.$emit('onParameterInfoLoading', this.parameterInfoLoading)
-                })
-                return this.parameterInfoLoading
-            },
             isReferencedShow () {
-                if (Object.keys(this.referencedVariable).length === 0) {
-                    this.referenceVariableData = false
-                } else {
-                    this.referenceVariableData = true
-                }
-                return this.referenceVariableData
+                return this.taskMessageLoading ? false : (Object.keys(this.referencedVariable).length > 0)
             },
             isUnreferencedShow () {
-                if (Object.keys(this.unReferencedVariable).length === 0) {
-                    this.unReferencedVariableData = false
-                } else {
-                    this.unReferencedVariableData = true
-                }
-                return this.unReferencedVariableData
+                return this.taskMessageLoading ? false : (Object.keys(this.unReferencedVariable).length > 0)
+            },
+            isParameterInfoLoading () {
+                return this.isRefVarLoading || this.isUnRefVarLoading
             },
             isNoData () {
-                return this.referenceVariableData === false && this.unReferencedVariableData === false
+                return !this.taskMessageLoading && !this.isReferencedShow && !this.isUnreferencedShow
             }
         },
         watch: {
-            parameterInfoLoading () {
-                this.$nextTick(() => {
-                    this.$emit('onParameterInfoLoading', this.parameterInfoLoading)
-                })
+            isParameterInfoLoading (newVal) {
+                this.$emit('onParameterInfoLoading', newVal)
+            },
+            taskMessageLoading (val) {
+                if (!val) {
+                    if (!this.isReferencedShow) {
+                        this.isRefVarLoading = false
+                    }
+                    if (!this.isUnreferencedShow) {
+                        this.isUnRefVarLoading = false
+                    }
+                }
             }
         },
         methods: {
@@ -119,10 +101,10 @@
                 this.isUnrefVarShow = !this.isUnrefVarShow
             },
             onRefVarLoadingChange () {
-                this.isRefVarLoadingChange = true
+                this.isRefVarLoading = false
             },
             onUnRefVarLoadingChange () {
-                this.isUnRefVarLoadingChange = true
+                this.isUnRefVarLoading = false
             }
         }
     }
@@ -131,6 +113,9 @@
 @import '@/scss/config.scss';
 .task-param-wrapper {
     margin: 0 20px 20px 20px;
+}
+.parameter-info-wrap {
+    min-height: 180px;
 }
 .variable-wrap {
     background: #f0f1f5;
@@ -142,14 +127,9 @@
     }
     .title-background {
         padding-left: 20px;
+        cursor: pointer;
         &:hover {
             background: #e4e6ed;
-        }
-        cursor: pointer;
-        .common-icon-tooltips:hover {
-            .tooltips-direction-icon, .unreferenced-tooltips {
-                display: block;
-            }
         }
         .un-referencedvariable {
             display: inline-block;
@@ -169,32 +149,9 @@
             position: relative;
             right: 12px;
         }
-        .tooltips-direction-icon {
-                display: none;
-                white: 0px;
-                height: 0px;
-                border-left: 8px solid transparent;
-                border-top: 8px solid transparent;
-                border-right: 8px solid transparent;
-                border-bottom: 8px solid black;
-        }
         .unreference-show {
             top: 2px;
             transform: rotate(90deg);
-        }
-        .unreferenced-tooltips {
-            display :none;
-            position: absolute;
-            top: 50px;
-            width: 265px;
-            height: 55px;
-            right: 5px;
-            font-size: 12px;
-            line-height: 15px;
-            color: white;
-            background: black;
-            padding: 4px 5px 0px 5px;
-            border-radius: 4px;
         }
         .title {
             line-height: 60px;
