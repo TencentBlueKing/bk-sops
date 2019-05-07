@@ -32,9 +32,9 @@ from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.constants import PermNm
 from gcloud.taskflow3.decorators import check_user_perm_of_task
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
 
 logger = logging.getLogger("root")
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 @require_GET

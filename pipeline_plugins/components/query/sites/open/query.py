@@ -15,26 +15,26 @@ import re
 import os
 import logging
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.conf.urls import url
 
-from pipeline_plugins.components.utils import (cc_get_inner_ip_by_module_id,
-                                               supplier_account_inject,
-                                               handle_api_error,
-                                               supplier_id_inject)
-
+from pipeline_plugins.components.utils import (
+    cc_get_inner_ip_by_module_id,
+    supplier_account_inject,
+    handle_api_error,
+    supplier_id_inject
+)
 from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_search_host,
     cmdb_search_topo_tree,
     cmdb_get_mainline_object_topo
 )
 
-from gcloud.conf import settings
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_REQUEST as get_client_by_request
-
 logger = logging.getLogger('root')
+get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 
 JOB_VAR_TYPE_STR = 1
 JOB_VAR_TYPE_IP = 2
@@ -287,7 +287,7 @@ def file_upload(request, biz_cc_id):
             })
 
         now_str = timezone.datetime.now().strftime('%Y%m%d%H%M%S')
-        bk_path = os.path.join(settings.PROJECT_ROOT,
+        bk_path = os.path.join(settings.BASE_DIR,
                                'USERRES',
                                'bkupload',
                                str(biz_cc_id),
