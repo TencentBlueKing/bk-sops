@@ -506,18 +506,4 @@
         border-color: #2dcb56;
     }
 }
-/deep/ .el-input {
-    .el-input__inner {
-        max-width: 500px;
-        height: 36px;
-    }
-}
-/deep/ .el-textarea {
-    .el-textarea__inner {
-        width: 500px;
-    }
-}
-/deep/ .el-select {
-    max-width: 500px;
-}
 </style>
