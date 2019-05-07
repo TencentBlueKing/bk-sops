@@ -89,8 +89,9 @@
             </div>
             <div>
                 <ParameterInfo
-                    :referenced-variable="pipelineData"
+                    :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
+                    :task-message-loading="taskMessageLoading"
                     @onParameterInfoLoading="onParameterInfoLoading">
                 </ParameterInfo>
             </div>
@@ -121,7 +122,7 @@
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
-    import ParameterInfo from '../ParameterInfo.vue'
+    import ParameterInfo from '@/pages/task/ParameterInfo.vue'
 
     export default {
         name: 'TaskParamFill',
@@ -180,14 +181,8 @@
                 'app_id': state => state.app_id,
                 'businessTimezone': state => state.businessTimezone
             }),
-            isSchemeShow () {
-                return this.pipelineData.location.some(item => item.optional)
-            },
             isTaskTypeShow () {
                 return this.userType !== 'functor' && this.isStartNow
-            },
-            isVariableEmpty () {
-                return !this.pipelineData.constants || Object.keys(this.pipelineData.constants).length === 0
             },
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && this.userType !== 'functor'
@@ -229,7 +224,7 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    this.pipelineData = previewData.data.pipeline_tree.constants
+                    this.pipelineData = previewData.data.pipeline_tree
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
