@@ -216,6 +216,12 @@ class DefaultIntervalGenerator(AbstractIntervalGenerator):
         return self.count ** 2
 
 
+class SquareIntervalGenerator(AbstractIntervalGenerator):
+    def next(self):
+        super(SquareIntervalGenerator, self).next()
+        return self.count ** 2
+
+
 class NullIntervalGenerator(AbstractIntervalGenerator):
     pass
 
