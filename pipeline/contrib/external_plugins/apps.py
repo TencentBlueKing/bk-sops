@@ -24,7 +24,7 @@ logger = logging.getLogger('root')
 
 class ExternalPluginsConfig(AppConfig):
     name = 'pipeline.contrib.external_plugins'
-    label = 'gcloud_external_plugins'
+    label = 'pipeline_external_plugins'
     verbose_name = 'PipelineExternalPlugins'
 
     def ready(self):
