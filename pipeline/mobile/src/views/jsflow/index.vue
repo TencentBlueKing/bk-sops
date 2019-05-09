@@ -163,17 +163,26 @@
             vertical-align: middle;
             margin: 4px;
         }
-    }
-    .finished{
-        border-color: #2fca55;
-        color: #2fca55;
-    }
-    .failed{
-        border-color: #ea3636;
-        color: #ea3636;
-    }
-    .suspended{
-        border-color: #ff9c01;
-        color: #ff9c01;
+        &.finished{
+            border-color: #2fca55;
+            color: #2fca55;
+            .node-type-status{
+                background: #2fca55;
+            }
+        }
+        &.failed{
+            border-color: #ea3636;
+            color: #ea3636;
+            .node-type-status{
+                background: #ea3636;
+            }
+        }
+        &.suspended{
+            border-color: #ff9c01;
+            color: #ff9c01;
+            .node-type-status{
+                background: #ff9c01;
+            }
+        }
     }
 </style>
