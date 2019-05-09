@@ -95,7 +95,7 @@ class TestGitRepoOriginalSource(TestCase):
         details = {}
         details.update(self.ORIGINAL_KWARGS)
         details.update(self.SOURCE_KWARGS)
-        self.assertEquals(self.original_source.details(), details)
+        self.assertEquals(self.original_source.details, details)
 
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
@@ -175,7 +175,7 @@ class TestS3OriginalSource(TestCase):
     def test_details(self):
         details = {}
         details.update(self.SOURCE_KWARGS)
-        self.assertEquals(self.original_source.details(), details)
+        self.assertEquals(self.original_source.details, details)
 
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
@@ -247,7 +247,7 @@ class TestFileSystemOriginalSource(TestCase):
     def test_details(self):
         details = {}
         details.update(self.SOURCE_KWARGS)
-        self.assertEquals(self.original_source.details(), details)
+        self.assertEquals(self.original_source.details, details)
 
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)

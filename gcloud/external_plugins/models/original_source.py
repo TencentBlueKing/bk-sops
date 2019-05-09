@@ -90,6 +90,11 @@ class OriginalPackageSource(PackageSource):
     def reader(self):
         raise NotImplementedError()
 
+    @property
+    @abstractmethod
+    def details(self):
+        raise NotImplementedError()
+
     def update_base_source(self, source_type, packages, **kwargs):
         if source_type != self.type:
             raise exceptions.OriginalSourceTypeError('Original source type cannot be updated')
@@ -106,6 +111,7 @@ class GitRepoOriginalSource(OriginalPackageSource):
     def original_type():
         return GIT
 
+    @property
     def details(self):
         return {
             'repo_address': self.repo_address,
@@ -156,6 +162,7 @@ class S3OriginalSource(OriginalPackageSource):
     def original_type():
         return S3
 
+    @property
     def details(self):
         return {
             'service_address': self.service_address,
@@ -184,6 +191,7 @@ class FileSystemOriginalSource(OriginalPackageSource):
     def original_type():
         return FILE_SYSTEM
 
+    @property
     def details(self):
         return {
             'path': self.path
