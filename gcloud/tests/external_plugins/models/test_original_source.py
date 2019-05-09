@@ -263,4 +263,3 @@ class TestFileSystemOriginalSource(TestCase):
         )
         self.original_source = FileSystemOriginalSource.objects.get(id=self.original_source.id)
         self.assertEquals(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
-
