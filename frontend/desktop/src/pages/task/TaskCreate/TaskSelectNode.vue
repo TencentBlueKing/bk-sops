@@ -471,9 +471,7 @@
                         if (this.common) {
                             this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
                         } else {
-                            if (this.entrance === '0') {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
-                            } else if (this.entrance === '1') {
+                            if (this.entrance !== undefined) {
                                 this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
                             } else {
                                 this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })

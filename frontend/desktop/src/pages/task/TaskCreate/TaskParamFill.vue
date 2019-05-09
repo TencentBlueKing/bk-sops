@@ -187,18 +187,9 @@
             isVariableEmpty () {
                 return !this.pipelineData.constants || Object.keys(this.pipelineData.constants).length === 0
             },
+            // 默认是true
             isStartNowShow () {
-                if (this.entrance === '0' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
-                    this.taskInformationStyle = false
-                    this.isStartNow = false
-                } else if (this.entrance === '1' && !this.common && this.viewMode === 'app' && this.userType !== 'functor') {
-                    this.taskInformationStyle = false
-                } else if (!this.common && this.viewMode === 'app' && this.userType !== 'functor') {
-                    this.taskInformationStyle = true
-                } else {
-                    this.taskInformationStyle = false
-                }
-                return this.taskInformationStyle
+                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== '0' && this.entrance !== '1'
             }
         },
         watch: {
@@ -210,6 +201,7 @@
         },
         mounted () {
             this.loadData()
+            this.period()
         },
         methods: {
             ...mapActions('template/', [
@@ -225,6 +217,11 @@
             ...mapActions('periodic/', [
                 'createPeriodic'
             ]),
+            period () {
+                if (this.entrance === '0') {
+                    this.isStartNow = false
+                }
+            },
             async loadData () {
                 this.templateLoading = true
                 try {
@@ -279,9 +276,7 @@
                     if (this.common) {
                         this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
                     } else {
-                        if (this.entrance === '0') {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
-                        } else if (this.entrance === '1') {
+                        if (this.entrance !== undefined) {
                             this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
                         } else {
                             this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })

@@ -13,19 +13,23 @@
     <div class="periodic-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.periodicTask"></BaseTitle>
-            <BaseSearch
-                v-model="periodicName"
-                :input-placeholader="i18n.periodicNamePlaceholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
-            <bk-button
-                type="primary"
-                class="task-create-btn"
-                size="small"
-                @click="onCreatePeriodTask">
-                {{i18n.createPeriodTask}}
-            </bk-button>
+            <div class="task-table-content">
+                <bk-button
+                    ref="childComponent"
+                    type="primary"
+                    class="task-create-btn"
+                    size="small"
+                    @click="onCreatePeriodTask">
+                    {{i18n.createPeriodTask}}
+                </bk-button>
+                <BaseSearch
+                    class="base-search"
+                    v-model="periodicName"
+                    :input-placeholader="i18n.periodicNamePlaceholder"
+                    @onShow="onAdvanceShow"
+                    @input="onSearchInput">
+                </BaseSearch>
+            </div>
             <div class="periodic-search" v-show="isAdvancedSerachShow">
                 <fieldset class="periodic-fieldset">
                     <div class="periodic-query-content">
@@ -136,8 +140,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            v-if="isNewTaskDialogShow"
-            :common="common"
+            ref="getData"
             :cc_id="cc_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
@@ -270,7 +273,6 @@
                 try {
                     const data = {
                         limit: this.countPerPage,
-                        common: this.commom,
                         offset: (this.currentPage - 1) * this.countPerPage,
                         task__celery_task__enabled: this.enabled,
                         task__creator__contains: this.creator,
@@ -408,6 +410,7 @@
             },
             onCreatePeriodTask () {
                 this.isNewTaskDialogShow = true
+                this.$refs.getData.getTaskData()
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
@@ -426,11 +429,10 @@
     padding: 0 60px;
     min-height: calc(100vh - 240px);
     .advanced-search {
-        margin: 20px 0px;
+        margin: 0px;
     }
-    .task-create-btn {
-        position: relative;
-        top: 20px;
+    .task-table-content{
+        margin: 20px 0px;
     }
 }
 .periodic-fieldset {
