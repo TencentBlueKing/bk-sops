@@ -12,34 +12,36 @@
         @cancel="onCancel">
         <div slot="content" class="task-container">
             <div class="task-wrapper">
-                <div class="task-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="filterCondition.keywords" />
-                    <i class="common-icon-search"></i>
+                <div class="filtrate-wrapper">
+                    <div class="task-search flow-types">
+                        <bk-selector
+                            v-if="createEntrance"
+                            :list="templateType"
+                            :search-key="'name'"
+                            :setting-key="'name'"
+                            :disabled="!categoryListPending"
+                            :selected="selectedTplType"
+                            @item-selected="onChooseTplType">
+                        </bk-selector>
+                    </div>
+                    <div class="task-search">
+                        <bk-selector
+                            :list="templateCategories"
+                            :search-key="'name'"
+                            :setting-key="'name'"
+                            :disabled="!categoryListPending"
+                            :selected="selectedTplCategory"
+                            @item-selected="onChooseTplCategory">
+                        </bk-selector>
+                    </div>
+                    <div class="task-search">
+                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchWord" @input="onSearchInput" />
+                        <i class="common-icon-search"></i>
+                    </div>
                 </div>
-                <div class="task-search">
-                    <bk-selector
-                        :list="taskCategories"
-                        :search-key="'name'"
-                        :setting-key="'name'"
-                        :disabled="exportPending"
-                        :selected.sync="filterCondition.type"
-                        @item-selected="onChooseTemplateType">
-                    </bk-selector>
-                </div>
-                <div class="task-search flow-types"
-                    v-if="createEntrance">
-                    <bk-selector
-                        :list="templateCategories"
-                        :search-key="'name'"
-                        :setting-key="'name'"
-                        :disabled="exportPending"
-                        :selected.sync="defaultselected.type"
-                        @item-selected="onChooseFlowType">
-                    </bk-selector>
-                </div>
-                <div class="task-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
-                    <ul v-if="!searchMode" class="grouped-list">
-                        <template v-for="item in templates">
+                <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1 }">
+                    <ul v-if="!isNoData" class="grouped-list">
+                        <template v-for="item in templateList">
                             <li
                                 v-if="item.children.length"
                                 :key="item.id"
@@ -92,53 +94,48 @@
                     noSearchResult: gettext('搜索结果为空'),
                     confirm: gettext('确认'),
                     cancel: gettext('取消'),
-                    errorInfo: gettext('请选择流程模版')
+                    errorInfo: gettext('请选择流程模版'),
+                    allType: gettext('全部分类')
                 },
-                searchStr: '',
-                selectedTaskCategory: '',
                 selectedId: '',
-                exportPending: false,
+                taskListPending: true,
                 searchMode: false,
                 selectError: false,
-                taskList: [],
-                selectedList: [],
-                templates: [],
-                publicData: {},
-                businessWarehouse: {},
-                publicWarehouse: {},
-                filterCondition: {
-                    type: gettext('全部分类'),
-                    keywords: ''
-                },
-                defaultselected: {
-                    type: gettext('业务流程'),
-                    keywords: ''
-                },
-                templateCategories: [
+                commonTplList: [],
+                businessTplList: [],
+                templateList: [],
+                templateType: [
                     {
                         value: 'BusinessProcess',
-                        name: gettext('业务流程'),
-                        keywords: ''
+                        name: gettext('业务流程')
                     },
                     {
                         value: 'PublicProcess',
                         name: gettext('公共流程')
                     }
-                ]
+                ],
+                selectedTplType: '业务流程',
+                selectedTplCategory: '全部分类',
+                searchWord: '',
+                nowTypeList: []
             }
         },
         computed: {
-            taskCategories () {
-                if (this.taskCategory.length === 0) {
-                    this.getCategorys()
-                }
+            templateCategories () {
                 const list = toolsUtils.deepClone(this.taskCategory)
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
+            },
+            categoryListPending () {
+                return this.taskCategory.length !== 0 && this.taskListPending === false
+            },
+            isNoData () {
+                return this.templateList.length === 0
             }
         },
         created () {
             this.getTaskData()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions('templateList/', [
@@ -148,33 +145,56 @@
                 'getCategorys'
             ]),
             async getTaskData () {
-                this.exportPending = true
+                this.taskListPending = true
                 try {
-                    const data = {
-                        common: this.common
-                    }
-                    const list = ''
-                    const respData = await this.loadTemplateList(data)
-                    const flowList = respData.objects
                     if (this.createEntrance === true) {
-                        this.publicData.common = 1
-                        const publicRespData = await this.loadTemplateList(this.publicData)
-                        const publicList = publicRespData.objects
-                        this.publicWarehouse = publicList
-                    }
-                    this.list = flowList
-                    this.businessWarehouse = flowList
-                    this.taskList = this.getGroupedList(list)
-                    this.taskList.forEach((item) => {
-                        item.children.forEach((group) => {
-                            this.$set(group, 'ischecked', false)
+                        Promise.all([
+                            this.getBusinessData(),
+                            this.getcommonData()
+                        ]).then(values => {
+                            const businessList = values[0]
+                            const commonList = values[1]
+                            this.businessTplList = this.getGroupedList(businessList)
+                            this.commonTplList = this.getGroupedList(commonList)
+                            this.templateList = this.businessTplList
+                            this.taskListPending = false
+                        }).catch(e => {
+                            errorHandler(e, this)
                         })
-                    })
-                    this.templates = this.taskList
+                    } else {
+                        const data = {
+                            common: this.common
+                        }
+                        const respData = await this.loadTemplateList(data)
+                        const list = respData.objects
+                        this.businessTplList = this.getGroupedList(list)
+                        this.templateList = this.businessTplList
+                        this.taskListPending = false
+                    }
                 } catch (e) {
                     errorHandler(e, this)
-                } finally {
-                    this.exportPending = false
+                }
+            },
+            async getBusinessData () {
+                const data = {
+                    common: this.common
+                }
+                try {
+                    const respData = await this.loadTemplateList(data)
+                    return respData.objects
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
+            async getcommonData () {
+                const data = {
+                    common: 1
+                }
+                try {
+                    const respData = await this.loadTemplateList(data)
+                    return respData.objects
+                } catch (e) {
+                    errorHandler(e, this)
                 }
             },
             getGroupedList (list) {
@@ -187,7 +207,7 @@
                         children: []
                     })
                 })
-                this.list.forEach(item => {
+                list.forEach(item => {
                     const type = item.category
                     const index = groups.indexOf(type)
                     if (index > -1) {
@@ -221,42 +241,40 @@
             },
             onSelectTask (template) {
                 this.selectError = false
-                this.selectedId = template.id
-                template.ischecked = !template.ischecked
+                this.selectedId = template
             },
-            onChooseTemplateType () {
-                this.onFiltrationTemplate()
-            },
-            onChooseFlowType () {
-                if (this.defaultselected.type === '业务流程') {
-                    this.list = this.businessWarehouse
-                } else if (this.defaultselected.type === '公共流程') {
-                    this.list = this.publicWarehouse
-                }
-                this.taskList = this.getGroupedList(this.list)
-                this.taskList.forEach((item) => {
-                    item.children.forEach((group) => {
-                        this.$set(group, 'ischecked', false)
-                    })
+            searchInputhandler () {
+                const item = toolsUtils.deepClone(this.nowTypeList)
+                this.templateList = item.filter(group => {
+                    group.children = group.children.filter(template => template.name.includes(this.searchWord))
+                    return group.children.length
                 })
-                this.onFiltrationTemplate()
             },
-            onFiltrationTemplate () {
-                const sourceList = JSON.parse(JSON.stringify(this.taskList))
-                const template = sourceList.find(item => item.name === this.filterCondition.type)
-                let filteredList = sourceList
-                if (template) {
-                    filteredList = [template]
+            onChooseTplType (value) {
+                this.selectedTplType = value
+                this.getNowData()
+            },
+            onChooseTplCategory (value) {
+                this.selectedTplCategory = value
+                this.getNowData()
+            },
+            getNowData () {
+                let list = []
+                this.selectedTplType === this.templateType[0].name ? list = this.businessTplList : list = this.commonTplList
+                this.onFiltrationTemplate(list)
+            },
+            onFiltrationTemplate (list) {
+                const sourceList = toolsUtils.deepClone(list)
+                const template = sourceList.filter(item => item.name === this.selectedTplCategory)
+                let filteredList = []
+                if (this.selectedTplCategory === this.i18n.allType) {
+                    filteredList = sourceList
+                } else if (template) {
+                    filteredList = template
                 }
-                this.searchMode = false
-                this.templates = filteredList.filter(item => {
-                    item.children = item.children.filter(childItem => childItem.name.includes(this.filterCondition.keywords))
-                    return item.children.length
-                })
-                if ((this.templates.length !== 1) && (this.filterCondition.type !== '全部分类')) {
-                    this.templates = []
-                    this.searchMode = true
-                }
+                this.templateList = filteredList
+                this.nowTypeList = toolsUtils.deepClone(filteredList)
+                this.searchInputhandler()
             }
         }
     }
@@ -290,12 +308,15 @@
             font-size: 12px;
             font-weight:400;
         }
+        .filtrate-wrapper {
+            display: flex;
+        }
     }
     .task-search {
         position: relative;
         margin-left: 15px;
         margin-bottom: 20px;
-        float: right;
+        flex: 1;
         .search-input {
             padding: 0 40px 0 10px;
             width: 260px;
