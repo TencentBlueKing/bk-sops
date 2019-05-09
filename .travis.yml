@@ -13,7 +13,8 @@ before_script:
 script:
   - flake8
   - source scripts/develop/sites/community/env.sh
-  - mysql -uroot -e "CREATE DATABASE IF NOT EXISTS $APP_ID;"
+  - mysql -uroot -e "CREATE DATABASE IF NOT EXISTS $APP_ID DEFAULT CHARACTER SET = 'utf8' DEFAULT COLLATE 'utf8_general_ci';"
+  - mysql -uroot -e "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
   - echo 'yes' | bash scripts/code/coverage_and_report.sh -e enterprise
 
 after_success:
