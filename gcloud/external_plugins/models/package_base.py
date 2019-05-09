@@ -42,7 +42,7 @@ class PackageSource(models.Model):
     base_source_id = models.IntegerField(_(u"包源模型 ID"), blank=True, null=True)
 
     _base_source_attr = '_base_source'
-    
+
     class Meta:
         abstract = True
 
