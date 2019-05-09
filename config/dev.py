@@ -45,7 +45,11 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '3306',
-        'TEST': {'NAME': 'test_sops'}
+        'TEST': {
+            'NAME': 'test_sops',
+            'CHARSET': 'utf8',
+            'COLLATION': 'utf8_general_ci',
+        }
     },
 }
 
