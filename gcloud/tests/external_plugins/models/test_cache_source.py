@@ -12,24 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from git.exc import GitError
 
 from pipeline.contrib.external_plugins.models import (
     GIT,
     S3,
     FILE_SYSTEM,
-    GitRepoSource,
     S3Source,
     FileSystemSource
 )
 
 from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models.cache_source import CachePackageSource
-from gcloud.external_plugins.models.original_source import (
-    GitRepoOriginalSource,
-    S3OriginalSource,
-    FileSystemOriginalSource
-)
 
 
 class TestCachePackageSource(TestCase):
