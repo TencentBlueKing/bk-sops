@@ -80,6 +80,7 @@
             },
             showToolPosition (node) {
                 const nodeLeft = document.getElementById(node.id).offsetLeft
+                const nodeTop = document.getElementById(node.id).offsetTop
                 if (this.$refs.nodeLocation && this.$refs.nodeLocation.offsetWidth) {
                     const $tool = document.getElementById('tool' + this.node.id)
                     let toolLeft
@@ -89,6 +90,11 @@
                         toolLeft = nodeLeft + (this.$refs.nodeLocation.offsetWidth - $tool.offsetWidth) / 2
                     }
                     $tool.style.left = toolLeft + 'px'
+                }
+                if (this.$refs.nodeLocation && this.$refs.nodeLocation.offsetHeight) {
+                    const $tool = document.getElementById('tool' + this.node.id)
+                    const toolTop = nodeTop + this.$refs.nodeLocation.offsetHeight
+                    $tool.style.top = toolTop + 'px'
                 }
             },
             nextNodePosition () {

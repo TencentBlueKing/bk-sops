@@ -64,7 +64,7 @@
     @import '../../../static/style/app.scss';
     .tooltip{
         position: absolute;
-        top: 105px;
+        margin-top: 10px;
         &-arrow{
              position: absolute;
              margin: 6px 0 0 -3px;

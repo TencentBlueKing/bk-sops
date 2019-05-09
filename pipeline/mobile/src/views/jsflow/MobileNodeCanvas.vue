@@ -728,7 +728,7 @@
         }
         .jsflow-node {
             position: absolute;
-            height: 90px;
+            /*height: 90px;*/
             display: flex;
             align-items: center;
             .node-default {
