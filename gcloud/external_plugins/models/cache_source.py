@@ -45,11 +45,11 @@ def upload_s3_dir(client, bucket, local, target_dir=''):
 class CachePackageSourceManager(PackageSourceManager):
     @transaction.atomic()
     def add_cache_source(self, name, source_type, packages, **kwargs):
-        if self.all().count() > 0:
-            raise exceptions.MultipleCacheSourceError('Can not add multiple cache source')
-
         if source_type not in [S3, FILE_SYSTEM]:
             raise exceptions.CacheSourceTypeError('Source type[%s] does not support as cache source' % source_type)
+
+        if self.all().count() > 0:
+            raise exceptions.MultipleCacheSourceError('Can not add multiple cache source')
 
         base_source = super(CachePackageSourceManager, self).add_base_source(name, source_type, packages, **kwargs)
         return self.create(type=source_type, base_source_id=base_source.id)

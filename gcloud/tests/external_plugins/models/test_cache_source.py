@@ -10,3 +10,120 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
+from django.test import TestCase
+from git.exc import GitError
+
+from pipeline.contrib.external_plugins.models import (
+    GIT,
+    S3,
+    FILE_SYSTEM,
+    GitRepoSource,
+    S3Source,
+    FileSystemSource
+)
+
+from gcloud.external_plugins import exceptions
+from gcloud.external_plugins.models.cache_source import CachePackageSource
+from gcloud.external_plugins.models.original_source import (
+    GitRepoOriginalSource,
+    S3OriginalSource,
+    FileSystemOriginalSource
+)
+
+
+class TestCachePackageSource(TestCase):
+
+    def setUp(self):
+        self.CACHE_SOURCE_NAME = 'CACHE_S3_SOURCE'
+        self.UPDATE_CACHE_SOURCE_NAME = 'CACHE_FILE_SYSTEM_SOURCE'
+        self.SOURCE_TYPE = S3
+        self.UPDATE_SOURCE_TYPE = FILE_SYSTEM
+        self.SOURCE_PACKAGES = {
+            'root_package_1': {
+                'version': '',
+                'modules': ['test1', 'test2']
+            },
+            'root_package_2': {
+                'version': '',
+                'modules': ['test3', 'test4']
+            },
+            'root_package_3': {
+                'version': '',
+                'modules': ['test5', 'test6']
+            }
+        }
+        self.UPDATED_SOURCE_PACKAGES = {
+            'root_package_1': {
+                'version': '',
+                'modules': ['test1', 'test2']
+            },
+        }
+        self.SOURCE_KWARGS = {
+            'service_address': 'service_address',
+            'bucket': 'bucket',
+            'access_key': 'access_key',
+            'secret_key': 'secret_key',
+        }
+        self.UPDATED_SOURCE_KWARGS = {
+            'path': '/tmp'
+        }
+        self.cache_source = CachePackageSource.objects.add_cache_source(
+            name=self.CACHE_SOURCE_NAME,
+            source_type=self.SOURCE_TYPE,
+            packages=self.SOURCE_PACKAGES,
+            **self.SOURCE_KWARGS
+        )
+
+    def tearDown(self):
+        CachePackageSource.objects.delete_package_source(self.cache_source.base_source_id,
+                                                         self.cache_source.type)
+        CachePackageSource.objects.filter(id=self.cache_source.id).delete()
+
+    def test_base_source(self):
+        base_source = S3Source.objects.get(id=self.cache_source.base_source_id)
+        self.assertEquals(self.cache_source.base_source, base_source)
+        self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
+
+    def test_get_base_source(self):
+        self.assertEquals(CachePackageSource.objects.get_base_source(), self.cache_source.base_source)
+
+    def test_add_cache_source__exception(self):
+        self.assertRaises(exceptions.CacheSourceTypeError,
+                          CachePackageSource.objects.add_cache_source,
+                          name=self.CACHE_SOURCE_NAME,
+                          source_type=GIT,
+                          packages=self.SOURCE_PACKAGES,
+                          **self.SOURCE_KWARGS
+                          )
+        self.assertRaises(exceptions.MultipleCacheSourceError,
+                          CachePackageSource.objects.add_cache_source,
+                          name=self.CACHE_SOURCE_NAME,
+                          source_type=self.SOURCE_TYPE,
+                          packages=self.SOURCE_PACKAGES,
+                          **self.SOURCE_KWARGS
+                          )
+
+    def test_name(self):
+        self.assertEquals(self.cache_source.name, self.CACHE_SOURCE_NAME)
+
+    def test_packages(self):
+        self.assertEquals(self.cache_source.packages, self.SOURCE_PACKAGES)
+
+    def test_details(self):
+        self.assertEquals(self.cache_source.details, self.SOURCE_KWARGS)
+
+    def test_writer__exception(self):
+        self.assertRaises(ValueError, self.cache_source.writer)
+
+    def test_update_package_source(self):
+        CachePackageSource.objects.update_package_source(
+            package_id=self.cache_source.id,
+            source_type=self.UPDATE_SOURCE_TYPE,
+            packages=self.UPDATED_SOURCE_PACKAGES,
+            **self.UPDATED_SOURCE_KWARGS
+        )
+        self.cache_source = CachePackageSource.objects.get(id=self.cache_source.id)
+        self.assertEquals(self.cache_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
+        base_source = FileSystemSource.objects.get(id=self.cache_source.base_source_id)
+        self.assertEquals(self.cache_source.base_source, base_source)
