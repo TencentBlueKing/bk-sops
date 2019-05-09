@@ -166,7 +166,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            v-if="isNewTaskDialogShow"
+            ref="getData"
             :common="common"
             :cc_id="cc_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
@@ -585,6 +585,7 @@
             },
             onCreateTask () {
                 this.isNewTaskDialogShow = true
+                this.$refs.getData.getTaskData()
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
