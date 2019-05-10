@@ -245,20 +245,19 @@
             }
         },
         mounted () {
-            this.initCanvas()
+            // this.initCanvas()
             // this.registerEvent()
-            this.renderData()
-            this.canvasRect = this.$refs.canvasFlow.getBoundingClientRect()
-            if (this.$refs.palettePanel) {
-                this.paletteRect = this.$refs.palettePanel ? this.$refs.palettePanel.$el.getBoundingClientRect() : {}
-            }
+            // this.renderData()
+            console.log(1)
+            // this.canvasRect = this.$refs.canvasFlow.getBoundingClientRect()
+            // if (this.$refs.palettePanel) {
+            //     this.paletteRect = this.$refs.palettePanel ? this.$refs.palettePanel.$el.getBoundingClientRect() : {}
+            // }
         },
         beforeDestroy () {
-            if (this.$refs.palettePanel) {
-                this.$refs.palettePanel.$el.removeEventListener(this.mousedown, this.nodeCreateHandler)
-            }
-            // this.$el.removeEventListener(this.mousemove, this.nodeMovingHandler)
-            // document.removeEventListener(this.mouseup, this.nodeMoveEndHandler)
+            // if (this.$refs.palettePanel) {
+            //     this.$refs.palettePanel.$el.removeEventListener(this.mousedown, this.nodeCreateHandler)
+            // }
         },
         methods: {
             initCanvas () {
@@ -312,7 +311,6 @@
             renderData () {
                 this.instance.batch(() => {
                     this.nodes.forEach(node => {
-                        // 节点拖拽// this.setNodeDraggable(node)
                         this.setNodeEndPoint(node, this.endpointOptions)
                     })
                     this.lines.forEach(line => {
@@ -678,7 +676,9 @@
             hideToolTips () {
                 this.nodes.forEach(function (node) {
                     const $tool = document.getElementById('tool' + node.id)
-                    $tool.style.display = 'none'
+                    if ($tool) {
+                        $tool.style.display = 'none'
+                    }
                 })
             }
         }

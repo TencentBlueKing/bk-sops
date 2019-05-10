@@ -30,13 +30,6 @@ const routes = [
         component: Home
     },
     {
-        path: '/template',
-        name: 'template',
-        title: '流程模板',
-        isActionSheetShow: true,
-        component: Template
-    },
-    {
         path: '/template/preview',
         name: 'template_preview',
         title: '预览',
@@ -44,11 +37,24 @@ const routes = [
         component: TemplatePreview
     },
     {
-        path: '/task/create',
+        path: '/template/:bizId/',
+        name: 'template',
+        title: '流程模板',
+        isActionSheetShow: true,
+        component: Template,
+        props: (route) => ({
+            bizId: route.params.bizId
+        })
+    },
+    {
+        path: '/task/create/:templateId',
         name: 'task_create',
         title: '新建任务',
         isActionSheetShow: true,
-        component: TaskCreate
+        component: TaskCreate,
+        props: (route) => ({
+            templateId: route.params.templateId
+        })
     },
     {
         path: '/task/list',
@@ -149,7 +155,7 @@ router.beforeEach(async (to, from, next) => {
         VueCookies.set('biz_id', store.state.bizId)
         VueCookies.set('isSelectedBiz', true)
         if (to.name === 'home' && !to.query.biz_selected) {
-            next({ path: '/template', query: { bizId: bizId } })
+            next({ path: `/template/${bizId}` })
         } else {
             next()
         }

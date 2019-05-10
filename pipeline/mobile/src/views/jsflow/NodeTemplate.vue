@@ -1,8 +1,8 @@
 <template>
     <div
-        v-if="node.type !== 'startpoint' && node.type !== 'endpoint' && node.type === 'tasknode'"
+        v-if="node.type === 'tasknode'"
         ref="nodeLocation"
-        class="bk-flow-location"
+        :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']"
         @click="onNodeClick(node, $event)">
         <div class="node-name">
             <p class="name">{{ node.name }}</p>
@@ -10,7 +10,7 @@
         <div class="task-name">{{ node.stage_name }}</div>
     </div>
     <div
-        v-else-if="node.type !== 'startpoint' && node.type !== 'endpoint' && node.type === 'subflow'"
+        v-else-if="node.type === 'subflow'"
         ref="nodeLocation"
         class="bk-flow-location node-subflow"
         @click="onNodeClick(node, $event)">
@@ -55,7 +55,8 @@
         },
         methods: {
             onNodeClick (node, event) {
-                if (this.isPreview) {
+                console.log(node)
+                if (this.node.type !== 'subflow' && !this.node.status) {
                     return false
                 }
                 const $tool = document.getElementById('tool' + this.node.id)

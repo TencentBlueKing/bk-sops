@@ -1,15 +1,32 @@
 <template>
     <div class="page-view">
         <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
-        <JsFlowIndex :task="currTask"></JsFlowIndex>
+        <MobileCanvas :is-preview="false" :canvas-data="canvasData"></MobileCanvas>
         <van-tabbar>
             <van-tabbar-item>
-                <van-icon slot="icon" class-prefix="icon" name="pause" v-if="taskState === 'RUNNING'" />
-                <van-icon slot="icon" class-prefix="icon" name="pause" v-else class="disabled" disabled />
+                <van-icon
+                    v-if="taskState === 'CREATED'"
+                    slot="icon"
+                    class-prefix="icon"
+                    name="play"
+                    @click="onExecute" />
+                <van-icon
+                    v-else-if="taskState === 'RUNNING'"
+                    slot="icon"
+                    class-prefix="icon"
+                    name="pause"
+                    @click="onPause" />
+                <van-icon
+                    v-else
+                    slot="icon"
+                    class-prefix="icon"
+                    name="pause"
+                    class="disabled"
+                    disabled />
             </van-tabbar-item>
             <van-tabbar-item>
                 <van-icon
-                    v-if="taskState === 'RUNNING'"
+                    v-if="taskState !== 'CREATED' && taskState !== 'REVOKED' && taskState !== 'FINISHED'"
                     slot="icon"
                     class-prefix="icon"
                     name="revoke"
@@ -20,24 +37,31 @@
                     class-prefix="icon"
                     name="revoke"
                     class="disabled"
-                    disabled
-                    @click="onBackClick" />
+                    disabled />
             </van-tabbar-item>
             <van-tabbar-item>
                 <van-icon
+                    v-if="taskState !== 'CREATED'"
                     slot="icon"
                     class-prefix="icon"
                     name="file"
                     @click="onDetailClick" />
+                <van-icon
+                    v-else
+                    class="disabled"
+                    disabled
+                    slot="icon"
+                    class-prefix="icon"
+                    name="file" />
             </van-tabbar-item>
         </van-tabbar>
         <template>
-            <van-dialog v-model="revokeConfirmShow" title="标题" show-cancel-button />
+            <van-dialog v-model="revokeConfirmShow" :title="i18n.tip" show-cancel-button />
         </template>
     </div>
 </template>
 <script>
-    import JsFlowIndex from '../jsflow/index.vue'
+    import MobileCanvas from '../jsflow/index.vue'
     import { mapActions, mapState } from 'vuex'
 
     const TASK_STATE = {
@@ -46,66 +70,159 @@
         'SUSPENDED': [window.gettext('暂停'), 'warning'],
         'NODE_SUSPENDED': [window.gettext('节点暂停'), 'warning'],
         'FAILED': [window.gettext('失败'), 'danger'],
-        'FINISHED': [window.gettext('完成'), 'danger'],
+        'FINISHED': [window.gettext('完成'), 'success'],
         'REVOKED': [window.gettext('撤销'), 'danger']
     }
 
     export default {
         name: '',
         components: {
-            JsFlowIndex
+            MobileCanvas
         },
-        props: { taskId: String },
+        provide () {
+            return {
+                refreshTaskStatus: this.setTaskStatusTimer
+            }
+        },
         data () {
             return {
                 // 演示用flag，当做画布的某个原子
                 testShow: false,
                 revokeConfirmShow: false,
+                task: {},
+                taskState: '',
                 taskStateClass: '',
                 taskStateName: '',
-                taskStateColor: ''
+                taskStateColor: '',
+                timer: null,
+                i18n: {
+                    tip: window.gettext('提示')
+                }
             }
         },
         computed: {
             ...mapState({
-                currTask: state => state.task,
-                currTaskState: state => state.taskState
-            })
+                taskId: state => state.taskId
+            }),
+            canvasData () {
+                const pipelineTree = this.task ? this.task.pipeline_tree || {} : {}
+                const { line = [], location = [] } = JSON.parse(pipelineTree)
+                return { lines: line, nodes: location }
+            }
         },
-        mounted () {
+        created () {
             this.loadData()
         },
         methods: {
             ...mapActions('task', [
                 'getTask',
-                'getTaskState'
+                'getTaskStatus',
+                'instanceStart',
+                'instancePause',
+                'instanceRevoke'
             ]),
             async loadData () {
-                const taskId = this.$route.query.taskId
-                const task = await this.getTask(taskId)
-                const taskState = await this.getTaskState(taskId);
-                ([this.taskStateClass, this.taskStateName, this.taskStateColor] = ['task-status', ...TASK_STATE[taskState]])
-                this.$store.commit('setTaskState', taskState)
-                this.$store.commit('setTask', task)
+                this.task = await this.getTask({ id: this.taskId })
+                await this.loadTaskStatus()
+                console.log(this.$route.query.immediately)
+                if (this.$route.query.immediately) {
+                    this.onExecute()
+                }
             },
-            onNodeExecuteClick () {
-                this.$router.push({ path: '/task/nodes', query: { taskId: this.task.id } })
+            updateTaskNodes (taskState) {
+                if (taskState.state !== 'CREATED') {
+                    this.canvasData.nodes.forEach((node) => {
+                        const data = taskState.children[node.id]
+                        // node = Object.assign(node, { 'data': data })
+                        this.$set(node, 'data', data)
+                        if (data) {
+                            // Object.assign(node, { 'status': data.state })
+                            this.$set(node, 'status', data.state)
+                        }
+                    })
+                }
             },
-            onRetryClick () {
-                this.$router.push({ path: '/task/reset', query: { taskId: this.task.id } })
+            async loadTaskStatus () {
+                try {
+                    console.log(this.taskId)
+                    const taskState = await this.getTaskStatus({ id: this.taskId })
+                    if (taskState.result) {
+                        this.taskState = taskState.data.state
+                        if (this.taskState === 'RUNNING') {
+                            this.setTaskStatusTimer()
+                        }
+                        this.updateTaskNodes(taskState.data);
+                        ([this.taskStateClass, this.taskStateName, this.taskStateColor] = ['task-status', ...TASK_STATE[this.taskState]])
+                    } else {
+                        this.cancelTaskStatusTimer()
+                        console.error(taskState, this)
+                    }
+                } catch (e) {
+                    this.cancelTaskStatusTimer()
+                    console.error(e, this)
+                }
+            },
+
+            setTaskStatusTimer () {
+                console.log('at canvas')
+                this.cancelTaskStatusTimer()
+                this.timer = setTimeout(() => {
+                    this.loadTaskStatus()
+                }, 2000)
+            },
+            cancelTaskStatusTimer () {
+                if (this.timer) {
+                    clearTimeout(this.timer)
+                    this.timer = null
+                }
+            },
+            async onExecute () {
+                try {
+                    const response = await this.instanceStart({ id: this.taskId })
+                    if (response.result) {
+                        this.setTaskStatusTimer()
+                    } else {
+                        console.error(response, this)
+                    }
+                } catch (e) {
+                    console.error(e, this)
+                }
+            },
+            async onRevoke () {
+                try {
+                    const response = await this.instanceRevoke({ id: this.taskId })
+                    if (response.result) {
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        console.error(response, this)
+                    }
+                } catch (e) {
+                    console.error(e, this)
+                }
             },
             onDetailClick () {
-                this.$router.push({ path: '/task/detail', query: { taskId: this.task.id } })
+                this.$router.push({ path: '/task/detail' })
             },
-            onBackClick () {
-                this.$router.push({ path: '/task/list', query: { taskId: this.task.id } })
+            async onPause () {
+                try {
+                    const response = await this.instancePause({ id: this.taskId })
+                    if (response.result) {
+                        // TODO: 子流程暂停
+                    } else {
+                        console.error(response, this)
+                    }
+                } catch (e) {
+                    console.error(e, this)
+                }
             },
             onRevokeConfirm () {
                 this.$dialog.confirm({
                     message: '撤销任务?'
                 }).then(() => {
                     this.revokeConfirmShow = false
-                    this.$router.push({ path: '/task/list' })
+                    this.onRevoke()
                 }).catch(() => {
                     this.revokeConfirmShow = false
                 })

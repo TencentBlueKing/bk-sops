@@ -1,30 +1,28 @@
 <template>
     <div class="tooltip" style="display: none">
-        <div v-if="node.type === 'endpoint'">
-            <div class="tooltip-arrow"></div>
-            <div class="tooltip-inner">
-                <div class="tooltip-btn" @click="onNodeExecuteClick">执行详情</div>
-                <div class="tooltip-btn" @click="onRetryClick">重试</div>
-                <div class="tooltip-btn">跳过</div>
-            </div>
-        </div>
         <div v-if="node.type === 'tasknode'">
             <div class="tooltip-arrow"></div>
             <div class="tooltip-inner">
-                <div class="tooltip-btn" @click="onNodeExecuteClick">执行详情</div>
-                <div class="tooltip-btn">跳过</div>
+                <div class="tooltip-btn" @click="onNodeExecuteDetail">{{ i18n.detail }}</div>
+                <template v-if="node.status === 'FAILED'">
+                    <div class="tooltip-btn" @click="onRetry">{{ i18n.retry }}</div>
+                    <div class="tooltip-btn" @click="onSkip">{{ i18n.skip }}</div>
+                </template>
             </div>
         </div>
-        <div v-if="node.type === 'startpoint'">
+        <div v-if="node.type === 'subflow'">
             <div class="tooltip-arrow"></div>
             <div class="tooltip-inner">
-                <div class="tooltip-btn">查看子流程</div>
+                <div class="tooltip-btn">{{ i18n.sub }}</div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+
+    import { mapActions } from 'vuex'
+
     export default {
         name: 'Tooltips',
         props: {
@@ -41,8 +39,15 @@
                 }
             }
         },
+        inject: ['refreshTaskStatus'],
         data () {
             return {
+                i18n: {
+                    detail: window.gettext('执行详情'),
+                    retry: window.gettext('重试'),
+                    skip: window.gettext('跳过'),
+                    sub: window.gettext('查看子流程')
+                },
                 moveFlag: false
             }
         },
@@ -50,11 +55,27 @@
 
         },
         methods: {
-            onNodeExecuteClick () {
-                this.$router.push({ path: '/task/nodes', query: { taskId: this.task.id } })
+            ...mapActions('task', [
+                'instanceNodeSkip'
+            ]),
+            onNodeExecuteDetail () {
+                this.$router.push({ name: 'task_nodes', params: { node: this.node, task: this.task } })
             },
-            onRetryClick () {
-                this.$router.push({ path: '/task/reset', query: { taskId: this.task.id } })
+            async onRetry () {
+            },
+            async onSkip () {
+                try {
+                    const response = await this.instanceNodeSkip({ id: this.taskId, nodeId: this.node.id })
+                    if (response.result) {
+                        setTimeout(() => {
+                            this.refreshTaskStatus()
+                        }, 1000)
+                    } else {
+                        console.error(response, this)
+                    }
+                } catch (e) {
+                    console.error(e, this)
+                }
             }
         }
     }

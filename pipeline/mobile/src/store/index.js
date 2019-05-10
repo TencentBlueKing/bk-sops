@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
+import business from './modules/business'
 import templateList from './modules/templateList'
 import template from './modules/template'
 import taskList from './modules/taskList'
@@ -13,6 +14,7 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
     // 模块
     modules: {
+        business,
         task,
         taskList,
         templateList,
@@ -22,14 +24,18 @@ const store = new Vuex.Store({
     state: {
         mainContentLoading: false,
         lang: 'zh-cn',
-        bizId: 0,
+        bizId: 0, // 业务ID
+        templateId: '', // 模板ID
+        taskId: '', // 任务ID
         title: '业务选择',
         template: {},
         task: {},
         taskState: '',
+        excludeTaskNodes: [], // 被排除的节点
         isActionSheetShow: true,
+        setPreviewCanvasData: {}, // 预览数据
         // 系统当前登录用户
-        user: {}
+        user: { username: 'admin' }
     },
     // 公共 getters
     getters: {
@@ -38,32 +44,22 @@ const store = new Vuex.Store({
     },
     // 公共 mutations
     mutations: {
-        /**
-         * 更新业务ID
-         *
-         * @param {Object} state store state
-         * @param id
-         */
         setBizId (state, id) {
             state.bizId = id
         },
 
-        /**
-         * 设置内容区的 loading 是否显示
-         *
-         * @param {Object} state store state
-         * @param {boolean} loading 是否显示 loading
-         */
+        setTemplateId (state, id) {
+            state.templateId = id
+        },
+
+        setTaskId (state, id) {
+            state.taskId = id
+        },
+
         setMainContentLoading (state, loading) {
             state.mainContentLoading = loading
         },
 
-        /**
-         * 更新当前用户 user
-         *
-         * @param {Object} state store state
-         * @param {Object} user user 对象
-         */
         updateUser (state, user) {
             state.user = Object.assign({}, user)
         },
@@ -81,6 +77,12 @@ const store = new Vuex.Store({
         },
         setTemplate (state, template) {
             state.template = template
+        },
+        setExcludeTaskNodes (state, taskNodes) {
+            state.excludeTaskNodes = taskNodes
+        },
+        setPreviewCanvasData (state, data) {
+            state.previewCanvasData = data
         }
     },
     actions: {
