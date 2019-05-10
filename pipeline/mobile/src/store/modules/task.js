@@ -1,71 +1,49 @@
 /* eslint-disable */
+import http from '@/api'
+import qs from 'qs'
+
 export default {
     namespaced: true,
     state: {},
     mutations: {},
     actions: {
         getTask ({ commit, state, dispatch } = {}, params) {
-            // url = '${AJAX_URL_PREFIX}/api/v3/taskflow/{taskflow_id}'
-            // const p = params
-            const task = params == 1 ? runningTask : failedTask
-            return task
-
+            const url = `${AJAX_URL_PREFIX}/api/v3/taskflow/${params.id}/`
+            return http.get(url).then(response => response)
         },
 
-        getTaskState ({ commit }, params) {
-            const state = params == 1 ? runningTaskStatus.data.state : failedTaskStatus.data.state
-            return state
+        getTaskStatus ({ commit, rootState }, params) {
+            const url = `${AJAX_URL_PREFIX}/taskflow/api/status/${rootState.bizId}/?instance_id=${params.id}`
+            return http.get(url).then(response => response)
         },
 
-        getNodeDetail ({ commit, state, dispatch }, params, config) {
-            // url = '${AJAX_URL_PREFIX}/taskflow/api/nodes/detail/32/?instance_id=48&node_id=node8aa1bcfb34883aed8cdef3bd4afd&component_code=job_execute_task&subprocess_stack=[]
-            return nodeDetail.data
+        instanceStart ({ commit, rootState }, params) {
+            const data = qs.stringify({instance_id: params.id})
+            const url = `${AJAX_URL_PREFIX}/taskflow/api/action/start/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceRevoke ({ commit, rootState }, params) {
+            const data = qs.stringify({instance_id: params.id})
+            const url = `${AJAX_URL_PREFIX}/taskflow/api/action/revoke/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instancePause ({ commit, rootState }, params) {
+            const data = qs.stringify({instance_id: params.id})
+            const url = `${AJAX_URL_PREFIX}/taskflow/api/action/pause/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceNodeSkip ({ commit, rootState }, params) {
+            const data = qs.stringify({instance_id: params.id, node_id: params.nodeId})
+            const url = `${AJAX_URL_PREFIX}/taskflow/api/nodes/action/skip/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        getNodeDetail ({ rootState }, params) {
+            const url = `${AJAX_URL_PREFIX}/taskflow/api/nodes/detail/${rootState.bizId}/?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            return http.get(url).then(response => response)
         }
     }
-}
-
-const runningTask = {"business": {"always_use_executor": false, "cc_company": "", "cc_id": 32, "cc_name": "移动端专用", "cc_owner": "", "executor": "", "id": 22, "life_cycle": "2", "resource_uri": "/o/bk_sops/api/v3/business/32/", "time_zone": "Asia/Shanghai"}, "category": "OpsTools", "category_name": "运维工具", "create_info": "0", "create_method": "app", "create_time": "2019-04-18 19:44:54 +0800", "creator_name": "admin", "current_flow": "execute_task", "elapsed_time": 5, "executor_name": "admin", "finish_time": null, "flow_type": "common", "id": 47, "instance_id": 47, "is_deleted": false, "is_finished": false, "is_started": true, "name": "copysimple_clone_02", "pipeline_instance": "", "pipeline_tree": "{\"activities\":{\"node7dcaabb6751031109cce05534f6f\":{\"outgoing\":\"line653e9cc87e823feb97f78fb4f2ae\",\"incoming\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"name\":\"\\u6682\\u505c\",\"error_ignorable\":false,\"component\":{\"code\":\"pause_node\",\"data\":{}},\"stage_name\":\"\\u6b65\\u9aa41\",\"optional\":false,\"can_retry\":true,\"isSkipped\":true,\"type\":\"ServiceActivity\",\"id\":\"node7dcaabb6751031109cce05534f6f\",\"loop\":null},\"nodeec3e00a49ba23d93994e6f828e74\":{\"outgoing\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"incoming\":\"line4e1627437c953ba39c7697179133\",\"name\":\"HTTP\\u8bf7\\u6c42\",\"error_ignorable\":false,\"component\":{\"code\":\"bk_http_request\",\"data\":{\"bk_http_request_body\":{\"hook\":false,\"value\":\"{\\\"test\\\":\\\"${v1}\\\"}\"},\"bk_http_request_url\":{\"hook\":false,\"value\":\"http:\\/\\/www.yovole.com\"},\"bk_http_request_method\":{\"hook\":false,\"value\":\"GET\"}}},\"stage_name\":\"\\u6b65\\u9aa41\",\"optional\":true,\"can_retry\":true,\"isSkipped\":true,\"type\":\"ServiceActivity\",\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"loop\":null}},\"end_event\":{\"incoming\":\"line653e9cc87e823feb97f78fb4f2ae\",\"outgoing\":\"\",\"type\":\"EmptyEndEvent\",\"id\":\"noded260545782893a028c820a82dfa8\",\"name\":\"\"},\"outputs\":[],\"flows\":{\"line4e1627437c953ba39c7697179133\":{\"is_default\":false,\"source\":\"node78d9a707fd123d4485dc957a9179\",\"id\":\"line4e1627437c953ba39c7697179133\",\"target\":\"nodeec3e00a49ba23d93994e6f828e74\"},\"linecc5a0c5d0cf73f00a657d5a2a596\":{\"is_default\":false,\"source\":\"nodeec3e00a49ba23d93994e6f828e74\",\"id\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"target\":\"node7dcaabb6751031109cce05534f6f\"},\"line653e9cc87e823feb97f78fb4f2ae\":{\"is_default\":false,\"source\":\"node7dcaabb6751031109cce05534f6f\",\"id\":\"line653e9cc87e823feb97f78fb4f2ae\",\"target\":\"noded260545782893a028c820a82dfa8\"}},\"id\":\"node52204eb6036a3175ae223fff8349\",\"gateways\":{},\"line\":[{\"source\":{\"id\":\"node7dcaabb6751031109cce05534f6f\",\"arrow\":\"Right\"},\"target\":{\"id\":\"noded260545782893a028c820a82dfa8\",\"arrow\":\"Left\"},\"id\":\"line653e9cc87e823feb97f78fb4f2ae\"},{\"source\":{\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"arrow\":\"Right\"},\"target\":{\"id\":\"node7dcaabb6751031109cce05534f6f\",\"arrow\":\"Left\"},\"id\":\"linecc5a0c5d0cf73f00a657d5a2a596\"},{\"source\":{\"id\":\"node78d9a707fd123d4485dc957a9179\",\"arrow\":\"Right\"},\"id\":\"line4e1627437c953ba39c7697179133\",\"target\":{\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"arrow\":\"Left\"}}],\"start_event\":{\"incoming\":\"\",\"outgoing\":\"line4e1627437c953ba39c7697179133\",\"type\":\"EmptyStartEvent\",\"id\":\"node78d9a707fd123d4485dc957a9179\",\"name\":\"\"},\"constants\":{\"${v1}\":{\"source_tag\":\"\",\"source_info\":{},\"name\":\"v1\",\"index\":0,\"custom_type\":\"input\",\"value\":\"test\",\"show_type\":\"show\",\"source_type\":\"custom\",\"validator\":[],\"key\":\"${v1}\",\"validation\":\"^.+$\",\"desc\":\"v1\"}},\"location\":[{\"y\":150,\"x\":970,\"type\":\"endpoint\",\"id\":\"noded260545782893a028c820a82dfa8\"},{\"stage_name\":\"\\u6b65\\u9aa41\",\"name\":\"HTTP\\u8bf7\\u6c42\",\"y\":135,\"x\":300,\"type\":\"tasknode\",\"id\":\"nodeec3e00a49ba23d93994e6f828e74\"},{\"y\":150,\"x\":80,\"type\":\"startpoint\",\"id\":\"node78d9a707fd123d4485dc957a9179\"},{\"stage_name\":\"\\u6b65\\u9aa41\",\"name\":\"\\u6682\\u505c\",\"y\":135,\"x\":615,\"type\":\"tasknode\",\"id\":\"node7dcaabb6751031109cce05534f6f\"}]}", "resource_uri": "/o/bk_sops/api/v3/taskflow/47/", "start_time": "2019-04-18 19:45:16 +0800", "subprocess_info": {"details": [], "subproc_has_update": false}, "template_id": "77", "template_source": "business"}
-const runningTaskStatus = {"data": {"retry": 0, "name": "<class 'pipeline.core.pipeline.Pipeline'>", "finish_time": "", "skip": false, "start_time": "2019-04-18 19:45:16 +0800", "children": {"node78d9a707fd123d4485dc957a9179": {"retry": 0, "name": "<class 'pipeline.core.flow.event.EmptyStartEvent'>", "finish_time": "2019-04-18 19:45:16 +0800", "skip": false, "start_time": "2019-04-18 19:45:16 +0800", "children": {}, "elapsed_time": 1, "state": "FINISHED", "version": "f28d0c9982b23ef5a8f020f9a7d48b6b", "error_ignorable": false, "id": "node78d9a707fd123d4485dc957a9179", "loop": 1}, "nodeec3e00a49ba23d93994e6f828e74": {"retry": 0, "name": "<class 'pipeline.core.flow.activity.ServiceActivity'>", "finish_time": "", "skip": false, "start_time": "2019-04-18 19:45:16 +0800", "children": {}, "elapsed_time": 6, "state": "RUNNING", "version": "737c9ca2955b3c8b8a2aec4e7eaa54f2", "error_ignorable": false, "id": "nodeec3e00a49ba23d93994e6f828e74", "loop": 1}}, "elapsed_time": 6, "state": "RUNNING", "version": "", "error_ignorable": false, "id": "node52204eb6036a3175ae223fff8349", "loop": 1}, "result": true}
-const failedTask = {"business": {"always_use_executor": false, "cc_company": "", "cc_id": 32, "cc_name": "移动端专用", "cc_owner": "", "executor": "", "id": 22, "life_cycle": "2", "resource_uri": "/o/bk_sops/api/v3/business/32/", "time_zone": "Asia/Shanghai"}, "category": "OpsTools", "category_name": "运维工具", "create_info": "0", "create_method": "app", "create_time": "2019-04-18 19:44:54 +0800", "creator_name": "admin", "current_flow": "execute_task", "elapsed_time": 232, "executor_name": "admin", "finish_time": null, "flow_type": "common", "id": 47, "instance_id": 47, "is_deleted": false, "is_finished": false, "is_started": true, "name": "copysimple_clone_02", "pipeline_instance": "", "pipeline_tree": "{\"activities\":{\"node7dcaabb6751031109cce05534f6f\":{\"outgoing\":\"line653e9cc87e823feb97f78fb4f2ae\",\"incoming\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"name\":\"\\u6682\\u505c\",\"error_ignorable\":false,\"component\":{\"code\":\"pause_node\",\"data\":{}},\"stage_name\":\"\\u6b65\\u9aa41\",\"optional\":false,\"can_retry\":true,\"isSkipped\":true,\"type\":\"ServiceActivity\",\"id\":\"node7dcaabb6751031109cce05534f6f\",\"loop\":null},\"nodeec3e00a49ba23d93994e6f828e74\":{\"outgoing\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"incoming\":\"line4e1627437c953ba39c7697179133\",\"name\":\"HTTP\\u8bf7\\u6c42\",\"error_ignorable\":false,\"component\":{\"code\":\"bk_http_request\",\"data\":{\"bk_http_request_body\":{\"hook\":false,\"value\":\"{\\\"test\\\":\\\"${v1}\\\"}\"},\"bk_http_request_url\":{\"hook\":false,\"value\":\"http:\\/\\/www.yovole.com\"},\"bk_http_request_method\":{\"hook\":false,\"value\":\"GET\"}}},\"stage_name\":\"\\u6b65\\u9aa41\",\"optional\":true,\"can_retry\":true,\"isSkipped\":true,\"type\":\"ServiceActivity\",\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"loop\":null}},\"end_event\":{\"incoming\":\"line653e9cc87e823feb97f78fb4f2ae\",\"outgoing\":\"\",\"type\":\"EmptyEndEvent\",\"id\":\"noded260545782893a028c820a82dfa8\",\"name\":\"\"},\"outputs\":[],\"flows\":{\"line4e1627437c953ba39c7697179133\":{\"is_default\":false,\"source\":\"node78d9a707fd123d4485dc957a9179\",\"id\":\"line4e1627437c953ba39c7697179133\",\"target\":\"nodeec3e00a49ba23d93994e6f828e74\"},\"linecc5a0c5d0cf73f00a657d5a2a596\":{\"is_default\":false,\"source\":\"nodeec3e00a49ba23d93994e6f828e74\",\"id\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"target\":\"node7dcaabb6751031109cce05534f6f\"},\"line653e9cc87e823feb97f78fb4f2ae\":{\"is_default\":false,\"source\":\"node7dcaabb6751031109cce05534f6f\",\"id\":\"line653e9cc87e823feb97f78fb4f2ae\",\"target\":\"noded260545782893a028c820a82dfa8\"}},\"id\":\"node52204eb6036a3175ae223fff8349\",\"gateways\":{},\"line\":[{\"source\":{\"id\":\"node7dcaabb6751031109cce05534f6f\",\"arrow\":\"Right\"},\"target\":{\"id\":\"noded260545782893a028c820a82dfa8\",\"arrow\":\"Left\"},\"id\":\"line653e9cc87e823feb97f78fb4f2ae\"},{\"source\":{\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"arrow\":\"Right\"},\"target\":{\"id\":\"node7dcaabb6751031109cce05534f6f\",\"arrow\":\"Left\"},\"id\":\"linecc5a0c5d0cf73f00a657d5a2a596\"},{\"source\":{\"id\":\"node78d9a707fd123d4485dc957a9179\",\"arrow\":\"Right\"},\"id\":\"line4e1627437c953ba39c7697179133\",\"target\":{\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"arrow\":\"Left\"}}],\"start_event\":{\"incoming\":\"\",\"outgoing\":\"line4e1627437c953ba39c7697179133\",\"type\":\"EmptyStartEvent\",\"id\":\"node78d9a707fd123d4485dc957a9179\",\"name\":\"\"},\"constants\":{\"${v1}\":{\"source_tag\":\"\",\"source_info\":{},\"name\":\"v1\",\"index\":0,\"custom_type\":\"input\",\"value\":\"test\",\"show_type\":\"show\",\"source_type\":\"custom\",\"validator\":[],\"key\":\"${v1}\",\"validation\":\"^.+$\",\"desc\":\"v1\"}},\"location\":[{\"y\":150,\"x\":970,\"type\":\"endpoint\",\"id\":\"noded260545782893a028c820a82dfa8\"},{\"stage_name\":\"\\u6b65\\u9aa41\",\"name\":\"HTTP\\u8bf7\\u6c42\",\"y\":135,\"x\":300,\"type\":\"tasknode\",\"id\":\"nodeec3e00a49ba23d93994e6f828e74\"},{\"y\":150,\"x\":80,\"type\":\"startpoint\",\"id\":\"node78d9a707fd123d4485dc957a9179\"},{\"stage_name\":\"\\u6b65\\u9aa41\",\"name\":\"\\u6682\\u505c\",\"y\":135,\"x\":615,\"type\":\"tasknode\",\"id\":\"node7dcaabb6751031109cce05534f6f\"}]}", "resource_uri": "/o/bk_sops/api/v3/taskflow/47/", "start_time": "2019-04-18 19:45:16 +0800", "subprocess_info": {"details": [], "subproc_has_update": false}, "template_id": "77", "template_source": "business"}
-const failedTaskStatus = {"data": {"retry": 0, "name": "<class 'pipeline.core.pipeline.Pipeline'>", "finish_time": "", "skip": false, "start_time": "2019-04-18 19:45:16 +0800", "children": {"node78d9a707fd123d4485dc957a9179": {"retry": 0, "name": "<class 'pipeline.core.flow.event.EmptyStartEvent'>", "finish_time": "2019-04-18 19:45:16 +0800", "skip": false, "start_time": "2019-04-18 19:45:16 +0800", "children": {}, "elapsed_time": 1, "state": "FINISHED", "version": "f28d0c9982b23ef5a8f020f9a7d48b6b", "error_ignorable": false, "id": "node78d9a707fd123d4485dc957a9179", "loop": 1}, "nodeec3e00a49ba23d93994e6f828e74": {"retry": 0, "name": "<class 'pipeline.core.flow.activity.ServiceActivity'>", "finish_time": "2019-04-18 19:47:27 +0800", "skip": false, "start_time": "2019-04-18 19:45:16 +0800", "children": {}, "elapsed_time": 131, "state": "FAILED", "version": "737c9ca2955b3c8b8a2aec4e7eaa54f2", "error_ignorable": false, "id": "nodeec3e00a49ba23d93994e6f828e74", "loop": 1}}, "elapsed_time": 232, "state": "FAILED", "version": "", "error_ignorable": false, "id": "node52204eb6036a3175ae223fff8349", "loop": 1}, "result": true}
-
-const nodeDetail = {
-    "data": {
-        "inputs": {"business": {"always_use_executor": false, "cc_company": "", "cc_id": 32, "cc_name": "移动端专用", "cc_owner": "", "executor": "", "id": 22, "life_cycle": "2", "resource_uri": "/o/bk_sops/api/v3/business/32/", "time_zone": "Asia/Shanghai"}, "category": "OpsTools", "category_name": "运维工具", "create_info": "0", "create_method": "app", "create_time": "2019-04-18 19:44:54 +0800", "creator_name": "admin", "current_flow": "execute_task", "elapsed_time": 5, "executor_name": "admin", "finish_time": null, "flow_type": "common", "id": 47, "instance_id": 47, "is_deleted": false, "is_finished": false, "is_started": true, "name": "copysimple_clone_02", "pipeline_instance": "", "pipeline_tree": "{\"activities\":{\"node7dcaabb6751031109cce05534f6f\":{\"outgoing\":\"line653e9cc87e823feb97f78fb4f2ae\",\"incoming\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"name\":\"\\u6682\\u505c\",\"error_ignorable\":false,\"component\":{\"code\":\"pause_node\",\"data\":{}},\"stage_name\":\"\\u6b65\\u9aa41\",\"optional\":false,\"can_retry\":true,\"isSkipped\":true,\"type\":\"ServiceActivity\",\"id\":\"node7dcaabb6751031109cce05534f6f\",\"loop\":null},\"nodeec3e00a49ba23d93994e6f828e74\":{\"outgoing\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"incoming\":\"line4e1627437c953ba39c7697179133\",\"name\":\"HTTP\\u8bf7\\u6c42\",\"error_ignorable\":false,\"component\":{\"code\":\"bk_http_request\",\"data\":{\"bk_http_request_body\":{\"hook\":false,\"value\":\"{\\\"test\\\":\\\"${v1}\\\"}\"},\"bk_http_request_url\":{\"hook\":false,\"value\":\"http:\\/\\/www.yovole.com\"},\"bk_http_request_method\":{\"hook\":false,\"value\":\"GET\"}}},\"stage_name\":\"\\u6b65\\u9aa41\",\"optional\":true,\"can_retry\":true,\"isSkipped\":true,\"type\":\"ServiceActivity\",\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"loop\":null}},\"end_event\":{\"incoming\":\"line653e9cc87e823feb97f78fb4f2ae\",\"outgoing\":\"\",\"type\":\"EmptyEndEvent\",\"id\":\"noded260545782893a028c820a82dfa8\",\"name\":\"\"},\"outputs\":[],\"flows\":{\"line4e1627437c953ba39c7697179133\":{\"is_default\":false,\"source\":\"node78d9a707fd123d4485dc957a9179\",\"id\":\"line4e1627437c953ba39c7697179133\",\"target\":\"nodeec3e00a49ba23d93994e6f828e74\"},\"linecc5a0c5d0cf73f00a657d5a2a596\":{\"is_default\":false,\"source\":\"nodeec3e00a49ba23d93994e6f828e74\",\"id\":\"linecc5a0c5d0cf73f00a657d5a2a596\",\"target\":\"node7dcaabb6751031109cce05534f6f\"},\"line653e9cc87e823feb97f78fb4f2ae\":{\"is_default\":false,\"source\":\"node7dcaabb6751031109cce05534f6f\",\"id\":\"line653e9cc87e823feb97f78fb4f2ae\",\"target\":\"noded260545782893a028c820a82dfa8\"}},\"id\":\"node52204eb6036a3175ae223fff8349\",\"gateways\":{},\"line\":[{\"source\":{\"id\":\"node7dcaabb6751031109cce05534f6f\",\"arrow\":\"Right\"},\"target\":{\"id\":\"noded260545782893a028c820a82dfa8\",\"arrow\":\"Left\"},\"id\":\"line653e9cc87e823feb97f78fb4f2ae\"},{\"source\":{\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"arrow\":\"Right\"},\"target\":{\"id\":\"node7dcaabb6751031109cce05534f6f\",\"arrow\":\"Left\"},\"id\":\"linecc5a0c5d0cf73f00a657d5a2a596\"},{\"source\":{\"id\":\"node78d9a707fd123d4485dc957a9179\",\"arrow\":\"Right\"},\"id\":\"line4e1627437c953ba39c7697179133\",\"target\":{\"id\":\"nodeec3e00a49ba23d93994e6f828e74\",\"arrow\":\"Left\"}}],\"start_event\":{\"incoming\":\"\",\"outgoing\":\"line4e1627437c953ba39c7697179133\",\"type\":\"EmptyStartEvent\",\"id\":\"node78d9a707fd123d4485dc957a9179\",\"name\":\"\"},\"constants\":{\"${v1}\":{\"source_tag\":\"\",\"source_info\":{},\"name\":\"v1\",\"index\":0,\"custom_type\":\"input\",\"value\":\"test\",\"show_type\":\"show\",\"source_type\":\"custom\",\"validator\":[],\"key\":\"${v1}\",\"validation\":\"^.+$\",\"desc\":\"v1\"}},\"location\":[{\"y\":150,\"x\":970,\"type\":\"endpoint\",\"id\":\"noded260545782893a028c820a82dfa8\"},{\"stage_name\":\"\\u6b65\\u9aa41\",\"name\":\"HTTP\\u8bf7\\u6c42\",\"y\":135,\"x\":300,\"type\":\"tasknode\",\"id\":\"nodeec3e00a49ba23d93994e6f828e74\"},{\"y\":150,\"x\":80,\"type\":\"startpoint\",\"id\":\"node78d9a707fd123d4485dc957a9179\"},{\"stage_name\":\"\\u6b65\\u9aa41\",\"name\":\"\\u6682\\u505c\",\"y\":135,\"x\":615,\"type\":\"tasknode\",\"id\":\"node7dcaabb6751031109cce05534f6f\"}]}", "resource_uri": "/o/bk_sops/api/v3/taskflow/47/", "start_time": "2019-04-18 19:45:16 +0800", "subprocess_info": {"details": [], "subproc_has_update": false}, "template_id": "77", "template_source": "business"},
-        "retry": 1,
-        "name": "HTTP请求",
-        "finish_time": "2019-04-19 14:26:27 +0800",
-        "skip": false,
-        "start_time": "2019-04-19 14:26:27 +0800",
-        "children": {},
-        "histories": [{
-            "inputs": {
-                "job_global_var": [{
-                    "description": "a  param",
-                    "type": 1,
-                    "id": 174,
-                    "value": "aaabbb",
-                    "name": "var1"
-                }], "job_task_id": 47
-            },
-            "finish_time": "2019-04-19 11:30:24 +0800",
-            "start_time": "2019-04-19 11:30:24 +0800",
-            "children": {},
-            "elapsed_time": 1,
-            "state": "FAILED",
-            "outputs": {"_result": false},
-            "ex_data": "\u6b65\u9aa4\u3010info\u3011\u7684IP\u5217\u8868\u4e3a\u7a7a"
-        }],
-        "ex_data": "\u6b65\u9aa4\u3010info\u3011\u7684IP\u5217\u8868\u4e3a\u7a7a",
-        "elapsed_time": 1,
-        "outputs": [{"name": "JOB\u4efb\u52a1ID", "value": ""}, {
-            "name": "JOB\u4efb\u52a1\u94fe\u63a5",
-            "value": ""
-        }, {"name": "\u6267\u884c\u7ed3\u679c", "value": false}],
-        "state": "FAILED",
-        "version": "36efee403a8f328cb42b99e7487611e7",
-        "error_ignorable": false,
-        "id": "node8aa1bcfb34883aed8cdef3bd4afd",
-        "loop": 1
-    }, "result": true
 }

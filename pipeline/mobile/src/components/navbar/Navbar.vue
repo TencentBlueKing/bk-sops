@@ -27,7 +27,7 @@
                 actions: [
                     {
                         name: '流程模板',
-                        router: '/template'
+                        router: '/template/'
                     },
                     {
                         name: '任务记录',
@@ -42,6 +42,7 @@
         },
         computed: {
             ...mapState({
+                bizId: state => state.bizId,
                 isActionSheetShow: state => state.isActionSheetShow,
                 title: state => state.title
             })
@@ -50,7 +51,12 @@
             onSelect (item) {
                 // 点击选项时默认不会关闭菜单，可以手动关闭
                 this.show = false
-                this.$router.push({ path: item.router, query: { 'biz_selected': '1' } })
+                this.$cookies.set('biz_selected', true)
+                if (item.router === '/template/') {
+                    this.$router.push({ path: item.router + this.bizId, query: { 'biz_selected': '1' } })
+                } else {
+                    this.$router.push({ path: item.router, query: { 'biz_selected': '1' } })
+                }
             }
         }
     }

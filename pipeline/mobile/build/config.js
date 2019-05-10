@@ -15,17 +15,19 @@ export default {
     },
     dev: {
         env: devEnv,
-        host: 'localhost',
+        host: 'dev.paas.bk.com',
         port: 9001,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
         proxyTable: {
-            'xx_repalce': { // 需要代理的路径
-                target: 'xx_repalce', // 目标服务器host
+            '/ajax': { // 需要代理的路径
+                target: 'http://dev.paas.bk.com:8000/', // 目标服务器host
                 secure: false,
-                changeOrigin: true,
+                pathRewrite: {
+                    '^/ajax': ''
+                },
                 headers: {
-                    referer: 'xx_repalce' // 目标服务器host
+                    referer: 'dev.paas.bk.com' // 目标服务器host
                 }
             }
         },

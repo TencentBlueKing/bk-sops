@@ -84,12 +84,24 @@
         },
         methods: {
             ...mapActions('task', [
+                'getTask',
                 'getNodeDetail'
             ]),
 
             async loadData () {
-                this.nodeDetail = await this.getNodeDetail()
-                console.log(this.nodeDetail)
+                const node = this.$route.params.node
+                const taskId = this.$store.state.taskId
+                const params = {
+                    taskId: taskId,
+                    nodeId: node.id,
+                    componentCode: ''
+                }
+                const response = await this.getNodeDetail(params)
+                const task = await this.getTask({ id: taskId })
+                if (response.result) {
+                    this.nodeDetail = response.data
+                    this.nodeDetail.name = task.name
+                }
             },
 
             showParameters () {

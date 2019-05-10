@@ -10,6 +10,6 @@ export default merge(prodEnv, {
     staticUrl: '/static',
     NODE_ENV: NODE_ENV,
     LOGIN_SERVICE_URL: JSON.stringify(''),
-    AJAX_URL_PREFIX: JSON.stringify('xx_repalce'), // 本地开发路径
+    AJAX_URL_PREFIX: JSON.stringify('http://dev.paas.bk.com:9001/ajax'), // 本地开发路径
     SITE_URL: JSON.stringify('')
 })

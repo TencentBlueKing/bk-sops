@@ -3,14 +3,14 @@
         <van-list
             v-model="loading"
             :finished="finished"
-            finished-text="没有更多了"
+            :finished-text="i18n.finished_text"
             @load="onLoad">
             <div class="panel-list">
                 <van-cell
-                    v-for="item in list"
-                    :to="`/template/?bizId=${item.cc_id}`"
+                    v-for="item in businessList"
                     :key="item.cc_id"
-                    :title="item.cc_name">
+                    :title="item.cc_name"
+                    @click="onClickBusiness(item.cc_id)">
                     <template slot="title">
                         <van-tag color="false" :class="item.tagColor">{{ item.tag }}</van-tag>
                         <span class="title">{{ item.cc_name }}</span>
@@ -21,7 +21,7 @@
     </div>
 </template>
 <script>
-    import { getBusinessList } from '@/store/modules/businessList'
+    import { mapActions } from 'vuex'
 
     const BIZ_TAG_COLORS = ['blue', 'red', 'orange', 'green', 'gray']
 
@@ -31,30 +31,40 @@
 
         data () {
             return {
-                list: [],
+                businessList: [],
+                i18n: {
+                    finished_text: window.gettext('没有更多了')
+                },
                 loading: false,
-                finished: false
+                finished: false,
+                offset: 0,
+                limit: 10,
+                total: 0
             }
         },
         methods: {
+            ...mapActions('business', [
+                'getBusinessList'
+            ]),
+
             onLoad () {
-                // 异步更新数据
-                setTimeout(() => {
-                    const bizList = getBusinessList()['objects']
-                    const _this = this
-                    bizList.forEach(item => {
-                        ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
-                        _this.list.push(item)
-                    })
+                this.loadData()
+            },
 
-                    // 加载状态结束
-                    this.loading = false
-
-                    // 数据全部加载完成
-                    if (this.list.length >= bizList.length) {
-                        this.finished = true
-                    }
-                }, 500)
+            async loadData () {
+                const response = await this.getBusinessList({ offset: this.offset, limit: this.limit })
+                this.total = response.meta.total_count
+                const totalPage = Math.ceil(this.total / this.limit)
+                if (this.offset + 1 >= totalPage) {
+                    this.finished = true
+                } else {
+                    this.offset = this.offset + 1
+                }
+                this.loading = false
+                this.businessList = [...this.businessList, ...response.objects]
+                this.businessList.map(item => {
+                    ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
+                })
             },
 
             getTagColor (biz) {
@@ -69,6 +79,11 @@
                     this.$cookies.set(biz.cc_id, tagColor)
                     return { tagColor: tagColor, tag: tag }
                 }
+            },
+
+            onClickBusiness (bizId) {
+                this.$store.commit('setBizId', bizId)
+                this.$router.push({ path: `/template/${bizId}` })
             }
         }
     }
