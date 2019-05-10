@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from os import environ
+
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models
@@ -102,7 +104,7 @@ class EnvVarManager(models.Manager):
         objs = self.filter(key=key)
         if objs.exists():
             return objs[0].value
-        return None
+        return environ.get(key, None)
 
 
 class EnvironmentVariables(models.Model):
