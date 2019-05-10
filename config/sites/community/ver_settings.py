@@ -11,12 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-ESB_GET_CLIENT_BY_REQUEST = 'packages.blueking.component.shortcuts.get_client_by_request'
-ESB_GET_CLIENT_BY_USER = 'packages.blueking.component.shortcuts.get_client_by_user'
-
-ESB_GET_OLD_CLIENT_BY_REQUEST = ESB_GET_CLIENT_BY_REQUEST
-ESB_GET_OLD_CLIENT_BY_USER = ESB_GET_CLIENT_BY_USER
-
 ESB_SDK_NAME = 'packages.blueking.component'
 ESB_AUTH_COMPONENT_SYSTEM = 'bk_login'
 ESB_AUTH_GET_USER_INFO = 'get_user'
