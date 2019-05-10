@@ -95,6 +95,13 @@ class OriginalPackageSource(PackageSource):
     def details(self):
         raise NotImplementedError()
 
+    def prepare_cache_path(self):
+        cache_path = os.path.join(CACHE_TEMP_PATH, self.name)
+        if os.path.exists(cache_path):
+            shutil.rmtree(cache_path)
+        os.makedirs(cache_path)
+        return cache_path
+
     def update_base_source(self, source_type, packages, **kwargs):
         if source_type != self.type:
             raise exceptions.OriginalSourceTypeError('Original source type cannot be updated')
@@ -120,10 +127,7 @@ class GitRepoOriginalSource(OriginalPackageSource):
         }
 
     def reader(self):
-        cache_path = os.path.join(CACHE_TEMP_PATH, self.name)
-        if os.path.exists(cache_path):
-            shutil.rmtree(cache_path)
-        os.makedirs(cache_path)
+        cache_path = super(GitRepoOriginalSource, self).prepare_cache_path()
         Repo.clone_from(self.repo_address, cache_path, branch=self.branch)
 
 
@@ -172,9 +176,7 @@ class S3OriginalSource(OriginalPackageSource):
         }
 
     def reader(self):
-        cache_path = os.path.join(CACHE_TEMP_PATH, self.name)
-        if not os.path.exists(cache_path):
-            os.makedirs(cache_path)
+        cache_path = super(S3OriginalSource, self).prepare_cache_path()
         client = boto3.client('s3',
                               endpoint_url=self.service_address,
                               aws_access_key_id=self.access_key,
