@@ -13,10 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import copy
 
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.components.utils import handle_api_error
+from gcloud.conf import settings
 
 from .constants import NO_ERROR, ERROR_CODES
 

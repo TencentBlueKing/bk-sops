@@ -32,14 +32,13 @@ TASK_RESULT = [
 import base64
 import logging
 
-from django.conf import settings
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.conf import settings
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
+from gcloud.conf import settings
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
