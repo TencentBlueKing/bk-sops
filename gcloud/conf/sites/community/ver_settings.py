@@ -15,6 +15,17 @@ from django.utils.translation import ugettext as _
 
 from settings import BK_PAAS_HOST, APP_CODE
 
+from packages.blueking.component.shortcuts import (
+    get_client_by_request,
+    get_client_by_user
+)
+
+ESB_GET_CLIENT_BY_REQUEST = get_client_by_request
+ESB_GET_CLIENT_BY_USER = get_client_by_user
+
+ESB_GET_OLD_CLIENT_BY_REQUEST = get_client_by_request
+ESB_GET_OLD_CLIENT_BY_USER = get_client_by_user
+
 
 REMOTE_ANALYSIS_URL = ''
 REMOTE_API_URL = ''
