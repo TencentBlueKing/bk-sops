@@ -13,14 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.conf import settings
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
+from gcloud.conf import settings
 
 logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER

@@ -17,10 +17,10 @@ import logging
 
 from urllib import urlencode
 from cryptography.fernet import Fernet
-from django.conf import settings
 from django.core.cache import cache
 
 from pipeline_plugins.components.utils.common import supplier_account_inject, get_ip_by_regex, ip_re, ip_pattern
+from gcloud.conf import settings
 
 logger = logging.getLogger('root')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER

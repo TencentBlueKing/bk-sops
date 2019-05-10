@@ -16,7 +16,6 @@ import logging
 import traceback
 
 from cryptography.fernet import Fernet
-from django.conf import settings
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -26,6 +25,7 @@ from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions, states
 from pipeline.engine.models import PipelineModel
 
+from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
