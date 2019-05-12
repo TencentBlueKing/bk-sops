@@ -15,7 +15,6 @@ import re
 import os
 import logging
 
-from django.conf import settings
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
@@ -32,6 +31,7 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_search_topo_tree,
     cmdb_get_mainline_object_topo
 )
+from gcloud.conf import settings
 
 logger = logging.getLogger('root')
 get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST

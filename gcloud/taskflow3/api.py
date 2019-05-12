@@ -34,7 +34,7 @@ from gcloud.taskflow3.decorators import check_user_perm_of_task
 from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("root")
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 
 
 @require_GET
@@ -91,7 +91,7 @@ def detail(request, biz_cc_id):
 
 @require_GET
 def get_job_instance_log(request, biz_cc_id):
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_request(request)
     job_instance_id = request.GET.get('job_instance_id')
     log_kwargs = {
         "bk_biz_id": biz_cc_id,

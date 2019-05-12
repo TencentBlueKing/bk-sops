@@ -22,7 +22,7 @@ from gcloud.conf import settings
 from .utils import get_cmdb_topo_tree
 from .constants import NO_ERROR, ERROR_CODES
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 
 
 def cmdb_search_topo_tree(request, bk_biz_id, bk_supplier_account=''):

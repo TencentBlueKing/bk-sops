@@ -19,7 +19,12 @@ from urllib import urlencode
 from cryptography.fernet import Fernet
 from django.core.cache import cache
 
-from pipeline_plugins.components.utils.common import supplier_account_inject, get_ip_by_regex, ip_re, ip_pattern
+from pipeline_plugins.components.utils import (
+    supplier_account_inject,
+    get_ip_by_regex,
+    ip_re,
+    ip_pattern
+)
 from gcloud.conf import settings
 
 logger = logging.getLogger('root')
@@ -254,5 +259,5 @@ def get_node_callback_url(node_id):
         callback_prefix = settings.APP_HOST
     else:
         callback_prefix = settings.TEST_APP_HOST
-    return "%s/taskflow/api/nodes/callback/%s/" % (callback_prefix,
+    return "%staskflow/api/nodes/callback/%s/" % (callback_prefix,
                                                    f.encrypt(bytes(node_id)))
