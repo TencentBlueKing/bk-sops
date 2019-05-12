@@ -27,11 +27,8 @@ ESB_GET_CLIENT_BY_USER = get_client_by_user
 ESB_GET_OLD_CLIENT_BY_REQUEST = get_client_by_request
 ESB_GET_OLD_CLIENT_BY_USER = get_client_by_user
 
-APP_HOST = '%s/o/%s/' % (settings.BK_PAAS_HOST, settings.APP_CODE)
-TEST_APP_HOST = '%s/t/%s/' % (settings.BK_PAAS_HOST, settings.APP_CODE)
 
-APP_MAKER_LINK_PREFIX = '%sappmaker/' % APP_HOST
-TEST_APP_MAKER_LINK_PREFIX = '%sappmaker/' % TEST_APP_HOST
+APP_MAKER_LINK_PREFIX = '%sappmaker/' % settings.SITE_URL
 APP_MAKER_UPLOAD_LOGO_USER_UIN = 'bk_token'
 APP_MAKER_UPLOAD_LOGO_USER_KEY = 'bk_token_null'
 
