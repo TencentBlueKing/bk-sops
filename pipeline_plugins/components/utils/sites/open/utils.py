@@ -260,4 +260,4 @@ def get_node_callback_url(node_id):
     else:
         callback_prefix = settings.TEST_APP_HOST
     return "%staskflow/api/nodes/callback/%s/" % (callback_prefix,
-                                                   f.encrypt(bytes(node_id)))
+                                                  f.encrypt(bytes(node_id)))
