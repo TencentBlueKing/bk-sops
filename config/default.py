@@ -225,12 +225,6 @@ STATIC_VER = {
 }
 
 # pipeline settings
-LOGGING['loggers']['pipeline'] = {
-    'handlers': ['root'],
-    'level': LOG_LEVEL,
-    'propagate': True,
-}
-
 PIPELINE_TEMPLATE_CONTEXT = 'gcloud.tasktmpl3.utils.get_template_context'
 PIPELINE_INSTANCE_CONTEXT = 'gcloud.taskflow3.utils.get_instance_context'
 
