@@ -14,8 +14,8 @@
         <div class="ip-added-number">{{i18n.add}}({{selectedIp.length}})</div>
         <div class="operation-area">
             <div class="ip-list-add">
-                <bk-button type="primary" size="mini" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
-                <bk-button type="default" size="mini" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
+                <bk-button type="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
+                <bk-button type="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
             </div>
             <ip-search-input class="ip-search-wrap" @search="onIpSearch"></ip-search-input>
         </div>
@@ -191,9 +191,13 @@
     }
     .ip-search-wrap {
         position: absolute;
-        top: -6px;
+        top: -2px;
         right: 0;
         width: 70%;
+    }
+    .bk-button {
+        height: 32px;
+        line-height: 32px;
     }
 }
 .ip-table {
