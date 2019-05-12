@@ -255,9 +255,5 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
 
 def get_node_callback_url(node_id):
     f = Fernet(settings.CALLBACK_KEY)
-    if settings.RUN_MODE == 'PRODUCT':
-        callback_prefix = settings.APP_HOST
-    else:
-        callback_prefix = settings.TEST_APP_HOST
-    return "%staskflow/api/nodes/callback/%s/" % (callback_prefix,
+    return "%staskflow/api/nodes/callback/%s/" % (settings.SITE_URL,
                                                   f.encrypt(bytes(node_id)))
