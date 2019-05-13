@@ -16,7 +16,6 @@ import logging
 import traceback
 
 from cryptography.fernet import Fernet
-from django.conf import settings
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -26,15 +25,16 @@ from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions, states
 from pipeline.engine.models import PipelineModel
 
+from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.constants import PermNm
 from gcloud.taskflow3.decorators import check_user_perm_of_task
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
 
 logger = logging.getLogger("root")
+get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 
 
 @require_GET
@@ -91,7 +91,7 @@ def detail(request, biz_cc_id):
 
 @require_GET
 def get_job_instance_log(request, biz_cc_id):
-    client = get_client_by_user(request.user.username)
+    client = get_client_by_request(request)
     job_instance_id = request.GET.get('job_instance_id')
     log_kwargs = {
         "bk_biz_id": biz_cc_id,

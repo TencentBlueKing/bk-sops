@@ -16,14 +16,13 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
-
-from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
+from gcloud.conf import settings
 
 logger = logging.getLogger('celery')
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _(u"配置平台(CMDB)")
 __group_icon__ = '%scomponents/atoms/sites/%s/cc/cc.png' % (settings.STATIC_URL, settings.RUN_VER)
