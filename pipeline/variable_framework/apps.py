@@ -40,6 +40,5 @@ class VariableFrameworkConfig(AppConfig):
         try:
             VariableModel.objects.exclude(code__in=VariableLibrary.variables.keys()).update(status=False)
         except (ProgrammingError, OperationalError) as e:
-            logger.exception(e)
             # first migrate
-            pass
+            logger.exception(e)
