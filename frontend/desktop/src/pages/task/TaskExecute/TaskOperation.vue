@@ -14,22 +14,25 @@
         <div class="operation-header clearfix">
             <div class="bread-crumbs-wrapper">
                 <span
-                    :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
-                    v-for="(path, index) in nodeNav"
-                    :key="path.id"
-                    :title="showNodeList.includes(index) ? path.name : ''">
-                    <span v-if="!!index && showNodeList.includes(index) || index === 1">
-                        &gt;
-                    </span>
+                    v-if="isSubFlow">
                     <span
-                        v-if="showNodeList.includes(index)"
-                        class="node-name"
-                        :title="path.name"
-                        @click="onSelectSubflow(path.id)">
-                        {{path.name}}
-                    </span>
-                    <span class="node-ellipsis" v-else-if="index === 1">
-                        {{ellipsis}}
+                        :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
+                        v-for="(path, index) in nodeNav"
+                        :key="path.id"
+                        :title="showNodeList.includes(index) ? path.name : ''">
+                        <span v-if="!!index && showNodeList.includes(index) || index === 1">
+                            &gt;
+                        </span>
+                        <span
+                            v-if="showNodeList.includes(index)"
+                            class="node-name"
+                            :title="path.name"
+                            @click="onSelectSubflow(path.id)">
+                            {{path.name}}
+                        </span>
+                        <span class="node-ellipsis" v-else-if="index === 1">
+                            {{ellipsis}}
+                        </span>
                     </span>
                 </span>
             </div>
@@ -97,6 +100,7 @@
             </div>
         </div>
         <transition name="slideRight">
+            <!-- 执行详情 -->
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
                 <ViewParams
                     v-if="nodeInfoType === 'viewParams'"
@@ -229,6 +233,7 @@
                     params: gettext('查看参数'),
                     changeParams: gettext('修改参数')
                 },
+                a: path,
                 operationList: OPERATIONS.slice(0),
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -263,6 +268,13 @@
         computed: {
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
+            },
+            isSubFlow () {
+                const list = []
+                this.completePipelineData.location.forEach(item => {
+                    list.push(item.type)
+                })
+                return list.includes('subflow')
             },
             canvasData () {
                 const { line, location, gateways } = this.pipelineData
