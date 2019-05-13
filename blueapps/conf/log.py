@@ -114,6 +114,11 @@ def get_logging_config_dict(settings_module):
                 'level': 'INFO',
                 'propagate': True,
             },
+            'django.server': {
+                'handlers': ['console'],
+                'level': log_level,
+                'propagate': True,
+            },
             'django.request': {
                 'handlers': ['root'],
                 'level': 'ERROR',
@@ -133,12 +138,12 @@ def get_logging_config_dict(settings_module):
             # 组件调用日志
             'component': {
                 'handlers': ['component'],
-                'level': 'WARN',
+                'level': 'WARNING',
                 'propagate': True,
             },
             'celery': {
                 'handlers': ['celery'],
-                'level': 'INFO',
+                'level': log_level,
                 'propagate': True,
             },
             # other loggers...
