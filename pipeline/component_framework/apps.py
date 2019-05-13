@@ -40,6 +40,6 @@ class ComponentFrameworkConfig(AppConfig):
         try:
             ComponentModel.objects.exclude(code__in=ComponentLibrary.components.keys()).update(status=False)
         except (ProgrammingError, OperationalError) as e:
-            logger.exception(e)
             # first migrate
-            pass
+            logger.exception(e)
+            
