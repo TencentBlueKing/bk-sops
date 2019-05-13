@@ -41,7 +41,6 @@ from gcloud.core.utils import (
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 
-
 logger = logging.getLogger('root')
 
 
@@ -84,7 +83,8 @@ class AppSerializer(Serializer):
 class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
 
     def _get_business_for_user(self, user, perms):
-        return get_business_for_user(user, perms)
+        business_list = get_business_for_user(user, perms)
+        return business_list.filter(~(Q(status='disabled')) & Q(life_cycle=Business.LIFE_CYCLE_ONLINE))
 
     def _get_objects_for_user(self, object_list, bundle, perms):
         user = bundle.request.user
