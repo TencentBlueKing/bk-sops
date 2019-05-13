@@ -22,6 +22,7 @@
                 :canvas-data="canvasData"
                 :name="name"
                 :cc_id="cc_id"
+                :type="type"
                 :common="common"
                 :template_id="template_id"
                 :atom-type-list="atomTypeList"

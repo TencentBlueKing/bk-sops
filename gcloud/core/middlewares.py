@@ -30,6 +30,16 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
 
+    def _get_biz_cc_id_in_rest_request(self, request):
+        biz_cc_id = None
+        try:
+            body = json.loads(request.body)
+            biz_cc_id = int(body.get('business').split('/')[-2])
+        except Exception:
+            pass
+
+        return biz_cc_id
+
     def process_view(self, request, view_func, view_args, view_kwargs):
         """
         If a request path contains biz_cc_id parameter, check if current
@@ -37,7 +47,7 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
         """
         if getattr(view_func, 'login_exempt', False):
             return None
-        biz_cc_id = view_kwargs.get('biz_cc_id')
+        biz_cc_id = view_kwargs.get('biz_cc_id') or self._get_biz_cc_id_in_rest_request(request)
         if biz_cc_id and str(biz_cc_id) != '0':
             try:
                 business = prepare_business(request, cc_id=biz_cc_id)

@@ -18,6 +18,7 @@
             v-if="isConfigBarShow"
             :name="name"
             :cc_id="cc_id"
+            :type="type"
             :common="common"
             :template_id="template_id"
             :is-template-data-changed="isTemplateDataChanged"
@@ -170,6 +171,9 @@
             template_id: {
                 type: String,
                 required: false
+            },
+            type: {
+                type: String
             },
             common: {
                 type: String,

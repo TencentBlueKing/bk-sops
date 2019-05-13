@@ -870,6 +870,15 @@ class TaskFlowInstance(models.Model):
     def subprocess_info(self):
         return self.pipeline_instance.template.subprocess_version_info
 
+    @property
+    def raw_state(self):
+        try:
+            state = pipeline_api.get_status_tree(self.pipeline_instance.instance_id)['state']
+        except exceptions.InvalidOperationException:
+            return None
+
+        return state
+
     @staticmethod
     def format_pipeline_status(status_tree):
         """
