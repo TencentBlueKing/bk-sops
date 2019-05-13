@@ -22,6 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
 
+from gcloud.conf import settings
 from gcloud.core.api_adapter import (
     create_maker_app,
     edit_maker_app,
@@ -29,14 +30,14 @@ from gcloud.core.api_adapter import (
     modify_app_logo,
     get_app_logo_url,
 )
-from gcloud.conf import settings
 from gcloud.core.constant import AE
 from gcloud.core.models import Business
 from gcloud.core.utils import (
     convert_readable_username,
     name_handler,
     time_now_str,
-    timestamp_to_datetime)
+    timestamp_to_datetime
+)
 from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("root")
