@@ -92,11 +92,10 @@ const api = {
      * 获取业务基础配置信息
      */
     getBusinessBaseInfo () {
-        const { cc_id } = store.state
         const prefixUrl = this.getPrefix('businessBaseInfo')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}${cc_id}/`
+            url: `${prefixUrl}`
         }
         return request(opts)
     },

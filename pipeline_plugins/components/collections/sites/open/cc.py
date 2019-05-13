@@ -26,7 +26,7 @@ from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
 logger = logging.getLogger('celery')
 
 __group_name__ = _(u"配置平台(CMDB)")
-__group_icon__ = '%scomponents/icons/cc.png' % settings.STATIC_URL
+__group_icon__ = '%scomponents/atoms/sites/%s/cc/cc.png' % (settings.STATIC_URL, settings.RUN_VER)
 
 
 def cc_handle_api_error(api_name, params, error):
