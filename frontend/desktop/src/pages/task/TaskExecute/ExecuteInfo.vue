@@ -11,30 +11,39 @@
 */
 <template>
     <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <h3 class="panel-title">{{ i18n.execute_detail }}</h3>
+        <div class="execute-head">
+            <h3 class="panel-title">{{ i18n.execute_detail }}</h3>
+            <span class="node-name">{{nodeInfo.name}}</span>
+            <span :class="[displayStatus.stateIcon, statusIcon]"></span>
+            <span class="statusTextMessages">{{displayStatus.stateDescribe}}</span>
+        </div>
         <section class="info-section">
             <h4 class="common-section-title">{{ i18n.execute_info }}</h4>
             <table class="operation-table">
-                <thead>
-                    <tr>
-                        <th class="start-time">{{ i18n.start_time }}</th>
-                        <th class="finish-time">{{ i18n.finish_time }}</th>
-                        <th class="last-time">{{ i18n.last_time}}</th>
-                        <th class="task-skipped">{{ i18n.task_skipped}}</th>
-                        <th class="error_ignorable">{{i18n.error_ignorable}}</th>
-                        <th class="manually-retry">{{i18n.manuallyRetry}}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="start-time">{{nodeInfo.start_time}}</td>
-                        <td class="finish-time">{{nodeInfo.finish_time}}</td>
-                        <td class="last-time">{{getLastTime(nodeInfo.elapsed_time)}}</td>
-                        <td class="task-skipped">{{nodeInfo.skip ? i18n.yes : i18n.no}}</td>
-                        <td class="error_ignorable">{{nodeInfo.error_ignorable ? i18n.yes : i18n.no}}</td>
-                        <td class="manually-retry">{{nodeInfo.retry > 0 ? i18n.yes : i18n.no}}</td>
-                    </tr>
-                </tbody>
+                <tr>
+                    <th class="start-time">{{ i18n.start_time }}</th>
+                    <td>{{nodeInfo.start_time}}</td>
+                </tr>
+                <tr>
+                    <th class="finish-time">{{ i18n.finish_time }}</th>
+                    <td>{{nodeInfo.finish_time}}</td>
+                </tr>
+                <tr>
+                    <th class="last-time">{{ i18n.last_time}}</th>
+                    <td>{{getLastTime(nodeInfo.elapsed_time)}}</td>
+                </tr>
+                <tr>
+                    <th class="task-skipped">{{ i18n.task_skipped}}</th>
+                    <td>{{nodeInfo.skip ? i18n.yes : i18n.no}}</td>
+                </tr>
+                <tr>
+                    <th class="error_ignorable">{{i18n.error_ignorable}}</th>
+                    <td>{{nodeInfo.error_ignorable ? i18n.yes : i18n.no}}</td>
+                </tr>
+                <tr>
+                    <th class="manually-retry">{{i18n.manuallyRetry}}</th>
+                    <td>{{nodeInfo.loop}}</td>
+                </tr>
             </table>
         </section>
         <section class="info-section" v-show="isSingleAtom">
@@ -166,7 +175,12 @@
                     index: gettext('序号'),
                     yes: gettext('是'),
                     no: gettext('否'),
-                    manuallyRetry: gettext('手动重试')
+                    manuallyRetry: gettext('重试次数'),
+                    running: gettext('执行中'),
+                    suspended: gettext('暂停'),
+                    failed: gettext('失败'),
+                    finished: gettext('完成')
+
                 },
                 loading: true,
                 bkMessageInstance: null,
@@ -192,6 +206,23 @@
             },
             isEmptyParams () {
                 return this.renderConfig && this.renderConfig.length === 0
+            },
+            displayStatus () {
+                const state = {}
+                if (this.nodeInfo.state === 'RUNNING') {
+                    state.stateIcon = 'common-icon-dark-circle-ellipsis'
+                    state.stateDescribe = this.i18n.running
+                } else if (this.nodeInfo.state === 'SUSPENDED') {
+                    state.stateIcon = 'common-icon-dark-circle-pause'
+                    state.stateDescribe = this.i18n.suspended
+                } else if (this.nodeInfo.state === 'FINISHED') {
+                    state.stateIcon = 'bk-icon icon-check-circle-shape'
+                    state.stateDescribe = this.i18n.finished
+                } else if (this.nodeInfo.state === 'FAILED') {
+                    state.stateIcon = 'common-icon-dark-circle-close'
+                    state.stateDescribe = this.i18n.failed
+                }
+                return state
             }
         },
         watch: {
@@ -315,10 +346,41 @@
     height: 100%;
     overflow-y: auto;
     @include scrollbar;
+    .execute-head {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid #cacedb
+    }
     .panel-title {
         margin: 0;
-        font-size: 22px;
-        font-weight: normal;
+        font-size: 16px;
+        font-weight: 600;
+        display: inline-block;
+    }
+    .statusTextMessages {
+        margin-left: 5px;
+        font-size: 14px;
+    }
+    .node-name {
+        font-size: 16px;
+        margin-right: 5px;
+        font-weight: 600;
+        &::before {
+            content: '';
+            display: inline-block;
+            position: relative;
+            bottom: 5px;
+            left: 0;
+            width: 10px;
+            height: 2px;
+            margin: 0 5px;
+            background: #313238;
+        }
+    }
+    .operation-table th {
+        width: 260px;
     }
     .info-section {
         margin: 30px 0;
@@ -333,13 +395,6 @@
     }
     .operation-table {
         table-layout: fixed;
-        .start-time,
-        .finish-time {
-            width: 210px;
-        }
-        .last-time {
-            width: 80px;
-        }
         .output-name {
             width: 35%;
         }
@@ -368,6 +423,18 @@
         .el-table__expanded-cell {
             background: $whiteThinBg;
         }
+    }
+    .common-icon-dark-circle-ellipsis {
+        color: #3c96ff;
+    }
+    .common-icon-dark-circle-pause {
+        color: #F8B53F
+    }
+    .icon-check-circle-shape {
+        color: #30d878
+    }
+    .common-icon-dark-circle-close {
+        color: #ff5757
     }
 }
 </style>

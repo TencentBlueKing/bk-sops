@@ -13,7 +13,8 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <span>{{ taskTemplateTitle }}</span>
+                <span class="taskTitle">{{ taskTemplateTitle }}</span>
+                <span class="taskName">{{ instanceName }}</span>
             </div>
         </div>
         <div class="division-line"></div>
@@ -43,7 +44,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished'],
+        props: ['list', 'currentStep', 'allFinished', 'instanceName'],
         data () {
             return {
                 i18n: {
@@ -110,6 +111,23 @@
     border: 1px solid #cacedb;
     .step-header {
         background-color: #f4f7fa;
+    }
+    .taskTitle {
+        position: absolute;
+        left: 0;
+        &:before {
+            content: '';
+            display: inline-block;
+            position: relative;
+            top: 4px;
+            right: 10px;
+            width: 2px;
+            height: 20px;
+            background: #A3C5FD;
+        }
+    }
+    .taskName {
+        padding-left: 0px;
     }
     .division-line {
         margin: 0 20px 10px 20px;
