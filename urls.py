@@ -41,7 +41,7 @@ urlpatterns = [
 # app自定义路径
 urlpatterns += urlpatterns_custom
 
-if settings.RUN_MODE == 'DEVELOP':
+if settings.IS_LOCAL:
     urlpatterns += [
         # media
         url(r'^media/(?P<path>.*)$', static.serve,
