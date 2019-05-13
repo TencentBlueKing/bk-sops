@@ -22,8 +22,7 @@
             class="variable-wrap"
             v-if="isUnreferencedShow">
             <div class="title-background" @click="onToggleUnReferenceShow">
-                <div :class="['un-referencedvariable', { 'unreference-show': isUnrefVarShow }]">
-                </div>
+                <div :class="['un-referenced-variable', { 'un-reference-show': isUnrefVarShow }]"></div>
                 <span class="title">{{i18n.title}}</span>
                 <bk-tooltip placement="bottom-end" width="400" class="desc-tooltip">
                     <i class="bk-icon icon-info-circle"></i>
@@ -33,7 +32,7 @@
                 </bk-tooltip>
             </div>
             <TaskParamEdit
-                class="unreferenced"
+                class="un-referenced"
                 v-show="isUnrefVarShow"
                 ref="TaskParamEdit"
                 :constants="unReferencedVariable"
@@ -82,8 +81,8 @@
             }
         },
         watch: {
-            isParameterInfoLoading (newVal) {
-                this.$emit('onParameterInfoLoading', newVal)
+            isParameterInfoLoading (Val) {
+                this.$emit('onParameterInfoLoading', Val)
             },
             taskMessageLoading (val) {
                 if (!val) {
@@ -119,11 +118,8 @@
 }
 .variable-wrap {
     background: #f0f1f5;
-    .unreferenced {
+    .un-referenced {
        padding-bottom: 20px;
-    }
-    .title {
-        font-weight: 600;
     }
     .title-background {
         padding-left: 20px;
@@ -131,7 +127,7 @@
         &:hover {
             background: #e4e6ed;
         }
-        .un-referencedvariable {
+        .un-referenced-variable {
             display: inline-block;
             position: relative;
             width: 0;
@@ -141,6 +137,10 @@
             border-right: 5px solid transparent;
             border-bottom: 5px solid transparent;
         }
+        .un-reference-show {
+            top: 2px;
+            transform: rotate(90deg);
+        }
         .desc-tooltip {
             float: right;
             margin: 20px;
@@ -149,11 +149,8 @@
             position: relative;
             right: 12px;
         }
-        .unreference-show {
-            top: 2px;
-            transform: rotate(90deg);
-        }
         .title {
+            font-weight: 600;
             line-height: 60px;
             font-size: 14px
         }
