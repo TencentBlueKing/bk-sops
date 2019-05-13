@@ -21,6 +21,10 @@
   /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  &.bk-icon {
+    font-family: 'commonicon' !important;
+  }
 }
 
 .common-icon-add:before {
