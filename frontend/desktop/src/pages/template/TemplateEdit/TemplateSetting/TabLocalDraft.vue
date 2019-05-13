@@ -16,7 +16,12 @@
         </div>
         <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
             <div class="draft-form" v-if="newDraftShow">
-                <BaseInput :placeholder="i18n.draftMessage" name="draftName" v-model="newDraftName" v-validate="draftNameRule" />
+                <BaseInput
+                    :placeholder="i18n.draftMessage"
+                    name="draftName"
+                    v-model="newDraftName"
+                    data-vv-validate-on=" "
+                    v-validate="draftNameRule" />
                 <bk-button type="success" size="small" @click="onNewDraft">{{i18n.affirm}}</bk-button>
                 <bk-button size="small" @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
             </div>
@@ -286,9 +291,9 @@
             display: block;
             height: calc(100% - 40px);
             overflow: auto;
-            cursor: pointer;
-            tr:hover {
+            tr:not(.empty-draft-tip):hover {
                 background: $blueStatus;
+                cursor: pointer;
                 .close-btn {
                     display: inline-block;
                 }
