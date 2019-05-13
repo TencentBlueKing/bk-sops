@@ -42,4 +42,3 @@ class ComponentFrameworkConfig(AppConfig):
         except (ProgrammingError, OperationalError) as e:
             # first migrate
             logger.exception(e)
-            
