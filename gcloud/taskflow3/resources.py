@@ -11,8 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import ujson as json
 
+from django.utils.translation import ugettext_lazy as _
 from django.http.response import HttpResponseForbidden
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
@@ -20,6 +22,7 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 
+from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -39,6 +42,8 @@ from gcloud.webservice3.resources import (
     pipeline_node_name_handle,
     BusinessResource,
 )
+
+logger = logging.getLogger('root')
 
 
 class TaskflowAuthorization(GCloudGenericAuthorization):
@@ -249,3 +254,16 @@ class TaskFlowInstanceResource(GCloudModelResource):
         kwargs['pipeline_instance_id'] = pipeline_instance.id
         super(TaskFlowInstanceResource, self).obj_create(bundle, **kwargs)
         return bundle
+
+    def obj_delete(self, bundle, **kwargs):
+        try:
+            taskflow = TaskFlowInstance.objects.get(id=kwargs['pk'])
+        except Exception:
+            raise BadRequest('taskflow does not exits')
+
+        raw_state = taskflow.raw_state
+
+        if raw_state and raw_state not in states.ARCHIVED_STATES:
+            raise BadRequest(_(u"无法删除未进入完成或撤销状态的流程"))
+
+        return super(TaskFlowInstanceResource, self).obj_delete(bundle, **kwargs)
