@@ -109,7 +109,7 @@
 
             onClickTemplate (templateId) {
                 this.$store.commit('setTemplateId', templateId)
-                this.$router.push({ path: `/task/create/${templateId}` })
+                this.$router.push({ path: `/task/create/${templateId}`, query: { templateId: templateId } })
             }
         }
     }

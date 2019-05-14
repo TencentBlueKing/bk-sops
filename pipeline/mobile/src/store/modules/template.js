@@ -21,7 +21,6 @@ export default {
 
         collectTemplate ({ commit, state, dispatch }, isFavorite = false) {
             // 接口需开发
-            template.is_favorite = !isFavorite
             return !isFavorite
         },
 

@@ -1,21 +1,27 @@
+
 <template>
     <div class="page-view">
-        <MobileCanvas :is-preview="false" :canvas-data="canvasData"></MobileCanvas>
+        <MobileCanvas v-if="!loading" :editable="false" :canvas-data="canvasData"></MobileCanvas>
     </div>
 </template>
 
 <script>
-    import MobileCanvas from '../jsflow/index.vue'
+    import MobileCanvas from '@/components/MobileCanvas/index.vue'
     import { mapState, mapActions } from 'vuex'
 
     export default {
         name: 'template_preview',
         components: {
             MobileCanvas
+            // JsFlow
         },
         data () {
             return {
-                pipelineTree: {}
+                pipelineTree: {},
+                loading: true,
+                i18n: {
+                    loading: window.gettext('加载中...')
+                }
             }
         },
         computed: {
@@ -37,12 +43,17 @@
             ]),
 
             async loadData () {
+                this.$toast.loading({ mask: true, message: '加载中...' })
                 const params = {
-                    template_id: this.templateId,
+                    template_id: this.$route.query.templateId || this.template_id,
                     exclude_task_nodes_id: JSON.stringify(this.excludeTaskNodes),
                     template_source: 'business'
                 }
+                console.log('---')
+                console.log(this.loading)
                 this.pipelineTree = await this.getPreviewTaskTree(params)
+                this.loading = false
+                this.$toast.clear()
             }
         }
     }
