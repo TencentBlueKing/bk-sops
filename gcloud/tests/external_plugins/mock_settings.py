@@ -11,8 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.external_plugins.models.origin import (  # noqa
-    OriginalPackageSource,
-    source_cls_factory
-)
-from gcloud.external_plugins.models.cache import CachePackageSource  # noqa
+OS_PATH_EXISTS = 'os.path.exists'
+OS_MAKEDIRS = 'os.makedirs'
+OS_WALK = 'os.walk'
+SHUTIL_RMTREE = 'shutil.rmtree'
+SHUTIL_MOVE = 'shutil.move'
+
+GCLOUD_EXTERNAL_PLUGINS_MODELS_PROTOCOL_READERS_BOTO3 = 'gcloud.external_plugins.models.protocol.readers.boto3'
+GCLOUD_EXTERNAL_PLUGINS_MODELS_PROTOCOL_READERS_REPO = 'gcloud.external_plugins.models.protocol.readers.Repo'
+GCLOUD_EXTERNAL_PLUGINS_MODELS_PROTOCOL_WRITERS_BOTO3 = 'gcloud.external_plugins.models.protocol.writers.boto3'

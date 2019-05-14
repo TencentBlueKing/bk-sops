@@ -11,41 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
-import shutil
-
-import boto3
 from django.db import transaction
 
-from pipeline.contrib.external_plugins.models.base import S3, FILE_SYSTEM
-
 from gcloud.external_plugins import exceptions, CACHE_TEMP_PATH
-from gcloud.external_plugins.models.package_base import PackageSource, PackageSourceManager
-
-
-def upload_s3_dir(client, bucket, local, target_dir=''):
-    """
-    @summary: 把本地local目录按照目录层级上传到S3 中的目录target_dir
-    @param client: S3 client
-    @param bucket: S3 bucket
-    @param local: 本地目录
-    @param target_dir: S3 目标子目录，为空则上传到根目录
-    @return:
-    """
-    if local != '' and local[:1] not in '/\\':
-        local = local.append(os.path.sep)
-    for root, _, files in os.walk(local):
-        subdir = root.split(local)[1]
-        for _file in files:
-            full_path = os.path.join(target_dir, subdir, _file)
-            local_path = os.path.join(root, _file)
-            client.upload_file(Filename=local_path, Bucket=bucket, Key=full_path)
+from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
+from gcloud.external_plugins.models.protocol.writers import writer_cls_factory
 
 
 class CachePackageSourceManager(PackageSourceManager):
     @transaction.atomic()
     def add_cache_source(self, name, source_type, packages, **kwargs):
-        if source_type not in [S3, FILE_SYSTEM]:
+        if source_type not in writer_cls_factory:
             raise exceptions.CacheSourceTypeError('Source type[%s] does not support as cache source' % source_type)
 
         if self.all().count() > 0:
@@ -80,17 +56,8 @@ class CachePackageSource(PackageSource):
     def details(self):
         return self.base_source.details()
 
-    def writer(self):
-        if self.type == FILE_SYSTEM:
-            shutil.move(CACHE_TEMP_PATH, self.base_source.path)
-        elif self.type == S3:
-            cache_path = CACHE_TEMP_PATH
-            if not os.path.exists(cache_path):
-                os.makedirs(cache_path)
-            client = boto3.client('s3',
-                                  endpoint_url=self.base_source.service_address,
-                                  aws_access_key_id=self.base_source.access_key,
-                                  aws_secret_access_key=self.base_source.secret_key)
-            upload_s3_dir(client, self.base_source.bucket, cache_path)
-        else:
+    def write(self):
+        if self.type not in writer_cls_factory:
             raise exceptions.CacheSourceTypeError('Source type[%s] does not support as cache source' % self.type)
+        writer = writer_cls_factory[self.type](CACHE_TEMP_PATH, self.base_source)
+        writer.write()

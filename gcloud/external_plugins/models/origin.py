@@ -15,8 +15,6 @@ import os
 import shutil
 from abc import abstractmethod
 
-import boto3
-from git import Repo
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 
@@ -28,13 +26,14 @@ from pipeline.contrib.external_plugins.models import (
 )
 
 from gcloud.external_plugins import exceptions, CACHE_TEMP_PATH
-from gcloud.external_plugins.models.package_base import PackageSource, PackageSourceManager
-from gcloud.external_plugins.models.cache_source import CachePackageSource
+from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
+from gcloud.external_plugins.models.cache import CachePackageSource
+from gcloud.external_plugins.models.protocol.readers import reader_cls_factory
 
 source_cls_factory = {}
 
 
-def decor_original_source(cls):
+def original_source(cls):
     source_cls_factory[cls.original_type()] = cls
     return cls
 
@@ -86,10 +85,6 @@ class OriginalPackageSource(PackageSource):
     def original_type():
         raise NotImplementedError()
 
-    @abstractmethod
-    def reader(self):
-        raise NotImplementedError()
-
     @property
     @abstractmethod
     def details(self):
@@ -107,8 +102,13 @@ class OriginalPackageSource(PackageSource):
             raise exceptions.OriginalSourceTypeError('Original source type cannot be updated')
         super(OriginalPackageSource, self).update_base_source(source_type, packages, **kwargs)
 
+    def read(self):
+        cache_path = self.prepare_cache_path()
+        reader = reader_cls_factory[self.original_type()](cache_path, **self.details)
+        reader.read()
 
-@decor_original_source
+
+@original_source
 class GitRepoOriginalSource(OriginalPackageSource):
     repo_address = models.TextField(_(u"仓库链接"))
     repo_raw_address = models.TextField(_(u"文件托管仓库链接"), help_text=_(u"可以通过web直接访问源文件的链接前缀"))
@@ -126,36 +126,8 @@ class GitRepoOriginalSource(OriginalPackageSource):
             'branch': self.branch
         }
 
-    def reader(self):
-        cache_path = super(GitRepoOriginalSource, self).prepare_cache_path()
-        Repo.clone_from(self.repo_address, cache_path, branch=self.branch)
 
-
-def download_s3_dir(client, paginator, bucket, local, source_dir=''):
-    """
-    @summary: 把S3 中的目录source_dir按照目录层级下载到本地local目录
-    @param client: S3 client
-    @param paginator: S3 client 的 paginator
-    @param local: 本地目录
-    @param bucket: S3 bucket
-    @param source_dir: S3 子目录，为空则下载所有文件
-    @return: None
-    """
-    for result in paginator.paginate(Bucket=bucket, Delimiter='/', Prefix=source_dir):
-        if result.get('CommonPrefixes') is not None:
-            for subdir in result.get('CommonPrefixes'):
-                download_s3_dir(client, paginator, bucket, local, subdir.get('Prefix'))
-        for _file in result.get('Contents', []):
-            if _file.get('Key', '')[:1] in '/\\':
-                full_path = os.path.join(local, _file.get('Key')[1:])
-            else:
-                full_path = os.path.join(local, _file.get('Key'))
-            if not os.path.exists(os.path.dirname(full_path)):
-                os.makedirs(os.path.dirname(full_path))
-            client.download_file(bucket, _file.get('Key'), full_path)
-
-
-@decor_original_source
+@original_source
 class S3OriginalSource(OriginalPackageSource):
     service_address = models.TextField(_(u"对象存储服务地址"))
     bucket = models.TextField(_(u"bucket 名"))
@@ -175,17 +147,8 @@ class S3OriginalSource(OriginalPackageSource):
             'secret_key': self.secret_key,
         }
 
-    def reader(self):
-        cache_path = super(S3OriginalSource, self).prepare_cache_path()
-        client = boto3.client('s3',
-                              endpoint_url=self.service_address,
-                              aws_access_key_id=self.access_key,
-                              aws_secret_access_key=self.secret_key)
-        paginator = client.get_paginator('list_objects')
-        download_s3_dir(client, paginator, self.bucket, cache_path)
 
-
-@decor_original_source
+@original_source
 class FileSystemOriginalSource(OriginalPackageSource):
     path = models.TextField(_(u"文件系统路径"))
 
@@ -199,5 +162,5 @@ class FileSystemOriginalSource(OriginalPackageSource):
             'path': self.path
         }
 
-    def reader(self):
+    def read(self):
         raise exceptions.OriginalSourceTypeError('FileSystem original source does not support to be cached')

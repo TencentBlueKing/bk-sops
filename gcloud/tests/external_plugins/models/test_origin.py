@@ -24,7 +24,7 @@ from pipeline.contrib.external_plugins.models import (
 )
 
 from gcloud.external_plugins import exceptions
-from gcloud.external_plugins.models.original_source import (
+from gcloud.external_plugins.models.origin import (
     GitRepoOriginalSource,
     S3OriginalSource,
     FileSystemOriginalSource
@@ -100,8 +100,8 @@ class TestGitRepoOriginalSource(TestCase):
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
 
-    def test_reader__exception(self):
-        self.assertRaises(GitError, self.original_source.reader)
+    def test_read__exception(self):
+        self.assertRaises(GitError, self.original_source.read)
 
     def test_update_package_source(self):
         GitRepoOriginalSource.objects.update_original_source(
@@ -180,8 +180,8 @@ class TestS3OriginalSource(TestCase):
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
 
-    def test_reader__exception(self):
-        self.assertRaises(ValueError, self.original_source.reader)
+    def test_read__exception(self):
+        self.assertRaises(ValueError, self.original_source.read)
 
     def test_update_package_source(self):
         S3OriginalSource.objects.update_original_source(
@@ -252,8 +252,8 @@ class TestFileSystemOriginalSource(TestCase):
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
 
-    def test_reader__exception(self):
-        self.assertRaises(exceptions.OriginalSourceTypeError, self.original_source.reader)
+    def test_read__exception(self):
+        self.assertRaises(exceptions.OriginalSourceTypeError, self.original_source.read)
 
     def test_update_package_source(self):
         FileSystemOriginalSource.objects.update_original_source(
