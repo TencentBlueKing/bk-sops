@@ -25,8 +25,8 @@ STATE_MAP = {
 }
 
 
-def run_pipeline(pipeline_instance, instance_id=None):
-    return api.start_pipeline(pipeline_instance)
+def run_pipeline(pipeline_instance, instance_id=None, check_workers=True):
+    return api.start_pipeline(pipeline_instance, check_workers=check_workers)
 
 
 def pause_pipeline(pipeline_id):
