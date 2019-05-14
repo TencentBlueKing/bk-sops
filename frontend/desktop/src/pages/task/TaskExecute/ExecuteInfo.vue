@@ -12,7 +12,6 @@
 <template>
     <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="execute-head">
-            <h3 class="panel-title">{{ i18n.execute_detail }}</h3>
             <span class="node-name">{{nodeInfo.name}}</span>
             <span :class="[displayStatus.stateIcon, statusIcon]"></span>
             <span class="statusTextMessages">{{displayStatus.stateDescribe}}</span>
@@ -42,13 +41,13 @@
                 </tr>
                 <tr>
                     <th class="manually-retry">{{i18n.manuallyRetry}}</th>
-                    <td>{{nodeInfo.loop}}</td>
+                    <td>{{nodeInfo.retry}}</td>
                 </tr>
             </table>
         </section>
         <section class="info-section" v-show="isSingleAtom">
             <h4 class="common-section-title">{{ i18n.inputs_params }}</h4>
-            <div class="">
+            <div>
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
                     :scheme="renderConfig"
@@ -159,7 +158,6 @@
         data () {
             return {
                 i18n: {
-                    execute_detail: gettext('执行详情'),
                     execute_info: gettext('执行信息'),
                     start_time: gettext('开始时间'),
                     finish_time: gettext('结束时间'),
@@ -344,6 +342,7 @@
 .execute-info {
     padding: 30px 20px;
     height: 100%;
+    color: #313238;
     overflow-y: auto;
     @include scrollbar;
     .execute-head {
@@ -355,32 +354,25 @@
     }
     .panel-title {
         margin: 0;
-        font-size: 16px;
+        color: #313238;
+        font-size: 14px;
         font-weight: 600;
-        display: inline-block;
     }
     .statusTextMessages {
         margin-left: 5px;
-        font-size: 14px;
+        font-size: 12px;
     }
     .node-name {
-        font-size: 16px;
         margin-right: 5px;
         font-weight: 600;
-        &::before {
-            content: '';
-            display: inline-block;
-            position: relative;
-            bottom: 5px;
-            left: 0;
-            width: 10px;
-            height: 2px;
-            margin: 0 5px;
-            background: #313238;
-        }
     }
     .operation-table th {
         width: 260px;
+        font-weight: 400;
+        color: #313238;
+    }
+    .operation-table td {
+        color: #313238;
     }
     .info-section {
         margin: 30px 0;
@@ -391,22 +383,28 @@
         }
     }
     .common-section-title {
+        color: #313238;
+        font-size: 14px;
         margin-bottom: 20px;
     }
     .operation-table {
+        font-size: 12px;
         table-layout: fixed;
         .output-name {
             width: 35%;
         }
     }
     .retry-table {
+        font-size: 12px;
         .common-form-item {
             & > label {
                 margin-top: 0;
                 width: 60px;
+                font-size: 12px;
             }
             .commont-form-content {
                 margin-left: 100px;
+                font-size: 12px;
             }
         }
     }
@@ -423,6 +421,9 @@
         .el-table__expanded-cell {
             background: $whiteThinBg;
         }
+    }
+    .info-section{
+        font-size: 12px
     }
     .common-icon-dark-circle-ellipsis {
         color: #3c96ff;
