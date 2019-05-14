@@ -21,6 +21,8 @@ from pipeline.contrib.external_plugins.models import (
     FileSystemSource
 )
 
+from gcloud.tests.external_plugins.mock import *  # noqa
+from gcloud.tests.external_plugins.mock_settings import *  # noqa
 from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models.cache import CachePackageSource
 
@@ -106,6 +108,7 @@ class TestCachePackageSource(TestCase):
     def test_details(self):
         self.assertEquals(self.cache_source.details, self.SOURCE_KWARGS)
 
+    @patch(OS_PATH_EXISTS, MagicMock(return_value=True))
     def test_write__exception(self):
         self.assertRaises(ValueError, self.cache_source.write)
 
