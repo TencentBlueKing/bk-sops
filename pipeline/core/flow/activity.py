@@ -226,6 +226,10 @@ class NullIntervalGenerator(AbstractIntervalGenerator):
     pass
 
 
+class LinearIntervalGenerator(AbstractIntervalGenerator):
+    pass
+
+
 class StaticIntervalGenerator(AbstractIntervalGenerator):
     def __init__(self, interval):
         super(StaticIntervalGenerator, self).__init__()
