@@ -32,6 +32,7 @@
                 <label>{{i18n.alwaysUseExecutorLabel}}</label>
                 <div class="common-form-content">
                     <bk-switcher
+                        size="small"
                         :selected="alwaysUseExecutor"
                         :show-text="false"
                         :is-square="false"
@@ -47,7 +48,7 @@
             </div>
         </div>
         <div class="operation-wrapper">
-            <bk-button type="success" @click="onSaveConfig" :loading="pending">{{i18n.save}}</bk-button>
+            <bk-button type="primary" @click="onSaveConfig" :loading="pending" :disabled="configLoading">{{i18n.save}}</bk-button>
         </div>
     </div>
 </template>
@@ -163,7 +164,7 @@
         width: 500px;
     }
     .executor-switch {
-        margin: 22px 0 0 0;
+        margin: 30px 0 0 0;
     }
     .common-form-content {
         margin-left: 180px;
@@ -176,6 +177,7 @@
             top: 0px;
             left: -8px;
             color: #F00;
+            
         }
     }
     .desc-tooltip {
@@ -183,11 +185,13 @@
         top: 3px;
         left: 5px;
     }
+    .icon-info-circle:hover {
+        color: #f4aa1a
+    }
     .bk-button {
-        width: 140px;
-        height: 32px;
+        width:140px;
+        height:32px;
         line-height: 32px;
-        background: #3a84ff
     }
 }
 </style>
