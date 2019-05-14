@@ -12,31 +12,33 @@
 <template>
     <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="execute-head">
-            <span class="node-name">{{nodeInfo.name}}</span>
-            <span :class="[displayStatus.stateIcon, statusIcon]"></span>
-            <span class="statusTextMessages">{{displayStatus.stateDescribe}}</span>
+            <span class="node-name">
+                {{nodeInfo.name}}
+                <span :class="displayStatus"></span>
+                <span class="status-text-messages">{{nodeState}}</span>
+            </span>
         </div>
         <section class="info-section">
-            <h4 class="common-section-title">{{ i18n.execute_info }}</h4>
+            <h4 class="common-section-title">{{ i18n.executeInfo }}</h4>
             <table class="operation-table">
                 <tr>
-                    <th class="start-time">{{ i18n.start_time }}</th>
+                    <th class="start-time">{{ i18n.startTime }}</th>
                     <td>{{nodeInfo.start_time}}</td>
                 </tr>
                 <tr>
-                    <th class="finish-time">{{ i18n.finish_time }}</th>
+                    <th class="finish-time">{{ i18n.finishTime }}</th>
                     <td>{{nodeInfo.finish_time}}</td>
                 </tr>
                 <tr>
-                    <th class="last-time">{{ i18n.last_time}}</th>
-                    <td>{{getLastTime(nodeInfo.elapsed_time)}}</td>
+                    <th class="last-time">{{ i18n.lastTime}}</th>
+                    <td>{{getLastTime(nodeInfo.elapsedTime)}}</td>
                 </tr>
                 <tr>
-                    <th class="task-skipped">{{ i18n.task_skipped}}</th>
+                    <th class="task-skipped">{{ i18n.taskSkipped}}</th>
                     <td>{{nodeInfo.skip ? i18n.yes : i18n.no}}</td>
                 </tr>
                 <tr>
-                    <th class="error_ignorable">{{i18n.error_ignorable}}</th>
+                    <th class="error_ignorable">{{i18n.errorIgnorable}}</th>
                     <td>{{nodeInfo.error_ignorable ? i18n.yes : i18n.no}}</td>
                 </tr>
                 <tr>
@@ -46,7 +48,7 @@
             </table>
         </section>
         <section class="info-section" v-show="isSingleAtom">
-            <h4 class="common-section-title">{{ i18n.inputs_params }}</h4>
+            <h4 class="common-section-title">{{ i18n.inputsParams }}</h4>
             <div>
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
@@ -58,7 +60,7 @@
             </div>
         </section>
         <section class="info-section" v-show="isSingleAtom">
-            <h4 class="common-section-title">{{ i18n.outputs_params }}</h4>
+            <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
             <table class="operation-table outputs-table">
                 <thead>
                     <tr>
@@ -91,7 +93,7 @@
                 <el-table-column type="expand">
                     <template slot-scope="props">
                         <div class="common-form-item">
-                            <label>{{ i18n.inputs_params }}</label>
+                            <label>{{ i18n.inputsParams }}</label>
                             <div class="common-form-content">
                                 <VueJsonPretty
                                     :data="props.row.inputs">
@@ -99,7 +101,7 @@
                             </div>
                         </div>
                         <div class="common-form-item">
-                            <label>{{ i18n.outputs_params }}</label>
+                            <label>{{ i18n.outputsParams }}</label>
                             <div class="common-form-content">
                                 <VueJsonPretty
                                     :data="props.row.outputs">
@@ -141,7 +143,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
-    import { URL_REG } from '@/constants/index.js'
+    import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -158,14 +160,14 @@
         data () {
             return {
                 i18n: {
-                    execute_info: gettext('执行信息'),
-                    start_time: gettext('开始时间'),
-                    finish_time: gettext('结束时间'),
-                    last_time: gettext('耗时'),
-                    task_skipped: gettext('失败后跳过'),
-                    error_ignorable: gettext('失败自动忽略'),
-                    inputs_params: gettext('输入参数'),
-                    outputs_params: gettext('输出参数'),
+                    executeInfo: gettext('执行信息'),
+                    startTime: gettext('开始时间'),
+                    finishTime: gettext('结束时间'),
+                    lastTime: gettext('耗时'),
+                    taskSkipped: gettext('失败后跳过'),
+                    errorIgnorable: gettext('失败自动忽略'),
+                    inputsParams: gettext('输入参数'),
+                    outputsParams: gettext('输出参数'),
                     name: gettext('参数名'),
                     value: gettext('参数值'),
                     exception: gettext('异常信息'),
@@ -206,21 +208,20 @@
                 return this.renderConfig && this.renderConfig.length === 0
             },
             displayStatus () {
-                const state = {}
+                let state = ''
                 if (this.nodeInfo.state === 'RUNNING') {
-                    state.stateIcon = 'common-icon-dark-circle-ellipsis'
-                    state.stateDescribe = this.i18n.running
+                    state = 'common-icon-dark-circle-ellipsis'
                 } else if (this.nodeInfo.state === 'SUSPENDED') {
-                    state.stateIcon = 'common-icon-dark-circle-pause'
-                    state.stateDescribe = this.i18n.suspended
+                    state = 'common-icon-dark-circle-pause'
                 } else if (this.nodeInfo.state === 'FINISHED') {
-                    state.stateIcon = 'bk-icon icon-check-circle-shape'
-                    state.stateDescribe = this.i18n.finished
+                    state = 'bk-icon icon-check-circle-shape'
                 } else if (this.nodeInfo.state === 'FAILED') {
-                    state.stateIcon = 'common-icon-dark-circle-close'
-                    state.stateDescribe = this.i18n.failed
+                    state = 'common-icon-dark-circle-close'
                 }
                 return state
+            },
+            nodeState () {
+                return TASK_STATE_DICT[this.nodeInfo.state]
             }
         },
         watch: {
@@ -350,7 +351,7 @@
         align-items: center;
         font-size: 14px;
         padding-bottom: 7px;
-        border-bottom: 1px solid #cacedb
+        border-bottom: 1px solid #cacedb;
     }
     .panel-title {
         margin: 0;
@@ -358,23 +359,23 @@
         font-size: 14px;
         font-weight: 600;
     }
-    .statusTextMessages {
+    .status-text-messages {
         margin-left: 5px;
         font-size: 12px;
+        font-weight: 400;
+        white-space: nowrap;
     }
     .node-name {
-        margin-right: 5px;
         font-weight: 600;
-    }
-    .operation-table th {
-        width: 260px;
-        font-weight: 400;
-        color: #313238;
-    }
-    .operation-table td {
-        color: #313238;
+        word-break: break-all;
+        :first-child {
+            position: relative;
+            left: 3px;
+            top: 1px;
+        }
     }
     .info-section {
+        font-size: 12px;
         margin: 30px 0;
         word-wrap: break-word;
         word-break: break-all;
@@ -392,6 +393,14 @@
         table-layout: fixed;
         .output-name {
             width: 35%;
+        }
+        th {
+            width: 260px;
+            font-weight: 400;
+            color: #313238;
+        }
+        td {
+            color: #313238;
         }
     }
     .retry-table {
@@ -422,20 +431,17 @@
             background: $whiteThinBg;
         }
     }
-    .info-section{
-        font-size: 12px
-    }
     .common-icon-dark-circle-ellipsis {
         color: #3c96ff;
     }
     .common-icon-dark-circle-pause {
-        color: #F8B53F
+        color: #f8B53f;
     }
     .icon-check-circle-shape {
-        color: #30d878
+        color: #30d878;
     }
     .common-icon-dark-circle-close {
-        color: #ff5757
+        color: #ff5757;
     }
 }
 </style>
