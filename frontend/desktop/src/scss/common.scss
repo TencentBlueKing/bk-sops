@@ -1,7 +1,7 @@
 .common-section-title {
     position: relative;
     margin: 0;
-    padding: 0 0 0 16px;
+    padding: 0 0 0 10px;
     line-height: 1;
     font-size: 16px;
     font-weight: 600;
@@ -12,7 +12,7 @@
         position: absolute;
         top: -2px;
         left: 0;
-        width: 4px;
+        width: 2px;
         height: 20px;
         background: #a3c5fd;
     }
@@ -45,20 +45,6 @@
     .common-form-content {
         margin-left: 120px;
         min-height: 36px;
-    }
-}
-
-.step-section-title {
-    height: 67px;
-    margin: 0;
-    color: #313238;
-    line-height: 67px;
-    text-align: center;
-    span {
-        padding-left: 30px;
-        font-size: 14px;
-        font-family: PingFangSC-Semibold;
-        font-weight: 600;
     }
 }
 

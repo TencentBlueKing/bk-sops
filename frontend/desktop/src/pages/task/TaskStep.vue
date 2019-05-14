@@ -13,8 +13,8 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <span class="taskTitle">{{ taskTemplateTitle }}</span>
-                <span class="taskName">{{ instanceName }}</span>
+                <span class="task-title">{{ taskTemplateTitle }}</span>
+                <span class="task-name">{{ instanceName }}</span>
             </div>
         </div>
         <div class="division-line"></div>
@@ -112,9 +112,19 @@
     .step-header {
         background-color: #f4f7fa;
     }
-    .taskTitle {
+    .step-section-title {
+        height: 67px;
+        margin: 0;
+        color: #313238;
+        line-height: 67px;
+        text-align: center;
+    }
+    .task-title {
         position: absolute;
         left: 0;
+        padding-left: 30px;
+        font-size: 14px;
+        font-weight: 600;
         &:before {
             content: '';
             display: inline-block;
@@ -123,17 +133,20 @@
             right: 10px;
             width: 2px;
             height: 20px;
-            background: #A3C5FD;
+            background: #a3c5fd;
         }
     }
-    .taskName {
+    .task-name {
         padding-left: 0px;
+        padding-left: 30px;
+        font-size: 14px;
+        font-weight: 600;
     }
     .division-line {
         margin: 0 20px 10px 20px;
         border:0;
         height: 1px;
-        background-color:#DDE4EB;
+        background-color:#dde4eB;
     }
     .step-list {
         display: flex;
