@@ -29,7 +29,7 @@
                     :value="scheme"
                     @click="show = true" />
                 <van-cell>
-                    <router-link to="/template/preview">{{ i18n.canvasPreview }}</router-link>
+                    <router-link :to="`/template/preview?templateId=${templateId}`">{{ i18n.canvasPreview }}</router-link>
                 </van-cell>
             </div>
         </section>
@@ -110,7 +110,18 @@
             </div>
         </section>
         <div class="btn-group">
-            <van-button size="large" type="info" @click="createTaskAndStart">{{ i18n.btnCreate }}</van-button>
+            <van-button
+                v-if="creating"
+                loading
+                disabled
+                :loading-text="i18n.btnCreating"
+                size="large"
+                type="info" />
+            <van-button
+                v-else
+                size="large"
+                type="info"
+                @click="createTaskAndStart">{{ i18n.btnCreate }}</van-button>
         </div>
     </div>
 </template>
@@ -128,6 +139,7 @@
         props: { templateId: String },
         data () {
             return {
+                creating: false,
                 show: false,
                 datetimeVariable: '',
                 datetimePickerShow: false,
@@ -145,6 +157,7 @@
                 scheme: DEFAULT_SCHEMES_NAME,
                 i18n: {
                     btnCreate: window.gettext('执行任务'),
+                    btnCreating: window.gettext('执行任务...'),
                     taskName: window.gettext('任务名称'),
                     scheme: window.gettext('方案'),
                     canvasPreview: window.gettext('预览流程图'),
@@ -170,6 +183,7 @@
             }
         },
         mounted () {
+            this.creating = false
             this.loadData()
         },
         methods: {
@@ -194,26 +208,34 @@
                 this.templatePipelineTree = JSON.parse(this.templateData.pipeline_tree)
             },
             async createTaskAndStart () {
-                const params = {
-                    template_id: this.templateId,
-                    exclude_task_nodes_id: JSON.stringify(this.excludeTaskNodes),
-                    template_source: 'business'
+                if (!this.creating) {
+                    this.creating = true
+                    try {
+                        const params = {
+                            template_id: this.templateId,
+                            exclude_task_nodes_id: JSON.stringify(this.excludeTaskNodes),
+                            template_source: 'business'
+                        }
+                        const pipelineTree = await this.getPreviewTaskTree(params)
+                        pipelineTree.constants = this.templateConstants
+                        console.log(`pipelineTree=${JSON.stringify(pipelineTree)}`)
+                        const data = {
+                            'name': this.taskName,
+                            'description': '',
+                            'exec_data': JSON.stringify(pipelineTree)
+                        }
+                        const response = await this.createTask(data)
+                        if (response) {
+                            this.taskId = response.id
+                            this.$store.commit('setTaskId', this.taskId)
+                        }
+                        this.$router.push({ path: '/task/canvas', query: { 'executeTask': 'true', taskId: this.taskId } })
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        this.creating = false
+                    }
                 }
-                console.log(`params=${JSON.stringify(params)}`)
-                const pipelineTree = await this.getPreviewTaskTree(params)
-                pipelineTree.constants = this.templateConstants
-                console.log(`pipelineTree=${JSON.stringify(pipelineTree)}`)
-                const data = {
-                    'name': this.taskName,
-                    'description': '',
-                    'exec_data': JSON.stringify(pipelineTree)
-                }
-                const response = await this.createTask(data)
-                console.log(response)
-                if (response) {
-                    this.taskId = response.id
-                }
-                this.$router.push({ path: '/task/canvas', query: { 'immediately': 'true' } })
             },
             getDefaultTaskName () {
                 return this.templateData.name + '_' + moment().format('YYYYMMDDHHmmss')
