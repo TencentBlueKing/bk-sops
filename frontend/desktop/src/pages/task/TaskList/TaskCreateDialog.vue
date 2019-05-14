@@ -226,7 +226,7 @@
                     return
                 }
                 let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.selectedId}`
-                if (this.defaultselected.type === '公共流程') {
+                if (this.selectedTplCategory.type === '公共流程') {
                     url += '&common=1'
                 }
                 if (this.createEntrance === false) {
@@ -241,7 +241,7 @@
             },
             onSelectTask (template) {
                 this.selectError = false
-                this.selectedId = template
+                this.selectedId = template.id
             },
             searchInputhandler () {
                 const item = toolsUtils.deepClone(this.nowTypeList)
@@ -259,8 +259,7 @@
                 this.getNowData()
             },
             getNowData () {
-                let list = []
-                this.selectedTplType === this.templateType[0].name ? list = this.businessTplList : list = this.commonTplList
+                const list = this.selectedTplType === this.templateType[0].name ? this.businessTplList : this.commonTplList
                 this.onFiltrationTemplate(list)
             },
             onFiltrationTemplate (list) {

@@ -140,7 +140,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            ref="getData"
+            ref="getFlowData"
             :cc_id="cc_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
@@ -410,7 +410,7 @@
             },
             onCreatePeriodTask () {
                 this.isNewTaskDialogShow = true
-                this.$refs.getData.getTaskData()
+                this.$refs.getFlowData.getTaskData()
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
