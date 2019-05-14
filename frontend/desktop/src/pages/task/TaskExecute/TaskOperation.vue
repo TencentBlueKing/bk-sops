@@ -12,27 +12,20 @@
 <template>
     <div class="task-operation">
         <div class="operation-header clearfix">
-            <div class="bread-crumbs-wrapper">
+            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow">
                 <span
-                    v-if="isSubFlow">
-                    <span
-                        :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
-                        v-for="(path, index) in nodeNav"
-                        :key="path.id"
-                        :title="showNodeList.includes(index) ? path.name : ''">
-                        <span v-if="!!index && showNodeList.includes(index) || index === 1">
-                            &gt;
-                        </span>
-                        <span
-                            v-if="showNodeList.includes(index)"
-                            class="node-name"
-                            :title="path.name"
-                            @click="onSelectSubflow(path.id)">
-                            {{path.name}}
-                        </span>
-                        <span class="node-ellipsis" v-else-if="index === 1">
-                            {{ellipsis}}
-                        </span>
+                    :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
+                    v-for="(path, index) in nodeNav"
+                    :key="path.id"
+                    :title="showNodeList.includes(index) ? path.name : ''">
+                    <span v-if="!!index && showNodeList.includes(index) || index === 1">
+                        &gt;
+                    </span>
+                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
+                        {{path.name}}
+                    </span>
+                    <span class="node-ellipsis" v-else-if="index === 1">
+                        {{ellipsis}}
                     </span>
                 </span>
             </div>
@@ -233,7 +226,6 @@
                     params: gettext('查看参数'),
                     changeParams: gettext('修改参数')
                 },
-                a: path,
                 operationList: OPERATIONS.slice(0),
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -269,12 +261,10 @@
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
             },
-            isSubFlow () {
-                const list = []
-                this.completePipelineData.location.forEach(item => {
-                    list.push(item.type)
+            isBreadcrumbShow () {
+                return this.completePipelineData.location.some(item => {
+                    return item.type === 'subflow'
                 })
-                return list.includes('subflow')
             },
             canvasData () {
                 const { line, location, gateways } = this.pipelineData
