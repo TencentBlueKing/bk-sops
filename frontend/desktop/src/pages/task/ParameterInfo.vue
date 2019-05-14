@@ -21,8 +21,8 @@
         <div
             class="variable-wrap"
             v-if="isUnreferencedShow">
-            <div class="title-background" @click="onToggleUnReferenceShow">
-                <div :class="['un-referenced-variable', { 'un-reference-show': isUnrefVarShow }]"></div>
+            <div class="title-background" @click="onToggleUnreferenceShow">
+                <div :class="['unreferenced-variable', { 'unreference-show': isUnrefVarShow }]"></div>
                 <span class="title">{{i18n.title}}</span>
                 <bk-tooltip placement="bottom-end" width="400" class="desc-tooltip">
                     <i class="bk-icon icon-info-circle"></i>
@@ -32,12 +32,12 @@
                 </bk-tooltip>
             </div>
             <TaskParamEdit
-                class="un-referenced"
+                class="unreferenced"
                 v-show="isUnrefVarShow"
                 ref="TaskParamEdit"
                 :constants="unReferencedVariable"
                 :editable="false"
-                @onChangeConfigLoading="onUnRefVarLoadingChange">
+                @onChangeConfigLoading="onUnrefVarLoadingChange">
             </TaskParamEdit>
         </div>
         <NoData v-if="isNoData"></NoData>
@@ -62,7 +62,7 @@
                 },
                 isUnrefVarShow: false,
                 isRefVarLoading: true,
-                isUnRefVarLoading: true
+                isUnrefVarLoading: true
 
             }
         },
@@ -74,7 +74,7 @@
                 return this.taskMessageLoading ? false : (Object.keys(this.unReferencedVariable).length > 0)
             },
             isParameterInfoLoading () {
-                return this.isRefVarLoading || this.isUnRefVarLoading
+                return this.isRefVarLoading || this.isUnrefVarLoading
             },
             isNoData () {
                 return !this.taskMessageLoading && !this.isReferencedShow && !this.isUnreferencedShow
@@ -90,20 +90,20 @@
                         this.isRefVarLoading = false
                     }
                     if (!this.isUnreferencedShow) {
-                        this.isUnRefVarLoading = false
+                        this.isUnrefVarLoading = false
                     }
                 }
             }
         },
         methods: {
-            onToggleUnReferenceShow () {
+            onToggleUnreferenceShow () {
                 this.isUnrefVarShow = !this.isUnrefVarShow
             },
             onRefVarLoadingChange () {
                 this.isRefVarLoading = false
             },
-            onUnRefVarLoadingChange () {
-                this.isUnRefVarLoading = false
+            onUnrefVarLoadingChange () {
+                this.isUnrefVarLoading = false
             }
         }
     }
@@ -118,7 +118,7 @@
 }
 .variable-wrap {
     background: #f0f1f5;
-    .un-referenced {
+    .unreferenced {
        padding-bottom: 20px;
     }
     .title-background {
@@ -127,7 +127,7 @@
         &:hover {
             background: #e4e6ed;
         }
-        .un-referenced-variable {
+        .unreferenced-variable {
             display: inline-block;
             position: relative;
             width: 0;
@@ -137,7 +137,7 @@
             border-right: 5px solid transparent;
             border-bottom: 5px solid transparent;
         }
-        .un-reference-show {
+        .unreference-show {
             top: 2px;
             transform: rotate(90deg);
         }
