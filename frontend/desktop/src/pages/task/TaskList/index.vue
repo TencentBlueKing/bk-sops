@@ -166,7 +166,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            ref="getData"
+            ref="getFlowData"
             :common="common"
             :cc_id="cc_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
@@ -585,7 +585,7 @@
             },
             onCreateTask () {
                 this.isNewTaskDialogShow = true
-                this.$refs.getData.getTaskData()
+                this.$refs.getFlowData.getTaskData()
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
@@ -614,7 +614,7 @@
     margin: 20px 0;
     .template-btn {
         margin-left: 5px;
-        color:#313238;
+        color: #313238;
     }
     .task-advanced-search {
         float: right;
