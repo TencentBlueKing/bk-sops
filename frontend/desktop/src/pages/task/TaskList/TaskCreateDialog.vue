@@ -251,8 +251,8 @@
                 this.selectedId = template.id
             },
             searchInputhandler () {
-                const item = toolsUtils.deepClone(this.nowTypeList)
-                this.templateList = item.filter(group => {
+                const list = toolsUtils.deepClone(this.nowTypeList)
+                this.templateList = list.filter(group => {
                     group.children = group.children.filter(template => template.name.includes(this.searchWord))
                     return group.children.length
                 })
@@ -268,16 +268,17 @@
             onFiltrationTemplate () {
                 const list = this.selectedTplType === this.templateType[0].name ? this.businessTplList : this.commonTplList
                 const sourceList = toolsUtils.deepClone(list)
-                const template = sourceList.filter(item => item.name === this.selectedTplCategory)
                 let filteredList = []
                 if (this.selectedTplCategory === this.i18n.allType) {
                     filteredList = sourceList
-                } else if (template) {
-                    filteredList = template
+                } else {
+                    filteredList = sourceList.filter(item => item.name === this.selectedTplCategory)
                 }
                 this.templateList = filteredList
                 this.nowTypeList = filteredList
-                this.searchInputhandler()
+                if (this.searchWord !== '') {
+                    this.searchInputhandler()
+                }
             }
         }
     }
