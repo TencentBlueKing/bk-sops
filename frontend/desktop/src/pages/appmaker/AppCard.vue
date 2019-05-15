@@ -29,20 +29,24 @@
                 </a>
             </div>
             <div class="card-operation">
-                <span class="common-icon-box-pen operate-btn"
+                <span
+                    class="common-icon-box-pen operate-btn"
                     :title="i18n.modifier"
                     @click.stop="onCardEdit">
                 </span>
-                <span class="common-icon-black-figure operate-btn"
+                <span
+                    class="common-icon-black-figure operate-btn"
                     :title="i18n.jurisdiction"
                     @click.stop="onOpenPermissions">
                 </span>
-                <span class="common-icon-gray-edit operate-btn"
+                <span
+                    class="common-icon-gray-edit operate-btn"
                     @mouseenter="onShowOperation"
                     @mouseleave="onHideOperation">
                 </span>
             </div>
-            <div class="edit-box-background"
+            <div
+                class="edit-box-background"
                 v-if="isShowEdit"
                 @mouseenter="onShowOperation"
                 @mouseleave="onHideOperation">
@@ -134,7 +138,7 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-@import '@/scss/mixins/multiLineELLipsis.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
     width: 345px;
