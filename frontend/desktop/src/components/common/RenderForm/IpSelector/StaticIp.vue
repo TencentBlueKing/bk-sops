@@ -266,6 +266,7 @@
                     return true
                 } else {
                     this.dataError = true
+                    this.onAddIpCancel()
                     return false
                 }
             }
