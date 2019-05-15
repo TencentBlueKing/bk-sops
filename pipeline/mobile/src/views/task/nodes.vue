@@ -14,28 +14,28 @@
         </section>
         <!-- 执行信息 -->
         <section class="bk-block">
-            <h2 class="bk-text-title">执行信息</h2>
+            <h2 class="bk-text-title">{{ i18n.executeInfo }}</h2>
             <div class="bk-text-list">
-                <van-cell title="开始时间" :value="nodeDetail.start_time" />
-                <van-cell title="结束时间" :value="nodeDetail.finish_time" />
-                <van-cell title="耗时" :value="nodeDetail.elapsed_time" />
-                <van-cell title="失败后跳过" :value="nodeDetail.skip ? '是' : '否'" />
-                <van-cell title="失败后自动忽略" :value="nodeDetail.error_ignorable ? '是' : '否'" />
-                <van-cell title="重试次数" :value="nodeDetail.retry" />
+                <van-cell :title="i18n.startTime" :value="nodeDetail.start_time" />
+                <van-cell :title="i18n.endTime" :value="nodeDetail.finish_time" />
+                <van-cell :title="i18n.costTime" :value="nodeDetail.elapsed_time" />
+                <van-cell :title="i18n.skipped" :value="nodeDetail.skip ? i18n.yes : i18n.no" />
+                <van-cell :title="i18n.ignore" :value="nodeDetail.error_ignorable ? i18n.yes : i18n.no" />
+                <van-cell :title="i18n.retryTimes" :value="nodeDetail.retry" />
             </div>
         </section>
         <!-- 输入参数 -->
         <section class="bk-block">
-            <h2 class="bk-text-title">输入参数</h2>
+            <h2 class="bk-text-title">{{ i18n.inputParameter }}</h2>
             <VueJsonPretty
                 class="parameter-info"
                 :data="nodeDetail.inputs">
             </VueJsonPretty>
-            <van-button type="default" class="view-btn" @click="showParameters">查看全部</van-button>
+            <van-button type="default" class="view-btn" @click="showParameters">{{ i18n.showTotal }}</van-button>
         </section>
         <!-- 输出参数 -->
         <section class="bk-block">
-            <h2 class="bk-text-title">输出参数</h2>
+            <h2 class="bk-text-title">{{ i18n.outputParameter }}</h2>
             <div class="bk-text-list">
                 <van-cell
                     v-for="item in nodeDetail.outputs"
@@ -46,7 +46,7 @@
         </section>
         <!-- 异常信息 -->
         <section class="bk-block">
-            <h2 class="bk-text-title">异常信息</h2>
+            <h2 class="bk-text-title">{{ i18n.errorInfo }}</h2>
             <div class="bk-text-list">
                 <van-cell :value="nodeDetail.ex_data" />
             </div>
@@ -56,11 +56,11 @@
             class="bk-block"
             v-for="history in nodeDetail.histories"
             :key="history.index">
-            <h2 class="bk-text-title">执行记录01</h2>
+            <h2 class="bk-text-title">{{ i18n.executeHistory }}</h2>
             <div class="bk-text-list">
-                <van-cell title="开始时间" :value="history.start_time" />
-                <van-cell title="结束时间" :value="history.finish_time" />
-                <van-cell title="耗时（s）" :value="history.elapsed_time" />
+                <van-cell :title="i18n.startTime" :value="history.start_time" />
+                <van-cell :title="i18n.endTime" :value="history.finish_time" />
+                <van-cell :title="i18n.costTime" :value="history.elapsed_time" />
             </div>
         </section>
     </div>
@@ -76,7 +76,25 @@
         },
         data () {
             return {
-                nodeDetail: {}
+                nodeDetail: {},
+                i18n: {
+                    loading: window.gettext('加载中...'),
+                    executeInfo: window.gettext('执行信息'),
+                    startTime: window.gettext('开始时间'),
+                    endTime: window.gettext('结束时间'),
+                    costTime: window.gettext('耗时(S)'),
+                    skipped: window.gettext('失败后跳过'),
+                    yes: window.gettext('是'),
+                    no: window.gettext('否'),
+                    ignore: window.gettext('失败后自动忽略'),
+                    retryTimes: window.gettext('重试次数'),
+                    inputParameter: window.gettext('输入参数'),
+                    outputParameter: window.gettext('输出参数'),
+                    showTotal: window.gettext('查看全部'),
+                    errorInfo: window.gettext('异常信息'),
+                    executeHistory: window.gettext('执行记录')
+
+                }
             }
         },
         mounted () {
@@ -89,6 +107,7 @@
             ]),
 
             async loadData () {
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
                 const node = this.$route.params.node
                 const taskId = this.$store.state.taskId
                 const params = {
@@ -102,10 +121,10 @@
                     this.nodeDetail = response.data
                     this.nodeDetail.name = task.name
                 }
+                this.$toast.clear()
             },
 
             showParameters () {
-                // pass
                 this.$router.push({ name: 'task_node_parameter', params: { parameters: JSON.stringify(this.nodeDetail.inputs) } })
             }
         }

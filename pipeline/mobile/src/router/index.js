@@ -20,6 +20,7 @@ const TaskParameter = () => import(/* webpackChunkName: 'home' */'../views/task/
 const TaskCanvas = () => import(/* webpackChunkName: 'home' */'../views/task/canvas')
 const TaskConfirm = () => import(/* webpackChunkName: 'home' */'../views/task/confirm')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
+const Demo = () => import(/* webpackChunkName: 'none' */'../views/demo')
 
 const routes = [
     {
@@ -104,6 +105,12 @@ const routes = [
         path: '*',
         name: '404',
         component: NotFound
+    },
+    // demo
+    {
+        path: '/demo',
+        component: Demo
+
     }
 ]
 

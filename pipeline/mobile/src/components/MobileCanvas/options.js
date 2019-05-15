@@ -15,5 +15,7 @@ export const endpointOptions = {
     isSource: false,
     isTarget: true,
     paintStyle: {},
-    hoverPaintStyle: {}
+    hoverPaintStyle: {},
+    detachable: false
+
 }

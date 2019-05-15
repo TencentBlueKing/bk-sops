@@ -13,7 +13,6 @@
         name: 'template_preview',
         components: {
             MobileCanvas
-            // JsFlow
         },
         data () {
             return {
@@ -43,14 +42,12 @@
             ]),
 
             async loadData () {
-                this.$toast.loading({ mask: true, message: '加载中...' })
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
                 const params = {
                     template_id: this.$route.query.templateId || this.template_id,
                     exclude_task_nodes_id: JSON.stringify(this.excludeTaskNodes),
                     template_source: 'business'
                 }
-                console.log('---')
-                console.log(this.loading)
                 this.pipelineTree = await this.getPreviewTaskTree(params)
                 this.loading = false
                 this.$toast.clear()
