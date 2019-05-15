@@ -134,7 +134,7 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-@import '@/scss/mixins/multiLineELLipsis.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
     width: 345px;
