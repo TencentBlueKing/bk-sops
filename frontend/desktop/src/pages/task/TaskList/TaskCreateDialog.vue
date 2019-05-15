@@ -133,6 +133,11 @@
                 return this.templateList.length === 0
             }
         },
+        watch: {
+            isNewTaskDialogShow () {
+                this.getTaskData()
+            }
+        },
         created () {
             this.getTaskData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
@@ -226,7 +231,7 @@
                     return
                 }
                 let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.selectedId}`
-                if (this.selectedTplCategory.type === '公共流程') {
+                if (this.selectedTplType === this.templateType[1].name) {
                     url += '&common=1'
                 }
                 if (this.createEntrance === false) {
@@ -244,7 +249,7 @@
                 this.selectedId = template.id
             },
             searchInputhandler () {
-                const item = toolsUtils.deepClone(this.nowTypeList)
+                const item = toolsUtils.deepClone(this.templateList)
                 this.templateList = item.filter(group => {
                     group.children = group.children.filter(template => template.name.includes(this.searchWord))
                     return group.children.length
@@ -272,7 +277,6 @@
                     filteredList = template
                 }
                 this.templateList = filteredList
-                this.nowTypeList = toolsUtils.deepClone(filteredList)
                 this.searchInputhandler()
             }
         }
