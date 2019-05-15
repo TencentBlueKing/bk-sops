@@ -1,70 +1,68 @@
 <template>
-    <van-loading>
-        <div class="page-view">
-            <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
-            <MobileCanvas v-if="!loading" :canvas-data="canvasData"></MobileCanvas>
-            <van-tabbar>
-                <van-tabbar-item>
-                    <van-icon
-                        v-if="taskState === 'CREATED'"
-                        slot="icon"
-                        class-prefix="icon"
-                        name="play"
-                        @click="onExecute" />
-                    <van-icon
-                        v-else-if="taskState === 'RUNNING'"
-                        slot="icon"
-                        class-prefix="icon"
-                        name="pause"
-                        @click="onPause" />
-                    <van-icon
-                        v-else
-                        slot="icon"
-                        class-prefix="icon"
-                        name="pause"
-                        class="disabled"
-                        disabled />
-                </van-tabbar-item>
-                <van-tabbar-item>
-                    <van-icon
-                        v-if="taskState !== 'CREATED' && taskState !== 'REVOKED' && taskState !== 'FINISHED'"
-                        slot="icon"
-                        class-prefix="icon"
-                        name="revoke"
-                        @click="onRevokeConfirm" />
-                    <van-icon
-                        v-else
-                        slot="icon"
-                        class-prefix="icon"
-                        name="revoke"
-                        class="disabled"
-                        disabled />
-                </van-tabbar-item>
-                <van-tabbar-item>
-                    <van-icon
-                        v-if="taskState !== 'CREATED'"
-                        slot="icon"
-                        class-prefix="icon"
-                        name="file"
-                        @click="onDetailClick" />
-                    <van-icon
-                        v-else
-                        class="disabled"
-                        disabled
-                        slot="icon"
-                        class-prefix="icon"
-                        name="file" />
-                </van-tabbar-item>
-            </van-tabbar>
-            <template>
-                <van-dialog v-model="revokeConfirmShow" :title="i18n.tip" show-cancel-button />
-            </template>
-        </div>
-    </van-loading>
+    <div class="page-view">
+        <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
+        <MobileCanvas v-if="!loading" :canvas-data="canvasData"></MobileCanvas>
+        <van-tabbar>
+            <van-tabbar-item>
+                <van-icon
+                    v-if="taskState === 'CREATED'"
+                    slot="icon"
+                    class-prefix="icon"
+                    name="play"
+                    @click="onExecute" />
+                <van-icon
+                    v-else-if="taskState === 'RUNNING'"
+                    slot="icon"
+                    class-prefix="icon"
+                    name="pause"
+                    @click="onPause" />
+                <van-icon
+                    v-else
+                    slot="icon"
+                    class-prefix="icon"
+                    name="pause"
+                    class="disabled"
+                    disabled />
+            </van-tabbar-item>
+            <van-tabbar-item>
+                <van-icon
+                    v-if="taskState !== 'CREATED' && taskState !== 'REVOKED' && taskState !== 'FINISHED'"
+                    slot="icon"
+                    class-prefix="icon"
+                    name="revoke"
+                    @click="onRevokeConfirm" />
+                <van-icon
+                    v-else
+                    slot="icon"
+                    class-prefix="icon"
+                    name="revoke"
+                    class="disabled"
+                    disabled />
+            </van-tabbar-item>
+            <van-tabbar-item>
+                <van-icon
+                    v-if="taskState !== 'CREATED'"
+                    slot="icon"
+                    class-prefix="icon"
+                    name="file"
+                    @click="onDetailClick" />
+                <van-icon
+                    v-else
+                    class="disabled"
+                    disabled
+                    slot="icon"
+                    class-prefix="icon"
+                    name="file" />
+            </van-tabbar-item>
+        </van-tabbar>
+        <template>
+            <van-dialog v-model="revokeConfirmShow" :title="i18n.tip" show-cancel-button />
+        </template>
+    </div>
 </template>
 <script>
     import MobileCanvas from '@/components/MobileCanvas/index.vue'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions } from 'vuex'
 
     const TASK_STATE = {
         'CREATED': [window.gettext('未执行'), 'info'],
@@ -91,6 +89,7 @@
                 // 演示用flag，当做画布的某个原子
                 testShow: false,
                 revokeConfirmShow: false,
+                taskId: 0,
                 task: {},
                 taskState: '',
                 taskStateClass: '',
@@ -99,14 +98,12 @@
                 timer: null,
                 loading: true,
                 i18n: {
-                    tip: window.gettext('提示')
+                    tip: window.gettext('提示'),
+                    loading: window.gettext('加载中...')
                 }
             }
         },
         computed: {
-            ...mapState({
-                taskId: state => state.taskId
-            }),
             canvasData () {
                 const pipelineTree = this.task ? this.task.pipeline_tree || {} : {}
                 const { line = [], location = [] } = JSON.parse(pipelineTree)
@@ -126,14 +123,16 @@
             ]),
             async loadData () {
                 try {
-                    const queryTid = this.$route.query.taskId || this.taskId
-                    this.task = await this.getTask({ id: queryTid })
+                    this.$toast.loading({ mask: true, message: this.i18n.loading })
+                    this.taskId = this.$route.query.taskId
+                    this.task = await this.getTask({ id: this.taskId })
                     await this.loadTaskStatus()
                     if (this.$route.query.executeTask) {
                         this.onExecute()
                     }
                     this.$nextTick(() => {
                         this.loading = false
+                        this.$toast.clear()
                     })
                 } catch (err) {
                     console.log(err)
@@ -154,7 +153,6 @@
             },
             async loadTaskStatus () {
                 try {
-                    console.log(this.taskId)
                     const taskState = await this.getTaskStatus({ id: this.taskId })
                     if (taskState.result) {
                         this.taskState = taskState.data.state

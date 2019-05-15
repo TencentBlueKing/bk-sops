@@ -44,6 +44,11 @@ export default {
         getNodeDetail ({ rootState }, params) {
             const url = `${AJAX_URL_PREFIX}/taskflow/api/nodes/detail/${rootState.bizId}/?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
             return http.get(url).then(response => response)
+        },
+
+        getNodeRetryData ({ rootState }, params) {
+            const url = `${AJAX_URL_PREFIX}/taskflow/api/nodes/data/${rootState.bizId}/?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            return http.get(url).then(response => response)
         }
     }
 }

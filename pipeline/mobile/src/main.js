@@ -25,6 +25,7 @@ import {
     Actionsheet,
     Toast
 } from 'vant'
+import VueTippy from 'vue-tippy'
 import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
 import 'amfe-flexible'
@@ -47,6 +48,7 @@ Vue.use(NavBar)
     .use(Actionsheet)
     .use(Toast)
 
+Vue.use(VueTippy)
 Vue.component('app-exception', Exception)
 Vue.config.devtools = true
 

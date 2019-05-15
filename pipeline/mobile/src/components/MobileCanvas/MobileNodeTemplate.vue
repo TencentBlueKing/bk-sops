@@ -9,15 +9,18 @@
         :class="['node-circle', node['status'] ? node['status'].toLowerCase() : '']">
         <div class="node-type-status">{{ i18n.end }}</div>
     </div>
-    <div
-        v-else-if="node.type === 'tasknode'"
-        ref="nodeLocation"
-        :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']"
-        @click="onNodeClick(node, $event)">
-        <div class="node-name">
-            <p class="name">{{ node.name }}</p>
+    <div v-else-if="node.type === 'tasknode'">
+        <div
+            ref="nodeLocation"
+            :name="'tip_' + node.id"
+            :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']"
+            @click="onNodeClick(node, $event)">
+            <div class="node-name">
+                <p class="name">{{ node.name }}</p>
+            </div>
+            <div class="task-name">{{ node.stage_name }}</div>
         </div>
-        <div class="task-name">{{ node.stage_name }}</div>
+        <Tooltips :node="node"></Tooltips>
     </div>
     <div
         v-else-if="node.type === 'subflow'"
@@ -39,9 +42,16 @@
         <van-icon slot="icon" class-prefix="icon" :name="`node-${node.type}`" />
     </div>
 </template>
+
 <script>
+
+    import Tooltips from './Tooltips.vue'
+
     export default {
         name: 'MobileNodeTemplate',
+        components: {
+            Tooltips
+        },
         props: {
             node: {
                 type: Object,
@@ -54,65 +64,18 @@
             return {
                 i18n: {
                     start: window.gettext('开始'),
-                    end: window.gettext('结束')
+                    end: window.gettext('结束'),
+                    detail: window.gettext('执行详情'),
+                    retry: window.gettext('重试'),
+                    skip: window.gettext('跳过'),
+                    sub: window.gettext('查看子流程')
                 }
             }
         },
-        mounted () {
-            this.showNodePosition()
-        },
         methods: {
             onNodeClick (node, event) {
-                console.log(node)
                 if (this.node.type !== 'subflow' && !this.node.status) {
                     return false
-                }
-                const $tool = document.getElementById('tool' + this.node.id)
-                if ($tool.style.display === 'none') {
-                    $tool.style.display = ''
-                } else {
-                    $tool.style.display = 'none'
-                }
-                this.showToolPosition(node)
-                event.stopPropagation()
-            },
-            showNodePosition () {
-                const $node = document.getElementById(this.node.id)
-                let left
-                if (this.$refs.nodeLocation && this.$refs.nodeLocation.offsetWidth) {
-                    left = $node.offsetLeft + this.$refs.nodeLocation.offsetWidth - 152
-                } else {
-                    left = $node.offsetLeft
-                }
-                $node.style.left = left + 'px'
-                return left
-            },
-            showToolPosition (node) {
-                const nodeLeft = document.getElementById(node.id).offsetLeft
-                const nodeTop = document.getElementById(node.id).offsetTop
-                if (this.$refs.nodeLocation && this.$refs.nodeLocation.offsetWidth) {
-                    const $tool = document.getElementById('tool' + this.node.id)
-                    let toolLeft
-                    if ($tool.offsetWidth >= this.$refs.nodeLocation.offsetWidth) {
-                        toolLeft = nodeLeft - ($tool.offsetWidth - this.$refs.nodeLocation.offsetWidth) / 2
-                    } else {
-                        toolLeft = nodeLeft + (this.$refs.nodeLocation.offsetWidth - $tool.offsetWidth) / 2
-                    }
-                    $tool.style.left = toolLeft + 'px'
-                }
-                if (this.$refs.nodeLocation && this.$refs.nodeLocation.offsetHeight) {
-                    const $tool = document.getElementById('tool' + this.node.id)
-                    const toolTop = nodeTop + this.$refs.nodeLocation.offsetHeight
-                    $tool.style.top = toolTop + 'px'
-                }
-            },
-            nextNodePosition () {
-                const node = this.node
-                //  用于执行中的节点，状态结束后，定位到某个节点位置
-                if (node.type === 'tasknode') {
-                    const canvas = document.getElementById('canvas-flow')
-                    const left = document.getElementById(node.id).offsetLeft
-                    canvas.style.left = canvas.offsetLeft - left + 'px'
                 }
             }
         }
@@ -249,6 +212,18 @@
             .node-type-status{
                 background: #ff9c01;
             }
+        }
+    }
+
+    .tooltip-btn{
+        display: table-cell;
+        font-size: $fs-14;
+        vertical-align: middle;
+        + .tooltip-btn:before{
+            content: "|";
+            display: inline-block;
+            padding: 0 10px;
+            color: rgba(255,255,255,0.6);
         }
     }
 </style>

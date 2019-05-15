@@ -46,6 +46,7 @@
                 'getTemplateConstants'
             ]),
             async loadData () {
+                console.log(this.$route.params.inputs)
                 console.log(store.state.task)
             },
             onClick () {

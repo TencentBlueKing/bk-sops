@@ -41,7 +41,7 @@
             },
             editable: {
                 type: Boolean,
-                default: true
+                default: false // 移动端默认false
             }
         },
         data () {
@@ -50,17 +50,8 @@
                 connectorOptions: connectorOptions
             }
         },
-        created () {
-            console.log(this.canvasData)
-            console.log(this.editable)
-        },
         mounted () {
             // this.$refs.jsFlow.setCanvasPosition(100, 200)
-        },
-        methods: {
-            onNodeClick () {
-                console.log(1)
-            }
         }
     }
 

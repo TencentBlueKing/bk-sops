@@ -156,6 +156,7 @@
                 schemes: [],
                 scheme: DEFAULT_SCHEMES_NAME,
                 i18n: {
+                    loading: window.gettext('加载中'),
                     btnCreate: window.gettext('执行任务'),
                     btnCreating: window.gettext('执行任务...'),
                     taskName: window.gettext('任务名称'),
@@ -197,6 +198,7 @@
                 'getPreviewTaskTree'
             ]),
             async loadData () {
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
                 this.templateData = await this.getTemplate(this.templateId)
                 const pipelineTree = JSON.parse(this.templateData.pipeline_tree)
                 this.templateConstants = pipelineTree.constants
@@ -206,10 +208,12 @@
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
                 this.$store.commit('setTemplate', this.templateData)
                 this.templatePipelineTree = JSON.parse(this.templateData.pipeline_tree)
+                this.$toast.clear()
             },
             async createTaskAndStart () {
                 if (!this.creating) {
                     this.creating = true
+                    this.$toast.loading({ mask: true, message: this.i18n.loading })
                     try {
                         const params = {
                             template_id: this.templateId,
@@ -234,6 +238,7 @@
                         console.error(e)
                     } finally {
                         this.creating = false
+                        this.$toast.clear()
                     }
                 }
             },
