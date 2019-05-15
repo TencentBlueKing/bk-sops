@@ -29,7 +29,7 @@
                 </condition-item>
             </div>
         </template>
-        <div v-else class="condition-empty" @click.stop="addCondition">{{i18n.addItem}}</div>
+        <div v-else class="condition-empty" @click.stop="addCondition">{{i18n.addItem + label}}</div>
     </div>
 </template>
 <script>
@@ -39,7 +39,7 @@
 
     const i18n = {
         allSatisfy: gettext('（同时满足）'),
-        addItem: gettext('增加一条筛选条件')
+        addItem: gettext('增加一条')
     }
 
     export default {
