@@ -166,7 +166,6 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            ref="getFlowData"
             :common="common"
             :cc_id="cc_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
@@ -585,7 +584,6 @@
             },
             onCreateTask () {
                 this.isNewTaskDialogShow = true
-                this.$refs.getFlowData.getTaskData()
             },
             onCreateTaskCancel () {
                 this.isNewTaskDialogShow = false
