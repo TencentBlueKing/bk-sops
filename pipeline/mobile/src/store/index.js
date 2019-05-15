@@ -22,6 +22,7 @@ const store = new Vuex.Store({
     },
     // 公共 store
     state: {
+        loading: false, // 页面加载中
         mainContentLoading: false,
         lang: 'zh-cn',
         bizId: 0, // 业务ID
@@ -83,6 +84,9 @@ const store = new Vuex.Store({
         },
         setPreviewCanvasData (state, data) {
             state.previewCanvasData = data
+        },
+        setLoading (state, loading) {
+            state.loading = loading
         }
     },
     actions: {

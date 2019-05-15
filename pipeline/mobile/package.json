@@ -44,14 +44,15 @@
     "amfe-flexible": "^2.2.1",
     "axios": "^0.18.0",
     "jsonp": "^0.2.1",
+    "jsplumb": "^2.8.4",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
     "vant": "^1.6.9",
     "vue": "^2.5.22",
     "vue-cookies": "^1.5.13",
     "vue-router": "^3.0.2",
-    "vuex": "^3.0.1",
-    "jsplumb": "^2.8.4"
+    "vue-tippy": "^2.1.2",
+    "vuex": "^3.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",

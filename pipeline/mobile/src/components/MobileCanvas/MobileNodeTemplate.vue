@@ -13,14 +13,13 @@
         <div
             ref="nodeLocation"
             :name="'tip_' + node.id"
-            :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']"
-            @click="onNodeClick(node, $event)">
+            :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']">
             <div class="node-name">
                 <p class="name">{{ node.name }}</p>
             </div>
             <div class="task-name">{{ node.stage_name }}</div>
         </div>
-        <Tooltips :node="node"></Tooltips>
+        <Tooltips :node="node" v-if="node.status && node.status !== 'CREATED'"></Tooltips>
     </div>
     <div
         v-else-if="node.type === 'subflow'"
@@ -69,13 +68,6 @@
                     retry: window.gettext('重试'),
                     skip: window.gettext('跳过'),
                     sub: window.gettext('查看子流程')
-                }
-            }
-        },
-        methods: {
-            onNodeClick (node, event) {
-                if (this.node.type !== 'subflow' && !this.node.status) {
-                    return false
                 }
             }
         }

@@ -37,7 +37,8 @@
                 task: {},
                 constants: {},
                 i18n: {
-                    noData: window.gettext('暂无数据')
+                    noData: window.gettext('暂无数据'),
+                    loading: window.gettext('加载中')
                 }
             }
         },
@@ -50,9 +51,11 @@
             ]),
 
             async loadData () {
-                this.task = await this.getTask({ id: this.$store.state.taskId })
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
+                this.task = await this.getTask({ id: this.$route.query.taskId })
                 const pipelineTree = JSON.parse(this.task.pipeline_tree)
                 this.constants = pipelineTree.constants
+                this.$toast.clear()
             }
         }
     }

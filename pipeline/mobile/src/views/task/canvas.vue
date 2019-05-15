@@ -135,7 +135,7 @@
                         this.$toast.clear()
                     })
                 } catch (err) {
-                    console.log(err)
+                    console.error(err)
                 }
             },
             updateTaskNodes (taskState) {
@@ -210,7 +210,7 @@
                 }
             },
             onDetailClick () {
-                this.$router.push({ path: '/task/detail' })
+                this.$router.push({ path: '/task/detail', query: { taskId: String(this.taskId) } })
             },
             async onPause () {
                 try {
