@@ -12,11 +12,13 @@
 <template>
     <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="execute-head">
-            <span class="node-name">
-                {{nodeInfo.name}}
-                <span :class="displayStatus"></span>
-                <span class="status-text-messages">{{nodeState}}</span>
-            </span>
+            <div class="node-name">
+                <span>{{nodeInfo.name}}</span>
+                <div class="node-state">
+                    <span :class="displayStatus"></span>
+                    <span class="status-text-messages">{{nodeState}}</span>
+                </div>
+            </div>
         </div>
         <section class="info-section">
             <h4 class="common-section-title">{{ i18n.executeInfo }}</h4>
@@ -31,7 +33,7 @@
                 </tr>
                 <tr>
                     <th class="last-time">{{ i18n.lastTime}}</th>
-                    <td>{{getLastTime(nodeInfo.elapsedTime)}}</td>
+                    <td>{{getLastTime(nodeInfo.elapsed_time)}}</td>
                 </tr>
                 <tr>
                     <th class="task-skipped">{{ i18n.taskSkipped}}</th>
@@ -360,18 +362,20 @@
         font-weight: 600;
     }
     .status-text-messages {
-        margin-left: 5px;
+        margin-left: 0px;
         font-size: 12px;
         font-weight: 400;
-        white-space: nowrap;
     }
     .node-name {
         font-weight: 600;
         word-break: break-all;
+    }
+    .node-state {
+        display: inline-block;
+        white-space: nowrap;
         :first-child {
-            position: relative;
-            left: 3px;
-            top: 1px;
+            margin: 0 5px;
+            vertical-align: middle;
         }
     }
     .info-section {
