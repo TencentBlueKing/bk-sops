@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from gcloud.external_plugins.models.origin import (  # noqa
     OriginalPackageSource,
+    GitRepoOriginalSource,
+    S3OriginalSource,
     source_cls_factory
 )
 from gcloud.external_plugins.models.cache import CachePackageSource  # noqa
