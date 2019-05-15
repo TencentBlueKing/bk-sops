@@ -38,6 +38,5 @@ def _import_modules_in_source(source):
         for module in source.modules:
             try:
                 importlib.import_module(module)
-            except Exception as e:
+            except Exception:
                 logger.error('An error occurred when loading {%s}: %s' % (module, traceback.format_exc()))
-                raise e
