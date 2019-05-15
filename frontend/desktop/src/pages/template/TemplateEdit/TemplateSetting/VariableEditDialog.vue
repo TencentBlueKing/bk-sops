@@ -50,7 +50,7 @@
                 formError: false,
                 i18n: {
                     edit: gettext('编辑变量'),
-                    checkData: gettext('请检查变量参数是否合法')
+                    checkData: gettext('变量的参数值不合法')
                 }
             }
         },
