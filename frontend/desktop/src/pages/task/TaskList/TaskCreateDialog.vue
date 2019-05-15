@@ -114,8 +114,8 @@
                         name: gettext('公共流程')
                     }
                 ],
-                selectedTplType: '业务流程',
-                selectedTplCategory: '全部分类',
+                selectedTplType: gettext('业务流程'),
+                selectedTplCategory: gettext('全部分类'),
                 searchWord: '',
                 nowTypeList: []
             }
@@ -134,8 +134,10 @@
             }
         },
         watch: {
-            isNewTaskDialogShow () {
-                this.getTaskData()
+            isNewTaskDialogShow (val) {
+                if (val) {
+                    this.getTaskData()
+                }
             }
         },
         created () {
@@ -249,7 +251,7 @@
                 this.selectedId = template.id
             },
             searchInputhandler () {
-                const item = toolsUtils.deepClone(this.templateList)
+                const item = toolsUtils.deepClone(this.nowTypeList)
                 this.templateList = item.filter(group => {
                     group.children = group.children.filter(template => template.name.includes(this.searchWord))
                     return group.children.length
@@ -257,17 +259,14 @@
             },
             onChooseTplType (value) {
                 this.selectedTplType = value
-                this.getNowData()
+                this.onFiltrationTemplate()
             },
             onChooseTplCategory (value) {
                 this.selectedTplCategory = value
-                this.getNowData()
+                this.onFiltrationTemplate()
             },
-            getNowData () {
+            onFiltrationTemplate () {
                 const list = this.selectedTplType === this.templateType[0].name ? this.businessTplList : this.commonTplList
-                this.onFiltrationTemplate(list)
-            },
-            onFiltrationTemplate (list) {
                 const sourceList = toolsUtils.deepClone(list)
                 const template = sourceList.filter(item => item.name === this.selectedTplCategory)
                 let filteredList = []
@@ -277,6 +276,7 @@
                     filteredList = template
                 }
                 this.templateList = filteredList
+                this.nowTypeList = filteredList
                 this.searchInputhandler()
             }
         }
@@ -309,7 +309,7 @@
         .task-name {
             margin-bottom: 15px;
             font-size: 12px;
-            font-weight:400;
+            font-weight: 400;
         }
         .filtrate-wrapper {
             display: flex;
