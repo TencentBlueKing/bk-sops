@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-
 from django.http.response import HttpResponseForbidden
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user

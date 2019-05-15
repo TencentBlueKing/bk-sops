@@ -20,10 +20,13 @@ source_cls_factory = {}
 
 
 class PackageSourceManager(models.Manager):
+    @staticmethod
+    def get_base_source_cls(source_type):
+        return base_source_cls_factory[source_type]
+
     @transaction.atomic()
     def add_base_source(self, name, source_type, packages, **kwargs):
-
-        base_source_cls = base_source_cls_factory[source_type]
+        base_source_cls = self.get_base_source_cls(source_type)
         base_source = base_source_cls.objects.create_source(name=name, packages=packages, from_config=False, **kwargs)
         return base_source
 
