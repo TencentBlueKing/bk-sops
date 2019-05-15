@@ -144,9 +144,9 @@
     }
     .division-line {
         margin: 0 20px 10px 20px;
-        border:0;
+        border: 0;
         height: 1px;
-        background-color:#dde4eB;
+        background-color: #dde4eB;
     }
     .step-list {
         display: flex;
@@ -163,7 +163,7 @@
         line-height: 16px;
         text-align: left;
         width: 90px;
-        &:last-child{
+        &:last-child {
             .order {
                 margin-top: 4px;
             }
