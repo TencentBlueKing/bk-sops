@@ -222,7 +222,6 @@
                         }
                         const pipelineTree = await this.getPreviewTaskTree(params)
                         pipelineTree.constants = this.templateConstants
-                        console.log(`pipelineTree=${JSON.stringify(pipelineTree)}`)
                         const data = {
                             'name': this.taskName,
                             'description': '',

@@ -5,11 +5,9 @@ export default {
     state: {},
     mutations: {},
     actions: {
-        getBusinessList ({ commit, state, dispatch }, params, config) {
-            const url = `${AJAX_URL_PREFIX}/api/v3/business/?limit=${params.limit}&offset=${params.offset}`
-            return http.get(
-                url
-            ).then(response => response)
+        getBusinessList ({ commit, state, dispatch }, params) {
+            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/business/?limit=${params.limit}&offset=${params.offset}`
+            return http.get(url).then(response => response)
         }
     }
 }

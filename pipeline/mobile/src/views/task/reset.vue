@@ -46,8 +46,7 @@
                 'getTemplateConstants'
             ]),
             async loadData () {
-                console.log(this.$route.params.inputs)
-                console.log(store.state.task)
+                // TODO: 重试需要填写原子的参数，原子的表单参数在mobile端需要重新开发
             },
             onClick () {
                 this.$router.push({ path: '/task/canvas', query: { taskId: store.state.task.id } })

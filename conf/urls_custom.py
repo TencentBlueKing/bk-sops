@@ -20,5 +20,6 @@ urlpatterns_custom = [
     url(r'^template/', include('gcloud.tasktmpl3.urls')),
     url(r'^taskflow/', include('gcloud.taskflow3.urls')),
     url(r'^', include('gcloud.webservice3.urls')),
+    url(r'^weixin/', include('weixin.urls')),
     url(r'^pipeline/', include('pipeline.components.urls')),
 ]
