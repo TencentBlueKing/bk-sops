@@ -105,12 +105,22 @@
                     </div>
                 </div>
             </div>
-            <div class="common-wrapper-btn">
+            <!-- //////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+            <!-- <div class="common-wrapper-btn">
                 <bk-button type="primary button" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
                 <bk-button type="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
                 <bk-button type="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
-            </div>
+            </div> -->
+            <!-- /////////////////////////////////////////////////////////////////////// -->
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :pending="pending.submit"
+            :btn-amount="3"
+            @elseClick="exportSubmit(true)"
+            @onConfirm="onConfirm"
+            @onCancel="onCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 
@@ -118,12 +128,14 @@
     import '@/utils/i18n.js'
     import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '../DialogLoadingBtn'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ImportTemplateDialog',
         components: {
-            NoData
+            NoData,
+            DialogLoadingBtn
         },
         props: ['isImportDialogShow', 'common'],
         data () {

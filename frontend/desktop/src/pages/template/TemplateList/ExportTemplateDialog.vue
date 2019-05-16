@@ -18,7 +18,6 @@
         width="850"
         padding="0"
         :is-show.sync="isExportDialogShow"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content" class="export-container">
             <div class="template-wrapper">
@@ -116,6 +115,17 @@
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
         </div>
+        <div class="common-wrapper-btn">
+            <bk-button type="primary button" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
+            <bk-button type="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
+            <bk-button type="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
+        </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :pending="pending"
+            @onConfirm="onConfirm"
+            @onCancel="onCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -123,13 +133,15 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '../DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
+            DialogLoadingBtn,
             NoData
         },
-        props: ['isExportDialogShow', 'businessInfoLoading', 'common'],
+        props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
         data () {
             return {
                 exportPending: false,
@@ -541,6 +553,9 @@
                 background: #545454;
             }
         }
+    }
+    .dialog_btn {
+        position: relative;
     }
 }
 </style>
