@@ -67,6 +67,7 @@ PIPELINE_FUNCTION_SWITCH_IS_FROZEN = 'pipeline.engine.models.FunctionSwitch.obje
 PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE = 'pipeline.models.task_service.run_pipeline'
 
 PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO = 'pipeline.models.PipelineInstance.calculate_tree_info'
+PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING = 'pipeline.models.import_string'
 
 PIPELINE_PIPELINE_MODEL_GET = 'pipeline.engine.models.PipelineModel.objects.get'
 PIPELINE_PIPELINE_MODEL_PREPARE_FOR_PIPELINE = 'pipeline.engine.models.PipelineModel.objects.prepare_for_pipeline'

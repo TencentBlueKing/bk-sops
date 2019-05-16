@@ -348,3 +348,11 @@ class MockExclusiveGateway(object):
 class MockConvergeGateway(object):
     def __init__(self, **kwargs):
         self.next = mock.MagicMock(return_value=kwargs.get('next', IdentifyObject()))
+
+
+class MockParser(object):
+    def __init__(self, parse_return='pipeline'):
+        self.parse_return = parse_return
+
+    def parse(self):
+        return self.parse_return
