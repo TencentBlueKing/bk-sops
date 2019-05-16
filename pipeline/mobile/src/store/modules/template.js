@@ -12,15 +12,25 @@ export default {
         }
     },
     actions: {
+        getTemplateList ({ rootState }, { limit, offset = 0 } = {}) {
+            const pager = limit ? `limit=${limit}&offset=${offset}&` : ''
+            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/template/?${pager}business__cc_id=${rootState.bizId}`
+            return http.get(url).then(response => response)
+        },
+
         getTemplate ({ commit, state }, templateId) {
             const url = `${AJAX_URL_PREFIX}/weixin/api/v3/template/${templateId}/`
             commit('setTemplateId', templateId)
             return http.get(url).then(response => response)
         },
 
-        collectTemplate ({ commit, state, dispatch }, isFavorite = false) {
-            // 接口需开发
-            return !isFavorite
+        collectTemplate ({ rootState }, params) {
+            const url = `${AJAX_URL_PREFIX}/weixin/template/api/collect/${rootState.bizId}/`
+            return http.post(
+                url,
+                qs.stringify(params),
+                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+            ).then(response => response)
         },
 
         getSchemes ({ commit, state, rootState }) {

@@ -16,5 +16,6 @@ weixin_v3_api.register(WxTaskFlowInstanceResource())
 
 urlpatterns = [
     url(r'^api/', include(weixin_v3_api.urls)),
-    url(r'^taskflow/', include('gcloud.taskflow3.urls'))
+    url(r'^taskflow/', include('gcloud.taskflow3.urls')),
+    url(r'^template/', include('gcloud.tasktmpl3.urls'))
 ]
