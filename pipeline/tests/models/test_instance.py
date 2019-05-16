@@ -141,6 +141,7 @@ class TestPipelineInstance(TestCase):
 
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=True, message='')))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
+    @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__success(self):
         instance = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
         executor = 'token_1'
@@ -170,7 +171,7 @@ class TestPipelineInstance(TestCase):
 
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message='')))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
-    @patch('pipeline.models.import_string', MagicMock(side_effect=ImportError()))
+    @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(side_effect=ImportError()))
     def test_start__parser_cls_error(self):
         instance = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
         executor = 'token_1'
@@ -188,6 +189,7 @@ class TestPipelineInstance(TestCase):
 
     @patch(PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE, MagicMock(return_value=ActionResult(result=False, message='')))
     @patch(PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO, MagicMock())
+    @patch(PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING, MagicMock(retrun_value=MockParser))
     def test_start__task_service_call_fail(self):
         instance = PipelineInstance.objects.create_instance(self.template, exec_data=self.data, creator=self.creator)
         executor = 'token_1'
@@ -196,6 +198,8 @@ class TestPipelineInstance(TestCase):
         instance.refresh_from_db()
 
         instance.calculate_tree_info.assert_called_once()
+        task_service.run_pipeline.assert_called_once()
+
         self.assertFalse(instance.is_started)
         self.assertEqual(instance.executor, '')
         self.assertIsNone(instance.start_time)
