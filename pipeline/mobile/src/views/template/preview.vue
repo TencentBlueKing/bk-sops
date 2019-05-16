@@ -29,8 +29,8 @@
                 excludeTaskNodes: state => state.excludeTaskNodes
             }),
             canvasData () {
-                const { line = [], location = [] } = this.pipelineTree
-                return { lines: line, nodes: location }
+                const { line = [], location = [], gateways = {} } = this.pipelineTree
+                return { lines: line, nodes: location, gateways: gateways }
             }
         },
         mounted () {

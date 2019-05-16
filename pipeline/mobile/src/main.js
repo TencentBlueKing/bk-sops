@@ -23,6 +23,7 @@ import {
     Picker,
     DatetimePicker,
     Actionsheet,
+    Notify,
     Toast
 } from 'vant'
 import VueTippy from 'vue-tippy'
@@ -46,6 +47,7 @@ Vue.use(NavBar)
     .use(Picker)
     .use(DatetimePicker)
     .use(Actionsheet)
+    .use(Notify)
     .use(Toast)
 
 Vue.use(VueTippy)

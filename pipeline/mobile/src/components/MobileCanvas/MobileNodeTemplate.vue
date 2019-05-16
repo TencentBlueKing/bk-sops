@@ -70,6 +70,14 @@
                     sub: window.gettext('查看子流程')
                 }
             }
+        },
+        methods: {
+            onNodeClick (node) {
+                console.log(node)
+                if (this.node.type !== 'subflow' && !this.node.status) {
+                    return false
+                }
+            }
         }
     }
 </script>

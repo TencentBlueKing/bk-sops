@@ -35,7 +35,8 @@
                 default () {
                     return {
                         nodes: [],
-                        lines: []
+                        lines: [],
+                        gateways: {}
                     }
                 }
             },
@@ -51,8 +52,51 @@
             }
         },
         mounted () {
-            // this.$refs.jsFlow.setCanvasPosition(100, 200)
-        }
-    }
+            const lineMap = this.getLineMap(this.canvasData)
+            const overlayConfig = {
+                type: 'label',
+                name: '',
+                cls: 'branch-conditions',
+                editable: false,
+                location: '-60'
+            }
+            const gateways = this.canvasData.gateways
+            if (Object.keys(gateways).length) {
+                this.canvasData.nodes.forEach(node => {
+                    if (node.type === 'branchgateway') {
+                        const { conditions } = gateways[node.id]
+                        for (const c of Object.keys(conditions)) {
+                            const line = lineMap.get(c)
+                            const overlay = Object.assign({}, overlayConfig, { name: conditions[c].evaluate })
+                            console.log('before draw branch gateway')
+                            console.log(line)
+                            console.log(overlay)
+                            this.$refs.jsFlow.setCanvasPosition(-300)
+                            this.$refs.jsFlow.addLineOverlay(line, overlay)
+                        }
+                    }
+                })
+            }
+        },
+        methods: {
+            setCanvasPosition (node) {
+                // 屏幕宽度
+                const screenWidth = window.innerWidth
+                const x = this.calcNodePosition({ x: node.x, screenWidth: screenWidth })
+                this.$refs.jsFlow.setCanvasPosition(x)
+            },
 
+            calcNodePosition ({ x = 0, screenWidth = 375, nodeWidth = 152 } = {}) {
+                return x * -1 + screenWidth / 2 - nodeWidth / 2
+            },
+
+            getLineMap ({ lines = [] }) {
+                const map = new Map()
+                lines.forEach((line) => map.set(line.id, line))
+                return map
+            }
+
+        }
+
+    }
 </script>

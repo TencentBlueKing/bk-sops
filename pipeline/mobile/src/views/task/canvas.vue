@@ -1,7 +1,7 @@
 <template>
     <div class="page-view">
         <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
-        <MobileCanvas v-if="!loading" :canvas-data="canvasData"></MobileCanvas>
+        <MobileCanvas v-if="!loading" :canvas-data="canvasData" ref="canvas"></MobileCanvas>
         <van-tabbar>
             <van-tabbar-item>
                 <van-icon
@@ -99,6 +99,7 @@
                 loading: true,
                 i18n: {
                     tip: window.gettext('提示'),
+                    executeStart: window.gettext('开始执行任务'),
                     loading: window.gettext('加载中...')
                 }
             }
@@ -106,8 +107,8 @@
         computed: {
             canvasData () {
                 const pipelineTree = this.task ? this.task.pipeline_tree || {} : {}
-                const { line = [], location = [] } = JSON.parse(pipelineTree)
-                return { lines: line, nodes: location }
+                const { line = [], location = [], gateways = {} } = JSON.parse(pipelineTree)
+                return { lines: line, nodes: location, gateways: gateways }
             }
         },
         created () {
@@ -127,7 +128,7 @@
                     this.taskId = this.$route.query.taskId
                     this.task = await this.getTask({ id: this.taskId })
                     await this.loadTaskStatus()
-                    if (this.$route.query.executeTask) {
+                    if (this.$route.query.executeTask && this.taskState === 'CREATED') {
                         this.onExecute()
                     }
                     this.$nextTick(() => {
@@ -142,17 +143,21 @@
                 if (taskState.state !== 'CREATED') {
                     this.canvasData.nodes.forEach((node) => {
                         const data = taskState.children[node.id]
-                        // node = Object.assign(node, { 'data': data })
                         this.$set(node, 'data', data)
                         if (data) {
-                            // Object.assign(node, { 'status': data.state })
                             this.$set(node, 'status', data.state)
+                            if (data.state === 'RUNNING' || data.state === 'FAILED') {
+                                if (this.$refs.canvas) {
+                                    this.$refs.canvas.setCanvasPosition(node)
+                                }
+                            }
                         }
                     })
                 }
             },
             async loadTaskStatus () {
                 try {
+                    this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const taskState = await this.getTaskStatus({ id: this.taskId })
                     if (taskState.result) {
                         this.taskState = taskState.data.state
@@ -168,6 +173,8 @@
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     console.error(e, this)
+                } finally {
+                    this.$toast.clear()
                 }
             },
 
@@ -185,6 +192,8 @@
             },
             async onExecute () {
                 try {
+                    this.$notify({ message: this.i18n.executeStart, background: '#12b93b' })
+                    this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const response = await this.instanceStart({ id: this.taskId })
                     if (response.result) {
                         this.setTaskStatusTimer()
@@ -193,6 +202,8 @@
                     }
                 } catch (e) {
                     console.error(e, this)
+                } finally {
+                    this.$toast.clear()
                 }
             },
             async onRevoke () {

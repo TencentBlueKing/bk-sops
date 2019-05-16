@@ -41,6 +41,7 @@
                     detail: window.gettext('执行详情'),
                     retry: window.gettext('重试'),
                     skip: window.gettext('跳过'),
+                    skipSuccess: window.gettext('跳过成功'),
                     sub: window.gettext('查看子流程')
                 },
                 show: true,
@@ -81,6 +82,7 @@
                 try {
                     this.show = false
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
+                    this.$notify({ message: this.i18n.skipSuccess, background: '#12b93b' })
                     const response = await this.instanceNodeSkip({ id: this.taskId, nodeId: this.node.id })
                     if (response.result) {
                         setTimeout(() => {
