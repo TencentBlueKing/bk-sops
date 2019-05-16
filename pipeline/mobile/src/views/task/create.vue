@@ -147,6 +147,7 @@
                 columns: [],
                 currentDate: new Date(),
                 collected: false,
+                collecting: false,
                 templateData: {
                     name: '',
                     creator_name: '',
@@ -189,6 +190,7 @@
         },
         methods: {
             ...mapActions('template', [
+                'getTemplateList',
                 'getTemplate',
                 'collectTemplate',
                 'createTask',
@@ -204,7 +206,7 @@
                 this.templateConstants = pipelineTree.constants
                 this.schemes = await this.getSchemes(this.$store.state.bizId)
                 this.taskName = this.getDefaultTaskName()
-                this.collected = this.templateData.is_favorite
+                this.collected = await this.isTemplateCollected()
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
                 this.$store.commit('setTemplate', this.templateData)
                 this.templatePipelineTree = JSON.parse(this.templateData.pipeline_tree)
@@ -270,8 +272,31 @@
                 this.datetimePickerShow = false
             },
             async collect () {
-                // 调用收藏是取消收藏方法
-                this.collected = await this.collectTemplate(this.collected)
+                // 防止重复提交
+                if (!this.collecting) {
+                    console.log('start collect....')
+                    this.collecting = true
+                    // 调用收藏是取消收藏方法
+                    const params = { template_id: this.templateId, method: this.collected ? 'delete' : 'add' }
+                    const response = await this.collectTemplate(params)
+                    if (response.result) {
+                        this.collected = !this.collected
+                    }
+                    this.collecting = false
+                }
+            },
+            async isTemplateCollected () {
+                let templateList = this.$store.state.collectedTemplateList
+                if (!templateList.length) {
+                    const response = await this.getTemplateList()
+                    templateList = response.objects
+                }
+                templateList.forEach(template => {
+                    if (this.templateData.id === template.id) {
+                        this.templateData.is_add = template.is_add
+                    }
+                })
+                return Boolean(this.templateData.is_add)
             }
         }
     }

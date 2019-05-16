@@ -77,14 +77,11 @@
             }
         },
         methods: {
-            ...mapActions('templateList', [
-                'getTemplateList',
-                'getCollectTemplateList'
+            ...mapActions('template', [
+                'getTemplateList'
             ]),
 
             async loadData () {
-                this.collectTemplateList = await this.getCollectTemplateList()
-                this.originalCollectTemplateList = this.collectTemplateList
                 const response = await this.getTemplateList({ offset: this.offset, limit: this.limit })
                 this.total = response.meta.total_count
                 const totalPage = Math.ceil(this.total / this.limit)
@@ -99,14 +96,17 @@
                 if (this.templateList.length > 0) {
                     this.business = this.templateList[0]['business']
                 }
+                this.getCollectedTemplateList()
                 this.loading = false
             },
-
+            getCollectedTemplateList () {
+                this.collectTemplateList = this.templateList.filter(t => t['is_add'])
+                this.originalCollectTemplateList = this.collectTemplateList
+            },
             search () {
                 this.templateList = this.originalTemplateList.filter(item => item.name.includes(this.value))
                 this.collectTemplateList = this.value ? [] : this.originalCollectTemplateList
             },
-
             onClickTemplate (templateId) {
                 this.$store.commit('setTemplateId', templateId)
                 this.$router.push({ path: `/task/create/${templateId}`, query: { templateId: templateId } })

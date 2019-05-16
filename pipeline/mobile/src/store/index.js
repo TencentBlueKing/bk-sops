@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import business from './modules/business'
-import templateList from './modules/templateList'
 import template from './modules/template'
 import taskList from './modules/taskList'
 import task from './modules/task'
@@ -17,7 +16,6 @@ const store = new Vuex.Store({
         business,
         task,
         taskList,
-        templateList,
         template
     },
     // 公共 store
@@ -30,6 +28,7 @@ const store = new Vuex.Store({
         taskId: '', // 任务ID
         title: '业务选择',
         template: {},
+        collectedTemplateList: [],
         task: {},
         taskState: '',
         excludeTaskNodes: [], // 被排除的节点
@@ -87,6 +86,9 @@ const store = new Vuex.Store({
         },
         setLoading (state, loading) {
             state.loading = loading
+        },
+        setCollectedTemplateList (state, collectedTemplateList) {
+            state.collectedTemplateList = collectedTemplateList
         }
     },
     actions: {
