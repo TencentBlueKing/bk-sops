@@ -67,7 +67,7 @@
                 </div>
             </div>
             <div class="app-synopsis">{{i18n.appDesc}}
-                <p>{{appData.desc || '--'}}</p>
+                <p class="synopsis-content">{{appData.desc || '--'}}</p>
             </div>
         </div>
     </div>
@@ -300,6 +300,9 @@
             margin-top: 3px;
             font-weight: 400;
         }
+    }
+    .synopsis-content {
+        white-space: pre-line;
     }
 }
 </style>
