@@ -379,3 +379,65 @@ class JobFastExecuteSQLComponent(Component):
     code = 'job_fast_execute_sql'
     bound_service = JobFastExecuteSQLService
     form = '%scomponents/atoms/sites/%s/job/job_fast_execute_sql.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+
+class JobTimingTaskService(JobService):
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+        job_timing_task_id = data.get_one_of_inputs('job_timing_task_id')
+        job_timing_task_name = data.get_one_of_inputs('job_timing_task_name')
+        job_timing_rule = data.get_one_of_inputs('job_timing_rule')
+        job_kwargs = {
+            "bk_biz_id": biz_cc_id,
+            "bk_job_id": job_timing_task_id,
+            "cron_name": job_timing_task_name,
+            "cron_expression": job_timing_rule,
+        }
+        client = get_client_by_user(executor)
+
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        # 新建作业
+        job_save_result = client.job.save_cron(job_kwargs)
+        LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_save_result, kwargs=job_kwargs))
+        if not job_save_result['result']:
+            data.outputs.ex_data = job_save_result['message']
+            return False
+
+        data.outputs.status = _(u'暂停')
+        # 更新作业状态
+        job_timing_status = data.get_one_of_inputs('job_timing_status')
+        if job_timing_status == 1:
+            job_update_cron_kwargs = {
+                "bk_biz_id": biz_cc_id,
+                "cron_status": 1,
+                "cron_id": job_save_result['data']['cron_id']
+            }
+            job_update_result = client.job.update_cron_status(job_update_cron_kwargs)
+            if job_update_result['result']:
+                data.outputs.status = _(u'启动')
+            else:
+                data.outputs.ex_data = job_update_result['message']
+
+        data.outputs.cron_id = job_save_result['data']['cron_id']
+        data.outputs.client = client
+        return True
+
+    def schedule(self, data, parent_data, callback_data=None):
+        return super(JobTimingTaskService, self).schedule(data, parent_data, callback_data)
+
+    def outputs_format(self):
+        return [
+            self.OutputItem(name=_(u'新建定时作业ID'), key='cron_id', type='int'),
+            self.OutputItem(name=_(u'定时作业状态'), key='status', type='string'),
+        ]
+
+
+class JobTimingComponent(Component):
+    name = _(u'新建定时作业')
+    code = 'job_timing_task'
+    bound_service = JobTimingTaskService
+    form = '%scomponents/atoms/sites/%s/job/job_timing_task.js' % (settings.STATIC_URL, settings.RUN_VER)
