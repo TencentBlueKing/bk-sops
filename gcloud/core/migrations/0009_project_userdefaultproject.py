@@ -10,9 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -35,6 +37,14 @@ class Migration(migrations.Migration):
                 ('cmdb_biz_id', models.IntegerField(default=-1, verbose_name='\u4e1a\u52a1\u540c\u6b65\u9879\u76ee\u5bf9\u5e94\u7684 CMDB \u4e1a\u52a1 ID')),
                 ('is_disable', models.BooleanField(default=False, verbose_name='\u662f\u5426\u5df2\u505c\u7528')),
                 ('relate_business', models.ManyToManyField(to='core.Business', verbose_name='\u5173\u8054\u9879\u76ee')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='UserDefaultProject',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('username', models.CharField(max_length=255, unique=True, verbose_name='\u7528\u6237\u540d')),
+                ('default_project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Project', verbose_name='\u7528\u6237\u9ed8\u8ba4\u9879\u76ee')),
             ],
         ),
     ]
