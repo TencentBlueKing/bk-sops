@@ -41,3 +41,13 @@ APIGW_DECORATOR_CHECK_WHITE_LIST = 'gcloud.apigw.decorators.check_white_apps'
 APIGW_DECORATOR_GET_USER_MODEL = 'gcloud.apigw.decorators.get_user_model'
 APIGW_DECORATOR_PREPARE_USER_BUSINESS = 'gcloud.apigw.decorators.prepare_user_business'
 APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
+
+CORE_PROJECT_CACHE = 'gcloud.core.project.cache'
+CORE_PROJECT_GET_USER_BUSINESS_LIST = 'gcloud.core.project.get_user_business_list'
+
+CORE_MODEL_BUSINESS_UPDATE_OR_CREATE = 'gcloud.core.models.Business.objects.update_or_create'
+
+CORE_MODEL_PROJECT_SYNC_PROJECT = 'gcloud.core.models.Project.objects.sync_project_from_cmdb_business'
+
+CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT = \
+    'gcloud.core.models.UserDefaultProject.objects.init_user_default_project'
