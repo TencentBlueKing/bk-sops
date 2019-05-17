@@ -30,7 +30,8 @@ class ProjectTestCase(TestCase):
             } for i in range(1, 10)
         }
 
-        Project.objects.sync_project_from_cmdb_business(businesses)
+        projs = Project.objects.sync_project_from_cmdb_business(businesses)
+        self.assertEqual(len(projs), len(businesses))
 
         for i in range(1, 10):
             proj = Project.objects.get(cmdb_biz_id=i)
@@ -57,7 +58,8 @@ class ProjectTestCase(TestCase):
             } for i in range(1, 10)
         }
 
-        Project.objects.sync_project_from_cmdb_business(businesses)
+        projs = Project.objects.sync_project_from_cmdb_business(businesses)
+        self.assertEqual(len(projs), 7)
 
         for i in range(1, 10):
             proj = Project.objects.get(cmdb_biz_id=i)
@@ -66,3 +68,8 @@ class ProjectTestCase(TestCase):
             self.assertEqual(proj.creator, businesses[i]['creator'])
             self.assertEqual(proj.desc, '')
             self.assertTrue(proj.from_cmdb)
+
+    def test_sync_project_from_cmdb_business__no_business(self):
+        projs = Project.objects.sync_project_from_cmdb_business({})
+        self.assertEqual(len(projs), 0)
+        self.assertEqual(Project.objects.all().count(), 0)
