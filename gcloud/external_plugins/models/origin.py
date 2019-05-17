@@ -31,6 +31,7 @@ from gcloud.external_plugins.models.cache import CachePackageSource
 from gcloud.external_plugins.models.protocol.readers import reader_cls_factory
 
 source_cls_factory = {}
+ORIGIN = 'origin'
 
 
 def original_source(cls):
@@ -79,6 +80,10 @@ class OriginalPackageSource(PackageSource):
 
     class Meta:
         abstract = True
+
+    @property
+    def category(self):
+        return ORIGIN
 
     @staticmethod
     @abstractmethod
