@@ -224,11 +224,15 @@ def job_get_script_list(request, biz_cc_id):
     """
     # 查询脚本列表
     client = get_client_by_request(request)
-    script_type = request.GET.get('type')
+    _type = request.GET.get('type')
     kwargs = {
         'bk_biz_id': biz_cc_id,
-        'is_public': True if script_type == 'public' else False
+        'is_public': True if _type == 'public' else False,
     }
+    script_type = request.GET.get('script_type')
+    if script_type:
+        kwargs.update({'script_type': int(script_type)})
+
     script_result = client.job.get_script_list(kwargs)
 
     if not script_result['result']:
@@ -391,6 +395,46 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     return JsonResponse({'result': True, 'data': {'global_var': global_var, 'steps': steps}})
 
 
+def job_get_own_db_account_list(request, biz_cc_id):
+    """
+    查询用户有权限的DB帐号列表
+    :param request:
+    :param biz_cc_id:
+    :return:
+    """
+    # 查询用户有权限的DB帐号列表
+    client = get_client_by_request(request)
+    kwargs = {
+        'bk_biz_id': biz_cc_id,
+        "start": 0,
+        "length": 100
+    }
+
+    account_result = client.job.get_own_db_account_list(kwargs)
+
+    if not account_result['result']:
+        message = handle_api_error('cc', 'job.get_own_db_account_list', kwargs, account_result['message'])
+        logger.error(message)
+        result = {
+            'result': False,
+            'message': message
+        }
+        return JsonResponse(result)
+
+    account_dict = {}
+    for account in account_result['data']:
+        account_dict.setdefault(account['db_alias'], []).append(account['db_account_id'])
+
+    version_data = []
+    for name, version in account_dict.items():
+        version_data.append({
+            "text": name,
+            "value": max(version)
+        })
+
+    return JsonResponse({'result': True, 'data': version_data})
+
+
 @supplier_account_inject
 def cc_search_topo_tree(request, biz_cc_id, supplier_account):
     return cmdb_search_topo_tree(request, biz_cc_id, supplier_account)
@@ -419,4 +463,5 @@ urlpatterns = [
     url(r'^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$', cc_search_topo_tree),
     url(r'^cc_search_host/(?P<biz_cc_id>\d+)/$', cc_search_host),
     url(r'^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$', cc_get_mainline_object_topo),
+    url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
 ]
