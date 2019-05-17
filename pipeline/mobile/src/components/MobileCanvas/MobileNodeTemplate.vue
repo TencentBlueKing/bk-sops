@@ -24,10 +24,10 @@
     <div
         v-else-if="node.type === 'subflow'"
         ref="nodeLocation"
-        class="bk-flow-location node-subflow"
+        :class="['bk-flow-location', 'node-subflow', node['status'] ? node['status'].toLowerCase() : '']"
         @click="onNodeClick(node, $event)">
         <div class="node-name">
-            <div class="subflow-node-icon">
+            <div :class="['subflow-node-icon', node['status'] ? node['status'].toLowerCase() : '']">
                 <van-icon name="plus" />
             </div>
             <p class="name">{{ node.name }}</p>
@@ -73,9 +73,13 @@
         },
         methods: {
             onNodeClick (node) {
-                console.log(node)
-                if (this.node.type !== 'subflow' && !this.node.status) {
-                    return false
+                const pipelineTree = this.$store.state.pipelineTree
+                if (this.node.type === 'subflow') {
+                    const subTree = pipelineTree.activities[node.id].pipeline
+                    if (subTree) {
+                        // 当前树替换成子流程树
+                        this.$store.commit('setPipelineTree', subTree)
+                    }
                 }
             }
         }
@@ -119,8 +123,22 @@
         }
     }
 
+    .node-subflow.failed {
+        border-top-color: #ff5757;
+    }
+
+    .node-subflow.finished {
+        border-top-color: #30d878;
+    }
+
+    .node-subflow.suspended {
+        border-top-color: #f8b53f;
+    }
+
     .node-subflow {
-        border-top: 5px solid #53699d;
+        border-top-style: solid;
+        border-top-width: 5px;
+        border-top-color: #53699d;
         .node-name {
             height: 55px;
         }
@@ -136,6 +154,16 @@
             > i {
                 vertical-align: middle;
             }
+        }
+
+        .subflow-node-icon.failed {
+            background: #ff5757;
+        }
+        .subflow-node-icon.finished {
+            background: #30d878;
+        }
+        .bsubflow-node-icon.suspended {
+            background: #f8b53f;
         }
     }
 

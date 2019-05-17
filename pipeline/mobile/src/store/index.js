@@ -34,6 +34,7 @@ const store = new Vuex.Store({
         excludeTaskNodes: [], // 被排除的节点
         isActionSheetShow: true,
         setPreviewCanvasData: {}, // 预览数据
+        pipelineTree: {},
         // 系统当前登录用户
         user: { username: 'admin' }
     },
@@ -89,6 +90,9 @@ const store = new Vuex.Store({
         },
         setCollectedTemplateList (state, collectedTemplateList) {
             state.collectedTemplateList = collectedTemplateList
+        },
+        setPipelineTree (state, pipelineTree) {
+            state.pipelineTree = pipelineTree
         }
     },
     actions: {

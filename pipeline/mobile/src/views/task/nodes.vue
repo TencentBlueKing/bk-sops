@@ -7,8 +7,7 @@
                     <div class="bk-text">{{ nodeDetail.name }}</div>
                 </template>
                 <div class="status">
-                    <van-icon slot="right-icon" name="clear" class="task-icon close" />
-                    <span class="text">失败</span>
+                    <StatusIcon v-if="!loadingIcon" :status="status" :show-text="true"></StatusIcon>
                 </div>
             </van-cell>
         </section>
@@ -37,18 +36,24 @@
         <section class="bk-block">
             <h2 class="bk-text-title">{{ i18n.outputParameter }}</h2>
             <div class="bk-text-list">
-                <van-cell
-                    v-for="item in nodeDetail.outputs"
-                    :key="item.index"
-                    :title="item.name"
-                    :value="item.value === '' ? '--' : str(item.value)" />
+                <template v-if="nodeDetail.outputs && nodeDetail.outputs.length">
+                    <van-cell
+                        v-for="item in nodeDetail.outputs"
+                        :key="item.index"
+                        :title="item.name"
+                        :value="item.value === '' ? '--' : str(item.value)" />
+                </template>
+                <template v-else>
+                    <no-data />
+                </template>
             </div>
         </section>
         <!-- 异常信息 -->
         <section class="bk-block">
             <h2 class="bk-text-title">{{ i18n.errorInfo }}</h2>
             <div class="bk-text-list">
-                <van-cell :value="nodeDetail.ex_data" />
+                <van-cell v-if="nodeDetail.ex_data" :value="nodeDetail.ex_data" />
+                <no-data v-else />
             </div>
         </section>
         <!-- 执行记录 -->
@@ -66,17 +71,24 @@
     </div>
 </template>
 <script>
+    import NoData from '@/components/NoData/index.vue'
+    import StatusIcon from '@/components/MobileStatusIcon/index.vue'
     import VueJsonPretty from 'vue-json-pretty'
     import { mapActions } from 'vuex'
 
     export default {
         name: 'TaskNodes',
         components: {
-            VueJsonPretty
+            VueJsonPretty,
+            NoData,
+            StatusIcon
         },
         data () {
             return {
                 nodeDetail: {},
+                status: '',
+                showText: true,
+                loadingIcon: true,
                 i18n: {
                     loading: window.gettext('加载中...'),
                     executeInfo: window.gettext('执行信息'),
@@ -93,16 +105,16 @@
                     showTotal: window.gettext('查看全部'),
                     errorInfo: window.gettext('异常信息'),
                     executeHistory: window.gettext('执行记录')
-
                 }
             }
         },
-        mounted () {
+        created () {
             this.loadData()
         },
         methods: {
             ...mapActions('task', [
                 'getTask',
+                'getTaskStatus',
                 'getNodeDetail'
             ]),
 
@@ -121,6 +133,10 @@
                     this.nodeDetail = response.data
                     this.nodeDetail.name = task.name
                 }
+                this.loadingIcon = true
+                const statusRes = await this.getTaskStatus({ id: taskId })
+                this.status = statusRes.data.state
+                this.loadingIcon = false
                 this.$toast.clear()
             },
 
