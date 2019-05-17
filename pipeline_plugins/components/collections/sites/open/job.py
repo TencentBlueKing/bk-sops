@@ -408,5 +408,7 @@ class JobTimingTaskComponent(Component):
     code = 'job_timing_task'
     bound_service = JobTimingTaskService
     form = '%scomponents/atoms/sites/%s/job/job_timing_task.js' % (settings.STATIC_URL, settings.RUN_VER)
+	
+	
 
 
