@@ -171,7 +171,7 @@
                     jurisdiction: gettext('使用权限'),
                     jurisdictionHint: gettext('“轻应用”的使用权限与其引用的“流程模版”使用权限一致。调整“轻应用”使用权限，可以调整其对应的“流程模版”使用权限。'),
                     addJurisdiction: gettext('新建任务权限'),
-                    getJurisdiction: gettext('领取任务权限'),
+                    getJurisdiction: gettext('认领任务权限'),
                     executeJurisdiction: gettext('执行任务权限'),
                     delete: gettext('删除'),
                     deleteTips: gettext('确认删除轻应用？'),
