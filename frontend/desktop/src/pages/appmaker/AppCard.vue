@@ -171,7 +171,7 @@
     float: left;
     width: 136px;
     height: 100%;
-    padding: 20px;
+    padding: 20px 15px;
     overflow: hidden;
     border-right: 1px solid $commonBorderColor;
     .logo {
@@ -201,14 +201,17 @@
         margin: 10px 0;
         height: 40px;
         .app-name {
-            display: block;
+            display:-webkit-box;
+            -webkit-box-orient:vertical;
+            -webkit-line-clamp:2;
             font-size: 14px;
             font-weight: bold;
             color: #63656e;
             word-break: break-all;
             cursor: pointer;
-            @include multiLineEllipsis(1.2em, 2);
             text-align: center;
+            overflow:hidden;
+            text-overflow:ellipsis;
             &:hover {
                 color: $blueDefault;
             }
