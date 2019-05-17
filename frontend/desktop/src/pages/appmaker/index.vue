@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="appmaker-page" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div class="page-content" v-if="!loading">
+    <div class="appmaker-page">
+        <div class="page-content">
             <div class="appmaker-table-content">
                 <BaseTitle :title="i18n.title"></BaseTitle>
                 <div class="operation-wrapper">
@@ -50,20 +50,22 @@
                     </div>
                 </fieldset>
             </div>
-            <div v-if="appList.length" class="app-list clearfix">
-                <AppCard
-                    v-for="item in appList"
-                    :key="item.id"
-                    :app-data="item"
-                    :cc_id="cc_id"
-                    @onCardEdit="onCardEdit"
-                    @onCardDelete="onCardDelete"
-                    @onOpenPermissions="onOpenPermissions" />
-            </div>
-            <div v-else class="empty-app-list">
-                <NoData>
-                    <p>{{emptyTips}}</p>
-                </NoData>
+            <div v-bkloading="{ isLoading: loading, opacity: 1 }">
+                <div v-if="appList.length" class="app-list clearfix">
+                    <AppCard
+                        v-for="item in appList"
+                        :key="item.id"
+                        :app-data="item"
+                        :cc_id="cc_id"
+                        @onCardEdit="onCardEdit"
+                        @onCardDelete="onCardDelete"
+                        @onOpenPermissions="onOpenPermissions" />
+                </div>
+                <div v-else class="empty-app-list">
+                    <NoData>
+                        <p>{{emptyTips}}</p>
+                    </NoData>
+                </div>
             </div>
         </div>
         <AppEditDialog
