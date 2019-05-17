@@ -14,16 +14,16 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
 import mock  # noqa
-from mock import MagicMock
+from mock import MagicMock, patch  # noqa
 
 from django.utils.timezone import now
 
 
 class MockRequest(object):
-    def __init__(self, method, data):
+    def __init__(self, method, data, username='a_user'):
         self.method = method
         setattr(self, method, data)
-        self.user = MagicMock()
+        self.user = MagicMock(username=username)
 
 
 class MockJsonResponse(object):
@@ -107,6 +107,19 @@ class MockQuerySet(object):
     def __init__(self,
                  get_result=None,
                  get_raise=None,
-                 filter_result=None):
+                 filter_result=None,
+                 exist_return=True):
         self.get = MagicMock(return_value=get_result) if get_result else MagicMock(side_effect=get_raise)
         self.filter = MagicMock(return_value=filter_result)
+        self.exist = MagicMock(return_value=exist_return)
+
+
+class MockCache(object):
+    def __init__(self, get_return):
+        self.get_return = get_return
+
+    def get(self, key):
+        return self.get_return
+
+    def set(self, *args, **kwargs):
+        return

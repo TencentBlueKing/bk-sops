@@ -149,9 +149,20 @@ class Project(models.Model):
     objects = ProjectManager()
 
 
+class UserDefaultProjectManager(models.Manager):
+
+    def init_user_default_project(self, username, project):
+        try:
+            return self.get(username=username)
+        except UserDefaultProject.DoesNotExist:
+            return self.create(username=username, default_project=project)
+
+
 class UserDefaultProject(models.Model):
     username = models.CharField(_(u"用户名"), max_length=255, unique=True)
     default_project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
+
+    objects = UserDefaultProjectManager()
 
     def __unicode__(self):
         return u'%s_%s' % (self.username, self.default_project)

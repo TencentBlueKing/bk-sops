@@ -33,7 +33,8 @@ export_func = {'prepare_user_business',
                'check_and_rename_params',
                'get_client_by_user_and_biz_id',
                'name_handler',
-               'prepare_view_all_business'}
+               'prepare_view_all_business',
+               'get_user_business_list'}
 
 for func in export_func:
     locals()[func] = getattr(utils, func)
