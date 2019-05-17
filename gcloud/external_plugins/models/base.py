@@ -20,9 +20,36 @@ source_cls_factory = {}
 
 
 class PackageSourceManager(models.Manager):
+
     @staticmethod
-    def get_base_source_cls(source_type):
-        return base_source_cls_factory[source_type]
+    def get_base_source_fields(source_type):
+        """
+        @summary: 获取 base source 的数据库字段
+        @param source_type:
+        @return:
+        """
+        source_model = base_source_cls_factory[source_type]
+        all_fields = [field.name for field in source_model._meta.get_fields()]
+        return all_fields
+
+    def divide_details_parts(self, source_type, details):
+        """
+        @summary: divide details into two parts
+            base_kwargs: fields in base model(e.g. fields of pipeline.contrib.external_plugins.models.GitRepoSource)
+            original_kwargs: field in origin model but not in base model(e.g. repo_address、desc)
+        @param source_type:
+        @param details:
+        @return:
+        """
+        all_fields = self.get_base_source_fields(source_type)
+        original_kwargs = {}
+        base_kwargs = {}
+        for key, value in details.items():
+            if key in all_fields:
+                base_kwargs[key] = value
+            else:
+                original_kwargs[key] = value
+        return original_kwargs, base_kwargs
 
     @transaction.atomic()
     def add_base_source(self, name, source_type, packages, **kwargs):

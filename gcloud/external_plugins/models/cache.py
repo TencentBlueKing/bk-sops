@@ -11,11 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db import transaction
+from django.db import models, transaction
+from django.utils.translation import ugettext_lazy as _
 
 from gcloud.external_plugins import exceptions, CACHE_TEMP_PATH
 from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
 from gcloud.external_plugins.models.protocol.writers import writer_cls_factory
+
+CACHE = 'cache'
 
 
 class CachePackageSourceManager(PackageSourceManager):
@@ -41,8 +44,13 @@ class CachePackageSourceManager(PackageSourceManager):
 
 
 class CachePackageSource(PackageSource):
+    desc = models.TextField(_(u"包源说明"), max_length=1000, blank=True)
 
     objects = CachePackageSourceManager()
+
+    @property
+    def category(self):
+        return CACHE
 
     @property
     def name(self):
