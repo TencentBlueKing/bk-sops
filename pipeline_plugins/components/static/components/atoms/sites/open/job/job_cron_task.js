@@ -1,7 +1,7 @@
 (function () {
     $.atoms.job_timing_task = [
         {
-            tag_code: "job_timing_task_id",
+            tag_code: "job_cron_job_id",
             type: "select",
             attrs: {
                 name: gettext("作业模板"),
@@ -19,7 +19,7 @@
             }
         },
         {
-            tag_code: "job_timing_task_name",
+            tag_code: "job_cron_name",
             type: "input",
             attrs: {
                 name: gettext("定时作业名称"),
@@ -33,7 +33,7 @@
             },
             events: [
                 {
-                    source: "job_timing_task_id",
+                    source: "job_cron_job_id",
                     type: "change",
                     action: function (value) {
                         var $this = this;
@@ -97,7 +97,7 @@
             },
             events: [
                 {
-                    source: "job_timing_task_id",
+                    source: "job_cron_job_id",
                     type: "change",
                     action: function (value) {
                         var $this = this;
