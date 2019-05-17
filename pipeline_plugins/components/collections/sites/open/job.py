@@ -381,18 +381,18 @@ class JobFastExecuteSQLComponent(Component):
     form = '%scomponents/atoms/sites/%s/job/job_fast_execute_sql.js' % (settings.STATIC_URL, settings.RUN_VER)
 
 
-class JobTimingTaskService(JobService):
+class JobCrontabTaskService(JobService):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
         biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        job_timing_task_id = data.get_one_of_inputs('job_timing_task_id')
-        job_timing_task_name = data.get_one_of_inputs('job_timing_task_name')
-        job_timing_rule = data.get_one_of_inputs('job_timing_rule')
+        job_cron_job_id = data.get_one_of_inputs('job_cron_job_id')
+        job_cron_name = data.get_one_of_inputs('job_cron_name')
+        job_cron_expression = data.get_one_of_inputs('job_timing_rule')
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
-            "bk_job_id": job_timing_task_id,
-            "cron_name": job_timing_task_name,
-            "cron_expression": job_timing_rule,
+            "bk_job_id": job_cron_job_id,
+            "cron_name": job_cron_name,
+            "cron_expression": job_cron_expression,
         }
         client = get_client_by_user(executor)
 
@@ -409,8 +409,8 @@ class JobTimingTaskService(JobService):
 
         data.outputs.status = _(u'暂停')
         # 更新作业状态
-        job_timing_status = data.get_one_of_inputs('job_timing_status')
-        if job_timing_status == 1:
+        job_cron_status = data.get_one_of_inputs('job_timing_status')
+        if job_cron_status == 1:
             job_update_cron_kwargs = {
                 "bk_biz_id": biz_cc_id,
                 "cron_status": 1,
@@ -427,7 +427,7 @@ class JobTimingTaskService(JobService):
         return True
 
     def schedule(self, data, parent_data, callback_data=None):
-        return super(JobTimingTaskService, self).schedule(data, parent_data, callback_data)
+        return super(JobCrontabTaskService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [
@@ -436,8 +436,8 @@ class JobTimingTaskService(JobService):
         ]
 
 
-class JobTimingComponent(Component):
+class JobCrontabComponent(Component):
     name = _(u'新建定时作业')
-    code = 'job_timing_task'
-    bound_service = JobTimingTaskService
-    form = '%scomponents/atoms/sites/%s/job/job_timing_task.js' % (settings.STATIC_URL, settings.RUN_VER)
+    code = 'job_cron_task'
+    bound_service = JobCrontabTaskService
+    form = '%scomponents/atoms/sites/%s/job/job_cron_task.js' % (settings.STATIC_URL, settings.RUN_VER)
