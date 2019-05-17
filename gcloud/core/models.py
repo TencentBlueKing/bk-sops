@@ -116,6 +116,9 @@ class EnvironmentVariables(models.Model):
 class ProjectManager(models.Manager):
 
     def sync_project_from_cmdb_business(self, businesses):
+        if not businesses:
+            return []
+
         exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('cmdb_biz_id', flat=True))
         to_be_sync_cc_id = set(businesses.keys()) - exist_sync_cc_id
         projects = []
@@ -129,7 +132,7 @@ class ProjectManager(models.Manager):
                                     from_cmdb=True,
                                     cmdb_biz_id=cc_id))
 
-        self.bulk_create(projects, batch_size=5000)
+        return self.bulk_create(projects, batch_size=5000)
 
 
 class Project(models.Model):
@@ -144,3 +147,11 @@ class Project(models.Model):
     relate_business = models.ManyToManyField(verbose_name=_(u"关联项目"), to=Business)
 
     objects = ProjectManager()
+
+
+class UserDefaultProject(models.Model):
+    username = models.CharField(_(u"用户名"), max_length=255, unique=True)
+    default_project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
+
+    def __unicode__(self):
+        return u'%s_%s' % (self.username, self.default_project)
