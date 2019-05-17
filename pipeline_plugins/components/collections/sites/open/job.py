@@ -35,10 +35,12 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
+
+from pipeline.conf import settings
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
-from gcloud.conf import settings
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -49,7 +51,6 @@ __group_name__ = _(u"作业平台(JOB)")
 __group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 class JobService(Service):
@@ -316,3 +317,96 @@ class JobFastExecuteScriptComponent(Component):
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
     form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+
+class JobTimingTaskService(JobService):
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+
+        client = get_client_by_user(executor)
+        client.set_bk_api_ver('v2')
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        original_global_var = data.get_one_of_inputs('job_global_var')
+        global_vars = []
+        for _value in original_global_var:
+            # 1-字符串，2-IP
+            if _value['type'] == 2:
+                var_ip = cc_get_ips_info_by_str(
+                    username=executor,
+                    biz_cc_id=biz_cc_id,
+                    ip_str=_value['value'],
+                    use_cache=False)
+                ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
+                if _value['value'].strip() and not ip_list:
+                    data.outputs.ex_data = _(u"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+                    return False
+                if ip_list:
+                    global_vars.append({
+                        'name': _value['name'],
+                        'ip_list': ip_list,
+                    })
+            else:
+                global_vars.append({
+                    'name': _value['name'],
+                    'value': str(_value['value']).strip(),
+                })
+        job_task_id = data.get_one_of_inputs('job_task_id')
+        job_cron_name = data.get_one_of_inputs('job_cron_name')
+        if job_cron_name == "" or job_cron_name is None:
+            job_kwargs = {
+                "bk_biz_id": biz_cc_id,
+                "bk_job_id": job_task_id
+            }
+            job_result = client.job.get_job_detail(job_kwargs)
+            if job_result['result']:
+                import time
+                job_cron_name = str(job_result['data']['name']) + str(time.time())
+        job_kwargs = {
+            'bk_biz_id': biz_cc_id,
+            'bk_job_id': job_task_id,
+            'cron_name': job_cron_name,
+            'cron_expression': data.get_one_of_inputs('job_cron_expression')
+        }
+
+        job_result = client.job.save_cron(job_kwargs)
+        LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_result, kwargs=job_kwargs))
+        if job_result['result']:
+            data.outputs.client = client
+            job_instance_id = job_result['data']['cron_id']
+            data.outputs.job_inst_url = get_job_instance_url(parent_data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_id = job_instance_id
+            data.outputs.job_cron_name = job_cron_name
+            job_kwargs = {
+                'bk_biz_id': biz_cc_id,
+                "cron_status": 1,
+                "cron_id": job_instance_id
+            }
+            cron_status = data.get_one_of_inputs('cron_status')
+            if cron_status == "1":
+                job_result = client.job.update_cron_status(job_kwargs)
+                LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_result, kwargs=job_kwargs))
+                if job_result["result"]:
+                    return True
+        else:
+            data.outputs.ex_data = job_result['message']
+            return False
+        return True
+
+    def schedule(self, data, parent_data, callback_data=None):
+        return super(JobTimingTaskService, self).schedule(data, parent_data, callback_data)
+
+    def outputs_format(self):
+        return super(JobTimingTaskService, self).outputs_format()
+
+
+class JobTimingTaskComponent(Component):
+    name = _(u'新建定时作业')
+    code = 'job_timing_task'
+    bound_service = JobTimingTaskService
+    form = '%scomponents/atoms/sites/%s/job/job_timing_task.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+

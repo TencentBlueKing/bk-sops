@@ -14,25 +14,32 @@ specific language governing permissions and limitations under the License.
 import mock
 
 from cryptography.fernet import Fernet
-from django.conf import settings
 from django.test import TestCase
-
+from django.conf import settings
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 
 
 class UtilsTestCase(TestCase):
 
+    def setUp(self):
+        setattr(settings, 'CALLBACK_PREFIX', 'o/bksops')
+
+    def tearDown(self):
+        delattr(settings, 'CALLBACK_PREFIX')
+
     def test_get_node_callback_url(self):
         node_id = 'node_id'
         f = Fernet(settings.CALLBACK_KEY)
-        expect_prefix = "%staskflow/api/nodes/callback" % settings.SITE_URL
+        expect_prefix = "%s/%s/taskflow/api/nodes/callback" % (settings.BK_PAAS_HOST,
+                                                               settings.CALLBACK_PREFIX)
         url = get_node_callback_url(node_id)
         actual_prefix, token = url[:-1].rsplit('/', 1)
         self.assertEqual(expect_prefix, actual_prefix)
         self.assertEqual(node_id, f.decrypt(bytes(token)))
 
         with mock.patch('gcloud.conf.settings.RUN_MODE', 'PRODUCT'):
-            expect_prefix = "%staskflow/api/nodes/callback" % settings.SITE_URL
+            expect_prefix = "%s/%s/taskflow/api/nodes/callback" % (settings.BK_PAAS_HOST,
+                                                                   settings.CALLBACK_PREFIX)
             url = get_node_callback_url(node_id)
             actual_prefix, token = url[:-1].rsplit('/', 1)
             self.assertEqual(expect_prefix, actual_prefix)

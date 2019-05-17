@@ -16,11 +16,10 @@ import copy
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.components.utils import handle_api_error
-from gcloud.conf import settings
+
+from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
 
 from .constants import NO_ERROR, ERROR_CODES
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
