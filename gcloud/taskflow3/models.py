@@ -53,7 +53,7 @@ from pipeline_web.parser.format import format_node_io_to_list
 from gcloud.conf import settings
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
-from gcloud.core.models import Business
+from gcloud.core.models import Business, Project
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
 from gcloud.taskflow3.constants import (
@@ -762,6 +762,11 @@ class TaskFlowInstance(models.Model):
                                  blank=True,
                                  null=True,
                                  on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project,
+                                verbose_name=_(u"所属项目"),
+                                null=True,
+                                blank=True,
+                                on_delete=models.SET_NULL)
     pipeline_instance = models.ForeignKey(PipelineInstance,
                                           blank=True,
                                           null=True,

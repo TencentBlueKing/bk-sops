@@ -29,7 +29,7 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.commons.template.constants import PermNm
 from gcloud.core.constant import TASK_CATEGORY, AE
-from gcloud.core.models import Business
+from gcloud.core.models import Business, Project
 from gcloud.core.utils import (
     timestamp_to_datetime,
     format_datetime,
@@ -447,6 +447,12 @@ class TaskTemplate(BaseTemplate):
                                  blank=True,
                                  null=True,
                                  on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project,
+                                verbose_name=_(u"所属项目"),
+                                null=True,
+                                blank=True,
+                                on_delete=models.SET_NULL)
+
     objects = TaskTemplateManager()
 
     def __unicode__(self):
