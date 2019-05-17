@@ -230,7 +230,7 @@ def job_get_script_list(request, biz_cc_id):
     kwargs = {
         'bk_biz_id': biz_cc_id,
         'is_public': True if source_type == 'public' else False,
-        'script_type' : script_type if script_type else 0,
+        'script_type': script_type if script_type else 0,
     }
 
     script_result = client.job.get_script_list(kwargs)
@@ -272,7 +272,7 @@ def job_get_own_db_account_list(request, bk_biz_id):
     job_result = client.job.get_own_db_account_list(kwargs)
 
     if not job_result['result']:
-        message = handle_api_error('cc', 'get_own_db_account_list', kwargs, job_result['message'])
+        message = handle_api_error('job', 'get_own_db_account_list', kwargs, job_result['message'])
         logger.error(message)
         result = {
             'result': False,

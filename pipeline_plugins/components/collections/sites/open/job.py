@@ -351,7 +351,7 @@ class JobFastExecuteSQLService(JobService):
             })
         else:
             job_kwargs.update({
-                'script_content': base64.b64encode(data.get_one_of_inputs('job_content').encode('utf-8')),
+                'script_content': base64.b64encode(data.get_one_of_inputs('job_sql_content').encode('utf-8')),
             })
 
         job_result = client.job.fast_execute_sql(job_kwargs)
@@ -387,7 +387,7 @@ class JobCrontabTaskService(JobService):
         biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         job_cron_job_id = data.get_one_of_inputs('job_cron_job_id')
         job_cron_name = data.get_one_of_inputs('job_cron_name')
-        job_cron_expression = data.get_one_of_inputs('job_timing_rule')
+        job_cron_expression = data.get_one_of_inputs('job_cron_expression')
         job_kwargs = {
             "bk_biz_id": biz_cc_id,
             "bk_job_id": job_cron_job_id,
@@ -409,7 +409,7 @@ class JobCrontabTaskService(JobService):
 
         data.outputs.status = _(u'暂停')
         # 更新作业状态
-        job_cron_status = data.get_one_of_inputs('job_timing_status')
+        job_cron_status = data.get_one_of_inputs('job_cron_status')
         if job_cron_status == 1:
             job_update_cron_kwargs = {
                 "bk_biz_id": biz_cc_id,
