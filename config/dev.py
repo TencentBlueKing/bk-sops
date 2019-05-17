@@ -49,6 +49,11 @@ DATABASES = {
     },
 }
 
+REDIS = {
+    'host': 'localhost',
+    'port': 6379,
+}
+
 LOG_PERSISTENT_DAYS = 1
 
 # CELERY_ALWAYS_EAGER = True

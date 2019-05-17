@@ -1,0 +1,455 @@
+.card-wrapper[data-v-0effa63d] {
+  position: relative;
+  padding: 20px 15px 15px;
+  width: 285px;
+  height: 200px;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 2px;
+}
+.card-wrapper[data-v-0effa63d]:hover {
+    border: 1px solid #3c96ff;
+}
+.card-wrapper:hover .card-operation[data-v-0effa63d] {
+      display: inline-block;
+}
+.card-operation[data-v-0effa63d] {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+.card-operation .operate-btn[data-v-0effa63d] {
+    display: inline-block;
+    font-size: 14px;
+    color: #3c96ff;
+    cursor: pointer;
+}
+.logo[data-v-0effa63d] {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+}
+.logo .logo-pic[data-v-0effa63d] {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+}
+.default-logo[data-v-0effa63d] {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  border: 1px dashed #1b7cef;
+  border-radius: 6px;
+}
+.default-logo .common-icon-blueking[data-v-0effa63d] {
+    display: inline-block;
+    margin-top: 10px;
+    color: #1b7cef;
+    font-size: 40px;
+}
+.app-detail[data-v-0effa63d] {
+  display: table-cell;
+  padding: 15px;
+  width: 255px;
+  height: 60px;
+  font-size: 14px;
+  vertical-align: middle;
+}
+.app-detail > p[data-v-0effa63d] {
+    width: 220px;
+    color: #999999;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.app-name[data-v-0effa63d] {
+  display: block;
+  padding: 15px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #666666;
+  text-align: center;
+  border-top: 1px solid #dddddd;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.app-name[data-v-0effa63d]:hover {
+    color: #3c96ff;
+}
+
+.base-input[data-v-d99c2ffc] {
+  display: inline-block;
+  padding: 0 10px;
+  width: 100%;
+  height: 36px;
+  line-height: 36px;
+  color: #606266;
+  font-size: 14px;
+  background: #fff;
+  border: 1px solid #dddddd;
+  border-radius: 4px;
+  outline: 0;
+}
+.base-input[data-v-d99c2ffc]:hover {
+    border-color: #c0c4cc;
+}
+.base-input[data-v-d99c2ffc]:focus {
+    border-color: #3c96ff;
+}
+.base-input.disabled[data-v-d99c2ffc] {
+    color: #aaa;
+    background: #fafafa;
+    cursor: not-allowed;
+}
+
+.app-edit-content .common-form-content[data-v-30190367] {
+  position: relative;
+  margin-right: 30px;
+}
+.app-edit-content .scheme-tooltip[data-v-30190367] {
+  position: absolute;
+  right: -20px;
+  top: 10px;
+}
+.app-edit-content .scheme-tooltip[data-v-30190367]:hover {
+    color: #f4aa1a;
+}
+.app-edit-content .app-desc[data-v-30190367] {
+  width: 100%;
+  height: 80px;
+  border: 1px solid #dddddd;
+  outline: none;
+  resize: none;
+}
+.app-edit-content .app-desc[data-v-30190367]:hover {
+    border-color: #c0c4cc;
+}
+.app-edit-content .app-desc[data-v-30190367]:focus {
+    border-color: #3c96ff;
+}
+.app-edit-content .upload-btn-wrapper[data-v-30190367] {
+  display: block;
+  width: 60px;
+  height: 60px;
+  line-height: 60px;
+  color: #dddddd;
+  background: #ffffff;
+  border: 2px dashed #dddddd;
+  text-align: center;
+  cursor: pointer;
+}
+.app-edit-content .upload-btn-wrapper[data-v-30190367]:hover {
+    color: #3c96ff;
+    border-color: #3c96ff;
+}
+.app-edit-content .upload-btn-wrapper .common-icon-add[data-v-30190367] {
+    font-size: 38px;
+    vertical-align: -10px;
+}
+.app-edit-content .logo-wrapper[data-v-30190367] {
+  display: block;
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+}
+.app-edit-content .logo-wrapper:hover .change-tips[data-v-30190367] {
+    display: inline-block;
+}
+.app-edit-content .logo-wrapper .change-tips[data-v-30190367] {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    font-size: 12px;
+    color: #ffffff;
+    background: rgba(10, 10, 10, .85);
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.app-edit-content .logo-wrapper .logo-pic[data-v-30190367] {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+}
+.app-edit-content .default-logo[data-v-30190367] {
+  width: 59px;
+  height: 59px;
+  text-align: center;
+  border: 1px dashed #1b7cef;
+  border-radius: 6px;
+}
+.app-edit-content .default-logo .common-icon-blueking[data-v-30190367] {
+    display: inline-block;
+    margin-top: 10px;
+    color: #1b7cef;
+    font-size: 40px;
+}
+.app-edit-content .upload-tip[data-v-30190367] {
+  margin-top: 10px;
+  font-size: 12px;
+}
+.app-edit-content #app-logo[data-v-30190367] {
+  visibility: hidden;
+}
+
+.advanced-search {
+  position: relative;
+  float: right;
+  margin: 20px;
+}
+.advanced-search .search-input {
+    width: 360px;
+    height: 32px;
+    padding: 0 32px 0 10px;
+    font-size: 14px;
+    color: #666666;
+    border: 1px solid #c3cdd7;
+    line-height: 32px;
+    outline: none;
+}
+.advanced-search .search-input:hover {
+      border-color: #c0c4cc;
+}
+.advanced-search .search-input:focus {
+      border-color: #3c96ff;
+}
+.advanced-search .search-input.placeholder {
+    color: #c3cdd7;
+}
+.search-content {
+  margin: 30px;
+  color: #313238;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+}
+.search-content:hover {
+    color: #3c96ff;
+}
+.search-content .advanced-shape {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 12px;
+    color: #cccccc;
+}
+.search-content .advanced-shape:hover {
+      color: #3c96ff;
+}
+.common-icon-search {
+  position: absolute;
+  right: 15px;
+  top: 8px;
+  color: #63656e;
+}
+
+.appmaker-page[data-v-0076e322] {
+  min-width: 1320px;
+  min-height: calc(100% - 50px);
+  background: #f5f5f5;
+}
+.appmaker-page .page-content[data-v-0076e322] {
+    width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+@media screen and (max-width: 1505px) {
+.appmaker-page .page-content[data-v-0076e322] {
+      width: 1200px;
+}
+.appmaker-page .card-wrapper[data-v-0076e322]:nth-child(4n) {
+      margin-right: 0;
+}
+}
+@media screen and (min-width: 1506px) and (max-width: 1810px) {
+.appmaker-page .page-content[data-v-0076e322] {
+      width: 1505px;
+}
+.appmaker-page .card-wrapper[data-v-0076e322]:nth-child(5n) {
+      margin-right: 0;
+}
+}
+@media screen and (min-width: 1811px) {
+.appmaker-page .page-content[data-v-0076e322] {
+      width: 1810px;
+}
+.appmaker-page .card-wrapper[data-v-0076e322]:nth-child(6n) {
+      margin-right: 0;
+}
+}
+.appmaker-page .operation-wrapper .search-input[data-v-0076e322] {
+    padding: 0 40px 0 10px;
+    width: 300px;
+    height: 36px;
+    line-height: 36px;
+    font-size: 14px;
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    outline: none;
+}
+.appmaker-page .operation-wrapper .search-input[data-v-0076e322]:hover {
+      border-color: #c0c4cc;
+}
+.appmaker-page .operation-wrapper .search-input[data-v-0076e322]:focus {
+      border-color: #3c96ff;
+}
+.appmaker-page .operation-wrapper .search-input:focus + i[data-v-0076e322] {
+        color: #3c96ff;
+}
+.appmaker-page .operation-wrapper .common-icon-search[data-v-0076e322] {
+    position: absolute;
+    right: 15px;
+    top: 11px;
+    color: #dddddd;
+}
+.appmaker-page .appmaker-fieldset[data-v-0076e322] {
+    width: 100%;
+    margin: 0;
+    border: 1px solid #dddddd;
+    background: #ffffff;
+    margin-bottom: 15px;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content[data-v-0076e322] {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-wrap: wrap;
+          flex-wrap: wrap;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content[data-v-0076e322] {
+        min-width: 420px;
+        padding: 10px;
+}
+@media screen and (max-width: 1420px) {
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content[data-v-0076e322] {
+            min-width: 380px;
+}
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .query-span[data-v-0076e322] {
+          float: left;
+          min-width: 130px;
+          margin-right: 12px;
+          height: 32px;
+          line-height: 32px;
+          font-size: 14px;
+          text-align: right;
+}
+@media screen and (max-width: 1420px) {
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .query-span[data-v-0076e322] {
+              min-width: 100px;
+}
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content input[data-v-0076e322] {
+          max-width: 260px;
+          height: 32px;
+          line-height: 32px;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .bk-date-range[data-v-0076e322]:after {
+          height: 32px;
+          line-height: 32px;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content[data-v-0076e322] .bk-selector {
+          max-width: 260px;
+          display: inline-block;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content input[data-v-0076e322]::-webkit-input-placeholder {
+          color: #c3cdd7;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content input[data-v-0076e322]:-moz-placeholder {
+          color: #c3cdd7;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content input[data-v-0076e322]::-moz-placeholder {
+          color: #c3cdd7;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content input[data-v-0076e322]:-ms-input-placeholder {
+          color: #c3cdd7;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content input[data-v-0076e322], .appmaker-page .appmaker-fieldset .advanced-query-content .query-content .bk-selector[data-v-0076e322], .appmaker-page .appmaker-fieldset .advanced-query-content .query-content .bk-date-range[data-v-0076e322] {
+          min-width: 260px;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .bk-selector-search-item > input[data-v-0076e322] {
+          min-width: 249px;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .bk-date-range[data-v-0076e322] {
+          display: inline-block;
+          width: 260px;
+          height: 32px;
+          line-height: 32px;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content[data-v-0076e322] .bk-date-range input {
+          height: 32px;
+          line-height: 32px;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .search-input[data-v-0076e322] {
+          width: 260px;
+          height: 32px;
+          padding: 0 10px 0 10px;
+          font-size: 14px;
+          color: #666666;
+          border: 1px solid #c3cdd7;
+          line-height: 32px;
+          outline: none;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .search-input[data-v-0076e322]:hover {
+            border-color: #c0c4cc;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .search-input[data-v-0076e322]:focus {
+            border-color: #3c96ff;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .ommon-icon-search[data-v-0076e322] {
+          position: relative;
+          right: 15px;
+          top: 11px;
+          color: #dddddd;
+}
+.appmaker-page .appmaker-fieldset .advanced-query-content .query-content .search-input.placeholder[data-v-0076e322] {
+          color: #c3cdd7;
+}
+.appmaker-page .appmaker-fieldset .query-button[data-v-0076e322] {
+      padding: 5px;
+      min-width: 450px;
+      text-align: center;
+}
+@media screen and (max-width: 1420px) {
+.appmaker-page .appmaker-fieldset .query-button[data-v-0076e322] {
+          min-width: 390px;
+}
+}
+.appmaker-page .appmaker-fieldset .query-button .query-cancel[data-v-0076e322] {
+        margin-left: 5px;
+}
+.appmaker-page .appmaker-fieldset .bk-button[data-v-0076e322] {
+      height: 32px;
+      line-height: 32px;
+}
+.appmaker-page .card-wrapper[data-v-0076e322] {
+    float: left;
+    margin: 0 20px 20px 0;
+}
+.appmaker-page .card-wrapper[data-v-0076e322]:hover {
+      -webkit-box-shadow: -1px 1px 8px rgba(100, 100, 100, .15), 1px -1px 8px rgba(100, 100, 100, .15);
+              box-shadow: -1px 1px 8px rgba(100, 100, 100, .15), 1px -1px 8px rgba(100, 100, 100, .15);
+}
+.appmaker-page .empty-app-list[data-v-0076e322] {
+    padding: 200px 0;
+    background: #ffffff;
+    border: 1px solid #dddddd;
+}
+.appmaker-page .appmaker-table-content[data-v-0076e322] {
+    margin: 20px 0;
+}
+.advanced-search[data-v-0076e322] {
+  margin: 0px;
+}
+
+
+/*# sourceMappingURL=16.css.map*/

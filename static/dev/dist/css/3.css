@@ -1,0 +1,1442 @@
+@charset "UTF-8";
+/* 
+
+此css未jsplump的默认样式，禁止修改，若需修改请在jsflow.css中覆盖
+*/
+body, p, li, ul {
+  padding: 0;
+  margin: 0; }
+
+li {
+  list-style-type: none; }
+
+/* 
+    Default styles for jsPlumb Toolkit
+
+    Copyright 2015 https://jsplumbtoolkit.com
+*/
+/* --------------------------------------------------------------------------------------------- */
+/* --- SURFACE WIDGET -------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------- */
+/*
+    Assigned to every node managed by an instance of the Toolkit. They are required to be positioned absolute, to
+    enable dragging to work properly.
+*/
+.jtk-node {
+  position: absolute; }
+
+/*
+    This style was created in response to this Chrome bug:
+    http://stackoverflow.com/questions/13758215/artifacts-when-css-scaled-in-chrome
+
+    Basically it's about how sometimes there can be artefacts left on screen when the user drags an element. It seems
+    the issue has been fixed in more recent versions of Chrome, but the style is left here in case you come across
+    the problem.
+*/
+.jtk-node.jsplumb-drag {
+  /*-webkit-backface-visibility: hidden;*/ }
+
+/*
+    Assigned to an element that is the `Container` in a `render` call.
+    Elements that are acting as Surface widgets should have overflow:hidden set to prevent libs from
+    scrolling them during drag (we don't want scrollbars; we have an infinite canvas). Position is set to
+    `relative` as this is the parent for nodes, which are positioned absolute (and for absolute positioning
+    to work, you need to ensure the parent node has `position:relative`). This style also sets some default
+    values for the cursor - using a `grab` cursor where supported.
+*/
+.jtk-surface {
+  overflow: hidden !important;
+  position: relative;
+  cursor: move;
+  cursor: -webkit-grab;
+  /*
+        For IE10+. As discussed on this page:
+
+        https://msdn.microsoft.com/en-us/library/ie/jj583807(v=vs.85).aspx
+
+        Microsoft have very helpfully implemented default behaviours for a bunch of touch events and
+        then consumed the events so you don't have to be bothered by them. They've "done a lot of research"
+        about this stuff and put together a really great default experience for everyone in the entire world.
+    */
+  -ms-touch-action: none;
+      touch-action: none;
+  /*
+        Another Chrome issue that appears to have been fixed in later versions
+        http://stackoverflow.com/questions/15464055/css-transition-effect-makes-image-blurry-moves-image-1px-in-chrome
+    */
+  /*
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translateZ(0) scale(1.0, 1.0);
+    */ }
+
+/*
+    Assigned to the surface when it is being panned. The default is to change the cursor (in browsers that support
+    a `grabbing` cursor), and to disable tex selection.
+*/
+.jtk-surface-panning {
+  cursor: -webkit-grabbing;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+/*
+    The work area in a surface renderer.
+*/
+.jtk-surface-canvas {
+  overflow: visible !important; }
+
+/*
+    For IE10+. Discussed above in the .jtk-surface styles. This one is specific to elements that are configured
+    to be droppable on a Surface via its `registerDroppableNodes` method.
+*/
+.jtk-surface-droppable-node {
+  -ms-touch-action: none;
+      touch-action: none; }
+
+/*
+    Assigned to a Surface widget when panning is disabled (and therefore the app is relying on scrollbars when the content overflows).
+*/
+.jtk-surface-nopan {
+  overflow: scroll !important;
+  cursor: default; }
+
+/*
+Assigned to tile images in a tiled background
+*/
+.jtk-surface-tile {
+  border: none;
+  outline: none;
+  margin: 0;
+  -webkit-transition: opacity .3s ease .15s;
+  transition: opacity .3s ease .15s; }
+
+/*
+    Assigned to the element used for node select with the mouse ("lasso").
+*/
+.jtk-lasso {
+  border: 2px solid #3177b8;
+  background-color: WhiteSmoke;
+  opacity: 0.5;
+  filter: alpha(opacity=50);
+  display: none;
+  z-index: 20000;
+  position: absolute; }
+
+/*
+    This class is added to the document body on lasso drag start and removed at the end of lasso dragging. Its purpose
+    is to switch off text selection on all elements while the user is dragging the lasso.
+*/
+.jtk-lasso-select-defeat * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+/*
+    Assigned to some element that has been selected (either via lasso or programmatically).
+*/
+.jtk-surface-selected-element {
+  border: 2px dashed #f76258 !important; }
+
+/*
+    Assigned to all pan buttons in a surface widget.
+*/
+.jtk-surface-pan {
+  background-color: Azure;
+  opacity: 0.4;
+  filter: alpha(opacity=40);
+  text-align: center;
+  cursor: pointer;
+  z-index: 2;
+  -webkit-transition: background-color 0.15s ease-in;
+  transition: background-color 0.15s ease-in; }
+
+/*
+    Specific styles for the top and bottom pan buttons.
+    Top/bottom are 100% width and 20px high by default
+*/
+.jtk-surface-pan-top,
+.jtk-surface-pan-bottom {
+  width: 100%;
+  height: 20px; }
+
+/*
+    Hover styles for all pan buttons.
+    On hover, change color, background color, font weight and opacity.
+*/
+.jtk-surface-pan-top:hover,
+.jtk-surface-pan-bottom:hover,
+.jtk-surface-pan-left:hover,
+.jtk-surface-pan-right:hover {
+  opacity: 0.6;
+  filter: alpha(opacity=60);
+  background-color: #3177b8;
+  color: white;
+  font-weight: bold; }
+
+/*
+    Specific styles for the left and right pan buttons.
+    Left/right pan buttons are 100% height and 20px wide
+*/
+.jtk-surface-pan-left,
+.jtk-surface-pan-right {
+  width: 20px;
+  height: 100%;
+  line-height: 40; }
+
+/*
+    Assigned to a pan button when the user is pressing it.
+*/
+.jtk-surface-pan-active,
+.jtk-surface-pan-active:hover {
+  background-color: #f76258; }
+
+/* --------------------------------------------------------------------------------------------- */
+/* --- MINIVIEW WIDGET ------------------------------------------------------------------------- */
+/* --------------------------------------------------------------------------------------------- */
+/*
+    Assigned to an element that is acting as a Miniview.
+    As with Surface, Miniview elements should have overflow:hidden set to prevent
+    libs from scrolling them during drag. This style also provides a default width/height for a miniview,
+    which you may wish to override.
+*/
+.jtk-miniview {
+  overflow: hidden !important;
+  width: 125px;
+  height: 125px;
+  position: relative;
+  background-color: #B2C9CD;
+  border: 1px solid #E2E6CD;
+  border-radius: 4px;
+  opacity: 0.8; }
+
+/* 
+    Assigned to the element that shows the size of the related viewport in a Miniview widget, and which can be dragged to
+    move the surface.
+*/
+.jtk-miniview-panner {
+  border: 5px dotted WhiteSmoke;
+  opacity: 0.4;
+  filter: alpha(opacity=40);
+  background-color: #4f6f7e;
+  cursor: move;
+  cursor: -webkit-grab; }
+
+/*
+    Assigned to the miniview's panner when it is being dragged.
+*/
+.jtk-miniview-panning {
+  cursor: -webkit-grabbing; }
+
+/*
+    Added to all elements displayed in a miniview.
+*/
+.jtk-miniview-element {
+  background-color: #607a86;
+  position: absolute; }
+
+/*
+    Assigned to the collapse/expand miniview button
+*/
+.jtk-miniview-collapse {
+  color: whiteSmoke;
+  position: absolute;
+  font-size: 18px;
+  top: -1px;
+  right: 3px;
+  cursor: pointer;
+  font-weight: bold; }
+
+/*
+    The '-' symbol when the miniview is expanded
+*/
+.jtk-miniview-collapse:before {
+  content: "\2012"; }
+
+/*
+    Assigned to the miniview element when it is collapsed.
+*/
+.jtk-miniview-collapsed {
+  background-color: #449ea6;
+  border-radius: 4px;
+  height: 22px;
+  margin-right: 0;
+  padding: 4px;
+  width: 21px; }
+
+/*
+    Hide all children of the miniview (except the expand button) when it is collapsed so you don't see anything
+    poking through under the + icon.
+*/
+.jtk-miniview-collapsed .jtk-miniview-element,
+.jtk-miniview-collapsed .jtk-miniview-panner {
+  visibility: hidden; }
+
+/*
+    The '+' symbol when the miniview is collapsed.
+*/
+.jtk-miniview-collapsed .jtk-miniview-collapse:before {
+  content: "+"; }
+
+/*
+    Hover state for the collapse/expand icon.
+*/
+.jtk-miniview-collapse:hover {
+  color: #E4F013; }
+
+/* ------------------------------------------------------------------------------------------- */
+/* --- DIALOGS --------------------------------------------------------------------------------*/
+/* ------------------------------------------------------------------------------------------- */
+/*
+    This is the element that acts as the dialog underlay - the modal "mask". Note the high z-index default
+    set here (and note also the overlay style below has a z-index with a value higher by one).
+*/
+.jtk-dialog-underlay {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  position: fixed;
+  z-index: 100000;
+  opacity: 0.8;
+  background-color: #CCC;
+  display: none; }
+
+/*
+    This is the element that acts as the parent for dialog content.
+*/
+.jtk-dialog-overlay {
+  position: fixed;
+  z-index: 100001;
+  display: none;
+  background-color: white;
+  font-family: "Open Sans", sans-serif;
+  padding: 7px;
+  -webkit-box-shadow: 0 0 5px gray;
+          box-shadow: 0 0 5px gray;
+  overflow: hidden; }
+
+.jtk-dialog-overlay-x {
+  max-height: 0;
+  transition: max-height 0.5s ease-in;
+  -moz-transition: max-height 0.5s ease-in;
+  -ms-transition: max-height 0.5s ease-in;
+  -o-transition: max-height 0.5s ease-in;
+  -webkit-transition: max-height 0.5s ease-in; }
+
+.jtk-dialog-overlay-y {
+  max-width: 0;
+  transition: max-width 0.5s ease-in;
+  -moz-transition: max-width 0.5s ease-in;
+  -ms-transition: max-width 0.5s ease-in;
+  -o-transition: max-width 0.5s ease-in;
+  -webkit-transition: max-width 0.5s ease-in; }
+
+.jtk-dialog-overlay-top {
+  top: 20px; }
+
+.jtk-dialog-overlay-bottom {
+  bottom: 20px; }
+
+.jtk-dialog-overlay-left {
+  left: 20px; }
+
+.jtk-dialog-overlay-right {
+  right: 20px; }
+
+.jtk-dialog-overlay-x.jtk-dialog-overlay-visible {
+  max-height: 1000px; }
+
+.jtk-dialog-overlay-y.jtk-dialog-overlay-visible {
+  max-width: 1000px; }
+
+/*
+    The element containing buttons in a dialog.
+*/
+.jtk-dialog-buttons {
+  text-align: right;
+  margin-top: 5px; }
+
+/*
+    An individual button in a dialog.
+*/
+.jtk-dialog-button {
+  border: none;
+  cursor: pointer;
+  margin-right: 5px;
+  min-width: 56px;
+  background-color: white;
+  outline: 1px solid #ccc; }
+
+/*
+    Hover style for an individual button in a dialog.
+*/
+.jtk-dialog-button:hover {
+  color: white;
+  background-color: #234b5e; }
+
+/*
+    The titlebar of a dialog.
+*/
+.jtk-dialog-title {
+  text-align: left;
+  font-size: 14px;
+  margin-bottom: 9px; }
+
+.jtk-dialog-content {
+  font-size: 12px;
+  text-align: left;
+  min-width: 250px;
+  margin: 0 14px; }
+
+.jtk-dialog-content ul {
+  width: 100%;
+  padding-left: 0; }
+
+.jtk-dialog-content label {
+  cursor: pointer;
+  font-weight: inherit; }
+
+.jtk-dialog-overlay input,
+.jtk-dialog-overlay textarea {
+  background-color: #FFF;
+  border: 1px solid #CCC;
+  color: #333;
+  font-size: 14px;
+  font-style: normal;
+  outline: none;
+  padding: 6px 4px;
+  margin-right: 6px; }
+
+.jtk-dialog-overlay input:focus,
+.jtk-dialog-overlay textarea:focus {
+  background-color: #cbeae1;
+  border: 1px solid #83b8a8;
+  color: #333;
+  font-size: 14px;
+  font-style: normal;
+  outline: none; }
+
+/* -------------------------------------------------------------------------------------------- */
+/* --- DRAWING TOOLS -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------------------------- */
+/*
+    Assigned to the element that is drawn around some other element when a drawing operation is taking place.
+*/
+.jtk-draw-skeleton {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  outline: 2px solid #84acb3;
+  opacity: 0.8; }
+
+/*
+    Assigned to every handle (top left, top right, bottom left, bottom right, center) in a draw skeleton.
+*/
+.jtk-draw-handle {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background-color: #84acb3; }
+
+/*
+    Assigned to the top left handle in a draw skeleton
+*/
+.jtk-draw-handle-tl {
+  left: 0;
+  top: 0;
+  cursor: nw-resize; }
+
+/*
+    Assigned to the top right handle in a draw skeleton
+*/
+.jtk-draw-handle-tr {
+  right: 0;
+  top: 0;
+  cursor: ne-resize; }
+
+/*
+    Assigned to the bottom left handle in a draw skeleton
+*/
+.jtk-draw-handle-bl {
+  left: 0;
+  bottom: 0;
+  cursor: sw-resize; }
+
+/*
+    Assigned to the bottom right handle in a draw skeleton
+*/
+.jtk-draw-handle-br {
+  bottom: 0;
+  right: 0;
+  cursor: se-resize; }
+
+/*
+    Assigned to the center handle in a draw skeleton (the handle by which the element may be dragged). This is
+    not visible by defaut; enable if you need it.
+*/
+.jtk-draw-drag {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  width: 20px;
+  height: 20px;
+  background-color: #84acb3;
+  cursor: move; }
+
+/*
+    This class is added to the document body on drag resize start and removed at the end of resizing. Its purpose
+    is to switch off text selection on all elements while the user is resizing an element.
+*/
+.jtk-draw-select-defeat * {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+.jtk-bezier-handle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background-color: darkcyan;
+  cursor: move;
+  z-index: 10; }
+
+.jtk-bezier-handle-secondary {
+  cursor: default;
+  background-color: lightgreen; }
+
+.jtk-bezier-handle-secondary-source {
+  background-color: lavenderblush; }
+
+.jtk-bezier-guideline {
+  position: absolute; }
+
+.jtk-bezier-guideline path {
+  stroke: darkcyan;
+  stroke-linewidth: 3; }
+
+.jtk-connection-edit path {
+  stroke-dasharray: 2 2; }
+
+/*magicBox add*/
+.jtk-none, .none {
+  display: none; }
+
+.ep {
+  position: absolute;
+  bottom: 50%;
+  right: 5px;
+  width: 1em;
+  height: 1em;
+  background-color: orange;
+  cursor: pointer;
+  -webkit-box-shadow: 0 0 2px black;
+          box-shadow: 0 0 2px black;
+  -webkit-transition: all 0.25s ease-in;
+  transition: all 0.25s ease-in;
+  opacity: 0;
+  margin-bottom: -7px; }
+
+.jtk-delete {
+  position: absolute;
+  z-index: 9999;
+  border: 1px solid #ddd;
+  padding: 5px 15px;
+  background: #fff;
+  cursor: pointer; }
+
+.jtk-delete:hover {
+  background: #000;
+  color: #fff; }
+
+.jtk-content {
+  position: relative; }
+
+.jtk-window:hover .ep {
+  opacity: 1; }
+
+.jtk-window {
+  min-width: 100px;
+  background-color: white;
+  border: 1px solid #346789;
+  text-align: center;
+  z-index: 24;
+  cursor: pointer;
+  box-shadow: 2px 2px 19px #aaa;
+  -o-box-shadow: 2px 2px 19px #aaa;
+  -webkit-box-shadow: 2px 2px 19px #aaa;
+  -moz-box-shadow: 2px 2px 19px #aaa;
+  border-radius: 0.5em;
+  min-width: 50px;
+  color: black;
+  -webkit-transition: -webkit-box-shadow 0.15s ease-in;
+  transition: -webkit-box-shadow 0.15s ease-in;
+  transition: box-shadow 0.15s ease-in;
+  transition: box-shadow 0.15s ease-in, -webkit-box-shadow 0.15s ease-in; }
+
+/*.jtk-dialog{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+    padding: 35px;
+    background: rgba(0,0,0,0.5);
+
+}
+.jtk-change-content{
+    width: 522px;
+    margin: 0 auto;
+    margin-top: 44px;
+    background: #fafafa;
+    padding: 45px 15px;
+}
+.jtk-change-body label{
+    padding-right: 10px;
+    width: 100px;
+    display: inline-block;
+    text-align: right;
+}
+.jtk-dialog input{
+    width: 300px;
+    padding: 3px;
+    height: 33px;
+    border:1px solid #ddd;
+}
+.jtk-dialog input:focus{
+    border-color: #66afe9;
+}
+.jtk-dialog input:focus{
+    outline: none;
+}
+.jtk-dialog .jtk-fooder{
+    margin-top: 25px;
+    padding-left: 104px;
+}
+.jtk-dialog a{
+    text-decoration: none;
+    display: inline-block;
+    padding: 5px 20px;
+    border:1px solid #ddd;
+    color: #333;
+    transition: all .3s ease-in;
+    -webkit-transition: all .3s ease-in;
+}
+.jtk-dialog a:hover{
+    background: #4a98ea;
+    color: #fff;
+}*/
+
+@charset "UTF-8";
+/* jsflow.css主要用于定义画布样式，和覆盖样式 */
+.bk-flow-wrap {
+  display: block; }
+  .bk-flow-wrap.is-edit .node-circle:hover .common-icon-dark-circle-close, .bk-flow-wrap.is-edit .node-with-text:hover .common-icon-dark-circle-close {
+    display: inline-block; }
+  .bk-flow-wrap.is-edit .jtk-overlay.jtk-hover {
+    display: inline-block; }
+  .bk-flow-wrap.is-edit .common-icon-dark-circle-close,
+  .bk-flow-wrap.is-edit .jtk-endpoint svg:hover {
+    cursor: pointer; }
+
+.bk-flow-canvas {
+  overflow: hidden !important;
+  border: 0; }
+  .bk-flow-canvas .bk-flow-container {
+    position: relative; }
+  .bk-flow-canvas .jtk-overlay .common-icon-dark-circle-close {
+    font-size: 16px;
+    color: #ff5757;
+    background: #ffffff;
+    border-radius: 50%; }
+  .bk-flow-canvas .tooltip {
+    z-index: 4; }
+    .bk-flow-canvas .tooltip[x-placement^="top"] {
+      padding-bottom: 5px; }
+      .bk-flow-canvas .tooltip[x-placement^="top"] .tooltip-arrow {
+        border-width: 5px 5px 0 5px;
+        border-left-color: transparent;
+        border-right-color: transparent;
+        border-bottom-color: transparent;
+        bottom: 0;
+        left: calc(50% - 5px);
+        margin-top: 0;
+        margin-bottom: 0; }
+    .bk-flow-canvas .tooltip[x-placement^="bottom"] {
+      padding-top: 5px; }
+      .bk-flow-canvas .tooltip[x-placement^="bottom"] .tooltip-arrow {
+        border-width: 0 5px 5px 5px;
+        border-left-color: transparent;
+        border-right-color: transparent;
+        border-top-color: transparent;
+        top: 0;
+        left: calc(50% - 5px);
+        margin-top: 0;
+        margin-bottom: 0; }
+    .bk-flow-canvas .tooltip .tooltip-arrow {
+      position: absolute;
+      margin: 5px;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-color: #333333; }
+    .bk-flow-canvas .tooltip .tooltip-inner {
+      color: #ffffff;
+      border-radius: 4px;
+      padding: 10px;
+      text-align: center;
+      background: #333333; }
+    .bk-flow-canvas .tooltip .tooltip-btn {
+      display: inline-block;
+      margin-right: 5px;
+      font-size: 12px;
+      cursor: pointer; }
+      .bk-flow-canvas .tooltip .tooltip-btn:hover {
+        color: #348af3; }
+      .bk-flow-canvas .tooltip .tooltip-btn:last-child {
+        margin-right: 0; }
+  .bk-flow-canvas .select-wrapper {
+    position: absolute;
+    border: 1px solid #3c96ff;
+    background: rgba(60, 150, 255, .1);
+    z-index: 4;
+    pointer-events: none; }
+  .bk-flow-canvas .bk-flow-location.selected {
+    outline: 1px dashed #348af3; }
+
+.bk-flow-location {
+  position: absolute;
+  z-index: 2;
+  cursor: pointer;
+  -webkit-transition: -webkit-box-shadow 0.15s ease-in;
+  transition: -webkit-box-shadow 0.15s ease-in;
+  transition: box-shadow 0.15s ease-in;
+  transition: box-shadow 0.15s ease-in, -webkit-box-shadow 0.15s ease-in; }
+  .bk-flow-location .node-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+    color: #53699d;
+    text-align: center;
+    background: #fafafa;
+    border-radius: 50%;
+    border: 1px dashed #b1b5bc; }
+    .bk-flow-location .node-circle:hover {
+      color: #348af3;
+      border-color: #348af3;
+      -webkit-box-shadow: -1px 1px 8px rgba(83, 105, 157, .15), 1px -1px 8px rgba(83, 105, 157, .15);
+              box-shadow: -1px 1px 8px rgba(83, 105, 157, .15), 1px -1px 8px rgba(83, 105, 157, .15); }
+    .bk-flow-location .node-circle.FINISHED {
+      border-color: #30d878;
+      color: #30d878; }
+      .bk-flow-location .node-circle.FINISHED:hover {
+        -webkit-box-shadow: -1px 1px 8px rgba(48, 216, 120, .15), 1px -1px 8px rgba(48, 216, 120, .15);
+                box-shadow: -1px 1px 8px rgba(48, 216, 120, .15), 1px -1px 8px rgba(48, 216, 120, .15); }
+    .bk-flow-location .node-circle.FAILED {
+      border-color: #ff5757;
+      color: #ff5757; }
+      .bk-flow-location .node-circle.FAILED:hover {
+        -webkit-box-shadow: -1px 1px 8px rgba(255, 87, 87, .15), 1px -1px 8px rgba(255, 87, 87, .15);
+                box-shadow: -1px 1px 8px rgba(255, 87, 87, .15), 1px -1px 8px rgba(255, 87, 87, .15); }
+    .bk-flow-location .node-circle .node-type-icon {
+      margin-top: 14px; }
+    .bk-flow-location .node-circle .common-icon-dark-circle-close {
+      top: -4px;
+      right: -4px; }
+  .bk-flow-location .node-with-text {
+    width: 152px;
+    height: 90px;
+    text-align: center;
+    background: #ffffff;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none; }
+    .bk-flow-location .node-with-text:hover {
+      -webkit-box-shadow: -1px 1px 8px rgba(83, 105, 157, .15), 1px -1px 8px rgba(83, 105, 157, .15);
+              box-shadow: -1px 1px 8px rgba(83, 105, 157, .15), 1px -1px 8px rgba(83, 105, 157, .15); }
+      .bk-flow-location .node-with-text:hover .node-name {
+        border-color: #53699d; }
+    .bk-flow-location .node-with-text.FINISHED:hover {
+      -webkit-box-shadow: -1px 1px 8px rgba(48, 216, 120, .15), 1px -1px 8px rgba(48, 216, 120, .15);
+              box-shadow: -1px 1px 8px rgba(48, 216, 120, .15), 1px -1px 8px rgba(48, 216, 120, .15); }
+    .bk-flow-location .node-with-text.FINISHED .node-name, .bk-flow-location .node-with-text.FINISHED.node-subflow {
+      border-color: #30d878; }
+    .bk-flow-location .node-with-text.FINISHED .task-name, .bk-flow-location .node-with-text.FINISHED .subflow-node-icon {
+      background: #30d878; }
+    .bk-flow-location .node-with-text.FAILED:hover {
+      -webkit-box-shadow: -1px 1px 8px rgba(255, 87, 87, .15), 1px -1px 8px rgba(255, 87, 87, .15);
+              box-shadow: -1px 1px 8px rgba(255, 87, 87, .15), 1px -1px 8px rgba(255, 87, 87, .15); }
+    .bk-flow-location .node-with-text.FAILED .node-name, .bk-flow-location .node-with-text.FAILED.node-subflow {
+      border-color: #ff5757; }
+    .bk-flow-location .node-with-text.FAILED .task-name, .bk-flow-location .node-with-text.FAILED .subflow-node-icon {
+      background: #ff5757; }
+    .bk-flow-location .node-with-text.RUNNING:hover {
+      -webkit-box-shadow: -1px 1px 8px rgba(248, 181, 63, .15), 1px -1px 8px rgba(248, 181, 63, .15);
+              box-shadow: -1px 1px 8px rgba(248, 181, 63, .15), 1px -1px 8px rgba(248, 181, 63, .15); }
+    .bk-flow-location .node-with-text.RUNNING .node-name, .bk-flow-location .node-with-text.RUNNING.node-subflow {
+      border-color: #f8b53f; }
+    .bk-flow-location .node-with-text.RUNNING .task-name, .bk-flow-location .node-with-text.RUNNING .subflow-node-icon {
+      background: #f8b53f; }
+    .bk-flow-location .node-with-text.SUSPENDED:hover {
+      -webkit-box-shadow: -1px 1px 8px rgba(83, 105, 157, .15), 1px -1px 8px rgba(83, 105, 157, .15);
+              box-shadow: -1px 1px 8px rgba(83, 105, 157, .15), 1px -1px 8px rgba(83, 105, 157, .15); }
+    .bk-flow-location .node-with-text.SUSPENDED .node-name, .bk-flow-location .node-with-text.SUSPENDED.node-subflow {
+      border-color: #f8b53f; }
+    .bk-flow-location .node-with-text.SUSPENDED .task-name, .bk-flow-location .node-with-text.SUSPENDED .subflow-node-icon {
+      background: #f8b53f; }
+    .bk-flow-location .node-with-text.isActived {
+      -webkit-box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25);
+              box-shadow: -1px 1px 8px rgba(60, 150, 255, .25), 1px -1px 8px rgba(60, 150, 255, .25); }
+      .bk-flow-location .node-with-text.isActived .node-name {
+        border-color: #3c96ff; }
+    .bk-flow-location .node-with-text .node-name {
+      display: table;
+      width: 100%;
+      font-size: 12px;
+      height: 60px;
+      background: #fafafa;
+      border: 1px solid #a9adb5;
+      border-bottom: none;
+      table-layout: fixed;
+      overflow: hidden; }
+      .bk-flow-location .node-with-text .node-name .name {
+        display: table-cell;
+        padding: 0 10px;
+        width: 100%;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden; }
+    .bk-flow-location .node-with-text .task-name {
+      height: 30px;
+      line-height: 30px;
+      font-size: 14px;
+      color: #ffffff;
+      background: #53699d;
+      border-top: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap; }
+    .bk-flow-location .node-with-text .common-icon-dark-circle-close {
+      top: -12px;
+      right: -10px; }
+    .bk-flow-location .node-with-text .running-state {
+      position: absolute;
+      top: -10px;
+      right: -8px;
+      width: 18px;
+      height: 18px;
+      line-height: 18px;
+      font-size: 14px;
+      color: #ffffff;
+      background: #f8b53f;
+      text-align: center;
+      border-radius: 50%; }
+      .bk-flow-location .node-with-text .running-state .common-icon-clock {
+        display: inline-block;
+        margin-top: 2px; }
+      .bk-flow-location .node-with-text .running-state .common-icon-double-vertical-line {
+        color: #ffffff;
+        font-size: 12px; }
+      .bk-flow-location .node-with-text .running-state .common-icon-loading {
+        display: inline-block;
+        vertical-align: -1px;
+        -webkit-animation: bk-button-loading 1.4s infinite linear;
+                animation: bk-button-loading 1.4s infinite linear; }
+
+@-webkit-keyframes bk-button-loading {
+  from {
+    -webkit-transform: rotate(0);
+    transform: rotate(0); }
+  to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg); } }
+
+@keyframes bk-button-loading {
+  from {
+    -webkit-transform: rotate(0);
+    transform: rotate(0); }
+  to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg); } }
+    .bk-flow-location .node-with-text .task-operation {
+      position: absolute;
+      left: -18px;
+      top: -8px;
+      width: 14px; }
+    .bk-flow-location .node-with-text .task-optional {
+      width: 14px;
+      height: 14px;
+      line-height: 14px;
+      font-size: 12px;
+      color: #ffffff;
+      text-align: center;
+      border-radius: 100%;
+      background: #348af3; }
+      .bk-flow-location .node-with-text .task-optional::after {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 3px;
+        height: 4px;
+        width: 8px;
+        border-left: 1px solid;
+        border-bottom: 1px solid;
+        border-color: #ffffff;
+        -webkit-transform: rotate(-45deg);
+                transform: rotate(-45deg); }
+    .bk-flow-location .node-with-text .dark-circle {
+      margin-top: 2px;
+      font-size: 14px;
+      color: #348af3;
+      text-align: center; }
+    .bk-flow-location .node-with-text .node-checkbox input[type="checkbox"] {
+      display: none; }
+    .bk-flow-location .node-with-text .node-checkbox label {
+      position: relative;
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 1px solid #a9adb5;
+      cursor: pointer; }
+      .bk-flow-location .node-with-text .node-checkbox label.label-disabled {
+        cursor: not-allowed; }
+    .bk-flow-location .node-with-text .node-checkbox input[type="checkbox"]:checked + label {
+      background: #348af3;
+      border-color: #348af3; }
+      .bk-flow-location .node-with-text .node-checkbox input[type="checkbox"]:checked + label::after {
+        content: "";
+        position: absolute;
+        left: 1px;
+        top: 2px;
+        height: 4px;
+        width: 8px;
+        border-left: 2px solid;
+        border-bottom: 2px solid;
+        border-color: #ffffff;
+        -webkit-transform: rotate(-45deg);
+                transform: rotate(-45deg); }
+    .bk-flow-location .node-with-text .task-skipped-icon {
+      font-size: 14px;
+      color: #348af3; }
+  .bk-flow-location .node-circle, .bk-flow-location .node-with-text {
+    position: relative; }
+    .bk-flow-location .node-circle .common-icon-dark-circle-close, .bk-flow-location .node-with-text .common-icon-dark-circle-close {
+      display: none;
+      position: absolute;
+      font-size: 16px;
+      color: #ff5757;
+      background: #ffffff;
+      border-radius: 50%;
+      z-index: 2; }
+    .bk-flow-location .node-circle .updated-dot, .bk-flow-location .node-with-text .updated-dot {
+      position: absolute;
+      top: -10px;
+      right: -8px;
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #ff5757;
+      border-radius: 50%;
+      z-index: 1; }
+  .bk-flow-location .node-subflow {
+    border-top: 5px solid #53699d; }
+    .bk-flow-location .node-subflow .node-name {
+      padding-top: 7px;
+      height: 55px; }
+    .bk-flow-location .node-subflow .subflow-node-icon {
+      position: absolute;
+      top: -2px;
+      left: 0;
+      width: 24px;
+      height: 19px;
+      line-height: 19px;
+      font-size: 18px;
+      color: #ffffff;
+      background: #53699d; }
+
+.jtk-overlay {
+  cursor: pointer; }
+  .jtk-overlay:not(.branch-condition) {
+    display: none; }
+
+.branch-condition {
+  padding: 4px 10px;
+  min-width: 60px;
+  max-width: 200px;
+  font-size: 12px;
+  text-align: center;
+  background: #e1f3ff;
+  border: 1px solid #c3cdd7;
+  border-radius: 2px;
+  z-index: 3;
+  cursor: pointer; }
+
+.startpoint-node .node-type-status, .endpoint-node .node-type-status {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 50px;
+  height: 50px;
+  margin: 4px 10px 0px 4px;
+  background: #53699d;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  border-radius: 25px;
+  -moz-border-radius: 25px;
+  -webkit-border-radius: 25px; }
+  .startpoint-node .node-type-status.FINISHED, .endpoint-node .node-type-status.FINISHED {
+    background: #30d878; }
+  .startpoint-node .node-type-status .startpoint-span,
+  .startpoint-node .node-type-status .endpoint-span, .endpoint-node .node-type-status .startpoint-span,
+  .endpoint-node .node-type-status .endpoint-span {
+    color: #ffffff;
+    font-size: 12px; }
+
+.config-wrapper[data-v-bebae9be] {
+  position: relative;
+  height: 60px;
+  background: #f4f7fa;
+  border-bottom: 1px solid #dddddd;
+  text-align: center;
+}
+.config-wrapper .config-title-wrapper[data-v-bebae9be] {
+    float: left;
+    margin: 19px 0 0 20px;
+}
+.config-wrapper .config-title-wrapper .title-border[data-v-bebae9be] {
+      color: #a3c5fd;
+}
+.config-wrapper .config-title-wrapper .title-text[data-v-bebae9be] {
+      line-height: 20px;
+      margin-left: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #313238;
+}
+.config-wrapper .config-name-wrapper[data-v-bebae9be] {
+    margin: 0 auto;
+    padding-top: 15px;
+    width: 430px;
+}
+.config-wrapper .config-name-wrapper .name-show-mode[data-v-bebae9be] {
+      display: inline-block;
+}
+.config-wrapper .config-name-wrapper .canvas-name[data-v-bebae9be] {
+      display: inline-block;
+      margin: 0;
+      max-width: 400px;
+      height: 30px;
+      line-height: 30px;
+      font-size: 14px;
+      font-weight: normal;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #606266;
+}
+.config-wrapper .config-name-wrapper .common-icon-edit[data-v-bebae9be] {
+      float: right;
+      margin: 6px 0 0 4px;
+      color: #546a9e;
+      vertical-align: 9px;
+      cursor: pointer;
+}
+.config-wrapper .config-name-wrapper .common-icon-edit[data-v-bebae9be]:hover {
+        color: #3480ff;
+}
+.config-wrapper .config-name-wrapper .canvas-name-input[data-v-bebae9be] {
+      padding: 4px 10px;
+      max-width: 400px;
+      height: auto;
+      line-height: 12px;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border: 1px solid #dddddd;
+      outline: none;
+}
+.config-wrapper .config-name-wrapper .canvas-name-input[data-v-bebae9be]:focus {
+        border-color: #3c96ff;
+}
+.config-wrapper .config-name-wrapper .name-error[data-v-bebae9be] {
+      position: absolute;
+      margin: 7px 0 0 10px;
+      font-size: 12px;
+}
+.config-wrapper .canvas-operation-wrapper[data-v-bebae9be] {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+}
+.config-wrapper .canvas-operation-wrapper .save-canvas[data-v-bebae9be] {
+      width: 90px;
+      height: 32px;
+      line-height: 32px;
+      margin-left: 36px;
+}
+.config-wrapper .canvas-operation-wrapper .bk-button-default[data-v-bebae9be] {
+      width: 90px;
+      height: 32px;
+      line-height: 32px;
+      margin-left: 10px;
+}
+.config-wrapper .canvas-operation-wrapper .bk-button.bk-primary[data-v-bebae9be] {
+      height: 32px;
+      line-height: 32px;
+      margin-left: 10px;
+}
+
+.base-collapse .header-wrapper[data-v-85280464] {
+  position: relative;
+  padding: 0 24px;
+  height: 50px;
+  line-height: 50px;
+  background: #edf4fd;
+  border-bottom: 1px solid #dddddd;
+  cursor: pointer;
+}
+.base-collapse .header-wrapper[data-v-85280464]:hover {
+    background: #afd3ff;
+}
+.base-collapse .header-wrapper[data-v-85280464]:first-child {
+    border-top: 1px solid #dddddd;
+}
+.base-collapse .header-wrapper.actived .toggle-arrow[data-v-85280464] {
+    -webkit-transform: rotate(-180deg);
+            transform: rotate(-180deg);
+}
+.base-collapse .toggle-arrow[data-v-85280464] {
+  position: absolute;
+  font-size: 12px;
+  top: 20px;
+  right: 20px;
+  -webkit-transition: -webkit-transform 0.2s ease-in-out;
+  transition: -webkit-transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out, -webkit-transform 0.2s ease-in-out;
+}
+.base-collapse .content-wrapper[data-v-85280464] {
+  padding: 10px;
+}
+
+/* mixin for multiline */
+.menu-wrapper[data-v-48ee710a] {
+  position: relative;
+  float: left;
+  width: 60px;
+  height: calc(100% - 60px);
+  z-index: 4;
+}
+.menu-bar[data-v-48ee710a] {
+  position: relative;
+  top: -1px;
+  height: 100%;
+  background: #f2f2f2;
+  border: 1px solid #dddddd;
+  z-index: 3;
+}
+.node-type-item[data-v-48ee710a] {
+  position: relative;
+  padding: 15px 0;
+  font-size: 32px;
+  color: #52699D;
+  text-align: center;
+  cursor: move;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+.node-type-item[data-v-48ee710a]:hover {
+    color: #3c96ff;
+}
+.node-type-item.node-type-has-sub[data-v-48ee710a] {
+    cursor: pointer;
+}
+.node-type-item.node-type-has-sub[data-v-48ee710a]:hover {
+      background: #ffffff;
+}
+.node-type-item.node-type-has-sub[data-v-48ee710a]::after {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      content: '';
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 0 8px 8px;
+      border-color: transparent transparent #546a9e transparent;
+}
+.node-type-item.active-node-type[data-v-48ee710a] {
+    color: #3c96ff;
+    background: #ffffff;
+}
+.node-type-item.active-node-type[data-v-48ee710a]::after {
+      border-color: transparent transparent #3c96ff transparent;
+}
+.node-circle[data-v-48ee710a] {
+  margin: 0 auto;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 12px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 1px solid #546a9e;
+}
+.startpoint-unavailable[data-v-48ee710a],
+.endpoint-unavailable[data-v-48ee710a] {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.common-icon-node-tasknode[data-v-48ee710a],
+.common-icon-node-subflow[data-v-48ee710a] {
+  font-size: 24px;
+}
+.node-list[data-v-48ee710a] {
+  position: absolute;
+  top: 0;
+  margin-left: 60px;
+  width: 300px;
+  height: 100%;
+  background: #fefcfc;
+  border-right: 1px solid #dddddd;
+  z-index: 2;
+}
+.node-list .list-container[data-v-48ee710a] {
+    height: 100%;
+}
+.node-list .list-container[data-v-48ee710a] .collapse-panel .content-wrapper {
+      padding-right: 0;
+}
+.node-list-pin[data-v-48ee710a] {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  font-size: 24px;
+  color: #999999;
+  cursor: pointer;
+  z-index: 1;
+}
+.node-list-pin[data-v-48ee710a]:hover {
+    color: #727272;
+}
+.node-list-pin.actived[data-v-48ee710a] {
+    color: #30d878;
+}
+.search-node-wraper[data-v-48ee710a] {
+  position: relative;
+  padding-top: 30px;
+  padding-bottom: 10px;
+  text-align: center;
+}
+.search-node-wraper .search-input[data-v-48ee710a] {
+    padding: 4px 40px 4px 20px;
+    width: 280px;
+    height: 30px;
+    font-size: 14px;
+    border-radius: 16px;
+    border: 1px solid #dddddd;
+    outline: none;
+}
+.search-node-wraper .search-input[data-v-48ee710a]:focus {
+      border-color: #3c96ff;
+}
+.search-node-wraper .search-input:focus + .common-icon-search[data-v-48ee710a] {
+        color: #3c96ff;
+}
+.search-node-wraper .common-icon-search[data-v-48ee710a] {
+    position: absolute;
+    right: 30px;
+    top: 36px;
+    color: #dddddd;
+}
+.atom-list-wrapper[data-v-48ee710a] {
+  height: calc(100% - 71px);
+  overflow-y: auto;
+}
+.atom-list-wrapper[data-v-48ee710a]::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+.atom-list-wrapper[data-v-48ee710a]::-webkit-scrollbar-thumb {
+      border-radius: 20px;
+      background: #a5a5a5;
+      -webkit-box-shadow: inset 0 0 6px rgba(204, 204, 204, .3);
+              box-shadow: inset 0 0 6px rgba(204, 204, 204, .3);
+}
+.atom-list-wrapper .header-icon[data-v-48ee710a] {
+    float: left;
+    margin-top: 17px;
+    width: 16px;
+    height: 16px;
+}
+.atom-list-wrapper .header-title[data-v-48ee710a] {
+    display: inline-block;
+    margin-left: 10px;
+    width: 210px;
+    font-size: 14px;
+    overflow: hidden;
+}
+.atom-list-wrapper .header-title .header-atom[data-v-48ee710a] {
+      float: right;
+      color: #a9b2bd;
+      font-size: 12px;
+}
+.atom-list-wrapper .list-content[data-v-48ee710a] {
+    padding: 10px;
+    padding-right: 0;
+}
+.atom-list-wrapper .atom-item[data-v-48ee710a] {
+    float: left;
+    margin-right: 8px;
+    margin-bottom: 10px;
+    background: #fafafa;
+    border: 1px solid #dddddd;
+    overflow: hidden;
+    cursor: move;
+}
+.atom-list-wrapper .atom-item[data-v-48ee710a]:nth-child(2n) {
+      margin-right: 0;
+}
+.atom-list-wrapper .atom-item[data-v-48ee710a]:hover {
+      background: #edf4fd;
+      border-color: #3c96ff;
+}
+.atom-list-wrapper .atom-item:hover .name-wrapper p[data-v-48ee710a]:after {
+        background: #edf4fd;
+}
+.atom-list-wrapper .atom-item .name-wrapper[data-v-48ee710a] {
+      display: table-cell;
+      padding: 0 10px;
+      width: 134px;
+      height: 58px;
+      vertical-align: middle;
+}
+.atom-list-wrapper .atom-item .name-wrapper p[data-v-48ee710a] {
+        overflow: hidden;
+        position: relative;
+        line-height: 1.2em;
+        max-height: 2.4em;
+        text-align: justify;
+        margin-right: -1em;
+        padding-right: 1em;
+        font-size: 12px;
+        color: #666666;
+        text-align: center;
+        word-break: break-all;
+}
+.atom-list-wrapper .atom-item .name-wrapper p[data-v-48ee710a]:before {
+          content: '...';
+          position: absolute;
+          right: 0;
+          bottom: 0;
+}
+.atom-list-wrapper .atom-item .name-wrapper p[data-v-48ee710a]:after {
+          content: '';
+          position: absolute;
+          right: 0;
+          width: 1em;
+          height: 1em;
+          margin-top: 0.2em;
+          background: #fafafa;
+}
+.atom-list-wrapper .atom-item .name-wrapper p[data-v-48ee710a]:before {
+          right: 3px;
+}
+
+.node-canvas[data-v-5c66a058] {
+  width: calc(100% - 60px);
+  height: calc(100% - 50px);
+  background: #e1e4e8;
+  background-size: 10px 10px;
+}
+
+.pipeline-canvas[data-v-76fc45da] {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+.pipeline-canvas .tool-wrapper[data-v-76fc45da] {
+    position: absolute;
+    top: 80px;
+    left: 80px;
+    z-index: 4;
+    -webkit-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+}
+.pipeline-canvas .tool-wrapper .tool-position[data-v-76fc45da] {
+      height: 36px;
+      background: #c4c6cc;
+      border-radius: 18px;
+      opacity: 0.8;
+}
+.pipeline-canvas .tool-wrapper .tool-position[data-v-76fc45da] .bk-tooltip:first-child {
+        margin-left: 20px;
+}
+.pipeline-canvas .tool-wrapper .tool-position[data-v-76fc45da] .bk-tooltip:last-child {
+        margin-right: 20px;
+}
+.pipeline-canvas .tool-wrapper .tool-position .tool-icon[data-v-76fc45da] {
+        display: inline-block;
+        line-height: 36px;
+        margin-left: 15px;
+        margin-right: 15px;
+        color: #ffffff;
+        cursor: pointer;
+}
+.pipeline-canvas .tool-wrapper .tool-position .tool-icon[data-v-76fc45da]:first-child {
+          margin-left: 20px;
+}
+.pipeline-canvas .tool-wrapper .tool-position .tool-icon[data-v-76fc45da]:last-child {
+          margin-right: 15px;
+}
+.pipeline-canvas .tool-wrapper .tool-position .tool-icon.actived[data-v-76fc45da] {
+          color: #3480ff;
+}
+.pipeline-canvas .tool-wrapper .tool-position .tool-icon .tool-disable[data-v-76fc45da] {
+          cursor: not-allowed;
+          opacity: 0.3;
+}
+.pipeline-canvas .tool-wrapper-telescopic[data-v-76fc45da] {
+    position: absolute;
+    top: 80px;
+    left: 380px;
+    z-index: 5;
+}
+.pipeline-canvas .atom-node[data-v-76fc45da] {
+    position: absolute;
+    top: 86px;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+            transform: translateX(-50%);
+    z-index: 4;
+}
+.pipeline-canvas .atom-node .atom-number[data-v-76fc45da] {
+      color: #a9b2bd;
+      font-size: 14px;
+}
+
+
+/*# sourceMappingURL=3.css.map*/

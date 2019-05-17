@@ -1,7 +1,8 @@
-export APP_ID="canway-obama"
-export APP_TOKEN="da88ff39-0ef1-4912-a4ee-a1bbd6361830"
-export BK_PAAS_HOST="http://paas.class.o.qcloud.com"
-export BK_CC_HOST="http://cmdb.class.o.qcloud.com"
-export BK_JOB_HOST="http://job.class.o.qcloud.com"
+#!/usr/bin/env bash
+export APP_ID="bk-sops"
+export APP_TOKEN=""
+export BK_PAAS_HOST=""
+export BK_CC_HOST=""
+export BK_JOB_HOST=""
 export RUN_VER="open"
 export OPEN_VER="community"
