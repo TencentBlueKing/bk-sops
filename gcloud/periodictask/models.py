@@ -20,7 +20,7 @@ from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriod
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
-from gcloud.core.models import Business
+from gcloud.core.models import Business, Project
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -76,6 +76,11 @@ class PeriodicTask(models.Model):
                                  blank=True,
                                  null=True,
                                  on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project,
+                                verbose_name=_(u"所属项目"),
+                                null=True,
+                                blank=True,
+                                on_delete=models.SET_NULL)
     task = models.ForeignKey(PipelinePeriodicTask, verbose_name=_(u"pipeline 层周期任务"))
     template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255)
 
