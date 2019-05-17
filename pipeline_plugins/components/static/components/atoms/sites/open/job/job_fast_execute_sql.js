@@ -28,12 +28,11 @@
             ]
         },
         {
-            tag_code: "job_content",
+            tag_code: "job_sql_content",
             type: "textarea",
             attrs: {
                 name: gettext("脚本内容"),
                 hookable: true,
-                placeholder: gettext("填写执行脚本内容"),
                 validation: [
                     {
                         type: "custom",
@@ -170,7 +169,7 @@
             type: "select",
             attrs: {
                 name: gettext("DB账户"),
-                placeholder: gettext("请选择蓝鲸作业平时上已注册并授权的DB账号"),
+                placeholder: gettext("请选择蓝鲸作业平台上已注册并授权的DB账号"),
                 hookable: true,
                 remote: true,
                 remote_url: $.context.site_url + 'pipeline/job_get_own_db_account_list/' + $.context.biz_cc_id + '/',
@@ -179,7 +178,7 @@
                 },
                 validation: [
                     {
-                        type: "custom",
+                        type: "required",
                         args: function (value) {
                             let result = {
                                 result: true,
@@ -187,7 +186,7 @@
                             }
                             if (!value) {
                                 result.result = false;
-                                result.error_message = gettext("DB账户");
+                                result.error_message = gettext("请选择DB账户");
                             }
                             return result
                         }
