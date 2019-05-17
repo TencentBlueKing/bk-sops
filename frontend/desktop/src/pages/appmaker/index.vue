@@ -514,9 +514,9 @@
         }
         .query-button {
             padding: 5px;
-            min-width: 450px;
+            min-width: 440px;
             @media screen and (max-width: 1420px) {
-                min-width: 390px;
+                min-width: 380px;
             }
             text-align: center;
             .query-cancel {
