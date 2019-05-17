@@ -95,6 +95,7 @@
                 taskStateClass: '',
                 taskStateName: '',
                 taskStateColor: '',
+                pipelineTree: {},
                 timer: null,
                 loading: true,
                 i18n: {
@@ -106,8 +107,8 @@
         },
         computed: {
             canvasData () {
-                const pipelineTree = this.task ? this.task.pipeline_tree || {} : {}
-                const { line = [], location = [], gateways = {} } = JSON.parse(pipelineTree)
+                this.pipelineTree = this.$store.state.pipelineTree
+                const { line = [], location = [], gateways = {} } = this.pipelineTree
                 return { lines: line, nodes: location, gateways: gateways }
             }
         },
@@ -127,6 +128,8 @@
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
                     this.taskId = this.$route.query.taskId
                     this.task = await this.getTask({ id: this.taskId })
+                    this.pipelineTree = JSON.parse(this.task.pipeline_tree)
+                    this.$store.commit('setPipelineTree', this.pipelineTree)
                     await this.loadTaskStatus()
                     if (this.$route.query.executeTask && this.taskState === 'CREATED') {
                         this.onExecute()

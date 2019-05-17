@@ -51,14 +51,20 @@
                 connectorOptions: connectorOptions
             }
         },
+        watch: {
+            canvasData (val) {
+                this.$refs.jsFlow.resetPosition()
+                this.$store.commit('setTitle', '子流程')
+            }
+        },
         mounted () {
             const lineMap = this.getLineMap(this.canvasData)
             const overlayConfig = {
-                type: 'label',
+                type: 'Label',
                 name: '',
                 cls: 'branch-conditions',
                 editable: false,
-                location: '-60'
+                location: '-100'
             }
             const gateways = this.canvasData.gateways
             if (Object.keys(gateways).length) {
@@ -68,10 +74,6 @@
                         for (const c of Object.keys(conditions)) {
                             const line = lineMap.get(c)
                             const overlay = Object.assign({}, overlayConfig, { name: conditions[c].evaluate })
-                            console.log('before draw branch gateway')
-                            console.log(line)
-                            console.log(overlay)
-                            this.$refs.jsFlow.setCanvasPosition(-300)
                             this.$refs.jsFlow.addLineOverlay(line, overlay)
                         }
                     }
@@ -100,3 +102,9 @@
 
     }
 </script>
+
+<style type="text/css">
+   .branch-conditions {
+        font-size: 12px;
+   }
+</style>

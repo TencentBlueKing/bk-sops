@@ -30,10 +30,7 @@
                             </template>
                         </div>
                     </template>
-                    <van-icon
-                        slot="right-icon"
-                        :name="item['status_icon_name']"
-                        :class="['task-icon', item['status_class']]" />
+                    <StatusIcon :status="item['status']"></StatusIcon>
                 </van-cell>
             </van-list>
         </section>
@@ -42,18 +39,13 @@
 
 <script>
     import { mapActions } from 'vuex'
-    // { 任务状态 : [图标名称, css名称] }
-    const STATUS_CLASS = {
-        'CREATED': ['circle', 'circle'],
-        'FINISHED': ['checked', 'checked'],
-        'FAILED': ['close', 'clear'],
-        'SUSPENDED': ['pause', 'pause-circle'],
-        'REVOKED': ['close', 'clear'],
-        'RUNNING': ['more', 'more']
-    }
+    import StatusIcon from '@/components/MobileStatusIcon/index.vue'
 
     export default {
         name: 'TaskList',
+        components: {
+            StatusIcon
+        },
         data () {
             return {
                 taskList: [],
@@ -100,11 +92,10 @@
                     if (task.is_started) {
                         const promise = this.getTaskStatus({ id: task.id })
                         promise.then(response => {
-                            this.$set(task, 'status_class', STATUS_CLASS[response.state][0])
-                            this.$set(task, 'status_icon_name', STATUS_CLASS[response.state][1])
+                            this.$set(task, 'status', response.state)
                         })
                     } else {
-                        [task['status_class'], task['status_icon_name']] = STATUS_CLASS['CREATED']
+                        task['status'] = 'CREATED'
                     }
                 })
             },

@@ -105,7 +105,7 @@
                     </template>
                 </template>
                 <template v-else>
-                    <van-cell title="" :value="i18n.noData" />
+                    <no-data />
                 </template>
             </div>
         </section>
@@ -130,12 +130,16 @@
     import moment from 'moment'
     import { mapActions } from 'vuex'
     import { dateFormatter } from '@/common/util.js'
+    import NoData from '@/components/NoData/index.vue'
 
     const NAME_REG = /^[A-Za-z0-9\_\-\[\]\【\】\(\)\（\）\u4e00-\u9fa5]+$/
     const DEFAULT_SCHEMES_NAME = window.gettext('执行所有节点')
 
     export default {
         name: 'TaskCreate',
+        components: {
+            NoData
+        },
         props: { templateId: String },
         data () {
             return {
@@ -166,8 +170,7 @@
                     paramInfo: window.gettext('参数信息'),
                     paramInput: window.gettext('输入参数值'),
                     datetimeInput: window.gettext('请选择日期时间'),
-                    taskInfo: window.gettext('任务信息'),
-                    noData: window.gettext('暂无数据')
+                    taskInfo: window.gettext('任务信息')
                 },
                 taskId: 0,
                 taskName: '',
@@ -210,6 +213,7 @@
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
                 this.$store.commit('setTemplate', this.templateData)
                 this.templatePipelineTree = JSON.parse(this.templateData.pipeline_tree)
+                this.$store.commit('setPipelineTree', this.templatePipelineTree)
                 this.$toast.clear()
             },
             async createTaskAndStart () {
@@ -274,7 +278,6 @@
             async collect () {
                 // 防止重复提交
                 if (!this.collecting) {
-                    console.log('start collect....')
                     this.collecting = true
                     // 调用收藏是取消收藏方法
                     const params = { template_id: this.templateId, method: this.collected ? 'delete' : 'add' }
