@@ -224,11 +224,16 @@ def job_get_script_list(request, biz_cc_id):
     """
     # 查询脚本列表
     client = get_client_by_request(request)
-    script_type = request.GET.get('type')
+    source_type = request.GET.get('type')
     kwargs = {
         'bk_biz_id': biz_cc_id,
-        'is_public': True if script_type == 'public' else False
+        'is_public': True if source_type == 'public' else False
     }
+    if request.GET.get('script_type'):
+        kwargs.update(
+            script_type=request.GET.get('script_type')
+        )
+
     script_result = client.job.get_script_list(kwargs)
 
     if not script_result['result']:
@@ -252,6 +257,33 @@ def job_get_script_list(request, biz_cc_id):
         })
 
     return JsonResponse({'result': True, 'data': version_data})
+
+
+def job_get_own_db_account_list(request, bk_biz_id):
+    """
+    查询用户有权限的DB帐号列表
+    :param request:
+    :param bk_biz_id:
+    :return:
+    """
+    client = get_client_by_request(request)
+    kwargs = {
+        'bk_biz_id': bk_biz_id
+    }
+    job_result = client.job.get_own_db_account_list(kwargs)
+
+    if not job_result['result']:
+        message = handle_api_error('cc', 'get_own_db_account_list', kwargs, job_result['message'])
+        logger.error(message)
+        result = {
+            'result': False,
+            'message': message
+        }
+        return JsonResponse(result)
+
+    data = [{'text': item['db_alias'], 'value': item['db_account_id']} for item in job_result['data']]
+
+    return JsonResponse({'result': True, 'data': data})
 
 
 def file_upload(request, biz_cc_id):
@@ -413,6 +445,7 @@ urlpatterns = [
     url(r'^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_topo),
     url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cc_get_host_by_module_id),
     url(r'^job_get_script_list/(?P<biz_cc_id>\d+)/$', job_get_script_list),
+    url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
     url(r'^file_upload/(?P<biz_cc_id>\d+)/$', file_upload),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
     url(r'^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_job_task_detail),
