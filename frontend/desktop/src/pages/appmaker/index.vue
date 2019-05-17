@@ -353,7 +353,6 @@
     .page-content {
         width: 1200px;
         padding-bottom: 40px;
-        overflow: hidden;
         margin: 0 auto;
     }
     @media screen and (max-width: 1505px) {
