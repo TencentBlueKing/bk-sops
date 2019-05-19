@@ -158,7 +158,7 @@
                         <bk-selector
                             :allow-clear="true"
                             :list="business.list"
-                            :selected.sync="business.selected"
+                            :selected="business.id"
                             :setting-key="'cc_id'"
                             :display-key="'cc_name'"
                             :search-key="'cc_name'"
@@ -179,7 +179,7 @@
                             ext-cls="template-selector"
                             :allow-clear="true"
                             :list="template.list"
-                            :selected="template.selected"
+                            :selected="template.id"
                             :has-children="true"
                             :is-loading="template.loading"
                             :searchable="template.searchable"
@@ -270,9 +270,8 @@
                 functorList: [],
                 business: {
                     list: [],
-                    selected: 0,
                     loading: false,
-                    id: null,
+                    id: '',
                     searchable: true,
                     empty: false
                 },
@@ -287,10 +286,9 @@
                             children: []
                         }
                     ],
-                    selected: 0,
                     loading: false,
                     searchable: true,
-                    id: null,
+                    id: '',
                     empty: false,
                     disabled: true
                 },
@@ -480,16 +478,15 @@
                 if (data.resource_uri.search('common_template') !== -1) {
                     this.isCommonTemplate = true
                 }
-                this.template.selected = id
                 this.template.id = id
                 this.template.empty = false
             },
             onConfirmlNewTask () {
-                if (this.business.id === null) {
+                if (this.business.id === '') {
                     this.business.empty = true
                     return
                 }
-                if (this.template.id === null) {
+                if (this.template.id === '') {
                     this.template.empty = true
                     return
                 }
@@ -503,15 +500,16 @@
                 this.onClearTemplate()
                 this.onClearBusiness()
                 this.isShowNewTaskDialog = false
+                this.business.empty = false
+                this.template.empty = false
             },
             onClearTemplate () {
-                this.template.id = null
-                this.template.selected = 0
+                this.template.id = ''
             },
             onClearBusiness () {
+                this.business.id = ''
+                this.template.id = ''
                 this.template.disabled = true
-                this.business.id = null
-                this.business.selected = 0
             },
             // 无数据文本修改样式
             changeNoDataTextStyle () {
