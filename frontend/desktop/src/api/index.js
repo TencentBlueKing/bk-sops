@@ -210,10 +210,18 @@ const api = {
      */
     $getAtomForm (type, classify, isMeta) {
         return this.getAtomFormURL(type, classify, isMeta).then(response => {
-            const { output: outputData, form: url } = response.data
+            const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+            
             store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
             store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
-            return $.getScript(url)
+
+            // 标准插件配置项内嵌到 form 字段
+            if (embedded) {
+                $.atoms[type] = formResource
+                return Promise.resolve()
+            }
+
+            return $.getScript(formResource)
         }).catch(e => {
             return Promise.reject(e)
         })
