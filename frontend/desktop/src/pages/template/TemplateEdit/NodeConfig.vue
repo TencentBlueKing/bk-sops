@@ -369,7 +369,8 @@
                 if (this.currentAtom === 'job_execute_task') {
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        if (constant.source_type === 'component_outputs'
+                        if ((this.nodeId in constant.source_info)
+                            && constant.source_type === 'component_outputs'
                             && outputData.findIndex(item => item.key === cKey) === -1
                         ) {
                             outputData.push({
