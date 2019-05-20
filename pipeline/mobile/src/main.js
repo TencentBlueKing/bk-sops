@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import VueTippy from 'vue-tippy'
 
 import App from './App'
 import router from './router'
@@ -45,6 +46,7 @@ Vue.use(NavBar)
     .use(DatetimePicker)
     .use(Actionsheet)
 
+Vue.use(VueTippy)
 Vue.component('app-exception', Exception)
 Vue.config.devtools = false
 

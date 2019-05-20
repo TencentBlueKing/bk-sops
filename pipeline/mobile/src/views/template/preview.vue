@@ -1,11 +1,13 @@
 <template>
     <div class="page-view">
-        <MobileCanvas :is-preview="true" :canvas-data="canvasData"></MobileCanvas>
+        <!--<MobileCanvas :is-preview="true" :editable="false" :canvas-data="canvasData"></MobileCanvas>-->
+        <MobileCanvas :editable="false" :canvas-data="canvasData"></MobileCanvas>
     </div>
 </template>
 
 <script>
-    import MobileCanvas from '../jsflow/index.vue'
+    // import MobileCanvas from '../jsflow/index.vue'
+    import MobileCanvas from '@/components/MobileCanvas/index.vue'
     import { mapState } from 'vuex'
 
     export default {

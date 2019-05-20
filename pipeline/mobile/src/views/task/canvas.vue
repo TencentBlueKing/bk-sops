@@ -1,7 +1,8 @@
 <template>
     <div class="page-view">
         <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
-        <JsFlowIndex :task="currTask"></JsFlowIndex>
+        <!--<JsFlowIndex :task="currTask"></JsFlowIndex>-->
+        <JsFlowIndex :canvas-data="canvasData" ref="canvas"></JsFlowIndex>
         <van-tabbar>
             <van-tabbar-item>
                 <van-icon slot="icon" class-prefix="icon" name="pause" v-if="taskState === 'RUNNING'" />
@@ -37,7 +38,8 @@
     </div>
 </template>
 <script>
-    import JsFlowIndex from '../jsflow/index.vue'
+    // import JsFlowIndex from '../jsflow/index.vue'
+    import JsFlowIndex from '@/components/MobileCanvas/index.vue'
     import { mapActions, mapState } from 'vuex'
 
     const TASK_STATE = {
@@ -70,7 +72,20 @@
             ...mapState({
                 currTask: state => state.task,
                 currTaskState: state => state.taskState
-            })
+            }),
+            canvasData () {
+                const task = this.$store.state.task
+                if (task && Object.keys(task)) {
+                    this.pipelineTree = task.pipeline_tree
+                    const { line = [], location = [], gateways = {} } = JSON.parse(this.pipelineTree)
+                    location.map(item => {
+                        item.status = 'FAILED'
+                    })
+                    return { lines: line, nodes: location, gateways: gateways }
+                } else {
+                    return { lines: [], nodes: [], gateways: {} }
+                }
+            }
         },
         mounted () {
             this.loadData()
@@ -82,6 +97,7 @@
             ]),
             async loadData () {
                 const taskId = this.$route.query.taskId
+                console.log(taskId)
                 const task = await this.getTask(taskId)
                 const taskState = await this.getTaskState(taskId);
                 ([this.taskStateClass, this.taskStateName, this.taskStateColor] = ['task-status', ...TASK_STATE[taskState]])
