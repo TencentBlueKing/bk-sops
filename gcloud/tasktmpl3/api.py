@@ -17,30 +17,16 @@ import logging
 import traceback
 
 import ujson as json
-from django.contrib.auth.models import Group
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
-from guardian.shortcuts import (
-    get_groups_with_perms,
-    get_users_with_perms,
-)
 
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
-from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
-from gcloud.core.decorators import check_user_perm_of_business
-from gcloud.core.roles import ALL_ROLES
 
-from gcloud.core.utils import convert_group_name, time_now_str, check_and_rename_params
-from gcloud.commons.template.constants import PermNm
-from gcloud.commons.template.utils import (
-    assign_tmpl_perms,
-    assign_tmpl_perms_user,
-    read_template_data_file
-)
+from gcloud.core.utils import time_now_str, check_and_rename_params
+from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
-from gcloud.tasktmpl3.utils import get_notify_group_by_biz_core
 from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger('root')
@@ -49,12 +35,12 @@ VAR_ID_MAP = 'var_id_map'
 
 
 @require_GET
-def form(request, biz_cc_id):
+def form(request, project_id):
     template_id = request.GET.get('template_id')
     version = request.GET.get('version')
     try:
         template = TaskTemplate.objects.get(pk=template_id,
-                                            business__cc_id=biz_cc_id,
+                                            project_id=project_id,
                                             is_deleted=False)
     except TaskTemplate.DoesNotExist:
         return HttpResponseForbidden()
@@ -67,7 +53,7 @@ def form(request, biz_cc_id):
 
 
 @require_POST
-def collect(request, biz_cc_id):
+def collect(request, project_id):
     template_id = request.POST.get('template_id')
     template_list = json.loads(request.POST.get('template_list', '[]'))
 
@@ -75,7 +61,7 @@ def collect(request, biz_cc_id):
         method = request.POST.get('method', 'add')
         try:
             template = TaskTemplate.objects.get(pk=template_id,
-                                                business__cc_id=biz_cc_id,
+                                                project_id=project_id,
                                                 is_deleted=False)
         except TaskTemplate.DoesNotExist:
             return HttpResponseForbidden()
@@ -89,9 +75,9 @@ def collect(request, biz_cc_id):
         user = user_model.objects.get(username=request.user.username)
         try:
             template = TaskTemplate.objects.filter(pk__in=template_list,
-                                                   business__cc_id=biz_cc_id,
+                                                   project_id=project_id,
                                                    is_deleted=False)
-            collected_template = user.tasktemplate_set.filter(business__cc_id=biz_cc_id)
+            collected_template = user.tasktemplate_set.filter(project_id=project_id)
             user.tasktemplate_set.remove(*collected_template)
             user.tasktemplate_set.add(*template)
         except Exception as e:
@@ -104,7 +90,7 @@ def collect(request, biz_cc_id):
         try:
             user_model = get_user_model()
             user = user_model.objects.get(username=request.user.username)
-            collected_template = user.tasktemplate_set.filter(business__cc_id=biz_cc_id)
+            collected_template = user.tasktemplate_set.filter(project_id=project_id)
             user.tasktemplate_set.remove(*collected_template)
         except Exception as e:
             message = u"collect template error: %s" % e
@@ -115,118 +101,7 @@ def collect(request, biz_cc_id):
 
 
 @require_GET
-def get_perms(request, biz_cc_id):
-    template_id = request.GET.get('template_id')
-    try:
-        template = TaskTemplate.objects.get(pk=template_id,
-                                            business__cc_id=biz_cc_id,
-                                            is_deleted=False)
-    except TaskTemplate.DoesNotExist:
-        return HttpResponseForbidden()
-    data = {perm: [] for perm in PermNm.PERM_LIST}
-    # 获取有权限的分组列表
-    groups = get_groups_with_perms(template, attach_perms=True)
-    for group, perm_list in groups.items():
-        for perm in perm_list:
-            if perm in PermNm.PERM_LIST:
-                data[perm].append({
-                    "show_name": group.name.split("\x00")[-1]
-                })
-    # 获取有权限的人员列表(单独按人员角色授权，而不是按分组授权)
-    users = get_users_with_perms(template, attach_perms=True, with_group_users=False)
-    for user, perm_list in users.items():
-        for perm in perm_list:
-            if perm in PermNm.PERM_LIST:
-                data[perm].append({
-                    "show_name": user.username
-                })
-    ctx = {
-        'result': True,
-        'data': data,
-        'message': 'success'
-    }
-    return JsonResponse(ctx)
-
-
-@require_POST
-@check_user_perm_of_business('manage_business')
-def save_perms(request, biz_cc_id):
-    template_id = request.POST.get('template_id')
-    try:
-        template = TaskTemplate.objects.get(pk=template_id,
-                                            business__cc_id=biz_cc_id,
-                                            is_deleted=False)
-    except TaskTemplate.DoesNotExist:
-        return HttpResponseForbidden()
-    user_model = get_user_model()
-    for perm in PermNm.PERM_LIST:
-        group_name_list = []
-        user_name_list = []
-        for data in json.loads(request.POST.get(perm, '[]')):
-            if data in ALL_ROLES:
-                group_name = convert_group_name(biz_cc_id, data)
-                group_name_list.append(group_name)
-            else:
-                user_name_list.append(data)
-        group_set = Group.objects.filter(name__in=group_name_list)
-        assign_tmpl_perms([perm], group_set, template)
-        user_set = user_model.objects.filter(username__in=user_name_list)
-        assign_tmpl_perms_user([perm], user_set, template)
-    ctx = {
-        'result': True,
-        'data': {},
-        'message': 'success'
-    }
-    return JsonResponse(ctx)
-
-
-# TODO： 该方法已迁移至 core/api/get_basic_info ，等待前端完成迁移后删除
-@require_GET
-def get_business_basic_info(request, biz_cc_id):
-    """
-    @summary: 获取业务基本配置信息
-    @param request:
-    @param biz_cc_id:
-    @note:
-    """
-    # 类型数据来源
-    task_categories = []
-    for item in TASK_CATEGORY:
-        task_categories.append({
-            'value': item[0],
-            'name': item[1]
-        })
-    # 模板流程来源
-    flow_type_list = []
-    for item in TASK_FLOW_TYPE:
-        flow_type_list.append({
-            'value': item[0],
-            'name': item[1]
-        })
-
-    # 出错通知人员分组
-    notify_group = get_notify_group_by_biz_core(biz_cc_id)
-
-    # 出错通知方式来源
-    notify_type_list = []
-    for item in NOTIFY_TYPE:
-        notify_type_list.append({
-            'value': item[0],
-            'name': item[1]
-        })
-
-    ctx = {
-        "task_categories": task_categories,
-        "flow_type_list": flow_type_list,
-        "notify_group": notify_group,
-        "notify_type_list": notify_type_list
-    }
-    return JsonResponse(ctx, safe=False)
-
-
-@require_GET
-@check_user_perm_of_business('manage_business')
-def export_templates(request, biz_cc_id):
+def export_templates(request, project_id):
     try:
         template_id_list = json.loads(request.GET.get('template_id_list'))
     except Exception:
@@ -238,7 +113,7 @@ def export_templates(request, biz_cc_id):
     # wash
     try:
         templates_data = json.loads(json.dumps(
-            TaskTemplate.objects.export_templates(template_id_list, biz_cc_id), sort_keys=True
+            TaskTemplate.objects.export_templates(template_id_list, project_id), sort_keys=True
         ))
     except TaskTemplate.DoesNotExist:
         return JsonResponse({
@@ -257,7 +132,7 @@ def export_templates(request, biz_cc_id):
         'template_data': templates_data,
         'digest': digest
     }, sort_keys=True))
-    filename = 'bk_sops_%s_%s.dat' % (biz_cc_id, time_now_str())
+    filename = 'bk_sops_%s_%s.dat' % (project_id, time_now_str())
     response = HttpResponse()
     response['Content-Disposition'] = 'attachment; filename=%s' % filename
     response['mimetype'] = 'application/octet-stream'
@@ -267,8 +142,7 @@ def export_templates(request, biz_cc_id):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
-def import_templates(request, biz_cc_id):
+def import_templates(request, project_id):
     f = request.FILES.get('data_file', None)
     form_data = TemplateImportForm(request.POST)
     if not form_data.is_valid():
@@ -285,7 +159,7 @@ def import_templates(request, biz_cc_id):
     templates_data = r['data']['template_data']
 
     try:
-        result = TaskTemplate.objects.import_templates(templates_data, override, biz_cc_id)
+        result = TaskTemplate.objects.import_templates(templates_data, override, project_id)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({
@@ -297,14 +171,13 @@ def import_templates(request, biz_cc_id):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
-def check_before_import(request, biz_cc_id):
+def check_before_import(request, project_id):
     f = request.FILES.get('data_file', None)
     r = read_template_data_file(f)
     if not r['result']:
         return JsonResponse(r)
 
-    check_info = TaskTemplate.objects.import_operation_check(r['data']['template_data'], biz_cc_id)
+    check_info = TaskTemplate.objects.import_operation_check(r['data']['template_data'], project_id)
     return JsonResponse({
         'result': True,
         'data': check_info
@@ -354,8 +227,7 @@ def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
-def import_preset_template_and_replace_job_id(request, biz_cc_id):
+def import_preset_template_and_replace_job_id(request, project_id):
     f = request.FILES.get('data_file', None)
     r = read_template_data_file(f)
     if not r['result']:
@@ -387,7 +259,7 @@ def import_preset_template_and_replace_job_id(request, biz_cc_id):
     replace_job_relate_id_in_templates_data(job_id_map, templates_data)
 
     try:
-        result = TaskTemplate.objects.import_templates(templates_data, False, biz_cc_id)
+        result = TaskTemplate.objects.import_templates(templates_data, False, project_id)
     except Exception as e:
         logger.error(traceback.format_exc(e))
         return JsonResponse({
@@ -418,12 +290,12 @@ def replace_all_templates_tree_node_id(request):
 
 
 @require_GET
-def get_template_count(request, biz_cc_id):
+def get_template_count(request, project_id):
     group_by = request.GET.get('group_by', 'category')
     result_dict = check_and_rename_params('{}', group_by)
     if not result_dict['success']:
         return JsonResponse({'result': False, 'message': result_dict['content']})
-    filters = {'is_deleted': False, 'business__cc_id': biz_cc_id}
+    filters = {'is_deleted': False, 'project_id': project_id}
     success, content = TaskTemplate.objects.extend_classified_count(result_dict['group_by'], filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
@@ -431,9 +303,9 @@ def get_template_count(request, biz_cc_id):
 
 
 @require_GET
-def get_collect_template(request, biz_cc_id):
+def get_collect_template(request, project_id):
     username = request.user.username
-    success, content = TaskTemplate.objects.get_collect_template(biz_cc_id, username)
+    success, content = TaskTemplate.objects.get_collect_template(project_id, username)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})
