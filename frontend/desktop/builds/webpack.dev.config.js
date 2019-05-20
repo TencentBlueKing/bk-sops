@@ -22,7 +22,7 @@ const proxyPath = [
     '/o/bk_sops/blueflow/atom/',
     '/o/bk_sops/pipeline/*',
     '/o/bk_sops/template/api',
-    '/o/bk_sops/template/get_business_basic_info/',
+    '/o/bk_sops/core/api/get_basic_info/',
     '/o/bk_sops/appmaker/*',
     '/o/bk_sops/get_biz_person_list/*',
     '/o/bk_sops/config/api/*',
