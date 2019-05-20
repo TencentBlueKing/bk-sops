@@ -15,7 +15,6 @@ import ujson as json
 
 from django.test import TestCase, Client, override_settings
 
-from gcloud.periodictask.models import PeriodicTask
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
