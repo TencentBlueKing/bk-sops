@@ -91,7 +91,7 @@
                     const status = {}
                     if (item.is_finished) {
                         status.cls = 'finished'
-                        status.icon = 'common-icon-done-thin'
+                        status.icon = 'bk-icon icon-check-circle-shape'
                         status.text = gettext('完成')
                     } else if (item.is_started) {
                         status.cls = 'execute'
@@ -99,7 +99,7 @@
                         this.getExecuteDetail(item, index)
                     } else {
                         status.cls = 'created'
-                        status.icon = 'task-created-icon'
+                        status.icon = 'common-icon-dark-circle-shape'
                         status.text = gettext('未执行')
                     }
                     return status
@@ -118,18 +118,18 @@
                         switch (state) {
                             case 'RUNNING':
                             case 'BLOCKED':
-                                status.cls = 'execute'
-                                status.icon = 'common-icon-loading'
+                                status.cls = 'running'
+                                status.icon = 'common-icon-dark-circle-ellipsis'
                                 status.text = gettext('执行中')
                                 break
                             case 'SUSPENDED':
                                 status.cls = 'execute'
-                                status.icon = 'common-icon-double-vertical-line'
+                                status.icon = 'common-icon-dark-circle-pause'
                                 status.text = gettext('暂停')
                                 break
                             case 'NODE_SUSPENDED':
                                 status.cls = 'execute'
-                                status.icon = 'common-icon-double-vertical-line'
+                                status.icon = 'common-icon-dark-circle-pause'
                                 status.text = gettext('节点暂停')
                                 break
                             case 'FAILED':
@@ -139,7 +139,7 @@
                                 break
                             case 'REVOKED':
                                 status.cls = 'revoke'
-                                status.icon = 'common-icon-return-arrow'
+                                status.icon = 'common-icon-dark-circle-shape'
                                 status.text = gettext('撤销')
                                 break
                             default:
@@ -228,6 +228,9 @@
         font-size: 12px;
         color: $yellowDefault;
         &.created {
+            color: #979ba5;
+        }
+        &.running {
             color: $blueDefault;
         }
         &.finished {
@@ -241,15 +244,6 @@
         }
         .status-icon {
             display: inline-block;
-        }
-        .task-created-icon {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background: $whiteDefault;
-            border: 4px solid $blueDefault;
-            border-radius: 50%;
-            vertical-align: -1px;
         }
         .common-icon-loading {
             animation: bk-button-loading 1.4s infinite linear;
