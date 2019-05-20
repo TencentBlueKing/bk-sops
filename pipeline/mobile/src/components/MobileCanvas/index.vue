@@ -1,20 +1,18 @@
-<template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-    <div class="page-home">
-        <js-flow
-            ref="jsFlow"
-            selector="entry-item"
-            :show-palette="false"
-            :show-tool="false"
-            v-model="canvasData"
-            :editable="editable"
-            :endpoint-options="endpointOptions"
-            :connector-options="connectorOptions"
-            @onNodeClick="onNodeClick">
-            <template v-slot:nodeTemplate="{ node }">
-                <mobile-node-template :node="node"></mobile-node-template>
-            </template>
-        </js-flow>
-    </div>
+<template>
+    <js-flow
+        ref="jsFlow"
+        selector="entry-item"
+        :show-palette="false"
+        :show-tool="false"
+        v-model="canvasData"
+        :editable="editable"
+        :endpoint-options="endpointOptions"
+        :connector-options="connectorOptions"
+        @onNodeClick="onNodeClick">
+        <template v-slot:nodeTemplate="{ node }">
+            <mobile-node-template :node="node"></mobile-node-template>
+        </template>
+    </js-flow>
 </template>
 
 <script>
@@ -106,11 +104,13 @@
     }
 </script>
 
-<style type="text/css">
+<style lang="scss">
    .branch-conditions {
         font-size: 12px;
    }
-    .page-home {
-        height: 100%;
+    .page-view {
+        .jsflow{
+            border: none;
+        }
     }
 </style>

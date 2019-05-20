@@ -23,7 +23,8 @@ import {
     Locale,
     Picker,
     DatetimePicker,
-    Actionsheet
+    Actionsheet,
+    Notify
 } from 'vant'
 import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
@@ -45,6 +46,7 @@ Vue.use(NavBar)
     .use(Picker)
     .use(DatetimePicker)
     .use(Actionsheet)
+    .use(Notify)
 
 Vue.use(VueTippy)
 Vue.component('app-exception', Exception)

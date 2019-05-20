@@ -242,16 +242,4 @@
             }
         }
     }
-
-    .tooltip-btn{
-        display: table-cell;
-        font-size: $fs-14;
-        vertical-align: middle;
-        + .tooltip-btn:before{
-            content: "|";
-            display: inline-block;
-            padding: 0 10px;
-            color: rgba(255,255,255,0.6);
-        }
-    }
 </style>
