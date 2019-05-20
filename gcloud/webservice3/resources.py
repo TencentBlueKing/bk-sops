@@ -34,7 +34,7 @@ from pipeline.core.data.library import VariableLibrary
 from pipeline.models import VariableModel
 
 from gcloud import exceptions
-from gcloud.core.models import Business
+from gcloud.core.models import Business, Project
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.core.utils import name_handler, prepare_user_business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
@@ -297,7 +297,7 @@ class GCloudModelResource(ModelResource):
 class BusinessResource(GCloudModelResource):
     class Meta:
         queryset = Business.objects.exclude(life_cycle__in=['3', _(u"停运")]) \
-                                   .exclude(status='disabled')
+            .exclude(status='disabled')
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
         authorization = GCloudReadOnlyAuthorization()
@@ -331,6 +331,10 @@ class BusinessResource(GCloudModelResource):
             return HttpResponse(status=503, content=e.error)
         cc_id_list = [biz.cc_id for biz in biz_list]
         return super(BusinessResource, self).get_object_list(request).filter(cc_id__in=cc_id_list)
+
+
+class ProjectResource(GCloudModelResource):
+    pass
 
 
 class ComponentModelResource(ModelResource):
