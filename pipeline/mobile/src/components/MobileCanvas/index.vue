@@ -1,20 +1,17 @@
 <template>
-    <div class="page-home">
-        <js-flow
-            ref="jsFlow"
-            selector="entry-item"
-            :show-palette="false"
-            :show-tool="false"
-            v-model="canvasData"
-            :editable="editable"
-            :endpoint-options="endpointOptions"
-            :connector-options="connectorOptions"
-            @onNodeClick="onNodeClick">
-            <template v-slot:nodeTemplate="{ node }">
-                <mobile-node-template :node="node"></mobile-node-template>
-            </template>
-        </js-flow>
-    </div>
+    <js-flow
+        ref="jsFlow"
+        selector="entry-item"
+        :show-palette="false"
+        :show-tool="false"
+        v-model="canvasData"
+        :editable="editable"
+        :endpoint-options="endpointOptions"
+        :connector-options="connectorOptions">
+        <template v-slot:nodeTemplate="{ node }">
+            <mobile-node-template :node="node"></mobile-node-template>
+        </template>
+    </js-flow>
 </template>
 
 <script>
@@ -64,7 +61,7 @@
                 name: '',
                 cls: 'branch-conditions',
                 editable: false,
-                location: '-100'
+                location: '-60'
             }
             const gateways = this.canvasData.gateways
             if (Object.keys(gateways).length) {
@@ -97,14 +94,28 @@
                 lines.forEach((line) => map.set(line.id, line))
                 return map
             }
-
         }
 
     }
 </script>
 
-<style type="text/css">
-   .branch-conditions {
+<style lang="scss" scoped>
+    .branch-conditions {
         font-size: 12px;
-   }
+    }
+
+    .page-view {
+        .task-status{
+            +.jsflow{
+                top: 41px;
+                position: absolute;
+                width: 100%;
+                height: auto;
+                bottom: 0;
+            }
+        }
+        .jsflow{
+            border: none;
+        }
+    }
 </style>
