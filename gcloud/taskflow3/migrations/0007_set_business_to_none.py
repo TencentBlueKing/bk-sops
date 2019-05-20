@@ -11,20 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib import admin
+from __future__ import unicode_literals
 
-from gcloud.tasktmpl3 import models
+from django.db import migrations
 
 
-@admin.register(models.TaskTemplate)
-class TaskTemplateAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'project', 'category', 'pipeline_template', 'is_deleted']
-    list_filter = ['project', 'category', 'is_deleted']
-    search_fields = ['id', 'pipeline_template__name']
-    raw_id_fields = ['pipeline_template']
-    actions = ['fake_delete']
+def reverse_func(apps, schema_editor):
+    raise NotImplementedError()
 
-    def fake_delete(self, request, queryset):
-        queryset.update(is_deleted=True)
 
-    fake_delete.short_description = 'Fake delete'
+def forward_func(apps, schema_editor):
+    TaskFlowInstance = apps.get_model('taskflow3', 'TaskFlowInstance')
+    db_alias = schema_editor.connection.alias
+
+    TaskFlowInstance.objects.using(db_alias).all().update(business=None)
+
+
+class Migration(migrations.Migration):
+    dependencies = [
+        ('taskflow3', '0006_add_project_relation'),
+    ]
+
+    operations = [
+        migrations.RunPython(forward_func, reverse_func)
+    ]

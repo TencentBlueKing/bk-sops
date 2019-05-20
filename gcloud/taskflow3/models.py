@@ -757,11 +757,6 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
 
 class TaskFlowInstance(models.Model):
-    business = models.ForeignKey(Business,
-                                 verbose_name=_(u"业务"),
-                                 blank=True,
-                                 null=True,
-                                 on_delete=models.SET_NULL)
     project = models.ForeignKey(Project,
                                 verbose_name=_(u"所属项目"),
                                 null=True,
