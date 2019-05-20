@@ -15,22 +15,20 @@ from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 
 from gcloud.utils.forms import post_form_validator
-from gcloud.core.models import Business
+from gcloud.core.models import Project
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.core.decorators import check_user_perm_of_business
 from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
                                     PeriodicTaskEnabledSetForm,
                                     PeriodicTaskConstantsModifyForm)
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
 @post_form_validator(PeriodicTaskEnabledSetForm)
-def set_enabled_for_periodic_task(request, biz_cc_id, task_id):
+def set_enabled_for_periodic_task(request, project_id, task_id):
     enabled = request.form.clean()['enabled']
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=biz_cc_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
     except PeriodicTask.DoesNotExist:
         return HttpResponseForbidden()
 
@@ -43,14 +41,13 @@ def set_enabled_for_periodic_task(request, biz_cc_id, task_id):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
 @post_form_validator(PeriodicTaskCronModifyForm)
-def modify_cron(request, biz_cc_id, task_id):
+def modify_cron(request, project_id, task_id):
     cron = request.form.clean()['cron']
 
     try:
-        tz = Business.objects.get(cc_id=biz_cc_id).time_zone
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=biz_cc_id)
+        tz = Project.objects.get(id=project_id).time_zone
+        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
     except PeriodicTask.DoesNotExist:
         return HttpResponseForbidden()
 
@@ -69,13 +66,12 @@ def modify_cron(request, biz_cc_id, task_id):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
 @post_form_validator(PeriodicTaskConstantsModifyForm)
-def modify_constants(request, biz_cc_id, task_id):
+def modify_constants(request, project_id, task_id):
     constants = request.form.clean()['constants']
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=biz_cc_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
     except PeriodicTask.DoesNotExist:
         return HttpResponseForbidden()
 

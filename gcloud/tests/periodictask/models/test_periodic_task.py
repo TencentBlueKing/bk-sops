@@ -23,7 +23,7 @@ from pipeline.models import PipelineTemplate, Snapshot
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.utils.uniqid import uniqid
 
-from gcloud.core.models import Business
+from gcloud.core.models import Project
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTask
@@ -41,7 +41,7 @@ class PeriodicTaskTestCase(TestCase):
             cron={},
             pipeline_tree=self.pipeline_tree,
             creator=self.creator,
-            business=self.business
+            project=self.project
         )
 
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
@@ -59,21 +59,17 @@ class PeriodicTaskTestCase(TestCase):
                 'show_type': 'hide',
             }
         }}
-        self.business = Business.objects.create(
-            cc_id=1,
-            cc_name='mock business',
-            cc_owner='tester',
-            cc_company='',
-            life_cycle='2',
-            executor='',
+        self.project = Project.objects.create(
+            name='test_project',
+            time_zone='Asia/Shanghai',
+            creator='test',
+            desc=''
         )
-        self.invalid_business = Business.objects.create(
-            cc_id=2,
-            cc_name='mock business',
-            cc_owner='tester',
-            cc_company='',
-            life_cycle='2',
-            executor='',
+        self.invalid_project = Project.objects.create(
+            name='invalid_project',
+            time_zone='Asia/Shanghai',
+            creator='test',
+            desc=''
         )
         self.snapshot, _ = Snapshot.objects.create_or_get_snapshot({})
         self.pipeline_template = PipelineTemplate.objects.create(
@@ -83,7 +79,7 @@ class PeriodicTaskTestCase(TestCase):
             snapshot=self.snapshot
         )
         task_template = TaskTemplate(
-            business=self.business,
+            project=self.project,
             pipeline_template=self.pipeline_template,
         )
         task_template.save()
@@ -96,20 +92,20 @@ class PeriodicTaskTestCase(TestCase):
         self.template = self.template.delete()
         self.pipeline_template = self.pipeline_template.delete()
         self.snapshot = self.snapshot.delete()
-        self.business = self.business.delete()
+        self.project = self.project.delete()
 
     def test_create_task(self):
         self.assertIsInstance(self.task, PeriodicTask)
         self.assertIsInstance(self.task.task, PipelinePeriodicTask)
         self.assertEqual(self.task.template_id, self.template.id)
-        self.assertEqual(self.task.business.id, self.business.id)
+        self.assertEqual(self.task.project.id, self.project.id)
         self.assertRaises(InvalidOperationException, PeriodicTask.objects.create,
                           name='test',
                           template=self.template,
                           cron={},
                           pipeline_tree=self.pipeline_tree,
                           creator=self.creator,
-                          business=self.invalid_business
+                          project=self.invalid_project
                           )
 
     def test_enabled(self):

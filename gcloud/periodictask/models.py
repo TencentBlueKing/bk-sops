@@ -20,7 +20,7 @@ from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriod
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
-from gcloud.core.models import Business, Project
+from gcloud.core.models import Project
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -33,7 +33,7 @@ logger = logging.getLogger("root")
 class PeriodicTaskManager(models.Manager):
     def create(self, **kwargs):
         task = self.create_pipeline_task(
-            business=kwargs['business'],
+            project=kwargs['project'],
             template=kwargs['template'],
             name=kwargs['name'],
             cron=kwargs['cron'],
@@ -41,20 +41,21 @@ class PeriodicTaskManager(models.Manager):
             creator=kwargs['creator']
         )
         return super(PeriodicTaskManager, self).create(
-            business=kwargs['business'],
+            project=kwargs['project'],
             task=task,
             template_id=kwargs['template'].id)
 
-    def create_pipeline_task(self, business, template, name, cron, pipeline_tree, creator):
-        if template.business.id != business.id:
-            raise InvalidOperationException('template %s do not belong to business[%s]' %
+    def create_pipeline_task(self, project, template, name, cron, pipeline_tree, creator):
+        if template.project.id != project.id:
+            raise InvalidOperationException('template %s do not belong to project[%s]' %
                                             (template.id,
-                                             business.cc_name))
+                                             project.name))
         extra_info = {
-            'business_id': business.id,
+            'project_id': project.id,
             'category': template.category,
             'template_id': template.pipeline_template.template_id,
-            'template_num_id': template.id}
+            'template_num_id': template.id
+        }
 
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
 
@@ -64,7 +65,7 @@ class PeriodicTaskManager(models.Manager):
             cron=cron,
             data=pipeline_tree,
             creator=creator,
-            timezone=business.time_zone,
+            timezone=project.time_zone,
             extra_info=extra_info,
             spread=True
         )
