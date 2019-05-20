@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 BUSINESS_GET = 'gcloud.core.models.Business.objects.get'
 
+PROJECT_GET = 'gcloud.core.models.Project.objects.get'
+
 TASKTEMPLATE_SELECT_RELATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.select_related'
 TASKTEMPLATE_GET = 'gcloud.tasktmpl3.models.TaskTemplate.objects.get'
 
@@ -32,6 +34,9 @@ TASKINSTANCE_HAS_NODE = 'gcloud.taskflow3.models.TaskFlowInstance.has_node'
 PERIODIC_TASK_FILTER = 'gcloud.periodictask.models.PeriodicTask.objects.filter'
 PERIODIC_TASK_GET = 'gcloud.periodictask.models.PeriodicTask.objects.get'
 PERIODIC_TASK_CREATE = 'gcloud.periodictask.models.PeriodicTask.objects.create'
+PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK = 'gcloud.periodictask.models.PipelinePeriodicTask.objects.create_task'
+
+PERIODIC_TASK_HISTORY_CREATE = 'gcloud.periodictask.models.PeriodicTaskHistory.objects.create'
 
 APIGW_BIZ_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_business'
 APIGW_TASK_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_task'
@@ -51,3 +56,5 @@ CORE_MODEL_PROJECT_SYNC_PROJECT = 'gcloud.core.models.Project.objects.sync_proje
 
 CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT = \
     'gcloud.core.models.UserDefaultProject.objects.init_user_default_project'
+
+PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS = 'pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess'

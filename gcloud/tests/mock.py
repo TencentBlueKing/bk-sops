@@ -38,6 +38,11 @@ class MockBusiness(object):
         self.time_zone = kwargs.get('time_zone', 'time_zone')
 
 
+class MockProject(object):
+    def __init__(self, **kwargs):
+        self.time_zone = kwargs.get('time_zone', 'time_zone')
+
+
 class MockPipelineTemplate(object):
     def __init__(self, **kwargs):
         self.id = kwargs.get('id', 'id')
@@ -99,8 +104,18 @@ class MockPeriodicTask(object):
         self.pipeline_tree = kwargs.get('pipeline_tre', 'pipeline_tree')
 
         self.set_enabled = MagicMock()
-        self.modify_cron = MagicMock()
-        self.modify_constants = MagicMock(return_value=kwargs.get('modify_constants_result'))
+        self.modify_cron = MagicMock(**{'side_effect': kwargs.get('modify_cron_raise')})
+        self.modify_constants = MagicMock(**{'return_value': kwargs.get('modify_constants_return'),
+                                             'side_effect': kwargs.get('modify_constants_raise')})
+
+
+class MockPipelinePeriodicTaskHistory(object):
+    def __init__(self, **kwargs):
+        self.start_success = kwargs.get('start_success', True)
+        self.periodic_task = kwargs.get('periodic_task', MagicMock())
+        self.pipeline_instance = kwargs.get('pipeline_instance', MagicMock())
+        self.ex_data = kwargs.get('ex_data', 'ex_data')
+        self.start_at = kwargs.get('start_at', 'start_at')
 
 
 class MockQuerySet(object):
