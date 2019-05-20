@@ -20,24 +20,6 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 
-def post_form_validator(form_cls):
-    def decorate(func):
-        @functools.wraps(func)
-        def wrapper(request, *args, **kwargs):
-            form = form_cls(request.POST)
-            if not form.is_valid():
-                return JsonResponse(status=400, data={
-                    'result': False,
-                    'message': form.errors
-                })
-            setattr(request, 'form', form)
-            return func(request, *args, **kwargs)
-
-        return wrapper
-
-    return decorate
-
-
 class JsonField(forms.CharField):
     default_error_messages = {
         'invalid': _('invalid json string'),

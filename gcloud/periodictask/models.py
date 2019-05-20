@@ -124,13 +124,13 @@ class PeriodicTask(models.Model):
 
     @property
     def task_template_name(self):
-        task_template = None
+        name = None
         try:
-            task_template = TaskTemplate.objects.get(id=self.template_id).name
+            name = TaskTemplate.objects.get(id=self.template_id).name
         except Exception as e:
             logger.warning(_(u"模板不存在，错误信息：%s") % e)
         finally:
-            return task_template
+            return name
 
     def set_enabled(self, enabled):
         self.task.set_enabled(enabled)
@@ -153,8 +153,10 @@ class PeriodicTaskHistoryManager(models.Manager):
         task = PeriodicTask.objects.get(task=periodic_history.periodic_task)
         flow_instance = None
         if periodic_history.start_success:
-            flow_instance = TaskFlowInstance.objects.get(
-                pipeline_instance=periodic_history.pipeline_instance)
+            try:
+                flow_instance = TaskFlowInstance.objects.get(pipeline_instance=periodic_history.pipeline_instance)
+            except TaskFlowInstance.DoesNotExist as e:
+                logger.error(_(u"获取周期任务历史相关任务实例失败：%s" % e))
 
         return self.create(
             history=periodic_history,

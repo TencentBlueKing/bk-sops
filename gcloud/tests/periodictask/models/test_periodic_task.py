@@ -13,27 +13,28 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
-import mock
 import copy
+import factory
 from django.test import TestCase
 from django.db.models import signals
-import factory
 
 from pipeline.models import PipelineTemplate, Snapshot
-from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.utils.uniqid import uniqid
 
+from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from gcloud.core.models import Project
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.periodictask.models import PeriodicTask
+from gcloud.periodictask.models import PeriodicTask, PipelinePeriodicTask
+from gcloud.tests.mock import *  # noqa
+from gcloud.tests.mock_settings import *  # noqa
 
 WRAPPER_UNFOLD = 'pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess'
 
 
 class PeriodicTaskTestCase(TestCase):
 
-    @mock.patch(WRAPPER_UNFOLD, mock.MagicMock())
+    @patch(WRAPPER_UNFOLD, MagicMock())
     def create_a_task(self):
         return PeriodicTask.objects.create(
             name='test',
@@ -47,6 +48,7 @@ class PeriodicTaskTestCase(TestCase):
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):
         self.name = 'test'
+        self.task_template_name = 'task_template_name'
         self.creator = 'tester'
         self.extra_info = {'extra_info': 'val'}
         self.pipeline_tree = {'constants': {
@@ -74,7 +76,7 @@ class PeriodicTaskTestCase(TestCase):
         self.snapshot, _ = Snapshot.objects.create_or_get_snapshot({})
         self.pipeline_template = PipelineTemplate.objects.create(
             template_id=uniqid(),
-            name=self.name,
+            name=self.task_template_name,
             creator=self.creator,
             snapshot=self.snapshot
         )
@@ -99,14 +101,50 @@ class PeriodicTaskTestCase(TestCase):
         self.assertIsInstance(self.task.task, PipelinePeriodicTask)
         self.assertEqual(self.task.template_id, self.template.id)
         self.assertEqual(self.task.project.id, self.project.id)
-        self.assertRaises(InvalidOperationException, PeriodicTask.objects.create,
-                          name='test',
+
+    @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
+    @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
+    def test_create_pipeline_task(self):
+        pipeline_tree = 'pipeline_tree_token'
+        PeriodicTask.objects.create_pipeline_task(project=self.project,
+                                                  template=self.template,
+                                                  name=self.name,
+                                                  cron={},
+                                                  pipeline_tree=pipeline_tree,
+                                                  creator=self.creator)
+
+        PipelineTemplateWebWrapper.unfold_subprocess.assert_called_once_with(pipeline_tree)
+
+        PipelinePeriodicTask.objects.create_task.assert_called_once_with(
+            name=self.name,
+            template=self.template.pipeline_template,
+            cron={},
+            data=pipeline_tree,
+            creator=self.creator,
+            timezone=self.project.time_zone,
+            extra_info={
+                'project_id': self.project.id,
+                'category': self.template.category,
+                'template_id': self.template.pipeline_template.template_id,
+                'template_num_id': self.template.id
+            },
+            spread=True
+        )
+
+    @patch(PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS, MagicMock())
+    @patch(PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK, MagicMock())
+    def test_create_pipeline_task__raise_invalid_operation(self):
+        self.assertRaises(InvalidOperationException, PeriodicTask.objects.create_pipeline_task,
+                          project=self.invalid_project,
                           template=self.template,
+                          name=self.name,
                           cron={},
                           pipeline_tree=self.pipeline_tree,
-                          creator=self.creator,
-                          project=self.invalid_project
-                          )
+                          creator=self.creator)
+
+        PipelineTemplateWebWrapper.unfold_subprocess.assert_not_called()
+
+        PipelinePeriodicTask.objects.create_task.assert_not_called()
 
     def test_enabled(self):
         self.assertEqual(self.task.enabled, self.task.task.enabled)
@@ -125,6 +163,19 @@ class PeriodicTaskTestCase(TestCase):
 
     def test_creator(self):
         self.assertEqual(self.task.creator, self.task.task.creator)
+
+    def test_pipeline_tree(self):
+        self.assertEqual(self.task.pipeline_tree, self.task.task.execution_data)
+
+    def test_form(self):
+        self.assertEqual(self.task.form, self.task.task.form)
+
+    def test_task_template_name(self):
+        self.assertEqual(self.task.task_template_name, self.template.name)
+
+    @patch(TASKTEMPLATE_GET, MagicMock(side_effect=Exception()))
+    def test_task_template_name__task_does_not_exist(self):
+        self.assertIsNone(self.task.task_template_name)
 
     def test_set_enabled(self):
         self.task.set_enabled(True)
@@ -148,7 +199,3 @@ class PeriodicTaskTestCase(TestCase):
         new_constants = self.task.modify_constants({'key_1': 'val_3'})
         self.assertEqual(self.task.task.execution_data['constants'], expect_constants)
         self.assertEqual(new_constants, expect_constants)
-
-    def test_form(self):
-        expect_form = {k: v for k, v in self.pipeline_tree['constants'].items() if v['show_type'] == 'show'}
-        self.assertEqual(self.task.form, expect_form)

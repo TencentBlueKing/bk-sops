@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.http import require_POST
 
-from gcloud.utils.forms import post_form_validator
+from blueapps_werkzeug.django.decorators import post_form_validator, model_instance_inject
 from gcloud.core.models import Project
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
@@ -24,15 +24,14 @@ from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
 
 @require_POST
 @post_form_validator(PeriodicTaskEnabledSetForm)
+@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
+    'id': 'task_id',
+    'project_id': 'project_id'
+})
 def set_enabled_for_periodic_task(request, project_id, task_id):
     enabled = request.form.clean()['enabled']
 
-    try:
-        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
-    except PeriodicTask.DoesNotExist:
-        return HttpResponseForbidden()
-
-    task.set_enabled(enabled)
+    request.task.set_enabled(enabled)
 
     return JsonResponse({
         'result': True,
@@ -42,17 +41,18 @@ def set_enabled_for_periodic_task(request, project_id, task_id):
 
 @require_POST
 @post_form_validator(PeriodicTaskCronModifyForm)
+@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
+    'id': 'task_id',
+    'project_id': 'project_id'
+})
+@model_instance_inject(model_cls=Project, inject_attr='project', field_maps={
+    'project_id': 'project_id'
+})
 def modify_cron(request, project_id, task_id):
     cron = request.form.clean()['cron']
 
     try:
-        tz = Project.objects.get(id=project_id).time_zone
-        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
-    except PeriodicTask.DoesNotExist:
-        return HttpResponseForbidden()
-
-    try:
-        task.modify_cron(cron, tz)
+        request.task.modify_cron(cron, request.project.time_zone)
     except Exception as e:
         return JsonResponse({
             'result': False,
@@ -67,16 +67,15 @@ def modify_cron(request, project_id, task_id):
 
 @require_POST
 @post_form_validator(PeriodicTaskConstantsModifyForm)
+@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
+    'id': 'task_id',
+    'project_id': 'project_id'
+})
 def modify_constants(request, project_id, task_id):
     constants = request.form.clean()['constants']
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
-    except PeriodicTask.DoesNotExist:
-        return HttpResponseForbidden()
-
-    try:
-        new_constants = task.modify_constants(constants)
+        new_constants = request.task.modify_constants(constants)
     except Exception as e:
         return JsonResponse({
             'result': False,
