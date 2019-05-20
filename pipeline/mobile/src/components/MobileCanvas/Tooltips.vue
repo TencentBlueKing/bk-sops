@@ -82,7 +82,7 @@
                 try {
                     this.show = false
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
-                    this.$notify({ message: this.i18n.skipSuccess, background: '#12b93b' })
+                    this.$notify({ message: this.i18n.skipSuccess, background: 'false', className: 'custom-notify' })
                     const response = await this.instanceNodeSkip({ id: this.taskId, nodeId: this.node.id })
                     if (response.result) {
                         setTimeout(() => {
@@ -102,18 +102,20 @@
 </script>
 
 <style lang="scss" scoped>
-    @import '../../../static/style/app.scss';
+    .tippy-popper{
+        line-height: 1.2;
+    }
     .tooltip {
-        text-align: center;
         display: table;
         .tooltip-btn {
             display: table-cell;
-            font-size: $fs-14;
+            font-size: 14px;
             vertical-align: middle;
             + .tooltip-btn:before {
                 content: "|";
                 display: inline-block;
                 color: rgba(255, 255, 255, 0.6);
+                margin: 0 10px;
             }
         }
     }

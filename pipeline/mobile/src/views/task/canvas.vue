@@ -256,5 +256,6 @@
     @import '../../../static/style/app.scss';
     .page-view{
         -webkit-overflow-scrolling: auto;
+        bottom: 50px;
     }
 </style>
