@@ -110,4 +110,7 @@
    .branch-conditions {
         font-size: 12px;
    }
+    .page-home {
+        height: 100%;
+    }
 </style>
