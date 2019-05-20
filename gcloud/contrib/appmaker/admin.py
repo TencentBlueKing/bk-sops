@@ -17,7 +17,7 @@ from django.contrib import admin
 
 @admin.register(models.AppMaker)
 class AppMakerAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'code', 'business', 'task_template', 'is_deleted']
-    list_filter = ('business', 'is_deleted')
+    list_display = ['id', 'name', 'code', 'project', 'task_template', 'is_deleted']
+    list_filter = ('project', 'is_deleted')
     search_fields = ['name', 'code']
-    raw_id_fields = ['business', 'task_template']
+    raw_id_fields = ['project', 'task_template']
