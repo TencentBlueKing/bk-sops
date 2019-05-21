@@ -531,6 +531,7 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data
+                    this.createMethodSync = this.create_method
                 } catch (e) {
                     errorHandler(e, this)
                 }
