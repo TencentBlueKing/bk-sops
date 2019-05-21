@@ -32,7 +32,6 @@ from gcloud.external_plugins.models.origin import (
 
 
 class TestGitRepoOriginalSource(TestCase):
-
     def setUp(self):
         self.ORIGINAL_SOURCE_NAME = 'ORIGINAL_GIT_SOURCE'
         self.SOURCE_TYPE = GIT
@@ -80,7 +79,7 @@ class TestGitRepoOriginalSource(TestCase):
 
     def tearDown(self):
         GitRepoOriginalSource.objects.delete_base_source(self.original_source.base_source_id,
-                                                            self.original_source.type)
+                                                         self.original_source.type)
         GitRepoOriginalSource.objects.filter(id=self.original_source.id).delete()
 
     def test_add_original_source__cls(self):
@@ -116,7 +115,6 @@ class TestGitRepoOriginalSource(TestCase):
 
 
 class TestS3OriginalSource(TestCase):
-
     def setUp(self):
         self.ORIGINAL_SOURCE_NAME = 'ORIGINAL_S3_SOURCE'
         self.SOURCE_TYPE = S3
@@ -161,7 +159,7 @@ class TestS3OriginalSource(TestCase):
 
     def tearDown(self):
         S3OriginalSource.objects.delete_base_source(self.original_source.base_source_id,
-                                                       self.original_source.type)
+                                                    self.original_source.type)
         S3OriginalSource.objects.filter(id=self.original_source.id).delete()
 
     def test_add_original_source__cls(self):
@@ -194,7 +192,6 @@ class TestS3OriginalSource(TestCase):
 
 
 class TestFileSystemOriginalSource(TestCase):
-
     def setUp(self):
         self.ORIGINAL_SOURCE_NAME = 'ORIGINAL_FS_SOURCE'
         self.SOURCE_TYPE = FILE_SYSTEM
@@ -233,7 +230,7 @@ class TestFileSystemOriginalSource(TestCase):
 
     def tearDown(self):
         FileSystemOriginalSource.objects.delete_base_source(self.original_source.base_source_id,
-                                                               self.original_source.type)
+                                                            self.original_source.type)
         FileSystemOriginalSource.objects.filter(id=self.original_source.id).delete()
 
     def test_add_original_source__cls(self):

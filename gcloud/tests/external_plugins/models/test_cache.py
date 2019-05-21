@@ -28,7 +28,6 @@ from gcloud.external_plugins.models.cache import CachePackageSource
 
 
 class TestCachePackageSource(TestCase):
-
     def setUp(self):
         self.CACHE_SOURCE_NAME = 'CACHE_S3_SOURCE'
         self.UPDATE_CACHE_SOURCE_NAME = 'CACHE_FILE_SYSTEM_SOURCE'
@@ -72,7 +71,7 @@ class TestCachePackageSource(TestCase):
 
     def tearDown(self):
         CachePackageSource.objects.delete_base_source(self.cache_source.base_source_id,
-                                                         self.cache_source.type)
+                                                      self.cache_source.type)
         CachePackageSource.objects.filter(id=self.cache_source.id).delete()
 
     def test_base_source(self):
