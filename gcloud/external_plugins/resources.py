@@ -17,21 +17,17 @@ from itertools import chain
 import ujson as json
 import jsonschema
 from django.db import transaction
-from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
-from django.http.response import HttpResponseForbidden
-from django.contrib.auth import get_user_model
-from guardian.shortcuts import get_objects_for_user
 from tastypie import fields
 from tastypie.authorization import Authorization
-from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
-from tastypie.resources import Resource
+from tastypie.exceptions import BadRequest, NotFound
+from tastypie.resources import Resource, convert_post_to_patch
 
+from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models import (
     source_cls_factory,
     CachePackageSource
 )
-from gcloud.external_plugins.schemas import SOURCE_SCHEMA
+from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
 
 logger = logging.getLogger('root')
 
@@ -58,6 +54,7 @@ class PackageSourceResource(Resource):
     class Meta:
         resource_name = 'package_source'
         authorization = Authorization()
+        limit = 0
 
     @staticmethod
     def get_source_models():
@@ -97,19 +94,18 @@ class PackageSourceResource(Resource):
             raise BadRequest('Invalid resource lookup params provided')
 
     def obj_create(self, bundle, **kwargs):
-        with transaction.atomic():
-            try:
-                origins = json.loads(bundle.data.pop('origin'))
-                caches = json.loads(bundle.data.pop('caches'))
-            except (KeyError, ValueError) as e:
-                raise BadRequest(e.message)
+        try:
+            origins = bundle.data.pop('origins')
+            caches = bundle.data.pop('caches')
+        except KeyError:
+            raise BadRequest('Invalid params, please check origins and caches')
 
-            sources = []
+        with transaction.atomic():
             # collect packages of all origin to cache
             cache_packages = {}
             for origin in origins:
                 try:
-                    jsonschema.validate(origin, SOURCE_SCHEMA)
+                    jsonschema.validate(origin, ADD_SOURCE_SCHEMA)
                 except jsonschema.ValidationError as e:
                     message = 'Invalid origin source params: %s' % e
                     logger.error(message)
@@ -119,16 +115,20 @@ class PackageSourceResource(Resource):
             # create cache first if caches exist
             for cache in caches:
                 try:
-                    jsonschema.validate(cache, SOURCE_SCHEMA)
+                    jsonschema.validate(cache, ADD_SOURCE_SCHEMA)
                 except jsonschema.ValidationError as e:
                     message = 'Invalid origin source params: %s' % e
                     logger.error(message)
                     raise BadRequest(message)
-                obj = CachePackageSource.objects.add_cache_source(cache['name'],
-                                                                  cache['type'],
-                                                                  cache_packages,
-                                                                  **caches['details'])
-                sources.append(obj)
+                try:
+                    CachePackageSource.objects.add_cache_source(cache['name'],
+                                                                cache['type'],
+                                                                cache_packages,
+                                                                **cache['details'])
+                except exceptions.GcloudExternalPluginsError as e:
+                    message = 'Create cache source raise error: %s' % e
+                    logger.error(message)
+                    raise BadRequest(message)
 
             # create origins after
             for origin in origins:
@@ -140,28 +140,127 @@ class PackageSourceResource(Resource):
                 source_model = source_cls_factory[source_type]
                 original_kwargs, base_kwargs = source_model.objects.divide_details_parts(source_type, details)
                 original_kwargs['desc'] = origin.get('desc', '')
-                obj = source_model.objects.add_original_source(origin['name'],
-                                                               source_type,
-                                                               origin['packages'],
-                                                               original_kwargs,
-                                                               **base_kwargs)
-                sources.append(obj)
-            return sources
+                source_model.objects.add_original_source(origin['name'],
+                                                         source_type,
+                                                         origin['packages'],
+                                                         original_kwargs,
+                                                         **base_kwargs)
+
+    def patch_list(self, request, **kwargs):
+        request = convert_post_to_patch(request)
+        deserialized = self.deserialize(request,
+                                        request.body,
+                                        format=request.META.get('CONTENT_TYPE', 'application/json'))
+        bundle = self.build_bundle(data=deserialized, request=request)
+        return self.obj_update(bundle)
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-        pass
+        try:
+            origins = bundle.data.pop('origins')
+            caches = bundle.data.pop('caches')
+        except KeyError:
+            raise BadRequest('Invalid params, please check origins and caches')
+
+        with transaction.atomic():
+            # collect packages of all origin to cache
+            if caches:
+                cache_packages = {}
+                for origin_type, origin_model in source_cls_factory.items():
+                    origins_from_db = origin_model.objects.all().values('packages')
+                    for origin in origins_from_db:
+                        cache_packages.update(origin['packages'])
+
+                for origin in origins:
+                    try:
+                        jsonschema.validate(origin, UPDATE_SOURCE_SCHEMA)
+                    except jsonschema.ValidationError as e:
+                        message = 'Invalid origin source params: %s' % e.message
+                        logger.error(message)
+                        raise BadRequest(message)
+                    cache_packages.update(origin['packages'])
+
+                # create or update cache first
+                caches_to_update = [cache['id'] for cache in caches if 'id' in cache]
+                # delete caches whom id not in param caches
+                CachePackageSource.objects.exclude(id__in=caches_to_update).delete()
+                for cache in caches:
+                    try:
+                        jsonschema.validate(cache, UPDATE_SOURCE_SCHEMA)
+                    except jsonschema.ValidationError as e:
+                        message = 'Invalid origin source params: %s' % e
+                        logger.error(message)
+                        raise BadRequest(message)
+                    if 'id' in cache:
+                        try:
+                            CachePackageSource.objects.update_base_source(cache['id'],
+                                                                          cache['type'],
+                                                                          cache_packages,
+                                                                          **cache['details'])
+                        except CachePackageSource.DoesNotExist:
+                            message = 'Invalid cache source id: %s, which cannot be found' % cache['id']
+                            logger.error(message)
+                            raise BadRequest(message)
+                    else:
+                        try:
+                            CachePackageSource.objects.add_cache_source(cache['name'],
+                                                                        cache['type'],
+                                                                        cache_packages,
+                                                                        **cache['details'])
+                        except exceptions.GcloudExternalPluginsError as e:
+                            message = 'Create cache source raise error: %s' % e.message
+                            logger.error(message)
+                            raise BadRequest(message)
+            else:
+                CachePackageSource.objects.all().delete()
+
+            # delete origins whom id not in param origins
+            for origin_type, origin_model in source_cls_factory.items():
+                origins_to_update = [origin['id'] for origin in origins
+                                     if 'id' in origin and origin['type'] == origin_type]
+                origin_model.objects.exclude(id__in=origins_to_update).delete()
+            # create origins after
+            for origin in origins:
+                source_type = origin['type']
+                details = origin['details']
+                # divide details into two parts，base_kwargs mains fields in base model(e.g. fields of
+                # pipeline.contrib.external_plugins.models.GitRepoSource)
+                # original_kwargs mains field in origin model but not in base model(e.g. repo_address、desc)
+                source_model = source_cls_factory[source_type]
+                original_kwargs, base_kwargs = source_model.objects.divide_details_parts(source_type, details)
+                original_kwargs['desc'] = origin.get('desc', '')
+                if 'id' in origin:
+                    source_model.objects.update_original_source(origin['id'],
+                                                                origin['packages'],
+                                                                original_kwargs,
+                                                                **base_kwargs)
+                else:
+                    source_model.objects.add_origin_source(origin['name'],
+                                                           source_type,
+                                                           origin['packages'],
+                                                           original_kwargs,
+                                                           **base_kwargs)
 
     def obj_get(self, bundle, **kwargs):
         raise NotFound("Invalid resource uri, please use obj_get_list")
 
+    def obj_delete_list(self, bundle, **kwargs):
+        with transaction.atomic():
+            caches = CachePackageSource.objects.all()
+            # 需要单独调用自定义 delete 方法
+            for cache in caches:
+                cache.delete()
+
+            for origin_type, origin_model in source_cls_factory.items():
+                origins = origin_model.objects.all()
+                # 需要单独调用自定义 delete 方法
+                for origin in origins:
+                    origin.delete()
+
     def obj_delete_list_for_update(self, bundle, **kwargs):
         pass
 
-    def obj_delete_list(self, bundle, **kwargs):
-        pass
-
     def obj_delete(self, bundle, **kwargs):
-        pass
+        raise NotFound("Invalid resource uri, please use obj_delete_list")
 
     def rollback(self, bundles):
         pass

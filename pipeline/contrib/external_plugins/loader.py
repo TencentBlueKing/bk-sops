@@ -32,11 +32,11 @@ def load_external_modules():
 
 
 def _import_modules_in_source(source):
-    importer = source.importer()
+    try:
+        importer = source.importer()
 
-    with importer_context(importer):
-        for module in source.modules:
-            try:
-                importlib.import_module(module)
-            except Exception:
-                logger.error('An error occurred when loading {%s}: %s' % (module, traceback.format_exc()))
+        with importer_context(importer):
+            for mod in source.modules:
+                importlib.import_module(mod)
+    except Exception:
+        logger.error('An error occurred when loading {%s}: %s' % (source.name, traceback.format_exc()))
