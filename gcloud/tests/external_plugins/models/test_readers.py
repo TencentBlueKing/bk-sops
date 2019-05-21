@@ -17,7 +17,7 @@ from pipeline.contrib.external_plugins.models.base import GIT, S3, FILE_SYSTEM
 
 from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
-from gcloud.external_plugins.models.protocol.readers import (
+from gcloud.external_plugins.protocol.readers import (
     reader,
     reader_cls_factory,
     SourceReader,
