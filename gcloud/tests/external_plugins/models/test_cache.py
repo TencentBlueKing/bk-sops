@@ -71,7 +71,7 @@ class TestCachePackageSource(TestCase):
         )
 
     def tearDown(self):
-        CachePackageSource.objects.delete_package_source(self.cache_source.base_source_id,
+        CachePackageSource.objects.delete_base_source(self.cache_source.base_source_id,
                                                          self.cache_source.type)
         CachePackageSource.objects.filter(id=self.cache_source.id).delete()
 
@@ -112,9 +112,9 @@ class TestCachePackageSource(TestCase):
     def test_write__exception(self):
         self.assertRaises(ValueError, self.cache_source.write)
 
-    def test_update_package_source(self):
-        CachePackageSource.objects.update_package_source(
-            package_id=self.cache_source.id,
+    def test_update_base_source(self):
+        CachePackageSource.objects.update_base_source(
+            package_source_id=self.cache_source.id,
             source_type=self.UPDATE_SOURCE_TYPE,
             packages=self.UPDATED_SOURCE_PACKAGES,
             **self.UPDATED_SOURCE_KWARGS

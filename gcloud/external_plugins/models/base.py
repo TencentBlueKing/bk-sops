@@ -20,21 +20,59 @@ source_cls_factory = {}
 
 
 class PackageSourceManager(models.Manager):
+
+    @staticmethod
+    def get_base_source_cls(source_type):
+        """
+        @summary: 获取 base source
+        @param source_type:
+        @return:
+        """
+        return base_source_cls_factory[source_type]
+
+    def get_base_source_fields(self, source_type):
+        """
+        @summary: 获取 base source 的数据库字段
+        @param source_type:
+        @return:
+        """
+        source_model = self.get_base_source_cls(source_type)
+        all_fields = [field.name for field in source_model._meta.get_fields()]
+        return all_fields
+
+    def divide_details_parts(self, source_type, details):
+        """
+        @summary: divide details into two parts
+            base_kwargs: fields in base model(e.g. fields of pipeline.contrib.external_plugins.models.GitRepoSource)
+            original_kwargs: field in origin model but not in base model(e.g. repo_address、desc)
+        @param source_type:
+        @param details:
+        @return:
+        """
+        all_fields = self.get_base_source_fields(source_type)
+        original_kwargs = {}
+        base_kwargs = {}
+        for key, value in details.items():
+            if key in all_fields:
+                base_kwargs[key] = value
+            else:
+                original_kwargs[key] = value
+        return original_kwargs, base_kwargs
+
     @transaction.atomic()
     def add_base_source(self, name, source_type, packages, **kwargs):
-
-        base_source_cls = base_source_cls_factory[source_type]
+        base_source_cls = self.get_base_source_cls(source_type)
         base_source = base_source_cls.objects.create_source(name=name, packages=packages, from_config=False, **kwargs)
         return base_source
 
-    def update_package_source(self, package_id, source_type, packages, **kwargs):
-        package_source = self.get(id=package_id)
-        package_source.update_base_source(source_type=source_type, packages=packages, **kwargs)
-
     @staticmethod
-    def delete_package_source(package_id, source_type):
+    def delete_base_source(package_source_id, source_type):
         base_source_cls = base_source_cls_factory[source_type]
-        base_source_cls.objects.filter(id=package_id).delete()
+        base_source_cls.objects.filter(id=package_source_id).delete()
+
+    def update_base_source(self, package_source_id, source_type, packages, **kwargs):
+        package_source = self.get(id=package_source_id)
+        package_source.update_base_source(source_type=source_type, packages=packages, **kwargs)
 
 
 class PackageSource(models.Model):
