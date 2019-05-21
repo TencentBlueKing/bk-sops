@@ -11,18 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
+
 from gcloud.external_plugins.models import source_cls_factory
 
 NAME_MAX_LENGTH = 50
 NAME_PATTERN = r'^([a-zA-Z0-9_-]+)$'
 
 
-SOURCE_SCHEMA = {
+ADD_SOURCE_SCHEMA = {
     'type': 'object',
     'required': ['type', 'name', 'details'],
     'properties': {
         'id': {
-            'type': 'int',
+            'type': 'integer',
         },
         'type': {
             'type': 'string', 'enum': source_cls_factory.keys()
@@ -38,7 +40,7 @@ SOURCE_SCHEMA = {
             'patternProperties': {
                 NAME_PATTERN: {
                     'type': 'object',
-                    'required': ['versions', 'modules'],
+                    'required': ['version', 'modules'],
                     'properties': {
                         'version': {
                             'type': 'string'
@@ -102,3 +104,6 @@ SOURCE_SCHEMA = {
         }
     }
 }
+
+UPDATE_SOURCE_SCHEMA = copy.deepcopy(ADD_SOURCE_SCHEMA)
+UPDATE_SOURCE_SCHEMA['required'] = ['type', 'details']
