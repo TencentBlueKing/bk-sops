@@ -47,12 +47,12 @@ class S3Writer(SourceWriter):
         @summary: 把本地local目录按照目录层级上传到S3 中的目录target_dir
         @param client: S3 client
         @param bucket: S3 bucket
-        @param local: 本地目录
+        @param local: 本地目录，必须是绝对路径
         @param target_dir: S3 目标子目录，为空则上传到根目录
         @return:
         """
         if local != '' and local[:1] not in '/\\':
-            local = local.append(os.path.sep)
+            local = os.path.sep + local
         for root, _, files in os.walk(local):
             subdir = root.split(local)[1]
             for _file in files:

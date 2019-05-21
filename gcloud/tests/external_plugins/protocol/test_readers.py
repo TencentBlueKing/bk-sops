@@ -49,7 +49,7 @@ class TestSourceReader(TestCase):
     @patch(OS_PATH_EXISTS, MagicMock(return_value=False))
     @patch(OS_MAKEDIRS, MagicMock(return_value=True))
     @patch(SHUTIL_RMTREE, MagicMock(return_value=True))
-    def test_exception(self):
+    def test_not_implement_read_raise(self):
         with self.assertRaises(NotImplementedError):
             class ErrorReader(SourceReader):
                 type = 'ERROR'

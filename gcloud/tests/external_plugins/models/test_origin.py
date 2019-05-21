@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from git.exc import GitError
 
 from pipeline.contrib.external_plugins.models import (
     GIT,
@@ -23,6 +22,8 @@ from pipeline.contrib.external_plugins.models import (
     FileSystemSource
 )
 
+from gcloud.tests.external_plugins.mock import *  # noqa
+from gcloud.tests.external_plugins.mock_settings import *  # noqa
 from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models.origin import (
     GitRepoOriginalSource,
@@ -90,6 +91,18 @@ class TestGitRepoOriginalSource(TestCase):
         self.assertEquals(self.original_source.base_source, base_source)
         self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
 
+    def test_get_base_source_fields(self):
+        self.assertEquals(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+                          {'id', 'name', 'from_config', 'packages', 'repo_raw_address', 'branch'})
+
+    def test_divide_details_parts(self):
+        details = {}
+        details.update(self.ORIGINAL_KWARGS)
+        details.update(self.SOURCE_KWARGS)
+        original_kwargs, base_kwargs = GitRepoOriginalSource.objects.divide_details_parts(self.SOURCE_TYPE, details)
+        self.assertEquals(original_kwargs, self.ORIGINAL_KWARGS)
+        self.assertEquals(base_kwargs, self.SOURCE_KWARGS)
+
     def test_details(self):
         details = {}
         details.update(self.ORIGINAL_KWARGS)
@@ -99,8 +112,9 @@ class TestGitRepoOriginalSource(TestCase):
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
 
-    def test_read__exception(self):
-        self.assertRaises(GitError, self.original_source.read)
+    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_ORIGIN_READER_CLS_FACTORY, MockClsFactory())
+    def test_read(self):
+        self.assertIsNone(self.original_source.read())
 
     def test_update_base_source(self):
         GitRepoOriginalSource.objects.update_original_source(
@@ -170,6 +184,11 @@ class TestS3OriginalSource(TestCase):
         self.assertEquals(self.original_source.base_source, base_source)
         self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
 
+    def test_get_base_source_fields(self):
+        self.assertEquals(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+                          {'id', 'name', 'from_config', 'packages', 'service_address', 'bucket', 'access_key',
+                           'secret_key'})
+
     def test_details(self):
         details = {}
         details.update(self.SOURCE_KWARGS)
@@ -178,8 +197,9 @@ class TestS3OriginalSource(TestCase):
     def test_original_type(self):
         self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
 
-    def test_read__exception(self):
-        self.assertRaises(ValueError, self.original_source.read)
+    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_ORIGIN_READER_CLS_FACTORY, MockClsFactory())
+    def test_read(self):
+        self.assertIsNone(self.original_source.read())
 
     def test_update_base_source(self):
         S3OriginalSource.objects.update_original_source(
@@ -240,6 +260,10 @@ class TestFileSystemOriginalSource(TestCase):
         base_source = FileSystemSource.objects.get(id=self.original_source.base_source_id)
         self.assertEquals(self.original_source.base_source, base_source)
         self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
+
+    def test_get_base_source_fields(self):
+        self.assertEquals(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+                          {'id', 'name', 'from_config', 'packages', 'path'})
 
     def test_details(self):
         details = {}

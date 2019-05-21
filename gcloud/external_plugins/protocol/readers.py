@@ -72,13 +72,14 @@ class S3Reader(SourceReader):
                 cls.download_s3_dir(client, paginator, bucket, local, subdir.get('Prefix'))
             # iter files (e.g. /first1/second1/file.py)
             for _file in page.get('Contents', []):
-                if _file.get('Key', '')[:1] in '/\\':
-                    full_path = os.path.join(local, _file.get('Key')[1:])
+                key = _file.get('Key', '')
+                if key[:1] in '/\\':
+                    full_path = os.path.join(local, key[1:])
                 else:
-                    full_path = os.path.join(local, _file.get('Key'))
+                    full_path = os.path.join(local, key)
                 if not os.path.exists(os.path.dirname(full_path)):
                     os.makedirs(os.path.dirname(full_path))
-                client.download_file(Bucket=bucket, Key=_file.get('Key'), Filename=full_path)
+                client.download_file(Bucket=bucket, Key=key, Filename=full_path)
 
     def read(self):
         client = boto3.client('s3',
