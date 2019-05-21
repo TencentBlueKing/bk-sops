@@ -12,20 +12,23 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from mock import patch, MagicMock, call
 
-from pipeline.component_framework.test import (ComponentTestMixin,
-                                               ComponentTestCase,
-                                               CallAssertion,
-                                               ExecuteAssertion,
-                                               ScheduleAssertion)
+from mock import MagicMock
 
+from pipeline.component_framework.test import (
+    ComponentTestMixin,
+    ComponentTestCase,
+    CallAssertion,
+    ExecuteAssertion,
+    ScheduleAssertion,
+    Call,
+    Patcher
+)
 from pipeline_plugins.components.collections.sites.open.job import JobExecuteTaskComponent
 
 
 class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
 
-    @property
     def cases(self):
         return [
             EXECUTE_JOB_FAIL_CASE,
@@ -36,7 +39,6 @@ class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
             INVALID_IP_CASE
         ]
 
-    @property
     def component_cls(self):
         return JobExecuteTaskComponent
 
@@ -123,13 +125,13 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
         outputs={'ex_data': 'message token'}),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[call(username='executor_token',
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(username='executor_token',
                                                                biz_cc_id=1,
                                                                ip_str='1.1.1.1,2.2.2.2',
                                                                use_cache=False)]),
         CallAssertion(
             func=EXECUTE_JOB_CALL_FAIL_CLIENT.job.execute_job,
-            calls=[call({
+            calls=[Call({
                 'bk_biz_id': 1,
                 'bk_job_id': 12345,
                 'global_vars': [
@@ -142,16 +144,14 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
             })])
     ],
     patchers=[
-        patch(GET_CLIENT_BY_USER, MagicMock(
-            return_value=EXECUTE_JOB_CALL_FAIL_CLIENT)),
-        patch(CC_GET_IPS_INFO_BY_STR, MagicMock(
-            return_value={
-                'ip_result': [
-                    {'InnerIP': '1.1.1.1', 'Source': 1},
-                    {'InnerIP': '2.2.2.2', 'Source': 1},
-                ]
-            })),
-        patch(GET_NODE_CALLBACK_URL, MagicMock(return_value='url_token'))
+        Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_CALL_FAIL_CLIENT),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={
+            'ip_result': [
+                {'InnerIP': '1.1.1.1', 'Source': 1},
+                {'InnerIP': '2.2.2.2', 'Source': 1},
+            ]
+        }),
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value='url_token')
     ])
 
 INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
@@ -190,13 +190,13 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CC_GET_IPS_INFO_BY_STR,
-            calls=[call(username='executor_token',
+            calls=[Call(username='executor_token',
                         biz_cc_id=1,
                         ip_str='1.1.1.1,2.2.2.2',
                         use_cache=False)]),
         CallAssertion(
             func=INVALID_CALLBACK_DATA_CLIENT.job.execute_job,
-            calls=[call({
+            calls=[Call({
                 'bk_biz_id': 1,
                 'bk_job_id': 12345,
                 'global_vars': [
@@ -210,21 +210,14 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             })])
     ],
     patchers=[
-        patch(
-            GET_CLIENT_BY_USER,
-            MagicMock(return_value=INVALID_CALLBACK_DATA_CLIENT)
-        ),
-        patch(
-            CC_GET_IPS_INFO_BY_STR,
-            MagicMock(return_value={
-                'ip_result': [
-                    {'InnerIP': '1.1.1.1', 'Source': 1},
-                    {'InnerIP': '2.2.2.2', 'Source': 1},
-                ]})
-        ),
-        patch(GET_NODE_CALLBACK_URL, MagicMock(return_value='url_token')),
-        patch(GET_JOB_INSTANCE_URL,
-              MagicMock(return_value='instance_url_token'))
+        Patcher(target=GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={
+            'ip_result': [
+                {'InnerIP': '1.1.1.1', 'Source': 1},
+                {'InnerIP': '2.2.2.2', 'Source': 1},
+            ]}),
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value='url_token'),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value='instance_url_token'),
     ])
 
 JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
@@ -268,14 +261,14 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             'status': 1
         }),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[call(
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(
             username='executor_token',
             biz_cc_id=1,
             ip_str='1.1.1.1,2.2.2.2',
             use_cache=False)]),
         CallAssertion(
             func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.job.execute_job,
-            calls=[call({
+            calls=[Call({
                 'bk_biz_id': 1,
                 'bk_job_id': 12345,
                 'global_vars': [
@@ -288,16 +281,15 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             })])
     ],
     patchers=[
-        patch(GET_CLIENT_BY_USER,
-              MagicMock(return_value=JOB_EXECUTE_NOT_SUCCESS_CLIENT)),
-        patch(CC_GET_IPS_INFO_BY_STR, MagicMock(return_value={
+        Patcher(target=GET_CLIENT_BY_USER, return_value=JOB_EXECUTE_NOT_SUCCESS_CLIENT),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={
             'ip_result': [
                 {'InnerIP': '1.1.1.1', 'Source': 1},
                 {'InnerIP': '2.2.2.2', 'Source': 1},
             ]
-        })),
-        patch(GET_NODE_CALLBACK_URL, MagicMock(return_value='url_token')),
-        patch(GET_JOB_INSTANCE_URL, MagicMock(return_value='instance_url_token'))
+        }),
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value='url_token'),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value='instance_url_token'),
     ])
 
 GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
@@ -336,14 +328,14 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             'status': 3
         }),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[call(
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(
             username='executor_token',
             biz_cc_id=1,
             ip_str='1.1.1.1,2.2.2.2',
             use_cache=False)]),
         CallAssertion(
             func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.job.execute_job,
-            calls=[call({
+            calls=[Call({
                 'bk_biz_id': 1,
                 'bk_job_id': 12345,
                 'global_vars': [
@@ -358,23 +350,22 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     schedule_call_assertion=[
         CallAssertion(
             func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.job.get_job_instance_global_var_value,
-            calls=[call({
+            calls=[Call({
                 'bk_biz_id': 1,
                 'job_instance_id': 56789
             })]
         )
     ],
     patchers=[
-        patch(GET_CLIENT_BY_USER,
-              MagicMock(return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT)),
-        patch(CC_GET_IPS_INFO_BY_STR, MagicMock(return_value={
+        Patcher(target=GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={
             'ip_result': [
                 {'InnerIP': '1.1.1.1', 'Source': 1},
                 {'InnerIP': '2.2.2.2', 'Source': 1},
             ]
-        })),
-        patch(GET_NODE_CALLBACK_URL, MagicMock(return_value='url_token')),
-        patch(GET_JOB_INSTANCE_URL, MagicMock(return_value='instance_url_token'))
+        }),
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value='url_token'),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value='instance_url_token'),
     ])
 
 EXECUTE_SUCCESS_CASE = ComponentTestCase(
@@ -414,14 +405,14 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             'status': 3
         }),
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[call(
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(
             username='executor_token',
             biz_cc_id=1,
             ip_str='1.1.1.1,2.2.2.2',
             use_cache=False)]),
         CallAssertion(
             func=EXECUTE_SUCCESS_CLIENT.job.execute_job,
-            calls=[call({
+            calls=[Call({
                 'bk_biz_id': 1,
                 'bk_job_id': 12345,
                 'global_vars': [
@@ -436,23 +427,22 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     schedule_call_assertion=[
         CallAssertion(
             func=EXECUTE_SUCCESS_CLIENT.job.get_job_instance_global_var_value,
-            calls=[call({
+            calls=[Call({
                 'bk_biz_id': 1,
                 'job_instance_id': 56789
             })]
         )
     ],
     patchers=[
-        patch(GET_CLIENT_BY_USER,
-              MagicMock(return_value=EXECUTE_SUCCESS_CLIENT)),
-        patch(CC_GET_IPS_INFO_BY_STR, MagicMock(return_value={
+        Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={
             'ip_result': [
                 {'InnerIP': '1.1.1.1', 'Source': 1},
                 {'InnerIP': '2.2.2.2', 'Source': 1},
             ]
-        })),
-        patch(GET_NODE_CALLBACK_URL, MagicMock(return_value='url_token')),
-        patch(GET_JOB_INSTANCE_URL, MagicMock(return_value='instance_url_token'))
+        }),
+        Patcher(target=GET_NODE_CALLBACK_URL, return_value='url_token'),
+        Patcher(target=GET_JOB_INSTANCE_URL, return_value='instance_url_token'),
     ])
 
 INVALID_IP_CASE = ComponentTestCase(
@@ -476,12 +466,12 @@ INVALID_IP_CASE = ComponentTestCase(
         }),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[call(
+        CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(
             username='executor_token',
             biz_cc_id=1,
             ip_str='1.1.1.1,2.2.2.2',
             use_cache=False)]),
     ],
     patchers=[
-        patch(CC_GET_IPS_INFO_BY_STR, MagicMock(return_value={'ip_result': []})),
+        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={'ip_result': []}),
     ])
