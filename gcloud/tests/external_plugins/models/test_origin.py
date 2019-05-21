@@ -79,7 +79,7 @@ class TestGitRepoOriginalSource(TestCase):
         )
 
     def tearDown(self):
-        GitRepoOriginalSource.objects.delete_package_source(self.original_source.base_source_id,
+        GitRepoOriginalSource.objects.delete_base_source(self.original_source.base_source_id,
                                                             self.original_source.type)
         GitRepoOriginalSource.objects.filter(id=self.original_source.id).delete()
 
@@ -103,9 +103,9 @@ class TestGitRepoOriginalSource(TestCase):
     def test_read__exception(self):
         self.assertRaises(GitError, self.original_source.read)
 
-    def test_update_package_source(self):
+    def test_update_base_source(self):
         GitRepoOriginalSource.objects.update_original_source(
-            package_id=self.original_source.id,
+            package_source_id=self.original_source.id,
             packages=self.UPDATED_SOURCE_PACKAGES,
             original_kwargs=self.UPDATED_ORIGINAL_KWARGS,
             **self.UPDATED_SOURCE_KWARGS
@@ -160,7 +160,7 @@ class TestS3OriginalSource(TestCase):
         )
 
     def tearDown(self):
-        S3OriginalSource.objects.delete_package_source(self.original_source.base_source_id,
+        S3OriginalSource.objects.delete_base_source(self.original_source.base_source_id,
                                                        self.original_source.type)
         S3OriginalSource.objects.filter(id=self.original_source.id).delete()
 
@@ -183,9 +183,9 @@ class TestS3OriginalSource(TestCase):
     def test_read__exception(self):
         self.assertRaises(ValueError, self.original_source.read)
 
-    def test_update_package_source(self):
+    def test_update_base_source(self):
         S3OriginalSource.objects.update_original_source(
-            package_id=self.original_source.id,
+            package_source_id=self.original_source.id,
             packages=self.UPDATED_SOURCE_PACKAGES,
             **self.UPDATED_SOURCE_KWARGS
         )
@@ -232,7 +232,7 @@ class TestFileSystemOriginalSource(TestCase):
         )
 
     def tearDown(self):
-        FileSystemOriginalSource.objects.delete_package_source(self.original_source.base_source_id,
+        FileSystemOriginalSource.objects.delete_base_source(self.original_source.base_source_id,
                                                                self.original_source.type)
         FileSystemOriginalSource.objects.filter(id=self.original_source.id).delete()
 
@@ -255,9 +255,9 @@ class TestFileSystemOriginalSource(TestCase):
     def test_read__exception(self):
         self.assertRaises(exceptions.OriginalSourceTypeError, self.original_source.read)
 
-    def test_update_package_source(self):
+    def test_update_base_source(self):
         FileSystemOriginalSource.objects.update_original_source(
-            package_id=self.original_source.id,
+            package_source_id=self.original_source.id,
             packages=self.UPDATED_SOURCE_PACKAGES,
             **self.UPDATED_SOURCE_KWARGS
         )

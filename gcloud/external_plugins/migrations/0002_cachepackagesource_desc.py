@@ -11,10 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.external_plugins.models.origin import (  # noqa
-    OriginalPackageSource,
-    GitRepoOriginalSource,
-    S3OriginalSource,
-    source_cls_factory
-)
-from gcloud.external_plugins.models.cache import CachePackageSource  # noqa
+from __future__ import unicode_literals
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('external_plugins', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.AddField(
+            model_name='cachepackagesource',
+            name='desc',
+            field=models.TextField(blank=True, max_length=1000, verbose_name='\u5305\u6e90\u8bf4\u660e'),
+        ),
+    ]
