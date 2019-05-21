@@ -84,5 +84,10 @@ class TestFileSystemWriter(TestCase):
     @patch(OS_PATH_EXISTS, MagicMock(return_value=True))
     @patch(SHUTIL_MOVE, MagicMock(return_value=True))
     def test_write(self):
-        file_system_writer = FileSystemWriter(self.from_path, MagicMock(return_value=''))
-        file_system_writer.write()
+        fs_writer = FileSystemWriter(self.from_path, MagicMock(return_value=''))
+
+        mock_shutil = MockShutil()
+        with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_WRITERS_SHUTIL, mock_shutil):
+            fs_writer.write()
+            self.assertEquals(mock_shutil.from_path, fs_writer.from_path)
+            self.assertEquals(mock_shutil.to_path, fs_writer.base_source.path)
