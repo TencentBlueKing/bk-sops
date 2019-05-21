@@ -72,7 +72,7 @@ class TestS3Writer(TestCase):
             '/local/cache/first/file',
             '/local/cache/first/second/file',
         )
-        with patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_PROTOCOL_WRITERS_BOTO3, mock_s3):
+        with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_WRITERS_BOTO3, mock_s3):
             s3_writer.write()
             self.assertEquals(set(mock_s3.files), set(files))
 

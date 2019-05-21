@@ -74,7 +74,7 @@ class TestGitReader(TestCase):
         git_reader = GitReader(self.to_path, **details)
 
         mock_git = MockGitRepo()
-        with patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_PROTOCOL_READERS_REPO, mock_git):
+        with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_REPO, mock_git):
             git_reader.read()
             details.update({'to_path': self.to_path})
             self.assertEquals(mock_git.repo_info, details)
@@ -110,6 +110,6 @@ class TestS3Reader(TestCase):
             'first2/second1/file21',
             'first2/second2/file22',
         )
-        with patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_PROTOCOL_READERS_BOTO3, mock_s3):
+        with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_BOTO3, mock_s3):
             s3_reader.read()
             self.assertEquals(set(mock_s3.files), set(['%s%s' % (self.to_path, _file) for _file in files]))
