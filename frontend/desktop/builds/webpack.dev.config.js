@@ -14,7 +14,7 @@ const webpack = require('webpack')
 const merge = require('webpack-merge')
 const webpackBaseConfig = require('./webpack.base.js')
 
-const SITE_URL = ''
+const SITE_URL = '/'
 const proxyPath = [
     'static/*',
     'jsi18n/*',
