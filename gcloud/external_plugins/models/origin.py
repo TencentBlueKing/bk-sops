@@ -28,7 +28,7 @@ from pipeline.contrib.external_plugins.models import (
 from gcloud.external_plugins import exceptions, CACHE_TEMP_PATH
 from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
 from gcloud.external_plugins.models.cache import CachePackageSource
-from gcloud.external_plugins.models.protocol.readers import reader_cls_factory
+from gcloud.external_plugins.protocol.readers import reader_cls_factory
 
 source_cls_factory = {}
 ORIGIN = 'origin'

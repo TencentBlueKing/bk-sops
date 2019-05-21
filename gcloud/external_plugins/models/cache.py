@@ -16,7 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.external_plugins import exceptions, CACHE_TEMP_PATH
 from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
-from gcloud.external_plugins.models.protocol.writers import writer_cls_factory
+from gcloud.external_plugins.protocol.writers import writer_cls_factory
 
 CACHE = 'cache'
 
