@@ -102,6 +102,16 @@ class MockBoto3(object):
         return MockBoto3Cleint(name, endpoint_url, aws_access_key_id, aws_secret_access_key, self.files)
 
 
+class MockShutil(object):
+    def __init__(self):
+        self.from_path = None
+        self.to_path = None
+
+    def move(self, from_path, to_path):
+        self.from_path = from_path
+        self.to_path = to_path
+
+
 def mock_os_walk(local):
     root = local
     result = [(local, None, ['file'])]

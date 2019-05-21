@@ -20,6 +20,7 @@ SHUTIL_MOVE = 'shutil.move'
 GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_BOTO3 = 'gcloud.external_plugins.protocol.readers.boto3'
 GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_REPO = 'gcloud.external_plugins.protocol.readers.Repo'
 GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_WRITERS_BOTO3 = 'gcloud.external_plugins.protocol.writers.boto3'
+GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_WRITERS_SHUTIL = 'gcloud.external_plugins.protocol.writers.shutil'
 
 GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_WRITER_CLS_FACTORY = \
     'gcloud.external_plugins.models.cache.writer_cls_factory'
