@@ -246,7 +246,8 @@
                 isRevokeDialogShow: false,
                 showNodeList: [0, 1, 2],
                 ellipsis: '...',
-                operateLoading: false
+                operateLoading: false,
+                retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
         },
         computed: {
@@ -854,8 +855,10 @@
                     nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
                 } else {
                     const gatewayNode = gateways[curNode]
-                    if (gatewayNode) {
-                        const gatewayOutLine = gatewayNode.outgoing
+                    if (gatewayNode && this.retrievedCovergeGateways.indexOf(gatewayNode.id) === -1) {
+                        this.retrievedCovergeGateways.push(gatewayNode.id)
+                        const outgoing = gatewayNode.outgoing
+                        const gatewayOutLine = Array.isArray(outgoing) ? outgoing : [outgoing]
                         if (Array.isArray(gatewayOutLine)) {
                             const gatewayLinkedNodes = []
                             gatewayOutLine.forEach(line => {
