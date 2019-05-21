@@ -39,7 +39,7 @@
                             </bk-selector>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="getPeriodicList">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
