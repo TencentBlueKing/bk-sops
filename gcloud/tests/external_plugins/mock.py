@@ -109,3 +109,25 @@ def mock_os_walk(local):
         root = '%s%s/' % (root, path)
         result.append((root, None, ['file']))
     return result
+
+
+class MockWriterAndReader(object):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+
+    @staticmethod
+    def write():
+        return True
+
+    @staticmethod
+    def read():
+        return True
+
+
+class MockClsFactory(object):
+    def __getitem__(self, key):
+        return MockWriterAndReader
+
+    def __contains__(self, key):
+        return True

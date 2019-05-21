@@ -70,9 +70,9 @@ class TestCachePackageSource(TestCase):
         )
 
     def tearDown(self):
-        CachePackageSource.objects.delete_base_source(self.cache_source.base_source_id,
-                                                      self.cache_source.type)
-        CachePackageSource.objects.filter(id=self.cache_source.id).delete()
+        caches = CachePackageSource.objects.all()
+        for cache in caches:
+            cache.delete()
 
     def test_base_source(self):
         base_source = S3Source.objects.get(id=self.cache_source.base_source_id)
@@ -107,9 +107,13 @@ class TestCachePackageSource(TestCase):
     def test_details(self):
         self.assertEquals(self.cache_source.details, self.SOURCE_KWARGS)
 
-    @patch(OS_PATH_EXISTS, MagicMock(return_value=True))
-    def test_write__exception(self):
-        self.assertRaises(ValueError, self.cache_source.write)
+    def test_write__type_error(self):
+        self.cache_source.type = 'error_type'
+        self.assertRaises(exceptions.CacheSourceTypeError, self.cache_source.write)
+
+    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_WRITER_CLS_FACTORY, MockClsFactory())
+    def test_write(self):
+        self.assertIsNone(self.cache_source.write())
 
     def test_update_base_source(self):
         CachePackageSource.objects.update_base_source(
@@ -122,3 +126,7 @@ class TestCachePackageSource(TestCase):
         self.assertEquals(self.cache_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
         base_source = FileSystemSource.objects.get(id=self.cache_source.base_source_id)
         self.assertEquals(self.cache_source.base_source, base_source)
+
+    def test_get_base_source__none(self):
+        CachePackageSource.objects.get(id=self.cache_source.id).delete()
+        self.assertEquals(CachePackageSource.objects.get_base_source(), None)

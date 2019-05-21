@@ -10,19 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-OS_PATH_EXISTS = 'os.path.exists'
-OS_MAKEDIRS = 'os.makedirs'
-OS_WALK = 'os.walk'
-SHUTIL_RMTREE = 'shutil.rmtree'
-SHUTIL_MOVE = 'shutil.move'
-
-GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_BOTO3 = 'gcloud.external_plugins.protocol.readers.boto3'
-GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_REPO = 'gcloud.external_plugins.protocol.readers.Repo'
-GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_WRITERS_BOTO3 = 'gcloud.external_plugins.protocol.writers.boto3'
-
-GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_WRITER_CLS_FACTORY = \
-    'gcloud.external_plugins.models.cache.writer_cls_factory'
-
-GCLOUD_EXTERNAL_PLUGINS_MODELS_ORIGIN_READER_CLS_FACTORY = \
-    'gcloud.external_plugins.models.origin.reader_cls_factory'
