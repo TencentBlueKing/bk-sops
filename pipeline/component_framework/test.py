@@ -13,35 +13,54 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import importlib
+import traceback
+from contextlib import contextmanager
 
-from abc import abstractproperty
+from mock import patch, call, MagicMock
 
 from pipeline.core.data.base import DataObject
+from pipeline.utils.uniqid import uniqid
 
-logger = logging.getLogger('root')
+logger = logging.getLogger('django.server')
+
+
+@contextmanager
+def patch_context(patchers):
+    for patcher in patchers:
+        patcher.start()
+
+    yield
+
+    for patcher in patchers:
+        patcher.stop()
 
 
 class ComponentTestMixin(object):
 
-    @abstractproperty
     def component_cls(self):
         raise NotImplementedError()
 
-    @abstractproperty
     def cases(self):
         raise NotImplementedError()
 
     @property
+    def _cases(self):
+        return self.cases()
+
+    @property
+    def _component_cls(self):
+        return self.component_cls()
+
+    @property
     def _component_cls_name(self):
-        return self.component_cls.__name__
+        return self._component_cls.__name__
 
     def _format_failure_message(self, no, name, msg):
         return '[{component_cls} case {no}] - [{name}] fail: {msg}'.format(
             component_cls=self._component_cls_name,
             no=no + 1,
             name=name,
-            msg=msg
-        )
+            msg=msg)
 
     def _do_case_assert(self,
                         service,
@@ -52,7 +71,6 @@ class ComponentTestMixin(object):
                         args=None,
                         kwargs=None):
 
-        do_continue = False
         args = args or [service]
         kwargs = kwargs or {}
 
@@ -60,35 +78,28 @@ class ComponentTestMixin(object):
 
         result = getattr(service, method)(*args, **kwargs)
 
-        if result is None or result is True:
-            self.assertTrue(assertion.success, msg=self._format_failure_message(
-                no=no,
-                name=name,
-                msg='{method} success assertion failed, {method} execute success'.format(
-                    method=method
-                )
-            ))
+        assert_success = result in [None, True]  # return none will consider as success
+        do_continue = not assert_success
 
-            self.assertDictEqual(data.outputs, assertion.outputs, msg=self._format_failure_message(
-                no=no,
-                name=name,
-                msg='{method} outputs assertion failed,\nexcept: {e}\nactual: {a}'.format(
-                    method=method,
-                    e=data.outputs,
-                    a=assertion.outputs
-                )
-            ))
+        assert_method = 'assertTrue' if assert_success else 'assertFalse'
 
-        else:
-            self.assertFalse(assertion.success, msg=self._format_failure_message(
-                no=no,
-                name=name,
-                msg='{method} success assertion failed, {method} execute failed'.format(
-                    method=method
-                )
-            ))
+        getattr(self, assert_method)(assertion.success, msg=self._format_failure_message(
+            no=no,
+            name=name,
+            msg='{method} success assertion failed, {method} execute success'.format(
+                method=method
+            )
+        ))
 
-            do_continue = True
+        self.assertDictEqual(data.outputs, assertion.outputs, msg=self._format_failure_message(
+            no=no,
+            name=name,
+            msg='{method} outputs assertion failed,\nexcept: {e}\nactual: {a}'.format(
+                method=method,
+                e=assertion.outputs,
+                a=data.outputs
+            )
+        ))
 
         return do_continue
 
@@ -105,83 +116,99 @@ class ComponentTestMixin(object):
                 )
             ))
 
-    def test_component(self):
-        component = self.component_cls({})
-
-        for no, case in enumerate(self.cases):
-            bound_service = component.service()
-
-            for patcher in case.patchers:
-                patcher.start()
-
-            data = DataObject(inputs=case.inputs)
-            parent_data = DataObject(inputs=case.parent_data)
-
-            # execute result check
-            do_continue = self._do_case_assert(service=bound_service,
-                                               method='execute',
-                                               args=(data, parent_data),
-                                               assertion=case.execute_assertion,
-                                               no=no,
-                                               name=case.name)
-
-            for call_assertion in case.execute_call_assertion:
-                self._do_call_assertion(name=case.name,
-                                        no=no,
-                                        assertion=call_assertion)
-
-            if do_continue:
-                continue
-
-            if bound_service.need_schedule():
-
-                if bound_service.interval is None:
-                    # callback case
-                    self._do_case_assert(service=bound_service,
-                                         method='schedule',
-                                         args=(data, parent_data, case.schedule_assertion.callback_data),
-                                         assertion=case.schedule_assertion,
-                                         no=no,
-                                         name=case.name)
-
-                else:
-                    # schedule case
-                    assertions = case.schedule_assertion
-                    assertions = assertions if isinstance(assertions, list) else [assertions]
-
-                    for assertion in assertions:
-                        do_continue = self._do_case_assert(service=bound_service,
-                                                           method='schedule',
-                                                           args=(data, parent_data),
-                                                           assertion=assertion,
-                                                           no=no,
-                                                           name=case.name)
-
-                        self.assertEqual(assertion.schedule_finished,
-                                         bound_service.is_schedule_finished(),
-                                         msg=self._format_failure_message(
-                                             no=no,
-                                             name=case.name,
-                                             msg='schedule_finished assertion failed:'
-                                                 '\nexpected: {expected}\nactual: {actual}'.format(
-                                                 expected=assertion.schedule_finished,  # noqa
-                                                 actual=bound_service.is_schedule_finished())))  # noqa
-
-                        if do_continue:
-                            break
-
-                for call_assertion in case.schedule_call_assertion:
-                    self._do_call_assertion(name=case.name,
-                                            no=no,
-                                            assertion=call_assertion)
-
-            for patcher in case.patchers:
-                patcher.stop()
-
-        logger.info('{component} paas {num} cases.'.format(
+    def case_pass(self, case):
+        logger.info(u"[√] <{component}> - [{case_name}]".format(
             component=self._component_cls_name,
-            num=len(self.cases)
+            case_name=case.name,
         ))
+
+    def case_fail(self, case):
+        logger.info(u"[×] <{component}> - [{case_name}]".format(
+            component=self._component_cls_name,
+            case_name=case.name,
+        ))
+
+    def test_component(self):
+        component = self._component_cls({})
+
+        for no, case in enumerate(self._cases):
+            try:
+
+                patchers = [patcher.mock_patcher() for patcher in case.patchers]
+
+                with patch_context(patchers):
+
+                    bound_service = component.service()
+
+                    setattr(bound_service, 'id', case.service_id)
+
+                    data = DataObject(inputs=case.inputs)
+                    parent_data = DataObject(inputs=case.parent_data)
+
+                    # execute result check
+                    do_continue = self._do_case_assert(service=bound_service,
+                                                       method='execute',
+                                                       args=(data, parent_data),
+                                                       assertion=case.execute_assertion,
+                                                       no=no,
+                                                       name=case.name)
+
+                    for call_assertion in case.execute_call_assertion:
+                        self._do_call_assertion(name=case.name,
+                                                no=no,
+                                                assertion=call_assertion)
+
+                    if do_continue:
+                        self.case_pass(case)
+                        continue
+
+                    if bound_service.need_schedule():
+
+                        if bound_service.interval is None:
+                            # callback case
+                            self._do_case_assert(service=bound_service,
+                                                 method='schedule',
+                                                 args=(data, parent_data, case.schedule_assertion.callback_data),
+                                                 assertion=case.schedule_assertion,
+                                                 no=no,
+                                                 name=case.name)
+
+                        else:
+                            # schedule case
+                            assertions = case.schedule_assertion
+                            assertions = assertions if isinstance(assertions, list) else [assertions]
+
+                            for assertion in assertions:
+                                do_continue = self._do_case_assert(service=bound_service,
+                                                                   method='schedule',
+                                                                   args=(data, parent_data),
+                                                                   assertion=assertion,
+                                                                   no=no,
+                                                                   name=case.name)
+
+                                self.assertEqual(assertion.schedule_finished,
+                                                 bound_service.is_schedule_finished(),
+                                                 msg=self._format_failure_message(
+                                                     no=no,
+                                                     name=case.name,
+                                                     msg='schedule_finished assertion failed:'
+                                                         '\nexpected: {expected}\nactual: {actual}'.format(
+                                                         expected=assertion.schedule_finished,  # noqa
+                                                         actual=bound_service.is_schedule_finished())))  # noqa
+
+                                if do_continue:
+                                    break
+
+                        for call_assertion in case.schedule_call_assertion:
+                            self._do_call_assertion(name=case.name,
+                                                    no=no,
+                                                    assertion=call_assertion)
+
+                    self.case_pass(case)
+
+            except Exception:
+                self.case_fail(case)
+                logger.error(traceback.format_exc())
 
 
 class ComponentTestCase(object):
@@ -193,7 +220,8 @@ class ComponentTestCase(object):
                  name='',
                  patchers=None,
                  execute_call_assertion=None,
-                 schedule_call_assertion=None):
+                 schedule_call_assertion=None,
+                 service_id=None):
         self.inputs = inputs
         self.parent_data = parent_data
         self.execute_assertion = execute_assertion
@@ -202,6 +230,7 @@ class ComponentTestCase(object):
         self.schedule_assertion = schedule_assertion
         self.name = name
         self.patchers = patchers or []
+        self.service_id = service_id or uniqid()
 
 
 class CallAssertion(object):
@@ -211,11 +240,14 @@ class CallAssertion(object):
         self.any_order = any_order
 
     def do_assert(self):
-        module_and_func = self.func.rsplit('.', 1)
-        mod_path = module_and_func[0]
-        func_name = module_and_func[1]
-        mod = importlib.import_module(mod_path)
-        func = getattr(mod, func_name)
+        if not callable(self.func):
+            module_and_func = self.func.rsplit('.', 1)
+            mod_path = module_and_func[0]
+            func_name = module_and_func[1]
+            mod = importlib.import_module(mod_path)
+            func = getattr(mod, func_name)
+        else:
+            func = self.func
 
         if not self.calls:
             func.assert_not_called()
@@ -243,3 +275,16 @@ class ScheduleAssertion(Assertion):
         self.callback_data = callback_data
         self.schedule_finished = schedule_finished
         super(ScheduleAssertion, self).__init__(*args, **kwargs)
+
+
+class Patcher(object):
+    def __init__(self, target, return_value=None, side_effect=None):
+        self.target = target
+        self.return_value = return_value
+        self.side_effect = side_effect
+
+    def mock_patcher(self):
+        return patch(target=self.target, new=MagicMock(return_value=self.return_value, side_effect=self.side_effect))
+
+
+Call = call
