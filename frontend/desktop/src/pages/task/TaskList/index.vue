@@ -387,7 +387,7 @@
                                 status.text = gettext('暂停')
                                 break
                             case 'NODE_SUSPENDED':
-                                status.cls = 'execute'
+                                status.cls = 'execute common-icon-dark-circle-pause'
                                 status.text = gettext('节点暂停')
                                 break
                             case 'FAILED':
