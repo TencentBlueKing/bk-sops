@@ -145,6 +145,12 @@
                         parent: 'admin',
                         name: gettext('公共流程'),
                         path: '/admin/common/template/'
+                    },
+                    {
+                        key: 'manage',
+                        parent: 'admin',
+                        name: gettext('后台管理'),
+                        path: '/admin/manage/source_manage/'
                     }
                 ]
             }
