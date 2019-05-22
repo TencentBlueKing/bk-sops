@@ -67,7 +67,7 @@
                 </div>
             </div>
             <div class="app-synopsis">{{i18n.appDesc}}
-                <p>{{appData.desc || '--'}}</p>
+                <p class="synopsis-content">{{appData.desc || '--'}}</p>
             </div>
         </div>
     </div>
@@ -137,7 +137,7 @@
 @import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
-    width: 345px;
+    min-width: 345px;
     height: 184px;
     color: #63656e;
     background: $whiteDefault;
@@ -171,7 +171,7 @@
     float: left;
     width: 136px;
     height: 100%;
-    padding: 20px;
+    padding: 20px 15px;
     overflow: hidden;
     border-right: 1px solid $commonBorderColor;
     .logo {
@@ -212,6 +212,7 @@
             &:hover {
                 color: $blueDefault;
             }
+
         }
     }
     &:hover {
@@ -257,7 +258,6 @@
 }
 .card-particular {
     float: left;
-    width: 207px;
     height: 100%;
     .app-detail {
         padding: 20px;
@@ -288,7 +288,7 @@
         position: absolute;
         bottom: 0px;
         height: 100%;
-        width: 206px;
+        width: 70%;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;
@@ -297,6 +297,13 @@
             margin-top: 3px;
             font-weight: 400;
         }
+    }
+    .synopsis-content {
+        height: 130px;
+        width: 100%;
+        white-space: pre-line;
+        word-wrap:break-word;
+        overflow-y: auto;
     }
 }
 </style>
