@@ -169,7 +169,7 @@
                     addApp: gettext('新建'),
                     placeholder: gettext('请输入轻应用名称'),
                     jurisdiction: gettext('使用权限'),
-                    jurisdictionHint: gettext('“轻应用”的使用权限与其引用的“流程模版”使用权限一致。调整“轻应用”使用权限，可以调整其对应的“流程模版”使用权限。'),
+                    jurisdictionHint: gettext('轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。'),
                     addJurisdiction: gettext('新建任务权限'),
                     getJurisdiction: gettext('领取任务权限'),
                     executeJurisdiction: gettext('执行任务权限'),
