@@ -11,8 +11,8 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-basic" @click.self="onGotoAppMaker">
-            <div class="logo">
+        <div class="card-basic">
+            <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
