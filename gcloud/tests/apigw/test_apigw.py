@@ -725,6 +725,7 @@ class APITest(TestCase):
 
     @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_REPLACE_TEMPLATE_ID, MagicMock())
     def test_create_periodic_task__success(self):
         task = MockPeriodicTask()
         assert_data = {
@@ -741,6 +742,7 @@ class APITest(TestCase):
         }
         biz = MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)
         template = MockTaskTemplate()
+        from gcloud.apigw.views import replace_template_id  # noqa
 
         with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)):
             with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
@@ -767,6 +769,8 @@ class APITest(TestCase):
                     )
 
                     data = json.loads(response.content)
+
+                    replace_template_id.assert_called_once_with(TaskTemplate, template.pipeline_tree)
 
                     self.assertTrue(data['result'])
                     self.assertEqual(data['data'], assert_data)
@@ -811,7 +815,25 @@ class APITest(TestCase):
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
     @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
+    @mock.patch(APIGW_REPLACE_TEMPLATE_ID, MagicMock(side_effect=Exception))
+    def test_create_periodic_task__replace_template_id_fail(self):
+        response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
+                                                                              bk_biz_id=TEST_BIZ_CC_ID),
+                                    data=json.dumps({'name': 'name',
+                                                     'cron': 'cron'}),
+                                    content_type='application/json')
+
+        data = json.loads(response.content)
+
+        self.assertFalse(data['result'])
+        self.assertTrue('message' in data)
+
+    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
+    @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
     @mock.patch(PERIODIC_TASK_CREATE, MagicMock(side_effect=Exception()))
+    @mock.patch(APIGW_REPLACE_TEMPLATE_ID, MagicMock())
     def test_create_periodic_task__periodic_task_create_fail(self):
         response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                               bk_biz_id=TEST_BIZ_CC_ID),
