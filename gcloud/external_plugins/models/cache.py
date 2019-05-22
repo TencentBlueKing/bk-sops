@@ -39,8 +39,7 @@ class CachePackageSourceManager(PackageSourceManager):
             raise exceptions.MultipleCacheSourceError('Can not add multiple cache source')
         if count == 0:
             return None
-        cache_source = self.all().first()
-        return cache_source.base_source
+        return self.all().first().base_source
 
 
 class CachePackageSource(PackageSource):
