@@ -63,27 +63,29 @@ class OriginalPackageSourceManager(PackageSourceManager):
         full_kwargs = {}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
-        package = self.filter(id=package_source_id)
+        # use filter instead of get,because it will be updated later
+        packages = self.filter(id=package_source_id)
+        package = packages[0]
         # 未开启缓存机制，需要更新 base source
         if not CachePackageSource.objects.get_base_source():
             # 新增时也未开启缓存，直接更新 base source
-            if package[0].base_source_id:
+            if package.base_source_id:
                 super(OriginalPackageSourceManager, self).update_base_source(package_source_id,
-                                                                             package[0].type,
+                                                                             package.type,
                                                                              packages,
                                                                              **base_kwargs)
             # 新增时开启了缓存，需要初始化 base source
             else:
-                base_source = super(OriginalPackageSourceManager, self).add_base_source(package[0].name,
-                                                                                        package[0].type,
+                base_source = super(OriginalPackageSourceManager, self).add_base_source(package.name,
+                                                                                        package.type,
                                                                                         packages,
                                                                                         **base_kwargs)
                 full_kwargs['base_source_id'] = base_source.id
         else:
             super(OriginalPackageSourceManager, self).delete_base_source(package_source_id,
-                                                                         package[0].type)
+                                                                         package.type)
             full_kwargs['base_source_id'] = None
-        package.update(**full_kwargs)
+        packages.update(**full_kwargs)
 
 
 class OriginalPackageSource(PackageSource):
