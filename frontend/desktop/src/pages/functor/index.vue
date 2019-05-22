@@ -243,7 +243,7 @@
                     new: gettext('新建任务'),
                     choiceBusiness: gettext('选择业务'),
                     choiceTemplate: gettext('选择模板'),
-                    tips: gettext('如果未找到模板，请联系业务运维在流程模板的权限管理中对你或所有职能化人员授予“新建任务权限”'),
+                    tips: gettext('如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
                     total: gettext('共'),
                     item: gettext('条记录'),
                     comma: gettext('，'),
