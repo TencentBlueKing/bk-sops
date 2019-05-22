@@ -113,9 +113,13 @@
                     <span class="executeJurisdiction">{{i18n.executeJurisdiction}}:</span>
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
-                <div class="exit-btn">
-                    <div class="btn" @click="onCloseWindows">{{i18n.close}}</div>
-                </div>
+            </div>
+            <div slot="footer" class="exit-btn">
+                <bk-button
+                    type="default"
+                    @click="onCloseWindows">
+                    {{i18n.close}}
+                </bk-button>
             </div>
         </bk-dialog>
     </div>
@@ -552,23 +556,12 @@
         margin: 20px 0px;
     }
     .exit-btn {
-        position: absolute;
-        width: 220px;
-        height: 50px;
-        top: 191px;
-        left: 550px;
-        background: #fafafa;
-        .btn {
-            float: right;
-            margin: 8px 24px 0 0;
+        float:right;
+        .bk-button {
             width: 100px;
             height: 32px;
-            font-size: 14px;
-            line-height: 32px;
-            text-align: center;
-            cursor: pointer;
-            border-radius: 2px;
-            border: 1px solid #c4c4cc;
+            margin-right: 24px;
+            margin-bottom: 4px;
         }
     }
     .addJurisdiction, .getJurisdiction, .executeJurisdiction {
