@@ -137,7 +137,7 @@
 @import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
-    width: 345px;
+    min-width: 345px;
     height: 184px;
     color: #63656e;
     background: $whiteDefault;
@@ -258,7 +258,6 @@
 }
 .card-particular {
     float: left;
-    width: 207px;
     height: 100%;
     .app-detail {
         padding: 20px;
@@ -289,7 +288,7 @@
         position: absolute;
         bottom: 0px;
         height: 100%;
-        width: 206px;
+        width: 70%;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;
@@ -301,7 +300,7 @@
     }
     .synopsis-content {
         height: 130px;
-        width: 175px;
+        width: 100%;
         white-space: pre-line;
         word-wrap:break-word;
         overflow-y: auto;
