@@ -127,7 +127,7 @@
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {
-                return `/taskflow/home/${this.cc_id}/?template_id=${id}`
+                return `/taskflow/home/${this.cc_id}/?template_id=${id}&create_method=app_maker`
             }
         }
     }
