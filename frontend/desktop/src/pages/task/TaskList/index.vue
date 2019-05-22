@@ -54,7 +54,7 @@
                                 :placeholder="i18n.createMethodPlaceholder"
                                 :list="taskCreateMethodList"
                                 :is-loading="taskBasicInfoLoading"
-                                :selected.sync="createMethod"
+                                :selected="createMethod"
                                 :allow-clear="true"
                                 :searchable="true"
                                 :setting-key="'value'"
