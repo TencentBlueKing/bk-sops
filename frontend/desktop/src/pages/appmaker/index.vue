@@ -351,33 +351,50 @@
     min-height: calc(100% - 50px);
     background: #f4f7fa;
     .page-content {
-        width: 1200px;
-        padding-bottom: 40px;
-        margin: 0 auto;
+        padding: 0 60px 40px 60px;
     }
-    @media screen and (max-width: 1505px) {
-        .page-content {
-            width: 1077px;
+    @media screen and (max-width: 1555px) {
+        .app-list {
+            width: 1074px;
         }
         .card-wrapper:nth-child(3n) {
             margin-right: 0;
         }
     }
-    @media screen and (min-width: 1506px) and (max-width: 1810px) {
-        .page-content {
-            width: 1443px;
+    @media screen and (min-width: 1556px) and (max-width: 1919px) {
+        .app-list {
+            width: 1437px;
         }
         .card-wrapper:nth-child(4n) {
             margin-right: 0;
         }
     }
-    @media screen and (min-width: 1811px) {
-        .page-content {
-            width: 1810px;
+    @media screen and (min-width: 1920px) and (max-width: 2283px) {
+        .app-list {
+            width: 1800px;
         }
         .card-wrapper:nth-child(5n) {
             margin-right: 0;
         }
+    }
+    @media screen and (min-width: 2284px) and (max-width: 2647px) {
+        .app-list {
+            width: 2163px;
+        }
+        .card-wrapper:nth-child(6n) {
+            margin-right: 0;
+        }
+    }
+    @media screen and (min-width: 2648px) {
+        .app-list {
+            width: 2526px;
+        }
+        .card-wrapper:nth-child(7n) {
+            margin-right: 0;
+        }
+    }
+    .app-list {
+        margin: auto;
     }
     .operation-wrapper {
         margin: 18px 0 20px;
@@ -530,7 +547,7 @@
     }
     .card-wrapper {
         float: left;
-        margin: 0 21px 20px 0;
+        margin: 0 18px 20px 0;
     }
     .empty-app-list {
         padding: 200px 0;

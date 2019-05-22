@@ -134,7 +134,7 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-@import '@/scss/mixins/multiLineELLipsis.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
     width: 345px;
@@ -201,20 +201,18 @@
         margin: 10px 0;
         height: 40px;
         .app-name {
-            display:-webkit-box;
-            -webkit-box-orient:vertical;
-            -webkit-line-clamp:2;
+            display: block;
             font-size: 14px;
             font-weight: bold;
             color: #63656e;
             word-break: break-all;
             cursor: pointer;
+            @include multiLineEllipsis(1.2em, 2);
             text-align: center;
-            overflow:hidden;
-            text-overflow:ellipsis;
             &:hover {
                 color: $blueDefault;
             }
+
         }
     }
     &:hover {
@@ -302,7 +300,11 @@
         }
     }
     .synopsis-content {
+        height: 130px;
+        width: 175px;
         white-space: pre-line;
+        word-wrap:break-word;
+        overflow-y: auto;
     }
 }
 </style>
