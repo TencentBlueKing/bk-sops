@@ -28,11 +28,11 @@
                 <fieldset class="appmaker-fieldset">
                     <div class="advanced-query-content">
                         <div class="query-content">
-                            <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
+                            <span class="query-span">{{i18n.editor}}</span>
+                            <input class="search-input" v-model="editor" :placeholder="i18n.editorPlaceholder" />
                         </div>
                         <div class="query-content">
-                            <span class="query-span">{{i18n.creatorTime}}</span>
+                            <span class="query-span">{{i18n.editTime}}</span>
                             <bk-date-range
                                 :range-separator="'-'"
                                 :quick-select="false"
@@ -159,7 +159,7 @@
                 isEditDialogShow: false,
                 isDeleteDialogShow: false,
                 isAdvancedSerachShow: false,
-                creator: undefined,
+                editor: undefined,
                 editStartTime: undefined,
                 editEndTime: undefined,
                 isPermissionsDialog: false,
@@ -182,9 +182,9 @@
                     delete: gettext('删除'),
                     deleteTips: gettext('确认删除轻应用？'),
                     close: gettext('关闭'),
-                    creator: gettext('创建人'),
-                    creatorPlaceholder: gettext('请输入创建人'),
-                    creatorTime: gettext('创建时间'),
+                    editor: gettext('更新人'),
+                    editorPlaceholder: gettext('请输入更新人'),
+                    editTime: gettext('更新时间'),
                     query: gettext('搜索'),
                     reset: gettext('清空')
                 }
@@ -221,11 +221,11 @@
                 }
                 try {
                     const data = {
-                        creator: this.creator || undefined
+                        editor: this.editor || undefined
                     }
                     if (this.editEndTime) {
-                        data['create_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                        data['create_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                        data['edit_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                        data['edit_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
@@ -341,7 +341,7 @@
                 this.editEndTime = dateArray[1]
             },
             onResetForm () {
-                this.creator = undefined
+                this.editor = undefined
                 this.editStartTime = undefined
                 this.editEndTime = undefined
             }
