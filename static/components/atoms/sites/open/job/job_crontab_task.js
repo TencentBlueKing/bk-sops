@@ -33,7 +33,7 @@
             tag_code: "job_cron_name",
             type: "input",
             attrs: {
-                name: gettext("作业名称"),
+                name: gettext("定时作业名称"),
                 placeholder: gettext("为空则自动生成：作业名_时间戳"),
                 hookable: true
             }
@@ -56,10 +56,10 @@
             tag_code: "cron_status",
             type: "radio",
             attrs: {
-                name: gettext("任务状态"),
+                name: gettext("定时任务状态"),
                 hookable: true,
                 items: [
-                    {"name": gettext("关闭"), "value": "2"},
+                    {"name": gettext("暂停"), "value": "2"},
                     {"name": gettext("启动"), "value": "1"},
                 ],
                 default: "2",
