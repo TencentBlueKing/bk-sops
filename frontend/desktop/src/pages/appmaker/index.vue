@@ -353,48 +353,35 @@
     .page-content {
         padding: 0 60px 40px 60px;
     }
-    @media screen and (max-width: 1555px) {
-        .app-list {
-            width: 1074px;
+    @media screen and (max-width: 1560px) {
+        .card-wrapper {
+            width: 32.5%;
+        }
+        .card-particular .app-synopsis {
+            width: 67%;
         }
         .card-wrapper:nth-child(3n) {
             margin-right: 0;
         }
     }
-    @media screen and (min-width: 1556px) and (max-width: 1919px) {
-        .app-list {
-            width: 1437px;
+    @media screen and (min-width: 1561px) and (max-width: 1919px) {
+        .card-wrapper {
+            width: 24%;
         }
         .card-wrapper:nth-child(4n) {
             margin-right: 0;
         }
     }
-    @media screen and (min-width: 1920px) and (max-width: 2283px) {
+    @media screen and (min-width: 1920px) {
         .app-list {
-            width: 1800px;
+            max-width: 2150px;
+        }
+        .card-wrapper {
+            width: 19.3%;
         }
         .card-wrapper:nth-child(5n) {
             margin-right: 0;
         }
-    }
-    @media screen and (min-width: 2284px) and (max-width: 2647px) {
-        .app-list {
-            width: 2163px;
-        }
-        .card-wrapper:nth-child(6n) {
-            margin-right: 0;
-        }
-    }
-    @media screen and (min-width: 2648px) {
-        .app-list {
-            width: 2526px;
-        }
-        .card-wrapper:nth-child(7n) {
-            margin-right: 0;
-        }
-    }
-    .app-list {
-        margin: auto;
     }
     .operation-wrapper {
         margin: 18px 0 20px;
@@ -547,7 +534,7 @@
     }
     .card-wrapper {
         float: left;
-        margin: 0 18px 20px 0;
+        margin: 0 14px 20px 0;
     }
     .empty-app-list {
         padding: 200px 0;
