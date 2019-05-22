@@ -58,7 +58,7 @@
                         type="default"
                         size="mini"
                         hide-text="true"
-                        icon="common-icon common-icon-dark-paper params-btn-icon"
+                        icon="common-icon common-icon-solid-eye params-btn-icon"
                         v-bktooltips.bottom="i18n.params"
                         @click="onTaskParamsClick('viewParams')">
                     </bk-button>
@@ -72,6 +72,15 @@
                         icon="common-icon common-icon-edit params-btn-icon"
                         v-bktooltips.bottom="i18n.changeParams"
                         @click="onTaskParamsClick('modifyParams')">
+                    </bk-button>
+                    <bk-button
+                        class="skip-btn"
+                        type="default"
+                        size="mini"
+                        hide-text="true"
+                        icon="common-icon common-icon-link params-btn-icon"
+                        v-bktooltips.bottom="i18n.skipLink"
+                        @click="onSkipSubProcessClick">
                     </bk-button>
                 </div>
             </div>
@@ -202,7 +211,7 @@
             gatewaySelectDialog,
             revokeDialog
         },
-        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id', 'template_source'],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -216,7 +225,8 @@
             return {
                 i18n: {
                     params: gettext('查看参数'),
-                    changeParams: gettext('修改参数')
+                    changeParams: gettext('修改参数'),
+                    skipLink: gettext('查看流程')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -902,6 +912,15 @@
                     this.nodeInfoType = type
                 }
             },
+            onSkipSubProcessClick () {
+                let routerData = ''
+                if (this.template_source === 'business') {
+                    routerData = this.$router.resolve({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': this.template_id } })
+                } else if (this.template_source === 'common') {
+                    routerData = this.$router.resolve({ path: `/template/home/${this.cc_id}/?common=1&common_template=common` })
+                }
+                window.open(routerData.href, '_blank')
+            },
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
@@ -1268,12 +1287,15 @@
             }
         }
         .task-params-btns {
-            .params-btn {
-                margin-right: 24px;
+            .params-btn, .skip-btn {
+                margin-right: 36px;
                 padding: 0;
                 color: #979ba5;
-                font-size: 16px;
+                font-size: 14px;
                 &.actived {
+                    color: #63656e;
+                }
+                &:hover {
                     color: #63656e;
                 }
             }
