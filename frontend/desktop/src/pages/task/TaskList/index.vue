@@ -54,7 +54,7 @@
                                 :placeholder="i18n.createMethodPlaceholder"
                                 :list="taskCreateMethodList"
                                 :is-loading="taskBasicInfoLoading"
-                                :selected.sync="createMethodSync"
+                                :selected="createMethod"
                                 :allow-clear="true"
                                 :searchable="true"
                                 :setting-key="'value'"
@@ -273,7 +273,6 @@
                 isFinished: undefined,
                 statusSync: 0,
                 taskCreateMethodList: [],
-                createMethodSync: 0,
                 createMethod: undefined
             }
         },
@@ -516,7 +515,6 @@
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined
-                this.createMethodSync = 0
                 this.statusSync = 0
                 this.taskSync = 0
                 this.executeStartTime = undefined
@@ -531,6 +529,7 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data
+                    this.createMethod = this.create_method
                 } catch (e) {
                     errorHandler(e, this)
                 }
