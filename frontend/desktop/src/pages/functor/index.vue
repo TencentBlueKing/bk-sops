@@ -563,7 +563,7 @@ label.required:after {
 .functor-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
 }
 .list-wrapper {
     padding: 0 60px;
