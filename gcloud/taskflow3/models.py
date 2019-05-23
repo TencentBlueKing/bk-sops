@@ -860,7 +860,7 @@ class TaskFlowInstance(models.Model):
 
     @property
     def url(self):
-        return '%staskflow/execute/%s/?instance_id=%s' % (settings.SITE_URL, self.business.cc_id, self.id)
+        return '%staskflow/execute/%s/?instance_id=%s' % (settings.APP_HOST, self.business.cc_id, self.id)
 
     @property
     def subprocess_info(self):
