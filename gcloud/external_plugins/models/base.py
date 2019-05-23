@@ -16,61 +16,87 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.contrib.external_plugins.models import source_cls_factory as base_source_cls_factory
 
-from gcloud.external_plugins import exceptions
+source_cls_factory = {}
 
 
-class MainPackageSourceManager(models.Manager):
+class PackageSourceManager(models.Manager):
+
+    @staticmethod
+    def get_base_source_cls(source_type):
+        """
+        @summary: 获取 base source
+        @param source_type:
+        @return:
+        """
+        return base_source_cls_factory[source_type]
+
+    def get_base_source_fields(self, source_type):
+        """
+        @summary: 获取 base source 的数据库字段
+        @param source_type:
+        @return:
+        """
+        source_model = self.get_base_source_cls(source_type)
+        all_fields = [field.name for field in source_model._meta.get_fields()]
+        return all_fields
+
+    def divide_details_parts(self, source_type, details):
+        """
+        @summary: divide details into two parts
+            base_kwargs: fields in base model(e.g. fields of pipeline.contrib.external_plugins.models.GitRepoSource)
+            original_kwargs: field in origin model but not in base model(e.g. repo_address、desc)
+        @param source_type:
+        @param details:
+        @return:
+        """
+        all_fields = self.get_base_source_fields(source_type)
+        original_kwargs = {}
+        base_kwargs = {}
+        for key, value in details.items():
+            if key in all_fields:
+                base_kwargs[key] = value
+            else:
+                original_kwargs[key] = value
+        return original_kwargs, base_kwargs
+
     @transaction.atomic()
-    def add_main_source(self, name, source_type, packages, **kwargs):
-        if self.all().count() > 0:
-            raise exceptions.MultipleMainSourceError('Can not add multiple main source')
-
-        base_source_cls = base_source_cls_factory[source_type]
+    def add_base_source(self, name, source_type, packages, **kwargs):
+        base_source_cls = self.get_base_source_cls(source_type)
         base_source = base_source_cls.objects.create_source(name=name, packages=packages, from_config=False, **kwargs)
-        return self.create(type=source_type,
-                           base_source_id=base_source.id)
+        return base_source
 
-    def update_main_source(self, source_id, source_type, packages, **kwargs):
-        main_source = self.get(id=source_id)
-        main_source.update_base_source(source_type=source_type, packages=packages, **kwargs)
+    @staticmethod
+    def delete_base_source(package_source_id, source_type):
+        base_source_cls = base_source_cls_factory[source_type]
+        base_source_cls.objects.filter(id=package_source_id).delete()
 
-    def delete_main_source(self, source_id):
-        main_source = self.get(id=source_id)
-        main_source.delete()
+    def update_base_source(self, package_source_id, source_type, packages, **kwargs):
+        package_source = self.get(id=package_source_id)
+        package_source.update_base_source(source_type=source_type, packages=packages, **kwargs)
 
 
-class MainPackageSource(models.Model):
+class PackageSource(models.Model):
     type = models.CharField(_(u"包源类型"), max_length=64)
-    base_source_id = models.IntegerField(_(u"包源模型 ID"))
+    base_source_id = models.IntegerField(_(u"包源模型 ID"), blank=True, null=True)
 
-    objects = MainPackageSourceManager()
     _base_source_attr = '_base_source'
+
+    class Meta:
+        abstract = True
 
     @property
     def base_source(self):
         source = getattr(self, self._base_source_attr, None)
-        if not source:
+        if not source and self.base_source_id is not None:
             base_source_cls = base_source_cls_factory[self.type]
             source = base_source_cls.objects.get(id=self.base_source_id)
             setattr(self, self._base_source_attr, source)
 
         return source
 
-    @property
-    def name(self):
-        return self.base_source.name
-
-    @property
-    def packages(self):
-        return self.base_source.packages
-
-    @property
-    def details(self):
-        return self.base_source.details()
-
     def delete(self, using=None, keep_parents=False):
         self.delete_base_source()
-        return super(MainPackageSource, self).delete(using=using, keep_parents=keep_parents)
+        return super(PackageSource, self).delete(using=using, keep_parents=keep_parents)
 
     def delete_base_source(self):
         if hasattr(self, self._base_source_attr):

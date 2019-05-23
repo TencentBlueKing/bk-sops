@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-
 from django.http.response import HttpResponseForbidden
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization

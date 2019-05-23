@@ -14,12 +14,12 @@ specific language governing permissions and limitations under the License.
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+
 from pipeline.contrib.external_plugins.utils.importer import (
     GitRepoModuleImporter,
     S3ModuleImporter,
     FSModuleImporter
 )
-
 from pipeline.contrib.external_plugins.models.base import (
     GIT,
     S3,
@@ -42,7 +42,7 @@ class GitRepoSource(ExternalPackageSource):
         return GitRepoModuleImporter(repo_raw_url=self.repo_raw_address,
                                      branch=self.branch,
                                      modules=self.packages.keys(),
-                                     proxy=getattr(settings, 'EXTERNAL_SOURCE_PROXY'),
+                                     proxy=getattr(settings, 'EXTERNAL_SOURCE_PROXY', None),
                                      secure_only=getattr(settings,
                                                          'EXTERNAL_SOURCE_SECURE_RESTRICT', {}).get(self.name, True))
 
