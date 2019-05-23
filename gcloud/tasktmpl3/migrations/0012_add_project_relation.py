@@ -42,7 +42,7 @@ def forward_func(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ('tasktmpl3', '0011_tasktemplate_project'),
-        ('core', '0011_create_project_for_exist_biz'),
+        ('core', '0010_create_project_for_exist_biz'),
     ]
 
     operations = [

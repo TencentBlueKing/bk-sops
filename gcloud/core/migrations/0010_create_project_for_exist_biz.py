@@ -54,6 +54,7 @@ def forward_func(apps, schema_editor):
             creator = maintainers[0]
 
         projects.append(Project(
+            id=business.cc_id,
             name=business.cc_name,
             time_zone=business.time_zone,
             creator=creator,
@@ -70,7 +71,7 @@ def forward_func(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('core', '0010_reserve_id_for_project'),
+        ('core', '0009_project_userdefaultproject'),
     ]
 
     operations = [
