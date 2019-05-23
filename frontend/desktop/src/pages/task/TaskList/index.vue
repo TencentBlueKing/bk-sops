@@ -765,6 +765,7 @@
             }
             .common-icon-dark-circle-close {
                 color: $redDefault;
+                font-size: 14px;
             }
             &.revoke {
                 color: $blueDisable;
