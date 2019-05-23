@@ -70,7 +70,7 @@ def forward_func(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('core', '0009_project_userdefaultproject'),
+        ('core', '0010_reserve_id_for_project'),
     ]
 
     operations = [
