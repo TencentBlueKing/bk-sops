@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-23 12:26+0800\n"
+"POT-Creation-Date: 2019-05-23 12:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1271,7 +1271,7 @@ msgstr "Close"
 
 #: frontend/desktop/src/pages/appmaker/index.vue:186
 msgid "请输入更新人"
-msgstr "Please enter a editor"
+msgstr "Input editor please"
 
 #: frontend/desktop/src/pages/appmaker/index.vue:188
 #: frontend/desktop/src/pages/audit/index.vue:200
@@ -1565,7 +1565,7 @@ msgstr "task-en"
 
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:117
 msgid "输入周期表达式非法，请校验"
-msgstr "Invalid contab, check it please"
+msgstr "Invalid crontab, check it please"
 
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:159
 msgid "修改周期任务信息成功"
