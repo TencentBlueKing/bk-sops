@@ -21,8 +21,8 @@ from django.test import TestCase
 from django.test.client import RequestFactory
 from django.utils import timezone
 
-from gcloud.contrib.analysis.schemas import (
-    ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS,
+from gcloud.tests.analysis.schemas import (
+    ANALYSIS_CATEGORY_AND_PROJECT_PARAMS,
     ANALYSIS_TASK_CATEGORY_PARAMS,
     ANALYSIS_ATOM_TEMPLATE_PARAMS,
     ANALYSIS_ATOM_INSTANCE_PARAMS,
@@ -133,7 +133,7 @@ class Analysis(TestCase):
         if response_dict["data"]["total"] == 0:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
+            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
     def test_instance_group_by_category(self):
         """
@@ -147,7 +147,7 @@ class Analysis(TestCase):
         if response_dict["data"]["total"] == 0:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
+            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
     def test_appmaker_group_by_instance(self):
         """
@@ -175,7 +175,7 @@ class Analysis(TestCase):
         if response_dict["data"]["total"] == 0:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
+            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
     def test_appmaker_group_by_cc_id(self):
         """
@@ -189,7 +189,7 @@ class Analysis(TestCase):
         if response_dict["data"]["total"] == 0:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
+            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
     def test_template_group_by_cc_id(self):
         """
@@ -203,7 +203,7 @@ class Analysis(TestCase):
         if response_dict["data"]["total"] == 0:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
+            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
     def test_template_group_by_category(self):
         """
@@ -217,7 +217,7 @@ class Analysis(TestCase):
         if response_dict["data"]["total"] == 0:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
+            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
     def test_template_group_by_node(self):
         """
@@ -301,7 +301,7 @@ class Analysis(TestCase):
         if response_dict["data"]["total"] == 0:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
+            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
     def test_task_category(self):
         """
