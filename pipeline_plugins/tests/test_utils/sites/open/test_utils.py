@@ -14,10 +14,10 @@ specific language governing permissions and limitations under the License.
 import mock
 
 from cryptography.fernet import Fernet
-from django.conf import settings
 from django.test import TestCase
 
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
+from gcloud.conf import settings
 
 
 class UtilsTestCase(TestCase):
