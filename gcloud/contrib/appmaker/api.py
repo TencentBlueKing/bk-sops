@@ -72,10 +72,10 @@ def save(request, biz_cc_id):
     })
 
     if settings.IS_LOCAL:
-        params['link_prefix'] = '%s/' % request.get_host()
+        params['link_prefix'] = '%s/appmaker/' % request.get_host()
         fake = True
     else:
-        params['link_prefix'] = settings.APP_MAKER_LINK_PREFIX
+        params['link_prefix'] = '%sappmaker/' % settings.APP_HOST
         fake = False
 
     result, data = AppMaker.objects.save_app_maker(
