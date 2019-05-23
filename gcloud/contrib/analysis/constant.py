@@ -16,8 +16,6 @@ specific language governing permissions and limitations under the License.
 class AnalysisElement(object):
     # 常量池
     category = 'category'
-    business__cc_name = 'business__cc_name'
-    business__cc_id = 'business__cc_id'
     state = 'status'
     atom_cite = 'atom_cite'
     atom_template = 'atom_template'

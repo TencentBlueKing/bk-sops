@@ -13,11 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-from django.http.response import HttpResponseForbidden
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse
+from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource
 
 from pipeline.exceptions import PipelineException
@@ -27,65 +26,16 @@ from pipeline_web.exceptions import ParserException
 
 from gcloud.core.utils import name_handler
 from gcloud.core.constant import TASK_NAME_MAX_LENGTH
-from gcloud.commons.template.models import CommonTemplate, CommonTmplPerm
-from gcloud.commons.template.constants import PermNm
+from gcloud.commons.template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.taskflow3.constants import PROJECT
 from gcloud.webservice3.resources import (
     GCloudModelResource,
-    GCloudGenericAuthorization,
     AppSerializer,
     pipeline_node_name_handle,
-    BusinessResource,
+    ProjectResource,
 )
-
-
-class TaskflowAuthorization(GCloudGenericAuthorization):
-    def create_detail(self, object_list, bundle):
-        business = getattr(bundle.obj, 'business')
-        template_id = bundle.data['template_id']
-        template_source = bundle.data.get('template_source', 'business')
-        # 业务流程
-        if template_source == 'business':
-            try:
-                template = TaskTemplate.objects.get(pk=str(template_id),
-                                                    business=business,
-                                                    is_deleted=False)
-            except TaskTemplate.DoesNotExist:
-                raise BadRequest('template[pk=%s] does not exist' % template_id)
-            if not bundle.request.user.has_perm(PermNm.CREATE_TASK_PERM_NAME, template):
-                raise ImmediateHttpResponse(HttpResponseForbidden('You have no permission to create task'))
-
-            if bundle.data['create_method'] == 'app_maker':
-                try:
-                    app_maker = AppMaker.objects.get(pk=bundle.data['create_info'])
-                except AppMaker.DoesNotExist:
-                    raise BadRequest('Mini-APP[pk=%s] does not exist, that is the value of create_info' %
-                                     bundle.data['create_info'])
-                if app_maker.task_template.id != int(template_id):
-                    raise BadRequest('Template[pk=%s] does not match the template[pk=%s] used to creating '
-                                     'Mini-APP[pk=%s]' % (template_id,
-                                                          app_maker.task_template.id,
-                                                          bundle.data['create_info'])
-                                     )
-        # 公共流程
-        else:
-            try:
-                template = CommonTemplate.objects.get(pk=str(template_id),
-                                                      is_deleted=False)
-            except CommonTemplate.DoesNotExist:
-                raise BadRequest('common template[pk=%s] does not exist' % template_id)
-            template_perm, _ = CommonTmplPerm.objects.get_or_create(common_template_id=template_id,
-                                                                    biz_cc_id=business.cc_id)
-            perm = 'common_%s' % PermNm.CREATE_TASK_PERM_NAME
-            if not bundle.request.user.has_perm(perm, template_perm):
-                raise ImmediateHttpResponse(HttpResponseForbidden('You have no permission to create task'))
-
-        return self._get_business_for_user(
-            bundle.request.user,
-            perms=['view_business']
-        ).filter(pk=business.pk).exists()
 
 
 class PipelineInstanceResource(ModelResource):
@@ -109,9 +59,9 @@ class PipelineInstanceResource(ModelResource):
 
 
 class TaskFlowInstanceResource(GCloudModelResource):
-    business = fields.ForeignKey(
-        BusinessResource,
-        'business',
+    project = fields.ForeignKey(
+        ProjectResource,
+        'project',
         full=True)
     pipeline_instance = fields.ForeignKey(
         PipelineInstanceResource,
@@ -171,12 +121,11 @@ class TaskFlowInstanceResource(GCloudModelResource):
     class Meta:
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
         resource_name = 'taskflow'
-        authorization = TaskflowAuthorization()
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
             'id': ALL,
-            'business': ALL_WITH_RELATIONS,
+            'project': ALL_WITH_RELATIONS,
             'name': ALL,
             'category': ALL,
             'create_method': ALL,
@@ -201,7 +150,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         model = bundle.obj.__class__
         try:
             template_id = bundle.data['template_id']
-            template_source = bundle.data.get('template_source', 'business')
+            template_source = bundle.data.get('template_source', PROJECT)
             creator = bundle.request.user.username
             pipeline_instance_kwargs = {
                 'name': bundle.data.pop('name'),
@@ -222,7 +171,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         except ParserException as e:
             raise BadRequest(e.message)
 
-        if template_source == 'business':
+        if template_source == PROJECT:
             try:
                 template = TaskTemplate.objects.get(pk=template_id)
             except TaskTemplate.DoesNotExist:

@@ -43,15 +43,6 @@ TEMPLATE_REGEX = re.compile(r'^name|creator_name|editor_name|'
                             r'create_time|edit_time|edit_finish_time|finish_time')
 
 
-def get_permission_list():
-    permission_list = [
-        (PermNm.CREATE_TASK_PERM_NAME, _(u"新建任务")),
-        (PermNm.FILL_PARAMS_PERM_NAME, _(u"填写参数")),
-        (PermNm.EXECUTE_TASK_PERM_NAME, _(u"执行任务")),
-    ]
-    return permission_list
-
-
 class TaskTemplateManager(BaseTemplateManager):
 
     def create(self, **kwargs):
@@ -468,7 +459,6 @@ class TaskTemplate(BaseTemplate):
         return u'%s_%s' % (self.project, self.pipeline_template or 'None')
 
     class Meta(BaseTemplate.Meta):
-        permissions = get_permission_list()
         verbose_name = _(u"流程模板 TaskTemplate")
         verbose_name_plural = _(u"流程模板 TaskTemplate")
 

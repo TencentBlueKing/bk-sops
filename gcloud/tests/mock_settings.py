@@ -17,6 +17,8 @@ PROJECT_GET = 'gcloud.core.models.Project.objects.get'
 
 TASKTEMPLATE_SELECT_RELATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.select_related'
 TASKTEMPLATE_GET = 'gcloud.tasktmpl3.models.TaskTemplate.objects.get'
+TASKTEMPLATE_CREATE_PIPELINE_TEMPLATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.create_pipeline_template'
+TASKTEMPLATE_MODEL = 'gcloud.tasktempl3.models.TaskTemplate.objects.model'
 
 COMMONTEMPLATE_SELECT_RELATE = 'gcloud.commons.template.models.CommonTemplate.objects.select_related'
 
