@@ -32,7 +32,7 @@
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
             :template_id="template_id"
-            :template_source="template_source"
+            :template-source="templateSource"
             @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
     </div>
@@ -77,7 +77,8 @@
                 isFunctional: false,
                 isAllStepsFinished: false,
                 instanceName: '',
-                instanceFlow: ''
+                instanceFlow: '',
+                templateSource: ''
             }
         },
         computed: {
@@ -114,7 +115,7 @@
                     this.instanceFlow = instanceData.pipeline_tree
                     this.instanceName = instanceData.name
                     this.template_id = instanceData.template_id
-                    this.template_source = instanceData.template_source
+                    this.templateSource = instanceData.template_source
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true
                     }

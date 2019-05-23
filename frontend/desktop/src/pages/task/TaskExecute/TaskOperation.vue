@@ -73,15 +73,12 @@
                         v-bktooltips.bottom="i18n.changeParams"
                         @click="onTaskParamsClick('modifyParams')">
                     </bk-button>
-                    <bk-button
-                        class="skip-btn"
-                        type="default"
-                        size="mini"
-                        hide-text="true"
-                        icon="common-icon common-icon-link params-btn-icon"
-                        v-bktooltips.bottom="i18n.skipLink"
-                        @click="onSkipSubProcessClick">
-                    </bk-button>
+                    <router-link
+                        class="jump-tpl-page-btn common-icon-link params-btn-icon"
+                        target="_blank"
+                        v-bktooltips.bottom="i18n.checkFlow"
+                        :to="onClickJumpFlow()">
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -211,7 +208,7 @@
             gatewaySelectDialog,
             revokeDialog
         },
-        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id', 'template_source'],
+        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id', 'templateSource'],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -226,7 +223,7 @@
                 i18n: {
                     params: gettext('查看参数'),
                     changeParams: gettext('修改参数'),
-                    skipLink: gettext('查看流程')
+                    checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -912,14 +909,14 @@
                     this.nodeInfoType = type
                 }
             },
-            onSkipSubProcessClick () {
+            onClickJumpFlow () {
                 let routerData = ''
-                if (this.template_source === 'business') {
-                    routerData = this.$router.resolve({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': this.template_id } })
-                } else if (this.template_source === 'common') {
-                    routerData = this.$router.resolve({ path: `/template/home/${this.cc_id}/?common=1&common_template=common` })
+                if (this.templateSource === 'business') {
+                    routerData = `/template/edit/${this.cc_id}/?template_id=${this.template_id}`
+                } else if (this.templateSource === 'common') {
+                    routerData = `/template/home/${this.cc_id}/?common=1&common_template=common`
                 }
-                window.open(routerData.href, '_blank')
+                return routerData
             },
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
@@ -1287,7 +1284,7 @@
             }
         }
         .task-params-btns {
-            .params-btn, .skip-btn {
+            .params-btn, .jump-tpl-page-btn {
                 margin-right: 36px;
                 padding: 0;
                 color: #979ba5;
@@ -1298,6 +1295,14 @@
                 &:hover {
                     color: #63656e;
                 }
+            }
+            .jump-tpl-page-btn {
+                display: inline-block;
+                position: relative;
+                height: 24px;
+                width: 16px;
+                top: 2px;
+                line-height: 22px;
             }
         }
     }
