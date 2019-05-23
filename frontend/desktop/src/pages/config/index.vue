@@ -136,7 +136,7 @@
     padding: 20px 60px 0;
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
 }
 .page-container {
     border: 1px solid $commonBorderColor;
