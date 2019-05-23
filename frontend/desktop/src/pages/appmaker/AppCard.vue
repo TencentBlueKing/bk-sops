@@ -169,7 +169,7 @@
 }
 .card-basic {
     float: left;
-    width: 136px;
+    width: 40%;
     height: 100%;
     padding: 20px 15px;
     overflow: hidden;
@@ -258,6 +258,7 @@
 }
 .card-particular {
     float: left;
+    width: 60%;
     height: 100%;
     .app-detail {
         padding: 20px;
@@ -288,7 +289,7 @@
         position: absolute;
         bottom: 0px;
         height: 100%;
-        width: 70%;
+        width: 60%;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;
