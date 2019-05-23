@@ -11,28 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from __future__ import unicode_literals
 
-from pipeline.contrib.external_plugins.models import GIT
-
-from gcloud.external_plugins.models.sync_base import (
-    SyncPackageSource,
-    sync_source
-)
+from django.db import migrations, models
 
 
-@sync_source
-class GitRepoSyncSource(SyncPackageSource):
-    repo_address = models.TextField(_(u"仓库链接"))
-    branch = models.CharField(_(u"分支名"), max_length=128)
+class Migration(migrations.Migration):
 
-    @staticmethod
-    def type():
-        return GIT
+    dependencies = [
+        ('external_plugins', '0001_initial'),
+    ]
 
-    def details(self):
-        return {
-            'repo_address': self.repo_address,
-            'branch': self.branch
-        }
+    operations = [
+        migrations.AddField(
+            model_name='cachepackagesource',
+            name='desc',
+            field=models.TextField(blank=True, max_length=1000, verbose_name='\u5305\u6e90\u8bf4\u660e'),
+        ),
+    ]

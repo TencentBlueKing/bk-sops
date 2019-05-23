@@ -11,6 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.external_plugins.models.main_source import MainPackageSource  # noqa
-from gcloud.external_plugins.models.sync_base import RootPackage, source_cls_factory  # noqa
-from gcloud.external_plugins.models.sync_source import GitRepoSyncSource  # noqa
+from gcloud.external_plugins.models.origin import (  # noqa
+    OriginalPackageSource,
+    GitRepoOriginalSource,
+    S3OriginalSource,
+    source_cls_factory
+)
+from gcloud.external_plugins.models.cache import CachePackageSource  # noqa

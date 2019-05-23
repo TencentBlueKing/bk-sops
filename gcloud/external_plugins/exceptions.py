@@ -12,5 +12,17 @@ specific language governing permissions and limitations under the License.
 """
 
 
-class MultipleMainSourceError(Exception):
+class GcloudExternalPluginsError(Exception):
+    pass
+
+
+class MultipleCacheSourceError(GcloudExternalPluginsError):
+    pass
+
+
+class OriginalSourceTypeError(GcloudExternalPluginsError):
+    pass
+
+
+class CacheSourceTypeError(GcloudExternalPluginsError):
     pass
