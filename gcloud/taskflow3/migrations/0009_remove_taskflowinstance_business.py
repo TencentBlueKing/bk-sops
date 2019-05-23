@@ -19,7 +19,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('taskflow3', '0007_set_business_to_none'),
+        ('taskflow3', '0008_set_business_to_none'),
     ]
 
     operations = [
