@@ -17,19 +17,34 @@ from django.db import migrations
 
 
 def reverse_func(apps, schema_editor):
-    raise NotImplementedError()
+    TaskFlowInstance = apps.get_model('taskflow3', 'TaskFlowInstance')
+    db_alias = schema_editor.connection.alias
+    TaskFlowInstance.objects.using(db_alias).all().update(project=None)
 
 
 def forward_func(apps, schema_editor):
     TaskFlowInstance = apps.get_model('taskflow3', 'TaskFlowInstance')
+    Project = apps.get_model('core', 'Project')
     db_alias = schema_editor.connection.alias
 
-    TaskFlowInstance.objects.using(db_alias).all().update(business=None)
+    projects = Project.objects.filter(from_cmdb=True)
+    cc_id_to_project = {proj.cmdb_biz_id: proj for proj in projects}
+    instances = TaskFlowInstance.objects.using(db_alias).all()
+
+    instance_count = len(instances)
+    print('')
+    for i, instance in enumerate(instances, start=1):
+        instance.project = cc_id_to_project[instance.business.cc_id]
+        if instance.template_source == 'business':
+            instance.template_source = 'project'
+        instance.save()
+        print("TaskFlowInstance project relationship build: (%s/%s)" % (i, instance_count))
 
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('taskflow3', '0006_add_project_relation'),
+        ('taskflow3', '0006_auto_20190523_1509'),
+        ('core', '0011_create_project_for_exist_biz'),
     ]
 
     operations = [
