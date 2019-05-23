@@ -71,15 +71,12 @@ def save(request, biz_cc_id):
         'logo_content': logo_content,
     })
 
-    if settings.RUN_MODE == 'PRODUCT':
-        params['link_prefix'] = settings.APP_MAKER_LINK_PREFIX
-        fake = False
-    elif settings.RUN_MODE == 'STAGING':
-        params['link_prefix'] = settings.TEST_APP_MAKER_LINK_PREFIX
-        fake = False
-    else:
+    if settings.IS_LOCAL:
         params['link_prefix'] = '%s/' % request.get_host()
         fake = True
+    else:
+        params['link_prefix'] = settings.APP_MAKER_LINK_PREFIX
+        fake = False
 
     result, data = AppMaker.objects.save_app_maker(
         biz_cc_id, params, fake

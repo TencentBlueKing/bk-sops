@@ -860,15 +860,20 @@ class TaskFlowInstance(models.Model):
 
     @property
     def url(self):
-        if settings.RUN_MODE == 'PRODUCT':
-            prefix = settings.APP_HOST
-        else:
-            prefix = settings.TEST_APP_HOST
-        return '%staskflow/execute/%s/?instance_id=%s' % (prefix, self.business.cc_id, self.id)
+        return '%staskflow/execute/%s/?instance_id=%s' % (settings.SITE_URL, self.business.cc_id, self.id)
 
     @property
     def subprocess_info(self):
         return self.pipeline_instance.template.subprocess_version_info
+
+    @property
+    def raw_state(self):
+        try:
+            state = pipeline_api.get_status_tree(self.pipeline_instance.instance_id)['state']
+        except exceptions.InvalidOperationException:
+            return None
+
+        return state
 
     @staticmethod
     def format_pipeline_status(status_tree):
