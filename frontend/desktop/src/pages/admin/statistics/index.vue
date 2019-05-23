@@ -40,22 +40,22 @@
         {
             text: gettext('流程统计'),
             name: 'statisticsTemplate',
-            path: '/statistics/template/'
+            path: '/admin/statistics/template/'
         },
         {
             text: gettext('任务统计'),
             name: 'statisticsInstance',
-            path: '/statistics/instance/'
+            path: '/admin/statistics/instance/'
         },
         {
             text: gettext('标准插件统计'),
             name: 'statisticsAtom',
-            path: '/statistics/atom/'
+            path: '/admin/statistics/atom/'
         },
         {
             text: gettext('轻应用统计'),
             name: 'statisticsAppmaker',
-            path: '/statistics/appmaker/'
+            path: '/admin/statistics/appmaker/'
         }
     ]
     export default {

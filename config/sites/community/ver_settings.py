@@ -11,11 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+REMOTE_ANALYSIS_URL = ''
+REMOTE_API_URL = ''
+
 ESB_SDK_NAME = 'packages.blueking.component'
+ESB_AUTH_COMPONENT_SYSTEM = 'bk_login'
+ESB_AUTH_GET_USER_INFO = 'get_user'
 
-TEMPLATE_DATA_SALT = 'e5483c1ccde63392bd439775bba6a7ae'
-
-RSA_PRIV_KEY = '''
+CALLBACK_KEY = b'jbSH1_3PFsM8WRZZpUXJPhlJuvuA44A7Ov0nPhFk5ZY='
+RSA_PRIV_KEY = """
 -----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQDA2XZvbf++4M6YLSgS93kYJS34e2TZvq/s6r0yFDz0je38ekW0
 2aH5efPTNijbJgHIbqfXzm8lBpmBbk9VlUHaJVyZitqI6xYBqb3WBRu9WYEd8skF
@@ -31,8 +35,11 @@ XBhx8zRcLjvR2cq5OlfAX3XQbXmxcpfKriSi13HxlcVc9gAj1SbYdb+wehQ7AjjJ
 bU+nE0FAfETaN+/eUQJAMN4sJTjEMkeSeE+SBzqsmzc4ajMHRrhtu989JgZZvDyr
 LOah9mmRwLJdcfa3Js+jw2lOCmxzqauYZHVHg/hH7g==
 -----END RSA PRIVATE KEY-----
-'''
-
-CALLBACK_PREFIX = 'o/bk_sops'
-
-CALLBACK_KEY = b'jbSH1_3PFsM8WRZZpUXJPhlJuvuA44A7Ov0nPhFk5ZY='
+"""
+# PUB_KEY for frontend, which can not use three quotes
+RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
+              "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA2XZvbf++4M6YLSgS93kYJS34\\n" + \
+              "e2TZvq/s6r0yFDz0je38ekW02aH5efPTNijbJgHIbqfXzm8lBpmBbk9VlUHaJVyZ\\n" + \
+              "itqI6xYBqb3WBRu9WYEd8skFy1mwOEbxOgsXoOPd9tLkt4etSMzm7kdBqmZKIeiA\\n" + \
+              "OtbmirDqkuz6M64b5wIDAQAB\\n" + \
+              "-----END PUBLIC KEY-----"

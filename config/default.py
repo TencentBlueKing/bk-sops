@@ -103,7 +103,10 @@ MIDDLEWARE += (
 )
 
 # 所有环境的日志级别可以在这里配置
-# LOG_LEVEL = 'INFO'
+LOG_LEVEL = 'INFO'
+
+# load logging settings
+LOGGING = get_logging_config_dict(locals())
 
 # 静态资源文件(js,css等）在APP上线更新后, 由于浏览器有缓存,
 # 可能会造成没更新的情况. 所以在引用静态资源的地方，都把这个加上
@@ -128,9 +131,6 @@ CELERYD_CONCURRENCY = os.getenv('BK_CELERYD_CONCURRENCY', 2)
 # CELERY 配置，申明任务的文件路径，即包含有 @task 装饰器的函数文件
 CELERY_IMPORTS = (
 )
-
-# load logging settings
-LOGGING = get_logging_config_dict(locals())
 
 # 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
 # 注意：请在首次提测和上线前修改，之后的修改将不会生效
@@ -163,19 +163,6 @@ AUTHENTICATION_BACKENDS += (
     'gcloud.core.backends.GCloudPermissionBackend',
 )
 
-ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER)
-
-for _setting in dir(ver_settings):
-    if _setting.upper() == _setting:
-        locals()[_setting] = getattr(ver_settings, _setting)
-
-# 本地开发环境日志级别
-LOG_LEVEL_DEVELOP = 'INFO'
-# 测试环境日志级别
-LOG_LEVEL_TEST = 'INFO'
-# 正式环境日志级别
-LOG_LEVEL_PRODUCT = 'INFO'  # 'ERROR'
-
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.simple_backend.SimpleEngine',
@@ -202,10 +189,6 @@ CACHES = {
     },
 }
 
-# 创建默认模版的系统用户信息
-SYSTEM_USERNAME = 'system_user'
-SYSTEM_USER_CH = u"系统用户"
-
 # 针对CC接口数据相关的缓存时间(单位s)
 DEFAULT_CACHE_TIME_FOR_CC = 5
 
@@ -214,9 +197,6 @@ DEFAULT_CACHE_TIME_FOR_USER_UPDATE = 5
 
 # 针对平台用户接口缓存的时间
 DEFAULT_CACHE_TIME_FOR_AUTH = 5
-
-# CC系统名称
-ESB_COMPONENT_CC = 'cc'
 
 # 蓝鲸PASS平台URL
 BK_PAAS_HOST = os.getenv('BK_PAAS_HOST', BK_URL)
@@ -227,9 +207,6 @@ BK_PAAS_INNER_HOST = os.getenv('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
 # cc、job域名
 BK_CC_HOST = os.environ.get('BK_CC_HOST')
 BK_JOB_HOST = os.environ.get('BK_JOB_HOST')
-
-PIPELINE_TEMPLATE_CONTEXT = 'gcloud.tasktmpl3.utils.get_template_context'
-PIPELINE_INSTANCE_CONTEXT = 'gcloud.taskflow3.utils.get_instance_context'
 
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = 'v2'
@@ -248,6 +225,8 @@ STATIC_VER = {
 }
 
 # pipeline settings
+PIPELINE_TEMPLATE_CONTEXT = 'gcloud.tasktmpl3.utils.get_template_context'
+PIPELINE_INSTANCE_CONTEXT = 'gcloud.taskflow3.utils.get_instance_context'
 
 COMPONENT_PATH = ['components.collections.sites.%s' % RUN_VER]
 VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
@@ -257,3 +236,9 @@ PIPELINE_PARSER_CLASS = 'pipeline_web.parser.WebPipelineAdapter'
 PIPELINE_RERUN_MAX_TIMES = 50
 
 from pipeline.celery.settings import *  # noqa
+
+# VER settings
+ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER)
+for _setting in dir(ver_settings):
+    if _setting.upper() == _setting:
+        locals()[_setting] = getattr(ver_settings, _setting)

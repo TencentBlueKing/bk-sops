@@ -2,7 +2,7 @@
 ![](docs/resource/img/bk_sops.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.3.13-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.3.14-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -28,7 +28,7 @@
 - 多种流程模式：支持原子节点的串行、并行，支持子流程，可以根据全局参数自动选择分支执行，节点失败处理机制可配置。
 - 参数引擎：支持参数共享，支持参数替换。
 - 可交互的任务执行：任务执行中可以随时暂停、继续、撤销，节点失败后可以重试、跳过。
-- 通用权限管理：通过配置平台同步业务角色，支持流程模板的权限控制。
+- 通用权限管理：通过配置平台同步业务角色，支持流程模板的使用权限控制。
 
 了解更多功能，请参考[标准运维白皮书](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 
