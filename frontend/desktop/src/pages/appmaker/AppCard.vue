@@ -178,6 +178,7 @@
         width: 60px;
         height: 60px;
         margin: 0 auto;
+        cursor: pointer;
         .logo-pic {
             width: 60px;
             height: 60px;
