@@ -561,7 +561,7 @@
 .task-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
     .dialog-content {
         word-break: break-all;
     }
