@@ -276,8 +276,10 @@ $blueDark: #53699d;
                 margin-top: 2px;
             }
             .common-icon-double-vertical-line {
+                display: inline-block;
                 color: $white;
                 font-size: 12px;
+                transform: scale(0.8);
             }
             .common-icon-loading {
                 display: inline-block;

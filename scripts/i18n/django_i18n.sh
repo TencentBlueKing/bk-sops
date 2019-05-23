@@ -4,7 +4,7 @@ WORK_PATH=`pwd`
 # check_vue_i18n_utils
 # 所有的 vue 文件都需要添加 import '@/utils/i18n.js'，排除不能和项目代码耦合的独立组件 IpSelector
 # $1 参数表示当前目录
-for item in `find $WORK_PATH/frontend/desktop/src/ -name "*.vue" ! -path "*IpSelector*"`;do
+for item in `find $WORK_PATH/frontend/desktop/src -name "*.vue" ! -path "*IpSelector*"`;do
     echo $item
     grep "i18n.js" $item || exit 1
 done

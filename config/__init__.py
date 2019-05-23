@@ -21,12 +21,12 @@ import os
 # Django starts so that shared_task will use this app.
 from blueapps.core.celery import celery_app
 
-# app 基本信息
-
+# app 基本信息默认设置，本地开发可以修改这里，预发布环境和正式环境会从环境变量自动获取
 RUN_VER = 'open'
 APP_ID = ''
-# SECURITY WARNING: keep the secret key used in production secret!
 APP_TOKEN = ''
+BK_PAAS_HOST = ''
+BK_URL = BK_PAAS_HOST
 
 APP_CODE = APP_ID = os.environ.get('APP_ID', APP_ID)
 SECRET_KEY = APP_TOKEN = os.environ.get('APP_TOKEN', APP_TOKEN)

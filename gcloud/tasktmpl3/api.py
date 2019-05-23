@@ -28,10 +28,8 @@ from guardian.shortcuts import (
 
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
-from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
 from gcloud.core.decorators import check_user_perm_of_business
 from gcloud.core.roles import ALL_ROLES
-
 from gcloud.core.utils import convert_group_name, time_now_str, check_and_rename_params
 from gcloud.commons.template.constants import PermNm
 from gcloud.commons.template.utils import (
@@ -40,7 +38,6 @@ from gcloud.commons.template.utils import (
     read_template_data_file
 )
 from gcloud.commons.template.forms import TemplateImportForm
-from gcloud.tasktmpl3.utils import get_notify_group_by_biz_core
 from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger('root')
@@ -178,50 +175,6 @@ def save_perms(request, biz_cc_id):
         'message': 'success'
     }
     return JsonResponse(ctx)
-
-
-# TODO： 该方法已迁移至 core/api/get_basic_info ，等待前端完成迁移后删除
-@require_GET
-def get_business_basic_info(request, biz_cc_id):
-    """
-    @summary: 获取业务基本配置信息
-    @param request:
-    @param biz_cc_id:
-    @note:
-    """
-    # 类型数据来源
-    task_categories = []
-    for item in TASK_CATEGORY:
-        task_categories.append({
-            'value': item[0],
-            'name': item[1]
-        })
-    # 模板流程来源
-    flow_type_list = []
-    for item in TASK_FLOW_TYPE:
-        flow_type_list.append({
-            'value': item[0],
-            'name': item[1]
-        })
-
-    # 出错通知人员分组
-    notify_group = get_notify_group_by_biz_core(biz_cc_id)
-
-    # 出错通知方式来源
-    notify_type_list = []
-    for item in NOTIFY_TYPE:
-        notify_type_list.append({
-            'value': item[0],
-            'name': item[1]
-        })
-
-    ctx = {
-        "task_categories": task_categories,
-        "flow_type_list": flow_type_list,
-        "notify_group": notify_group,
-        "notify_type_list": notify_type_list
-    }
-    return JsonResponse(ctx, safe=False)
 
 
 @require_GET
