@@ -47,6 +47,11 @@ class CachePackageSource(PackageSource):
 
     objects = CachePackageSourceManager()
 
+    class Meta:
+        verbose_name = _(u"远程包源缓存 CachePackageSource")
+        verbose_name_plural = _(u"远程包源缓存 CachePackageSource")
+        ordering = ['-id']
+
     @property
     def category(self):
         return CACHE

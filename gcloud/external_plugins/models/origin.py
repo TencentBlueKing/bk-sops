@@ -136,6 +136,11 @@ class GitRepoOriginalSource(OriginalPackageSource):
     repo_raw_address = models.TextField(_(u"文件托管仓库链接"), help_text=_(u"可以通过web直接访问源文件的链接前缀"))
     branch = models.CharField(_(u"分支名"), max_length=128)
 
+    class Meta:
+        verbose_name = _(u"GIT远程包源 GitRepoOriginalSource")
+        verbose_name_plural = _(u"GIT远程包源 GitRepoOriginalSource")
+        ordering = ['-id']
+
     @staticmethod
     def original_type():
         return GIT
@@ -156,6 +161,11 @@ class S3OriginalSource(OriginalPackageSource):
     access_key = models.TextField(_(u"access key"))
     secret_key = models.TextField(_(u"secret key"))
 
+    class Meta:
+        verbose_name = _(u"S3远程包源 S3OriginalSource")
+        verbose_name_plural = _(u"S3远程包源 S3OriginalSource")
+        ordering = ['-id']
+
     @staticmethod
     def original_type():
         return S3
@@ -173,6 +183,11 @@ class S3OriginalSource(OriginalPackageSource):
 @original_source
 class FileSystemOriginalSource(OriginalPackageSource):
     path = models.TextField(_(u"文件系统路径"))
+
+    class Meta:
+        verbose_name = _(u"FS远程包源 FileSystemOriginalSource")
+        verbose_name_plural = _(u"FS远程包源 FileSystemOriginalSource")
+        ordering = ['-id']
 
     @staticmethod
     def original_type():
