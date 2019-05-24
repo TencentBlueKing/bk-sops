@@ -213,7 +213,7 @@ module.exports = {
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/no-v-html.md
         // 禁止使用 v-html，防止 xss
-        'vue/no-v-html': 'error',
+        'vue/no-v-html': 'off',
 
         // https://github.com/vuejs/eslint-plugin-vue/blob/master/docs/rules/object-curly-spacing.md
         // 对象写在一行时，大括号里需要空格
