@@ -35,7 +35,6 @@ class Business(models.Model):
     # 开发商ID bk_supplier_id
     cc_company = models.CharField(max_length=100)
     time_zone = models.CharField(max_length=100, blank=True)
-    # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是非法值
     life_cycle = models.CharField(_(u"生命周期"), max_length=100, blank=True)
     executor = models.CharField(_(u"任务执行者"), max_length=100, blank=True)
     # null 表未归档，disabled 表示已归档
@@ -49,6 +48,7 @@ class Business(models.Model):
 
     objects = BusinessManager()
 
+    # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是历史遗留非法值，暂时认为是已上线状态
     LIFE_CYCLE_TESTING = '1'  # 测试中
     LIFE_CYCLE_ONLINE = '2'  # 已上线
     LIFE_CYCLE_CLOSE_DOWN = '3'  # 停运
@@ -65,7 +65,7 @@ class Business(models.Model):
         return u"%s_%s" % (self.cc_id, self.cc_name)
 
     def available(self):
-        return self.status != 'disabled' and self.life_cycle == self.LIFE_CYCLE_ONLINE
+        return self.status != 'disabled' and self.life_cycle not in [Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")]
 
 
 class UserBusiness(models.Model):
