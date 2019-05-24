@@ -1,6 +1,17 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+* Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+* an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+* specific language governing permissions and limitations under the License.
+*/
 <template>
     <div class="page-manage">
-        <navi-header :routers="routers" :title="i18n.title"></navi-header>
+        <navi-header :routers="routers" :title="title"></navi-header>
         <router-view></router-view>
     </div>
 </template>
@@ -28,10 +39,18 @@
         },
         data () {
             return {
-                routers: ROUTERS,
                 i18n: {
-                    title: gettext('管理后台')
+                    manage: gettext('管理后台'),
+                    editSource: gettext('编辑包源')
                 }
+            }
+        },
+        computed: {
+            routers () {
+                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? [] : ROUTERS
+            },
+            title () {
+                return ['packageEdit', 'cacheEdit'].includes(this.$route.name) ? this.i18n.editSource : this.i18n.manage
             }
         }
     }
@@ -40,7 +59,7 @@
     .page-manage {
         padding: 0 60px;
         min-width: 1320px;
-        height: calc(100% - 50px);
+        min-height: calc(100% - 50px);
         background: #f4f7fa;
     }
 </style>

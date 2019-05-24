@@ -43,6 +43,9 @@ const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker/index
 const CommonTemplate = () => import('@/pages/admin/common/template.vue')
 const Manage = () => import('@/pages/admin/manage/index.vue')
 const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
+const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
+const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
+const CacheEdit = () => import('@/pages/admin/manage/SourceEdit/CacheEdit.vue')
 const SourceSync = () => import('@/pages/admin/manage/SourceSync/index.vue')
 
 const FunctionHome = () => import('@/pages/functor/index.vue')
@@ -257,6 +260,22 @@ const routers = new VueRouter({
                             path: 'source_manage/',
                             name: 'sourceManage',
                             component: SourceManage
+                        },
+                        {
+                            path: 'source_edit/',
+                            component: SourceEdit,
+                            children: [
+                                {
+                                    path: 'package_edit/',
+                                    name: 'packageEdit',
+                                    component: PackageEdit
+                                },
+                                {
+                                    path: 'cache_edit/',
+                                    name: 'cacheEdit',
+                                    component: CacheEdit
+                                }
+                            ]
                         },
                         {
                             path: 'source_sync/',
