@@ -77,7 +77,7 @@
                         class="jump-tpl-page-btn common-icon-link params-btn-icon"
                         target="_blank"
                         v-bktooltips.bottom="i18n.checkFlow"
-                        :to="onClickJumpFlow()">
+                        :to="getTplURL()">
                     </router-link>
                 </div>
             </div>
@@ -909,7 +909,7 @@
                     this.nodeInfoType = type
                 }
             },
-            onClickJumpFlow () {
+            getTplURL () {
                 let routerData = ''
                 if (this.templateSource === 'business') {
                     routerData = `/template/edit/${this.cc_id}/?template_id=${this.template_id}`
