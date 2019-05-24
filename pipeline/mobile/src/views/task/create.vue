@@ -1,3 +1,10 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 <template>
     <!-- 容器 -->
     <div class="page-view">
@@ -22,7 +29,10 @@
             <div class="bk-text-list">
                 <van-field
                     :label="i18n.taskName"
+                    name="taskName"
                     v-validate="taskNameRule"
+                    :error="errors.has('taskName')"
+                    :error-message="errors.first('taskName')"
                     v-model="taskName" />
                 <van-cell
                     :title="i18n.scheme"
@@ -33,6 +43,7 @@
                 </van-cell>
             </div>
         </section>
+        <!-- 方案选择popup -->
         <van-popup
             v-model="show"
             position="bottom"
@@ -44,64 +55,35 @@
                 @cancel="show = false" />
         </van-popup>
 
+        <!-- 日期选择popup -->
         <van-popup
-            v-model="datetimePickerShow"
+            v-model="dateTimeShow"
             position="bottom"
             :overlay="true">
             <van-datetime-picker
                 type="datetime"
                 show-toolbar
                 v-model="currentDate"
-                @confirm="onDatetimePickerConfirm"
-                @cancel="onDatetimePickerCancel" />
+                @confirm="onDateTimeConfirm"
+                @cancel="onDateTimeCancel" />
         </van-popup>
+
         <!-- 参数信息 -->
         <section class="bk-block">
             <h2 class="bk-text-title">{{ i18n.paramInfo }}</h2>
             <div class="bk-text-list">
                 <template v-if="Object.keys(templateConstants).length">
-                    <template v-for="item in templateConstants">
-                        <van-field
-                            v-if="item.custom_type === 'input'"
-                            :key="item.id"
+                    <template v-for="item in sortedConstants">
+                        <VantComponent
+                            :source-code="item.source_tag"
+                            :custom-type="item.custom_type"
+                            :key="item.key"
                             :label="item.name"
                             :placeholder="i18n.paramInput"
-                            v-validate="variableInputRule"
-                            v-model="item.value"
-                            :value="item.value" />
-                        <van-field
-                            v-else-if="item.custom_type === 'int'"
-                            type="number"
-                            :key="item.id"
-                            :label="item.name"
-                            :placeholder="i18n.paramInput"
-                            v-model="item.value"
-                            :value="item.value" />
-                        <van-cell
-                            v-else-if="item.custom_type === 'datetime'"
-                            :placeholder="i18n.datetimeInput"
-                            :key="item.id"
-                            :title="item.name"
                             :value="item.value"
-                            @click="datetimePickerShow = true">
-                            <template v-if="datetimeVariable">
-                                {{ datetimeVariable }}
-                            </template>
-                            <template v-else>
-                                {{ item.value }}
-                            </template>
-                        </van-cell>
-                        <van-field
-                            v-if="item.custom_type === 'textarea'"
-                            v-model="item.value"
-                            type="textarea"
-                            :placeholder="i18n.paramInput"
-                            v-validate="variableInputRule"
-                            rows="1"
-                            autosize
-                            :key="item.id"
-                            :label="item.name"
-                            :value="item.value" />
+                            :data="item"
+                            @dataChange="onInputDataChange"
+                            @dateTimePick="onDateTimePick" />
                     </template>
                 </template>
                 <template v-else>
@@ -121,7 +103,7 @@
                 v-else
                 size="large"
                 type="info"
-                @click="createTaskAndStart">{{ i18n.btnCreate }}</van-button>
+                @click="onCreateClick">{{ i18n.btnCreate }}</van-button>
         </div>
     </div>
 </template>
@@ -131,6 +113,8 @@
     import { mapActions } from 'vuex'
     import { dateFormatter } from '@/common/util.js'
     import NoData from '@/components/NoData/index.vue'
+    import VantComponent from '@/components/VantForm/index.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const NAME_REG = /^[A-Za-z0-9\_\-\[\]\【\】\(\)\（\）\u4e00-\u9fa5]+$/
     const DEFAULT_SCHEMES_NAME = window.gettext('执行所有节点')
@@ -138,18 +122,18 @@
     export default {
         name: 'TaskCreate',
         components: {
-            NoData
+            NoData,
+            VantComponent
         },
         props: { templateId: String },
         data () {
             return {
                 creating: false,
                 show: false,
-                datetimeVariable: '',
-                datetimePickerShow: false,
-                numberKeyboardShow: false,
+                dateTimeShow: false,
                 columns: [],
                 currentDate: new Date(),
+                currentRef: null,
                 collected: false,
                 collecting: false,
                 templateData: {
@@ -187,6 +171,16 @@
                 }
             }
         },
+        computed: {
+            sortedConstants () {
+                const sortedTemplateConstants = {}
+                const sortedConstants = Object.values(this.templateConstants).sort((a, b) => a.index - b.index)
+                sortedConstants.forEach((item) => {
+                    sortedTemplateConstants[item['key']] = item
+                })
+                return sortedTemplateConstants
+            }
+        },
         mounted () {
             this.creating = false
             this.loadData()
@@ -198,7 +192,7 @@
                 'collectTemplate',
                 'createTask',
                 'getTemplateConstants',
-                'getSchemes',
+                'getSchemeList',
                 'getScheme',
                 'getPreviewTaskTree'
             ]),
@@ -207,7 +201,7 @@
                 this.templateData = await this.getTemplate(this.templateId)
                 const pipelineTree = JSON.parse(this.templateData.pipeline_tree)
                 this.templateConstants = pipelineTree.constants
-                this.schemes = await this.getSchemes(this.$store.state.bizId)
+                this.schemes = await this.getSchemeList(this.$store.state.bizId)
                 this.taskName = this.getDefaultTaskName()
                 this.collected = await this.isTemplateCollected()
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
@@ -215,6 +209,13 @@
                 this.templatePipelineTree = JSON.parse(this.templateData.pipeline_tree)
                 this.$store.commit('setPipelineTree', this.templatePipelineTree)
                 this.$toast.clear()
+            },
+            onCreateClick () {
+                this.$validator.validateAll().then((result) => {
+                    if (result) {
+                        this.createTaskAndStart()
+                    }
+                })
             },
             async createTaskAndStart () {
                 if (!this.creating) {
@@ -240,12 +241,15 @@
                         }
                         this.$router.push({ path: '/task/canvas', query: { 'executeTask': 'true', taskId: this.taskId } })
                     } catch (e) {
-                        console.error(e)
+                        errorHandler(e, this)
                     } finally {
                         this.creating = false
                         this.$toast.clear()
                     }
                 }
+            },
+            onInputDataChange (val, key) {
+                this.templateConstants[key].value = val
             },
             getDefaultTaskName () {
                 return this.templateData.name + '_' + moment().format('YYYYMMDDHHmmss')
@@ -253,7 +257,11 @@
             async onConfirm (value) {
                 this.show = false
                 if (value.id) {
-                    this.scheme = await this.getScheme(value.id)
+                    try {
+                        this.scheme = await this.getScheme(value.id)
+                    } catch (e) {
+                        errorHandler(e, this)
+                    }
                     this.scheme.text = this.scheme.name
                     const existNodes = Object.keys(this.templatePipelineTree.activities)
                     // 排除的节点字符串
@@ -261,19 +269,13 @@
                     if (includeNodesStr && includeNodesStr.length) {
                         const includeNodes = JSON.parse(includeNodesStr)
                         // 两个数组的差集，即被排除的节点
-                        this.excludeTaskNodes = includeNodes.concat(existNodes).filter(v => includeNodes.includes(v) ^ existNodes.includes(v))
+                        // this.excludeTaskNodes = includeNodes.concat(existNodes).filter(v => includeNodes.includes(v) ^ existNodes.includes(v))
+                        this.excludeTaskNodes = existNodes.filter(n => !includeNodes.includes(n))
                         this.$store.commit('setExcludeTaskNodes', this.excludeTaskNodes)
                     }
                 } else {
                     this.scheme = value
                 }
-            },
-            onDatetimePickerConfirm (value) {
-                this.datetimePickerShow = false
-                this.datetimeVariable = dateFormatter(value)
-            },
-            onDatetimePickerCancel () {
-                this.datetimePickerShow = false
             },
             async collect () {
                 // 防止重复提交
@@ -281,11 +283,18 @@
                     this.collecting = true
                     // 调用收藏是取消收藏方法
                     const params = { template_id: this.templateId, method: this.collected ? 'delete' : 'add' }
-                    const response = await this.collectTemplate(params)
-                    if (response.result) {
-                        this.collected = !this.collected
+                    try {
+                        const response = await this.collectTemplate(params)
+                        if (response.result) {
+                            this.collected = !this.collected
+                        } else {
+                            errorHandler(response, this)
+                        }
+                    } catch (e) {
+                        errorHandler(e, this)
+                    } finally {
+                        this.collecting = false
                     }
-                    this.collecting = false
                 }
             },
             async isTemplateCollected () {
@@ -300,7 +309,24 @@
                     }
                 })
                 return Boolean(this.templateData.is_add)
+            },
+
+            onDateTimePick (key) {
+                this.dateTimeShow = true
+                this.currentRef = key
+            },
+
+            onDateTimeConfirm (value) {
+                if (this.currentRef) {
+                    this.$set(this.templateConstants[this.currentRef], 'value', dateFormatter(value))
+                }
+                this.dateTimeShow = false
+            },
+
+            onDateTimeCancel () {
+                this.dateTimeShow = false
             }
+
         }
     }
 </script>

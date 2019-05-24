@@ -1,3 +1,10 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 <template>
     <div
         v-if="node.type === 'startpoint'"
@@ -13,7 +20,8 @@
         <div
             ref="nodeLocation"
             :name="'tip_' + node.id"
-            :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']">
+            :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']"
+            @click="onNodeClick(node, $event)">
             <div class="node-name">
                 <p class="name">{{ node.name }}</p>
             </div>
@@ -80,6 +88,12 @@
                         // 当前树替换成子流程树
                         this.$store.commit('setPipelineTree', subTree)
                     }
+                } else {
+                    console.log(pipelineTree.activities[node.id].component.code)
+                    const componentCode = pipelineTree.activities[node.id].component.code
+                    if (!this.node.componentCode) {
+                        this.$set(this.node, 'componentCode', componentCode)
+                    }
                 }
             }
         }
@@ -136,9 +150,7 @@
     }
 
     .node-subflow {
-        border-top-style: solid;
-        border-top-width: 5px;
-        border-top-color: #53699d;
+        border-top: 5px solid #53699d;
         .node-name {
             height: 55px;
         }

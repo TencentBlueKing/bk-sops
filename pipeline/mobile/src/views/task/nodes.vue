@@ -1,3 +1,10 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 <template>
     <div class="page-view">
         <!-- 信息 -->
@@ -17,7 +24,7 @@
             <div class="bk-text-list">
                 <van-cell :title="i18n.startTime" :value="nodeDetail.start_time" />
                 <van-cell :title="i18n.endTime" :value="nodeDetail.finish_time" />
-                <van-cell :title="i18n.costTime" :value="nodeDetail.elapsed_time" />
+                <van-cell :title="i18n.costTime" :value="getLastTime(nodeDetail.elapsed_time)" />
                 <van-cell :title="i18n.skipped" :value="nodeDetail.skip ? i18n.yes : i18n.no" />
                 <van-cell :title="i18n.ignore" :value="nodeDetail.error_ignorable ? i18n.yes : i18n.no" />
                 <van-cell :title="i18n.retryTimes" :value="nodeDetail.retry" />
@@ -52,7 +59,7 @@
         <section class="bk-block">
             <h2 class="bk-text-title">{{ i18n.errorInfo }}</h2>
             <div class="bk-text-list">
-                <van-cell v-if="nodeDetail.ex_data" :value="nodeDetail.ex_data" />
+                <van-cell v-if="nodeDetail.ex_data" :value="transformFailInfo(nodeDetail.ex_data)" />
                 <no-data v-else />
             </div>
         </section>
@@ -65,12 +72,14 @@
             <div class="bk-text-list">
                 <van-cell :title="i18n.startTime" :value="history.start_time" />
                 <van-cell :title="i18n.endTime" :value="history.finish_time" />
-                <van-cell :title="i18n.costTime" :value="history.elapsed_time" />
+                <van-cell :title="i18n.costTime" :value="getLastTime(history.elapsed_time)" />
             </div>
         </section>
     </div>
 </template>
 <script>
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import tools from '@/utils/tools.js'
     import NoData from '@/components/NoData/index.vue'
     import StatusIcon from '@/components/MobileStatusIcon/index.vue'
     import VueJsonPretty from 'vue-json-pretty'
@@ -127,21 +136,44 @@
                     nodeId: node.id,
                     componentCode: ''
                 }
-                const response = await this.getNodeDetail(params)
-                const task = await this.getTask({ id: taskId })
-                if (response.result) {
-                    this.nodeDetail = response.data
-                    this.nodeDetail.name = task.name
-                }
                 this.loadingIcon = true
-                const statusRes = await this.getTaskStatus({ id: taskId })
-                this.status = statusRes.data.state
-                this.loadingIcon = false
-                this.$toast.clear()
+                Promise.all([
+                    this.getNodeDetail(params),
+                    this.getTaskStatus({ id: taskId }),
+                    this.getTask({ id: taskId })
+                ]).then(values => {
+                    if (values[0].result) {
+                        this.nodeDetail = values[0].data
+                    }
+                    this.status = values[1].data.state
+                    this.nodeDetail.name = values[2].name
+                    this.loadingIcon = false
+                    this.$toast.clear()
+                }).catch(e => {
+                    errorHandler(e, this)
+                    this.loadingIcon = false
+                    this.$toast.clear()
+                })
             },
 
             showParameters () {
                 this.$router.push({ name: 'task_node_parameter', params: { parameters: JSON.stringify(this.nodeDetail.inputs) } })
+            },
+
+            getLastTime (time) {
+                return tools.timeTransform(time)
+            },
+
+            transformFailInfo (data) {
+                if (!data) {
+                    return ''
+                }
+                if (typeof data === 'string') {
+                    const info = data.replace(/\n/g, '<br>')
+                    return info
+                } else {
+                    return data
+                }
             }
         }
     }

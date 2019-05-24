@@ -1,55 +1,132 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 <template>
     <div class="page-view">
         <!-- 任务信息 -->
         <section class="bk-block">
             <div class="bk-text-list">
-                <van-field label="参数01" placeholder="输入参数值" />
-                <van-field label="参数02" placeholder="输入参数值" />
+                <template v-if="Object.keys(inputs).length">
+                    <template v-for="item in inputs">
+                        <VantComponent
+                            :source-code="item.source_tag"
+                            :key="item.source_tag"
+                            :value="item.value"
+                            :data="item"
+                            @dataChange="onInputDataChange"
+                            @onSelect="onSelect"
+                            @dateTimePick="onDateTimePick" />
+                    </template>
+                </template>
+                <template v-else>
+                    <no-data />
+                </template>
             </div>
         </section>
         <div class="btn-group">
-            <van-button size="large" type="default" @click="onClick">取消</van-button>
-            <van-button size="large" type="info" @click="onClick">确定</van-button>
+            <van-button size="large" type="default" @click="onClickCancel">{{ i18n.cancel }}</van-button>
+            <van-button size="large" type="info" @click="onClick">{{ i18n.confirm }}</van-button>
         </div>
+
+        <!-- 选择popup -->
+        <van-popup
+            v-model="show"
+            position="bottom"
+            :overlay="true">
+            <van-picker
+                show-toolbar
+                :default-index="defaultIndex"
+                :columns="columns"
+                @confirm="onSelectConfirm"
+                @cancel="show = false" />
+        </van-popup>
     </div>
 </template>
 <script>
-    import store from '@/store'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions } from 'vuex'
+    import NoData from '@/components/NoData/index.vue'
+    import VantComponent from '@/components/VantForm/index.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'TaskReset',
+        components: {
+            NoData,
+            VantComponent
+        },
         data () {
             return {
-                templateData: {
-                    name: '',
-                    creator_name: '',
-                    create_time: ''
-                },
-                templateConstants: {},
+                show: false,
+                defaultIndex: 0,
+                columns: [],
+                inputs: {},
+                nodeId: '',
+                taskId: '',
+                componentCode: '',
+                operatingTagCode: '', // 当前正在操作的原子项
+                formData: [],
                 i18n: {
-                    btnCreate: window.gettext('执行任务')
+                    btnCreate: window.gettext('执行任务'),
+                    retrySuccess: window.gettext('重试成功'),
+                    cancel: window.gettext('取消'),
+                    confirm: window.gettext('确定'),
+                    loading: window.gettext('加载中...')
                 }
             }
         },
-        computed: {
-            ...mapState({
-                task: state => state.task
-            })
-        },
-        mounted () {
+        created () {
             this.loadData()
         },
         methods: {
-            ...mapActions('template', [
-                'getTemplate',
-                'getTemplateConstants'
+            ...mapActions('task', [
+                'instanceNodeRetry'
             ]),
-            async loadData () {
-                // TODO: 重试需要填写原子的参数，原子的表单参数在mobile端需要重新开发
+            loadData () {
+                ({ inputs: this.inputs, componentCode: this.componentCode, taskId: this.taskId, nodeId: this.nodeId } = this.$route.params)
             },
-            onClick () {
-                this.$router.push({ path: '/task/canvas', query: { taskId: store.state.task.id } })
+            async onClick () {
+                await this.doSkip()
+            },
+            onClickCancel () {
+                this.gotoCanvas()
+            },
+            onSelect ({ defaultVal, columns, tagCode }) {
+                this.show = true
+                this.columns = columns
+                this.defaultIndex = defaultVal
+                this.operatingTagCode = tagCode
+            },
+            onSelectConfirm (column) {
+                this.$set(this.inputs[this.operatingTagCode], 'value', column.value)
+                this.show = false
+            },
+            onInputDataChange (val, key) {
+                console.log(val, key)
+                this.inputs[key].value = val
+            },
+            async doSkip () {
+                this.show = false
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
+                const params = {
+                    instance_id: this.taskId,
+                    node_id: this.nodeId,
+                    component_code: this.componentCode,
+                    inputs: this.inputs
+                }
+                const response = await this.instanceNodeRetry(params)
+                if (response.result) {
+                    global.bus.$emit('notify', { message: this.i18n.retrySuccess })
+                    this.gotoCanvas()
+                } else {
+                    errorHandler(response, this)
+                }
+            },
+            gotoCanvas () {
+                this.$router.push({ path: '/task/canvas', query: { taskId: this.taskId } })
             }
         }
     }
