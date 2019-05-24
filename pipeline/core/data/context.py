@@ -56,10 +56,10 @@ class Context(object):
         self._output_key.add(key)
 
     def write_output(self, pipeline):
+        from pipeline.core.data import var
         data = pipeline.data
         for key in self._output_key:
             value = self.get(key)
-            from pipeline.core.data import var
             if issubclass(value.__class__, var.Variable):
                 value = value.get()
                 # break circle
