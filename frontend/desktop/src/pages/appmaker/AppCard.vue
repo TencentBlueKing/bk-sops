@@ -42,7 +42,7 @@
                     @mouseleave="onHideOperation">
                 </span>
             </div>
-            <div class="edit-box-background"
+            <div class="edit-box-wrapper"
                 v-if="isShowEdit"
                 @mouseenter="onShowOperation"
                 @mouseleave="onHideOperation">
@@ -158,10 +158,10 @@
         }
     }
 }
-.edit-box-background {
+.edit-box-wrapper {
     position: absolute;
-    left: 111px;
-    top: 142px;
+    left: 32%;
+    top: 140px;
     z-index: 10;
     padding-left: 6px;
     width: 102px;
@@ -236,25 +236,23 @@
         .edit-operation {
             width: 96px;
             height: 42px;
-            color: #63656e;
+            color: #fff;
             font-size: 12px;
             font-weight: 400;
             line-height: 42px;
             text-align: center;
-            background: #fff;
+            background: #979ba5;
             &:hover {
-                color: #3a84ff;
-                background: #ebf4ff;
+                background: #63656e;
             }
         }
 }
 .edit-box>li>a {
     display: block;
-    color: #63656e;
+    color: #fff;
     height: 42px;
     &:hover {
-        color: #3a84ff;
-        background: rgb#ebf4ff;
+        background: rgb#63656e;
     }
 }
 .card-particular {

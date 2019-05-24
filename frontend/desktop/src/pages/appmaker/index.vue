@@ -541,7 +541,7 @@
         margin: 0 14px 20px 0;
     }
     .empty-app-list {
-        padding: 200px 0;
+        padding: 58px 0;
         background: $whiteDefault;
         border: 1px solid $commonBorderColor;
     }
