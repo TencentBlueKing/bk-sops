@@ -32,9 +32,8 @@ class ExternalPluginsConfig(AppConfig):
         from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
 
         triggers = getattr(settings, 'EXTERNAL_COMPONENTS_LOAD_TRIGGER', {'runserver', 'celery', 'worker'})
-        command = sys.argv[1]
 
-        if command in triggers:
+        if self.is_trigger_commond(triggers):
             try:
                 logger.info('Start to update package source from config file...')
                 ExternalPackageSource.update_package_source_from_config(getattr(settings,
@@ -49,3 +48,14 @@ class ExternalPluginsConfig(AppConfig):
             logger.info('Start to load external modules...')
 
             loader.load_external_modules()
+
+    @staticmethod
+    def is_trigger_commond(triggers):
+        try:
+            command = sys.argv[1]
+        except Exception:
+            logger.error('Get command from sys[argv=%s] error' % sys.argv)
+            return True
+        if command in triggers:
+            return True
+        return False
