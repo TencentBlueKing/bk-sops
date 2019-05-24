@@ -4,7 +4,7 @@
             <div class="nav-title">
                 <h3>{{title}}</h3>
             </div>
-            <div class="router-wrapper">
+            <div class="router-wrapper" v-if="routers.length">
                 <router-link
                     v-for="router in routers"
                     :key="router.name"
@@ -45,9 +45,7 @@
             align-items: center;
             height: 60px;
             h3 {
-                margin: 0 25px 0 0;
                 padding: 0 25px 0 10px;
-                border-right: 1px solid #c4c6cc;
                 border-left: 2px solid #a3c5fd;
                 font-size: 14px;
                 font-weight: bold;
@@ -56,6 +54,17 @@
         }
         .router-wrapper {
             float: left;
+            position: relative;
+            padding-left: 25px;
+            &:before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 20px;
+                width: 0;
+                height: 20px;
+                border-left: 1px solid #c4c6cc;
+            }
             .router-item {
                 display: inline-block;
                 margin-right: 34px;

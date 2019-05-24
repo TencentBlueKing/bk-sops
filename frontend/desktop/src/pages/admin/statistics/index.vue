@@ -80,7 +80,7 @@
 @import "@/scss/datastatistics/datastatistics.scss";
 .page-statistics {
     .statistics-content {
-        padding: 0 10px;
+        padding: 20px 10px 0;
         .content-wrapper {
             min-width: 1320px;
         }
