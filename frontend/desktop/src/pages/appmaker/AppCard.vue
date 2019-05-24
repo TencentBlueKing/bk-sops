@@ -252,7 +252,7 @@
     color: #fff;
     height: 42px;
     &:hover {
-        background: rgb#63656e;
+        background: #63656e;
     }
 }
 .card-particular {
