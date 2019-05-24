@@ -109,6 +109,7 @@
 </template>
 
 <script>
+    import { NAME_REG } from '@/constants/index.js'
     import moment from 'moment'
     import { mapActions } from 'vuex'
     import { dateFormatter } from '@/common/util.js'
@@ -116,7 +117,6 @@
     import VantComponent from '@/components/VantForm/index.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
-    const NAME_REG = /^[A-Za-z0-9\_\-\[\]\【\】\(\)\（\）\u4e00-\u9fa5]+$/
     const DEFAULT_SCHEMES_NAME = window.gettext('执行所有节点')
 
     export default {

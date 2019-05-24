@@ -48,6 +48,7 @@
                         v-for="item in nodeDetail.outputs"
                         :key="item.index"
                         :title="item.name"
+                        v-html="getOutputValue(item)"
                         :value="item.value === '' ? '--' : str(item.value)" />
                 </template>
                 <template v-else>
@@ -78,6 +79,7 @@
     </div>
 </template>
 <script>
+    import { URL_REG } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import NoData from '@/components/NoData/index.vue'
@@ -162,6 +164,19 @@
 
             getLastTime (time) {
                 return tools.timeTransform(time)
+            },
+
+            getOutputValue (output) {
+                if (output.value === 'undefined' || output.value === '') {
+                    return '--'
+                } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
+                    return output.value
+                } else {
+                    if (URL_REG.test(output.value)) {
+                        return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
+                    }
+                    return output.value
+                }
             },
 
             transformFailInfo (data) {
