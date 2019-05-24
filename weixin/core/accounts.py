@@ -1,4 +1,11 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
+"""
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+http://opensource.org/licenses/MIT
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+""" # noqa
 """
 微信账号体系相关的Account
 """
@@ -8,6 +15,7 @@ import urlparse
 import urllib
 
 from django.http import HttpResponseRedirect, HttpResponse
+from django.utils.translation import ugettext as _
 
 from common.log import logger
 import settings as weixin_settings
@@ -106,7 +114,7 @@ class WeixinAccount(WeixinAccountSingleton):
             request.session['WEIXIN_OAUTH_STATE_TIMESTAMP'] = None
             return True
         except Exception, e:
-            logger.exception(u"验证请求weixin code的 state参数出错： %s" % e)
+            logger.exception(_(u"验证请求weixin code的 state参数出错： %s") % e)
             return False
 
     def verfiy_weixin_oauth_code(self, request):
@@ -150,16 +158,16 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         if not self.is_weixin_visit(request):
             # TODO 改造为友好页面
-            return HttpResponse(u"非微信访问，或应用未启动微信访问")
+            return HttpResponse(_(u"非微信访问，或应用未启动微信访问"))
         # 验证回调state
         if not self.verify_weixin_oauth_state(request):
             # TODO 改造为友好页面
-            return HttpResponse(u"State验证失败")
+            return HttpResponse(_(u"State验证失败"))
         # 验证code有效性
         is_code_vaild, base_data = self.verfiy_weixin_oauth_code(request)
         if not is_code_vaild:
             # TODO 改造为友好页面
-            return HttpResponse(u"登录失败")
+            return HttpResponse(_(u"登录失败"))
 
         # 设置登录
         # 对于授权为snsapi_userinfo的，需获取用户信息

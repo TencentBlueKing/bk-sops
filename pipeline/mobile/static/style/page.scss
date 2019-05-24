@@ -122,7 +122,7 @@ a{
     .van-cell__value{
         text-align: left;
         color: $text-color-light;
-        .van-field__control{
+        .van-field__control,.van-checkbox__label,.van-radio__label{
             color: $text-color-light;
         }
     }
@@ -242,4 +242,12 @@ a{
 .custom-notify{
     background: $blue;
     line-height: 28px;
+}
+/*checkbox*/
+.van-checkbox-group,.van-radio-group{
+    .van-checkbox,.van-radio{
+        +.van-checkbox,+.van-radio{
+            margin-top: 8px;
+        }
+    }
 }

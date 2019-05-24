@@ -1,3 +1,10 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 <template>
     <div class="page-view">
         <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
@@ -5,17 +12,23 @@
         <van-tabbar>
             <van-tabbar-item>
                 <van-icon
-                    v-if="taskState === 'CREATED'"
+                    v-if="taskState === 'CREATED' && !operating"
                     slot="icon"
                     class-prefix="icon"
                     name="play"
-                    @click="onExecute" />
+                    @click="onOperationClick('execute')" />
                 <van-icon
-                    v-else-if="taskState === 'RUNNING'"
+                    v-else-if="taskState === 'RUNNING' && !operating"
                     slot="icon"
                     class-prefix="icon"
                     name="pause"
-                    @click="onPause" />
+                    @click="onOperationClick('pause')" />
+                <van-icon
+                    v-else-if="taskState === 'PAUSE' && !operating"
+                    slot="icon"
+                    class-prefix="icon"
+                    name="play"
+                    @click="onOperationClick('resume')" />
                 <van-icon
                     v-else
                     slot="icon"
@@ -26,7 +39,7 @@
             </van-tabbar-item>
             <van-tabbar-item>
                 <van-icon
-                    v-if="taskState !== 'CREATED' && taskState !== 'REVOKED' && taskState !== 'FINISHED'"
+                    v-if="taskState !== 'CREATED' && taskState !== 'REVOKED' && taskState !== 'FINISHED' && !operating"
                     slot="icon"
                     class-prefix="icon"
                     name="revoke"
@@ -41,7 +54,7 @@
             </van-tabbar-item>
             <van-tabbar-item>
                 <van-icon
-                    v-if="taskState !== 'CREATED'"
+                    v-if="taskState !== 'CREATED' && !operating"
                     slot="icon"
                     class-prefix="icon"
                     name="file"
@@ -61,12 +74,13 @@
     </div>
 </template>
 <script>
+    import { errorHandler } from '@/utils/errorHandler.js'
     import MobileCanvas from '@/components/MobileCanvas/index.vue'
     import { mapActions } from 'vuex'
 
     const TASK_STATE = {
         'CREATED': [window.gettext('未执行'), 'info'],
-        'RUNNING': [window.gettext('执行中'), 'info'],
+        'RUNNING': [window.gettext('执行中'), 'warning'],
         'SUSPENDED': [window.gettext('暂停'), 'warning'],
         'NODE_SUSPENDED': [window.gettext('节点暂停'), 'warning'],
         'FAILED': [window.gettext('失败'), 'danger'],
@@ -86,8 +100,7 @@
         },
         data () {
             return {
-                // 演示用flag，当做画布的某个原子
-                testShow: false,
+                operating: false,
                 revokeConfirmShow: false,
                 taskId: 0,
                 task: {},
@@ -101,6 +114,7 @@
                 i18n: {
                     tip: window.gettext('提示'),
                     executeStart: window.gettext('开始执行任务'),
+                    executeStartFailed: window.gettext('开始执行任务失败'),
                     loading: window.gettext('加载中...')
                 }
             }
@@ -132,14 +146,20 @@
                     this.$store.commit('setPipelineTree', this.pipelineTree)
                     await this.loadTaskStatus()
                     if (this.$route.query.executeTask && this.taskState === 'CREATED') {
-                        this.onExecute()
+                        this.onOperationClick('execute')
                     }
                     this.$nextTick(() => {
                         this.loading = false
                         this.$toast.clear()
                     })
                 } catch (err) {
-                    console.error(err)
+                    errorHandler(err, this)
+                }
+            },
+            onOperationClick (operation) {
+                if (!this.operating) {
+                    this.operating = true
+                    this[operation]()
                 }
             },
             updateTaskNodes (taskState) {
@@ -171,11 +191,11 @@
                         ([this.taskStateClass, this.taskStateName, this.taskStateColor] = ['task-status', ...TASK_STATE[this.taskState]])
                     } else {
                         this.cancelTaskStatusTimer()
-                        console.error(taskState, this)
+                        errorHandler(taskState, this)
                     }
                 } catch (e) {
                     this.cancelTaskStatusTimer()
-                    console.error(e, this)
+                    errorHandler(e, this)
                 } finally {
                     this.$toast.clear()
                 }
@@ -193,57 +213,78 @@
                     this.timer = null
                 }
             },
-            async onExecute () {
+            async execute () {
                 try {
-                    this.$notify({ message: this.i18n.executeStart, background: '#12b93b' })
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const response = await this.instanceStart({ id: this.taskId })
                     if (response.result) {
+                        global.bus.$emit('notify', { message: this.i18n.executeStart })
                         this.setTaskStatusTimer()
                     } else {
-                        console.error(response, this)
+                        errorHandler(response, this)
                     }
                 } catch (e) {
-                    console.error(e, this)
+                    errorHandler(e, this)
                 } finally {
                     this.$toast.clear()
+                    this.operating = false
                 }
             },
-            async onRevoke () {
+            async revoke () {
                 try {
                     const response = await this.instanceRevoke({ id: this.taskId })
                     if (response.result) {
+                        global.bus.$emit('notify', { message: window.gettext('撤销成功') })
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
                     } else {
-                        console.error(response, this)
+                        errorHandler(response, this)
                     }
                 } catch (e) {
-                    console.error(e, this)
+                    errorHandler(e, this)
+                } finally {
+                    this.operating = false
                 }
             },
             onDetailClick () {
                 this.$router.push({ path: '/task/detail', query: { taskId: String(this.taskId) } })
             },
-            async onPause () {
+            async pause () {
                 try {
                     const response = await this.instancePause({ id: this.taskId })
                     if (response.result) {
-                        // TODO: 子流程暂停
+                        global.bus.$emit('notify', { message: window.gettext('暂停成功') })
                     } else {
-                        console.error(response, this)
+                        errorHandler(response, this)
                     }
                 } catch (e) {
-                    console.error(e, this)
+                    errorHandler(e, this)
+                } finally {
+                    this.operating = false
+                }
+            },
+            async taskResume () {
+                try {
+                    const response = await this.instanceResume(this.instance_id)
+                    if (response.result) {
+                        this.setTaskStatusTimer()
+                        global.bus.$emit('notify', { message: window.gettext('任务继续成功') })
+                    } else {
+                        errorHandler(response, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.pending.task = false
                 }
             },
             onRevokeConfirm () {
                 this.$dialog.confirm({
-                    message: '撤销任务?'
+                    message: window.gettext('撤销任务?')
                 }).then(() => {
                     this.revokeConfirmShow = false
-                    this.onRevoke()
+                    this.revoke()
                 }).catch(() => {
                     this.revokeConfirmShow = false
                 })
