@@ -15,6 +15,7 @@ from gcloud.external_plugins.models.origin import (  # noqa
     OriginalPackageSource,
     GitRepoOriginalSource,
     S3OriginalSource,
+    FileSystemOriginalSource,
     source_cls_factory
 )
 from gcloud.external_plugins.models.cache import CachePackageSource  # noqa
