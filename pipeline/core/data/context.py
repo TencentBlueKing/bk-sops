@@ -57,6 +57,7 @@ class Context(object):
 
     def write_output(self, pipeline):
         from pipeline.core.data import var
+
         data = pipeline.data
         for key in self._output_key:
             value = self.get(key)
