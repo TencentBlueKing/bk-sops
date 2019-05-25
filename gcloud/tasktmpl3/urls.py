@@ -26,8 +26,6 @@ urlpatterns = [
     url(r'^api/collect/(?P<biz_cc_id>\d+)/$', api.collect),
     url(r'^api/get_perms/(?P<biz_cc_id>\d+)/$', api.get_perms),
     url(r'^api/save_perms/(?P<biz_cc_id>\d+)/$', api.save_perms),
-    url(r'^get_business_basic_info/(?P<biz_cc_id>\d+)/$', api.get_business_basic_info),
-
     url(r'^api/import_v1/(?P<biz_cc_id>\d+)/$', import_data.import_v1),
     url(r'^api/import_v2/$', import_v2_data.import_v2),
     url(r'^api/export/(?P<biz_cc_id>\d+)/$', api.export_templates),
