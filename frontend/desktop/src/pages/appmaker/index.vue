@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="appmaker-page" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div class="page-content" v-if="!loading">
+    <div class="appmaker-page">
+        <div class="page-content">
             <div class="appmaker-table-content">
                 <BaseTitle :title="i18n.title"></BaseTitle>
                 <div class="operation-wrapper">
@@ -28,11 +28,11 @@
                 <fieldset class="appmaker-fieldset">
                     <div class="advanced-query-content">
                         <div class="query-content">
-                            <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
+                            <span class="query-span">{{i18n.editor}}</span>
+                            <input class="search-input" v-model="editor" :placeholder="i18n.editorPlaceholder" />
                         </div>
                         <div class="query-content">
-                            <span class="query-span">{{i18n.creatorTime}}</span>
+                            <span class="query-span">{{i18n.editTime}}</span>
                             <bk-date-range
                                 :range-separator="'-'"
                                 :quick-select="false"
@@ -50,20 +50,22 @@
                     </div>
                 </fieldset>
             </div>
-            <div v-if="appList.length" class="app-list clearfix">
-                <AppCard
-                    v-for="item in appList"
-                    :key="item.id"
-                    :app-data="item"
-                    :cc_id="cc_id"
-                    @onCardEdit="onCardEdit"
-                    @onCardDelete="onCardDelete"
-                    @onOpenPermissions="onOpenPermissions" />
-            </div>
-            <div v-else class="empty-app-list">
-                <NoData>
-                    <p>{{emptyTips}}</p>
-                </NoData>
+            <div v-bkloading="{ isLoading: loading, opacity: 1 }">
+                <div v-if="appList.length" class="app-list clearfix">
+                    <AppCard
+                        v-for="item in appList"
+                        :key="item.id"
+                        :app-data="item"
+                        :cc_id="cc_id"
+                        @onCardEdit="onCardEdit"
+                        @onCardDelete="onCardDelete"
+                        @onOpenPermissions="onOpenPermissions" />
+                </div>
+                <div v-else class="empty-app-list">
+                    <NoData>
+                        <p>{{emptyTips}}</p>
+                    </NoData>
+                </div>
             </div>
         </div>
         <AppEditDialog
@@ -111,9 +113,13 @@
                     <span class="executeJurisdiction">{{i18n.executeJurisdiction}}:</span>
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
-                <div class="exit-btn">
-                    <div class="btn" @click="onCloseWindows">{{i18n.close}}</div>
-                </div>
+            </div>
+            <div slot="footer" class="exit-btn">
+                <bk-button
+                    type="default"
+                    @click="onCloseWindows">
+                    {{i18n.close}}
+                </bk-button>
             </div>
         </bk-dialog>
     </div>
@@ -153,7 +159,7 @@
                 isEditDialogShow: false,
                 isDeleteDialogShow: false,
                 isAdvancedSerachShow: false,
-                creator: undefined,
+                editor: undefined,
                 editStartTime: undefined,
                 editEndTime: undefined,
                 isPermissionsDialog: false,
@@ -169,16 +175,16 @@
                     addApp: gettext('新建'),
                     placeholder: gettext('请输入轻应用名称'),
                     jurisdiction: gettext('使用权限'),
-                    jurisdictionHint: gettext('“轻应用”的使用权限与其引用的“流程模版”使用权限一致。调整“轻应用”使用权限，可以调整其对应的“流程模版”使用权限。'),
+                    jurisdictionHint: gettext('轻应用的使用权限与其引用的流程模版使用权限一致。调整其对应流程模版的使用权限，会自动在轻应用上生效。'),
                     addJurisdiction: gettext('新建任务权限'),
-                    getJurisdiction: gettext('领取任务权限'),
+                    getJurisdiction: gettext('认领任务权限'),
                     executeJurisdiction: gettext('执行任务权限'),
                     delete: gettext('删除'),
                     deleteTips: gettext('确认删除轻应用？'),
                     close: gettext('关闭'),
-                    creator: gettext('创建人'),
-                    creatorPlaceholder: gettext('请输入创建人'),
-                    creatorTime: gettext('创建时间'),
+                    editor: gettext('更新人'),
+                    editorPlaceholder: gettext('请输入更新人'),
+                    editTime: gettext('更新时间'),
                     query: gettext('搜索'),
                     reset: gettext('清空')
                 }
@@ -215,11 +221,11 @@
                 }
                 try {
                     const data = {
-                        creator: this.creator || undefined
+                        editor: this.editor || undefined
                     }
                     if (this.editEndTime) {
-                        data['create_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                        data['create_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                        data['edit_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
+                        data['edit_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
@@ -335,7 +341,7 @@
                 this.editEndTime = dateArray[1]
             },
             onResetForm () {
-                this.creator = undefined
+                this.editor = undefined
                 this.editStartTime = undefined
                 this.editEndTime = undefined
             }
@@ -349,30 +355,33 @@
     min-height: calc(100% - 50px);
     background: #f4f7fa;
     .page-content {
-        width: 1200px;
-        padding-bottom: 40px;
-        overflow: hidden;
-        margin: 0 auto;
+        padding: 0 60px 40px 60px;
     }
-    @media screen and (max-width: 1505px) {
-        .page-content {
-            width: 1077px;
+    @media screen and (max-width: 1560px) {
+        .card-wrapper {
+            width: 32.5%;
+        }
+        .card-particular .app-synopsis {
+            width: 67%;
         }
         .card-wrapper:nth-child(3n) {
             margin-right: 0;
         }
     }
-    @media screen and (min-width: 1506px) and (max-width: 1810px) {
-        .page-content {
-            width: 1443px;
+    @media screen and (min-width: 1561px) and (max-width: 1919px) {
+        .card-wrapper {
+            width: 24%;
         }
         .card-wrapper:nth-child(4n) {
             margin-right: 0;
         }
     }
-    @media screen and (min-width: 1811px) {
-        .page-content {
-            width: 1810px;
+    @media screen and (min-width: 1920px) {
+        .app-list {
+            max-width: 2150px;
+        }
+        .card-wrapper {
+            width: 19.3%;
         }
         .card-wrapper:nth-child(5n) {
             margin-right: 0;
@@ -513,9 +522,9 @@
         }
         .query-button {
             padding: 5px;
-            min-width: 450px;
+            min-width: 440px;
             @media screen and (max-width: 1420px) {
-                min-width: 390px;
+                min-width: 380px;
             }
             text-align: center;
             .query-cancel {
@@ -524,12 +533,12 @@
         }
         .bk-button {
             height: 32px;
-            line-height: 32px;
+            line-height: 30px;
         }
     }
     .card-wrapper {
         float: left;
-        margin: 0 21px 20px 0;
+        margin: 0 14px 20px 0;
     }
     .empty-app-list {
         padding: 200px 0;
@@ -547,23 +556,12 @@
         margin: 20px 0px;
     }
     .exit-btn {
-        position: absolute;
-        width: 220px;
-        height: 50px;
-        top: 191px;
-        left: 550px;
-        background: #fafafa;
-        .btn {
-            float: right;
-            margin: 8px 24px 0 0;
+        float:right;
+        .bk-button {
             width: 100px;
             height: 32px;
-            font-size: 14px;
-            line-height: 32px;
-            text-align: center;
-            cursor: pointer;
-            border-radius: 2px;
-            border: 1px solid #c4c4cc;
+            margin-right: 24px;
+            margin-bottom: 4px;
         }
     }
     .addJurisdiction, .getJurisdiction, .executeJurisdiction {
