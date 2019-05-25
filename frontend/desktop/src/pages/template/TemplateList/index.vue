@@ -91,7 +91,7 @@
                             <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="getTemplateList">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -296,7 +296,7 @@
                     newTemplate: gettext('新建任务'),
                     edit: gettext('编辑'),
                     clone: gettext('克隆'),
-                    authority: gettext('权限管理'),
+                    authority: gettext('使用权限'),
                     delete: gettext('删除'),
                     executeHistory: gettext('执行历史'),
                     deleleTip: gettext('确认删除'),
@@ -341,7 +341,7 @@
                 pending: {
                     export: false, // 导出
                     delete: false, // 删除
-                    authority: false // 权限管理
+                    authority: false // 使用权限
                 },
                 flowName: undefined,
                 templateCategorySync: -1,
