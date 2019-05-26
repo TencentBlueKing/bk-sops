@@ -11,27 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
-import os
 import logging
+import os
+import re
 
-from django.http import JsonResponse
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 from django.conf.urls import url
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
+from gcloud.conf import settings
+from pipeline_plugins.cmdb_ip_picker.query import (
+    cmdb_search_host,
+    cmdb_search_topo_tree,
+    cmdb_get_mainline_object_topo
+)
 from pipeline_plugins.components.utils import (
     cc_get_inner_ip_by_module_id,
     supplier_account_inject,
     handle_api_error,
     supplier_id_inject
 )
-from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
-    cmdb_get_mainline_object_topo
-)
-from gcloud.conf import settings
 
 logger = logging.getLogger('root')
 get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
@@ -230,13 +230,13 @@ def job_get_script_list(request, biz_cc_id):
     kwargs = {
         'bk_biz_id': biz_cc_id,
         'is_public': True if source_type == 'public' else False,
-        'script_type': script_type if script_type else 0,
+        'script_type': script_type or 0,
     }
 
     script_result = client.job.get_script_list(kwargs)
 
     if not script_result['result']:
-        message = handle_api_error('cc', 'job.get_script_list', kwargs, script_result['message'])
+        message = handle_api_error('job', 'job.get_script_list', kwargs, script_result['message'])
         logger.error(message)
         result = {
             'result': False,
