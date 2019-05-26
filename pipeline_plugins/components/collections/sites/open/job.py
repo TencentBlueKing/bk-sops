@@ -35,10 +35,10 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
-from pipeline.core.flow.activity import Service
-from pipeline.component_framework.component import Component
 from gcloud.conf import settings
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.activity import Service
+from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -332,14 +332,19 @@ class JobFastExecuteSQLService(JobService):
             username=executor,
             biz_cc_id=biz_cc_id,
             ip_str=original_ip_list,
-            use_cache=False)
+            use_cache=False
+        )
         ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']}
                    for _ip in ip_info['ip_result']]
+
+        if not ip_list:
+            data.outputs.ex_data = _(u"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+            return False
 
         job_kwargs = {
             'bk_biz_id': biz_cc_id,
             'script_timeout': data.get_one_of_inputs('job_script_timeout'),
-            'db_account_id': data.get_one_of_inputs('db_account_id'),
+            'db_account_id': data.get_one_of_inputs('job_db_account'),
             'ip_list': ip_list,
             'bk_callback_url': get_node_callback_url(self.id)
         }
@@ -347,7 +352,7 @@ class JobFastExecuteSQLService(JobService):
         sql_script_source = data.get_one_of_inputs('job_sql_script_source')
         if sql_script_source == "general":
             job_kwargs.update({
-                "script_id": data.get_one_of_inputs('job_script_list_%s' % sql_script_source)
+                "script_id": data.get_one_of_inputs('job_sql_script_id')
             })
         else:
             job_kwargs.update({

@@ -74,7 +74,7 @@
             ]
         },
         {
-            tag_code: "job_script_list_general",
+            tag_code: "job_sql_script_id",
             type: "select",
             attrs: {
                 name: gettext("脚本列表"),
@@ -165,7 +165,7 @@
             }
         },
         {
-            tag_code: "db_account_id",
+            tag_code: "job_db_account",
             type: "select",
             attrs: {
                 name: gettext("DB账户"),
@@ -179,17 +179,6 @@
                 validation: [
                     {
                         type: "required",
-                        args: function (value) {
-                            let result = {
-                                result: true,
-                                error_message: ""
-                            }
-                            if (!value) {
-                                result.result = false;
-                                result.error_message = gettext("请选择DB账户");
-                            }
-                            return result
-                        }
                     }
                 ]
             },
