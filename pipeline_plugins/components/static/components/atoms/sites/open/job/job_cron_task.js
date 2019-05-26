@@ -1,5 +1,5 @@
 (function () {
-    $.atoms.job_timing_task = [
+    $.atoms.job_cron_task = [
         {
             tag_code: "job_cron_job_id",
             type: "select",

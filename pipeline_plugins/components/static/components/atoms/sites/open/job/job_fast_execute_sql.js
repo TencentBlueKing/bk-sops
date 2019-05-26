@@ -37,8 +37,8 @@
                     {
                         type: "custom",
                         args: function (value) {
-                            var self = this
-                            var result = {
+                            let self = this
+                            let result = {
                                 result: true,
                                 error_message: ""
                             }
@@ -63,7 +63,7 @@
                     source: "job_sql_script_source",
                     type: "change",
                     action: function (value) {
-                        var self = this;
+                        let self = this;
                         if (value === "manual") {
                             self.show()
                         } else {
@@ -115,7 +115,7 @@
                     source: "job_sql_script_source",
                     type: "change",
                     action: function (value) {
-                        var self = this
+                        let self = this
                         if (value === "general") {
                             self.show()
                         } else {
@@ -136,7 +136,7 @@
                     {
                         type: "custom",
                         args: function (value) {
-                            var result = {
+                            let result = {
                                 result: true,
                                 error_message: ""
                             }
