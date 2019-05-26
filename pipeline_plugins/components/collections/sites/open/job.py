@@ -386,7 +386,7 @@ class JobFastExecuteSQLComponent(Component):
     form = '%scomponents/atoms/sites/%s/job/job_fast_execute_sql.js' % (settings.STATIC_URL, settings.RUN_VER)
 
 
-class JobCrontabTaskService(JobService):
+class JobCronTaskService(Service):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
         biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
@@ -431,18 +431,15 @@ class JobCrontabTaskService(JobService):
         data.outputs.client = client
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobCrontabTaskService, self).schedule(data, parent_data, callback_data)
-
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'新建定时作业ID'), key='cron_id', type='int'),
+            self.OutputItem(name=_(u'定时作业ID'), key='cron_id', type='int'),
             self.OutputItem(name=_(u'定时作业状态'), key='status', type='string'),
         ]
 
 
-class JobCrontabComponent(Component):
+class JobCronComponent(Component):
     name = _(u'新建定时作业')
     code = 'job_cron_task'
-    bound_service = JobCrontabTaskService
+    bound_service = JobCronTaskService
     form = '%scomponents/atoms/sites/%s/job/job_cron_task.js' % (settings.STATIC_URL, settings.RUN_VER)
