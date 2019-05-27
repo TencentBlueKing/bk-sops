@@ -1,7 +1,7 @@
 @import '../../static/style/var';
 /*全局*/
 a{
-  color: $blue;
+    color: $blue;
 }
 
 .page-view{
@@ -10,16 +10,16 @@ a{
     top: 60px;
     bottom: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 /*search*/
 .bk-search{
-    background-color: #F4F7FA!important;
+    background-color: #F4F7FA;
     padding: 16px 25px;
 
     .van-search__content{
         background-color: rgba(142,142,147,0.12);
-        -webkit-border-radius: 10px;
-        -moz-border-radius: 10px;
         border-radius: 10px;
 
         .van-cell{
@@ -30,93 +30,102 @@ a{
             }
         }
     }
-    .van-search__action{
-        padding-right: 0;
-    }
 }
 /*列表页*/
 .bk-block{
-  .van-cell:not(:last-child):after{
-    left: 25px;
-    right: 25px;
-    border-bottom-color: $border-color;
-    -webkit-transform: scaleY(1);
-    transform: scaleY(1);
-  }
-  &-title {
-    margin: 0;
-    font-weight: 400;
-    font-size: 12px;
-    color: #999;
-    padding: 0 25px;
-    height: 30px;
-    line-height: 30px;
-  }
-  .van-cell{
-    padding: 12px 25px;
-    -webkit-box-align: center;
-    -webkit-align-items: center;
-    align-items: center;
-    color: $text-color;
+    .van-cell:not(:last-child):after{
+        left: 25px;
+        right: 25px;
+        border-bottom-color: $border-color;
+        transform: scaleY(1);
+    }
+    &-title {
+        margin: 0;
+        font-weight: 400;
+        font-size: $fs-12;
+        color: #999;
+        padding: 0 25px;
+        height: 30px;
+        line-height: 30px;
+    }
+    .van-cell{
+        padding: 14px 25px;
+        align-items: center;
+        color: $text-color;
 
-    .bk-text{
-      font-size: 16px;
-      font-weight: bold;
+        &__title{
+            overflow: hidden;
+        }
+        .bk-text{
+            font-size: $fs-16;
+            font-weight: bold;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .bk-name,.bk-time{
+            font-size: $fs-12;
+            color: #C4C6CC;
+            line-height: 18px;
+        }
+        .star-icon{
+            font-size: $fs-16;
+            color: #e1e1e1;
+            width: 30px;
+            text-align: right;
+        }
+        .collection{
+            color: #dba871;
+        }
+        .task-icon{
+            font-size: $fs-16;
+            width: 30px;
+            text-align: right;
+        }
+        .checked{
+            color: #2fca55;
+        }
+        .close{
+            color: #ea3636;
+        }
+        .more{
+            color: #3a84ff;
+        }
+        .pause{
+            color: #ff9c01;
+        }
+        .circle:before{
+            content: "";
+            width: 14px;
+            height: 14px;
+            background-color: #979ba5;
+            border-radius: 50%;
+        }
     }
-    .bk-name,.bk-time{
-      font-size: 12px;
-      color: #C4C6CC;
-      line-height: 18px;
-    }
-    .star-icon{
-      font-size: 16px;
-      color: #e1e1e1;
-      width: 30px;
-      text-align: right;
-    }
-    .collection{
-      color: #dba871;
-    }
-    .task-icon{
-      font-size: 12px;
-    }
-    .close{
-      color: #ea3636;
-    }
-    .more{
-      color: #3a84ff;
-    }
-    .pause{
-      color: #ff9c01;
-    }
-    .circle{
-        width: 10px;
-        height: 10px;
-        background-color: #979ba5;
-        border-radius: 50%;
-    }
-  }
 }
 
 /*详情页*/
 .bk-text-title{
-  font-size: 12px;
-  color: #999;
-  padding: 20px 25px 7px 25px;
-  margin: 0;
-  font-weight: 400;
+    font-size: $fs-12;
+    color: #999;
+    padding: 20px 25px 7px 25px;
+    margin: 0;
+    font-weight: 400;
 }
 .bk-text-list{
-  .van-cell:not(:last-child):after{
-    border-bottom-color: #F1F4F8;
-  }
-  .van-cell__title{
-    max-width: 90px;
-  }
-  .van-cell__value{
-    text-align: left;
-    color: $text-color;
-  }
+    .van-cell:not(:last-child):after{
+        border-bottom-color: #F1F4F8;
+    }
+    .van-cell__title{
+        max-width: 120px;
+    }
+    .van-cell__value{
+        text-align: left;
+        color: $text-color-light;
+        .van-field__control,.van-checkbox__label,.van-radio__label{
+            color: $text-color-light;
+        }
+    }
 }
 /*popup*/
 .van-overlay{
@@ -128,6 +137,17 @@ a{
 .van-picker__confirm{
     color: $blue;
 }
+.van-picker-column{
+    font-size: $fs-14;
+
+    &__item{
+        color: #9FA5AB;
+    }
+    &__item--selected{
+        color: $text-color;
+    }
+}
+/*1px 边框*/
 [class*="van-hairline"]:after {
     border-color: #E1E0E2;
 }
@@ -143,12 +163,91 @@ a{
             margin-left: 10px;
         }
     }
-    .van-button--default{
-        border-color: #C4C6CC;
-        color: $text-color;
+}
+.van-button--default{
+    border-color: #C4C6CC;
+    color: $text-color;
+}
+.van-button--info{
+    background-color: $blue;
+    border-color: $blue;
+}
+/*dialog*/
+.van-dialog__message{
+    font-size: $fs-16;
+}
+.van-dialog__cancel{
+    color: #979BA5;
+}
+.van-dialog__confirm, .van-dialog__confirm:active{
+    color: $blue;
+}
+/*执行任务状态*/
+.task-status{
+    position: fixed;
+    width: 100%;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    padding: 10px;
+    text-align: center;
+    font-size: $fs-14;
+}
+.task-status.info{
+    background: #CFDFFB;
+    border-bottom-color: #C0D4F8;
+    color: $blue;
+}
+.task-status.warning{
+    background: #FFE8C3;
+    border-bottom-color: #E6CFAA;
+    color: #D78300;
+}
+.task-status.danger{
+    background: #F2D0D3;
+    border-bottom-color: #EFB9BE;
+    color: #EA3636;
+}
+.task-status.success{
+    background: #beeac9;
+    border-bottom-color: #7de095;
+    color: #12b93b;
+}
+/*标签栏*/
+.van-tabbar{
+    background-color: $background-color;
+
+    .van-tabbar-item__icon{
+        font-size: 22px;
+        margin-bottom: 0;
+
+        .icon-pause,.icon-pause{
+            color: $blue;
+        }
+        .icon-revoke{
+            color: #EA3636;
+        }
+        .icon-file{
+            color: #4E4E4E;
+        }
+        .disabled{
+            opacity: 0.4;
+        }
     }
-    .van-button--info{
-        background-color: $blue;
-        border-color: $blue;
+
+    &:after{
+        border-color: #E5E5E5;
+    }
+}
+/*notify*/
+.custom-notify{
+    background: $blue;
+    line-height: 28px;
+}
+/*checkbox*/
+.van-checkbox-group,.van-radio-group{
+    .van-checkbox,.van-radio{
+        +.van-checkbox,+.van-radio{
+            margin-top: 8px;
+        }
     }
 }

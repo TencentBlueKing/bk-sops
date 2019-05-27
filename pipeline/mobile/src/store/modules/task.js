@@ -1,13 +1,85 @@
-/* eslint-disable */
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
+import http from '@/api'
+import qs from 'qs'
+
 export default {
     namespaced: true,
     state: {},
     mutations: {},
     actions: {
-        getTask () {
-            return task
+        getTask ({ commit, state, dispatch } = {}, params) {
+            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/taskflow/${params.id}/`
+            return http.get(url).then(response => response)
+        },
+
+        getTaskStatus ({ commit, rootState }, params) {
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/status/${rootState.bizId}/?instance_id=${params.id}`
+            return http.get(url).then(response => response)
+        },
+
+        instanceStart ({ commit, rootState }, params) {
+            const data = qs.stringify({ instance_id: params.id })
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/start/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceRevoke ({ commit, rootState }, params) {
+            const data = qs.stringify({ instance_id: params.id })
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/revoke/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instancePause ({ commit, rootState }, params) {
+            const data = qs.stringify({ instance_id: params.id })
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/pause/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceResume ({ commit, rootState }, params) {
+            const data = qs.stringify({ instance_id: params.id })
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/resume/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceNodeSkip ({ commit, rootState }, params) {
+            const data = qs.stringify({ instance_id: params.id, node_id: params.nodeId })
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/action/skip/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceNodeRetry ({ commit, rootState }, params) {
+            const data = qs.stringify(params)
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/action/retry/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceNodeResume ({ commit, rootState }, params) {
+            params.callback = 'resume'
+            const data = qs.stringify(params)
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/action/callback/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        instanceNodeEditTime ({ commit, rootState }, params) {
+            const data = qs.stringify(params)
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/spec/timer/reset/${rootState.bizId}/`
+            return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
+        },
+
+        getNodeDetail ({ rootState }, params) {
+            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/detail/${rootState.bizId}/?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            return http.get(url).then(response => response)
+        },
+
+        getNodeRetryData ({ rootState }, params) {
+            const url = `${AJAX_URL_PREFIX}/weixin//taskflow/api/nodes/data/${rootState.bizId}/?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            return http.get(url).then(response => response)
         }
     }
 }
-
-const task = {"business": {"cc_company": "", "cc_id": 2, "cc_name": "蓝鲸", "cc_owner": "", "executor": "", "id": 1, "life_cycle": "2", "resource_uri": "/o/bk_sops/api/v3/business/2/", "time_zone": "Asia/Shanghai"}, "category": "OpsTools", "category_name": "运维工具", "create_info": "0", "create_method": "app", "create_time": "2019-04-12 11:34:50 +0800", "creator_name": "zhuyonghua", "current_flow": "execute_task", "elapsed_time": 10188, "executor_name": "zhuyonghua", "finish_time": null, "flow_type": "common", "id": 1087, "instance_id": 1087, "is_deleted": false, "is_finished": false, "is_started": true, "name": "移动端测试模板(勿删)_20190412113154", "pipeline_instance": "", "pipeline_tree": "{\"activities\":{\"node476538b7007731edbd3ae7937bbc\":{\"outgoing\":\"line8f4675c876be371f87b155e747fc\",\"incoming\":\"linecfdc995ec0cd36f1bff92b5a0ecc\",\"name\":\"\\u6682\\u505c\",\"error_ignorable\":false,\"component\":{\"code\":\"pause_node\",\"data\":{}},\"stage_name\":\"\\u6b65\\u9aa41\",\"optional\":false,\"type\":\"ServiceActivity\",\"id\":\"node476538b7007731edbd3ae7937bbc\",\"loop\":{}}},\"end_event\":{\"incoming\":\"line8f4675c876be371f87b155e747fc\",\"outgoing\":\"\",\"type\":\"EmptyEndEvent\",\"id\":\"nodec5b927cec3c635d790eeae49ca96\",\"name\":\"\"},\"outputs\":[],\"flows\":{\"line8f4675c876be371f87b155e747fc\":{\"is_default\":false,\"source\":\"node476538b7007731edbd3ae7937bbc\",\"id\":\"line8f4675c876be371f87b155e747fc\",\"target\":\"nodec5b927cec3c635d790eeae49ca96\"},\"linecfdc995ec0cd36f1bff92b5a0ecc\":{\"is_default\":false,\"source\":\"nodefc33aebbbae7349192e9dbdd091e\",\"id\":\"linecfdc995ec0cd36f1bff92b5a0ecc\",\"target\":\"node476538b7007731edbd3ae7937bbc\"}},\"id\":\"nodef89b572e7ff536a995b789b13a8a\",\"gateways\":{},\"line\":[{\"source\":{\"id\":\"nodefc33aebbbae7349192e9dbdd091e\",\"arrow\":\"Right\"},\"id\":\"linecfdc995ec0cd36f1bff92b5a0ecc\",\"target\":{\"id\":\"node476538b7007731edbd3ae7937bbc\",\"arrow\":\"Left\"}},{\"source\":{\"id\":\"node476538b7007731edbd3ae7937bbc\",\"arrow\":\"Right\"},\"id\":\"line8f4675c876be371f87b155e747fc\",\"target\":{\"id\":\"nodec5b927cec3c635d790eeae49ca96\",\"arrow\":\"Left\"}}],\"start_event\":{\"incoming\":\"\",\"outgoing\":\"linecfdc995ec0cd36f1bff92b5a0ecc\",\"type\":\"EmptyStartEvent\",\"id\":\"nodefc33aebbbae7349192e9dbdd091e\",\"name\":\"\"},\"constants\":{},\"location\":[{\"y\":150,\"x\":80,\"type\":\"startpoint\",\"id\":\"nodefc33aebbbae7349192e9dbdd091e\"},{\"y\":150,\"x\":600,\"type\":\"endpoint\",\"id\":\"nodec5b927cec3c635d790eeae49ca96\"},{\"stage_name\":\"\\u6b65\\u9aa41\",\"name\":\"\\u6682\\u505c\",\"y\":133,\"x\":300,\"type\":\"tasknode\",\"id\":\"node476538b7007731edbd3ae7937bbc\"}]}", "resource_uri": "/o/bk_sops/api/v3/taskflow/1087/", "start_time": "2019-04-12 11:34:52 +0800", "subprocess_info": {"details": [], "subproc_has_update": false}, "template_id": "82"}

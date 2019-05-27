@@ -1,7 +1,15 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import templateList from './modules/templateList'
+import component from './modules/component'
+import business from './modules/business'
 import template from './modules/template'
 import taskList from './modules/taskList'
 import task from './modules/task'
@@ -13,18 +21,29 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
     // 模块
     modules: {
+        component,
+        business,
         task,
         taskList,
-        templateList,
         template
     },
     // 公共 store
     state: {
+        loading: false, // 页面加载中
         mainContentLoading: false,
         lang: 'zh-cn',
-        bizId: 0,
+        bizId: 0, // 业务ID
+        templateId: '', // 模板ID
+        taskId: '', // 任务ID
         title: '业务选择',
+        template: {},
+        collectedTemplateList: [],
+        task: {},
+        taskState: '',
+        excludeTaskNodes: [], // 被排除的节点
         isActionSheetShow: true,
+        setPreviewCanvasData: {}, // 预览数据
+        pipelineTree: {},
         // 系统当前登录用户
         user: {}
     },
@@ -35,32 +54,22 @@ const store = new Vuex.Store({
     },
     // 公共 mutations
     mutations: {
-        /**
-         * 更新业务ID
-         *
-         * @param {Object} state store state
-         * @param id
-         */
         setBizId (state, id) {
             state.bizId = id
         },
 
-        /**
-         * 设置内容区的 loading 是否显示
-         *
-         * @param {Object} state store state
-         * @param {boolean} loading 是否显示 loading
-         */
+        setTemplateId (state, id) {
+            state.templateId = id
+        },
+
+        setTaskId (state, id) {
+            state.taskId = id
+        },
+
         setMainContentLoading (state, loading) {
             state.mainContentLoading = loading
         },
 
-        /**
-         * 更新当前用户 user
-         *
-         * @param {Object} state store state
-         * @param {Object} user user 对象
-         */
         updateUser (state, user) {
             state.user = Object.assign({}, user)
         },
@@ -69,6 +78,30 @@ const store = new Vuex.Store({
         },
         setActionSheetShow (state, isActionSheetShow) {
             state.isActionSheetShow = isActionSheetShow
+        },
+        setTask (state, task) {
+            state.task = task
+        },
+        setTaskState (state, taskState) {
+            state.taskState = taskState
+        },
+        setTemplate (state, template) {
+            state.template = template
+        },
+        setExcludeTaskNodes (state, taskNodes) {
+            state.excludeTaskNodes = taskNodes
+        },
+        setPreviewCanvasData (state, data) {
+            state.previewCanvasData = data
+        },
+        setLoading (state, loading) {
+            state.loading = loading
+        },
+        setCollectedTemplateList (state, collectedTemplateList) {
+            state.collectedTemplateList = collectedTemplateList
+        },
+        setPipelineTree (state, pipelineTree) {
+            state.pipelineTree = pipelineTree
         }
     },
     actions: {
