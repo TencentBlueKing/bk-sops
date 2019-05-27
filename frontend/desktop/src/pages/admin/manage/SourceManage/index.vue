@@ -68,7 +68,7 @@
 <style lang="scss" scoped>
     .source-manage {
         height: calc(100% - 80px);
-        padding-bottom: 60px;
+        padding: 0 60px 60px;
     }
     .operate-area {
         .operate-btn {

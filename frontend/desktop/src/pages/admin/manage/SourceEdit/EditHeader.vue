@@ -10,10 +10,112 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="edit-header">EditHeader</div>
+    <div class="edit-header">
+        <div :class="['step-item', {
+            'active': $route.name === 'packageEdit',
+            'finished': $route.name === 'cacheEdit'
+        }]">
+            <div class="step-content">
+                <div class="num">1</div>
+                <div class="title">{{ i18n.setting + i18n.source }}</div>
+            </div>
+        </div>
+        <div :class="['step-item', {
+            'active': $router.name === 'cacheEdit',
+            'finished': $router.name === 'packageEdit'
+        }]">
+            <div class="step-content">
+                <div class="num">2</div>
+                <div class="title">{{ i18n.setting + i18n.cache }}</div>
+            </div>
+        </div>
+    </div>
 </template>
 <script>
     export default {
-        name: 'EditHeader'
+        name: 'EditHeader',
+        data () {
+            return {
+                i18n: {
+                    setting: gettext('配置'),
+                    source: gettext('主包源'),
+                    cache: gettext('本地缓存')
+                }
+            }
+        }
     }
 </script>
+<style lang="scss" scoped>
+    .edit-header {
+        padding-bottom: 15px;
+        border-bottom: 1px solid #cacedb;
+        overflow: hidden;
+    }
+    .step-item {
+        float: left;
+        position: relative;
+        width: 50%;
+        font-size: 12px;
+        &:first-child {
+            padding-left: 50px;
+            &:after {
+                content: '';
+                position: absolute;
+                top: 6px;
+                left: 88px;
+                width: calc(100% - 60px);
+                height: 4px;
+                background: #e1e4eb;
+            }
+        }
+        &:last-child {
+            padding-right: 50px;
+            text-align: right;
+            &:after {
+                content: '';
+                position: absolute;
+                top: 6px;
+                right: 90px;
+                width: calc(100% - 60px);
+                height: 4px;
+                background: #e1e4eb;
+            }
+        }
+        &.active, &.finished {
+            .step-content {
+                .num {
+                    color: #3a84ff;
+                    background: #ffffff;
+                    border: 2px solid #3a84ff;
+                }
+                .title {
+                    color: #3a84ff;
+                }
+            }
+        }
+        &.finished {
+            &:after {
+                background: #3a84ff;
+            }
+        }
+        .step-content {
+            display: inline-block;
+            text-align: center;
+            .num {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 0 auto;
+                width: 16px;
+                height: 16px;
+                background: #e1e4e8;
+                color: #ffffff;
+                border-radius: 50%;
+            }
+            .title {
+                margin-top: 10px;
+                color: #313238;
+            }
+        }
+    }
+</style>
