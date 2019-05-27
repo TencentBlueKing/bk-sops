@@ -82,8 +82,7 @@
                             :placeholder="i18n.paramInput"
                             :value="item.value"
                             :data="item"
-                            @dataChange="onInputDataChange"
-                            @dateTimePick="onDateTimePick" />
+                            @dataChange="onInputDataChange" />
                     </template>
                 </template>
                 <template v-else>
@@ -105,6 +104,7 @@
                 type="info"
                 @click="onCreateClick">{{ i18n.btnCreate }}</van-button>
         </div>
+
     </div>
 </template>
 
@@ -198,21 +198,39 @@
             ]),
             async loadData () {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
-                this.templateData = await this.getTemplate(this.templateId)
-                const pipelineTree = JSON.parse(this.templateData.pipeline_tree)
-                this.templateConstants = pipelineTree.constants
-                this.schemes = await this.getSchemeList(this.$store.state.bizId)
-                this.taskName = this.getDefaultTaskName()
-                this.collected = await this.isTemplateCollected()
+                Promise.all([
+                    this.getTemplate(this.templateId),
+                    this.getSchemeList(this.$store.state.bizId)
+                ]).then(values => {
+                    this.fillTemplateData(values[0])
+                    this.fillSchemeData(values[1])
+                    this.$toast.clear()
+                }).catch(e => {
+                    errorHandler(e, this)
+                    this.$toast.clear()
+                })
+            },
+            fillSchemeData (response) {
+                console.log('at fillSchemeData')
+                console.log(response)
+                this.schemes = response
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
+            },
+            fillTemplateData (response) {
+                console.log('at fillTemplateData')
+                console.log(response)
+                this.templateData = response
+                const pipelineTree = JSON.parse(this.templateData.pipeline_tree)
+                this.templatePipelineTree = pipelineTree
+                this.templateConstants = pipelineTree.constants
+                this.taskName = this.getDefaultTaskName()
+                this.collected = this.isTemplateCollected()
                 this.$store.commit('setTemplate', this.templateData)
-                this.templatePipelineTree = JSON.parse(this.templateData.pipeline_tree)
-                this.$store.commit('setPipelineTree', this.templatePipelineTree)
-                this.$toast.clear()
+                this.$store.commit('setPipelineTree', pipelineTree)
             },
             onCreateClick () {
                 this.$validator.validateAll().then((result) => {
-                    if (result) {
+                    if (result && !this.$validator.errors.items.length) {
                         this.createTaskAndStart()
                     }
                 })
@@ -248,8 +266,13 @@
                     }
                 }
             },
-            onInputDataChange (val, key) {
-                this.templateConstants[key].value = val
+            onInputDataChange (val, key, type) {
+                if (type === 'datetime') {
+                    this.dateTimeShow = true
+                    this.currentRef = key
+                } else {
+                    this.templateConstants[key].value = val
+                }
             },
             getDefaultTaskName () {
                 return this.templateData.name + '_' + moment().format('YYYYMMDDHHmmss')
@@ -300,20 +323,19 @@
             async isTemplateCollected () {
                 let templateList = this.$store.state.collectedTemplateList
                 if (!templateList.length) {
-                    const response = await this.getTemplateList()
-                    templateList = response.objects
-                }
-                templateList.forEach(template => {
-                    if (this.templateData.id === template.id) {
-                        this.templateData.is_add = template.is_add
+                    try {
+                        const response = await this.getTemplateList()
+                        templateList = response.objects
+                        templateList.forEach(template => {
+                            if (this.templateData.id === template.id) {
+                                this.templateData.is_add = template.is_add
+                            }
+                        })
+                    } catch (e) {
+                        errorHandler(e, this)
                     }
-                })
+                }
                 return Boolean(this.templateData.is_add)
-            },
-
-            onDateTimePick (key) {
-                this.dateTimeShow = true
-                this.currentRef = key
             },
 
             onDateTimeConfirm (value) {

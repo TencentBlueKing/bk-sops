@@ -7,6 +7,7 @@
 */
 <script>
     import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select']
 
@@ -83,7 +84,13 @@
                 // 根据sourceCode加载atom配置
                 if (this.sourceCode) {
                     const [atomCode, tagCode] = this.sourceCode.split('.')
-                    await this.getAtomConfig({ atomCode: atomCode })
+                    try {
+                        if (!global.$.atoms || !global.$.atoms[atomCode]) {
+                            await this.getAtomConfig({ atomCode: atomCode })
+                        }
+                    } catch (e) {
+                        errorHandler(e, this)
+                    }
                     const atomConfigs = global.$.atoms[atomCode]
                     if (atomConfigs && atomConfigs.length) {
                         atomConfigs.some(item => {
@@ -142,11 +149,11 @@
             return h(this.domName, {
                 nativeOn: {
                     change: function (event) {
-                        self.$emit('dataChange', event.target.value, self.sourceCode ? self.sourceCode : self.data['key'])
+                        self.$emit('dataChange', event.target.value, self.sourceCode ? self.sourceCode : self.data['key'], self.customType)
                     },
                     click: function (event) {
                         if (self.customType === 'datetime') {
-                            self.$emit('dateTimePick', self.data['key'])
+                            self.$emit('dataChange', event.target.value, self.data['key'], self.customType)
                         } else if (self.customType === 'select') {
                             self.$emit('onSelect', self.domAttr.select)
                         }

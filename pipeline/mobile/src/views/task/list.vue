@@ -90,11 +90,7 @@
                 }
                 this.taskList = [...this.originalTaskList, ...response.objects]
                 this.originalTaskList = this.taskList
-                try {
-                    await this.fillTaskStatus()
-                } catch (e) {
-                    errorHandler(e, this)
-                }
+                await this.fillTaskStatus()
                 this.loading = false
             },
 
@@ -105,7 +101,7 @@
                             const response = await this.getTaskStatus({ id: task.id })
                             this.$set(task, 'status', response.state)
                         } catch (e) {
-                            console.error(e)
+                            errorHandler(e, this)
                         }
                     } else {
                         task['status'] = 'CREATED'

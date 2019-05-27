@@ -52,10 +52,10 @@
             loadData () {
                 ({ inputs: this.inputs, componentCode: this.componentCode, taskId: this.taskId, nodeId: this.nodeId } = this.$route.params)
             },
-            async onClick () {
+            onClick () {
                 if (!this.operating) {
                     this.operating = true
-                    await this.editTime()
+                    this.editTime()
                 }
             },
             async editTime () {
@@ -67,15 +67,20 @@
                     component_code: this.componentCode,
                     inputs: this.inputs
                 }
-                const response = await this.instanceNodeEditTime(params)
-                if (response.result) {
-                    this.gotoCanvas()
-                    global.bus.$emit('notify', { message: window.gettext('修改定时时间成功') })
-                } else {
-                    global.bus.$emit('notify', response)
-                    errorHandler(response, this)
+                try {
+                    const response = await this.instanceNodeEditTime(params)
+                    if (response.result) {
+                        this.gotoCanvas()
+                        global.bus.$emit('notify', { message: window.gettext('修改定时时间成功') })
+                    } else {
+                        global.bus.$emit('notify', response)
+                        errorHandler(response, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.operating = false
                 }
-                this.operating = false
             },
             gotoCanvas () {
                 this.$router.push({ path: '/task/canvas', query: { taskId: this.taskId } })

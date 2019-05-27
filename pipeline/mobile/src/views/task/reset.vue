@@ -60,6 +60,7 @@
         },
         data () {
             return {
+                operating: false,
                 show: false,
                 defaultIndex: 0,
                 columns: [],
@@ -88,8 +89,8 @@
             loadData () {
                 ({ inputs: this.inputs, componentCode: this.componentCode, taskId: this.taskId, nodeId: this.nodeId } = this.$route.params)
             },
-            async onClick () {
-                await this.doSkip()
+            onClick () {
+                this.doRetry()
             },
             onClickCancel () {
                 this.gotoCanvas()
@@ -105,24 +106,32 @@
                 this.show = false
             },
             onInputDataChange (val, key) {
-                console.log(val, key)
                 this.inputs[key].value = val
             },
-            async doSkip () {
-                this.show = false
-                this.$toast.loading({ mask: true, message: this.i18n.loading })
-                const params = {
-                    instance_id: this.taskId,
-                    node_id: this.nodeId,
-                    component_code: this.componentCode,
-                    inputs: this.inputs
-                }
-                const response = await this.instanceNodeRetry(params)
-                if (response.result) {
-                    global.bus.$emit('notify', { message: this.i18n.retrySuccess })
-                    this.gotoCanvas()
-                } else {
-                    errorHandler(response, this)
+            async doRetry () {
+                if (!this.operating) {
+                    this.operating = true
+                    this.show = false
+                    this.$toast.loading({ mask: true, message: this.i18n.loading })
+                    const params = {
+                        instance_id: this.taskId,
+                        node_id: this.nodeId,
+                        component_code: this.componentCode,
+                        inputs: this.inputs
+                    }
+                    try {
+                        const response = await this.instanceNodeRetry(params)
+                        if (response.result) {
+                            global.bus.$emit('notify', { message: this.i18n.retrySuccess })
+                            this.gotoCanvas()
+                        } else {
+                            errorHandler(response, this)
+                        }
+                    } catch (e) {
+                        errorHandler(e, this)
+                    } finally {
+                        this.operating = false
+                    }
                 }
             },
             gotoCanvas () {

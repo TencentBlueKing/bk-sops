@@ -29,6 +29,7 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const BIZ_TAG_COLORS = ['blue', 'red', 'orange', 'green', 'gray']
 
@@ -59,19 +60,24 @@
             },
 
             async loadData () {
-                const response = await this.getBusinessList({ offset: this.offset, limit: this.limit })
-                this.total = response.meta.total_count
-                const totalPage = Math.ceil(this.total / this.limit)
-                if (this.offset + 1 >= totalPage) {
-                    this.finished = true
-                } else {
-                    this.offset = this.offset + 1
+                try {
+                    const response = await this.getBusinessList({ offset: this.offset, limit: this.limit })
+                    this.total = response.meta.total_count
+                    const totalPage = Math.ceil(this.total / this.limit)
+                    if (this.offset + 1 >= totalPage) {
+                        this.finished = true
+                    } else {
+                        this.offset = this.offset + 1
+                    }
+                    this.businessList = [...this.businessList, ...response.objects]
+                    this.businessList.map(item => {
+                        ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
+                    })
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
-                this.loading = false
-                this.businessList = [...this.businessList, ...response.objects]
-                this.businessList.map(item => {
-                    ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
-                })
             },
 
             getTagColor (biz) {
