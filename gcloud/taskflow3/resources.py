@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 from tastypie import fields
-from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource
@@ -122,6 +122,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
         resource_name = 'taskflow'
         always_return_data = True
+        authorization = Authorization()
         serializer = AppSerializer()
         filtering = {
             'id': ALL,

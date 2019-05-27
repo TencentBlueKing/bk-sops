@@ -62,7 +62,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         template_id = app_params['template_id']
         app_params['name'] = name_handler(app_params['name'], 20)
         app_params['desc'] = name_handler(app_params.get('desc', ''), 30)
-        proj = Project.objects.get(project_id)
+        proj = Project.objects.get(id=project_id)
         try:
             task_template = TaskTemplate.objects.get(pk=template_id,
                                                      project_id=project_id,

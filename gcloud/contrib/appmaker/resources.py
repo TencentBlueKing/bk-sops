@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
+from tastypie.authorization import Authorization
 
 from gcloud.conf import settings
 from gcloud.tasktmpl3.resources import TaskTemplateResource
@@ -21,7 +22,6 @@ from gcloud.webservice3.resources import (
     GCloudModelResource,
     ProjectResource,
     AppSerializer,
-    GCloudGenericAuthorization,
 )
 from gcloud.contrib.appmaker.models import AppMaker
 
@@ -71,7 +71,7 @@ class AppMakerResource(GCloudModelResource):
         queryset = AppMaker.objects.filter(is_deleted=False)
         resource_name = 'appmaker'
         excludes = []
-        authorization = GCloudGenericAuthorization()
+        authorization = Authorization()
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
