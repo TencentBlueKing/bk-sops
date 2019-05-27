@@ -135,6 +135,7 @@
 .config-page {
     padding: 20px 60px 0;
     min-width: 1320px;
+    padding-top: 50px;
     min-height: calc(100% - 50px);
     background: $whiteNodeBg;
 }

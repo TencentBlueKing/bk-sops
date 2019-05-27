@@ -661,6 +661,7 @@
 @import '@/scss/config.scss';
 .template-container {
     min-width: 1320px;
+    padding-top: 50px;
     min-height: calc(100% - 50px);
     background: $whiteNodeBg;
     .dialog-content {
