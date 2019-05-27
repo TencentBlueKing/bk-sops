@@ -22,7 +22,7 @@ export default {
     },
     dev: {
         env: devEnv,
-        host: 'dev.paas-bkyovole.cloud.yovole.com',
+        host: '{BK_PAAS_URL}',
         port: 9001,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
