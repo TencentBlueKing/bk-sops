@@ -24,7 +24,6 @@
                             :key="item.id"
                             :title="item.name"
                             :value="item.value" />
-
                     </template>
                 </template>
                 <template v-else>
@@ -36,6 +35,7 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
         name: 'TaskDetail',
@@ -62,10 +62,15 @@
 
             async loadData () {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
-                this.task = await this.getTask({ id: this.$route.query.taskId })
-                const pipelineTree = JSON.parse(this.task.pipeline_tree)
-                this.constants = pipelineTree.constants
-                this.$toast.clear()
+                try {
+                    this.task = await this.getTask({ id: this.$route.query.taskId })
+                    const pipelineTree = JSON.parse(this.task.pipeline_tree)
+                    this.constants = pipelineTree.constants
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.$toast.clear()
+                }
             }
         }
     }

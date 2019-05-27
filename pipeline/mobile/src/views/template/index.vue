@@ -90,21 +90,21 @@
             ]),
 
             async loadData () {
-                const response = await this.getTemplateList({ offset: this.offset, limit: this.limit })
-                this.total = response.meta.total_count
-                const totalPage = Math.ceil(this.total / this.limit)
-                if (this.currPage >= totalPage) {
-                    this.finished = true
-                } else {
-                    this.offset = this.currPage * this.limit
-                    this.currPage += 1
-                }
-                this.templateList = [...this.templateList, ...response.objects]
-                this.originalTemplateList = this.templateList
-                if (this.templateList.length > 0) {
-                    this.business = this.templateList[0]['business']
-                }
                 try {
+                    const response = await this.getTemplateList({ offset: this.offset, limit: this.limit })
+                    this.total = response.meta.total_count
+                    const totalPage = Math.ceil(this.total / this.limit)
+                    if (this.currPage >= totalPage) {
+                        this.finished = true
+                    } else {
+                        this.offset = this.currPage * this.limit
+                        this.currPage += 1
+                    }
+                    this.templateList = [...this.templateList, ...response.objects]
+                    this.originalTemplateList = this.templateList
+                    if (this.templateList.length > 0) {
+                        this.business = this.templateList[0]['business']
+                    }
                     this.getCollectedTemplateList()
                 } catch (e) {
                     errorHandler(e, this)

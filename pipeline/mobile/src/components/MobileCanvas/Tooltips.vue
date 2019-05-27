@@ -65,8 +65,7 @@
                     sub: window.gettext('查看子流程')
                 },
                 operating: false,
-                show: true,
-                moveFlag: false
+                show: true
             }
         },
         computed: {
@@ -102,13 +101,17 @@
                     nodeId: this.node.id,
                     componentCode: pipelineTree.activities[this.node.id].component.code
                 }
-                const response = await this.getNodeRetryData(params)
-                params.inputs = response.data.inputs
-                const newInputs = {}
-                for (const k of Object.keys(params.inputs)) {
-                    newInputs[`${params.componentCode}.${k}`] = { source_tag: `${params.componentCode}.${k}`, value: params.inputs[k] }
+                try {
+                    const response = await this.getNodeRetryData(params)
+                    params.inputs = response.data.inputs
+                    const newInputs = {}
+                    for (const k of Object.keys(params.inputs)) {
+                        newInputs[`${params.componentCode}.${k}`] = { source_tag: `${params.componentCode}.${k}`, value: params.inputs[k] }
+                    }
+                    params.inputs = newInputs
+                } catch (e) {
+                    errorHandler(e, this)
                 }
-                params.inputs = newInputs
                 this.$toast.clear()
                 this.operating = false
                 this.$router.push({ name: 'task_reset', params: params })

@@ -28,13 +28,13 @@ export default {
         assetsPublicPath: '/',
         proxyTable: {
             '/ajax': { // 需要代理的路径
-                target: 'http://dev.paas-bkyovole.cloud.yovole.com:8000/', // 目标服务器host
+                target: 'http://{BK_PAAS_URL}', // 目标服务器host
                 secure: false,
                 pathRewrite: {
                     '^/ajax': ''
                 },
                 headers: {
-                    referer: 'dev.paas-bkyovole.yovole.com' // 目标服务器host
+                    referer: '{BK_PAAS_URL}' // 目标服务器host
                 }
             }
         },

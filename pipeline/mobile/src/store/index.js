@@ -45,7 +45,7 @@ const store = new Vuex.Store({
         setPreviewCanvasData: {}, // 预览数据
         pipelineTree: {},
         // 系统当前登录用户
-        user: { username: 'admin' }
+        user: {}
     },
     // 公共 getters
     getters: {
