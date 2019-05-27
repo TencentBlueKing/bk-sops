@@ -258,16 +258,16 @@ def job_get_script_list(request, biz_cc_id):
     return JsonResponse({'result': True, 'data': version_data})
 
 
-def job_get_own_db_account_list(request, bk_biz_id):
+def job_get_own_db_account_list(request, biz_cc_id):
     """
     查询用户有权限的DB帐号列表
+    :param biz_cc_id:
     :param request:
-    :param bk_biz_id:
     :return:
     """
     client = get_client_by_request(request)
     kwargs = {
-        'bk_biz_id': bk_biz_id
+        'bk_biz_id': biz_cc_id
     }
     job_result = client.job.get_own_db_account_list(kwargs)
 
