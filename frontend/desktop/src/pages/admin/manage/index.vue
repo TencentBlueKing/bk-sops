@@ -57,9 +57,11 @@
 </script>
 <style lang="scss" scoped>
     .page-manage {
-        padding: 0 60px;
         min-width: 1320px;
-        min-height: calc(100% - 50px);
+        height: calc(100% - 50px);
         background: #f4f7fa;
+        .header-wrapper {
+            margin: 0 60px 20px;
+        }
     }
 </style>
