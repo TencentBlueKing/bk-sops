@@ -18,3 +18,8 @@
         created () {}
     }
 </script>
+<style lang="scss" scoped>
+    .source-edit {
+        height: calc(100% - 80px);
+    }
+</style>
