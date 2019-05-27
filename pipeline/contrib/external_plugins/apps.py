@@ -21,6 +21,8 @@ from django.db.utils import ProgrammingError
 
 logger = logging.getLogger('root')
 
+DJANGO_MANAGE_CMD = 'manage.py'
+
 
 class ExternalPluginsConfig(AppConfig):
     name = 'pipeline.contrib.external_plugins'
@@ -31,9 +33,7 @@ class ExternalPluginsConfig(AppConfig):
         from pipeline.contrib.external_plugins import loader  # noqa
         from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
 
-        triggers = getattr(settings, 'EXTERNAL_COMPONENTS_LOAD_TRIGGER', {'runserver', 'celery', 'worker'})
-
-        if self.is_trigger_commond(triggers):
+        if self.should_load_external_module():
             try:
                 logger.info('Start to update package source from config file...')
                 ExternalPackageSource.update_package_source_from_config(getattr(settings,
@@ -50,12 +50,21 @@ class ExternalPluginsConfig(AppConfig):
             loader.load_external_modules()
 
     @staticmethod
-    def is_trigger_commond(triggers):
-        try:
-            command = sys.argv[1]
-        except Exception:
-            logger.error('Get command from sys[argv=%s] error' % sys.argv)
-            return True
-        if command in triggers:
-            return True
-        return False
+    def should_load_external_module():
+        triggers = getattr(settings, 'EXTERNAL_COMPONENTS_LOAD_TRIGGER', {'runserver', 'celery', 'worker', 'uwsgi'})
+        if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD:
+            try:
+                command = sys.argv[1]
+                logger.info('current django manage command: {cmd}, triggers: {triggers}'.format(
+                    cmd=command,
+                    triggers=triggers
+                ))
+                if command in triggers:
+                    return True
+            except Exception as e:
+                logger.exception(e)
+                logger.error('get django start up command error' % sys.argv)
+                return True
+
+        logger.info('app is not start with django manage command, current argv: {argv}'.format(argv=sys.argv))
+        return True
