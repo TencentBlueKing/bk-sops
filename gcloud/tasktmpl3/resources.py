@@ -101,7 +101,9 @@ class TaskTemplateResource(GCloudModelResource):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
         always_return_data = True
+        authorization = Authorization()
         serializer = AppSerializer()
+
         filtering = {
             "id": ALL,
             "project": ALL_WITH_RELATIONS,

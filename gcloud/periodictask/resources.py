@@ -18,6 +18,7 @@ import traceback
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
+from tastypie.authorization import Authorization
 from djcelery.models import PeriodicTask as CeleryTask
 
 from pipeline.exceptions import PipelineException
@@ -35,8 +36,7 @@ from gcloud.webservice3.resources import (
     ProjectResource,
     GCloudModelResource,
     GCloudReadOnlyAuthorization,
-    AppSerializer,
-    GCloudGenericAuthorization
+    AppSerializer
 )
 from gcloud.commons.template.models import replace_template_id
 
@@ -148,7 +148,7 @@ class PeriodicTaskResource(GCloudModelResource):
     class Meta:
         queryset = PeriodicTask.objects.all()
         resource_name = 'periodic_task'
-        authorization = GCloudGenericAuthorization()
+        authorization = Authorization()
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
@@ -197,7 +197,7 @@ class PeriodicTaskResource(GCloudModelResource):
             raise BadRequest('cron must be a object json string')
 
         try:
-            project = Project.objects.get(cc_id=int(project_path.split('/')[-2]))
+            project = Project.objects.get(id=int(project_path.split('/')[-2]))
         except Exception as e:
             raise BadRequest(e.message)
 

@@ -334,7 +334,18 @@ class BusinessResource(GCloudModelResource):
 
 
 class ProjectResource(GCloudModelResource):
-    pass
+    name = fields.CharField(attribute='name')
+    time_zone = fields.CharField(attribute='time_zone')
+    creator = fields.CharField(attribute='creator', readonly=True)
+    desc = fields.CharField(attribute='desc')
+    create_at = fields.DateTimeField(attribute='create_at', readonly=True)
+    from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
+    cmdb_biz_id = fields.IntegerField(attribute='cmdb_biz_id', readonly=True)
+    is_disable = fields.BooleanField(attribute='is_disable', readonly=True)
+    
+    class Meta:
+        queryset = Project.objects.all()
+        resource_name = 'project'
 
 
 class ComponentModelResource(ModelResource):

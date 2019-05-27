@@ -16,6 +16,7 @@ from tastypie.api import Api
 
 from gcloud.webservice3.resources import (
     BusinessResource,
+    ProjectResource,
     ComponentModelResource,
     VariableModelResource
 )
@@ -31,6 +32,7 @@ from gcloud.periodictask.resources import PeriodicTaskResource
 
 v3_api = Api(api_name='v3')
 v3_api.register(BusinessResource())
+v3_api.register(ProjectResource())
 v3_api.register(TaskTemplateResource())
 v3_api.register(ComponentModelResource())
 v3_api.register(VariableModelResource())
