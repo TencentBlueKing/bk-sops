@@ -10,15 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-from __future__ import unicode_literals
-
-from django.apps import AppConfig
-
-
-class ExternalPluginsConfig(AppConfig):
-    name = 'gcloud.external_plugins'
-    verbose_name = 'GcloudExternalPlugins'
-
-    def ready(self):
-        from gcloud.external_plugins.signals.handlers import sync_task_post_save_handler  # noqa
