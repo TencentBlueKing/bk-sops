@@ -115,14 +115,9 @@
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
         </div>
-        <div class="common-wrapper-btn">
-            <bk-button type="primary button" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-            <bk-button type="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
-            <bk-button type="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
-        </div>
         <DialogLoadingBtn
             slot="footer"
-            :pending="pending"
+            :dialog-footer-data="dialogFooterData"
             @onConfirm="onConfirm"
             @onCancel="onCancel">
         </DialogLoadingBtn>
@@ -170,6 +165,13 @@
                 filterCondition: {
                     classifyId: 'all',
                     keywords: ''
+                },
+                dialogFooterData: {
+                    additionalBtnShow: false,
+                    confirmType: 'primary',
+                    confirmBtnPending: false,
+                    confirmText: gettext('确认'),
+                    cancelText: gettext('取消')
                 }
             }
         },
@@ -184,6 +186,11 @@
                 const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
+            }
+        },
+        watch: {
+            pending () {
+                this.dialogFooterData.confirmBtnPending = this.pending
             }
         },
         created () {

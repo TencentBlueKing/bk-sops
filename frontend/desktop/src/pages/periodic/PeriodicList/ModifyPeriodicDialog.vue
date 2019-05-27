@@ -52,6 +52,12 @@
                 </div>
             </div>
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :dialog-footer-data="dialogFooterData"
+            @onConfirm="onModifyPeriodicConfirm"
+            @onCancel="onModifyPeriodicCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -61,6 +67,7 @@
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '@/pages/template/DialogLoadingBtn'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
@@ -68,6 +75,7 @@
         components: {
             BaseInput,
             TaskParamEdit,
+            DialogLoadingBtn,
             NoData
         },
         props: ['isModifyDialogShow', 'taskId', 'cron', 'constants', 'loading'],
@@ -85,7 +93,14 @@
                     regex: PERIODIC_REG
                 },
                 periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
-                periodicCron: this.cron
+                periodicCron: this.cron,
+                dialogFooterData: {
+                    additionalBtnShow: false,
+                    confirmType: 'primary',
+                    confirmBtnPending: false,
+                    confirmText: gettext('确认'),
+                    cancelText: gettext('取消')
+                }
             }
         },
         computed: {
@@ -102,6 +117,7 @@
                 this.$emit('onModifyPeriodicCancel')
             },
             onModifyPeriodicConfirm () {
+                this.dialogFooterData.confirmBtnPending = true
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then((result) => {
                     let formValid = true
@@ -175,6 +191,7 @@
                                 'theme': 'error'
                             })
                         }
+                        this.dialogFooterData.confirmBtnPending = false
                         this.$emit('onModifyPeriodicConfirm')
                     })
                 } catch (e) {
@@ -194,6 +211,7 @@
                         'theme': 'error'
                     })
                 }
+                this.dialogFooterData.confirmBtnPending = false
                 this.$emit('onModifyPeriodicConfirm')
             }
         }
