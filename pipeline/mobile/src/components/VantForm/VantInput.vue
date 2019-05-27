@@ -8,7 +8,10 @@
 <template>
     <van-field
         :label="label"
-        :placeholder="placeholder"
+        name="parameterInput"
+        v-validate="validation"
+        :error="isError"
+        :error-message="getErrorMessage"
         v-model="value" />
 </template>
 
@@ -27,6 +30,22 @@
             value: {
                 type: String,
                 default: ''
+            },
+            name: {
+                type: String,
+                default: ''
+            },
+            validation: {
+                type: Object,
+                default: {}
+            }
+        },
+        computed: {
+            isError () {
+                return this.errors.has('parameterInput')
+            },
+            getErrorMessage () {
+                return this.isError ? this.errors.first('parameterInput') + this.validation.regex.source : ''
             }
         }
     }
