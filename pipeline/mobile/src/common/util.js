@@ -1,4 +1,11 @@
 /**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
+/**
  * 函数柯里化
  *
  * @example
@@ -314,4 +321,18 @@ export function getWindowHeight () {
         : document.body.clientHeight
 
     return windowHeight
+}
+
+/**
+ * 日期格式化 按照yyyy-MM-dd HH:MM:SS格式化
+ * @param date
+ * @returns {string}
+ */
+export function dateFormatter (date) {
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const strDate = date.getDate().toString().padStart(2, '0')
+    const hh = date.getHours().toString().padStart(2, '0')
+    const mm = date.getMinutes().toString().padStart(2, '0')
+    const ss = date.getSeconds().toString().padStart(2, '0')
+    return `${date.getFullYear()}-${month}-${strDate} ${hh}:${mm}:${ss}`
 }

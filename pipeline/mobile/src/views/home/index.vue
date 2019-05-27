@@ -1,18 +1,25 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 <template>
     <div class="page-view">
         <van-list
             v-model="loading"
             :finished="finished"
-            finished-text="没有更多了"
+            :finished-text="i18n.finished_text"
             @load="onLoad">
             <div class="panel-list">
                 <van-cell
-                    v-for="item in list"
-                    :to="`/template/?bizId=${item.cc_id}`"
+                    v-for="item in businessList"
                     :key="item.cc_id"
-                    :title="item.cc_name">
+                    :title="item.cc_name"
+                    @click="onClickBusiness(item.cc_id)">
                     <template slot="title">
-                        <van-tag :class="item.tagColor">{{ item.tag }}</van-tag>
+                        <van-tag color="false" :class="item.tagColor">{{ item.tag }}</van-tag>
                         <span class="title">{{ item.cc_name }}</span>
                     </template>
                 </van-cell>
@@ -21,7 +28,10 @@
     </div>
 </template>
 <script>
-    import { getBusinessList } from '@/store/modules/businessList'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+
+    const BIZ_TAG_COLORS = ['blue', 'red', 'orange', 'green', 'gray']
 
     export default {
         name: 'home',
@@ -29,31 +39,45 @@
 
         data () {
             return {
-                list: [],
+                businessList: [],
+                i18n: {
+                    finished_text: window.gettext('没有更多了')
+                },
                 loading: false,
-                finished: false
+                finished: false,
+                offset: 0,
+                limit: 10,
+                total: 0
             }
         },
-
         methods: {
+            ...mapActions('business', [
+                'getBusinessList'
+            ]),
+
             onLoad () {
-                // 异步更新数据
-                setTimeout(() => {
-                    const bizList = getBusinessList()['objects']
-                    const _this = this
-                    bizList.forEach(item => {
-                        ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
-                        _this.list.push(item)
-                    })
+                this.loadData()
+            },
 
-                    // 加载状态结束
-                    this.loading = false
-
-                    // 数据全部加载完成
-                    if (this.list.length >= bizList.length) {
+            async loadData () {
+                try {
+                    const response = await this.getBusinessList({ offset: this.offset, limit: this.limit })
+                    this.total = response.meta.total_count
+                    const totalPage = Math.ceil(this.total / this.limit)
+                    if (this.offset + 1 >= totalPage) {
                         this.finished = true
+                    } else {
+                        this.offset = this.offset + 1
                     }
-                }, 500)
+                    this.businessList = [...this.businessList, ...response.objects]
+                    this.businessList.map(item => {
+                        ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
+                    })
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.loading = false
+                }
             },
 
             getTagColor (biz) {
@@ -63,66 +87,68 @@
                 if (tagColor) {
                     return { tagColor: tagColor, tag: tag }
                 } else {
-                    const color = parseInt(Math.random() * 5, 10) + 1
-                    const tagColor = `tag-${color}`
+                    const color = parseInt(Math.random() * 4, 10) + 1
+                    const tagColor = `tag-${BIZ_TAG_COLORS[color]}`
                     this.$cookies.set(biz.cc_id, tagColor)
                     return { tagColor: tagColor, tag: tag }
                 }
+            },
+
+            onClickBusiness (bizId) {
+                this.$store.commit('setBizId', bizId)
+                this.$router.push({ path: `/template/${bizId}` })
             }
         }
     }
 </script>
 
 <style lang="scss" scoped>
-  @import '../../../static/style/app.scss';
-  .page-view {
-    .van-cell {
-      background-color: $white;
-      height: 90px;
-      margin: 20px 25px;
-      width: auto;
-      border-radius: 10px;
-      padding: 15px;
-      box-sizing: border-box;
-
-      .van-tag {
-        width: 60px;
-        height: 60px;
-        line-height: 60px;
-        border-radius: 4px;
-        text-align: center;
-        display: inline-block;
-        padding: 0;
-        font-size: 28px;
-        color: $white;
-      }
-
-      .tag-1 {
-        background-color: #3A84FF !important;
-      }
-
-      .tag-2 {
-        background-color: #EA3636 !important;
-      }
-
-      .tag-3 {
-        background-color: #FF9C01 !important;
-      }
-
-      .tag-4 {
-        background-color: #2DCB56 !important;
-      }
-
-      .tag-5 {
-        background-color: #C4C6CC !important;
-      }
-
-      .title {
-        font-size: 16px;
-        font-weight: bold;
-        margin-left: 10px;
-        color: $black;
-      }
+    @import '../../../static/style/app.scss';
+    .page-view {
+        .van-cell {
+            background-color: $white;
+            height: 90px;
+            margin: 20px 25px;
+            width: auto;
+            border-radius: 10px;
+            padding: 15px;
+            &:after{
+                border-bottom: none;
+            }
+            .van-tag {
+                width: 60px;
+                height: 60px;
+                line-height: 60px;
+                border-radius: 4px;
+                text-align: center;
+                display: inline-block;
+                padding: 0;
+                font-size: 28px;
+                color: $white;
+                vertical-align: middle;
+            }
+            .tag-blue {
+                background-color: #3A84FF;
+            }
+            .tag-red {
+                background-color: #EA3636;
+            }
+            .tag-orange {
+                background-color: #FF9C01;
+            }
+            .tag-green {
+                background-color: #2DCB56;
+            }
+            .tag-gray {
+                background-color: #C4C6CC;
+            }
+            .title {
+                font-size: $fs-16;
+                font-weight: bold;
+                margin-left: 10px;
+                color: $black;
+                vertical-align: middle;
+            }
+        }
     }
-  }
 </style>

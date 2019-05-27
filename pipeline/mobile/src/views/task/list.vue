@@ -1,7 +1,15 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 <template>
     <div class="page-view">
         <!-- 搜索 -->
         <van-search
+            background="false"
             :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"
@@ -9,54 +17,105 @@
         </van-search>
         <!-- 列表 -->
         <section class="bk-block">
-            <van-cell
-                clickable
-                v-for="item in taskList"
-                :key="item.id"
-                :to="`/task/detail?taskId=${item.id}`">
-                <template slot="title">
-                    <div class="bk-text">{{ item.name }}</div>
-                    <div class="bk-name">{{ item.creator_name }}</div>
-                    <div class="bk-time">{{ item.create_time }} 至 {{ item.finish_time || '--' }}</div>
-                </template>
-                <van-icon slot="right-icon" name="more" :class="item.status_class" />
-            </van-cell>
+            <van-list
+                v-model="loading"
+                :finished="finished"
+                :finished-text="i18n.finished_text"
+                @load="loadData">
+                <van-cell
+                    clickable
+                    v-for="item in taskList"
+                    :key="item.id"
+                    @click="onClickTask(item.id)">
+                    <template slot="title">
+                        <div class="bk-text">{{ item.name }}</div>
+                        <div class="bk-name">{{ item.creator_name }}</div>
+                        <div class="bk-time">
+                            {{ item.create_time }}
+                            <template v-if="item.finish_time">
+                                {{ i18n.to }} <p>{{ item.finish_time || '--' }}</p>
+                            </template>
+                        </div>
+                    </template>
+                    <StatusIcon :status="item['status']"></StatusIcon>
+                </van-cell>
+            </van-list>
         </section>
     </div>
 </template>
 
 <script>
     import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import StatusIcon from '@/components/MobileStatusIcon/index.vue'
 
     export default {
         name: 'TaskList',
+        components: {
+            StatusIcon
+        },
         data () {
             return {
                 taskList: [],
+                originalTaskList: [],
                 taskStatus: '',
+                loading: false,
+                finished: false,
+                offset: 0,
+                currPage: 1,
+                limit: 10,
+                total: 0,
+                value: '',
                 i18n: {
-                    placeholder: window.gettext('搜索任务名称')
+                    placeholder: window.gettext('搜索任务名称'),
+                    finished_text: window.gettext('没有更多了'),
+                    to: window.gettext('至')
                 }
             }
         },
-        mounted () {
-            this.loadData()
-        },
         methods: {
             ...mapActions('taskList', [
-                'getTaskList'
+                'getTaskList',
+                'getTaskStatus'
             ]),
             async loadData () {
-                this.taskList = await this.getTaskList()
+                const response = await this.getTaskList({ offset: this.offset, limit: this.limit })
+                this.total = response.meta.total_count
+                const totalPage = Math.ceil(this.total / this.limit)
+                if (this.currPage >= totalPage) {
+                    this.finished = true
+                } else {
+                    this.offset = this.currPage * this.limit
+                    this.currPage += 1
+                }
+                this.taskList = [...this.originalTaskList, ...response.objects]
+                this.originalTaskList = this.taskList
+                await this.fillTaskStatus()
+                this.loading = false
             },
-            search () {
-                const arr = []
-                for (let i = 0; i < this.taskList.length; i++) {
-                    if (this.taskList[i].name.includes(this.value)) {
-                        arr.push(this.taskList[i])
+
+            async fillTaskStatus () {
+                for (const task of this.taskList) {
+                    if (task.is_started) {
+                        try {
+                            const response = await this.getTaskStatus({ id: task.id })
+                            this.$set(task, 'status', response.state)
+                        } catch (e) {
+                            errorHandler(e, this)
+                        }
+                    } else {
+                        task['status'] = 'CREATED'
                     }
                 }
-                this.taskList = arr
+            },
+
+            search () {
+                this.taskList = this.originalTaskList.filter(item => item.name.includes(this.value))
+            },
+
+            onClickTask (taskId) {
+                this.$store.commit('setTaskId', taskId)
+                this.$router.push({ path: `/task/canvas?taskId=${taskId}` })
             }
         }
     }

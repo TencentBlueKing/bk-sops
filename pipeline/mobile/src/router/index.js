@@ -1,3 +1,10 @@
+/**
+* Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+* Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+* Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+* http://opensource.org/licenses/MIT
+* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+*/
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import VueCookies from 'vue-cookies'
@@ -10,10 +17,15 @@ Vue.use(VueCookies)
 
 const Home = () => import(/* webpackChunkName: 'home' */'../views/home')
 const Template = () => import(/* webpackChunkName: 'home' */'../views/template/index')
+const TemplatePreview = () => import(/* webpackChunkName: 'home' */'../views/template/preview')
 const TaskList = () => import(/* webpackChunkName: 'home' */'../views/task/list')
 const TaskCreate = () => import(/* webpackChunkName: 'home' */'../views/task/create')
 const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/reset')
+const TaskEditTiming = () => import(/* webpackChunkName: 'home' */'../views/task/timing')
 const TaskDetail = () => import(/* webpackChunkName: 'home' */'../views/task/detail')
+const TaskNodes = () => import(/* webpackChunkName: 'home' */'../views/task/nodes')
+const TaskParameter = () => import(/* webpackChunkName: 'home' */'../views/task/parameter')
+const TaskCanvas = () => import(/* webpackChunkName: 'home' */'../views/task/canvas')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
 
 const routes = [
@@ -25,18 +37,31 @@ const routes = [
         component: Home
     },
     {
-        path: '/template',
+        path: '/template/preview',
+        name: 'template_preview',
+        title: '预览',
+        isActionSheetShow: true,
+        component: TemplatePreview
+    },
+    {
+        path: '/template/:bizId/',
         name: 'template',
         title: '流程模板',
         isActionSheetShow: true,
-        component: Template
+        component: Template,
+        props: (route) => ({
+            bizId: route.params.bizId
+        })
     },
     {
-        path: '/task/create',
+        path: '/task/create/:templateId',
         name: 'task_create',
-        title: '任务信息',
+        title: '新建任务',
         isActionSheetShow: true,
-        component: TaskCreate
+        component: TaskCreate,
+        props: (route) => ({
+            templateId: route.params.templateId
+        })
     },
     {
         path: '/task/list',
@@ -51,9 +76,34 @@ const routes = [
         component: TaskReset
     },
     {
+        path: '/task/timing',
+        name: 'task_edit_timing',
+        component: TaskEditTiming
+    },
+    {
         path: '/task/detail',
         name: 'task_detal',
         component: TaskDetail
+    },
+    {
+        path: '/task/nodes',
+        name: 'task_nodes',
+        title: '执行详情',
+        isActionSheetShow: true,
+        component: TaskNodes
+    },
+    {
+        path: '/task/nodes/parameter',
+        name: 'task_node_parameter',
+        title: '输入参数',
+        isActionSheetShow: true,
+        component: TaskParameter
+    },
+    {
+        path: '/task/canvas',
+        name: 'task_canvas',
+        title: '执行任务',
+        component: TaskCanvas
     },
     // 404
     {
@@ -101,13 +151,17 @@ router.beforeEach(async (to, from, next) => {
     if (to.name && routerConfig[to.name]) {
         ({ title: store.state.title, isActionSheetShow: store.state.isActionSheetShow } = routerConfig[to.name])
     }
+    if (to.query.biz_selected) {
+        store.commit('setActionSheetShow', true)
+    }
     if (bizId) {
         store.commit('setBizId', bizId)
         store.commit('setActionSheetShow', true)
         // cookies记录用户第一次选择的biz_id,如果为空，则跳转至选择业务页面
         VueCookies.set('biz_id', store.state.bizId)
-        if (to.name === 'home') {
-            next({ path: '/template', query: { bizId: bizId } })
+        VueCookies.set('isSelectedBiz', true)
+        if (to.name === 'home' && !to.query.biz_selected) {
+            next({ path: `/template/${bizId}` })
         } else {
             next()
         }
