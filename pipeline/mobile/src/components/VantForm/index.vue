@@ -129,6 +129,12 @@
                 this.domAttr.placeholder = this.placeholder
                 this.domAttr.value = this.customType === 'int' ? (this.value ? Number.parseInt(this.value) : 0) : this.value
                 this.domAttr.data = this.data
+                this.domAttr.name = this.data.name
+                if (this.data.validation) {
+                    this.domAttr.validation = {
+                        regex: new RegExp(this.data.validation)
+                    }
+                }
             }
         },
         render (h) {

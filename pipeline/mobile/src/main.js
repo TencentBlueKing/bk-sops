@@ -105,6 +105,9 @@ Validator.localize({
                 required: window.gettext('任务名称不能为空'),
                 regex: window.gettext('任务名称包含非法字符'),
                 max: window.gettext('任务名称长度不能超过50个字符')
+            },
+            parameterInput: {
+                regex: window.gettext('输入值不满足校验规则')
             }
         }
     }
