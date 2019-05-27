@@ -19,3 +19,9 @@ from gcloud.external_plugins.models.origin import (  # noqa
     source_cls_factory
 )
 from gcloud.external_plugins.models.cache import CachePackageSource  # noqa
+from gcloud.external_plugins.models.sync import (  # noqa
+    SyncTask,
+    RUNNING,
+    SUCCEEDED,
+    FAILED
+)
