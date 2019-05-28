@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import copy
-from pipeline.utils.uniqid import uniqid, node_uniqid
+from pipeline.utils.uniqid import node_uniqid
 
 id_list = [node_uniqid() for i in xrange(10)]
 PIPELINE_DATA = {
@@ -35,7 +40,7 @@ PIPELINE_DATA = {
             'incoming': id_list[5],
             'outgoing': id_list[6],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'inputs': {
                     'input_test': {
                         'type': 'plain',
@@ -58,7 +63,7 @@ PIPELINE_DATA = {
             'incoming': id_list[6],
             'outgoing': id_list[7],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'inputs': {
                     'input_test': {
                         'type': 'plain',
@@ -147,7 +152,7 @@ WEB_PIPELINE_DATA = {
             'incoming': id_list[5],
             'outgoing': id_list[6],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'data': {
                     'input_test': {
                         'hook': False,
@@ -167,7 +172,7 @@ WEB_PIPELINE_DATA = {
             'incoming': id_list[6],
             'outgoing': id_list[7],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'data': {
                     'input_test': {
                         'hook': True,
@@ -289,7 +294,7 @@ sub_pipeline = {
             'incoming': id_list3[5],
             'outgoing': id_list3[6],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'inputs': {
                     'input_test': {
                         'type': 'plain',
@@ -312,7 +317,7 @@ sub_pipeline = {
             'incoming': id_list3[6],
             'outgoing': id_list3[7],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'inputs': {
                     'input_test': {
                         'type': 'plain',
@@ -397,7 +402,7 @@ sub_web_pipeline = {
             'incoming': id_list3[5],
             'outgoing': id_list3[6],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'data': {
                     'input_test': {
                         'hook': False,
@@ -417,7 +422,7 @@ sub_web_pipeline = {
             'incoming': id_list3[6],
             'outgoing': id_list3[7],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'data': {
                     'input_test': {
                         'hook': True,
@@ -567,7 +572,7 @@ sub_web_pipeline2 = {
             'incoming': id_list2[5],
             'outgoing': id_list2[6],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'data': {
                     'input_test': {
                         'hook': False,
@@ -587,7 +592,7 @@ sub_web_pipeline2 = {
             'incoming': id_list2[6],
             'outgoing': id_list2[7],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'data': {
                     'input_test': {
                         'hook': True,
@@ -633,7 +638,7 @@ sub_web_pipeline2 = {
             # 'source_step': [id_list2[4], ],
             # 'source_key': '',
             'source_info': {
-              id_list2[4]: ['input_test'],
+                id_list2[4]: ['input_test'],
             },
             'custom_type': '',
         },
@@ -710,7 +715,7 @@ WEB_PIPELINE_WITH_SUB_PROCESS2 = {
             'incoming': id_list2[12],
             'outgoing': id_list2[13],
             'component': {
-                'code': 'demo',
+                'code': 'test',
                 'data': {
                     'input_test': {
                         'hook': False,
@@ -802,7 +807,7 @@ WEB_PIPELINE_WITH_SUB_PROCESS3 = {
                         u'name': u'\u8282\u70b9_1',
                         u'type': u'ServiceActivity',
                         u'component': {
-                            u'code': u'demo',
+                            u'code': u'test',
                             u'data': {
                                 u'input_test': {
                                     u'hook': True,
@@ -930,7 +935,6 @@ WEB_PIPELINE_WITH_SUB_PROCESS3 = {
     },
     u'gateways': {},
 }
-
 # 子流程 全局输入部分show，并且引用了父流程的全局变量，无引用到父流程 输出全部无引用到父流程
 
 # 子流程 全局输入部分show，并且引用到父流程 输出全部无引用到父流程

@@ -1,21 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 import logging
 import contextlib
 import traceback
 
+from pipeline.core.flow.activity import SubProcess
 from pipeline.engine import states
-from pipeline.engine.models import Status, NodeRelationship, FunctionSwitch
+from pipeline.engine.models import Status, NodeRelationship, FunctionSwitch, NAME_MAX_LENGTH
 from pipeline.engine.core.handlers import FLOW_NODE_HANDLERS
+from pipeline.conf import settings as pipeline_settings
 
 logger = logging.getLogger('celery')
+
+RERUN_MAX_LIMIT = pipeline_settings.PIPELINE_RERUN_MAX_TIMES
 
 
 @contextlib.contextmanager
@@ -66,11 +74,33 @@ def run_loop(process):
                 process.freeze()
                 return
 
-            # try to transit current node to running state
-            if not Status.objects.transit(id=current_node.id, to_state=states.RUNNING, start=True,
-                                          name=str(current_node.__class__)):
-                logger.info('can not transit node(%s) to running, pipeline(%s) turn to sleep.' % (
-                    current_node.id, process.root_pipeline.id))
+                # try to transit current node to running state
+            name = (current_node.name or str(current_node.__class__))[:NAME_MAX_LENGTH]
+            action = Status.objects.transit(id=current_node.id, to_state=states.RUNNING, start=True, name=name)
+
+            # check rerun limit
+            if not isinstance(current_node, SubProcess) and RERUN_MAX_LIMIT != 0 and \
+                    action.extra.loop > RERUN_MAX_LIMIT:
+                logger.info('node({nid}) rerun times exceed max limit: {limit}'.format(
+                    nid=current_node.id,
+                    limit=RERUN_MAX_LIMIT
+                ))
+
+                # fail
+                action = Status.objects.fail(current_node, 'rerun times exceed max limit: {limit}'.format(
+                    limit=RERUN_MAX_LIMIT
+                ))
+
+                if not action.result:
+                    logger.warning('can not transit node(%s) to running, pipeline(%s) turn to sleep. message: %s' % (
+                        current_node.id, process.root_pipeline.id, action.message))
+
+                process.sleep(adjust_status=True)
+                return
+
+            if not action.result:
+                logger.warning('can not transit node(%s) to running, pipeline(%s) turn to sleep. message: %s' % (
+                    current_node.id, process.root_pipeline.id, action.message))
                 process.sleep(adjust_status=True)
                 return
 
@@ -79,7 +109,7 @@ def run_loop(process):
 
             # build relationship
             NodeRelationship.objects.build_relationship(process.top_pipeline.id, current_node.id)
-            result = FLOW_NODE_HANDLERS[current_node.__class__](process, current_node)
+            result = FLOW_NODE_HANDLERS[current_node.__class__](process, current_node, action.extra)
 
             if result.should_return or result.should_sleep:
                 if result.should_sleep:

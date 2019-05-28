@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.core.models import UserBusiness
 from gcloud.core import roles
+from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
+from gcloud.core.models import UserBusiness
 from gcloud.core.utils import convert_group_name
 
 
@@ -73,3 +79,23 @@ def get_roles_and_personnel(request, biz_cc_id):
         "result": True,
         "data": {'roles': data}
     })
+
+
+@require_GET
+def get_basic_info(request):
+    """
+    @summary: 获取全局变量
+    @param request:
+    @return:
+    """
+    task_categories = [{'value': item[0], 'name': item[1]} for item in TASK_CATEGORY]
+    flow_type_list = [{'value': item[0], 'name': item[1]} for item in TASK_FLOW_TYPE]
+    notify_group = list(roles.CC_PERSON_GROUP)
+    notify_type_list = [{'value': item[0], 'name': item[1]} for item in NOTIFY_TYPE]
+    ctx = {
+        "task_categories": task_categories,
+        "flow_type_list": flow_type_list,
+        "notify_group": notify_group,
+        "notify_type_list": notify_type_list
+    }
+    return JsonResponse(ctx, safe=False)

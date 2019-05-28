@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 from pyparsing import CaselessLiteral, Word, delimitedList, Optional, \
     Combine, Group, alphas, nums, alphanums, ParseException, Forward, oneOf, \
-    QuotedString, ZeroOrMore, Keyword, ParseResults, removeQuotes, Suppress
+    QuotedString, ZeroOrMore, Keyword, ParseResults, Suppress
 
 
 class SubstituteVal(object):
@@ -22,9 +26,10 @@ class SubstituteVal(object):
 
     def get_val(self, context):
         if not context:
-            raise MissingVariableException(
-                'context missing or empty'
-            )
+            # raise MissingVariableException(
+            #     'context missing or empty'
+            # )
+            return self._path
 
         val = context
 
@@ -113,7 +118,7 @@ def double_equals_trans(lval, rval, operator):
                 rval = str(rval)
             elif isinstance(rval, basestring):
                 lval = str(lval)
-        except:
+        except Exception:
             pass
     else:
         if isinstance(rval, list) and len(rval):
@@ -122,13 +127,13 @@ def double_equals_trans(lval, rval, operator):
                 for item in rval:
                     try:
                         transed_rval.append(int(item))
-                    except:
+                    except Exception:
                         pass
             elif isinstance(lval, basestring):
                 for item in rval:
                     try:
                         transed_rval.append(str(item))
-                    except:
+                    except Exception:
                         pass
             rval += transed_rval
     return lval, rval

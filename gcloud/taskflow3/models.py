@@ -1,34 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
+import re
 import datetime
 import json
 import logging
-import re
+import traceback
+from copy import deepcopy
 
 from django.db import models, transaction
 from django.db.models import Count, Avg, Sum
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
-from gcloud.conf import settings
-from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
-from gcloud.core.models import Business
-from gcloud.core.utils import (convert_readable_username,
-                               strftime_with_timezone,
-                               get_client_by_user_and_biz_id,
-                               timestamp_to_datetime,
-                               format_datetime)
-from gcloud.tasktmpl3.models import TaskTemplate, replace_template_id
-from gcloud.taskflow3.constants import TASK_CREATE_METHOD
-from gcloud.taskflow3.signals import taskflow_started
-from pipeline.component_framework.models import ComponentModel
-from pipeline.contrib.statistics.models import ComponentExecuteData
 
 from pipeline.core.constants import PE
 from pipeline.component_framework import library
@@ -37,12 +31,50 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
-from pipeline.parser import pipeline_parser
 from pipeline.utils.context import get_pipeline_context
 from pipeline.engine import states
 from pipeline.log.models import LogEntry
+from pipeline.component_framework.models import ComponentModel
+from pipeline.contrib.statistics.models import (
+    ComponentExecuteData,
+    InstanceInPipeline
+)
+from pipeline.exceptions import (
+    ConvergeMatchError,
+    ConnectionValidateError,
+    IsolateNodeError,
+    StreamValidateError
+)
+from pipeline.validators.gateway import validate_gateways
+from pipeline_web.parser import WebPipelineAdapter
+from pipeline_web.wrapper import PipelineTemplateWebWrapper
+from pipeline_web.parser.format import format_node_io_to_list
+
+from gcloud.conf import settings
+from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
+from gcloud.core.models import Business
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
+from gcloud.taskflow3.constants import (
+    TASK_CREATE_METHOD,
+    TEMPLATE_SOURCE,
+)
+from gcloud.core.utils import (
+    convert_readable_username,
+    strftime_with_timezone,
+    timestamp_to_datetime,
+    format_datetime,
+    camel_case_to_underscore_naming,
+    gen_day_dates,
+    get_month_dates
+)
+from gcloud.taskflow3.signals import taskflow_started
 
 logger = logging.getLogger("root")
+
+PIPELINE_REGEX = re.compile(r'^name|create_time|creator|create_time|executor|'
+                            r'start_time|finish_time|is_started|is_finished')
 
 INSTANCE_ACTIONS = {
     'start': None,
@@ -70,15 +102,19 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
     @staticmethod
     def create_pipeline_instance(template, **kwargs):
         pipeline_tree = kwargs['pipeline_tree']
-        replace_template_id(pipeline_tree)
+        replace_template_id(template.__class__, pipeline_tree)
         pipeline_template_data = {
             'name': kwargs['name'],
             'creator': kwargs['creator'],
             'description': kwargs.get('description', ''),
         }
+
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
+
         pipeline_instance = PipelineInstance.objects.create_instance(
             template.pipeline_template,
             pipeline_tree,
+            spread=True,
             **pipeline_template_data
         )
         return pipeline_instance
@@ -116,72 +152,63 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         return True, pipeline_inst
 
     @staticmethod
-    def preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
-        if exclude_task_nodes_id is None:
-            exclude_task_nodes_id = []
+    def _replace_node_incoming(next_node, replaced_incoming, new_incoming):
+        if isinstance(next_node[PE.incoming], list):
+            next_node[PE.incoming].pop(next_node[PE.incoming].index(replaced_incoming))
+            next_node[PE.incoming].extend(new_incoming)
+        else:
+            is_boring_list = isinstance(new_incoming, list) and len(new_incoming) == 1
+            next_node[PE.incoming] = new_incoming[0] if is_boring_list else new_incoming
 
-        locations = {item['id']: item for item in pipeline_tree.get(PE.location, [])}
-        lines = {item['id']: item for item in pipeline_tree.get(PE.line, [])}
+    @staticmethod
+    def _ignore_act(act, locations, lines, pipeline_tree):
 
-        for task_node_id in exclude_task_nodes_id:
-            if task_node_id not in pipeline_tree[PE.activities]:
-                error = 'task node[id=%s] is not in template pipeline tree' % task_node_id
-                raise Exception(error)
+        # change next_node's incoming: task node、control node is different
+        # change incoming_flow's target to next node
+        # delete outgoing_flow
+        incoming_id_list, outgoing_id = act[PE.incoming], act[PE.outgoing]
+        incoming_id_list = incoming_id_list if isinstance(incoming_id_list, list) else [incoming_id_list]
 
-            task_node = pipeline_tree[PE.activities].pop(task_node_id)
-            if not task_node['optional']:
-                error = 'task node[id=%s] is not optional' % task_node_id
-                raise Exception(error)
+        outgoing_flow = pipeline_tree[PE.flows][outgoing_id]
+        target_id = outgoing_flow[PE.target]
 
-            # change next_node's incoming: task node、control node is different
-            # change incoming_flow's target to next node
-            # delete outgoing_flow
-            incoming_id, outgoing_id = task_node[PE.incoming], task_node[PE.outgoing]
+        next_node = \
+            pipeline_tree[PE.activities].get(target_id) or \
+            pipeline_tree[PE.gateways].get(target_id) or \
+            pipeline_tree[PE.end_event]
+
+        TaskFlowInstanceManager._replace_node_incoming(next_node=next_node,
+                                                       replaced_incoming=outgoing_id,
+                                                       new_incoming=incoming_id_list)
+
+        for incoming_id in incoming_id_list:
             incoming_flow = pipeline_tree[PE.flows][incoming_id]
-            outgoing_flow = pipeline_tree[PE.flows][outgoing_id]
-            target_id = outgoing_flow[PE.target]
-
-            if target_id in pipeline_tree[PE.activities]:
-                next_node = pipeline_tree[PE.activities][target_id]
-                next_node[PE.incoming] = incoming_id
-            elif target_id in pipeline_tree[PE.gateways]:
-                next_node = pipeline_tree[PE.gateways][target_id]
-                if next_node['type'] in [PE.ExclusiveGateway, PE.ParallelGateway]:
-                    next_node[PE.incoming] = incoming_id
-                # PE.ConvergeGateway
-                else:
-                    next_node[PE.incoming].pop(next_node[PE.incoming].index(outgoing_id))
-                    next_node[PE.incoming].append(incoming_id)
-            # PE.end_event
-            else:
-                next_node = pipeline_tree[PE.end_event]
-                next_node[PE.incoming] = incoming_id
-
             incoming_flow[PE.target] = next_node['id']
 
-            pipeline_tree[PE.flows].pop(outgoing_id)
+        pipeline_tree[PE.flows].pop(outgoing_id)
 
-            # web location data
-            try:
-                locations.pop(task_node_id)
-                lines.pop(outgoing_id)
+        # web location data
+        try:
+            locations.pop(act['id'])
+            lines.pop(outgoing_id)
+
+            for incoming_id in incoming_id_list:
                 lines[incoming_id][PE.target]['id'] = next_node['id']
-            except Exception as e:
-                logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error:%s' % e)
+        except Exception as e:
+            logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error:%s' % e)
 
-        pipeline_tree[PE.line] = lines.values()
-        pipeline_tree[PE.location] = locations.values()
-
+    @staticmethod
+    def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree):
         # pop unreferenced constant
         data = {}
-        for task_node_id, task_node in pipeline_tree[PE.activities].items():
-            if task_node['type'] == PE.ServiceActivity:
-                node_data = {('%s_%s' % (task_node_id, key)): value
-                             for key, value in task_node['component']['data'].items()}
+        for act_id, act in pipeline_tree[PE.activities].items():
+            if act['type'] == PE.ServiceActivity:
+                node_data = {('%s_%s' % (act_id, key)): value
+                             for key, value in act['component']['data'].items()}
             # PE.SubProcess
             else:
-                node_data = {('%s_%s' % (task_node_id, key)): value
-                             for key, value in task_node['constants'].items() if value['show_type'] == 'show'}
+                node_data = {('%s_%s' % (act_id, key)): value
+                             for key, value in act['constants'].items() if value['show_type'] == 'show'}
             data.update(node_data)
 
         for gw_id, gw in pipeline_tree[PE.gateways].items():
@@ -190,25 +217,30 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                            for key, value in gw['conditions'].items()}
                 data.update(gw_data)
 
+        # get all referenced constants in flow
         constants = pipeline_tree[PE.constants]
         referenced_keys = []
         while True:
             last_count = len(referenced_keys)
             cons_pool = ConstantPool(data, lazy=True)
             refs = cons_pool.get_reference_info(strict=False)
-            for _, keys in refs.items():
+            for keys in refs.values():
                 for key in keys:
+                    # ad d outputs keys later
                     if key in constants and key not in referenced_keys:
                         referenced_keys.append(key)
                         data.update({key: constants[key]})
             if len(referenced_keys) == last_count:
                 break
-            last_count = len(referenced_keys)
 
         # keep outputs constants
-        outputs_keys = [key for key, value in constants.items()
-                        if value['source_type'] == 'component_outputs'
-                        and value['source_info'].keys()[0] not in exclude_task_nodes_id]
+        def is_outputs(value):
+            check_type = value['source_type'] == 'component_outputs'
+            if not check_type:
+                return False
+            return value['source_info'].keys()[0] not in exclude_task_nodes_id
+
+        outputs_keys = [key for key, value in constants.items() if is_outputs(value)]
         referenced_keys = list(set(referenced_keys + outputs_keys))
         pipeline_tree[PE.outputs] = [key for key in pipeline_tree[PE.outputs] if key in referenced_keys]
 
@@ -219,13 +251,147 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             value = constants[key]
             value['index'] = index
             # delete constant reference info to task node
-            for task_node_id in exclude_task_nodes_id:
-                if task_node_id in value['source_info']:
-                    value['source_info'].pop(task_node_id)
+            for act_id in exclude_task_nodes_id:
+                if act_id in value['source_info']:
+                    value['source_info'].pop(act_id)
             new_constants[key] = value
         pipeline_tree[PE.constants] = new_constants
 
-        return
+    @staticmethod
+    def _try_to_ignore_parallel(parallel, converge_id, lines, locations, pipeline_tree):
+
+        ignore_whole_parallel = True
+        converge = pipeline_tree[PE.gateways][converge_id]
+        parallel_outgoing = deepcopy(parallel[PE.outgoing])
+
+        for outgoing_id in parallel_outgoing:
+            # meet not converge node
+            if pipeline_tree[PE.flows][outgoing_id][PE.target] != converge_id:
+                ignore_whole_parallel = False
+                continue
+
+            # remove boring sequence
+            converge[PE.incoming].remove(outgoing_id)
+            parallel[PE.outgoing].remove(outgoing_id)
+            pipeline_tree[PE.flows].pop(outgoing_id)
+            lines.pop(outgoing_id)
+
+        if not ignore_whole_parallel:
+            return
+
+        target_of_converge = pipeline_tree[PE.flows][converge[PE.outgoing]][PE.target]
+        next_node_of_converge = \
+            pipeline_tree[PE.activities].get(target_of_converge) or \
+            pipeline_tree[PE.gateways].get(target_of_converge) or \
+            pipeline_tree[PE.end_event]
+
+        # remove converge outgoing
+        lines.pop(converge[PE.outgoing])
+        pipeline_tree[PE.flows].pop(converge[PE.outgoing])
+
+        # sequences not come from parallel to be removed
+        new_incoming_list = []
+        # redirect converge rerun incoming
+        for incoming in converge[PE.incoming]:
+            pipeline_tree[PE.flows][incoming][PE.target] = target_of_converge
+            lines[incoming][PE.target]['id'] = target_of_converge
+            new_incoming_list.append(incoming)
+
+        # redirect parallel rerun incoming
+        gateway_incoming = parallel[PE.incoming]
+        gateway_incoming = gateway_incoming if isinstance(gateway_incoming, list) \
+            else [gateway_incoming]
+        for incoming in gateway_incoming:
+            pipeline_tree[PE.flows][incoming][PE.target] = target_of_converge
+            lines[incoming][PE.target]['id'] = target_of_converge
+            new_incoming_list.append(incoming)
+
+        # process next node's incoming
+        TaskFlowInstanceManager._replace_node_incoming(next_node=next_node_of_converge,
+                                                       replaced_incoming=converge[PE.outgoing],
+                                                       new_incoming=new_incoming_list)
+
+        # remove parallel and converge
+        pipeline_tree[PE.gateways].pop(parallel['id'])
+        pipeline_tree[PE.gateways].pop(converge['id'])
+        locations.pop(parallel['id'])
+        locations.pop(converge['id'])
+
+    @staticmethod
+    def _remove_useless_parallel(pipeline_tree, lines, locations):
+        copy_tree = deepcopy(pipeline_tree)
+
+        for act in copy_tree['activities'].values():
+            format_node_io_to_list(act, o=False)
+
+        for gateway in copy_tree['gateways'].values():
+            format_node_io_to_list(gateway, o=False)
+
+        format_node_io_to_list(copy_tree['end_event'], o=False)
+
+        converges = validate_gateways(copy_tree)
+
+        while True:
+
+            gateway_count = len(pipeline_tree[PE.gateways])
+
+            for converge_id, converged_list in converges.items():
+
+                for converged in converged_list:
+
+                    gateway = pipeline_tree[PE.gateways].get(converged)
+
+                    if not gateway:  # had been removed
+                        continue
+
+                    is_parallel = gateway[PE.type] in {PE.ParallelGateway, PE.ConditionalParallelGateway}
+
+                    # only process parallel gateway
+                    if not is_parallel:
+                        continue
+
+                    TaskFlowInstanceManager._try_to_ignore_parallel(parallel=gateway,
+                                                                    converge_id=converge_id,
+                                                                    lines=lines,
+                                                                    locations=locations,
+                                                                    pipeline_tree=pipeline_tree)
+
+            if gateway_count == len(pipeline_tree[PE.gateways]):
+                break
+
+    @staticmethod
+    def preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id=None):
+        if exclude_task_nodes_id is None:
+            exclude_task_nodes_id = []
+
+        locations = {item['id']: item for item in pipeline_tree.get(PE.location, [])}
+        lines = {item['id']: item for item in pipeline_tree.get(PE.line, [])}
+
+        for act_id in exclude_task_nodes_id:
+            if act_id not in pipeline_tree[PE.activities]:
+                error = 'task node[id=%s] is not in template pipeline tree' % act_id
+                raise Exception(error)
+
+            act = pipeline_tree[PE.activities].pop(act_id)
+
+            if not act['optional']:
+                error = 'task node[id=%s] is not optional' % act_id
+                raise Exception(error)
+
+            TaskFlowInstanceManager._ignore_act(act=act,
+                                                locations=locations,
+                                                lines=lines,
+                                                pipeline_tree=pipeline_tree)
+
+        TaskFlowInstanceManager._remove_useless_parallel(pipeline_tree, lines, locations)
+
+        pipeline_tree[PE.line] = lines.values()
+        pipeline_tree[PE.location] = locations.values()
+
+        TaskFlowInstanceManager._remove_useless_constants(exclude_task_nodes_id=exclude_task_nodes_id,
+                                                          pipeline_tree=pipeline_tree)
+
+        return True
 
     def extend_classified_count(self, group_by, filters=None, page=None, limit=None):
         """
@@ -241,37 +407,34 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         if filters is None:
             filters = {}
-        pipeline_inst_regex = re.compile(r'^name|create_time|creator|create_time|executor|'
-                                         r'start_time|finish_time|is_started|is_finished')
         prefix_filters = {}
-        for cond in filters:
+        for cond, value in filters.items():
             # 如果conditions内容为空或为空字符，不可加入查询条件中
-            if filters[cond] == 'None' or filters[cond] == '' or cond == 'component_code':
+            if value in ['None', ''] or cond in ['component_code', 'order_by', 'type']:
                 continue
-            if pipeline_inst_regex.match(cond):
+            if PIPELINE_REGEX.match(cond):
                 filter_cond = 'pipeline_instance__%s' % cond
                 # 时间需要大于小于
                 if cond == 'create_time':
                     filter_cond = '%s__gte' % filter_cond
-                    prefix_filters.update(
-                        {filter_cond: timestamp_to_datetime(filters[cond])})
+                    prefix_filters.update({filter_cond: timestamp_to_datetime(value)})
                     continue
                 # 结束时间由创建时间来决定
                 if cond == 'finish_time':
                     filter_cond = 'pipeline_instance__create_time__lt'
                     prefix_filters.update(
-                        {filter_cond: timestamp_to_datetime(filters[cond]) + datetime.timedelta(days=1)})
+                        {filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
                     continue
             else:
                 filter_cond = cond
-            prefix_filters.update({filter_cond: filters[cond]})
+            prefix_filters.update({filter_cond: value})
 
+        try:
+            taskflow = self.filter(**prefix_filters)
+        except Exception as e:
+            message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
+            return False, message
         if group_by == AE.state:
-            try:
-                taskflow = self.filter(**prefix_filters)
-            except Exception as e:
-                message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
-                return False, message
             total = taskflow.count()
             groups = [
                 {
@@ -292,30 +455,83 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 }
             ]
         elif group_by == AE.business__cc_id:
-            cc_name = AE.business__cc_name
-            try:
-                taskflow = self.filter(**prefix_filters)
-            except Exception as e:
-                message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
-                return False, message
             # 获取所有数据
             total = taskflow.count()
-            taskflow_list = taskflow.values(group_by, cc_name).annotate(value=Count(group_by)).order_by()
+            taskflow_list = taskflow.values(AE.business__cc_id, AE.business__cc_name).annotate(
+                value=Count(group_by)).order_by()
             groups = []
             for data in taskflow_list:
                 groups.append({
-                    'code': data.get(group_by),
-                    'name': data.get(cc_name),
+                    'code': data.get(AE.business__cc_id),
+                    'name': data.get(AE.business__cc_name),
                     'value': data.get('value', 0)
                 })
+        elif group_by == AE.appmaker_instance:
+            taskflow_values = taskflow.values("create_info")
+            order_by = filters.get("order_by", "-templateId")
+            business_id = filters.get("business__cc_id", '')
+            category = filters.get("category", '')
+            started_time = timestamp_to_datetime(filters["create_time"])
+            end_time = timestamp_to_datetime(filters["finish_time"]) + datetime.timedelta(days=1)
+            appmaker_data = AppMaker.objects.filter(is_deleted=False,
+                                                    create_time__gte=started_time,
+                                                    create_time__lte=end_time)
+            if business_id != '':
+                appmaker_data = appmaker_data.filter(business__cc_id=business_id)
+            if category != '':
+                appmaker_data = appmaker_data.filter(task_template__category=category)
+            # 获取所有轻应用数据数量
+            total = appmaker_data.count()
+            # 获得每一个轻应用的实例数量并变为 dict 字典数据进行查询
+            total_dict = {
+                appmaker['create_info']: appmaker['instance_total']
+                for appmaker in taskflow_values.annotate(instance_total=Count("create_info")).order_by()
+            }
+            id_list = appmaker_data.values_list("id")[:]
+
+            id_list = sorted(id_list,
+                             key=lambda tuples_id: -total_dict.get(str(tuples_id[0]), 0))
+            id_list = id_list[(page - 1) * limit: page * limit]
+            app_id_list = [tuples[0] for tuples in id_list]
+            # 获得轻应用对象对应的模板和轻应用名称
+            appmaker_data = appmaker_data.filter(id__in=app_id_list).values(
+                "id",
+                "task_template_id",
+                "name",
+                "create_time",
+                "edit_time",
+                "editor",
+                "business__cc_id",
+                "business__cc_name",
+                "task_template__category"
+            )
+            groups = []
+
+            for data in appmaker_data:
+                code = data.get('task_template_id')
+                appmaker_id = data.get("id")
+                groups.append({
+                    'templateId': code,
+                    'createTime': format_datetime(data.get('create_time')),
+                    'editTime': format_datetime(data.get('edit_time')),
+                    'editor': data.get('editor'),
+                    'templateName': data.get('name'),
+                    'businessId': data.get('business__cc_id'),
+                    'businessName': data.get('business__cc_name'),
+                    'category': category_dict[data.get('task_template__category')],
+                    # 需要将 code 转为字符型
+                    'instanceTotal': total_dict.get(str(appmaker_id), 0)
+                })
+            if order_by[0] == "-":
+                # 需要去除负号
+                order_by = order_by[1:]
+                groups = sorted(groups, key=lambda group: -group.get(order_by))
+            else:
+                groups = sorted(groups, key=lambda group: group.get(order_by))
         elif group_by == AE.atom_execute:
-            # 查询各原子被执行次数、失败率、重试次数、平均耗时（不计算子流程）
-            try:
-                instance_id_list = self.filter(**prefix_filters).values_list("pipeline_instance__instance_id")
-            except Exception as e:
-                message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
-                return False, message
-            # 获得原子
+            # 查询各标准插件被执行次数、失败率、重试次数、平均耗时（不计算子流程）
+            instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+            # 获得标准插件
             component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
             component_data = component.values('component_code').annotate(
                 execute_times=Count('component_code'),
@@ -325,13 +541,18 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             component_success_data = component.filter(is_retry=False).values('component_code').annotate(
                 success_times=Count('component_code')
             ).order_by('component_code')
-            # 用于计算所有原子的成功列表
+            # 用于计算所有标准插件的成功列表
             success_component_dict = {}
             for data in component_success_data:
                 success_component_dict[data['component_code']] = data['success_times']
             groups = []
-            component_dict = ComponentModel.objects.get_component_dict()
-            for data in component_data:
+            component_dict = {}
+            for bundle in ComponentModel.objects.all():
+                name = bundle.name.split('-')
+                group_name = _(name[0])
+                name = _(name[1])
+                component_dict[bundle.code] = '%s-%s' % (group_name, name)
+            for data in component_data[(page - 1) * limit: page * limit]:
                 code = data.get('component_code')
                 execute_times = data.get('execute_times')
                 failed_times = execute_times - success_component_dict.get(code, 0)
@@ -345,21 +566,14 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 })
         elif group_by == AE.atom_instance:
             # 被引用的任务实例列表
-            try:
-                taskflow_list = self.filter(**prefix_filters)
-            except Exception as e:
-                message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
-                return False, message
-            # 获取原子code
-            # 获得参数中的原子code
+            # 获得参数中的标准插件code
             component_code = filters.get("component_code")
             # 获取到组件code对应的instance_id_list
             instance_id_list = ComponentExecuteData.objects.filter(is_sub=False)
-            # 参数携带了原子code话，针对查询，不携带查询全部
-            if component_code:
-                instance_id_list = instance_id_list.filter(component_code=component_code).values_list(
-                    "instance_id")
-            taskflow_list = taskflow_list.filter(pipeline_instance__instance_id__in=instance_id_list).values(
+            # 对code进行二次查找
+            instance_id_list = instance_id_list.filter(component_code=component_code).distinct().values_list(
+                "instance_id")
+            taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list).values(
                 'id',
                 'business__cc_id',
                 'business__cc_name',
@@ -370,7 +584,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             )
             # 获得总数
             total = taskflow_list.count()
-            taskflow_list = taskflow_list[(page - 1) * limit:page * limit]
+            taskflow_list = taskflow_list[(page - 1) * limit: page * limit]
             groups = []
             # 循环信息
             for data in taskflow_list:
@@ -384,64 +598,81 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                     "creator": data.get("pipeline_instance__creator")
                 })
         elif group_by == AE.instance_node:
-            # 各任务实例执行的原子节点个数、子流程节点个数、网关节点数
-            try:
-                taskflow_list = self.filter(**prefix_filters)
-            except Exception as e:
-                message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
-                return False, message
-            # 总数
-            total = taskflow_list.count()
+            # 各任务实例执行的标准插件节点个数、子流程节点个数、网关节点数
             groups = []
-            for taskflow in taskflow_list[(page - 1) * limit:page * limit]:
-                atom_total = 0
-                subprocess_total = 0
-                pipeline_tree = taskflow.pipeline_tree
-                tree_activities = pipeline_tree["activities"]
-                gateways_total = len(pipeline_tree["gateways"])
-                for activity in tree_activities:
-                    activity_type = tree_activities[activity]["type"]
-                    if activity_type == "ServiceActivity":
-                        atom_total += 1
-                    elif activity_type == "SubProcess":
-                        subprocess_total += 1
-                pipeline_instance = taskflow.pipeline_instance
+
+            # 排序
+            instance_id_list = taskflow.values("pipeline_instance__instance_id")
+            instance_pipeline_data = InstanceInPipeline.objects.filter(instance_id__in=instance_id_list)
+            # 总数
+            total = instance_pipeline_data.count()
+            order_by = filters.get("order_by", "-instanceId")
+            # 使用驼峰转下划线进行转换order_by
+            camel_order_by = camel_case_to_underscore_naming(order_by)
+            # 排列获取分页后的数据
+            pipeline_data = instance_pipeline_data.order_by(camel_order_by)[(page - 1) * limit:page * limit]
+            instance_id_list = [tuples.instance_id for tuples in pipeline_data]
+            taskflow = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
+
+            pipeline_dict = {}
+            for pipeline in pipeline_data:
+                pipeline_dict[pipeline.instance_id] = {"atom_total": pipeline.atom_total,
+                                                       "subprocess_total": pipeline.subprocess_total,
+                                                       "gateways_total": pipeline.gateways_total}
+            # 需要循环执行计算相关节点
+            for flow in taskflow:
+                pipeline_instance = flow.pipeline_instance
+                instance_id = flow.id
+                pipeline_instance_id = pipeline_instance.instance_id
                 # 插入信息
                 groups.append({
-                    'instanceId': taskflow.id,
-                    'businessId': taskflow.business.cc_id,
-                    'businessName': taskflow.business.cc_name,
+                    'instanceId': instance_id,
+                    'businessId': flow.business.cc_id,
+                    'businessName': flow.business.cc_name,
                     'instanceName': pipeline_instance.name,
-                    'category': category_dict[taskflow.category],
+                    'category': category_dict[flow.category],
                     "createTime": format_datetime(pipeline_instance.create_time),
                     "creator": pipeline_instance.creator,
-                    "atomTotal": atom_total,
-                    "subprocessTotal": subprocess_total,
-                    "gatewaysTotal": gateways_total
+                    "atomTotal": pipeline_dict[pipeline_instance_id]["atom_total"],
+                    "subprocessTotal": pipeline_dict[pipeline_instance_id]["subprocess_total"],
+                    "gatewaysTotal": pipeline_dict[pipeline_instance_id]["gateways_total"]
                 })
-            pass
+            if order_by[0] == "-":
+                # 需要去除负号
+                order_by = order_by[1:]
+                groups = sorted(groups, key=lambda group: -group.get(order_by))
+            else:
+                groups = sorted(groups, key=lambda group: group.get(order_by))
         elif group_by == AE.instance_details:
-            # 各任务实例详情和执行耗时
-            try:
-                taskflow_list = self.filter(**prefix_filters)
-            except Exception as e:
-                message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
-                return False, message
-            started_time = timestamp_to_datetime(filters["create_time"])
-            end_time = timestamp_to_datetime(filters["finish_time"])
-            # 需要去除重复的
+
+            # 各任务执行耗时
+            started_time = prefix_filters['pipeline_instance__create_time__gte']
+            archived_time = prefix_filters['pipeline_instance__create_time__lt']
+            prefix_filters.update(
+                pipeline_instance__start_time__gte=prefix_filters.pop('pipeline_instance__create_time__gte'),
+                pipeline_instance__start_time__lt=prefix_filters.pop('pipeline_instance__create_time__lt'),
+                pipeline_instance__is_finished=True
+            )
+            taskflow = self.filter(**prefix_filters)
+            # 需要distinct去除重复的
             instance_id_list = ComponentExecuteData.objects.filter(
                 started_time__gte=started_time,
-                started_time__lte=end_time).values_list(
+                archived_time__lte=archived_time).values_list(
                 "instance_id").distinct().order_by()
-            # 总数
             total = instance_id_list.count()
-            # 获得所有的任务实例的执行耗时
-            component_list = instance_id_list.annotate(execute_times=Sum('elapsed_time'))
+
+            # 排序
+            order_by = filters.get("order_by", "instanceId")
+            component_list = instance_id_list.annotate(execute_time=Sum('elapsed_time')).order_by()
+            # 使用驼峰转下划线进行转换order_by
+            component_list = component_list.order_by(camel_case_to_underscore_naming(order_by))
+            # 分页
+            component_list = component_list[(page - 1) * limit:page * limit]
             component_dict = {}
+            instance_list = [tuples[0] for tuples in component_list]
             for component in component_list:
                 component_dict[component[0]] = component[1]
-            taskflow_list = taskflow_list.filter(pipeline_instance__instance_id__in=instance_id_list).values(
+            taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_list).values(
                 'id',
                 'pipeline_instance__instance_id',
                 'business__cc_id',
@@ -450,7 +681,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 'category',
                 'pipeline_instance__create_time',
                 'pipeline_instance__creator'
-            )[(page - 1) * limit:page * limit]
+            )
             groups = []
             for data in taskflow_list:
                 instance_id = data.get("pipeline_instance__instance_id")
@@ -464,6 +695,41 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                     "creator": data.get("pipeline_instance__creator"),
                     "executeTime": component_dict[instance_id]
                 })
+            if order_by[0] == "-":
+                # 需要去除负号
+                order_by = order_by[1:]
+                groups = sorted(groups, key=lambda group: -group.get(order_by))
+            else:
+                groups = sorted(groups, key=lambda group: group.get(order_by))
+        elif group_by == AE.instance_time:
+            #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
+            instance_create_time_list = taskflow.values('pipeline_instance__create_time')
+            total = instance_create_time_list.count()
+            group_type = filters.get('type', 'day')
+            create_time = timestamp_to_datetime(filters['create_time'])
+            end_time = timestamp_to_datetime(filters['finish_time']) + datetime.timedelta(days=1)
+
+            groups = []
+            date_list = []
+            for instance in instance_create_time_list:
+                instance_time = instance['pipeline_instance__create_time']
+                date_key = ''
+                # 添加在一个list中 之后使用count方法获取对应的数量
+                if group_type == 'day':
+                    date_key = instance_time.strftime('%Y-%m-%d')
+                elif group_type == 'month':
+                    date_key = instance_time.strftime('%Y-%m')
+                date_list.append(date_key)
+            if group_type == 'day':
+                #  日视图
+                for d in gen_day_dates(create_time, (end_time - create_time).days + 1):
+                    date_key = d.strftime('%Y-%m-%d')
+                    groups.append({'time': date_key, 'value': date_list.count(date_key)})
+            elif group_type == 'month':
+                # 月视图
+                # 直接拿到对应的（年-月），不需要在字符串拼接
+                for date_key in get_month_dates(create_time, end_time):
+                    groups.append({'time': date_key, 'value': date_list.count(date_key)})
         elif group_by in [AE.category, AE.create_method, AE.flow_type]:
             try:
                 total, groups = self.classified_count(prefix_filters, group_by)
@@ -474,6 +740,20 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             total, groups = 0, []
         data = {'total': total, 'groups': groups}
         return True, data
+
+    def callback(self, act_id, data):
+        try:
+            result = pipeline_api.activity_callback(activity_id=act_id, callback_data=data)
+        except Exception as e:
+            return {
+                'result': False,
+                'message': e.message
+            }
+
+        return {
+            'result': result.result,
+            'message': result.message
+        }
 
 
 class TaskFlowInstance(models.Model):
@@ -489,6 +769,9 @@ class TaskFlowInstance(models.Model):
     category = models.CharField(_(u"任务类型，继承自模板"), choices=TASK_CATEGORY,
                                 max_length=255, default='Other')
     template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255)
+    template_source = models.CharField(_(u"流程模板来源"), max_length=32,
+                                       choices=TEMPLATE_SOURCE,
+                                       default='business')
     create_method = models.CharField(_(u"创建方式"),
                                      max_length=30,
                                      choices=TASK_CREATE_METHOD,
@@ -570,19 +853,27 @@ class TaskFlowInstance(models.Model):
 
     @property
     def template(self):
-        return TaskTemplate.objects.get(pk=self.template_id)
+        if self.template_source == 'business':
+            return TaskTemplate.objects.get(pk=self.template_id)
+        else:
+            return CommonTemplate.objects.get(pk=self.template_id)
 
     @property
     def url(self):
-        if settings.RUN_MODE == 'PRODUCT':
-            prefix = settings.APP_HOST
-        else:
-            prefix = settings.TEST_APP_HOST
-        return '%s/taskflow/detail/%s/?instance_id=%s' % (prefix, self.business.cc_id, self.id)
+        return '%staskflow/execute/%s/?instance_id=%s' % (settings.APP_HOST, self.business.cc_id, self.id)
 
     @property
     def subprocess_info(self):
         return self.pipeline_instance.template.subprocess_version_info
+
+    @property
+    def raw_state(self):
+        try:
+            state = pipeline_api.get_status_tree(self.pipeline_instance.instance_id)['state']
+        except exceptions.InvalidOperationException:
+            return None
+
+        return state
 
     @staticmethod
     def format_pipeline_status(status_tree):
@@ -627,31 +918,45 @@ class TaskFlowInstance(models.Model):
         return status_tree
 
     def get_node_data(self, node_id, component_code=None, subprocess_stack=None):
+        if not self.has_node(node_id):
+            message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
+                node_id=node_id,
+                task_id=self.id
+            )
+            return {'result': False, 'message': message, 'data': {}}
+
         act_started = True
         result = True
+        inputs = {}
+        outputs = {}
         try:
             inputs = pipeline_api.get_inputs(node_id)
             outputs = pipeline_api.get_outputs(node_id)
         except Data.DoesNotExist:
             act_started = False
 
-        if component_code:
-            if not act_started:
-                try:
-                    instance_data = self.pipeline_instance.execution_data
-                    inputs = pipeline_parser.WebPipelineAdapter(instance_data).get_act_inputs(
-                        act_id=node_id,
-                        subprocess_stack=subprocess_stack,
-                        root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance')
-                    )
-                    outputs = {}
-                except Exception as e:
-                    inputs = {}
-                    result = False
-                    message = 'parser pipeline tree error: %s' % e
-                    logger.exception(message)
-                    outputs = {'ex_data': message}
+        instance_data = self.pipeline_instance.execution_data
+        if not act_started:
+            try:
+                inputs = WebPipelineAdapter(instance_data).get_act_inputs(
+                    act_id=node_id,
+                    subprocess_stack=subprocess_stack,
+                    root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance')
+                )
+                outputs = {}
+            except Exception as e:
+                inputs = {}
+                result = False
+                message = 'parser pipeline tree error: %s' % e
+                logger.exception(message)
+                outputs = {'ex_data': message}
 
+        if not isinstance(inputs, dict):
+            inputs = {}
+        if not isinstance(outputs, dict):
+            outputs = {}
+
+        if component_code:
             outputs_table = []
             try:
                 component = library.ComponentLibrary.get_component_class(component_code)
@@ -662,16 +967,39 @@ class TaskFlowInstance(models.Model):
                 logger.exception(message)
                 outputs = {'ex_data': message}
             else:
+                # for some special empty case e.g. ''
+                outputs_data = outputs.get('outputs') or {}
+                # 在标准插件定义中的预设输出参数
+                archived_keys = []
                 for outputs_item in outputs_format:
-                    value = outputs.get('outputs', {}).get(outputs_item['key'], '')
+                    value = outputs_data.get(outputs_item['key'], '')
                     outputs_table.append({
                         'name': outputs_item['name'],
-                        'value': value
+                        'key': outputs_item['key'],
+                        'value': value,
+                        'preset': True,
                     })
+                    archived_keys.append(outputs_item['key'])
+                # 其他输出参数
+                for out_key, out_value in outputs_data.items():
+                    if out_key not in archived_keys:
+                        outputs_table.append({
+                            'name': out_key,
+                            'key': out_key,
+                            'value': out_value,
+                            'preset': False,
+                        })
         else:
-            inputs = {}
-            outputs = {}
-            outputs_table = []
+            try:
+                outputs_table = [{'key': key, 'value': val, 'preset': False}
+                                 for key, val in outputs.get('outputs', {}).items()]
+            except Exception:
+                # for unexpected case
+                logger.error(u"get outputs_table error, outputs: {outputs}, traceback: {traceback}".format(
+                    outputs=outputs,
+                    traceback=traceback.format_exc()
+                ))
+                outputs_table = []
 
         data = {
             'inputs': inputs,
@@ -681,54 +1009,55 @@ class TaskFlowInstance(models.Model):
         return {'result': result, 'data': data, 'message': '' if result else data['ex_data']}
 
     def get_node_detail(self, node_id, component_code=None, subprocess_stack=None):
+        if not self.has_node(node_id):
+            message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
+                node_id=node_id,
+                task_id=self.id
+            )
+            return {'result': False, 'message': message, 'data': {}}
+
+        ret_data = self.get_node_data(node_id, component_code, subprocess_stack)
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:
-            return {'result': False, 'message': e.message}
+            return {'result': False, 'message': e.message, 'data': {}}
         TaskFlowInstance.format_pipeline_status(detail)
-        data = self.get_node_data(node_id, component_code, subprocess_stack)
-        if not data['result']:
-            return data
         detail['histories'] = pipeline_api.get_activity_histories(node_id)
         for his in detail['histories']:
             his.setdefault('state', 'FAILED')
             TaskFlowInstance.format_pipeline_status(his)
-        detail.update(data['data'])
-        return {'result': True, 'data': detail}
+        detail.update(ret_data['data'])
+        return {'result': True, 'data': detail, 'message': ''}
 
-    def user_has_perm(self, user, flow_list):
+    def user_has_perm(self, user, perm):
         """
         @summary: 判断用户是否有操作当前流程权限
         @param user:
-        @param flow_list:['fill_params', 'execute_task']
+        @param perm: create_task、fill_params、execute_task
         @return:
         """
-        user_has_right = False
-        try:
-            business = self.business
+        business = self.business
+        if user.is_superuser or user.has_perm('manage_business', business):
+            return True
+        if self.template_source == 'business':
             template = TaskTemplate.objects.get(pk=self.template_id)
-            if user.is_superuser or user.has_perm('manage_business', business):
-                user_has_right = True
-            else:
-                for flow in flow_list:
-                    perm_name = flow
-                    if user.has_perm(perm_name, template):
-                        user_has_right = True
-                        break
-        except Exception as e:
-            logger.exception(u"TaskFlowInstance user_has_perm exception, error=%s" % e)
-        return user_has_right
+            return user.has_perm(perm, template)
+        else:
+            perm = 'common_%s' % perm
+            template_perm, _ = CommonTmplPerm.objects.get_or_create(common_template_id=self.template_id,
+                                                                    biz_cc_id=self.business.cc_id)
+            return user.has_perm(perm, template_perm)
 
     def task_claim(self, username, constants, name):
         if self.flow_type != 'common_func':
             result = {
                 'result': False,
-                'messgae': 'task is not functional'
+                'message': 'task is not functional'
             }
         elif self.current_flow != 'func_claim':
             result = {
                 'result': False,
-                'messgae': 'task with current_flow:%s cannot be claimed' % self.current_flow
+                'message': 'task with current_flow:%s cannot be claimed' % self.current_flow
             }
         else:
             with transaction.atomic():
@@ -747,20 +1076,49 @@ class TaskFlowInstance(models.Model):
             return {'result': False, 'message': 'task action is invalid'}
         if action == 'start':
             try:
-                success, data = self.pipeline_instance.start(username)
-                if success:
+                action_result = self.pipeline_instance.start(username)
+                if action_result.result:
                     taskflow_started.send(sender=self, username=username)
-                return {'result': success, 'data': data, 'message': data}
+                return {'result': action_result.result, 'data': action_result.message, 'message': action_result.message}
+
+            except ConvergeMatchError as e:
+                message = u"task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id,
+                                                                                           e.message,
+                                                                                           e.gateway_id)
+                logger.exception(message)
+                return {'result': False, 'message': message}
+
+            except StreamValidateError as e:
+                message = u"task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, e.message, e.node_id)
+                logger.exception(message)
+                return {'result': False, 'message': message}
+
+            except IsolateNodeError as e:
+                message = u"task[id=%s] has isolate structure, message: %s" % (self.id, e.message)
+                logger.exception(message)
+                return {'result': False, 'message': message}
+
+            except ConnectionValidateError as e:
+                message = u"task[id=%s] connection check failed, message: %s, nodes: %s" % (self.id,
+                                                                                            e.detail,
+                                                                                            e.failed_nodes)
+                logger.exception(message)
+                return {'result': False, 'message': message}
+
+            except TypeError:
+                logger.exception(traceback.format_exc())
+                return {'result': False, 'message': 'redis connection error, check redis configuration please'}
+
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)
                 logger.exception(message)
                 return {'result': False, 'message': message}
         try:
-            success = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
-            if success:
+            action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
+            if action_result.result:
                 return {'result': True, 'data': {}}
             else:
-                return {'result': False, 'message': 'operate failed, please try again later'}
+                return {'result': action_result.result, 'message': action_result.message}
         except Exception as e:
             message = u"task[id=%s] action failed:%s" % (self.id, e)
             logger.exception(message)
@@ -768,29 +1126,33 @@ class TaskFlowInstance(models.Model):
 
     def nodes_action(self, action, node_id, username, **kwargs):
         if not self.has_node(node_id):
-            return {'result': False, 'message': 'node which be operated is not in this flow'}
+            message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
+                node_id=node_id,
+                task_id=self.id
+            )
+            return {'result': False, 'message': message}
         if action not in NODE_ACTIONS:
             return {'result': False, 'message': 'task action is invalid'}
         try:
             if action == 'callback':
-                success = NODE_ACTIONS[action](node_id, kwargs['data'])
+                action_result = NODE_ACTIONS[action](node_id, kwargs['data'])
             elif action == 'skip_exg':
-                success = NODE_ACTIONS[action](node_id, kwargs['flow_id'])
+                action_result = NODE_ACTIONS[action](node_id, kwargs['flow_id'])
             elif action == 'retry':
-                success = NODE_ACTIONS[action](node_id, kwargs['inputs'])
+                action_result = NODE_ACTIONS[action](node_id, kwargs['inputs'])
             else:
-                success = NODE_ACTIONS[action](node_id)
+                action_result = NODE_ACTIONS[action](node_id)
         except Exception as e:
             message = u"task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
             logger.exception(message)
             return {'result': False, 'message': message}
-        if success:
+        if action_result.result:
             return {'result': True, 'data': 'success'}
         else:
-            return {'result': False, 'message': 'operate failed, please try again later'}
+            return {'result': action_result.result, 'message': action_result.message}
 
     def clone(self, username, **kwargs):
-        clone_pipeline = self.pipeline_instance.clone(username)
+        clone_pipeline = self.pipeline_instance.clone(username, **kwargs)
         self.pk = None
         self.pipeline_instance = clone_pipeline
         if 'create_method' in kwargs:
@@ -822,12 +1184,16 @@ class TaskFlowInstance(models.Model):
 
     def spec_nodes_timer_reset(self, node_id, username, inputs):
         if not self.has_node(node_id):
-            return {'result': False, 'message': 'timer which be operated is not in this flow'}
-        success = pipeline_api.forced_fail(node_id)
-        if not success:
+            message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
+                node_id=node_id,
+                task_id=self.id
+            )
+            return {'result': False, 'message': message}
+        action_result = pipeline_api.forced_fail(node_id)
+        if not action_result.result:
             return {'result': False, 'message': 'timer node not exits or is finished'}
-        success = pipeline_api.retry_node(node_id, inputs)
-        if not success:
+        action_result = pipeline_api.retry_node(node_id, inputs)
+        if not action_result.result:
             return {'result': False, 'message': 'reset timer failed, please try again later'}
         return {'result': True, 'data': 'success'}
 
@@ -842,92 +1208,19 @@ class TaskFlowInstance(models.Model):
 
         return get_act_of_pipeline(self.pipeline_tree)
 
-    def send_message(self, msg_type, atom_node_name=''):
-        template = self.template
-        pipeline_inst = self.pipeline_instance
-        executor = pipeline_inst.executor
-
-        notify_type = json.loads(template.notify_type)
-        receivers_list = template.get_notify_receivers_list(executor)
-        receivers = ','.join(receivers_list)
-
-        if msg_type == 'atom_failed':
-            title = _(u"【标准运维APP通知】执行失败")
-            content = _(u"您在【{cc_name}】业务中的任务【{task_name}】执行失败，当前失败节点是【{node_name}】，"
-                        u"操作员是【{executor}】，请前往标准运维APP({url})查看详情！").format(
-                cc_name=self.business.cc_name,
-                task_name=pipeline_inst.name,
-                node_name=atom_node_name,
-                executor=executor,
-                url=self.url
-            )
-        elif msg_type == 'task_finished':
-            title = _(u"【标准运维APP通知】执行完成")
-            content = _(u"您在【{cc_name}】业务中的任务【{task_name}】执行成功，操作员是【{executor}】，"
-                        u"请前往标准运维APP({url})查看详情！").format(
-                cc_name=self.business.cc_name,
-                task_name=pipeline_inst.name,
-                executor=executor,
-                url=self.url
-            )
-        else:
-            return False
-
-        client = get_client_by_user_and_biz_id(executor, self.business.cc_id)
-        if 'weixin' in notify_type:
-            kwargs = {
-                'receiver__username': receivers,
-                'data': {
-                    'heading': title,
-                    'message': content,
-                }
-            }
-            result = client.cmsi.send_weixin(kwargs)
-            if not result['result']:
-                logger.error('taskflow send weixin, kwargs=%s, result=%s' % (json.dumps(kwargs),
-                                                                             json.dumps(result)))
-        if 'sms' in notify_type:
-            kwargs = {
-                'receiver__username': receivers,
-                'content': u"%s\n%s" % (title, content),
-            }
-            result = client.cmsi.send_sms(kwargs)
-            if not result['result']:
-                logger.error('taskflow send sms, kwargs=%s, result=%s' % (json.dumps(kwargs),
-                                                                          json.dumps(result)))
-
-        if 'mail' in notify_type:
-            kwargs = {
-                'receiver__username': receivers,
-                'title': title,
-                'content': content,
-            }
-            result = client.cmsi.send_mail(kwargs)
-            if not result['result']:
-                logger.error('taskflow send mail, kwargs=%s, result=%s' % (json.dumps(kwargs),
-                                                                           json.dumps(result)))
-
-        if 'voice' in notify_type:
-            kwargs = {
-                'receiver__username': receivers,
-                'auto_read_message': u"%s\n%s" % (title, content),
-            }
-            result = client.cmsi.send_voice_msg(kwargs)
-            if not result['result']:
-                logger.error('taskflow send voice, kwargs=%s, result=%s' % (json.dumps(kwargs),
-                                                                            json.dumps(result)))
-
-        return True
-
     def log_for_node(self, node_id, history_id=None):
         if not history_id:
             history_id = -1
 
         if not self.has_node(node_id):
+            message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
+                node_id=node_id,
+                task_id=self.id
+            )
             return {
                 'result': False,
                 'data': None,
-                'message': 'node which be operated is not in this flow'
+                'message': message
             }
 
         plain_log = LogEntry.objects.plain_log_for_node(node_id, history_id)
@@ -940,3 +1233,48 @@ class TaskFlowInstance(models.Model):
 
     def has_node(self, node_id):
         return node_id in self.pipeline_instance.node_id_set
+
+    def get_task_detail(self):
+        data = {
+            'id': self.id,
+            'business_id': int(self.business.cc_id),
+            'business_name': self.business.cc_name,
+            'name': self.name,
+            'create_time': format_datetime(self.create_time),
+            'creator': self.creator,
+            'create_method': self.create_method,
+            'template_id': int(self.template_id),
+            'start_time': format_datetime(self.start_time),
+            'finish_time': format_datetime(self.finish_time),
+            'executor': self.executor,
+            'elapsed_time': self.elapsed_time,
+            'pipeline_tree': self.pipeline_tree,
+            'task_url': self.url
+        }
+        exec_data = self.pipeline_instance.execution_data
+        # inputs data
+        constants = exec_data['constants']
+        data['constants'] = constants
+        # outputs data, if task has not executed, outputs is empty list
+        instance_id = self.pipeline_instance.instance_id
+        try:
+            outputs = pipeline_api.get_outputs(instance_id)
+        except Data.DoesNotExist:
+            outputs = {}
+        outputs_table = [{'key': key, 'value': val} for key, val in outputs.get('outputs', {}).items()]
+        for out in outputs_table:
+            out['name'] = constants[out['key']]['name']
+        data.update({
+            'outputs': outputs_table,
+            'ex_data': outputs.get('ex_data', '')
+        })
+        return data
+
+    def callback(self, act_id, data):
+        if not self.has_node(act_id):
+            return {
+                'result': False,
+                'message': 'task[{tid}] does not have node[{nid}]'.format(tid=self.id, nid=act_id)
+            }
+
+        return TaskFlowInstance.objects.callback(act_id, data)
