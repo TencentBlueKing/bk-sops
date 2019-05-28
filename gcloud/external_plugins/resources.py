@@ -19,13 +19,23 @@ import jsonschema
 from django.db import transaction
 from tastypie import fields
 from tastypie.authorization import Authorization
+from tastypie.constants import ALL
 from tastypie.exceptions import BadRequest, NotFound
-from tastypie.resources import Resource, convert_post_to_patch
+from tastypie.resources import (
+    Resource,
+    convert_post_to_patch
+)
 
+from gcloud.webservice3.resources import (
+    SuperAuthorization,
+    GCloudModelResource,
+    AppSerializer,
+)
 from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models import (
     source_cls_factory,
-    CachePackageSource
+    CachePackageSource,
+    SyncTask
 )
 from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
 
@@ -264,3 +274,35 @@ class PackageSourceResource(Resource):
 
     def rollback(self, bundles):
         pass
+
+
+class SyncTaskResource(GCloudModelResource):
+    id = fields.IntegerField(
+        attribute='id',
+        readonly=True
+    )
+    creator_name = fields.CharField(
+        attribute='creator_name',
+        readonly=True
+    )
+    status_display = fields.CharField(
+        attribute='status_display',
+        readonly=True
+    )
+
+    class Meta:
+        queryset = SyncTask.objects.all()
+        resource_name = 'sync_task'
+        authorization = SuperAuthorization()
+        always_return_data = True
+        serializer = AppSerializer()
+        filtering = {
+            "id": ALL,
+            "creator": ALL,
+            "create_method": ALL,
+            "start_time": ALL,
+            "finish_time": ALL,
+            "status": ALL,
+        }
+        q_fields = ["id", "pipeline_template__name"]
+        limit = 0

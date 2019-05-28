@@ -17,7 +17,8 @@ from gcloud.external_plugins.models import (
     GitRepoOriginalSource,
     S3OriginalSource,
     FileSystemOriginalSource,
-    CachePackageSource
+    CachePackageSource,
+    SyncTask
 )
 
 
@@ -47,3 +48,10 @@ class CachePackageSourceAdmin(admin.ModelAdmin):
     list_display = ['id', 'type', 'base_source_id']
     list_filter = ['type']
     search_fields = ['base_source_id']
+
+
+@admin.register(SyncTask)
+class SyncTaskAdmin(admin.ModelAdmin):
+    list_display = ['id', 'creator', 'status', 'start_time', 'finish_time']
+    list_filter = ['status']
+    search_fields = ['creator']
