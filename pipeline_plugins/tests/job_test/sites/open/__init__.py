@@ -10,11 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-import importlib
-
-from django.conf import settings
-
-site_utils = importlib.import_module('pipeline_plugins.variables.query.sites.%s.utils' % settings.RUN_VER)
-
-get_ip_by_zoneid = getattr(site_utils, 'get_ip_by_zoneid')

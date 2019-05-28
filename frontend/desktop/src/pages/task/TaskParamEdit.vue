@@ -104,23 +104,15 @@
                 })
                 
                 for (const variable of variableArray) {
-                    const { key, source_tag, custom_type } = variable
-                    let atomType = ''
-                    let tagCode = ''
-                    let classify = ''
-                    if (custom_type) {
-                        atomType = tagCode = custom_type
-                        classify = 'variable'
-                    } else {
-                        [atomType, tagCode] = source_tag.split('.')
-                        classify = 'component'
-                    }
+                    const { key } = variable
+                    const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
+
                     if (!this.atomFormConfig[atomType]) {
                         this.isConfigLoading = true
                         await this.loadAtomConfig({ atomType, classify })
-                        this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                        this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                     }
-                    const atomConfig = this.atomFormConfig[atomType]
+                    const atomConfig = this.atomFormConfig[atom]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                     
                     if (currentFormConfig) {

@@ -354,16 +354,6 @@
 .step-form-content-size {
     max-width: 500px;
 }
-/deep/ .el-input {
-    .el-input__inner {
-        max-width: 500px;
-    }
-}
-/deep/ .el-textarea {
-    .el-textarea__inner {
-        width: 500px;
-    }
-}
 /deep/ .bk-dialog-body {
     background-color: #f4f7fa;
 }
