@@ -10,71 +10,74 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="param-fill-wrapper" v-bkloading="{ isLoading: templateLoading, opacity: 1 }" v-show="!templateLoading">
+    <div class="param-fill-wrapper">
         <div :class="['task-info', { 'functor-task-info': userType === 'functor' }]">
-            <span class="task-info-title">{{ i18n.taskInfo }}</span>
-            <div class="task-info-division-line"></div>
-            <div class="common-form-item">
-                <label class="required">{{ i18n.taskName }}</label>
-                <div class="common-form-content">
-                    <BaseInput
-                        class="step-form-content-size"
-                        name="taskName"
-                        v-model="taskName"
-                        v-validate="taskNameRule">
-                    </BaseInput>
-                    <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
-                </div>
+            <div class="task-info-title">
+                <span>{{ i18n.taskInfo }}</span>
             </div>
-            <div class="common-form-item" v-if="isStartNowShow">
-                <label class="required">{{i18n.startMethod}}</label>
-                <div class="common-form-content">
-                    <div class="bk-button-group">
-                        <bk-button
-                            @click="onChangeStartNow(true)"
-                            :type="!isStartNow ? 'default' : 'primary'">
-                            {{ i18n.startNow }}
-                        </bk-button>
-                        <bk-button
-                            @click="onChangeStartNow(false)"
-                            :type="!isStartNow ? 'primary' : 'default'">
-                            {{ i18n.periodicStart }}
-                        </bk-button>
+            <div v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
+                <div class="common-form-item">
+                    <label class="required">{{ i18n.taskName }}</label>
+                    <div class="common-form-content">
+                        <BaseInput
+                            class="step-form-content-size"
+                            name="taskName"
+                            v-model="taskName"
+                            v-validate="taskNameRule">
+                        </BaseInput>
+                        <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
-            </div>
-            <div class="common-form-item" v-if="isTaskTypeShow">
-                <label class="required">{{ i18n.flowType }}</label>
-                <div class="common-form-content">
-                    <div class="bk-button-group">
-                        <bk-button
-                            @click="onSwitchTaskType(false)"
-                            :type="isSelectFunctionalType ? 'default' : 'primary'">
-                            {{ i18n.defaultFlowType }}
-                        </bk-button>
-                        <bk-button
-                            @click="onSwitchTaskType(true)"
-                            :type="isSelectFunctionalType ? 'primary' : 'default'">
-                            {{ i18n.functionFlowType }}
-                        </bk-button>
-                    </div>
-                </div>
-            </div>
-            <div class="common-form-item" v-if="!isStartNow">
-                <label class="required">{{i18n.periodicCron}}</label>
-                <div class="common-form-content step-form-item-cron">
-                    <BaseInput
-                        class="step-form-content-size"
-                        name="periodicCron"
-                        v-model="periodicCron"
-                        v-validate="periodicRule" />
-                    <bk-tooltip placement="left-end" class="periodic-img-tooltip" v-if="!templateLoading">
-                        <i class="common-icon-tooltips"></i>
-                        <div slot="content">
-                            <img :src="periodicCronImg" class="">
+                <div class="common-form-item" v-if="isStartNowShow">
+                    <label class="required">{{i18n.startMethod}}</label>
+                    <div class="common-form-content">
+                        <div class="bk-button-group">
+                            <bk-button
+                                @click="onChangeStartNow(true)"
+                                :type="!isStartNow ? 'default' : 'primary'">
+                                {{ i18n.startNow }}
+                            </bk-button>
+                            <bk-button
+                                @click="onChangeStartNow(false)"
+                                :type="!isStartNow ? 'primary' : 'default'">
+                                {{ i18n.periodicStart }}
+                            </bk-button>
                         </div>
-                    </bk-tooltip>
-                    <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
+                    </div>
+                </div>
+                <div class="common-form-item" v-if="isTaskTypeShow">
+                    <label class="required">{{ i18n.flowType }}</label>
+                    <div class="common-form-content">
+                        <div class="bk-button-group">
+                            <bk-button
+                                @click="onSwitchTaskType(false)"
+                                :type="isSelectFunctionalType ? 'default' : 'primary'">
+                                {{ i18n.defaultFlowType }}
+                            </bk-button>
+                            <bk-button
+                                @click="onSwitchTaskType(true)"
+                                :type="isSelectFunctionalType ? 'primary' : 'default'">
+                                {{ i18n.functionFlowType }}
+                            </bk-button>
+                        </div>
+                    </div>
+                </div>
+                <div class="common-form-item" v-if="!isStartNow">
+                    <label class="required">{{i18n.periodicCron}}</label>
+                    <div class="common-form-content step-form-item-cron">
+                        <BaseInput
+                            class="step-form-content-size"
+                            name="periodicCron"
+                            v-model="periodicCron"
+                            v-validate="periodicRule" />
+                        <bk-tooltip placement="left-end" class="periodic-img-tooltip">
+                            <i class="common-icon-tooltips"></i>
+                            <div slot="content">
+                                <img :src="periodicCronImg" class="">
+                            </div>
+                        </bk-tooltip>
+                        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,17 +87,16 @@
                     {{ i18n.paramsInfo }}
                 </span>
             </div>
-            <div class="param-info-division-line"></div>
-            <template>
-                <TaskParamEdit
-                    v-if="!taskParamEditLoading"
-                    ref="TaskParamEdit"
-                    :constants="pipelineData.constants"
-                    @onChangeConfigLoading="onChangeConfigLoading">
-                </TaskParamEdit>
-            </template>
+            <div>
+                <ParameterInfo
+                    :referenced-variable="pipelineData.constants"
+                    :un-referenced-variable="unreferenced"
+                    :task-message-loading="taskMessageLoading"
+                    @onParameterInfoLoading="onParameterInfoLoading">
+                </ParameterInfo>
+            </div>
         </div>
-        <div class="action-wrapper" v-if="!templateLoading">
+        <div class="action-wrapper">
             <bk-button
                 class="preview-step-button"
                 @click="onGotoSelectNode">
@@ -103,6 +105,7 @@
             <bk-button
                 class="next-step-button"
                 type="success"
+                :disabled="disabledButton"
                 :loading="isSubmit"
                 @click="onCreateTask">
                 {{i18n.new}}
@@ -119,13 +122,13 @@
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
-    import TaskParamEdit from '../TaskParamEdit.vue'
+    import ParameterInfo from '@/pages/task/ParameterInfo.vue'
 
     export default {
         name: 'TaskParamFill',
         components: {
             BaseInput,
-            TaskParamEdit
+            ParameterInfo
         },
         props: ['cc_id', 'template_id', 'common', 'previewData'],
         data () {
@@ -144,12 +147,12 @@
                     periodicCron: gettext('周期表达式'),
                     startMethod: gettext('执行计划')
                 },
-                templateLoading: true,
                 bkMessageInstance: null,
                 isSubmit: false,
                 isSelectFunctionalType: false,
                 taskName: '',
                 pipelineData: {},
+                unreferenced: {},
                 taskNameRule: {
                     required: true,
                     max: STRING_LENGTH.TASK_NAME_MAX_LENGTH,
@@ -165,8 +168,9 @@
                 lastTaskName: '',
                 node: {},
                 templateData: {},
-                configLoading: true,
-                taskParamEditLoading: true
+                taskParamEditLoading: true,
+                taskMessageLoading: true,
+                disabledButton: true
             }
         },
         computed: {
@@ -177,24 +181,11 @@
                 'app_id': state => state.app_id,
                 'businessTimezone': state => state.businessTimezone
             }),
-            isSchemeShow () {
-                return this.pipelineData.location.some(item => item.optional)
-            },
             isTaskTypeShow () {
                 return this.userType !== 'functor' && this.isStartNow
             },
-            isVariableEmpty () {
-                return !this.pipelineData.constants || Object.keys(this.pipelineData.constants).length === 0
-            },
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && this.userType !== 'functor'
-            }
-        },
-        watch: {
-            configLoading (loading) {
-                if (!loading) {
-                    this.templateLoading = false
-                }
             }
         },
         mounted () {
@@ -215,7 +206,7 @@
                 'createPeriodic'
             ]),
             async loadData () {
-                this.templateLoading = true
+                this.taskMessageLoading = true
                 try {
                     const data = {
                         templateId: this.template_id,
@@ -224,26 +215,22 @@
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
                     this.setTemplateData(templateData)
-                    // 用户直接刷新当前页面 可选数据丢失，可直接获取pipelineTree
-                    if (this.previewData.length === 0) {
-                        const params = {
-                            templateId: this.template_id,
-                            excludeTaskNodesId: JSON.stringify([]),
-                            common: this.common,
-                            cc_id: this.cc_id,
-                            template_source: templateSource,
-                            version: templateData.version
-                        }
-                        const previewData = await this.loadPreviewNodeData(params)
-                        this.pipelineData = previewData.data.pipeline_tree
-                    } else {
-                        this.pipelineData = tools.deepClone(this.previewData)
+                    const params = {
+                        templateId: this.template_id,
+                        excludeTaskNodesId: JSON.stringify([]),
+                        common: this.common,
+                        cc_id: this.cc_id,
+                        template_source: templateSource,
+                        version: templateData.version
                     }
+                    const previewData = await this.loadPreviewNodeData(params)
+                    this.pipelineData = previewData.data.pipeline_tree
+                    this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.taskParamEditLoading = false
+                    this.taskMessageLoading = false
                 }
             },
             getDefaultTaskName () {
@@ -369,8 +356,10 @@
                     this.taskName = this.lastTaskName
                 }
             },
-            onChangeConfigLoading (loading) {
-                this.configLoading = loading
+            onParameterInfoLoading (val) {
+                if (this.taskMessageLoading === false && val === false) {
+                    this.disabledButton = false
+                }
             }
         }
     }
@@ -378,29 +367,23 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .param-fill-wrapper {
-    margin: 0 40px;
-    padding-top: 30px;
-    width: calc(100% - 80px);
+    padding-top: 50px;
     @media screen and (max-width: 1300px){
-        width: calc(100% - 80px);
+        width: calc(100% - 40px);
     }
     /deep/ .no-data-wrapper {
         margin: 50px 0;
     }
 }
 .task-info, .param-info {
-    margin-top: 15px;
-    padding-bottom: 20px;
+    margin: 0 40px 50px 40px;
     .task-info-title, .param-info-title {
         font-size: 14px;
+        line-height: 32px;
         font-weight: 600;
         color: #313238;
-    }
-    .task-info-division-line, .param-info-division-line {
-        margin: 5px 0 30px;
-        height: 1px;
-        border: 0px;
-        background-color: #cacedb;
+        border-bottom: 1px solid #cacedb;
+        margin-bottom: 30px;
     }
     .common-form-item {
         label {
@@ -409,17 +392,17 @@
         }
     }
 }
-.param-info  {
-    padding-bottom: 80px;
+.param-info{
+    margin: 0 20px 50px 20px;
+}
+.param-info-title {
+    margin: 0 20px 0 20px;
 }
 .functor-task-info {
     padding-bottom: 0px;
 }
 .common-section-title {
     margin-bottom: 24px;
-}
-.task-param-wrapper {
-    width: 720px;
 }
 .bk-button-group {
     .bk-button {
@@ -463,7 +446,7 @@
 /deep/ .bk-tooltip-inner {
     max-width: 600px;
     border:1px solid #c4c6cc;
-    background-color: #ffffff;
+    background-color: #000;
 }
 .step-form-content {
     /deep/ .bk-tooltip-arrow {
@@ -486,7 +469,6 @@
 .action-wrapper {
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
-    margin: 0 -40px;
     button {
         margin-top: -7px;
     }
