@@ -68,7 +68,7 @@
                                 :placeholder="i18n.createMethodPlaceholder"
                                 :list="taskCreateMethodList"
                                 :is-loading="taskBasicInfoLoading"
-                                :selected.sync="createMethodSync"
+                                :selected="createMethod"
                                 :allow-clear="true"
                                 :searchable="true"
                                 :setting-key="'value'"
@@ -98,7 +98,7 @@
                             </bk-selector>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="getTaskList">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -301,7 +301,6 @@
                 isFinished: undefined,
                 statusSync: 0,
                 taskCreateMethodList: [],
-                createMethodSync: 0,
                 createMethod: undefined
             }
         },
@@ -415,7 +414,7 @@
                                 status.text = gettext('暂停')
                                 break
                             case 'NODE_SUSPENDED':
-                                status.cls = 'execute'
+                                status.cls = 'execute common-icon-dark-circle-pause'
                                 status.text = gettext('节点暂停')
                                 break
                             case 'FAILED':
@@ -544,7 +543,6 @@
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined
-                this.createMethodSync = 0
                 this.statusSync = 0
                 this.taskSync = 0
                 this.executeStartTime = undefined
@@ -559,6 +557,7 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data
+                    this.createMethod = this.create_method
                 } catch (e) {
                     errorHandler(e, this)
                 }

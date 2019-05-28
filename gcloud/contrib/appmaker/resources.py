@@ -98,10 +98,11 @@ class AppMakerResource(GCloudModelResource):
         if not business.filter(cc_id=biz_cc_id).exists():
             raise ImmediateHttpResponse(HttpResponseForbidden('you have no permissions to delete appmaker'))
 
-        if settings.RUN_MODE in ['PRODUCT', 'STAGING']:
-            fake = False
-        else:
+        if settings.IS_LOCAL:
             fake = True
+        else:
+            fake = False
+
         result, data = AppMaker.objects.del_app_maker(
             biz_cc_id, appmaker_id, fake
         )

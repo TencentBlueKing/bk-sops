@@ -22,71 +22,79 @@
         @cancel="onCancel">
         <div slot="content" class="export-container">
             <div class="template-wrapper">
-                <div class="template-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
-                    <i class="common-icon-search"></i>
+                <div class="search-wrapper">
+                    <div class="business-selector">
+                        <bk-selector
+                            setting-key="value"
+                            :list="taskCategories"
+                            :selected="filterCondition.classifyId"
+                            :disabled="exportPending"
+                            @item-selected="onSelectClassify">
+                        </bk-selector>
+                    </div>
+                    <div class="template-search">
+                        <input
+                            class="search-input"
+                            :placeholder="i18n.placeholder"
+                            v-model="filterCondition.keywords"
+                            @input="onSearchInput" />
+                        <i class="common-icon-search"></i>
+                    </div>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
-                    <ul v-if="!searchMode" class="grouped-list">
-                        <template v-for="item in templateList">
+                    <ul class="grouped-list">
+                        <template v-for="group in templateInPanel">
                             <li
-                                v-if="item.children.length"
-                                :key="item.id"
+                                v-if="group.children.length"
+                                :key="group.id"
                                 class="template-group">
                                 <h5 class="group-name">
-                                    {{item.name}}
-                                    (<span class="list-count">{{item.children.length}}</span>)
+                                    {{group.name}}
+                                    (<span class="list-count">{{group.children.length}}</span>)
                                 </h5>
                                 <ul>
                                     <li
-                                        class="template-item"
-                                        v-for="group in item.children"
-                                        :key="group.id"
-                                        :title="group.name"
-                                        @click="onSelectTemplate(group)">
-                                        <span :class="['checkbox', { checked: group.ischecked }]"></span>
-                                        {{group.name}}
+                                        v-for="template in group.children"
+                                        :key="template.id"
+                                        :title="template.name"
+                                        :class="[
+                                            'template-item',
+                                            { 'template-item-selected': getTplIndexInSelected(template) > -1 }
+                                        ]"
+                                        @click="onSelectTemplate(template)">
+                                        <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
+                                        <div class="template-item-name">{{template.name}}</div>
                                     </li>
                                 </ul>
                             </li>
                         </template>
+                        <NoData v-if="!templateInPanel.length" class="empty-template"></NoData>
                     </ul>
-                    <div v-else class="search-list">
-                        <ul v-if="searchList.length">
-                            <li
-                                class="template-item"
-                                v-for="item in searchList"
-                                :key="item.id"
-                                :title="item.name"
-                                @click="onSelectTemplate(item)">
-                                <span :class="['checkbox', { checked: item.ischecked }]"></span>
-                                {{item.name}}
-                            </li>
-                        </ul>
-                        <NoData v-else class="empty-task">{{i18n.noSearchResult}}</NoData>
-                    </div>
                 </div>
             </div>
             <div class="selected-wrapper">
                 <div class="selected-area-title">
                     {{i18n.selected}}
-                    <span class="select-count">{{selectedTemplate.length}}</span>
+                    <span class="select-count">{{selectedTemplates.length}}</span>
                     {{i18n.num}}
                 </div>
                 <ul class="selected-list">
                     <li
                         class="selected-item"
-                        v-for="item in selectedTemplate"
-                        :key="item.id">
-                        <span class="selected-name" :title="item.name">{{item.name}}</span>
-                        <span class="selected-delete">
-                            <i class="bk-icon icon-close-circle-shape" @click="deleteTemplate(item)"></i>
-                        </span>
+                        v-for="template in selectedTemplates"
+                        :key="template.id">
+                        <div class="selected-item-icon">
+                            <span class="selected-name" :title="template.name">{{getTemplateIcon(template)}}</span>
+                        </div>
+                        <div class="selected-item-name">
+                            <span class="item-name">{{template.name}}</span>
+                        </div>
+                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
                     </li>
                 </ul>
             </div>
-            <div class="template-checkbox" @click="onSelectAll">
-                <span :class="['checkbox', { checked: ischecked,'checkbox-disabled': isCheckedDisabled }]"></span>
+            <div class="template-checkbox" @click="onSelectAllClick">
+                <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
         </div>
@@ -107,13 +115,12 @@
         data () {
             return {
                 exportPending: false,
-                searchMode: false,
-                ischecked: false,
+                isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
-                selectedTemplate: [],
                 templateList: [],
+                templateInPanel: [],
                 searchList: [],
-                selectedList: [],
+                selectedTemplates: [],
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -123,16 +130,30 @@
                     selected: gettext('已选择'),
                     num: gettext('项'),
                     selectAll: gettext('全选'),
-                    delete: gettext('删除')
+                    delete: gettext('删除'),
+                    allCategories: gettext('全部分类')
                 },
                 templateEmpty: false,
-                searchStr: ''
+                selectedTaskCategory: '',
+                category: '',
+                filterCondition: {
+                    classifyId: 'all',
+                    keywords: ''
+                }
             }
         },
         computed: {
             ...mapState({
                 'businessBaseInfo': state => state.template.businessBaseInfo
-            })
+            }),
+            taskCategories () {
+                if (this.businessBaseInfo.task_categories.length === 0) {
+                    this.getCategorys()
+                }
+                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
+                list.unshift({ value: 'all', name: gettext('全部分类') })
+                return list
+            }
         },
         created () {
             this.getTemplateData()
@@ -141,6 +162,9 @@
         methods: {
             ...mapActions('templateList/', [
                 'loadTemplateList'
+            ]),
+            ...mapActions([
+                'getCategorys'
             ]),
             async getTemplateData () {
                 this.exportPending = true
@@ -152,12 +176,7 @@
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects
                     this.templateList = this.getGroupedList(list)
-                    this.templateList.forEach((item) => {
-                        item.children.forEach((group) => {
-                            this.$set(group, 'ischecked', false)
-                            this.selectedList.push(group)
-                        })
-                    })
+                    this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -172,6 +191,7 @@
                     groups.push(item.value)
                     atomGrouped.push({
                         name: item.name,
+                        value: item.value,
                         children: []
                     })
                 })
@@ -188,58 +208,94 @@
                 const listGroup = atomGrouped.filter(item => item.children.length)
                 return listGroup
             },
-            searchInputhandler () {
-                if (this.searchStr.length) {
-                    this.searchMode = true
-                    const reg = new RegExp(this.searchStr, 'g')
-                    this.searchList = this.selectedList.filter(item => {
-                        return reg.test(item.name)
-                    })
-                } else {
-                    this.searchMode = false
-                    this.searchList = []
-                }
+            getTemplateIcon (template) {
+                return template.name.trim().substr(0, 1).toUpperCase()
             },
-            onSelectTemplate (group, clearAll) {
-                group.ischecked = !group.ischecked
-                if (group.ischecked) {
-                    this.selectedTemplate.push(group)
+            getTplIndexInSelected (template) {
+                return this.selectedTemplates.findIndex(item => item.id === template.id)
+            },
+            getTplIsAllSelected () {
+                if (!this.templateInPanel.length) {
+                    return false
+                }
+                return this.templateInPanel.every(group => {
+                    return group.children.every(template => {
+                        return this.selectedTemplates.findIndex(item => item.id === template.id) > -1
+                    })
+                })
+            },
+            onSelectClassify (value) {
+                let groupedList = []
+                this.filterCondition.classifyId = value
+
+                if (value === 'all') {
+                    groupedList = this.templateList.slice(0)
                 } else {
-                    this.deleteTemplate(group)
+                    groupedList = this.templateList.filter(group => group.value === value)
+                }
+
+                if (this.filterCondition.keywords !== '') {
+                    this.searchInputhandler()
+                } else {
+                    this.templateInPanel = groupedList
+                }
+
+                this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+            },
+            searchInputhandler () {
+                let searchList = []
+
+                if (this.filterCondition.classifyId !== 'all') {
+                    searchList = this.templateList.filter(group => group.value === this.filterCondition.classifyId)
+                } else {
+                    searchList = this.templateList.slice(0)
+                }
+                this.templateInPanel = toolsUtils.deepClone(searchList).filter(group => {
+                    group.children = group.children.filter(template => {
+                        return template.name.includes(this.filterCondition.keywords)
+                    })
+                    return group.children.length
+                })
+            },
+            onSelectTemplate (template) {
+                const tplIndex = this.getTplIndexInSelected(template)
+                if (tplIndex > -1) {
+                    this.selectedTemplates.splice(tplIndex, 1)
+                    this.isTplInPanelAllSelected = false
+                } else {
+                    this.selectedTemplates.push(template)
+                    this.isTplInPanelAllSelected = this.getTplIsAllSelected()
                 }
             },
             deleteTemplate (template) {
-                const deleteIndex = this.selectedTemplate.findIndex(item => item.id === template.id)
-                if (deleteIndex > -1) {
-                    const deleteGroup = this.selectedTemplate.splice(deleteIndex, 1)[0]
-                    deleteGroup.ischecked = false
-                    this.templateList.forEach((item) => {
-                        if (item.children.findIndex(util => !util.ischecked)) {
-                            this.ischecked = false
+                const tplIndex = this.getTplIndexInSelected(template)
+                this.selectedTemplates.splice(tplIndex, 1)
+                this.isTplInPanelAllSelected = false
+            },
+            onSelectAllClick () {
+                if (this.isCheckedDisabled) {
+                    return
+                }
+
+                this.templateInPanel.forEach(group => {
+                    group.children.forEach(template => {
+                        const tplIndex = this.getTplIndexInSelected(template)
+                        if (this.isTplInPanelAllSelected) {
+                            if (tplIndex > -1) {
+                                this.selectedTemplates.splice(tplIndex, 1)
+                            }
+                        } else {
+                            if (tplIndex === -1) {
+                                this.selectedTemplates.push(template)
+                            }
                         }
                     })
-                }
-            },
-            onSelectAll () {
-                if (this.isCheckedDisabled) {
-                    return false
-                }
-                this.selectedTemplate = []
-                this.ischecked = !this.ischecked
-                this.templateList.forEach((item) => {
-                    item.children.forEach((group) => {
-                        group.ischecked = this.ischecked
-                    })
-                    if (this.ischecked) {
-                        this.selectedTemplate.push(...item.children)
-                    } else {
-                        this.selectedTemplate = []
-                    }
                 })
+                this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
             },
             onConfirm () {
                 const idList = []
-                this.selectedTemplate.forEach(item => {
+                this.selectedTemplates.forEach(item => {
                     idList.push(item.id)
                 })
                 this.$emit('onExportConfirm', idList)
@@ -257,21 +313,27 @@
 .export-container {
     position: relative;
     height: 340px;
-    .common-form-content {
-        margin-right: 30px;
+    .search-wrapper {
+        padding: 0 18px 0 20px;
+    }
+    .business-selector {
+        position: absolute;
+        top: 20px;
+        width: 255px;
+        height: 32px;
     }
     .template-search {
         position: relative;
+        margin-left: 265px;
         margin-bottom: 20px;
-        text-align: right;
         .search-input {
             padding: 0 40px 0 10px;
-            width: 362px;
+            width: 255px;
             height: 32px;
             line-height: 32px;
             font-size: 14px;
             background: $whiteDefault;
-            border: 1px solid $commonBorderColor;
+            border: 1px solid #c3cdd7;
             border-radius: 4px;
             outline: none;
             &:hover {
@@ -290,17 +352,20 @@
             top: 9px;
             color: $commonBorderColor;
         }
+        .bk-selector {
+            width: 255px;
+        }
     }
     .template-wrapper {
         float: left;
-        padding: 20px;
-        width: 590px;
+        padding: 20px 4px 20px 0;
+        width: 557px;
         height: 100%;
         .template-list {
+            padding: 0 14px 0 20px;
             height: 268px;
             overflow-y: auto;
             @include scrollbar;
-
         }
         .template-group {
             margin-bottom: 30px;
@@ -309,64 +374,61 @@
             padding-top: 40px;
         }
         .group-name {
-            margin: 0 0 14px;
-            font-size: 16px;
-            font-weight: bold;
-            .list-count {
-                color: $blueDefault;
-            }
+            margin-bottom: 8px;
+            font-size: 12px;
         }
-        .template-item {
-            display: inline-block;
-            margin-bottom: 7px;
-            width: 250px;
+    }
+    .template-item {
+        display: inline-block;
+        margin: 0 0 7px 10px;
+        width: 252px;
+        background: #dcdee5;
+        border-radius: 2px;
+        cursor: pointer;
+        &:nth-child(2n + 1) {
+            margin-left: 0;
+        }
+        .template-item-icon {
+            float: left;
+            width: 56px;
+            height: 56px;
+            line-height: 56px;
+            background: #c4c6cc;
+            font-size: 24px;
+            color: #ffffff;
+            text-align: center;
+        }
+        .template-item-name {
+            margin-left: 56px;
+            padding: 0 12px;
+            height: 56px;
+            line-height: 56px;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
-            &:nth-child(2n) {
-                margin-right: 0;
-            }
-            &:hover {
-                color: $blueDefault;
-                cursor: pointer;
-            }
-            .checkbox {
-                display: inline-block;
-                position: relative;
-                width: 14px;
-                height: 14px;
-                color: $whiteDefault;
-                border: 1px solid $formBorderColor;
-                border-radius: 2px;
-                text-align: center;
-                vertical-align: -2px;
-                &:hover {
-                    border-color: $greyDark;
-                }
-                &.checked {
-                    background: $blueDefault;
-                    border-color: $blueDefault;
-                    &::after {
-                        content: "";
-                        position: absolute;
-                        left: 2px;
-                        top: 2px;
-                        height: 4px;
-                        width: 8px;
-                        border-left: 1px solid;
-                        border-bottom: 1px solid;
-                        border-color: $whiteDefault;
-                        transform: rotate(-45deg);
-                    }
-                }
-            }
+            color: #313238;
+        }
+        &:nth-child(2n) {
+            margin-right: 0;
         }
     }
+    .template-item-selected {
+        .template-item-icon {
+            background: #666a7c;
+        }
+        .template-item-name {
+            background: #838799;
+            color: #ffffff;
+        }
+    }
+    .empty-template {
+        padding-top: 40px;
+    }
     .selected-wrapper {
-        margin-left: 590px;
-        width: 260px;
+        width: 292px;
         height: 100%;
-        margin-left: 590px;
+        margin-left: 557px;
+        padding-right: 4px;
         border-left:1px solid #dde4eb;
         .selected-area-title {
             padding: 28px 20px 22px;
@@ -378,48 +440,64 @@
                 color: #3a84ff;
             }
         }
-        .selected-list {
-            height: 276px;
-            overflow-y: auto;
-            @include scrollbar;
-            .selected-item {
-                position: relative;
-                padding-left: 20px;
-                height: 33px;
-                line-height: 33px;
-                &:hover {
-                    background-color: #F6F6F6;
-                }
+    }
+    .selected-list {
+        padding-top: 8px;
+        height: 276px;
+        overflow-y: auto;
+        @include scrollbar;
+        .selected-item {
+            position: relative;
+            margin: 0 0 10px 14px;
+            width: 254px;
+            height: 56px;
+            border-radius: 2px;
+            &:hover .selected-delete {
+                display: inline-block;
             }
+        }
+        .selected-item-icon {
+            float: left;
+            width: 56px;
+            height: 56px;
+            line-height: 56px;
+            background: #666a7c;
             .selected-name {
-                display: inline-block;
-                margin-bottom: 7px;
-                width: 200px;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 24px;
+                color: #ffffff;
             }
-            .selected-delete {
-                position: absolute;
-                top: 1px;
-                right: 20px;
-            }
-            .icon-close-circle-shape {
-                display: none;
-                margin-left: 10px;
-                cursor: pointer;
-            }
-            .selected-item:hover .icon-close-circle-shape {
-                display: inline-block;
-                margin-left: 10px;
-                bottom: 20px;
-            }
+        }
+        .selected-item-name {
+            margin-left: 56px;
+            padding: 0 12px;
+            height: 56px;
+            line-height: 56px;
+            background: #838799;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            color: #ffffff;
+        }
+        .selected-delete {
+            display: none;
+            position: absolute;
+            top: -7px;
+            right: -7px;
+            padding: 2px;
+            color: #cecece;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
         }
     }
     .template-checkbox {
         position: absolute;
         left: 20px;
         bottom: -42px;
+        cursor: pointer;
         .checkbox {
             display: inline-block;
             position: relative;
@@ -429,7 +507,6 @@
             border: 1px solid $formBorderColor;
             border-radius: 2px;
             text-align: center;
-            cursor: pointer;
             vertical-align: -2px;
             &:hover {
                 border-color: $greyDark;

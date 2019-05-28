@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 0.8 }">
         <div v-if="formMode" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"

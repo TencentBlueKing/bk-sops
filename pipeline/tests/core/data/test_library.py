@@ -20,7 +20,7 @@ from pipeline.core.data.var import LazyVariable
 
 class TestLibrary(TestCase):
     class VarIpPickerVariable(LazyVariable):
-        code = 'var_ip_picker'
+        code = 'ip'
         form = 'var.js'
 
         def get_value(self):
@@ -30,6 +30,7 @@ class TestLibrary(TestCase):
         self.name = '${ip}'
         self.info = {
             'source_tag': u'var_ip_picker.ip_picker',
+            'custom_type': 'ip',
             'type': 'lazy',
             'value': {
                 u'var_ip_custom_value': u'1.1.1.11.1',
@@ -47,11 +48,11 @@ class TestLibrary(TestCase):
             'operator': u'username',
             'biz_cc_id': 0
         }
-        self.code = 'var_ip_picker'
+        self.code = 'ip'
 
     def test_get_var_class(self):
         cls = library.VariableLibrary
-        variable_class = cls.get_var_class(self.info['source_tag'].split('.')[0])
+        variable_class = cls.get_var_class(self.info['custom_type'])
         self.assertEqual(variable_class.code, self.code)
 
     def test_get_var(self):

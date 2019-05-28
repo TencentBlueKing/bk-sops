@@ -1,10 +1,10 @@
 .common-section-title {
     position: relative;
     margin: 0;
-    padding: 0 0 0 16px;
+    padding: 0 0 0 10px;
     line-height: 1;
     font-size: 16px;
-    font-weight: normal;
+    font-weight: 600;
     color: #666666;
     &:before {
         content: '';
@@ -12,9 +12,9 @@
         position: absolute;
         top: -2px;
         left: 0;
-        width: 4px;
+        width: 2px;
         height: 20px;
-        background: $blueDefault;
+        background: #a3c5fd;
     }
 }
 
@@ -45,29 +45,6 @@
     .common-form-content {
         margin-left: 120px;
         min-height: 36px;
-    }
-}
-
-.step-section-title {
-    text-align: left;
-    margin: 0;
-    line-height: 67px;
-    color: #313238;
-    span {
-        padding-left: 30px;
-        font-size: 14px;
-        font-family: PingFangSC-Semibold;
-        font-weight: 600;
-    }
-    &:before {
-        content: '';
-        display: inline-block;
-        position: relative;
-        top: 4px;
-        left: 20px;
-        width: 2px;
-        height: 20px;
-        background: #A3C5FD;
     }
 }
 
