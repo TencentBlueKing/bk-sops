@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 
 class PipelineException(Exception):
@@ -44,10 +48,6 @@ class ParserException(PipelineException):
     pass
 
 
-class ParserWebTreeException(ParserException):
-    pass
-
-
 class SubprocessRefError(PipelineException):
     pass
 
@@ -58,6 +58,7 @@ class TemplateImportError(PipelineException):
 
 class SubprocessExpiredError(PipelineException):
     pass
+
 
 #
 # data exception
@@ -80,10 +81,31 @@ class DataTypeErrorException(DataException):
     pass
 
 
+class CycleErrorException(DataException):
+    pass
+
+
+class ConnectionValidateError(DataException):
+    def __init__(self, failed_nodes, detail, *args):
+        self.failed_nodes = failed_nodes
+        self.detail = detail
+        super(ConnectionValidateError, self).__init__(*args)
+
+
 class ConvergeMatchError(DataException):
     def __init__(self, gateway_id, *args):
         self.gateway_id = gateway_id
         super(ConvergeMatchError, self).__init__(*args)
+
+
+class StreamValidateError(DataException):
+    def __init__(self, node_id, *args):
+        self.node_id = node_id
+        super(StreamValidateError, self).__init__(*args)
+
+
+class IsolateNodeError(DataException):
+    pass
 
 
 #
@@ -161,4 +183,11 @@ class ReferenceNotExistError(ContextError):
 
 
 class InsufficientVariableError(ContextError):
+    pass
+
+
+#
+# periodic task exception
+#
+class InvalidCrontabException(PipelineException):
     pass

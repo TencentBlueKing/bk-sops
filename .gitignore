@@ -40,7 +40,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
-*,cover
+.cover/
 .hypothesis/
 
 # Translations
@@ -87,7 +87,15 @@ ENV/
 # PyCharm project settings
 .idea
 
-.vscode/launch.json
 
+# Frontend project lib file
 static/pipeline/node_modules/
 node_modules/
+webpack_cache
+
+# OS generate file
+.DS_Store
+
+
+# Editor setting file
+.vscode/

@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
-import datetime
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import logging
 import json
 
@@ -14,14 +18,12 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline.engine.api import get_status_tree, get_activity_histories
 from pipeline.models import PipelineTemplate, PipelineInstance
 from pipeline.contrib.statistics.models import (
     ComponentInTemplate,
-    ComponentExecuteData
-)
+    ComponentExecuteData,
+    TemplateInPipeline, InstanceInPipeline)
 from pipeline.core.constants import PE
 
 logger = logging.getLogger('root')
@@ -45,9 +47,9 @@ def template_post_save_handler(sender, instance, created, **kwargs):
 
     with transaction.atomic():
         try:
-            # act_id 节点 act 原子数据
+            # act_id 节点 act 标准插件数据
             for act_id, act in data[PE.activities].items():
-                # 是原子节点 不是子流程引用
+                # 是标准插件节点 不是子流程引用
                 if act['type'] == PE.ServiceActivity:
                     component = ComponentInTemplate(
                         component_code=act['component']['code'],
@@ -57,7 +59,7 @@ def template_post_save_handler(sender, instance, created, **kwargs):
                     component_list.append(component)
                 else:
                     # 直接根据引用的子流程历史数据创建引用
-                    # 因为子流程模板的生成之前 必须是由原子模板生成的 所以只需要去寻找对应的数据即可
+                    # 因为子流程模板的生成之前 必须是由标准插件模板生成的 所以只需要去寻找对应的数据即可
                     components = ComponentInTemplate.objects.select_for_update().filter(template_id=act['template_id'])
                     for component_sub in components:
                         # 子流程的执行堆栈（子流程的执行过程）
@@ -76,6 +78,32 @@ def template_post_save_handler(sender, instance, created, **kwargs):
             ComponentInTemplate.objects.bulk_create(component_list)
         except Exception as e:
             logger.exception(u"template_post_save_handler raise error: %s" % e)
+    # 统计流程标准插件个数，子流程个数，网关个数
+    template_id = template.template_id
+    TemplateInPipeline.objects.filter(template_id=template_id).delete()
+    # 获取pipeline_tree
+    pipeline_tree = instance.data
+    # 初始化插入值
+    atom_total = 0
+    subprocess_total = 0
+    # 获得pipeline_tree
+    tree_activities = pipeline_tree["activities"]
+    # 获取网关数量
+    gateways_total = len(pipeline_tree["gateways"])
+    # 遍历activities节点
+    for activity in tree_activities:
+        activity_type = tree_activities[activity]["type"]
+        if activity_type == "ServiceActivity":
+            atom_total += 1
+        elif activity_type == "SubProcess":
+            subprocess_total += 1
+    try:
+        TemplateInPipeline.objects.create(template_id=template_id,
+                                          atom_total=atom_total,
+                                          subprocess_total=subprocess_total,
+                                          gateways_total=gateways_total)
+    except Exception as e:
+        logger.exception(u"template_post_save_handler raise error: %s" % e)
 
 
 @receiver(post_save, sender=PipelineInstance)
@@ -84,19 +112,22 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
     if not created and instance.is_finished:
         # 获得任务实例的执行树
         status_tree = get_status_tree(instance.instance_id, 99)
-        # 删除原有原子数据
-        ComponentExecuteData.objects.filter(instance_id=instance.id).delete()
+        # 删除原有标准插件数据
+        ComponentExecuteData.objects.filter(instance_id=instance.instance_id).delete()
         # 获得任务实例的执行数据
         data = instance.execution_data
         component_list = []
         with transaction.atomic():
             try:
-                # act_id 节点 act 原子数据
+                # act_id 节点 act 标准插件数据
                 for act_id, act in data[PE.activities].items():
                     is_retry = False
                     if act['type'] == PE.ServiceActivity:
-                        # 原子重试
-                        if status_tree["children"][act_id]["retry"] > 0:
+                        # 标准插件重试
+                        status_act = status_tree["children"].get(act_id)
+                        if status_act is None:
+                            continue
+                        if status_act["retry"] > 0:
                             # 需要通过执行历史获得
                             history_list = get_activity_histories(act_id)
                             for history in history_list:
@@ -105,7 +136,7 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
                                 elapsed_time = history["elapsed_time"]
                                 is_retry = True
                         else:
-                            # 原子没有重试
+                            # 标准插件没有重试
                             # 执行树的相关内容
                             start_time = status_tree["started_time"]
                             archived_time = status_tree["archived_time"]
@@ -133,6 +164,31 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
                 ComponentExecuteData.objects.bulk_create(component_list)
             except Exception as e:
                 logger.exception(u"instance_post_save_handler raise error: %s" % e)
+            # 统计流程标准插件个数，子流程个数，网关个数
+            instance_id = instance.instance_id
+            # 获取pipeline_tree
+            pipeline_tree = instance.data
+            # 初始化插入值
+            atom_total = 0
+            subprocess_total = 0
+            # 获得pipeline_tree
+            tree_activities = pipeline_tree["activities"]
+            # 获取网关数量
+            gateways_total = len(pipeline_tree["gateways"])
+            # 遍历activities节点
+            for activity in tree_activities:
+                activity_type = tree_activities[activity]["type"]
+                if activity_type == "ServiceActivity":
+                    atom_total += 1
+                elif activity_type == "SubProcess":
+                    subprocess_total += 1
+            try:
+                InstanceInPipeline.objects.create(instance_id=instance_id,
+                                                  atom_total=atom_total,
+                                                  subprocess_total=subprocess_total,
+                                                  gateways_total=gateways_total)
+            except Exception as e:
+                logger.exception(u"instance_post_save_handler raise error: %s" % e)
 
 
 def recursive_subprocess_tree(children_tree_dict, act_id, instance_id, component_list, activities=None, stack=None):
@@ -141,9 +197,9 @@ def recursive_subprocess_tree(children_tree_dict, act_id, instance_id, component
     :param children_tree_dict: 执行树的 children 节点
     :param act_id: 上一个流程 id
     :param instance_id: 实例 id
-    :param activities: 子流程模板中原子信息
+    :param activities: 子流程模板中标准插件信息
     :param stack: 子流程堆栈信息
-    :param component_list: 存放执行的原子数据，用于批量插入
+    :param component_list: 存放执行的标准插件数据，用于批量插入
     :return:
     """
     if stack is None:
@@ -153,10 +209,11 @@ def recursive_subprocess_tree(children_tree_dict, act_id, instance_id, component
     # 插入上一个模板的id
     other_stack.insert(0, act_id)
     for act_id, act in activities.items():
+        is_skip = False
         is_retry = False
-        # 属于原子节点
+        # 属于标准插件节点
         if act["type"] == PE.ServiceActivity:
-            # 原子重试
+            # 标准插件重试
             if children_tree_dict[act_id]["retry"] > 0:
                 # 需要通过执行历史获得
                 history_list = get_activity_histories(act_id)
@@ -165,7 +222,7 @@ def recursive_subprocess_tree(children_tree_dict, act_id, instance_id, component
                     archived_time = history["archived_time"]
                     elapsed_time = history["elapsed_time"]
                     is_retry = True
-            # 原子未重试
+            # 标准插件未重试
             else:
                 started_time = children_tree_dict[act_id]["started_time"]
                 archived_time = children_tree_dict[act_id]["archived_time"]
