@@ -1,0 +1,33 @@
+.analysis-empty-data {
+    margin-left: -10%;
+    height: 600px;
+}
+.analysis-plotly-class {
+    margin-left: 5%;
+}
+.analysis-date-picker {
+    margin-top: 10px;
+    min-width: 435px;
+    /deep/ .el-date-editor {
+        width: 260px;
+    }
+}
+.analysis-select {
+    margin-top: 10px;
+    min-width: 290px;
+}
+.analysis-atom-select {
+    margin-top: 10px;
+    min-width: 265px;
+}
+.analysis-dataTable {
+    margin-top: 10px;
+    margin-top: 40px;
+}
+.analysis-date-picker-extra {
+    margin-top: 10px;
+    min-width: 400px;
+    /deep/ .el-date-editor {
+        width: 260px;
+    }
+}

@@ -1,11 +1,16 @@
-# -*- coding: utf-8
+# -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import importlib
 import logging
 
@@ -35,25 +40,24 @@ class ComponentMeta(type):
 
         # Add all attributes to the class
         attrs.setdefault('desc', '')
-        for obj_name, obj in attrs.iteritems():
+        for obj_name, obj in attrs.items():
             setattr(new_class, obj_name, obj)
 
         # check
-        if not new_class.name:
+        if not getattr(new_class, 'name', None):
             raise ValueError("component %s name can't be empty" %
                              new_class.__name__)
 
-        if not new_class.code:
+        if not getattr(new_class, 'code', None):
             raise ValueError("component %s code can't be empty" %
                              new_class.__name__)
 
-        service = new_class.bound_service
-        if not new_class.bound_service or not issubclass(service, Service):
+        if not getattr(new_class, 'bound_service', None) or not issubclass(new_class.bound_service, Service):
             raise ValueError("component %s service can't be empty and must be subclass of Service" %
                              new_class.__name__)
 
-        if not new_class.form:
-            raise ValueError("component %s form can't be empty" % new_class.__name__)
+        if not getattr(new_class, 'form', None):
+            setattr(new_class, 'form', None)
 
         # category/group name
         group_name = getattr(

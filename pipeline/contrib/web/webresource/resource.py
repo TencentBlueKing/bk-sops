@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import ujson as json
 
 from django.utils import timezone
@@ -19,7 +24,7 @@ from tastypie.exceptions import ImmediateHttpResponse
 
 from pipeline import exceptions
 from pipeline.models import PipelineTemplate, Snapshot, PipelineInstance, unfold_subprocess, TemplateScheme
-from pipeline.utils.uniqid import uniqid, node_uniqid
+from pipeline.utils.uniqid import node_uniqid
 from pipeline.component_framework.models import ComponentModel
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.contrib.web import forms
@@ -88,7 +93,10 @@ class PipelineTemplateResource(ModelResource):
             raise_validation_error(self, bundle,
                                    'templates', 'data', _(u"JSON 格式不合法"))
 
-        result, msg = self.subprocess_ref_validate(bundle, data, root_id=bundle.obj.template_id, root_name=bundle.obj.name)
+        result, msg = self.subprocess_ref_validate(bundle,
+                                                   data,
+                                                   root_id=bundle.obj.template_id,
+                                                   root_name=bundle.obj.name)
         if not result:
             raise_validation_error(self, bundle, 'templates', 'data', msg)
         self.gateway_validate(bundle, data)
