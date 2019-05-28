@@ -22,6 +22,7 @@ from django.db.utils import ProgrammingError
 logger = logging.getLogger('root')
 
 DJANGO_MANAGE_CMD = 'manage.py'
+DEFAULT_TRIGGERS = {'runserver', 'celery', 'worker', 'uwsgi'}
 
 
 class ExternalPluginsConfig(AppConfig):
@@ -33,6 +34,7 @@ class ExternalPluginsConfig(AppConfig):
         from pipeline.contrib.external_plugins import loader  # noqa
         from pipeline.contrib.external_plugins.models import ExternalPackageSource  # noqa
 
+        # load external components when start command in trigger list
         if self.should_load_external_module():
             try:
                 logger.info('Start to update package source from config file...')
@@ -40,8 +42,8 @@ class ExternalPluginsConfig(AppConfig):
                                                                                 'COMPONENTS_PACKAGE_SOURCES',
                                                                                 {}))
             except ProgrammingError:
-                logger.warning('update package source failed, maybe first migration? exception: %s' %
-                               traceback.format_exc())
+                logger.warning('update package source failed, maybe first migration? '
+                               'exception: {traceback}'.format(traceback=traceback.format_exc()))
                 # first migrate
                 return
 
@@ -51,19 +53,21 @@ class ExternalPluginsConfig(AppConfig):
 
     @staticmethod
     def should_load_external_module():
-        triggers = getattr(settings, 'EXTERNAL_COMPONENTS_LOAD_TRIGGER', {'runserver', 'celery', 'worker', 'uwsgi'})
+        triggers = getattr(settings, 'EXTERNAL_COMPONENTS_LOAD_TRIGGER', DEFAULT_TRIGGERS)
         if sys.argv and sys.argv[0] == DJANGO_MANAGE_CMD:
             try:
                 command = sys.argv[1]
                 logger.info('current django manage command: {cmd}, triggers: {triggers}'.format(
                     cmd=command,
-                    triggers=triggers
-                ))
+                    triggers=triggers))
+
                 if command in triggers:
                     return True
-            except Exception as e:
-                logger.exception(e)
-                logger.error('get django start up command error' % sys.argv)
+            except Exception:
+                logger.error('get django start up command error with argv: {argv}, traceback: {traceback}'.format(
+                    argv=sys.argv,
+                    traceback=traceback.format_exc()))
+
                 return True
 
         logger.info('app is not start with django manage command, current argv: {argv}'.format(argv=sys.argv))
