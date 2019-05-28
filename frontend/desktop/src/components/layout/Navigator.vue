@@ -106,8 +106,7 @@
                     {
                         key: 'commonTemplate',
                         name: gettext('公共流程'),
-                        path: '/template/home/',
-                        query: { common: 1, common_template: 'common' }
+                        path: '/template/common/'
                     }
                 ]
             },
@@ -132,19 +131,20 @@
                 name: gettext('轻应用')
             },
             {
-                key: 'administrator',
+                key: 'admin',
                 name: gettext('管理员入口'),
                 children: [
                     {
                         key: 'statistics',
+                        parent: 'admin',
                         name: gettext('运营数据'),
-                        path: '/statistics/template/'
+                        path: '/admin/statistics/template/'
                     },
                     {
                         key: 'common',
+                        parent: 'admin',
                         name: gettext('公共流程'),
-                        path: '/template/home/',
-                        query: { common: 1 }
+                        path: '/admin/common/template/'
                     }
                 ]
             }
@@ -160,7 +160,6 @@
         props: ['appmakerDataLoading'],
         data () {
             return {
-                subNavKey: '',
                 logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
                 i18n: {
                     help: gettext('帮助文档')
@@ -207,7 +206,7 @@
 
                     // 非管理员用户去掉管理员入口
                     if (!this.isSuperUser) {
-                        routes = routes.filter(item => item.key !== 'administrator')
+                        routes = routes.filter(item => item.key !== 'admin')
                     }
                     return routes
                 }
@@ -260,27 +259,11 @@
                 } else if (this.userType === 'auditor') {
                     return key === 'audit'
                 }
-                // 二级导航被选中
-                if (route.children && route.children.length) {
-                    return route.children.some(item => {
-                        return this.matchPathResult(item.key)
-                    })
-                }
 
-                return this.matchPathResult(key)
+                return new RegExp('^\/' + key).test(this.$route.path)
             },
             isSubNavActived (route) {
-                return this.matchPathResult(route.key)
-            },
-            matchPathResult (key) {
-                if (this.$route.query !== undefined && Object.keys(this.$route.query).length !== 0 && this.$route.query.common) {
-                    if (this.$route.query.common_template || this.$route.name === 'templateStep') {
-                        return key === 'commonTemplate'
-                    } else if (this.$route.name !== 'taskList') {
-                        return key === 'common'
-                    }
-                }
-                return new RegExp('^\/' + key).test(this.$route.path)
+                return new RegExp('^' + route.path).test(this.$route.path)
             },
             getPath (route) {
                 /** 404 页面时，导航统一跳转到首页 */
@@ -295,7 +278,7 @@
                 let path
                 if (route.key === 'appmakerTaskCreate') {
                     path = `${route.path}?template_id=${this.templateId}`
-                } else if (this.userType !== 'maintainer' || route.key === 'statistics') {
+                } else if (this.userType !== 'maintainer' || route.parent === 'admin') {
                     path = `${route.path}`
                 } else {
                     path = { path: `${route.path}${this.cc_id}/`, query: route.query }
@@ -322,13 +305,13 @@
 @import '@/scss/config.scss';
 header {
     min-width: 1320px;
+    padding: 0 25px;
     height: 50px;
     font-size: 14px;
     background: #182131;
     .logo {
         float: left;
         margin-top: 11px;
-        margin-left: 25px;
         width: 110px;
     }
     nav {
@@ -390,7 +373,6 @@ header {
     /*导航右侧区域*/
     .header-right {
         float: right;
-        padding-right: 20px;
         .help-doc {
             float: left;
             margin-left: 25px;

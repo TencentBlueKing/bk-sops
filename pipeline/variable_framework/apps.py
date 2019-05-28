@@ -11,30 +11,34 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 from django.apps import AppConfig
-from django.db.utils import ProgrammingError
+from django.db.utils import ProgrammingError, OperationalError
 
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
 
+logger = logging.getLogger('root')
 
-class VariablesConfig(AppConfig):
-    name = 'pipeline.variables'
-    verbose_name = 'PipelineVariables'
+
+class VariableFrameworkConfig(AppConfig):
+    name = 'pipeline.variable_framework'
+    verbose_name = 'PipelineVariableFramework'
 
     def ready(self):
         """
-        @summary: 注册公共部分和OPEN_VER下的变量到数据库
+        @summary: 注册公共部分和RUN_VER下的变量到数据库
         @return:
         """
-        from pipeline.variables.signals.handlers import *  # noqa
+        from pipeline.variable_framework.signals.handlers import *  # noqa
         for path in settings.VARIABLE_AUTO_DISCOVER_PATH:
             autodiscover_collections(path)
 
-        from pipeline.models import VariableModel
+        from pipeline.variable_framework.models import VariableModel
         from pipeline.core.data.library import VariableLibrary
         try:
             VariableModel.objects.exclude(code__in=VariableLibrary.variables.keys()).update(status=False)
-        except ProgrammingError:
+        except (ProgrammingError, OperationalError) as e:
             # first migrate
-            pass
+            logger.exception(e)

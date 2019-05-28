@@ -116,7 +116,7 @@ class RegisterVariableMeta(type):
             raise exceptions.ConstantReferenceException("LazyVariable %s: code can't be empty."
                                                         % new_class.__name__)
 
-        pre_variable_register.send(sender=LazyVariable, variable_cls=new_class, variable_code=new_class.code)
+        pre_variable_register.send(sender=LazyVariable, variable_cls=new_class)
 
         library.VariableLibrary.variables[new_class.code] = new_class
 

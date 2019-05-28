@@ -12,7 +12,11 @@
 <template>
     <div class="static-ip-adding-panel">
         <div class="ip-added-number">{{i18n.add}}({{selectedIp.length}})</div>
-        <div class="search-area">
+        <div class="operation-area">
+            <div class="ip-list-add">
+                <bk-button type="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
+                <bk-button type="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
+            </div>
             <ip-search-input class="ip-search-wrap" @search="onIpSearch"></ip-search-input>
         </div>
         <div class="ip-list-table-wrap">
@@ -61,10 +65,6 @@
                     @page-change="onPageChange">
                 </bk-paging>
             </div>
-        </div>
-        <div class="ip-list-add">
-            <bk-button type="primary" size="mini" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
-            <bk-button type="default" size="mini" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
         </div>
     </div>
 </template>
@@ -184,14 +184,20 @@
     color: #313238;
     border-bottom: 1px solid #dcdee5;
 }
-.search-area {
+.operation-area {
     position: relative;
-    height: 76px;
+    .ip-list-add {
+        margin: 24px 0;
+    }
     .ip-search-wrap {
         position: absolute;
-        top: 20px;
+        top: -2px;
         right: 0;
-        width: 80%;
+        width: 70%;
+    }
+    .bk-button {
+        height: 32px;
+        line-height: 32px;
     }
 }
 .ip-table {
@@ -268,9 +274,6 @@
             }
         }
     }
-}
-.ip-list-add {
-    margin-top: 10px;
 }
 .table-pagination {
     margin-top: 20px;

@@ -741,7 +741,7 @@ const template = {
             return api.getTemplateData(data).then(response => response.data)
         },
         loadCustomVarCollection () {
-            return api.getCustomVarCollection().then(response => response.data)
+            return api.getCustomVarCollection().then(response => response.data.objects)
         },
         // 保存模板数据
         saveTemplateData ({ state }, { templateId, ccId, common }) {
