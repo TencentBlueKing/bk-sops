@@ -11,16 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
+from __future__ import unicode_literals
 
-from pipeline_plugins.variables.query import constants
+from django.db import migrations
 
 
-@require_GET
-def query_custom_variables_collection(request):
-    ctx = {
-        'result': True,
-        'data': constants.VARIABLES_COLLECTION
-    }
-    return JsonResponse(ctx)
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('pipeline', '0018_set_has_subprocess'),
+    ]
+
+    operations = [
+        migrations.DeleteModel(
+            name='VariableModel',
+        ),
+    ]

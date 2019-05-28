@@ -22,6 +22,7 @@
                 :canvas-data="canvasData"
                 :name="name"
                 :cc_id="cc_id"
+                :type="type"
                 :common="common"
                 :template_id="template_id"
                 :atom-type-list="atomTypeList"
@@ -357,28 +358,24 @@
                 this.customVarCollectionLoading = true
                 try {
                     const customVarCollection = await this.loadCustomVarCollection()
-                    if (customVarCollection.result) {
-                        const listData = [
-                            {
-                                name: gettext('普通变量'),
-                                children: []
-                            },
-                            {
-                                name: gettext('元变量'),
-                                children: []
-                            }
-                        ]
-                        customVarCollection.data.forEach(item => {
-                            if (item.type === 'general') {
-                                listData[0].children.push(item)
-                            } else {
-                                listData[1].children.push(item)
-                            }
-                        })
-                        this.variableTypeList = listData
-                    } else {
-                        errorHandler(customVarCollection, this)
-                    }
+                    const listData = [
+                        {
+                            name: gettext('普通变量'),
+                            children: []
+                        },
+                        {
+                            name: gettext('元变量'),
+                            children: []
+                        }
+                    ]
+                    customVarCollection.forEach(item => {
+                        if (item.type === 'general') {
+                            listData[0].children.push(item)
+                        } else {
+                            listData[1].children.push(item)
+                        }
+                    })
+                    this.variableTypeList = listData
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -427,20 +424,21 @@
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
-                        if (form.source_tag) {
-                            const [atomType, tagCode] = form.source_tag.split('.')
-                            if (!this.atomFormConfig[atomType]) {
-                                await this.loadAtomConfig({ atomType })
-                                this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
-                            }
-                            const atomConfig = this.atomFormConfig[atomType]
-                            let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                            if (currentFormConfig) {
-                                if (form.is_meta || currentFormConfig.meta_transform) {
-                                    currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
-                                    if (!form.meta) {
-                                        form.value = currentFormConfig.attrs.value
-                                    }
+                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+
+                        if (!this.atomFormConfig[atomType]) {
+                            await this.loadAtomConfig({ atomType, classify })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        }
+
+                        const atomConfig = this.atomFormConfig[atom]
+                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                        
+                        if (currentFormConfig) {
+                            if (form.is_meta || currentFormConfig.meta_transform) {
+                                currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
+                                if (!form.meta) {
+                                    form.value = currentFormConfig.attrs.value
                                 }
                             }
                         }
@@ -521,7 +519,7 @@
                         atomGrouped[index].list.push(item)
                     }
                 })
-                
+
                 this.subAtomGrouped = atomGrouped
             },
             toggleSettingPanel (isSettingPanelShow) {

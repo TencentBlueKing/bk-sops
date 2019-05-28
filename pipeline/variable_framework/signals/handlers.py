@@ -14,14 +14,14 @@ specific language governing permissions and limitations under the License.
 from django.dispatch import receiver
 from django.db.utils import ProgrammingError
 from pipeline.core.data.var import LazyVariable
-from pipeline.models import VariableModel
+from pipeline.variable_framework.models import VariableModel
 from pipeline.core.signals import pre_variable_register
 
 
 @receiver(pre_variable_register, sender=LazyVariable)
-def pre_variable_register_handler(sender, variable_code, variable_cls, **kwargs):
+def pre_variable_register_handler(sender, variable_cls, **kwargs):
     try:
-        obj, created = VariableModel.objects.get_or_create(code=variable_code,
+        obj, created = VariableModel.objects.get_or_create(code=variable_cls.code,
                                                            defaults={
                                                                'status': __debug__,
                                                            })

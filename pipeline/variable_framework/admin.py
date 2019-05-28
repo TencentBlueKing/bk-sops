@@ -11,16 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.contrib import admin
 
-def get_ip_by_zoneid():
-    """
-    @summary: multiple versions compatible
-    @return:
-    """
-    result = {
-        'result': True,
-        'code': 0,
-        'data': {},
-        'message': 'fake api'
-    }
-    return result
+from pipeline.variable_framework import models
+
+
+@admin.register(models.VariableModel)
+class VariableModelAdmin(admin.ModelAdmin):
+    list_display = ['id', 'code', 'status']
+    search_fields = ['code']
+    list_filter = ['status']

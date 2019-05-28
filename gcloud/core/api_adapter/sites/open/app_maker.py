@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import time
 
-from blueapps.utils.esbclient import get_client_by_user
-
 from gcloud.conf import settings
+
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def create_maker_app(creator, app_name, app_url, developer='', app_tag='', introduction='', add_user='',
@@ -116,9 +116,8 @@ def modify_app_logo(operator, app_maker_code, logo):
 
 
 def get_app_logo_url(app_code):
-    url_prefix = settings.BK_URL if settings.OPEN_VER == 'enterprise' else settings.BK_PAAS_HOST
 
     return '%s/media/applogo/%s.png?v=%s' % (
-        url_prefix,
+        settings.BK_PAAS_HOST,
         app_code,
         time.time())

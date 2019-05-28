@@ -15,6 +15,7 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         bizPerson: SITE_URL + 'core/api/get_roles_and_personnel/' + BIZ_CC_ID + '/',
         // 更改默认业务
         bizDefaultChange: SITE_URL + 'core/api/change_default_business/',
+        businessBaseInfo: SITE_URL + 'core/api/get_basic_info/',
         homelist: SITE_URL + 'taskflow/home/' + BIZ_CC_ID + '/',
         business: SITE_URL + 'api/v3/business/',
         component: SITE_URL + 'api/v3/component/',
@@ -23,7 +24,6 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         instance: SITE_URL + 'api/v3/taskflow/',
         function: SITE_URL + 'api/v3/function_task/',
         periodic: SITE_URL + 'api/v3/periodic_task/',
-        businessBaseInfo: SITE_URL + 'template/get_business_basic_info/',
         subform: SITE_URL + 'template/api/form/' + BIZ_CC_ID + '/',
         // 有某模板权限的人员列表
         templatePersons: SITE_URL + 'template/api/get_perms/' + BIZ_CC_ID + '/',
@@ -81,7 +81,6 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         taskCreateMethod: SITE_URL + 'taskflow/api/get_task_create_method/',
         cc_search_host: SITE_URL + 'pipeline/cc_search_host/' + BIZ_CC_ID + '/',
         cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + BIZ_CC_ID + '/',
-        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + BIZ_CC_ID + '/',
-        query_custom_variables_collection: SITE_URL + 'pipeline/query_custom_variables_collection/'
+        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + BIZ_CC_ID + '/'
     }
 }

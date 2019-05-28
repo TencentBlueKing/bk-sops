@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="node-config">
+    <div class="node-config" @click="e => e.stopPropagation()">
         <div
             :class="['node-config-panel',{ 'position-right-side': !isSettingPanelShow }]">
             <div class="node-title">
@@ -369,7 +369,8 @@
                 if (this.currentAtom === 'job_execute_task') {
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        if (constant.source_type === 'component_outputs'
+                        if ((this.nodeId in constant.source_info)
+                            && constant.source_type === 'component_outputs'
                             && outputData.findIndex(item => item.key === cKey) === -1
                         ) {
                             outputData.push({
@@ -417,13 +418,13 @@
             this.initData()
         },
         mounted () {
-            window.addEventListener('click', this.handleNodeConfigPanelShow, true)
+            document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
             if (this.errorCouldBeIgnored) {
                 this.isDisable = true
             }
         },
         beforeDestroy () {
-            window.removeEventListener('click', this.handleNodeConfigPanelShow, true)
+            document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
         },
         methods: {
             ...mapMutations('atomForm/', [
@@ -522,22 +523,15 @@
                     })
                     // 遍历加载标准插件表单配置文件
                     for (const form of variableArray) {
-                        const { key, source_tag, custom_type } = form
-                        let atomType = ''
-                        let tagCode = ''
-                        let classify = ''
-                        if (custom_type) {
-                            atomType = tagCode = form.custom_type
-                            classify = 'variable'
-                        } else {
-                            [atomType, tagCode] = source_tag.split('.')
-                            classify = 'component'
-                        }
+                        const { key } = form
+                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+
                         if (!this.atomFormConfig[atomType]) {
                             await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                         }
-                        const atomConfig = this.atomFormConfig[atomType]
+                        
+                        const atomConfig = this.atomFormConfig[atom]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
                         if (currentFormConfig) {
@@ -687,6 +681,8 @@
                     }
                 }
                 return false
+            },
+            stopClickPropagation (e) {
             },
             /**
              * 处理节点配置面板和全局变量面板之外的点击事件
