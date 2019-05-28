@@ -33,7 +33,7 @@ class SourceWriter(object):
         self.base_source = base_source
 
     @abstractmethod
-    def write(self):
+    def write(self, sub_dir=None):
         raise NotImplementedError()
 
 
@@ -57,22 +57,33 @@ class S3Writer(SourceWriter):
             subdir = root.split(local)[1]
             for _file in files:
                 full_path = os.path.join(target_dir, subdir, _file)
+                # transfer absolute path to relative
+                if full_path[0] in '/\\':
+                    full_path = full_path[1:]
                 local_path = os.path.join(root, _file)
                 client.upload_file(Filename=local_path, Bucket=bucket, Key=full_path)
 
-    def write(self):
+    def write(self, sub_dir=None):
         if os.path.exists(self.from_path):
             client = boto3.client('s3',
                                   endpoint_url=self.base_source.service_address,
                                   aws_access_key_id=self.base_source.access_key,
                                   aws_secret_access_key=self.base_source.secret_key)
-            self.__class__.upload_s3_dir(client, self.base_source.bucket, self.from_path)
+            if sub_dir is None:
+                sub_dir = ['']
+            for sub in sub_dir:
+                from_path = os.path.join(self.from_path, sub)
+                self.__class__.upload_s3_dir(client, self.base_source.bucket, from_path)
 
 
 @writer
 class FileSystemWriter(SourceWriter):
     type = FILE_SYSTEM
 
-    def write(self):
+    def write(self, sub_dir=None):
         if os.path.exists(self.from_path):
-            shutil.move(self.from_path, self.base_source.path)
+            if sub_dir is None:
+                sub_dir = ['']
+            for sub in sub_dir:
+                from_path = os.path.join(self.from_path, sub)
+                shutil.move(from_path, self.base_source.path)

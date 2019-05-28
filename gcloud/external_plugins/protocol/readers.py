@@ -47,6 +47,8 @@ class GitReader(SourceReader):
 
     def read(self):
         Repo.clone_from(self.source_info['repo_address'], self.to_path, branch=self.source_info['branch'])
+        shutil.rmtree(os.path.join(self.to_path, '.git'))
+        shutil.rmtree(os.path.join(self.to_path, '.idea'))
 
 
 @reader

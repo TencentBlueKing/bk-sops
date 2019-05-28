@@ -14,12 +14,11 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 from django.contrib.auth import get_user_model
-from django.http.response import HttpResponseForbidden
 from tastypie import fields
 from tastypie.resources import ModelResource
-from tastypie.authorization import Authorization, ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
+from tastypie.exceptions import BadRequest, NotFound
 
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate
@@ -29,6 +28,7 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
 from gcloud.webservice3.resources import (
+    SuperAuthorization,
     GCloudModelResource,
     AppSerializer,
     pipeline_node_name_handle,
@@ -50,37 +50,6 @@ class PipelineTemplateResource(ModelResource):
             'edit_time': ['gte', 'lte']
         }
         limit = 0
-
-
-class CommonAuthorization(Authorization):
-    """
-    @summary: common authorization
-        create/update/delete: only superuser
-        read: all users
-    """
-
-    def is_superuser(self, bundle):
-        if bundle.request.user.is_superuser:
-            return True
-        raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write common flows'))
-
-    def create_list(self, object_list, bundle):
-        return []
-
-    def create_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
 
 
 class CommonTemplateResource(GCloudModelResource):
@@ -138,7 +107,7 @@ class CommonTemplateResource(GCloudModelResource):
     class Meta:
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'common_template'
-        authorization = CommonAuthorization()
+        authorization = SuperAuthorization()
         always_return_data = True
         serializer = AppSerializer()
         filtering = {

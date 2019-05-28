@@ -11,14 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+import logging
 
-from django.apps import AppConfig
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from gcloud.external_plugins.models import SyncTask
+from gcloud.external_plugins.tasks import sync_task
 
 
-class ExternalPluginsConfig(AppConfig):
-    name = 'gcloud.external_plugins'
-    verbose_name = 'GcloudExternalPlugins'
+logger = logging.getLogger('celery')
 
-    def ready(self):
-        from gcloud.external_plugins.signals.handlers import sync_task_post_save_handler  # noqa
+
+@receiver(post_save, sender=SyncTask)
+def sync_task_post_save_handler(sender, instance, created, **kwargs):
+    if created:
+        sync_task.delay(task_id=instance.id)
