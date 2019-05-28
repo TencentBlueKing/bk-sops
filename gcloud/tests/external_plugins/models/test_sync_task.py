@@ -14,15 +14,19 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from django.utils.translation import ugettext_lazy as _
+
+from gcloud.tests.external_plugins.mock import *  # noqa
+from gcloud.tests.external_plugins.mock_settings import *  # noqa
 from gcloud.external_plugins.models import SyncTask, FAILED
 
 
 class TestSyncTaskModel(TestCase):
     def setUp(self):
-        self.sync_task = SyncTask.objects.create(
-            creator='user1',
-            create_method='manual'
-        )
+        with patch(GCLOUD_EXTERNAL_PLUGINS_SYNC_TASK_DELAY, MagicMock()):
+            self.sync_task = SyncTask.objects.create(
+                creator='user1',
+                create_method='manual'
+            )
 
     def tearDown(self):
         SyncTask.objects.all().delete()
