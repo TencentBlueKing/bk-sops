@@ -106,10 +106,10 @@ def collect(request, project_id):
         return JsonResponse(ctx)
 
 
-@require_POST
+@require_GET
 def export_templates(request, project_id):
     try:
-        template_id_list = json.loads(request.POST.get('template_id_list'))
+        template_id_list = json.loads(request.GET.get('template_id_list'))
     except Exception:
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
 

@@ -168,9 +168,18 @@ def task_modify_inputs(request, project_id):
             'message': 'task is finished'
         }
     else:
-        constants = json.loads(request.POST.get('constants'))
-        name = request.POST.get('name', '')
-        ctx = task.reset_pipeline_instance_data(constants, name)
+        try:
+            constants = json.loads(request.POST.get('constants'))
+        except Exception:
+            logger.error('load taskflow modify constants failed: %s' % traceback.format_exc())
+            ctx = {
+                'result': False,
+                'message': 'invalid constants format'
+            }
+        else:
+            name = request.POST.get('name', '')
+            ctx = task.reset_pipeline_instance_data(constants, name)
+
     return JsonResponse(ctx)
 
 

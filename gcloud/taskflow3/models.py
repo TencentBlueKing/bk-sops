@@ -1055,7 +1055,7 @@ class TaskFlowInstance(models.Model):
                 action_result = self.pipeline_instance.start(username)
                 if action_result.result:
                     taskflow_started.send(sender=self, username=username)
-                return {'result': action_result.result, 'data': action_result.message, 'message': action_result.message}
+                return {'result': action_result.result, 'message': action_result.message}
 
             except ConvergeMatchError as e:
                 message = u"task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id,

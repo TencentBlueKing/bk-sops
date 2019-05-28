@@ -54,7 +54,7 @@ def model_instance_inject(model_cls, inject_attr, field_maps):
                 get_kwargs[field] = field_value
 
             try:
-                instance = model_cls.objects.get(get_kwargs)
+                instance = model_cls.objects.get(**get_kwargs)
             except Exception as e:
                 logger.error(traceback.format_exc())
                 return JsonResponse({
