@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>登录成功</title>
+        <script src="{{ REMOTE_STATIC_URL }}jquery/jquery-1.7.2.min.js"></script>
+        <script src="{{ REMOTE_STATIC_URL }}jquery/jquery.json-2.3.min.js"></script>
+        <link href="{{ REMOTE_STATIC_URL }}bk/bk.css" rel="stylesheet" type="text/css"/>
+    </head>
+    <body>
+        <div class="errors-login-failure-wrap box">
+            <div class="errors-login-fialure-con clearfix" style="border: none;">
+                <img src="{{ REMOTE_STATIC_URL }}bk/style_custom/images/expre_login.jpg" width="183" height="112" />
+                <h1>登录成功</h1>
+            </div>
+        </div>
+    </body>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // 关闭登录弹出框
+            try{
+                window.top.BLUEKING.corefunc.close_login_dialog();
+            }catch(err){
+                try{
+                    window.parent.close_login_dialog();
+                }catch(err){}
+            }
+        });
+    </script>
+</html>

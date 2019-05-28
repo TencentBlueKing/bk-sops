@@ -1,20 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 from __future__ import absolute_import
 import logging
 
 from celery import task
 
-from pipeline.engine import states
+from pipeline.core.pipeline import Pipeline
+from pipeline.engine import states, api, signals
 from pipeline.engine.core import runtime, schedule
-from pipeline.engine.models import PipelineProcess, Status, NodeRelationship, ProcessCeleryTask
+from pipeline.engine.models import (
+    PipelineProcess,
+    Status,
+    NodeRelationship,
+    ProcessCeleryTask,
+    NodeCeleryTask,
+)
 
 logger = logging.getLogger('celery')
 
@@ -23,7 +34,7 @@ logger = logging.getLogger('celery')
 def process_unfreeze(process_id):
     process = PipelineProcess.objects.get(id=process_id)
     if not process.is_alive:
-        logger.info('process(%s) is not alive, mission cancel.' % process_id)
+        logger.warning('process(%s) is not alive, mission cancel.' % process_id)
         return
 
     runtime.run_loop(process)
@@ -33,13 +44,14 @@ def process_unfreeze(process_id):
 def start(process_id):
     process = PipelineProcess.objects.get(id=process_id)
     if not process.is_alive:
-        logger.info('process(%s) is not alive, mission cancel.' % process_id)
+        logger.warning('process(%s) is not alive, mission cancel.' % process_id)
         return
 
     pipeline_id = process.root_pipeline.id
     # try to run
-    if not Status.objects.transit(pipeline_id, states.RUNNING, is_pipeline=True, start=True):
-        logger.info('can not start pipeline(%s), perhaps state of the pipeline has been changed' % pipeline_id)
+    action_result = Status.objects.transit(pipeline_id, states.RUNNING, is_pipeline=True, start=True)
+    if not action_result.result:
+        logger.warning('can not start pipeline(%s), message: %s' % (pipeline_id, action_result.message))
         return
 
     NodeRelationship.objects.build_relationship(pipeline_id, pipeline_id)
@@ -61,16 +73,21 @@ def dispatch(child_id):
 def process_wake_up(process_id, current_node_id=None, call_from_child=False):
     process = PipelineProcess.objects.get(id=process_id)
     if not process.is_alive:
-        logger.info('process(%s) is not alive, mission cancel.' % process_id)
+        logger.warning('process(%s) is not alive, mission cancel.' % process_id)
         return
 
     pipeline_id = process.root_pipeline.id
     if not call_from_child:
-        if not Status.objects.transit(pipeline_id, to_state=states.RUNNING, is_pipeline=True):
-            logger.info('can not start pipeline(%s), perhaps state of the pipeline has been changed' % pipeline_id)
-            return
-    else:
-        process.sync_with_children()
+        # success_when_unchanged to deal with parallel wake up
+        action_result = Status.objects.transit(pipeline_id,
+                                               to_state=states.RUNNING,
+                                               is_pipeline=True,
+                                               unchanged_pass=True)
+        if not action_result.result:
+            # BLOCKED is a tolerant running state
+            if action_result.extra.state != states.BLOCKED:
+                logger.warning('can not start pipeline(%s), message: %s' % (pipeline_id, action_result.message))
+                return
 
     process.wake_up()
     if current_node_id:
@@ -83,7 +100,7 @@ def process_wake_up(process_id, current_node_id=None, call_from_child=False):
 def wake_up(process_id):
     process = PipelineProcess.objects.get(id=process_id)
     if not process.is_alive:
-        logger.info('process(%s) is not alive, mission cancel.' % process_id)
+        logger.warning('process(%s) is not alive, mission cancel.' % process_id)
         return
 
     process.wake_up()
@@ -92,8 +109,9 @@ def wake_up(process_id):
 
 @task(ignore_result=True)
 def batch_wake_up(process_id_list, pipeline_id):
-    if not Status.objects.transit(pipeline_id, to_state=states.RUNNING, is_pipeline=True):
-        logger.info('can not start pipeline(%s), perhaps state of the pipeline has been changed' % pipeline_id)
+    action_result = Status.objects.transit(pipeline_id, to_state=states.RUNNING, is_pipeline=True)
+    if not action_result.result:
+        logger.warning('can not start pipeline(%s), message: %s' % (pipeline_id, action_result.message))
         return
     for process_id in process_id_list:
         task_id = wake_up.apply_async(args=[process_id]).id
@@ -113,3 +131,20 @@ def wake_from_schedule(process_id, service_act_id):
 @task(ignore_result=True)
 def service_schedule(process_id, schedule_id):
     schedule.schedule(process_id, schedule_id)
+
+
+@task(ignore_result=True)
+def node_timeout_check(node_id, version, root_pipeline_id):
+    NodeCeleryTask.objects.destroy(node_id)
+    state = Status.objects.state_for(node_id, version=version, may_not_exist=True)
+    if not state or state != states.RUNNING:
+        logger.warning('node %s %s timeout kill failed, node not exist or not in running' % (node_id, version))
+        return
+
+    action_result = api.forced_fail(node_id, kill=True, ex_data='node execution timeout')
+    if action_result.result:
+        signals.activity_failed.send(sender=Pipeline,
+                                     pipeline_id=root_pipeline_id,
+                                     pipeline_activity_id=node_id)
+    else:
+        logger.warning('node %s - %s timeout kill failed' % (node_id, version))

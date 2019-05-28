@@ -1,0 +1,152 @@
+.common-section-title {
+    position: relative;
+    margin: 0;
+    padding: 0 0 0 16px;
+    line-height: 1;
+    font-size: 16px;
+    font-weight: normal;
+    color: #666666;
+    &:before {
+        content: '';
+        display: inline-block;
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 4px;
+        height: 20px;
+        background: $blueDefault;
+    }
+}
+
+.common-form-item {
+    margin-bottom: 20px;
+    @include clearfix;
+    &:last-child {
+        margin-bottom: 0;
+    }
+    &>label {
+        position: relative;
+        float: left;
+        margin-top: 6px;
+        width: 100px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #666666;
+        text-align: right;
+        &.required:after {
+            content: '*';
+            position: absolute;
+            top: 0px;
+            right: -10px;
+            color: #ff2602;
+            font-family: "SimSun";
+        }
+    }
+    .common-form-content {
+        margin-left: 120px;
+        min-height: 36px;
+    }
+}
+
+.step-section-title {
+    text-align: left;
+    margin: 0;
+    line-height: 67px;
+    color: #313238;
+    span {
+        padding-left: 30px;
+        font-size: 14px;
+        font-family: PingFangSC-Semibold;
+        font-weight: 600;
+    }
+    &:before {
+        content: '';
+        display: inline-block;
+        position: relative;
+        top: 4px;
+        left: 20px;
+        width: 2px;
+        height: 20px;
+        background: #A3C5FD;
+    }
+}
+
+.common-dialog {
+    .bk-dialog-header {
+        padding: 20px 30px;
+        border-bottom: 1px solid #ebebeb;
+        .bk-dialog-title {
+            text-align: left;
+            line-height: 1;
+        }
+    }
+    .bk-dialog-tool {
+        min-height: 0px;
+        .bk-dialog-close {
+            margin-top: 16px;
+            margin-right: 20px;
+        }
+    }
+}
+
+.common-error-tip {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 1;
+    color: #ff5757;
+}
+
+// 弹窗按钮
+.bk-dialog-wrapper .bk-dialog-footer .bk-dialog-outer button {
+    width: 90px;
+    height: 32px;
+    line-height: 30px;
+}
+.common-warning-tip {
+    display: inline-block;
+    font-size: 14px;
+    color: #ffb400;
+}
+
+// tooltip组件的箭头会挡住操作区域
+.v-tooltips-container.offset-left-tooltip {
+    margin-left: -7px;
+}
+// bk-selector组件选项过长会换行的问题兼容
+.bk-selector label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+// 表单下拉框
+.bk-selector-wrapper {
+    .bk-selector-icon {
+        top: 10px;
+    }
+    .bk-selector-icon.clear-icon {
+        top: 7px;
+    }
+    .bk-selector-input {
+        height: 32px;
+        line-height: 32px;
+    }
+}
+// 列表分页
+.panagation {
+    .bk-page .page-item {
+        float: none;
+    }
+    .bk-page .page-item.cur-page {
+        background: #3c96ff;
+    }
+    .bk-page .page-item .page-button {
+        padding: 0 7px;
+    }
+    .bk-page .page-item.disabled .page-button {
+        padding: 0 5px;
+        color: #737987;
+         &:hover {
+              color: #737987;
+        }
+    }
+}

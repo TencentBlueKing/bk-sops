@@ -1,0 +1,171 @@
+---
+
+- path: /v2/sops/get_template_list/
+  name: get_template_list
+  label: 查询模板列表
+  label_en: Query templates list
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_template_list/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_template_info/
+  name: get_template_info
+  label: 查询单个模板详情
+  label_en: Query individual template detail
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_template_info/{template_id}/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/create_task/
+  name: create_task
+  label: 通过流程模板新建任务
+  label_en: Create a task
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/create_task/{template_id}/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/start_task/
+  name: start_task
+  label: 开始执行任务
+  label_en: Start task
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/start_task/{task_id}/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/operate_task/
+  name: operate_task
+  label: 操作任务
+  label_en: Operate task
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/operate_task/{task_id}/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/node_callback/
+  name: node_callback
+  label: 回调任务节点
+  label_en: Callback a specific node
+  method: POST
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/node_callback/{task_id}/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/import_common_template/
+  name: import_common_template
+  label: 导入公共流程
+  label_en: Import common flow
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/import_common_template/
+  dest_http_method: POST
+
+- path: /v2/sops/get_task_status/
+  name: get_task_status
+  label: 查询任务或任务节点执行状态
+  label_en: Query task or node status
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_task_status/{task_id}/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_task_detail/
+  name: get_task_detail
+  label: 查询任务执行详情
+  label_en: Query a task execution details
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_task_detail/{task_id}/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_task_node_detail/
+  name: get_task_node_detail
+  label: 查询任务节点执行详情
+  label_en: Query a task node execution details
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_task_node_detail/{task_id}/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/query_task_count/
+  name: query_task_count
+  label: 查询任务分类统计总数
+  label_en: Query task classification statistics
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/query_task_count/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/get_periodic_task_list/
+  name: get_periodic_task_list
+  label: 查询业务下的周期任务列表
+  label_en: Query periodic task list
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_periodic_task_list/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/get_periodic_task_info/
+  name: get_periodic_task_info
+  label: 查询业务下的某个周期任务详情
+  label_en: Query periodic task detail
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/
+  dest_http_method: GET
+
+- path: /v2/sops/create_periodic_task/
+  name: create_periodic_task
+  label: 通过流程模板新建周期任务
+  label_en: create a periodic task
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/create_periodic_task/{template_id}/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/set_periodic_task_enabled/
+  name: set_periodic_task_enabled
+  label: 设置周期任务是否激活
+  label_en: modify periodic task activation status
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/modify_cron_for_periodic_task/
+  name: modify_cron_for_periodic_task
+  label: 修改周期任务的调度策略
+  label_en: modify crontab for periodic task
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/modify_constants_for_periodic_task/
+  name: modify_constants_for_periodic_task
+  label: 修改周期任务的全局参数
+  label_en: modify global parameters for periodic task
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/
+  dest_http_method: POST
