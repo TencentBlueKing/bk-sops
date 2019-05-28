@@ -27,3 +27,13 @@ GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_WRITER_CLS_FACTORY = \
 
 GCLOUD_EXTERNAL_PLUGINS_MODELS_ORIGIN_READER_CLS_FACTORY = \
     'gcloud.external_plugins.models.origin.reader_cls_factory'
+
+GCLOUD_EXTERNAL_PLUGINS_TASKS_TASK = 'gcloud.external_plugins.tasks.task'
+GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL = \
+    'gcloud.external_plugins.models.origin.GitRepoOriginalSource.objects.all'
+GCLOUD_EXTERNAL_PLUGINS_MODELS_S3_ORIGINAL_PACKAGE_SOURCE_ALL = \
+    'gcloud.external_plugins.models.origin.S3OriginalSource.objects.all'
+GCLOUD_EXTERNAL_PLUGINS_MODELS_FS_ORIGINAL_PACKAGE_SOURCE_ALL = \
+    'gcloud.external_plugins.models.origin.FileSystemOriginalSource.objects.all'
+GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_PACKAGE_SOURCE_ALL = \
+    'gcloud.external_plugins.models.CachePackageSource.objects.all'

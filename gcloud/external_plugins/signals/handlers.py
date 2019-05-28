@@ -15,15 +15,11 @@ import logging
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from celery import task
 
 from gcloud.external_plugins.models import (
-    source_cls_factory,
-    CachePackageSource,
     SyncTask,
-    SUCCEEDED,
-    FAILED
 )
+from gcloud.external_plugins.tasks import sync_task
 
 
 logger = logging.getLogger('celery')
@@ -33,36 +29,3 @@ logger = logging.getLogger('celery')
 def sync_task_post_save_handler(sender, instance, created, **kwargs):
     if created:
         sync_task.delay(task_id=instance.id)
-
-
-@task
-def sync_task(task_id):
-    for origin_model in source_cls_factory.values():
-        origins = origin_model.objects.all()
-        for origin in origins:
-            try:
-                origin.read()
-            except Exception as e:
-                SyncTask.objects.filter(id=task_id).update(status=FAILED)
-                logger.error('Origin package[type={origin_type, id={origin_id}}] read error: {error}'.format(
-                    origin_type=origin.type,
-                    origin_id=origin.id,
-                    error=e.message
-                ))
-                return False
-
-    caches = CachePackageSource.objects.all()
-    for cache in caches:
-        try:
-            cache.write()
-        except Exception as e:
-            SyncTask.objects.filter(id=task_id).update(status=FAILED)
-            logger.error('Cache package[type={origin_type, id={origin_id}}] write error: {error}'.format(
-                origin_type=cache.type,
-                origin_id=cache.id,
-                error=e.message
-            ))
-            return False
-
-    SyncTask.objects.filter(id=task_id).update(status=SUCCEEDED)
-    return True

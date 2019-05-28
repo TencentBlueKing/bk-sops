@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
-from pipeline.contrib.external_plugins.models.fields import JSONTextField
-
-from gcloud.utils import convert_readable_username
+from gcloud.core.utils import convert_readable_username
 
 RUNNING = 'RUNNING'
 SUCCEEDED = 'SUCCEEDED'
@@ -36,11 +35,11 @@ SYNC_TASK_CREATED = [
 
 class SyncTask(models.Model):
     creator = models.CharField(_(u"执行者"), max_length=32, blank=True)
-    create_method = models.CharField(_(u"创建方式"), defualt='manual', choices=SYNC_TASK_CREATED)
+    create_method = models.CharField(_(u"创建方式"), max_length=32, default='manual', choices=SYNC_TASK_CREATED)
     start_time = models.DateTimeField(_(u"启动时间"), auto_now_add=True)
     finish_time = models.DateTimeField(_(u"结束时间"), null=True, blank=True)
-    status = models.CharField(_(u"同步状态"), defualt=RUNNING, choices=SYNC_TASK_STATUS)
-    details = JSONTextField(_(u"同步详情信息"), blank=True)
+    status = models.CharField(_(u"同步状态"), max_length=32, default=RUNNING, choices=SYNC_TASK_STATUS)
+    details = models.TextField(_(u"同步详情信息"), blank=True)
 
     class Meta:
         verbose_name = _(u"远程包源同步任务 SyncTask")
@@ -54,3 +53,10 @@ class SyncTask(models.Model):
     @property
     def status_display(self):
         return self.get_status_display()
+
+    def finish_task(self, status, details=None):
+        self.status = status
+        self.finish_time = timezone.now()
+        if details:
+            self.details = details
+        self.save()

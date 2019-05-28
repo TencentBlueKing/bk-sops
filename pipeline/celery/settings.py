@@ -51,6 +51,6 @@ CELERY_QUEUES = (
     Queue('pipeline_additional_task', default_exchange, routing_key='additional_task')
 )
 
-CELERY_DEFAULT_QUEUE = 'default'
+CELERY_DEFAULT_QUEUE = 'pipeline_additional_task'
 CELERY_DEFAULT_EXCHANGE = 'default'
 CELERY_DEFAULT_ROUTING_KEY = 'default'

@@ -23,7 +23,7 @@ from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
 from tastypie.paginator import Paginator
-from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
@@ -79,6 +79,37 @@ class AppSerializer(Serializer):
 
     def format_time(self, data):
         return datetime.time.strftime(data, "%H:%M:%S")
+
+
+class SuperAuthorization(Authorization):
+    """
+    @summary: common authorization
+        create/update/delete: only superuser
+        read: all users
+    """
+
+    def is_superuser(self, bundle):
+        if bundle.request.user.is_superuser:
+            return True
+        raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write common flows'))
+
+    def create_list(self, object_list, bundle):
+        return []
+
+    def create_detail(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def update_list(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def update_detail(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def delete_list(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def delete_detail(self, object_list, bundle):
+        return self.is_superuser(bundle)
 
 
 class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):

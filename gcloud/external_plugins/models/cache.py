@@ -68,8 +68,8 @@ class CachePackageSource(PackageSource):
     def details(self):
         return self.base_source.details()
 
-    def write(self):
+    def write(self, sub_dir=None):
         if self.type not in writer_cls_factory:
             raise exceptions.CacheSourceTypeError('Source type[%s] does not support as cache source' % self.type)
         writer = writer_cls_factory[self.type](CACHE_TEMP_PATH, self.base_source)
-        writer.write()
+        writer.write(sub_dir)
