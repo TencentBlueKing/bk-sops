@@ -107,7 +107,7 @@
 @import '@/scss/config.scss';
 .step-wrapper {
     background: #f4f7fa;
-    border: 1px solid #cacedb;
+    border-bottom: 1px solid #cacedb;
     .step-header {
         background-color: #f4f7fa;
     }
@@ -119,7 +119,7 @@
     }
     .step-list {
         display: flex;
-        margin: 0 0 7px 0;
+        margin: 0 0 16px 0;
         min-width: 1320px;
             
     }
