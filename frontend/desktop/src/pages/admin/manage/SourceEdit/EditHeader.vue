@@ -21,8 +21,7 @@
             </div>
         </div>
         <div :class="['step-item', {
-            'active': $router.name === 'cacheEdit',
-            'finished': $router.name === 'packageEdit'
+            'active': $route.name === 'cacheEdit'
         }]">
             <div class="step-content">
                 <div class="num">2</div>
@@ -75,13 +74,13 @@
                 content: '';
                 position: absolute;
                 top: 6px;
-                right: 90px;
+                right: 92px;
                 width: calc(100% - 60px);
                 height: 4px;
                 background: #e1e4eb;
             }
         }
-        &.active, &.finished {
+        &.active {
             .step-content {
                 .num {
                     color: #3a84ff;
@@ -92,8 +91,21 @@
                     color: #3a84ff;
                 }
             }
+            &:after {
+                background: #3a84ff;
+            }
         }
         &.finished {
+            .step-content {
+                .num {
+                    color: #3a84ff;
+                    background: #3a84ff;
+                    border: 2px solid #3a84ff;
+                }
+                .title {
+                    color: #3a84ff;
+                }
+            }
             &:after {
                 background: #3a84ff;
             }

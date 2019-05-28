@@ -15,36 +15,24 @@
             <tbody>
                 <tr>
                     <th class="cache-label">{{i18n.name}}</th>
-                    <td class="cache-content-item">main_source_1</td>
+                    <td class="cache-content-item">{{value.name}}</td>
                 </tr>
                 <tr>
                     <th class="cache-label">{{i18n.type}}</th>
-                    <td class="cache-content-item">Git</td>
+                    <td class="cache-content-item">{{value.type}}</td>
                 </tr>
                 <tr>
                     <th class="cache-label">{{i18n.desc}}</th>
-                    <td class="cache-content-item">我的本地缓存</td>
+                    <td class="cache-content-item">{{value.desc}}</td>
                 </tr>
                 <tr>
                     <th class="cache-label">{{i18n.detail}}</th>
                     <td class="cache-content-item">
                         <table class="detail-table">
                             <tbody>
-                                <tr>
-                                    <th>{{i18n.serviceAddress}}</th>
-                                    <td>http://radosgw-clouds.open.com</td>
-                                </tr>
-                                <tr>
-                                    <th>bucket</th>
-                                    <td>bucket-1</td>
-                                </tr>
-                                <tr>
-                                    <th>access_key</th>
-                                    <td>d323dfa34fafsafsadf3423fasdf</td>
-                                </tr>
-                                <tr>
-                                    <th>secret_key</th>
-                                    <td>aaafffffaffffff34fafsafsadf3423fasdf</td>
+                                <tr v-for="field in detailFields" :key="field.id">
+                                    <th>{{field.name}}</th>
+                                    <td>{{value.details[field.id]}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -55,10 +43,23 @@
     </div>
 </template>
 <script>
+    import { SOURCE_TYPE } from '@/constants/manage.js'
+
     export default {
-        name: 'PackageTable',
+        name: 'LocalCache',
+        props: {
+            value: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        },
         data () {
+            const detailFields = this.getSourceKeys(this.value.type)
+
             return {
+                detailFields,
                 i18n: {
                     name: gettext('名称'),
                     type: gettext('类型'),
@@ -66,6 +67,21 @@
                     detail: gettext('详细信息'),
                     serviceAddress: gettext('服务地址')
                 }
+            }
+        },
+        methods: {
+            getSourceKeys (type) {
+                const detailFields = []
+
+                const source = SOURCE_TYPE.find(item => item.type === type)
+                for (const key in source.keys) {
+                    detailFields.push({
+                        id: key,
+                        name: source.keys[key]
+                    })
+                }
+                
+                return detailFields
             }
         }
     }
@@ -96,6 +112,9 @@
         }
         .detail-table {
             background: #fbfbfb;
+            th {
+                width: 25%;
+            }
         }
     }
 </style>
