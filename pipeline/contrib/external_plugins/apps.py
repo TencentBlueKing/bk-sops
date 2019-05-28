@@ -61,8 +61,7 @@ class ExternalPluginsConfig(AppConfig):
                     cmd=command,
                     triggers=triggers))
 
-                if command in triggers:
-                    return True
+                return command in triggers
             except Exception:
                 logger.error('get django start up command error with argv: {argv}, traceback: {traceback}'.format(
                     argv=sys.argv,
