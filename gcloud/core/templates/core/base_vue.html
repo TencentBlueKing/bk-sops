@@ -1,51 +1,71 @@
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+
 	<meta charset="UTF-8">
-	<title>${_(u'标准运维')}|${_(RUN_VER_NAME)}</title>
+	<title>{%  trans "标准运维" %}|{% trans RUN_VER_NAME %}</title>
     <script>
 		/* 全局变量 */
-        var RUN_VER = '${RUN_VER}';
-        var SITE_URL = '${SITE_URL}';
-        var USERNAME = '${USERNAME}';
-        var BK_CC_HOST = '${BK_CC_HOST}';
+        var RUN_VER = '{{RUN_VER}}';
+        var SITE_URL = '{{SITE_URL}}';
+        var USERNAME = '{{USERNAME}}';
+        var BK_CC_HOST = '{{BK_CC_HOST}}';
         // 隐藏头部，目前需要嵌入到其他 APP 作为 iframe 子页面
-        var HIDE_HEADER = Number('${HIDE_HEADER}');
+        var HIDE_HEADER = Number('{{HIDE_HEADER}}');
         // 用户身份：管理员
-		var IS_SUPERUSER = Number('${IS_SUPERUSER}');
+		var IS_SUPERUSER = Number('{{IS_SUPERUSER}}');
         // 用户身份： 职能化
-        var IS_FUNCTOR = Number('${IS_FUNCTOR}');
+        var IS_FUNCTOR = Number('{{IS_FUNCTOR}}');
         // 用户身份： 审计员
-        var IS_AUDITOR = Number('${IS_AUDITOR}');
-
+        var IS_AUDITOR = Number('{{IS_AUDITOR}}');
+        // 当前时区
+        var BUSINESS_TIMEZONE = '{{BUSINESS_TIMEZONE}}'
         /* 局部变量 */
         // 业务首页会返回 biz_cc_id
-        var BIZ_CC_ID = '${biz_cc_id or "0"}';
+        var BIZ_CC_ID = '{{biz_cc_id |default:"0"}}';
         // APP 内打开或者轻应用内打开
-        var VIEW_MODE = '${view_mode or "app"}';
+        var VIEW_MODE = '{{view_mode |default:"app"}}';
         // 轻应打开时的轻应用ID
-        var APP_ID = '${app_id or "0"}';
+        var APP_ID = '{{app_id | default:"0"}}';
         // 是否开启导入 V1 模板的入口
-        var IMPORT_V1_FLAG = Number('${import_v1_flag}');
+        var IMPORT_V1_FLAG = Number('{{import_v1_flag}}');
+        var RSA_PUB_KEY = '{{RSA_PUB_KEY}}';
+        var APP_CODE = '{{APP_CODE}}';
         function getCookie(name) {
-            var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");　　
+            var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
             return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;
         }
     </script>
-	<link href="${STATIC_URL}core/images/bk_sops.png" rel="shortcut icon" type="image/x-icon">
-	<link href="${STATIC_URL}dist/css/vendors.css?v=${STATIC_VERSION}" rel="stylesheet">
-    <link href="${STATIC_URL}dist/css/main.css?v=${STATIC_VERSION}" rel="stylesheet">
+	<link href="{{STATIC_URL}}core/images/bk_sops.png" rel="shortcut icon" type="image/x-icon">
+    {% if STATIC_VER == 'dev' %}
+	    <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/vendors.css?v={{STATIC_VERSION}}" rel="stylesheet">
+        <link href="{{STATIC_URL}}{{STATIC_VER}}/dist/css/main.css?v={{STATIC_VERSION}}" rel="stylesheet">
+    {% else %}
+        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/vendors.css?v={{STATIC_VERSION}}" rel="stylesheet">
+        <link href="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/css/main.css?v={{STATIC_VERSION}}" rel="stylesheet">
+    {% endif %}
 </head>
 
 <body>
 	<div id="root"></div>
-	<script type="text/javascript" src="${REMOTE_API_URL}"></script>
-	<script type="text/javascript" src="${SITE_URL}jsi18n/gcloud/"></script>
-	<script type="text/javascript" src="${STATIC_URL}dist/js/runtime~main.js?v=${STATIC_VERSION}"></script>
-	<script type="text/javascript" src="${STATIC_URL}dist/js/vendors.js?v=${STATIC_VERSION}"></script>
-	<script type="text/javascript" src="${STATIC_URL}dist/js/main.js?v=${STATIC_VERSION}"></script>
-	<script type="text/javascript" src="${STATIC_URL}core/js/paas_api.js?v=${STATIC_VERSION}"></script>
+	<script type="text/javascript" src="{{REMOTE_API_URL}}"></script>
+	<script type="text/javascript" src="{{SITE_URL}}jsi18n/gcloud/"></script>
+    {% if STATIC_VER == 'dev' %}
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/runtime~main.js?v={{STATIC_VERSION}}"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/vendors.js?v={{STATIC_VERSION}}"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{STATIC_VER}}/dist/js/jquery.js?v={{STATIC_VERSION}}"></script>
+    {% else %}
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/runtime~main.js?v={{STATIC_VERSION}}"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/vendors.js?v={{STATIC_VERSION}}"></script>
+	    <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}"></script>
+        <script type="text/javascript" src="{{STATIC_URL}}{{RUN_VER}}/{{STATIC_VER}}/dist/js/jquery.js?v={{STATIC_VERSION}}"></script>
+    {% endif %}
+
+
+	<script type="text/javascript" src="{{STATIC_URL}}core/js/paas_api.js?v={{STATIC_VERSION}}"></script>
 </body>
 
 </html>

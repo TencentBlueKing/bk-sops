@@ -21,7 +21,7 @@
 
 ### 请求参数示例
 
-```python
+```
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
@@ -33,7 +33,7 @@
 
 ### 返回结果示例
 
-```python
+```
 {
 	"result": true,
     "data": {
@@ -95,6 +95,7 @@
 |  start_time      |    string    |      任务或节点执行开始时间   |
 |  finish_time      |    string    |      任务或节点执行结束时间    |
 |  children      |    dict   |      任务节点执行详情，详细信息见下面说明   |
+|  name      |    string    |      节点名称    |
 
 #### data.state
 
@@ -108,7 +109,7 @@
 | FINISHED  | 已完成   |  
 
 #### data.children.KEY
-任务节点 执行态ID
+任务节点执行态ID
 
 #### data.children.VALUE
 同 data 格式

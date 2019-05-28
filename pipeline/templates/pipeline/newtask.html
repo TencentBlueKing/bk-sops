@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/components/dataflow2/css/jsPlumbToolkit-defaults.css"/>
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/components/dataflow2/css/jsPlumbToolkit-demo.css"/>
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/bkDialog-2.0/css/bkDialog.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/bk-icon-2.0/iconfont.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/bootstrap-3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/daterangepicker-2.0.5/daterangepicker.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/select2-3.5.2/select2.css">
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/bk/css-pro/bk.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}pipeline/dist/css/index.css?v={{ STATIC_VERSION }}"/>
+    <link rel="stylesheet" href="{{ REMOTE_STATIC_URL }}v3/assets/toastr-2.1.2/toastr.min.css">
+
+</head>
+<body>
+
+    <div class="pipeline_container">
+        <div class="pipeline" id="pipeline"></div>
+    </div>
+ 
+    <script>
+        var site_url = '{{ SITE_URL }}';
+        var static_url = '{{ STATIC_URL }}';
+        var static_version = '{{ STATIC_VERSION }}';
+        var remote_static_url = '{{ REMOTE_STATIC_URL }}';
+    </script>
+
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/js/jquery-1.10.2.min.js"></script>
+    <script src="{{ STATIC_URL }}pipeline/dist/js/vue.js?v={{ STATIC_VERSION }}"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/components/dataflow2/js/jsplumb.min.js"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/daterangepicker-2.0.5/moment.min.js"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/daterangepicker-2.0.5/daterangepicker.js"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/select2-3.5.2/select2.js"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/bkMessage-1.0/js/bkMessage.js"></script>
+    <script src="{{ STATIC_URL }}pipeline/dist/js/bkDialog.js?v={{ STATIC_VERSION }}"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/validate-1.14.0/js/jquery.validate.js"></script>
+    <script src="{{ REMOTE_STATIC_URL }}v3/assets/toastr-2.1.2/toastr.min.js"></script>
+    <script src="{{ STATIC_URL }}components/formGenerator.js?v={{ STATIC_VERSION }}"></script>
+    <script src="{{ STATIC_URL }}pipeline/dist/js/dataflow.js?v={{ STATIC_VERSION }}"></script>
+    <script src="{{ STATIC_URL }}pipeline/dist/js/pipeline.js?v={{ STATIC_VERSION }}"></script>
+    <script>        
+        // pipeline初始化
+        $('#pipeline').pipeline({
+            type: 'newtask',
+            urls: {
+                homelist: site_url + 'pipeline/',
+                component: site_url + 'pipeline/api/v1/components/',
+                template: site_url + 'pipeline/api/v1/templates/',
+                schemes: site_url + 'pipeline/api/v1/schemes/',
+                instance: site_url + 'pipeline/api/v1/instances/',
+                instance_detail: site_url + 'pipeline/instance/',
+                subform: site_url + 'pipeline/api/v1/form/sub_proc/',
+            },
+            context: {
+                site_url: site_url,
+                biz_cc_id: '215',
+            }
+        })
+    
+    </script>
+
+</body>
+</html>

@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 from kombu import Exchange, Queue
 
 default_exchange = Exchange('default', type='direct')
@@ -13,6 +18,11 @@ default_exchange = Exchange('default', type='direct')
 PIPELINE_ROUTING = {
     'queue': 'pipeline',
     'routing_key': 'pipeline_push'
+}
+
+PIPELINE_ADDITIONAL_ROUTING = {
+    'queue': 'pipeline_additional_task',
+    'routing_key': 'additional_task'
 }
 
 CELERY_ROUTES = {
@@ -30,10 +40,9 @@ CELERY_ROUTES = {
     'pipeline.engine.tasks.wake_up': PIPELINE_ROUTING,
     'pipeline.engine.tasks.process_unfreeze': PIPELINE_ROUTING,
     # another
-    'pipeline.log.tasks.clean_expired_log': {
-        'queue': 'pipeline_additional_task',
-        'routing_key': 'additional_task'
-    }
+    'pipeline.log.tasks.clean_expired_log': PIPELINE_ADDITIONAL_ROUTING,
+    'pipeline.engine.tasks.node_timeout_check': PIPELINE_ADDITIONAL_ROUTING,
+    'pipeline.contrib.periodic_task.tasks.periodic_task_start': PIPELINE_ADDITIONAL_ROUTING,
 }
 
 CELERY_QUEUES = (
