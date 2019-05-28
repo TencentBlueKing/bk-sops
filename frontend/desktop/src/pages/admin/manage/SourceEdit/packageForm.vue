@@ -15,9 +15,16 @@
             <div
                 :class="['title', { 'fold': !isSettingPanelShow }]"
                 @click="onTogglePanelShow">
-                {{i18n.sourceName}}: main_source1
+                {{i18n.sourceName}}: {{ name || i18n.noName }}
             </div>
-            <bk-button type="default" size="mini" class="delete-btn">{{i18n.delete}}</bk-button>
+            <bk-button
+                type="default"
+                size="mini"
+                class="delete-btn"
+                @click="onDeleteSource">
+                {{i18n.delete}}
+            </bk-button>
+            <div class="error-msg" v-if="showError">{{i18n.errorMsg}}</div>
         </div>
         <div class="package-setting" v-show="isSettingPanelShow">
             <table class="form-table">
@@ -30,7 +37,19 @@
                         </th>
                         <td class="value">
                             <div class="form-content">
-                                <input type="text" class="package-name" v-model="name">
+                                <input
+                                    type="text"
+                                    class="package-name"
+                                    name="packageName"
+                                    v-model="name"
+                                    v-validate="nameRule"
+                                    :disabled="isEditing"
+                                    @blur="onPackageNameBlur">
+                                <span
+                                    v-show="errors.has('packageName')"
+                                    class="common-error-tip error-msg">
+                                    {{ errors.first('packageName') }}
+                                </span>
                             </div>
                         </td>
                     </tr>
@@ -45,6 +64,7 @@
                                 <bk-selector
                                     :list="list"
                                     :selected="type"
+                                    :disabled="isEditing"
                                     @item-selected="onTypeSelect">
                                 </bk-selector>
                             </div>
@@ -52,36 +72,47 @@
                     </tr>
                     <tr>
                         <th>
-                            <div class="form-label">
+                            <div class="form-label required">
                                 <label>{{i18n.desc}}</label>
                             </div>
                         </th>
                         <td class="value">
                             <div class="form-content">
-                                <textarea rows="4" class="package-desc"></textarea>
+                                <textarea
+                                    rows="4"
+                                    class="package-desc"
+                                    name="packageDesc"
+                                    v-model="desc"
+                                    v-validate="descRule"
+                                    @blur="onPackageDescBlur">
+                                </textarea>
+                                <span
+                                    v-show="errors.has('packageDesc')"
+                                    class="common-error-tip error-msg">
+                                    {{ errors.first('packageDesc') }}
+                                </span>
                             </div>
                         </td>
                     </tr>
                     <tr>
                         <th>
-                            <div class="form-label required">
+                            <div class="form-label">
                                 <label>{{i18n.detail}}</label>
                             </div>
                         </th>
                         <td class="value">
                             <table class="detail-table">
                                 <tbody>
-                                    <tr>
-                                        <th>仓库地址</th>
-                                        <td>http://tag.open.com</td>
-                                    </tr>
-                                    <tr>
-                                        <th>仓库静态文件地址</th>
-                                        <td>gdfgf</td>
-                                    </tr>
-                                    <tr>
-                                        <th>分支</th>
-                                        <td>fsdfsdfsdfsdf</td>
+                                    <tr v-for="field in detailFields" :key="field.id">
+                                        <th>{{field.name}}</th>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                class="table-input"
+                                                :placeholder="i18n.placeholder"
+                                                v-model="details[field.id]"
+                                                @blur="onDetailInputBlur(field.id)">
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -89,7 +120,7 @@
                     </tr>
                     <tr>
                         <th>
-                            <div class="form-label required">
+                            <div class="form-label">
                                 <label>{{i18n.module}}</label>
                             </div>
                         </th>
@@ -97,21 +128,45 @@
                             <table class="module-table">
                                 <thead>
                                     <tr>
-                                        <th>{{i18n.rootModule}}</th>
+                                        <th>{{i18n.subModule}}</th>
                                         <th>{{i18n.version}}</th>
                                         <th>{{i18n.importModule}}</th>
                                         <th>{{i18n.operation}}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>fccdsadf</td>
-                                        <td>1.0</td>
-                                        <td>fasdfasdfasdf</td>
-                                        <td><bk-button type="default" size="mini" class="delete-btn">{{i18n.delete}}</bk-button></td>
+                                    <tr v-for="(item, index) in packageValues" :key="index">
+                                        <td>
+                                            <input
+                                                type="text"
+                                                class="table-input"
+                                                :placeholder="i18n.placeholder"
+                                                :value="item.key"
+                                                @blur="onPackageInputBlur($event, 'key', index)">
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                class="table-input"
+                                                :placeholder="i18n.placeholder"
+                                                :value="item.version"
+                                                @blur="onPackageInputBlur($event, 'version', index)">
+                                        </td>
+                                        <td>
+                                            <input
+                                                type="text"
+                                                class="table-input"
+                                                :placeholder="i18n.placeholder"
+                                                :value="item.modules.join(',')"
+                                                @blur="onPackageInputBlur($event, 'modules', index)">
+                                        </td>
+                                        <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage">{{i18n.delete}}</bk-button></td>
                                     </tr>
                                 </tbody>
                             </table>
+                            <div class="add-module">
+                                <bk-button type="default" size="mini" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -120,38 +175,204 @@
     </div>
 </template>
 <script>
+    import { SOURCE_TYPE } from '@/constants/manage.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+
     export default {
         name: 'PackageForm',
+        props: {
+            value: {
+                type: Object,
+                default () {
+                    return {
+                        id: '',
+                        name: '',
+                        type: 'git',
+                        desc: '',
+                        details: {
+                            repo_address: '',
+                            repo_raw_address: '',
+                            branch: ''
+                        },
+                        packages: {}
+                    }
+                }
+            },
+            sourceIndex: {
+                type: Number,
+                default: 0
+            }
+        },
         data () {
+            const list = this.getSourceTypeList()
+            const { name, type, desc, details, packages } = this.value
+            const packageValues = this.getPackageValues(packages)
+            const [detailFields] = this.getSourceKeys(type)
             return {
-                name: '',
-                type: 'git',
-                desc: '',
-                info: {},
-                module: [],
-                list: [{ id: 'git', name: 'Git' }],
+                name,
+                type,
+                desc,
+                details,
+                packages,
+                list,
+                detailFields,
+                packageValues,
                 isSettingPanelShow: true,
+                showError: false,
+                // 名称校验规则
+                nameRule: {
+                    required: true,
+                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
+                // 描述校验规则
+                descRule: {
+                    required: true,
+                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
                 i18n: {
                     sourceName: gettext('包源名'),
+                    noName: gettext('未命名'),
                     delete: gettext('删除'),
                     name: gettext('名称'),
                     type: gettext('类型'),
                     desc: gettext('描述'),
                     detail: gettext('详细信息'),
                     module: gettext('模块配置'),
-                    rootModule: gettext('根模块'),
+                    placeholder: gettext('请输入'),
+                    subModule: gettext('子模块名称'),
                     version: gettext('版本'),
                     importModule: gettext('导入模块'),
-                    operation: gettext('操作')
+                    operation: gettext('操作'),
+                    add: gettext('添加'),
+                    errorMsg: gettext('输入有误，请展开检查')
                 }
             }
         },
+        computed: {
+            isEditing () {
+                return typeof this.value.id === 'number'
+            }
+        },
         methods: {
+            getSourceTypeList () {
+                return SOURCE_TYPE.map(item => {
+                    return {
+                        id: item.type,
+                        name: item.name
+                    }
+                })
+            },
+            getSourceKeys (type) {
+                const detailFields = []
+                const detailValues = {}
+
+                const source = SOURCE_TYPE.find(item => item.type === type)
+                for (const key in source.keys) {
+                    detailFields.push({
+                        id: key,
+                        name: source.keys[key]
+                    })
+                    detailValues[key] = ''
+                }
+                
+                return [detailFields, detailValues]
+            },
+            /**
+             * packages 的值由对象转为数组 packageValues
+             */
+            getPackageValues (packages) {
+                const values = []
+                for (const key in packages) {
+                    values.push({
+                        key: key,
+                        version: packages[key].version,
+                        modules: packages[key].modules
+                    })
+                }
+                console.log(values)
+                return values
+            },
+            /**
+             * packageValues 的值由数组转为对象 packages
+             */
+            getPackages () {
+                const packages = {}
+                this.packageValues.forEach(item => {
+                    if (item.key) {
+                        packages[item.key] = {
+                            version: item.version,
+                            modules: item.modules
+                        }
+                    }
+                })
+                return packages
+            },
+            updateValue (key, val) {
+                this.$emit('updateSource', key, val, this.sourceIndex)
+            },
+            validate () {
+                return this.$validator.validateAll().then(result => {
+                    return result
+                })
+            },
             onTogglePanelShow () {
                 this.isSettingPanelShow = !this.isSettingPanelShow
+                if (!this.isSettingPanelShow) {
+                    this.validate().then(result => {
+                        if (!result) {
+                            this.showError = true
+                        }
+                    })
+                } else {
+                    this.showError = false
+                }
             },
             onTypeSelect (type) {
-                this.type = type
+                this.type = type;
+                [this.detailFields, this.details] = this.getSourceKeys(type)
+                this.updateValue('type', this.type)
+                this.updateValue('details', this.details)
+            },
+            onAddPackage () {
+                this.packageValues.push({
+                    key: '',
+                    version: '',
+                    modules: []
+                })
+            },
+            onDeletePackage (index) {
+                this.packageValues.splice(index, 1)
+
+                const packages = this.getPackages()
+                this.updateValue('packages', packages)
+            },
+            onPackageNameBlur () {
+                this.updateValue('name', this.name)
+            },
+            onPackageDescBlur () {
+                this.updateValue('desc', this.desc)
+            },
+            onDetailInputBlur (field) {
+                this.updateValue('details', this.details)
+            },
+            onPackageInputBlur (e, type, index) {
+                const val = e.target.value
+                if (type === 'key') {
+                    this.packageValues[index].key = val
+                } else if (type === 'version') {
+                    this.packageValues[index].version = val
+                } else {
+                    const modules = val.split(',')
+                    this.packageValues[index].modules = modules
+                }
+
+                const packages = this.getPackages()
+                this.updateValue('packages', packages)
+            },
+            onDeleteSource () {
+                this.$emit('deleteSource')
             }
         }
     }
@@ -159,7 +380,7 @@
 <style lang="scss" scoped>
     .package-form {
         margin-bottom: 30px;
-        background: rgb(240, 241, 245);
+        background: #f0f1f5;
         border-radius: 2px;
     }
     .form-header {
@@ -171,6 +392,11 @@
             padding-left: 20px;
             font-size: 14px;
             font-weight: 700;
+            max-width: 300px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            vertical-align: middle;
             cursor: pointer;
             &:hover {
                 color: #3a84ff;
@@ -199,12 +425,21 @@
         }
         .delete-btn {
             position: absolute;
-            top: 20px;
+            top: 22px;
             right: 20px;
+            font-size: 12px;
+        }
+        .error-msg {
+            position: absolute;
+            top: 25px;
+            left: 350px;
             font-size: 14px;
+            line-height: 1;
+            color: #ff5757;
         }
     }
-    .delete-btn {
+    .delete-btn,
+    .add-btn {
         padding: 0;
         background: transparent;
         border: none;
@@ -218,7 +453,7 @@
         border-collapse: collapse;
         font-size: 14px;
         th, td {
-            padding: 9px;
+            padding: 10px;
         }
         th {
             position: relative;
@@ -245,7 +480,14 @@
             
         }
         .form-content {
+            position: relative;
             width: 40%;
+            .common-error-tip {
+                position: absolute;
+                bottom: -15px;
+                left: 0;
+                white-space: nowrap;
+            }
         }
         .package-name {
             padding: 0 10px;
@@ -262,9 +504,17 @@
             &:active {
                 border-color: #3c96ff;
             }
+            &[disabled="disabled"] {
+                color: #aaa;
+                cursor: not-allowed;
+                background: #fafafa;
+                &:hover {
+                    border-color: #c3cdd7;
+                }
+            }
         }
         .package-desc {
-            display: inline-block;
+            display: block;
             padding: 10px;
             width: 100%;
             border: 1px solid #c3cdd7;
@@ -284,6 +534,7 @@
     }
     .detail-table {
         width: 100%;
+        font-size: 12px;
         border-collapse: collapse;
         background: #ffffff;
         th,td {
@@ -298,6 +549,7 @@
     }
     .module-table {
         width: 100%;
+        font-size: 12px;
         border-collapse: collapse;
         background: #ffffff;
         text-align: center;
@@ -309,5 +561,21 @@
             font-weight: 700;
             text-align: center;
         }
+    }
+    .table-input {
+        width: 100%;
+        color: #63656e;
+        border: none;
+        outline: none;
+    }
+    .add-module {
+        height: 40px;
+        line-height: 40px;
+        font-size: 12px;
+        text-align: center;
+        color: #3a84ff;
+        background: #ffffff;
+        border: 1px solid #dde4eb;
+        border-top: none;
     }
 </style>

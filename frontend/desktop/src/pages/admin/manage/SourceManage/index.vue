@@ -1,49 +1,52 @@
 <template>
-    <div class="source-manage">
+    <div class="source-manage" v-bkloading="{ isLoading: loading }">
         <div class="operate-area">
             <router-link
                 to="/admin/manage/source_edit/package_edit/"
                 class="operate-btn bk-button bk-primary">
-                {{ false ? i18n.create : i18n.edit }}
+                {{ emptyData ? i18n.create : i18n.edit }}
             </router-link>
         </div>
-        <div class="section-title">
-            <div class="title-wrapper">
-                <h4>{{i18n.mainSource}}</h4>
-                <i
-                    class="title-tooltip bk-icon icon-info-circle"
-                    v-bktooltips.right="i18n.sourceTip">
-                </i>
+        <div v-if="originList.length">
+            <div class="section-title">
+                <div class="title-wrapper">
+                    <h4>{{i18n.mainSource}}</h4>
+                    <i
+                        class="title-tooltip bk-icon icon-info-circle"
+                        v-bktooltips.right="i18n.sourceTip">
+                    </i>
+                </div>
             </div>
+            <package-table v-for="value in originList" :key="value.id" :value="value"></package-table>
         </div>
-        <template>
-            <package-table></package-table>
-            <package-table></package-table>
-        </template>
-        <NoData v-if="false"></NoData>
-        <div class="section-title">
-            <div class="title-wrapper">
-                <h4>{{i18n.localCache}}</h4>
-                <i
-                    class="title-tooltip bk-icon icon-info-circle"
-                    v-bktooltips.right="i18n.cacheTip">
-                </i>
+        <div v-if="originList.length">
+            <div class="section-title">
+                <div class="title-wrapper">
+                    <h4>{{i18n.localCache}}</h4>
+                    <i
+                        class="title-tooltip bk-icon icon-info-circle"
+                        v-bktooltips.right="i18n.cacheTip">
+                    </i>
+                </div>
             </div>
+            <local-cache v-for="cache in cacheList" :key="cache.id" :value="cache"></local-cache>
+            <NoData v-if="!cacheList.length"></NoData>
         </div>
-        <local-cache v-if="true"></local-cache>
-        <NoData v-else></NoData>
-        <div class="empty-data" v-if="false">
+        <div class="empty-data" v-if="emptyData">
             <p>{{i18n.noData}}<router-link to="/admin/manage/source_edit/package_edit/">{{i18n.create}}</router-link>{{i18n.sourceManage}}</p>
         </div>
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
     import PackageTable from './PackageTable.vue'
     import LocalCache from './LocalCache.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
-        name: 'SourceSync',
+        name: 'SourceManage',
         components: {
             PackageTable,
             LocalCache,
@@ -51,6 +54,10 @@
         },
         data () {
             return {
+                emptyData: false,
+                originList: [],
+                cacheList: [],
+                loading: true,
                 i18n: {
                     create: gettext('新建'),
                     edit: gettext('编辑'),
@@ -62,13 +69,50 @@
                     cacheTip: gettext('Yyyyyyyyy')
                 }
             }
+        },
+        created () {
+            this.loadData()
+        },
+        methods: {
+            ...mapActions('manage', [
+                'loadPackageSource'
+            ]),
+            async loadData () {
+                this.loading = true
+                try {
+                    const data = await this.loadPackageSource()
+                    if (data.objects.length === 0) {
+                        this.emptyData = true
+                    } else {
+                        this.transformData(data.objects)
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.loading = false
+                }
+            },
+            transformData (data) {
+                const originList = []
+                const cacheList = []
+                data.forEach(item => {
+                    if (item.category === 'origin') {
+                        originList.push(item)
+                    } else {
+                        cacheList.push(item)
+                    }
+                })
+                this.originList = originList
+                this.cacheList = cacheList
+            }
         }
     }
 </script>
 <style lang="scss" scoped>
     .source-manage {
-        height: calc(100% - 80px);
         padding: 0 60px 60px;
+        min-height: calc(100% - 80px);
+        background: #f4f7fa;
     }
     .operate-area {
         .operate-btn {
