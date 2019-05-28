@@ -246,11 +246,11 @@ class PackageSourceResource(Resource):
                                                                 original_kwargs,
                                                                 **base_kwargs)
                 else:
-                    source_model.objects.add_origin_source(origin['name'],
-                                                           source_type,
-                                                           origin['packages'],
-                                                           original_kwargs,
-                                                           **base_kwargs)
+                    source_model.objects.add_original_source(origin['name'],
+                                                             source_type,
+                                                             origin['packages'],
+                                                             original_kwargs,
+                                                             **base_kwargs)
 
     def obj_get(self, bundle, **kwargs):
         raise NotFound("Invalid resource uri, please use obj_get_list")
