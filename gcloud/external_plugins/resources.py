@@ -136,6 +136,7 @@ class PackageSourceResource(Resource):
                     CachePackageSource.objects.add_cache_source(cache['name'],
                                                                 cache['type'],
                                                                 cache_packages,
+                                                                cache.get('desc', ''),
                                                                 **cache['details'])
                 except exceptions.GcloudExternalPluginsError as e:
                     message = 'Create cache source raise error: %s' % e
@@ -212,11 +213,14 @@ class PackageSourceResource(Resource):
                             message = 'Invalid cache source id: %s, which cannot be found' % cache['id']
                             logger.error(message)
                             raise BadRequest(message)
+                        if cache.get('desc', ''):
+                            CachePackageSource.objects.filter(id=cache['id']).update(desc=cache['desc'])
                     else:
                         try:
                             CachePackageSource.objects.add_cache_source(cache['name'],
                                                                         cache['type'],
                                                                         cache_packages,
+                                                                        cache.get('desc', ''),
                                                                         **cache['details'])
                         except exceptions.GcloudExternalPluginsError as e:
                             message = 'Create cache source raise error: %s' % e.message
@@ -239,7 +243,8 @@ class PackageSourceResource(Resource):
                 # original_kwargs mains field in origin model but not in base model(e.g. repo_address、desc)
                 source_model = source_cls_factory[source_type]
                 original_kwargs, base_kwargs = source_model.objects.divide_details_parts(source_type, details)
-                original_kwargs['desc'] = origin.get('desc', '')
+                if origin.get('desc', ''):
+                    original_kwargs['desc'] = origin['desc']
                 if 'id' in origin:
                     source_model.objects.update_original_source(origin['id'],
                                                                 origin['packages'],
