@@ -84,7 +84,8 @@ class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
 
     def _get_business_for_user(self, user, perms):
         business_list = get_business_for_user(user, perms)
-        return business_list.filter(~(Q(status='disabled')) & Q(life_cycle=Business.LIFE_CYCLE_ONLINE))
+        return business_list.exclude(status='disabled') \
+                            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
 
     def _get_objects_for_user(self, object_list, bundle, perms):
         user = bundle.request.user
@@ -299,8 +300,8 @@ class GCloudModelResource(ModelResource):
 
 class BusinessResource(GCloudModelResource):
     class Meta:
-        queryset = Business.objects.exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")]) \
-                                   .exclude(status='disabled')
+        queryset = Business.objects.exclude(status='disabled') \
+                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
         authorization = GCloudReadOnlyAuthorization()
