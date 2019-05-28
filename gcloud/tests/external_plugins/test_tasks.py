@@ -17,21 +17,12 @@ from pipeline.contrib.external_plugins.models import GIT, S3
 
 from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
-from gcloud.external_plugins.models import SyncTask
 from gcloud.external_plugins.tasks import sync_task
 
 
 class TestSyncTask(TestCase):
-    def setUp(self):
-        self.sync_task = SyncTask.objects.create(
-            creator='user1',
-            create_method='manual'
-        )
 
-    def tearDown(self):
-        SyncTask.objects.all().delete()
-
-    @patch(GCLOUD_EXTERNAL_PLUGINS_TASKS_TASK, MagicMock(return_value=True))
+    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_SYNC_TASK_GET, MockSyncTaskModel)
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL,
            MagicMock(return_value=[MockWriterAndReader(name='git', id=1, type=GIT)]))
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_S3_ORIGINAL_PACKAGE_SOURCE_ALL,
@@ -40,12 +31,12 @@ class TestSyncTask(TestCase):
     def test_sync_task__git_and_s3_normal(self):
         with patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_PACKAGE_SOURCE_ALL,
                    MagicMock(return_value=[MockWriterAndReader(name='cache', id=1, type=GIT)])):
-            self.assertTrue(sync_task(self.sync_task.id))
+            self.assertTrue(sync_task(1))
         with patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_CACHE_PACKAGE_SOURCE_ALL,
                    MagicMock(return_value=[MockWriterAndReader(name='cache', id=1, type=GIT, raise_exception=True)])):
-            self.assertFalse(sync_task(self.sync_task.id))
+            self.assertFalse(sync_task(1))
 
-    @patch(GCLOUD_EXTERNAL_PLUGINS_TASKS_TASK, MagicMock(return_val=True))
+    @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_SYNC_TASK_GET, MockSyncTaskModel)
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL,
            MagicMock(return_value=[MockWriterAndReader(name='git', id=1, type=GIT)]))
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_S3_ORIGINAL_PACKAGE_SOURCE_ALL,
@@ -53,4 +44,4 @@ class TestSyncTask(TestCase):
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_FS_ORIGINAL_PACKAGE_SOURCE_ALL, MagicMock(return_val=[]))
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_GIT_ORIGINAL_PACKAGE_SOURCE_ALL, MagicMock(return_val=[]))
     def test_sync_task__git_normal_and_s3_abnormal(self):
-        self.assertFalse(sync_task(self.sync_task.id))
+        self.assertFalse(sync_task(1))

@@ -144,3 +144,14 @@ class MockClsFactory(object):
 
     def __contains__(self, key):
         return True
+
+
+class MockSyncTaskModel(object):
+    def __init__(self, id):
+        self.id = id
+        self.status = None
+        self.details = None
+
+    def finish_task(self, status, details=None):
+        self.status = status
+        self.details = details
