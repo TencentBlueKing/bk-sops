@@ -18,22 +18,24 @@ Query individual flow template details of the business
 |---------------|------------|--------|---------------|
 | bk_biz_id     | string     |   YES   |  the business ID   |
 | template_id   | string     |   YES   |  the task ID       |
+|   template_source | string   | NO    | source of flow，default value is business. business: from business, common: from common flow |
 
 ### Request Parameters Example
 
-```python
+```
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "1",
-    "template_id": "30"
+    "template_id": "30",
+    "template_source": "business",
 }
 ```
 
 ### Return Result Example
 
-```python
+```
 {
     "result": true,
     "data": {
@@ -183,7 +185,7 @@ Query individual flow template details of the business
 }
 ```
 
-### Return Result Parameters DescriptionExample
+### Return Result Description
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
@@ -224,7 +226,7 @@ Query individual flow template details of the business
 |-----------|----------|-----------|
 |  start_event      |    dict    |      start node     |
 |  end_event      |    dict    |      end node    |
-|  activities      |    dict    |      task node（atoms or subprocess）info    |
+|  activities      |    dict    |      task node（standard plugins or subprocess）info    |
 |  gateways      |    dict    |      gateways（parallel gateway、exclusive gateway、exclusive gateway）info    |
 |  flows      |    dict    |      sequenceFlow（the line between nodes）info    |
 |  constants      |    dict    |  global variables, details are described below    |
@@ -244,5 +246,5 @@ KEY, the format is like ${key}
 |  desc      |    string    |     description   |
 |  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters   |
 |  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
-|  source_tag   | string   |      source tag and atom info, which is not empty when source_type is  component_inputs or component_outputs  |
+|  source_tag   | string   |      source tag and standard plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
 |  source_info | dict    |        source info about task node ID  |

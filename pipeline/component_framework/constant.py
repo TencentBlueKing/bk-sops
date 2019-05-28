@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
+
 import copy
 
 from pipeline.exceptions import ConstantNotExistException, ConstantReferenceException
@@ -50,7 +55,7 @@ class ConstantPool(object):
                 value = temp_pool[ref]['value']
 
                 # resolve those constants which reference the 'ref'
-                for key, info in temp_pool.iteritems():
+                for key, info in temp_pool.items():
                     maps = {deformat_constant_key(ref): value}
                     temp_pool[key]['value'] = ConstantTemplate(info['value']).resolve_data(maps)
 
@@ -63,7 +68,7 @@ class ConstantPool(object):
     @staticmethod
     def _get_referenced_only(pool):
         referenced_only = []
-        for key, info in pool.iteritems():
+        for key, info in pool.items():
             reference = ConstantTemplate(info['value']).get_reference()
             formatted_reference = ['${%s}' % ref for ref in reference]
             reference = [c for c in formatted_reference if c in pool]
@@ -73,7 +78,7 @@ class ConstantPool(object):
 
     def get_reference_info(self, strict=True):
         refs = {}
-        for key, info in self.raw_pool.iteritems():
+        for key, info in self.raw_pool.items():
             reference = ConstantTemplate(info['value']).get_reference()
             formatted_reference = ['${%s}' % ref for ref in reference]
             ref = [c for c in formatted_reference if not strict or c in self.raw_pool]

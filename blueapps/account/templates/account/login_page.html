@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>即将转入蓝鲸登录...</title>
+        <link href="{{ REMOTE_STATIC_URL }}bk/base.css?v={{ STATIC_VERSION }}" rel="stylesheet" type="text/css"/>
+        <link href="{{ REMOTE_STATIC_URL }}bk/bk.css?v={{ STATIC_VERSION }}" rel="stylesheet" type="text/css"/>
+    </head>
+    <body>
+        <div class="errors-login-wrap box">
+            <img src="{{ REMOTE_STATIC_URL }}bk/style_custom/images/expre_login.jpg" width="183" height="113" />
+            <div class="errors-login-con clearfix">          
+                <h1>您需要登录蓝鲸</h1>
+                <p><strong>看起来：</strong></p>
+                <p>1.您还没有登录蓝鲸</p>
+                <p>2.您之前的登录已经失效了</p> 
+                <a href="javascript:;" class="btn-jump f_r" onclick='login()'>立即登录</a>
+            </div>
+        </div>
+
+
+        <script type="text/javascript">
+            var remote_static_url = "{{ REMOTE_STATIC_URL }}";
+            var refer_url = "{{ refer_url }}";
+        </script>
+
+        <script src="{{ REMOTE_STATIC_URL }}jquery/jquery-1.7.2.min.js"></script>
+        <script src="{{ REMOTE_STATIC_URL }}jquery/jquery.json-2.3.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}account/login.js"></script>
+
+        <script type="text/javascript">
+            $(function(){
+                login();
+            })
+            
+            function login(){
+                // 仅触发弹框
+                $.get(refer_url, {}, function(){}, 'json');
+
+                window.close_login_dialog_after = function () {
+                    window.location.href = refer_url;
+                }
+            }
+        </script>
+    </body>
+</html>

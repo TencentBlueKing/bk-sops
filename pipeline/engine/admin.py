@@ -1,16 +1,21 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-""" # noqa
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+"""
 
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.engine import models
+from pipeline.service import task_service
 from pipeline.engine.core import api
 from pipeline.engine.conf.function_switch import (FREEZE_ENGINE)
 
@@ -25,10 +30,15 @@ class PipelineModelAdmin(admin.ModelAdmin):
 @admin.register(models.PipelineProcess)
 class PipelineProcessAdmin(admin.ModelAdmin):
     list_display = ['id', 'root_pipeline_id', 'current_node_id', 'destination_id',
-                    'parent_id', 'need_ack', 'ack_num', 'is_alive', 'is_sleep']
-    search_fields = ['id', 'root_pipeline_id']
+                    'parent_id', 'need_ack', 'ack_num', 'is_alive', 'is_sleep', 'is_frozen']
+    search_fields = ['id', 'root_pipeline_id', 'current_node_id']
     list_filter = ['is_alive', 'is_sleep']
     raw_id_fields = ['snapshot']
+
+
+def force_fail_node(modeladmin, request, queryset):
+    for item in queryset:
+        task_service.forced_fail(item.id)
 
 
 @admin.register(models.Status)
@@ -37,6 +47,7 @@ class StatusAdmin(admin.ModelAdmin):
                     'created_time', 'started_time', 'archived_time']
     search_fields = ['id']
     list_filter = ['state', 'skip']
+    actions = [force_fail_node]
 
 
 @admin.register(models.ScheduleService)
@@ -57,6 +68,30 @@ class ProcessCeleryTaskAdmin(admin.ModelAdmin):
 class DataAdmin(admin.ModelAdmin):
     list_display = ['id', 'inputs', 'outputs', 'ex_data']
     search_fields = ['id']
+
+
+@admin.register(models.HistoryData)
+class HistoryDataAdmin(admin.ModelAdmin):
+    list_display = ['id', 'inputs', 'outputs', 'ex_data']
+    search_fields = ['id']
+
+
+@admin.register(models.History)
+class HistoryAdmin(admin.ModelAdmin):
+    list_display = ['identifier', 'started_time', 'archived_time']
+    search_fields = ['identifier']
+
+
+@admin.register(models.ScheduleCeleryTask)
+class ScheduleCeleryTaskAdmin(admin.ModelAdmin):
+    list_display = ['schedule_id', 'celery_task_id']
+    search_fields = ['schedule_id']
+
+
+@admin.register(models.NodeCeleryTask)
+class NodeCeleryTaskAdmin(admin.ModelAdmin):
+    list_display = ['node_id', 'celery_task_id']
+    search_fields = ['node_id']
 
 
 on = True
