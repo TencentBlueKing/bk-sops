@@ -123,15 +123,18 @@ def mock_os_walk(local):
 
 class MockWriterAndReader(object):
     def __init__(self, *args, **kwargs):
-        self.args = args
         self.kwargs = kwargs
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
-    @staticmethod
-    def write():
+    def write(self, sub_dir=None):
+        if 'raise_exception' in self.kwargs:
+            raise Exception('error')
         return True
 
-    @staticmethod
-    def read():
+    def read(self):
+        if 'raise_exception' in self.kwargs:
+            raise Exception('error')
         return True
 
 
@@ -141,3 +144,14 @@ class MockClsFactory(object):
 
     def __contains__(self, key):
         return True
+
+
+class MockSyncTaskModel(object):
+    def __init__(self, id):
+        self.id = id
+        self.status = None
+        self.details = None
+
+    def finish_task(self, status, details=None):
+        self.status = status
+        self.details = details

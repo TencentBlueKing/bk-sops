@@ -11,14 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+from django.test import TestCase
 
-from django.apps import AppConfig
+from gcloud.tests.external_plugins.mock import *  # noqa
+from gcloud.tests.external_plugins.mock_settings import *  # noqa
+from gcloud.external_plugins.models import SyncTask
 
 
-class ExternalPluginsConfig(AppConfig):
-    name = 'gcloud.external_plugins'
-    verbose_name = 'GcloudExternalPlugins'
+class TestSignalsHandlers(TestCase):
 
-    def ready(self):
-        from gcloud.external_plugins.signals.handlers import sync_task_post_save_handler  # noqa
+    def test_post_save_handler(self):
+        with patch(GCLOUD_EXTERNAL_PLUGINS_SYNC_TASK_DELAY, MagicMock()) as mocked_handler:
+            self.sync_task = SyncTask.objects.create(
+                creator='user1',
+                create_method='manual'
+            )
+            self.assertEquals(mocked_handler.call_count, 1)
