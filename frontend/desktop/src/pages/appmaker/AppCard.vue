@@ -11,8 +11,8 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-basic" @click.self="onGotoAppMaker">
-            <div class="logo">
+        <div class="card-basic">
+            <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
@@ -117,10 +117,7 @@
             },
             onGotoAppMaker () {
                 if (self === top) {
-                    this.$bkMessage({
-                        'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
-                        'theme': 'warning'
-                    })
+                    window.open(this.appData.link, '_blank')
                 } else {
                     window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
                 }
@@ -178,6 +175,7 @@
         width: 60px;
         height: 60px;
         margin: 0 auto;
+        cursor: pointer;
         .logo-pic {
             width: 60px;
             height: 60px;
