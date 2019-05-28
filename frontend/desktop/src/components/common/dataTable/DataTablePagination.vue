@@ -301,6 +301,11 @@
         }
       }
     }
+    .el-table__row{
+      td {
+        color: #63656e;
+      }
+    }
     .el-table-column--selection .cell {
       padding: 0;
       text-align: center;
