@@ -23,7 +23,7 @@ CACHE = 'cache'
 
 class CachePackageSourceManager(PackageSourceManager):
     @transaction.atomic()
-    def add_cache_source(self, name, source_type, packages, **kwargs):
+    def add_cache_source(self, name, source_type, packages, desc='', **kwargs):
         if source_type not in writer_cls_factory:
             raise exceptions.CacheSourceTypeError('Source type[%s] does not support as cache source' % source_type)
 
@@ -31,7 +31,7 @@ class CachePackageSourceManager(PackageSourceManager):
             raise exceptions.MultipleCacheSourceError('Can not add multiple cache source')
 
         base_source = super(CachePackageSourceManager, self).add_base_source(name, source_type, packages, **kwargs)
-        return self.create(type=source_type, base_source_id=base_source.id)
+        return self.create(type=source_type, base_source_id=base_source.id, desc=desc)
 
     def get_base_source(self):
         count = self.all().count()
