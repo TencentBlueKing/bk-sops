@@ -35,8 +35,10 @@ from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models import (
     source_cls_factory,
     CachePackageSource,
-    SyncTask
+    SyncTask,
+    RUNNING
 )
+
 from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
 
 logger = logging.getLogger('root')
@@ -306,3 +308,9 @@ class SyncTaskResource(GCloudModelResource):
         }
         q_fields = ["id", "pipeline_template__name"]
         limit = 0
+
+    def obj_create(self, bundle, **kwargs):
+        model = bundle.obj.__class__
+        if model.objects.filter(status=RUNNING).exists():
+            raise BadRequest('There is already a running sync task, please wait for it to complete and try again')
+        return super(SyncTaskResource, self).obj_create(bundle, **kwargs)
