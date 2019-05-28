@@ -130,7 +130,7 @@
             BaseInput,
             ParameterInfo
         },
-        props: ['cc_id', 'template_id', 'common', 'previewData'],
+        props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance'],
         data () {
             return {
                 i18n: {
@@ -185,11 +185,12 @@
                 return this.userType !== 'functor' && this.isStartNow
             },
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor'
+                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== '0' && this.entrance !== '1'
             }
         },
         mounted () {
             this.loadData()
+            this.period()
         },
         methods: {
             ...mapActions('template/', [
@@ -205,6 +206,11 @@
             ...mapActions('periodic/', [
                 'createPeriodic'
             ]),
+            period () {
+                if (this.entrance === '0') {
+                    this.isStartNow = false
+                }
+            },
             async loadData () {
                 this.taskMessageLoading = true
                 try {
@@ -255,7 +261,11 @@
                     if (this.common) {
                         this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
                     } else {
-                        this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                        if (this.entrance !== undefined) {
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
+                        } else {
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                        }
                     }
                 }
             },
