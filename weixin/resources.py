@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.http.response import HttpResponseForbidden
+from tastypie.authorization import ReadOnlyAuthorization
 
 from gcloud.webservice3.resources import (
     BusinessResource,
@@ -33,14 +34,23 @@ class WxBusinessResource(BusinessResource):
 
 
 class WxTaskTemplateResource(TaskTemplateResource):
-    pass
+    def obj_delete(self, bundle, **kwargs):
+        """
+        obj delete is forbidden
+        """
+        return HttpResponseForbidden()
 
 
 class WxTaskFlowInstanceResource(TaskFlowInstanceResource):
+    class Meta(TaskFlowInstanceResource.Meta):
+        authorization = ReadOnlyAuthorization()
     pass
 
 
 class WxTemplateSchemeResource(TemplateSchemeResource):
+    class Meta(TemplateSchemeResource.Meta):
+        authorization = ReadOnlyAuthorization()
+
     def obj_delete(self, bundle, **kwargs):
         """
         obj delete is forbidden
@@ -49,4 +59,6 @@ class WxTemplateSchemeResource(TemplateSchemeResource):
 
 
 class WxComponentModelResource(ComponentModelResource):
+    class Meta(ComponentModelResource.Meta):
+        authorization = ReadOnlyAuthorization()
     pass

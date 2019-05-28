@@ -66,7 +66,9 @@ INSTALLED_APPS += (
     'pipeline_plugins',
     'pipeline_plugins.components',
     'pipeline_plugins.variables',
-    'data_migration'
+    'data_migration',
+    'weixin.core',
+    'weixin',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -100,6 +102,8 @@ MIDDLEWARE += (
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
+    'weixin.core.middlewares.WeixinAuthenticationMiddleware',
+    'weixin.core.middlewares.WeixinLoginMiddleware',
 )
 
 # 所有环境的日志级别可以在这里配置
