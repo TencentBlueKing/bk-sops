@@ -50,9 +50,13 @@
                         border:none;
                     }
                 }
+                .date-scope {
+                    margin-right: 0px;
+                }
                 .content-date-picker {
                     display: inline-block;
                     cursor: pointer;
+                    margin-right: 80px;
                 }
             }
         }
