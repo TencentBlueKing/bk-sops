@@ -131,7 +131,8 @@ const routers = new VueRouter({
                         cc_id: route.params.cc_id,
                         step: route.params.step,
                         template_id: route.query.template_id,
-                        common: route.query.common
+                        common: route.query.common,
+                        entrance: route.query.entrance
                     })
                 }]
         },

@@ -24,6 +24,7 @@
             :current-step="currentStep"
             :cc_id="cc_id"
             :common="common"
+            :entrance="entrance"
             :template_id="template_id"
             :exclude-node="excludeNode"
             :preview-data="previewData"
@@ -65,7 +66,7 @@
             TaskSelectNode,
             TaskParamFill
         },
-        props: ['template_id', 'cc_id', 'step', 'common'],
+        props: ['template_id', 'cc_id', 'step', 'common', 'entrance'],
         data () {
             return {
                 stepList: STEP_DICT.slice(),
