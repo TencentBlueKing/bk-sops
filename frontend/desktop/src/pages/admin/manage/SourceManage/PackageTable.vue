@@ -15,32 +15,24 @@
             <tbody>
                 <tr>
                     <th class="source-label">{{i18n.name}}</th>
-                    <td class="source-content-item">main_source_1</td>
+                    <td class="source-content-item">{{value.name}}</td>
                 </tr>
                 <tr>
                     <th class="source-label">{{i18n.type}}</th>
-                    <td class="source-content-item">Git</td>
+                    <td class="source-content-item">{{value.type}}</td>
                 </tr>
                 <tr>
                     <th class="source-label">{{i18n.desc}}</th>
-                    <td class="source-content-item">我的主源包</td>
+                    <td class="source-content-item">{{value.desc}}</td>
                 </tr>
                 <tr>
                     <th class="source-label">{{i18n.detail}}</th>
                     <td class="source-content-item">
                         <table class="detail-table">
                             <tbody>
-                                <tr>
-                                    <th>仓库地址</th>
-                                    <td>http://radosgw-clouds.open.com</td>
-                                </tr>
-                                <tr>
-                                    <th>仓库静态文件地址</th>
-                                    <td>bucket-1</td>
-                                </tr>
-                                <tr>
-                                    <th>分支</th>
-                                    <td>d323dfa34fafsafsadf3423fasdf</td>
+                                <tr v-for="field in detailFields" :key="field.id">
+                                    <th>{{field.name}}</th>
+                                    <td>{{value.details[field.id]}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -58,10 +50,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>custom_plugins</td>
-                                    <td>1.0</td>
-                                    <td>custom_plugins.a.b.test</td>
+                                <tr v-for="(item, key) in value.packages" :key="key">
+                                    <td>{{key}}</td>
+                                    <td>{{item.version}}</td>
+                                    <td>{{item.modules.join(',')}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -80,9 +72,9 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>custom_plugins</td>
-                                    <td>1.0</td>
-                                    <td>custom_plugins.a.b.test</td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>--</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -93,10 +85,22 @@
     </div>
 </template>
 <script>
+    import { SOURCE_TYPE } from '@/constants/manage.js'
+
     export default {
         name: 'PackageTable',
+        props: {
+            value: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        },
         data () {
+            const detailFields = this.getSourceKeys(this.value.type)
             return {
+                detailFields,
                 i18n: {
                     name: gettext('名称'),
                     type: gettext('类型'),
@@ -111,6 +115,21 @@
                     clsName: gettext('类名'),
                     moduleBelong: gettext('所属模块')
                 }
+            }
+        },
+        methods: {
+            getSourceKeys (type) {
+                const detailFields = []
+
+                const source = SOURCE_TYPE.find(item => item.type === type)
+                for (const key in source.keys) {
+                    detailFields.push({
+                        id: key,
+                        name: source.keys[key]
+                    })
+                }
+                
+                return detailFields
             }
         }
     }
