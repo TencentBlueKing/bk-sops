@@ -13,12 +13,23 @@
     <div class="periodic-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.periodicTask"></BaseTitle>
-            <BaseSearch
-                v-model="periodicName"
-                :input-placeholader="i18n.periodicNamePlaceholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="task-table-content">
+                <bk-button
+                    ref="childComponent"
+                    type="primary"
+                    class="task-create-btn"
+                    size="small"
+                    @click="onCreatePeriodTask">
+                    {{i18n.createPeriodTask}}
+                </bk-button>
+                <BaseSearch
+                    class="base-search"
+                    v-model="periodicName"
+                    :input-placeholader="i18n.periodicNamePlaceholder"
+                    @onShow="onAdvanceShow"
+                    @input="onSearchInput">
+                </BaseSearch>
+            </div>
             <div class="periodic-search" v-show="isAdvancedSerachShow">
                 <fieldset class="periodic-fieldset">
                     <div class="periodic-query-content">
@@ -128,6 +139,14 @@
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
+        <TaskCreateDialog
+            :cc_id="cc_id"
+            :is-new-task-dialog-show="isNewTaskDialogShow"
+            :business-info-loading="businessInfoLoading"
+            :create-entrance="false"
+            :task-category="taskCategory"
+            @onCreateTaskCancel="onCreateTaskCancel">
+        </TaskCreateDialog>
         <ModifyPeriodicDialog
             v-if="isModifyDialogShow"
             :loading="modifyDialogLoading"
@@ -147,7 +166,6 @@
             @onDeletePeriodicCancel="onDeletePeriodicCancel">
         </DeletePeriodicDialog>
     </div>
-    
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -158,6 +176,7 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
     export default {
@@ -167,13 +186,15 @@
             BaseTitle,
             BaseSearch,
             NoData,
+            TaskCreateDialog,
             ModifyPeriodicDialog,
             DeletePeriodicDialog
         },
-        props: ['cc_id'],
+        props: ['cc_id', 'common'],
         data () {
             return {
                 i18n: {
+                    createPeriodTask: gettext('新建'),
                     lastRunAt: gettext('上次运行时间'),
                     periodicRule: gettext('周期规则'),
                     periodicTask: gettext('周期任务'),
@@ -202,6 +223,8 @@
                     query: gettext('搜索'),
                     reset: gettext('清空')
                 },
+                businessInfoLoading: true,
+                isNewTaskDialogShow: false,
                 listLoading: true,
                 deleting: false,
                 currentPage: 1,
@@ -224,11 +247,14 @@
                 modifyDialogLoading: false,
                 selectedTemplateName: undefined,
                 periodicName: undefined,
-                enabledSync: -1
+                enabledSync: -1,
+                periodEntrance: '',
+                taskCategory: []
             }
         },
         created () {
             this.getPeriodicList()
+            this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -237,6 +263,9 @@
                 'setPeriodicEnable',
                 'getPeriodic',
                 'deletePeriodic'
+            ]),
+            ...mapActions('template/', [
+                'loadBusinessBaseInfo'
             ]),
             async getPeriodicList () {
                 this.listLoading = true
@@ -262,6 +291,14 @@
                     errorHandler(e, this)
                 } finally {
                     this.listLoading = false
+                }
+            },
+            async getBizBaseInfo () {
+                try {
+                    const bizBasicInfo = await this.loadBusinessBaseInfo()
+                    this.taskCategory = bizBasicInfo.task_categories
+                } catch (e) {
+                    errorHandler(e, this)
                 }
             },
             searchInputhandler () {
@@ -369,6 +406,12 @@
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onCreatePeriodTask () {
+                this.isNewTaskDialogShow = true
+            },
+            onCreateTaskCancel () {
+                this.isNewTaskDialogShow = false
             }
         }
     }
@@ -384,6 +427,9 @@
     padding: 0 60px;
     min-height: calc(100vh - 240px);
     .advanced-search {
+        margin: 0px;
+    }
+    .task-table-content{
         margin: 20px 0px;
     }
 }
