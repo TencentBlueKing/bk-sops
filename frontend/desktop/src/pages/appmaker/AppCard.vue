@@ -90,7 +90,7 @@
                     appDesc: gettext('应用简介'),
                     editor: gettext('更新人'),
                     editTime: gettext('更新时间'),
-                    executive: gettext('执行记录'),
+                    executive: gettext('执行历史'),
                     modifier: gettext('修改轻应用'),
                     jurisdiction: gettext('使用权限')
                 }
