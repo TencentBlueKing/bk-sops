@@ -139,7 +139,7 @@
     padding: 0 60px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
     .list-wrapper-title {
         height: 60px;
         line-height: 60px;
