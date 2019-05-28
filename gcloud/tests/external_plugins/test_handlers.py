@@ -11,19 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
+from django.test import TestCase
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
+from gcloud.tests.external_plugins.mock import *  # noqa
+from gcloud.tests.external_plugins.mock_settings import *  # noqa
 from gcloud.external_plugins.models import SyncTask
-from gcloud.external_plugins.tasks import sync_task
 
 
-logger = logging.getLogger('celery')
+class TestSignalsHandlers(TestCase):
 
-
-@receiver(post_save, sender=SyncTask)
-def sync_task_post_save_handler(sender, instance, created, **kwargs):
-    if created:
-        sync_task.delay(task_id=instance.id)
+    def test_post_save_handler(self):
+        with patch(GCLOUD_EXTERNAL_PLUGINS_SYNC_TASK_DELAY, MagicMock()) as mocked_handler:
+            self.sync_task = SyncTask.objects.create(
+                creator='user1',
+                create_method='manual'
+            )
+            self.assertEquals(mocked_handler.call_count, 1)
