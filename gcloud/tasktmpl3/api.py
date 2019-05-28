@@ -43,11 +43,17 @@ def form(request, project_id):
                                             project_id=project_id,
                                             is_deleted=False)
     except TaskTemplate.DoesNotExist:
-        return HttpResponseForbidden()
+        return JsonResponse({
+            'result': False,
+            'message': 'there is no template with id(%s)' % template_id
+        })
     ctx = {
-        'form': template.get_form(version),
-        'outputs': template.get_outputs(version),
-        'version': version or template.version
+        'result': True,
+        'data': {
+            'form': template.get_form(version),
+            'outputs': template.get_outputs(version),
+            'version': version or template.version
+        }
     }
     return JsonResponse(ctx)
 
@@ -100,10 +106,10 @@ def collect(request, project_id):
         return JsonResponse(ctx)
 
 
-@require_GET
+@require_POST
 def export_templates(request, project_id):
     try:
-        template_id_list = json.loads(request.GET.get('template_id_list'))
+        template_id_list = json.loads(request.POST.get('template_id_list'))
     except Exception:
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
 
