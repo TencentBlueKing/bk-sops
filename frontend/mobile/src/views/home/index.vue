@@ -10,9 +10,9 @@
         <van-list
             v-model="loading"
             :finished="finished"
-            :finished-text="i18n.finished_text"
+            :finished-text="i18n.finishedText"
             :error.sync="error"
-            :error-text="i18n.error_text"
+            :error-text="i18n.errorText"
             @load="onLoad">
             <div class="panel-list">
                 <van-cell
@@ -43,8 +43,8 @@
             return {
                 businessList: [],
                 i18n: {
-                    error_text: window.gettext('请求失败，点击重新加载'),
-                    finished_text: window.gettext('没有更多了')
+                    errorText: window.gettext('请求失败，点击重新加载'),
+                    finishedText: window.gettext('没有更多了')
                 },
                 loading: false,
                 error: false,

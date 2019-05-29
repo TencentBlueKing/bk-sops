@@ -20,9 +20,9 @@
             <van-list
                 v-model="loading"
                 :finished="finished"
-                :finished-text="i18n.finished_text"
+                :finished-text="i18n.finishedText"
                 :error.sync="error"
-                :error-text="i18n.error_text"
+                :error-text="i18n.errorText"
                 @load="loadData">
                 <van-cell
                     clickable
@@ -71,8 +71,8 @@
                 value: '',
                 i18n: {
                     placeholder: window.gettext('搜索任务名称'),
-                    error_text: window.gettext('请求失败，点击重新加载'),
-                    finished_text: window.gettext('没有更多了'),
+                    errorText: window.gettext('请求失败，点击重新加载'),
+                    finishedText: window.gettext('没有更多了'),
                     to: window.gettext('至')
                 }
             }
@@ -95,7 +95,7 @@
                     }
                     this.taskList = [...this.originalTaskList, ...response.objects]
                     this.originalTaskList = this.taskList
-                    await this.fillTaskStatus()
+                    this.fillTaskStatus()
                 } catch (e) {
                     this.error = true
                     errorHandler(e, this)
