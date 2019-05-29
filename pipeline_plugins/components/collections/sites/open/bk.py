@@ -16,15 +16,14 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
-
-from gcloud.conf import settings as gcloud_settings
+from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
 
 __group_name__ = _(u"蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, more_receiver):
@@ -71,7 +70,7 @@ class NotifyService(Service):
         executor = parent_data.get_one_of_inputs('executor')
         biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
-        client = gcloud_settings.ESB_GET_CLIENT_BY_USER(executor)
+        client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 

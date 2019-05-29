@@ -17,6 +17,7 @@
             :list="stepList"
             :current-step="currentStep"
             :common="common"
+            :instance-name="instanceName"
             :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization

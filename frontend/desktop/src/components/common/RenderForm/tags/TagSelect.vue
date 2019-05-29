@@ -19,12 +19,10 @@
                 filterable
                 :disabled="!editable"
                 :remote="remote"
-                :remote-method="remoteMethod"
                 :multiple-limit="multiple_limit"
                 :multiple="multiple"
                 :no-data-text="empty_text"
-                :placeholder="placeholder"
-                @focus="onFocus">
+                :placeholder="placeholder">
                 <el-option
                     v-for="item in items"
                     v-loading="loading"
@@ -158,64 +156,36 @@
                 return label
             },
             _set_value (value) {
-                if (this.remote && this.remote_cache === null) {
-                    this.remoteMethod('')
-                }
                 this.updateForm(value)
             },
             _get_value () {
                 return this.value
             },
-            onFocus () {
-                if (this.remote && this.remote_cache === null) {
-                    this.remoteMethod('')
-                }
-            },
-            remoteMethod (query) {
-                const $this = this
+            remoteMethod () {
+                const self = this
                 const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url
                 if (!remote_url) return
 
-                this.loading = true
                 // 请求远程数据
-                if (this.remote_cache === null && remote_url) {
+                if (!this.remote_cache && remote_url) {
+                    this.loading = true
                     $.ajax({
                         url: remote_url,
                         method: 'GET',
                         success: function (res) {
-                            const data = $this.remote_data_init(res)
-                            $this.remote_cache = data
+                            const data = self.remote_data_init(res) || []
 
-                            if ($this.remote_cache !== null) {
-                                if (query) {
-                                    $this.items = $this.remote_cache.filter(item => {
-                                        return item.text.toLowerCase()
-                                            .indexOf(query.toLowerCase()) > -1
-                                    })
-                                } else {
-                                    $this.items = $this.remote_cache
-                                }
-                            } else {
-                                $this.items = []
-                            }
-
-                            $this.loading = false
+                            self.items = data
+                            self.remote_cache = data
+                            self.loading = false
                         },
                         error: function (resp) {
-                            $this.placeholder = gettext('请求数据失败')
-                            $this.loading = false
+                            self.placeholder = gettext('请求数据失败')
+                            self.loading = false
                         }
                     })
                 } else {
-                    if (query) {
-                        this.items = this.remote_cache.filter(item => {
-                            return item.text.toLowerCase()
-                                .indexOf(query.toLowerCase()) > -1
-                        })
-                    } else {
-                        this.items = this.remote_cache
-                    }
-                    this.loading = false
+                    this.items = this.remote_cache || []
                 }
             }
         }

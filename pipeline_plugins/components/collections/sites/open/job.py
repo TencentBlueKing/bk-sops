@@ -35,12 +35,10 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
-
-from pipeline.conf import settings
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
+from gcloud.conf import settings
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -51,6 +49,7 @@ __group_name__ = _(u"作业平台(JOB)")
 __group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 class JobService(Service):
