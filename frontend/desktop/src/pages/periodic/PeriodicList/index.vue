@@ -43,7 +43,6 @@
                                 :placeholder="i18n.enabledPlaceholder"
                                 :list="enabledList"
                                 :selected.sync="enabledSync"
-                                :searchable="true"
                                 :allow-clear="true"
                                 @clear="onClearSelectedEnabled"
                                 @item-selected="onSelectEnabled">
@@ -213,7 +212,6 @@
                     page: gettext('页'),
                     periodicNamePlaceholder: gettext('请输入任务名称'),
                     creatorPlaceholder: gettext('请输入创建人'),
-                    statusPlaceholder: gettext('请选择状态'),
                     enabled: gettext('状态'),
                     periodicName: gettext('名称'),
                     editTitle: gettext('请暂停任务后再执行编辑操作'),
