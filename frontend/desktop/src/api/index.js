@@ -1406,6 +1406,41 @@ const api = {
             }
         }
         return request(opts)
+    },
+    /**
+     * 加载远程包源同步任务列表
+     */
+    loadSyncTask (params) {
+        const { limit, offset } = params
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                limit,
+                offset
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 创建远程包源同步
+     */
+    createSyncTask () {
+        const creator = store.state.username
+        const create_method = 'manual'
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                creator,
+                create_method
+            }
+        }
+        return request(opts)
     }
 }
 
