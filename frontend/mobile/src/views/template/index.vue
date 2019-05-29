@@ -37,9 +37,9 @@
             <van-list
                 v-model="loading"
                 :finished="finished"
-                :finished-text="i18n.finished_text"
+                :finished-text="i18n.finishedText"
                 :error.sync="error"
-                :error-text="i18n.error_text"
+                :error-text="i18n.errorText"
                 @load="loadData">
                 <van-cell
                     v-for="item in templateList"
@@ -74,8 +74,8 @@
                 },
                 i18n: {
                     collect: window.gettext('收藏'),
-                    finished_text: window.gettext('没有更多了'),
-                    error_text: window.gettext('请求失败，点击重新加载'),
+                    finishedText: window.gettext('没有更多了'),
+                    errorText: window.gettext('请求失败，点击重新加载'),
                     placeholder: window.gettext('搜索流程名称')
                 },
                 loading: false,

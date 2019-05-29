@@ -30,35 +30,23 @@ class WxBusinessResource(BusinessResource):
     class Meta(BusinessResource.Meta):
         authorization = GCloudReadOnlyAuthorization()
 
-    def obj_delete(self, bundle, **kwargs):
-        """
-        obj delete is forbidden
-        """
-        return HttpResponseForbidden()
-
 
 class WxTaskTemplateResource(TaskTemplateResource):
-    def obj_delete(self, bundle, **kwargs):
-        """
-        obj delete is forbidden
-        """
-        return HttpResponseForbidden()
+    class Meta(TaskTemplateResource.Meta):
+        authorization = GCloudReadOnlyAuthorization()
 
 
 class WxTaskFlowInstanceResource(TaskFlowInstanceResource):
-    class Meta(TaskFlowInstanceResource.Meta):
-        authorization = GCloudReadOnlyAuthorization()
+    def obj_delete(self, bundle, **kwargs):
+        """
+        obj delete is forbidden
+        """
+        return HttpResponseForbidden()
 
 
 class WxTemplateSchemeResource(TemplateSchemeResource):
     class Meta(TemplateSchemeResource.Meta):
         authorization = ReadOnlyAuthorization()
-
-    def obj_delete(self, bundle, **kwargs):
-        """
-        obj delete is forbidden
-        """
-        return HttpResponseForbidden()
 
 
 class WxComponentModelResource(ComponentModelResource):
