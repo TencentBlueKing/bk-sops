@@ -11,11 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 from django.apps import AppConfig
-from django.db.utils import ProgrammingError
+from django.db.utils import ProgrammingError, OperationalError
 
 from pipeline.conf import settings
 from pipeline.utils.register import autodiscover_collections
+
+logger = logging.getLogger('root')
 
 
 class ComponentFrameworkConfig(AppConfig):
@@ -35,6 +39,6 @@ class ComponentFrameworkConfig(AppConfig):
         from pipeline.component_framework.library import ComponentLibrary
         try:
             ComponentModel.objects.exclude(code__in=ComponentLibrary.components.keys()).update(status=False)
-        except ProgrammingError:
+        except (ProgrammingError, OperationalError) as e:
             # first migrate
-            pass
+            logger.exception(e)

@@ -860,11 +860,7 @@ class TaskFlowInstance(models.Model):
 
     @property
     def url(self):
-        if settings.RUN_MODE == 'PRODUCT':
-            prefix = settings.APP_HOST
-        else:
-            prefix = settings.TEST_APP_HOST
-        return '%staskflow/execute/%s/?instance_id=%s' % (prefix, self.business.cc_id, self.id)
+        return '%staskflow/execute/%s/?instance_id=%s' % (settings.APP_HOST, self.business.cc_id, self.id)
 
     @property
     def subprocess_info(self):

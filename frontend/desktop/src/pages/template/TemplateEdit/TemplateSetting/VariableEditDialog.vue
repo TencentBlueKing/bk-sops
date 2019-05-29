@@ -19,13 +19,17 @@
             :is-show.sync="isShow"
             @confirm="onConfirm"
             @cancel="onCancel">
-            <div slot="content">
+            <div slot="content" class="variable-params-content">
                 <RenderForm
                     ref="renderForm"
                     :scheme="renderConfig"
                     :form-option="renderOption"
-                    v-model="formData">
+                    v-model="formData"
+                    @change="onDataChange">
                 </RenderForm>
+                <div class="error-tips" v-if="formError">
+                    <span class="common-error-tip error-info">{{i18n.checkData}}</span>
+                </div>
             </div>
         </bk-dialog>
     </div>
@@ -42,10 +46,12 @@
         props: ['isShow', 'renderConfig', 'renderData', 'renderOption'],
         data () {
             return {
+                formData: tools.deepClone(this.renderData),
+                formError: false,
                 i18n: {
-                    edit: gettext('编辑变量')
-                },
-                formData: tools.deepClone(this.renderData)
+                    edit: gettext('编辑变量'),
+                    checkData: gettext('变量的参数值不合法')
+                }
             }
         },
         methods: {
@@ -54,23 +60,36 @@
                 if (this.$refs.renderForm) {
                     formValid = this.$refs.renderForm.validate()
                 }
-                if (!formValid) return
+                if (!formValid) {
+                    this.formError = true
+                    return
+                }
                 this.$emit('onConfirmDialogEdit', this.formData)
             },
             onCancel () {
                 this.$emit('onCancelDialogEdit')
+            },
+            onDataChange () {
+                this.formError = false
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 .edit-dialog-wrapper {
+    position: relative;
     /deep/ .tag-form {
         margin-left: 0;
     }
     /deep/ .bk-dialog-body {
         max-height: 360px;
         overflow-y: auto;
+    }
+    .error-tips {
+        position: absolute;
+        bottom: 18px;
+        right: 230px;
+        font-size: 12px;
     }
 }
 </style>

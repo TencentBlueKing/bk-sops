@@ -308,7 +308,7 @@ class CommonTemplateManager(BaseTemplateManager):
         if override and (not check_info['can_override']):
             return {
                 'result': False,
-                'message': 'Unable to override common flows from business flows',
+                'message': 'Unable to override common flows or keep ID when importing business flows data',
                 'data': 0
             }
 

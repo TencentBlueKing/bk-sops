@@ -13,8 +13,9 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <span>{{ taskTemplateTitle }}</span>
                 <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
+                <span class="task-title">{{ taskTemplateTitle }}</span>
+                <span class="task-name">{{ instanceName }}</span>
             </div>
         </div>
         <div class="division-line"></div>
@@ -44,7 +45,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName'],
         data () {
             return {
                 i18n: {
@@ -116,7 +117,7 @@
 @import '@/scss/config.scss';
 .step-wrapper {
     background: #f4f7fa;
-    border: 1px solid #cacedb;
+    border-bottom: 1px solid #cacedb;
     .step-header {
         background-color: #f4f7fa;
         .bk-button-default {
@@ -127,15 +128,45 @@
             width: 90px
         }
     }
+    .step-section-title {
+        height: 67px;
+        margin: 0;
+        color: #313238;
+        line-height: 67px;
+        text-align: center;
+    }
+    .task-title {
+        position: absolute;
+        left: 0;
+        padding-left: 30px;
+        font-size: 14px;
+        font-weight: 600;
+        &:before {
+            content: '';
+            display: inline-block;
+            position: relative;
+            top: 4px;
+            right: 10px;
+            width: 2px;
+            height: 20px;
+            background: #a3c5fd;
+        }
+    }
+    .task-name {
+        padding-left: 0px;
+        padding-left: 30px;
+        font-size: 14px;
+        font-weight: 600;
+    }
     .division-line {
         margin: 0 20px 10px 20px;
-        border:0;
+        border: 0;
         height: 1px;
-        background-color:#DDE4EB;
+        background-color: #dde4eB;
     }
     .step-list {
         display: flex;
-        margin: 0 0 7px 0;
+        margin: 0 0 16px 0;
         min-width: 1320px;
             
     }
@@ -148,7 +179,7 @@
         line-height: 16px;
         text-align: left;
         width: 90px;
-        &:last-child{
+        &:last-child {
             .order {
                 margin-top: 4px;
             }

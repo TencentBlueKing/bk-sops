@@ -24,15 +24,15 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.db import models, transaction
 from django.utils.module_loading import import_string
-from redis.exceptions import ConnectionError as RedisConnectionError
 
+from pipeline.service import task_service
+from pipeline.utils.context import get_pipeline_context
 from pipeline.utils.uniqid import uniqid, node_uniqid
 from pipeline.parser.utils import replace_all_id
 from pipeline.utils.graph import Graph
 from pipeline.exceptions import SubprocessRefError
 from pipeline.engine.utils import calculate_elapsed_time, ActionResult
 from pipeline.core.constants import PE
-from pipeline.engine.exceptions import RabbitMQConnectionError
 from pipeline.conf import settings
 
 MAX_LEN_OF_NAME = 128
@@ -696,34 +696,11 @@ class PipelineInstance(models.Model):
         @param check_workers: 是否检测 worker 的状态
         @return: 执行结果
         """
-        from pipeline.engine import api
-        from pipeline.utils.context import get_pipeline_context
-        from pipeline.engine.models import FunctionSwitch
-        from pipeline.engine.core.api import workers
-
-        if FunctionSwitch.objects.is_frozen():
-            return ActionResult(result=False, message='engine has been freeze, try later please')
-
-        if check_workers:
-            try:
-                if not workers():
-                    return ActionResult(result=False, message='can not find celery workers, please check worker status')
-            except RabbitMQConnectionError as e:
-                return ActionResult(result=False, message='celery worker status check failed with message: %s, '
-                                                          'check rabbitmq status please' % e.message)
-            except RedisConnectionError:
-                return ActionResult(result=False, message='redis connection error, check redis status please')
 
         with transaction.atomic():
             instance = self.__class__.objects.select_for_update().get(id=self.id)
             if instance.is_started:
                 return ActionResult(result=False, message='pipeline instance already started.')
-            instance.start_time = timezone.now()
-            instance.is_started = True
-            instance.executor = executor
-
-            # calculate tree info
-            instance.calculate_tree_info()
 
             pipeline_data = instance.execution_data
 
@@ -735,9 +712,26 @@ class PipelineInstance(models.Model):
             parser = parser_cls(pipeline_data)
             pipeline = parser.parse(get_pipeline_context(instance, 'instance'))
 
+            instance.start_time = timezone.now()
+            instance.is_started = True
+            instance.executor = executor
+
+            # calculate tree info
+            instance.calculate_tree_info()
+
             instance.save()
 
-        return api.start_pipeline(pipeline, check_workers=check_workers)
+        act_result = task_service.run_pipeline(pipeline)
+
+        if not act_result.result:
+            with transaction.atomic():
+                instance = self.__class__.objects.select_for_update().get(id=self.id)
+                instance.start_time = None
+                instance.is_started = False
+                instance.executor = ''
+                instance.save()
+
+        return act_result
 
     def _get_node_id_set(self, node_id_set, data):
         """
