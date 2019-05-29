@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="node-config">
+    <div class="node-config" @click="e => e.stopPropagation()">
         <div
             :class="['node-config-panel',{ 'position-right-side': !isSettingPanelShow }]">
             <div class="node-title">
@@ -369,7 +369,8 @@
                 if (this.currentAtom === 'job_execute_task') {
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        if (constant.source_type === 'component_outputs'
+                        if ((this.nodeId in constant.source_info)
+                            && constant.source_type === 'component_outputs'
                             && outputData.findIndex(item => item.key === cKey) === -1
                         ) {
                             outputData.push({
@@ -680,6 +681,8 @@
                     }
                 }
                 return false
+            },
+            stopClickPropagation (e) {
             },
             /**
              * 处理节点配置面板和全局变量面板之外的点击事件

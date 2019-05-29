@@ -42,7 +42,8 @@ from gcloud.core.api_adapter import (
 )
 
 logger = logging.getLogger("root")
-
+get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 CACHE_PREFIX = __name__.replace('.', '_')
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 
@@ -60,7 +61,7 @@ def _get_user_business_list(request, use_cache=True):
 
     if not (use_cache and data):
         user_info = _get_user_info(request)
-        client = settings.ESB_GET_CLIENT_BY_USER(request.user.username)
+        client = get_client_by_request(request)
         result = client.cc.search_business({
             'bk_supplier_account': user_info['bk_supplier_account'],
             'condition': {
@@ -137,7 +138,7 @@ def _get_business_info(request, app_id, use_cache=True, use_maintainer=False):
         if use_maintainer:
             client = get_client_by_user_and_biz_id(username, app_id)
         else:
-            client = settings.ESB_GET_CLIENT_BY_REQUEST(request)
+            client = get_client_by_request(request)
         result = client.cc.search_business({
             'bk_supplier_account': business.cc_owner,
             'condition': {
@@ -482,10 +483,10 @@ def get_client_by_user_and_biz_id(username, biz_cc_id):
     # 首先以存在auth_token的运维身份调用接口
     maintainer, __ = get_biz_maintainer_info(biz_cc_id, username)
     if maintainer:
-        return settings.ESB_GET_CLIENT_BY_USER(maintainer)
+        return get_client_by_user(maintainer)
 
     # 无任何业务的运维auth_token信息，只能以自己身份执行
-    return settings.ESB_GET_CLIENT_BY_USER(username)
+    return get_client_by_user(username)
 
 
 def time_now_str():

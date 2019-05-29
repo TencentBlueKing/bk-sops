@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
 from django.conf import settings
-from blueapps.utils import esbclient
+from django.test import TestCase
+from blueapps.utils import get_client_by_user
 
 from pipeline_plugins.components import utils
 from pipeline_plugins.tests.utils import mock_get_client_by_user
+
 
 return_success = True
 
@@ -25,7 +26,7 @@ class TestUtils(TestCase):
     def setUp(self):
         self.run_ver = settings.OPEN_VER
         self.app_code = settings.APP_CODE
-        self.get_client_by_user = esbclient.get_client_by_user
+        self.get_client_by_user = get_client_by_user
 
         setattr(settings, 'OPEN_VER', 'TEST')
         setattr(settings, 'APP_CODE', 'APP_CODE')

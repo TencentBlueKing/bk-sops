@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="variable-edit-wrapper">
+    <div class="variable-edit-wrapper" @click="e => e.stopPropagation()">
         <ul class="form-list">
             <li class="form-item clearfix">
                 <label class="required">{{ i18n.name }}</label>
