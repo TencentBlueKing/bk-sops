@@ -139,7 +139,7 @@
                     </div>
                 </div>
             </div>
-            <data-statistics :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></data-statistics>
+            <vertical-bar-chart :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></vertical-bar-chart>
         </div>
         <div class="content-process-detail">
             <bk-tab :type="'fill'" :active-name="tabName" @tab-changed="onChangeTabPanel">
@@ -271,6 +271,7 @@
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import DataStatistics from '../dataStatistics/index.vue'
+    import VerticalBarChart from '../verticalBarChart/index.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
@@ -305,6 +306,7 @@
         name: 'StatisticsInstance',
         components: {
             DataStatistics,
+            VerticalBarChart,
             DataTablePagination
         },
         mixins: [AnalysisMixins],
