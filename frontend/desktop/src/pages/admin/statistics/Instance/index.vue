@@ -84,21 +84,6 @@
                 <div class="content-title">{{i18n.instanceTime}}</div>
                 <div class="content-task-instance">
                     <div class="content-instance-time">
-                        <!--时间维度选择-->
-                        <bk-selector
-                            :list="taskDimensionArray"
-                            :display-key="'name'"
-                            :setting-name="'value'"
-                            :search-key="'name'"
-                            :setting-key="'value'"
-                            :selected.sync="choiceDate"
-                            :placeholder="i18n.choice"
-                            :searchable="true"
-                            :allow-clear="true"
-                            @item-selected="onChangeTimeType">
-                        </bk-selector>
-                    </div>
-                    <div class="content-instance-time">
                         <!--业务选择-->
                         <bk-selector
                             :list="businessList"
@@ -137,6 +122,20 @@
                             @change="onInstanceTime">
                         </bk-date-range>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': choiceDownShow }]"></i>
+                    </div>
+                    <div class="content-instance-time date-scope">
+                        <!--时间维度选择-->
+                        <bk-selector
+                            :list="taskDimensionArray"
+                            :display-key="'name'"
+                            :setting-name="'value'"
+                            :search-key="'name'"
+                            :setting-key="'value'"
+                            :selected.sync="choiceDate"
+                            :placeholder="i18n.choice"
+                            :allow-clear="true"
+                            @item-selected="onChangeTimeType">
+                        </bk-selector>
                     </div>
                 </div>
             </div>
