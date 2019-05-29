@@ -43,6 +43,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
 
     export default {

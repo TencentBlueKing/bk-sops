@@ -79,11 +79,13 @@
 @import "@/scss/config.scss";
 @import "@/scss/datastatistics/datastatistics.scss";
 .page-statistics {
+    .header-wrapper {
+        min-width: 1320px;
+        padding: 0 60px;
+    }
     .statistics-content {
         padding: 20px 10px 0;
-        .content-wrapper {
-            min-width: 1320px;
-        }
+        min-width: 1320px;
         .template-router {
             color: #3a84ff;
             white-space: nowrap;

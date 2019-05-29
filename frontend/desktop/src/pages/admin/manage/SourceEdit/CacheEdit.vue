@@ -59,7 +59,7 @@
                         </tr>
                         <tr>
                             <th>
-                                <div class="form-label required">
+                                <div class="form-label">
                                     <label>{{i18n.desc}}</label>
                                 </div>
                             </th>
@@ -68,16 +68,9 @@
                                     <textarea
                                         rows="4"
                                         class="cache-desc"
-                                        name="cacheDesc"
                                         v-model="desc"
-                                        v-validate="descRule"
                                         @blur="updateValue">
                                     </textarea>
-                                    <span
-                                        v-show="errors.has('cacheDesc')"
-                                        class="common-error-tip error-msg">
-                                        {{ errors.first('cacheDesc') }}
-                                    </span>
                                 </div>
                             </td>
                         </tr>
@@ -124,8 +117,9 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { VAR_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'CacheEdit',
@@ -166,14 +160,8 @@
                 // 名称校验规则
                 nameRule: {
                     required: true,
-                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
-                },
-                // 描述校验规则
-                descRule: {
-                    required: true,
-                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
+                    max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
+                    regex: VAR_REG
                 },
                 i18n: {
                     setting: gettext('配置'),
@@ -321,12 +309,6 @@
         .form-content {
             position: relative;
             width: 40%;
-            .common-error-tip {
-                position: absolute;
-                bottom: -15px;
-                left: 0;
-                white-space: nowrap;
-            }
         }
         .cache-name {
             padding: 0 10px;
@@ -408,5 +390,12 @@
         .save-btn {
             width: 140px;
         }
+    }
+    .common-error-tip {
+        position: absolute;
+        bottom: -15px;
+        left: 0;
+        font-size: 12px;
+        white-space: nowrap;
     }
 </style>
