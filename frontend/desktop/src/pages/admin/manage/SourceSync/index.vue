@@ -68,6 +68,21 @@
                 @page-change="onPageChange">
             </bk-paging>
         </div>
+        <bk-dialog
+            v-if="isDetailDialogShow"
+            :quick-close="false"
+            :has-header="true"
+            :ext-cls="'common-dialog'"
+            :title="i18n.detail"
+            width="800"
+            padding="20px"
+            :is-show="isDetailDialogShow"
+            @cancel="isDetailDialogShow = false">
+            <div slot="content" class="detail-content">
+                <pre>{{detail}}</pre>
+            </div>
+            <div slot="footer"></div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -90,6 +105,8 @@
                 totalCount: 0,
                 listLoading: true,
                 pending: false,
+                isDetailDialogShow: false,
+                detail: '',
                 i18n: {
                     sync: gettext('远程包同步'),
                     startTime: gettext('开始时间'),
@@ -102,6 +119,7 @@
                     comma: gettext('，'),
                     currentPageTip: gettext('当前第'),
                     page: gettext('页'),
+                    detail: gettext('详细信息'),
                     viewDetail: gettext('查看详情'),
                     manual: gettext('手动'),
                     auto: gettext('自动')
@@ -165,7 +183,8 @@
                 return cls
             },
             onViewDetailClick (data) {
-
+                this.detail = data.details
+                this.isDetailDialogShow = true
             },
             onPageChange (page) {
                 this.currentPage = page
@@ -209,6 +228,9 @@
                 padding: 0;
                 color: #3a84ff;
                 border: none;
+                &:active {
+                    background: #ffffff;
+                }
             }
             .running {
                 color: #3c96ff;
@@ -234,6 +256,21 @@
             .bk-page {
                 display: inline-block;
             }
+        }
+        .detail-content {
+            padding: 10px;
+            height: 320px;
+            overflow: auto;
+            color: #ffffff;
+            background: #313238;
+            font-size: 12px;
+            pre {
+                margin: 0;
+                word-break: break-all;
+            }
+        }
+        /deep/ .bk-dialog-footer {
+            display: none;
         }
     }
 </style>
