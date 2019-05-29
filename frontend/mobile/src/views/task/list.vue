@@ -21,6 +21,8 @@
                 v-model="loading"
                 :finished="finished"
                 :finished-text="i18n.finished_text"
+                :error.sync="error"
+                :error-text="i18n.error_text"
                 @load="loadData">
                 <van-cell
                     clickable
@@ -61,6 +63,7 @@
                 taskStatus: '',
                 loading: false,
                 finished: false,
+                error: false,
                 offset: 0,
                 currPage: 1,
                 limit: 10,
@@ -68,6 +71,7 @@
                 value: '',
                 i18n: {
                     placeholder: window.gettext('搜索任务名称'),
+                    error_text: window.gettext('请求失败，点击重新加载'),
                     finished_text: window.gettext('没有更多了'),
                     to: window.gettext('至')
                 }
@@ -79,19 +83,25 @@
                 'getTaskStatus'
             ]),
             async loadData () {
-                const response = await this.getTaskList({ offset: this.offset, limit: this.limit })
-                this.total = response.meta.total_count
-                const totalPage = Math.ceil(this.total / this.limit)
-                if (this.currPage >= totalPage) {
-                    this.finished = true
-                } else {
-                    this.offset = this.currPage * this.limit
-                    this.currPage += 1
+                try {
+                    const response = await this.getTaskList({ offset: this.offset, limit: this.limit })
+                    this.total = response.meta.total_count
+                    const totalPage = Math.ceil(this.total / this.limit)
+                    if (this.currPage >= totalPage) {
+                        this.finished = true
+                    } else {
+                        this.offset = this.currPage * this.limit
+                        this.currPage += 1
+                    }
+                    this.taskList = [...this.originalTaskList, ...response.objects]
+                    this.originalTaskList = this.taskList
+                    await this.fillTaskStatus()
+                } catch (e) {
+                    this.error = true
+                    errorHandler(e, this)
+                } finally {
+                    this.loading = false
                 }
-                this.taskList = [...this.originalTaskList, ...response.objects]
-                this.originalTaskList = this.taskList
-                await this.fillTaskStatus()
-                this.loading = false
             },
 
             async fillTaskStatus () {
