@@ -83,6 +83,7 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         analysisAtom: SITE_URL + 'analysis/query_atom_by_group/',
         analysisAppmaker: SITE_URL + 'analysis/query_appmaker_by_group/',
         analysisInstance: SITE_URL + 'analysis/query_instance_by_group/',
-        packageSource: SITE_URL + 'api/v3/package_source/'
+        packageSource: SITE_URL + 'api/v3/package_source/',
+        syncTask: SITE_URL + 'api/v3/sync_task/'
     }
 }
