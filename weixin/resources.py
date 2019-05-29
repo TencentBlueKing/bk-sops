@@ -15,6 +15,7 @@ from django.http.response import HttpResponseForbidden
 from tastypie.authorization import ReadOnlyAuthorization
 
 from gcloud.webservice3.resources import (
+    GCloudReadOnlyAuthorization,
     BusinessResource,
     ComponentModelResource
 )
@@ -26,6 +27,9 @@ from gcloud.taskflow3.resources import TaskFlowInstanceResource
 
 
 class WxBusinessResource(BusinessResource):
+    class Meta(BusinessResource.Meta):
+        authorization = GCloudReadOnlyAuthorization()
+
     def obj_delete(self, bundle, **kwargs):
         """
         obj delete is forbidden
@@ -43,8 +47,7 @@ class WxTaskTemplateResource(TaskTemplateResource):
 
 class WxTaskFlowInstanceResource(TaskFlowInstanceResource):
     class Meta(TaskFlowInstanceResource.Meta):
-        authorization = ReadOnlyAuthorization()
-    pass
+        authorization = GCloudReadOnlyAuthorization()
 
 
 class WxTemplateSchemeResource(TemplateSchemeResource):
@@ -60,5 +63,4 @@ class WxTemplateSchemeResource(TemplateSchemeResource):
 
 class WxComponentModelResource(ComponentModelResource):
     class Meta(ComponentModelResource.Meta):
-        authorization = ReadOnlyAuthorization()
-    pass
+        authorization = GCloudReadOnlyAuthorization()
