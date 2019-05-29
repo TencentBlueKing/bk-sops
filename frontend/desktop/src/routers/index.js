@@ -34,11 +34,19 @@ const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
 
 const ErrorPage = () => import('@/pages/error/index.vue')
 
-const Statistics = () => import('@/pages/statistics/index.vue')
-const StatisticsTemplate = () => import('@/pages/statistics/Template/index.vue')
-const StatisticsInstance = () => import('@/pages/statistics/Instance/index.vue')
-const StatisticsAtom = () => import('@/pages/statistics/Atom/index.vue')
-const StatisticsAppmaker = () => import('@/pages/statistics/Appmaker/index.vue')
+const Admin = () => import('@/pages/admin/index.vue')
+const Statistics = () => import('@/pages/admin/statistics/index.vue')
+const StatisticsTemplate = () => import('@/pages/admin/statistics/Template/index.vue')
+const StatisticsInstance = () => import('@/pages/admin/statistics/Instance/index.vue')
+const StatisticsAtom = () => import('@/pages/admin/statistics/Atom/index.vue')
+const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker/index.vue')
+const CommonTemplate = () => import('@/pages/admin/common/template.vue')
+const Manage = () => import('@/pages/admin/manage/index.vue')
+const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
+const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
+const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
+const CacheEdit = () => import('@/pages/admin/manage/SourceEdit/CacheEdit.vue')
+const SourceSync = () => import('@/pages/admin/manage/SourceSync/index.vue')
 
 const FunctionHome = () => import('@/pages/functor/index.vue')
 
@@ -84,7 +92,16 @@ const routers = new VueRouter({
                     })
                 },
                 {
-                    path: 'edit/:cc_id/',
+                    path: 'common/:cc_id/',
+                    component: TemplateList,
+                    props: (route) => ({
+                        cc_id: route.params.cc_id,
+                        common: 1,
+                        common_template: 'common'
+                    })
+                },
+                {
+                    path: 'edit/:cc_id?/',
                     component: TemplateEdit,
                     props: (route) => ({
                         cc_id: route.params.cc_id,
@@ -202,32 +219,70 @@ const routers = new VueRouter({
             })
         },
         {
-            path: '/statistics',
-            component: Statistics,
+            path: '/admin',
+            component: Admin,
             children: [
                 {
-                    path: '',
-                    component: NotFoundComponent
+                    path: 'statistics/',
+                    component: Statistics,
+                    children: [
+                        {
+                            path: 'template/',
+                            name: 'statisticsTemplate',
+                            component: StatisticsTemplate
+                        },
+                        {
+                            path: 'instance/',
+                            name: 'statisticsInstance',
+                            component: StatisticsInstance
+                        },
+                        {
+                            path: 'atom/',
+                            name: 'statisticsAtom',
+                            component: StatisticsAtom
+                        },
+                        {
+                            path: 'appmaker/',
+                            name: 'statisticsAppmaker',
+                            component: StatisticsAppmaker
+                        }
+                    ]
                 },
                 {
-                    path: 'template/',
-                    name: 'statisticsTemplate',
-                    component: StatisticsTemplate
+                    path: 'common/template',
+                    component: CommonTemplate
                 },
                 {
-                    path: 'instance/',
-                    name: 'statisticsInstance',
-                    component: StatisticsInstance
-                },
-                {
-                    path: 'atom/',
-                    name: 'statisticsAtom',
-                    component: StatisticsAtom
-                },
-                {
-                    path: 'appmaker/',
-                    name: 'statisticsAppmaker',
-                    component: StatisticsAppmaker
+                    path: 'manage/',
+                    component: Manage,
+                    children: [
+                        {
+                            path: 'source_manage/',
+                            name: 'sourceManage',
+                            component: SourceManage
+                        },
+                        {
+                            path: 'source_edit/',
+                            component: SourceEdit,
+                            children: [
+                                {
+                                    path: 'package_edit/',
+                                    name: 'packageEdit',
+                                    component: PackageEdit
+                                },
+                                {
+                                    path: 'cache_edit/',
+                                    name: 'cacheEdit',
+                                    component: CacheEdit
+                                }
+                            ]
+                        },
+                        {
+                            path: 'source_sync/',
+                            name: 'sourceSync',
+                            component: SourceSync
+                        }
+                    ]
                 }
             ]
         },
