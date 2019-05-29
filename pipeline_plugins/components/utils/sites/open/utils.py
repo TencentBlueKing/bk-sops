@@ -255,5 +255,5 @@ def get_job_instance_url(biz_cc_id, job_instance_id):
 
 def get_node_callback_url(node_id):
     f = Fernet(settings.CALLBACK_KEY)
-    return "%staskflow/api/nodes/callback/%s/" % (settings.SITE_URL,
+    return "%staskflow/api/nodes/callback/%s/" % (settings.APP_HOST,
                                                   f.encrypt(bytes(node_id)))

@@ -12,7 +12,7 @@
 <template>
     <div class="task-operation">
         <div class="operation-header clearfix">
-            <div class="bread-crumbs-wrapper">
+            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow">
                 <span
                     :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
                     v-for="(path, index) in nodeNav"
@@ -21,11 +21,7 @@
                     <span v-if="!!index && showNodeList.includes(index) || index === 1">
                         &gt;
                     </span>
-                    <span
-                        v-if="showNodeList.includes(index)"
-                        class="node-name"
-                        :title="path.name"
-                        @click="onSelectSubflow(path.id)">
+                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
                         {{path.name}}
                     </span>
                     <span class="node-ellipsis" v-else-if="index === 1">
@@ -103,6 +99,7 @@
             </div>
         </div>
         <transition name="slideRight">
+            <!-- 执行详情 -->
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
                 <ViewParams
                     v-if="nodeInfoType === 'viewParams'"
@@ -253,12 +250,18 @@
                 isRevokeDialogShow: false,
                 showNodeList: [0, 1, 2],
                 ellipsis: '...',
-                operateLoading: false
+                operateLoading: false,
+                retrievedCovergeGateways: [] // 遍历过的汇聚节点
             }
         },
         computed: {
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
+            },
+            isBreadcrumbShow () {
+                return this.completePipelineData.location.some(item => {
+                    return item.type === 'subflow'
+                })
             },
             canvasData () {
                 const { line, location, gateways } = this.pipelineData
@@ -861,8 +864,10 @@
                     nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
                 } else {
                     const gatewayNode = gateways[curNode]
-                    if (gatewayNode) {
-                        const gatewayOutLine = gatewayNode.outgoing
+                    if (gatewayNode && this.retrievedCovergeGateways.indexOf(gatewayNode.id) === -1) {
+                        this.retrievedCovergeGateways.push(gatewayNode.id)
+                        const outgoing = gatewayNode.outgoing
+                        const gatewayOutLine = Array.isArray(outgoing) ? outgoing : [outgoing]
                         if (Array.isArray(gatewayOutLine)) {
                             const gatewayLinkedNodes = []
                             gatewayOutLine.forEach(line => {
