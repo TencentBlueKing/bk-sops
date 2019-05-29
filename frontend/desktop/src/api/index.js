@@ -1339,6 +1339,108 @@ const api = {
             url: prefixUrl
         }
         return request(opts)
+    },
+    /**
+     * 加载插件包源配置
+     * @param {Object} fields 包源查询字段
+     */
+    loadPackageSource (fields) {
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                fields: JSON.stringify(fields)
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 新增插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    createPackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 删除所有插件包源
+     */
+    deletePackageSource () {
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'DELETE',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
+     * 更新插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    updatePackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+        
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: {
+                'content-type': 'application/json',
+                'X-HTTP-Method-Override': 'PATCH'
+            },
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 加载远程包源同步任务列表
+     */
+    loadSyncTask (params) {
+        const { limit, offset } = params
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                limit,
+                offset
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 创建远程包源同步
+     */
+    createSyncTask () {
+        const creator = store.state.username
+        const create_method = 'manual'
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                creator,
+                create_method
+            }
+        }
+        return request(opts)
     }
 }
 
