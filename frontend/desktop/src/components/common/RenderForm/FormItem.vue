@@ -361,5 +361,9 @@
         word-wrap: break-word;
         word-break: break-all;
     }
+    .el-table__empty-text{
+        line-height: 20px;
+        width: 100%;
+    }
 }
 </style>

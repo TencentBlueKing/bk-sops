@@ -387,6 +387,8 @@
             border-left: 1px solid $formBorderColor;
         }
         .template-process-name {
+            text-align: left;
+            padding-left: 16px;
             font-size: 14px;
         }
         span {
