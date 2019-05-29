@@ -31,23 +31,41 @@ pip install -r requirements.txt
 ## 配置本地环境变量和数据库
 
 1) 设置环境变量  
-有两种方式设置本地开发需要的环境变量，一是手动设置，即执行如下命令
+设置环境变量的目的是让项目运行时能正确获取以下变量的值：
+BK_PAAS_HOST、BK_CC_HOST、BK_JOB_HOST 分别改为你部署的蓝鲸社区版域名、配置平台域名、作业平台域名（需要加上 http 前缀；如果是 https 域名，请改为 https 前缀）。
+APP_ID 设置为你的社区版标准运维应用ID，默认设置为 bk_sops。APP_TOKEN 设置为你的社区版标准运维应用 TOKEN，默认可以访问 http://{BK_PAAS_HOST}/admin/app/app/，找到名为"标准运维"的应用，查看详情获取 Token 字段值。
+
+有三种方式设置本地开发需要的环境变量，一是手动设置，即执行如下命令
 
 ```bash
 export APP_ID="bk_sops"
 export APP_TOKEN="{APP_TOKEN}"
-export BK_PAAS_HOST=""
-export BK_CC_HOST=""
-export BK_JOB_HOST=""
+export BK_PAAS_HOST="{BK_PAAS_HOST}"
+export BK_CC_HOST="{BK_CC_HOST}"
+export BK_JOB_HOST="{BK_JOB_HOST}"
 ```
-BK_PAAS_HOST、BK_CC_HOST、BK_JOB_HOST 分别改为你部署的蓝鲸社区版域名、配置平台域名、作业平台域名（需要加上 http 前缀；如果是 https 域名，请改为 https 前缀）。
-APP_ID 设置为你的社区版标准运维应用ID，默认设置为 bk_sops。APP_TOKEN 设置为你的社区版标准运维应用 TOKEN，默认可以访问 http://{BK_PAAS_HOST}/admin/app/app/，找到名为"标准运维"的应用，查看详情获取 Token 字段值。
 
 二是直接修改 scripts/develop/sites/community/env.sh，然后执行
 
 ```bash
 source scripts/develop/sites/community/env.sh
 ```
+
+第三种方式，你可以直接修改项目的 settings 配置，先修改 `config/__init__.py` ，设置项目的基础信息
+
+```python
+APP_ID = 'bk_sops'
+APP_TOKEN = '{APP_TOKEN}'
+BK_PAAS_HOST = '{BK_PAAS_HOST}'
+```
+
+然后修改 config/dev.py ，追加配置平台域名、作业平台域名配置
+```python
+BK_CC_HOST = '{BK_CC_HOST}'
+BK_JOB_HOST = '{BK_JOB_HOST}'
+```
+
+
 
 2) 修改 config/dev.py，设置本地开发用的数据库信息，添加 Redis 本地信息
 
