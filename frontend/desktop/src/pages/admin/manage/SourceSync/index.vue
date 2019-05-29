@@ -34,7 +34,12 @@
                     <td style="padding: 12px 30px;">{{item.id}}</td>
                     <td>{{item.start_time}}</td>
                     <td>{{item.finish_time}}</td>
-                    <td>{{item.status_display}}</td>
+                    <td>
+                        <div class="task-status">
+                            <i :class="getStatusCls(item.status)"></i>
+                            {{item.status_display}}
+                        </div>
+                    </td>
                     <td>{{i18n[item.create_method]}}</td>
                     <td>
                         <bk-button
@@ -47,7 +52,7 @@
                     </td>
                 </tr>
                 <tr v-if="list.length === 0">
-                    <td colspan="6">
+                    <td colspan="6" class="empty-data">
                         <no-data></no-data>
                     </td>
                 </tr>
@@ -148,6 +153,17 @@
                     this.pending = false
                 }
             },
+            getStatusCls (status) {
+                let cls = ''
+                if (status === 'RUNNING') {
+                    cls = 'running common-icon-dark-circle-ellipsis'
+                } else if (status === 'FAILED') {
+                    cls = 'failed common-icon-dark-circle-close'
+                } else {
+                    cls = 'finished bk-icon icon-check-circle-shape'
+                }
+                return cls
+            },
             onViewDetailClick (data) {
 
             },
@@ -160,7 +176,8 @@
 </script>
 <style lang="scss" scoped>
     .source-manage {
-        padding: 0 60px;
+        padding: 0 60px 60px;
+        background: #f4f7fa;
         .sync-btn {
             height: 32px;
             line-height: 32px;
@@ -192,6 +209,15 @@
                 padding: 0;
                 color: #3a84ff;
                 border: none;
+            }
+            .running {
+                color: #3c96ff;
+            }
+            .failed {
+                color: #ff5757;
+            }
+            .finished {
+                color: #30d878;
             }
         }
         .panagation {
