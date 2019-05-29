@@ -37,6 +37,16 @@ const manage = {
             return api.updatePackageSource(data).then(
                 response => response.data
             )
+        },
+        loadSyncTask ({ commit }, data) {
+            return api.loadSyncTask(data).then(
+                response => response.data
+            )
+        },
+        createSyncTask () {
+            return api.createSyncTask().then(
+                response => response.data
+            )
         }
     }
 }

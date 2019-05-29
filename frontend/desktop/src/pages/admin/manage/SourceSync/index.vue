@@ -10,8 +10,14 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="source-manage">
-        <bk-button type="primary" class="sync-btn">{{i18n.sync}}</bk-button>
+    <div class="source-manage" v-bkloading="{ isLoading: listLoading }">
+        <bk-button
+            type="primary"
+            class="sync-btn"
+            :loading="pending"
+            @click="onTaskSyncClick">
+            {{i18n.sync}}
+        </bk-button>
         <table class="sync-table">
             <thead>
                 <tr>
@@ -25,36 +31,129 @@
             </thead>
             <tbody>
                 <tr v-for="item in list" :key="item.id">
-                    <td></td>
+                    <td style="padding: 12px 30px;">{{item.id}}</td>
+                    <td>{{item.start_time}}</td>
+                    <td>{{item.finish_time}}</td>
+                    <td>{{item.status_display}}</td>
+                    <td>{{i18n[item.create_method]}}</td>
+                    <td>
+                        <bk-button
+                            type="default"
+                            size="mini"
+                            class="view-detail"
+                            @click="onViewDetailClick(item)">
+                            {{i18n.viewDetail}}
+                        </bk-button>
+                    </td>
                 </tr>
-                <tr>
-                    <td style="padding: 12px 30px;">457</td>
-                    <td>2018-10-17 17:35:29 +0800</td>
-                    <td>2018-10-17 17:35:29 +0800</td>
-                    <td>正在同步</td>
-                    <td>手动</td>
-                    <td>查看详情</td>
+                <tr v-if="list.length === 0">
+                    <td colspan="6">
+                        <no-data></no-data>
+                    </td>
                 </tr>
             </tbody>
         </table>
+        <div class="panagation" v-if="totalPage > 1">
+            <div class="page-info">
+                <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
+            </div>
+            <bk-paging
+                :cur-page.sync="currentPage"
+                :total-page="totalPage"
+                @page-change="onPageChange">
+            </bk-paging>
+        </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+    import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'SourceManage',
+        components: {
+            NoData
+        },
         data () {
             return {
                 list: [],
+                currentPage: 1,
+                totalPage: 1,
+                countPerPage: 15,
+                totalCount: 0,
+                listLoading: true,
+                pending: false,
                 i18n: {
                     sync: gettext('远程包同步'),
                     startTime: gettext('开始时间'),
                     endTime: gettext('结束时间'),
                     status: gettext('状态'),
                     triggerType: gettext('触发方式'),
-                    operation: gettext('操作详情')
+                    operation: gettext('操作'),
+                    total: gettext('共'),
+                    item: gettext('条记录'),
+                    comma: gettext('，'),
+                    currentPageTip: gettext('当前第'),
+                    page: gettext('页'),
+                    viewDetail: gettext('查看详情'),
+                    manual: gettext('手动'),
+                    auto: gettext('自动')
                 }
+            }
+        },
+        created () {
+            this.getSyncTask()
+        },
+        methods: {
+            ...mapActions('manage', [
+                'loadSyncTask',
+                'createSyncTask'
+            ]),
+            async getSyncTask () {
+                const data = {
+                    limit: this.countPerPage,
+                    offset: (this.currentPage - 1) * this.countPerPage
+                }
+                try {
+                    this.listLoading = true
+
+                    const syncTaskData = await this.loadSyncTask(data)
+                    this.list = syncTaskData.objects
+                    this.totalCount = syncTaskData.meta.total_count
+                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    if (!totalPage) {
+                        this.totalPage = 1
+                    } else {
+                        this.totalPage = totalPage
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.listLoading = false
+                }
+            },
+            async onTaskSyncClick () {
+                try {
+                    if (this.pending) {
+                        return
+                    }
+                    this.pending = true
+                    await this.createSyncTask()
+                    this.getSyncTask()
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.pending = false
+                }
+            },
+            onViewDetailClick (data) {
+
+            },
+            onPageChange (page) {
+                this.currentPage = page
+                this.getSyncTask()
             }
         }
     }
@@ -85,6 +184,29 @@
             }
             td {
                 background: #ffffff;
+            }
+            .empty-data {
+                height: 400px;
+            }
+            .view-detail {
+                padding: 0;
+                color: #3a84ff;
+                border: none;
+            }
+        }
+        .panagation {
+            padding: 10px 20px;
+            text-align: right;
+            border: 1px solid #dde4eb;
+            border-top: none;
+            background: #ffff;
+            .page-info {
+                float: left;
+                line-height: 36px;
+                font-size: 12px;
+            }
+            .bk-page {
+                display: inline-block;
             }
         }
     }
