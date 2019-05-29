@@ -13,12 +13,23 @@
     <div class="periodic-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.periodicTask"></BaseTitle>
-            <BaseSearch
-                v-model="periodicName"
-                :input-placeholader="i18n.periodicNamePlaceholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="task-table-content">
+                <bk-button
+                    ref="childComponent"
+                    type="primary"
+                    class="task-create-btn"
+                    size="small"
+                    @click="onCreatePeriodTask">
+                    {{i18n.createPeriodTask}}
+                </bk-button>
+                <BaseSearch
+                    class="base-search"
+                    v-model="periodicName"
+                    :input-placeholader="i18n.periodicNamePlaceholder"
+                    @onShow="onAdvanceShow"
+                    @input="onSearchInput">
+                </BaseSearch>
+            </div>
             <div class="periodic-search" v-show="isAdvancedSerachShow">
                 <fieldset class="periodic-fieldset">
                     <div class="periodic-query-content">
@@ -32,14 +43,13 @@
                                 :placeholder="i18n.enabledPlaceholder"
                                 :list="enabledList"
                                 :selected.sync="enabledSync"
-                                :searchable="true"
                                 :allow-clear="true"
                                 @clear="onClearSelectedEnabled"
                                 @item-selected="onSelectEnabled">
                             </bk-selector>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="getPeriodicList">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -128,6 +138,14 @@
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
+        <TaskCreateDialog
+            :cc_id="cc_id"
+            :is-new-task-dialog-show="isNewTaskDialogShow"
+            :business-info-loading="businessInfoLoading"
+            :create-entrance="false"
+            :task-category="taskCategory"
+            @onCreateTaskCancel="onCreateTaskCancel">
+        </TaskCreateDialog>
         <ModifyPeriodicDialog
             v-if="isModifyDialogShow"
             :loading="modifyDialogLoading"
@@ -147,7 +165,6 @@
             @onDeletePeriodicCancel="onDeletePeriodicCancel">
         </DeletePeriodicDialog>
     </div>
-    
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -158,6 +175,7 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
     export default {
@@ -167,13 +185,15 @@
             BaseTitle,
             BaseSearch,
             NoData,
+            TaskCreateDialog,
             ModifyPeriodicDialog,
             DeletePeriodicDialog
         },
-        props: ['cc_id'],
+        props: ['cc_id', 'common'],
         data () {
             return {
                 i18n: {
+                    createPeriodTask: gettext('新建'),
                     lastRunAt: gettext('上次运行时间'),
                     periodicRule: gettext('周期规则'),
                     periodicTask: gettext('周期任务'),
@@ -192,7 +212,6 @@
                     page: gettext('页'),
                     periodicNamePlaceholder: gettext('请输入任务名称'),
                     creatorPlaceholder: gettext('请输入创建人'),
-                    statusPlaceholder: gettext('请选择状态'),
                     enabled: gettext('状态'),
                     periodicName: gettext('名称'),
                     editTitle: gettext('请暂停任务后再执行编辑操作'),
@@ -202,6 +221,8 @@
                     query: gettext('搜索'),
                     reset: gettext('清空')
                 },
+                businessInfoLoading: true,
+                isNewTaskDialogShow: false,
                 listLoading: true,
                 deleting: false,
                 currentPage: 1,
@@ -224,11 +245,14 @@
                 modifyDialogLoading: false,
                 selectedTemplateName: undefined,
                 periodicName: undefined,
-                enabledSync: -1
+                enabledSync: -1,
+                periodEntrance: '',
+                taskCategory: []
             }
         },
         created () {
             this.getPeriodicList()
+            this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -237,6 +261,9 @@
                 'setPeriodicEnable',
                 'getPeriodic',
                 'deletePeriodic'
+            ]),
+            ...mapActions('template/', [
+                'loadBusinessBaseInfo'
             ]),
             async getPeriodicList () {
                 this.listLoading = true
@@ -262,6 +289,14 @@
                     errorHandler(e, this)
                 } finally {
                     this.listLoading = false
+                }
+            },
+            async getBizBaseInfo () {
+                try {
+                    const bizBasicInfo = await this.loadBusinessBaseInfo()
+                    this.taskCategory = bizBasicInfo.task_categories
+                } catch (e) {
+                    errorHandler(e, this)
                 }
             },
             searchInputhandler () {
@@ -369,6 +404,12 @@
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onCreatePeriodTask () {
+                this.isNewTaskDialogShow = true
+            },
+            onCreateTaskCancel () {
+                this.isNewTaskDialogShow = false
             }
         }
     }
@@ -378,12 +419,15 @@
 .periodic-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
 }
 .list-wrapper {
     padding: 0 60px;
     min-height: calc(100vh - 240px);
     .advanced-search {
+        margin: 0px;
+    }
+    .task-table-content{
         margin: 20px 0px;
     }
 }
@@ -486,9 +530,12 @@
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 10px;
+            padding: 13px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: $whiteNodeBg;

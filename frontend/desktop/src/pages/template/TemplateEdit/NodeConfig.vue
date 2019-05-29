@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="node-config">
+    <div class="node-config" @click="e => e.stopPropagation()">
         <div
             :class="['node-config-panel',{ 'position-right-side': !isSettingPanelShow }]">
             <div class="node-title">
@@ -22,10 +22,12 @@
                         <label class="required">{{ atomNameType }}</label>
                         <div class="form-content">
                             <bk-selector
+                                :tools="!isSingleAtom"
                                 :searchable="true"
                                 :list="atomList"
                                 :selected="currentAtom"
-                                @item-selected="onAtomSelect">
+                                @item-selected="onAtomSelect"
+                                @edit="onJumpToProcess">
                             </bk-selector>
                             <!-- 标准插件节点说明 -->
                             <bk-tooltip v-if="atomDesc" placement="left" width="400" class="desc-tooltip">
@@ -220,7 +222,8 @@
             'subAtom',
             'idOfNodeInConfigPanel',
             'template_id',
-            'common'
+            'common',
+            'cc_id'
         ],
         data () {
             return {
@@ -369,7 +372,8 @@
                 if (this.currentAtom === 'job_execute_task') {
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        if (constant.source_type === 'component_outputs'
+                        if ((this.nodeId in constant.source_info)
+                            && constant.source_type === 'component_outputs'
                             && outputData.findIndex(item => item.key === cKey) === -1
                         ) {
                             outputData.push({
@@ -681,6 +685,8 @@
                 }
                 return false
             },
+            stopClickPropagation (e) {
+            },
             /**
              * 处理节点配置面板和全局变量面板之外的点击事件
              */
@@ -820,6 +826,11 @@
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
+            },
+            onJumpToProcess (index) {
+                const item = this.atomList[index].id
+                const { href } = this.$router.resolve({ path: `/template/edit/${this.cc_id}/?template_id=${item}` })
+                window.open(href, '_blank')
             },
             /**
              * 更新子流程版本
@@ -1115,7 +1126,6 @@
     .common-icon-dark-circle-r {
         color: #a6b0c7;
     }
-
 }
 .form-item {
     margin-bottom: 20px;
@@ -1164,7 +1174,6 @@
         .common-icon-dark-circle-r {
             color: #a6b0c7;
         }
-
     }
     .desc-tooltip, .update-tooltip, .error-ingored-tootip {
         margin-left: 15px;
@@ -1235,5 +1244,18 @@
             width: 20%;
         }
     }
+}
+/deep/.icon-edit2:before {
+    content: "\e938";
+    font-family: 'commonicon' !important;
+    font-size: 16px;
+    color: #546a9e;
+    margin-right: 10px;
+}
+/deep/.bk-selector-tools {
+    top: 13px !important;
+}
+/deep/.icon-close {
+    display: none;
 }
 </style>
