@@ -72,7 +72,7 @@
                     </tr>
                     <tr>
                         <th>
-                            <div class="form-label required">
+                            <div class="form-label">
                                 <label>{{i18n.desc}}</label>
                             </div>
                         </th>
@@ -81,16 +81,9 @@
                                 <textarea
                                     rows="4"
                                     class="package-desc"
-                                    name="packageDesc"
                                     v-model="desc"
-                                    v-validate="descRule"
                                     @blur="onPackageDescBlur">
                                 </textarea>
-                                <span
-                                    v-show="errors.has('packageDesc')"
-                                    class="common-error-tip error-msg">
-                                    {{ errors.first('packageDesc') }}
-                                </span>
                             </div>
                         </td>
                     </tr>
@@ -140,9 +133,16 @@
                                             <input
                                                 type="text"
                                                 class="table-input"
+                                                name="moduleName"
                                                 :placeholder="i18n.placeholder"
-                                                :value="item.key"
+                                                v-model="item.key"
+                                                v-validate="nameRule"
                                                 @blur="onPackageInputBlur($event, 'key', index)">
+                                            <span
+                                                v-show="errors.has('moduleName')"
+                                                class="common-error-tip error-msg">
+                                                {{ errors.first('moduleName') }}
+                                            </span>
                                         </td>
                                         <td>
                                             <input
@@ -175,8 +175,9 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { VAR_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'PackageForm',
@@ -222,14 +223,8 @@
                 // 名称校验规则
                 nameRule: {
                     required: true,
-                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
-                },
-                // 描述校验规则
-                descRule: {
-                    required: true,
-                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
+                    max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
+                    regex: VAR_REG
                 },
                 i18n: {
                     sourceName: gettext('包源名'),
@@ -482,12 +477,6 @@
         .form-content {
             position: relative;
             width: 40%;
-            .common-error-tip {
-                position: absolute;
-                bottom: -15px;
-                left: 0;
-                white-space: nowrap;
-            }
         }
         .package-name {
             padding: 0 10px;
@@ -554,12 +543,16 @@
         background: #ffffff;
         text-align: center;
         th,td {
+            position: relative;
             padding: 10px 20px;
             border: 1px solid #dde4eb;
         }
         th {
             font-weight: 700;
             text-align: center;
+        }
+        .common-error-tip {
+            bottom: 0;
         }
     }
     .table-input {
@@ -577,5 +570,12 @@
         background: #ffffff;
         border: 1px solid #dde4eb;
         border-top: none;
+    }
+    .common-error-tip {
+        position: absolute;
+        bottom: -15px;
+        left: 0;
+        font-size: 12px;
+        white-space: nowrap;
     }
 </style>

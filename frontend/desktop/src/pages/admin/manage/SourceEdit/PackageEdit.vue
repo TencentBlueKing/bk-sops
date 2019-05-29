@@ -37,6 +37,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import PackageForm from './PackageForm.vue'
 
