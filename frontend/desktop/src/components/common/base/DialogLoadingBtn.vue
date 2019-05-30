@@ -12,7 +12,7 @@
 <template>
     <div class="btn-wrapper">
         <bk-button
-            class="additionalBtn"
+            class="dialog-Btn"
             v-for="(item, index) in dialogFooterData"
             :key="index"
             :type="item.type"
@@ -53,15 +53,11 @@
 .btn-wrapper {
     float: right;
     margin: 0 16px 2px 0;
-    .confirmBtn, .additionalBtn {
+    .dialog-Btn {
         min-width: 120px;
         height: 32px;
         margin-right: 10px;
         line-height: 30px;
-    }
-    .cancelBtn {
-        min-width:70px;
-        height:32px;
     }
 }
     

@@ -565,8 +565,5 @@
             }
         }
     }
-    .dialog_btn {
-        position: relative;
-    }
 }
 </style>
