@@ -12,23 +12,19 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import json
+import traceback
 import logging
 
-from django.http import (
-    HttpResponse,
-    HttpResponseRedirect,
-)
+from django.http import HttpResponseRedirect
 from django.utils.translation import check_for_language
 from django.shortcuts import render
 
 from blueapps.account.middlewares import LoginRequiredMiddleware
 
-from gcloud import exceptions
 from gcloud.conf import settings
-from gcloud.core.models import UserBusiness
+from gcloud.core.roles import FUNCTOR, AUDITOR, NORMAL
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
-from gcloud.core.utils import prepare_user_business
+from gcloud.core.project import prepare_projects, get_default_project_for_user
 
 logger = logging.getLogger("root")
 
@@ -43,43 +39,30 @@ def page_not_found(request):
 
 
 def home(request):
-    username = request.user.username
+    user_role = NORMAL
     if is_user_functor(request):
-        return HttpResponseRedirect(settings.SITE_URL + 'function/home/')
+        user_role = FUNCTOR
     if is_user_auditor(request):
-        return HttpResponseRedirect(settings.SITE_URL + 'audit/home/')
+        user_role = AUDITOR
+
     try:
-        biz_list = prepare_user_business(request)
-    except exceptions.Unauthorized:
-        return HttpResponseRedirect(settings.SITE_URL + 'error/401/')
-    except exceptions.Forbidden:
-        return HttpResponseRedirect(settings.SITE_URL + 'error/403/')
-    except exceptions.APIError as e:
-        ctx = {
-            'system': e.system,
-            'api': e.api,
-            'message': e.message,
-        }
-        logger.error(json.dumps(ctx))
-        return HttpResponse(status=503, content=json.dumps(ctx))
-    if biz_list:
-        try:
-            obj = UserBusiness.objects.get(user=username)
-            biz_cc_id = obj.default_buss
-            biz_cc_id_list = [item.cc_id for item in biz_list]
-            if biz_cc_id not in set(biz_cc_id_list):
-                biz_cc_id = biz_cc_id_list[0]
-                obj.default_buss = biz_cc_id
-                obj.save()
-        except UserBusiness.DoesNotExist:
-            biz_cc_id = biz_list[0].cc_id
-            UserBusiness.objects.create(user=username, default_buss=biz_cc_id)
-        return HttpResponseRedirect(settings.SITE_URL + 'business/home/' + str(biz_cc_id) + '/')
-    else:
-        return HttpResponseRedirect(settings.SITE_URL + 'error/406/')
+        prepare_projects(request)
+    except Exception:
+        logger.error('an error occurred when sync user business to projects: {detail}'.format(
+            detail=traceback.format_exc()
+        ))
+
+    default_project = get_default_project_for_user(request.user.username)
+
+    ctx = {
+        'user_role': user_role,
+        'default_project': default_project.id if default_project else None
+    }
+
+    return render(request, 'core/base_vue.html', ctx)
 
 
-def biz_home(request, biz_cc_id):
+def project_home(request, project_id):
     """
     @note: only use to authentication
     @param request:
@@ -87,7 +70,7 @@ def biz_home(request, biz_cc_id):
     @return:
     """
     ctx = {
-        'biz_cc_id': biz_cc_id
+        'project_id': project_id
     }
     return render(request, 'core/base_vue.html', ctx)
 

@@ -75,3 +75,17 @@ def prepare_projects(request, use_cache=True):
             UserDefaultProject.objects.init_user_default_project(username=user.username, project=projects[0])
 
         cache.set(cache_key, True, DEFAULT_CACHE_TIME_FOR_CC)
+
+
+def get_default_project_for_user(username):
+    # TODO change this implementation after introduce auth backend
+    project = None
+
+    try:
+        project = UserDefaultProject.objects.get(username=username).default_project
+    except UserDefaultProject.DoesNotExist:
+        all_projects = Project.objects.all()
+        if all_projects:
+            project = all_projects[0]
+
+    return project
