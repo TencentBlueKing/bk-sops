@@ -11,17 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import logging
 
 import pytz
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
 
-from gcloud import exceptions
-from gcloud.core.utils import prepare_business
+from gcloud.core.models import Project
 
 logger = logging.getLogger("root")
 
@@ -37,31 +35,15 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
         """
         if getattr(view_func, 'login_exempt', False):
             return None
-        biz_cc_id = view_kwargs.get('biz_cc_id')
-        if biz_cc_id and str(biz_cc_id) != '0':
+        project_id = view_kwargs.get('project_id')
+        if project_id:
             try:
-                business = prepare_business(request, cc_id=biz_cc_id)
-            except exceptions.Unauthorized:
-                # permission denied for target business (irregular request)
-                return HttpResponse(status=401)
-            except exceptions.Forbidden:
-                # target business does not exist (irregular request)
-                return HttpResponseForbidden()
-            except exceptions.APIError as e:
-                ctx = {
-                    'system': e.system,
-                    'api': e.api,
-                    'message': e.message,
-                }
-                logger.error(json.dumps(ctx))
-                return HttpResponse(status=503, content=json.dumps(ctx))
+                project = Project.objects.get(id=project_id)
+            except Project.DoesNotExist:
+                return HttpResponseBadRequest(content='project does not exist.')
 
             # set time_zone of business
-            if business.time_zone:
-                request.session['blueking_timezone'] = business.time_zone
-
-            if not request.user.has_perm('view_business', business):
-                return HttpResponseForbidden()
+            request.session['blueking_timezone'] = project.time_zone
 
 
 class UnauthorizedMiddleware(MiddlewareMixin):
