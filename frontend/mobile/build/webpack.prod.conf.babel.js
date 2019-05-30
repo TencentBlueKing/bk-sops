@@ -164,7 +164,6 @@ const prodConf = merge(baseConf, {
         new MiniCssExtractPlugin({
             filename: assetsPath('css/[name].css')
         }),
-
         new CopyWebpackPlugin([
             {
                 from: resolve(__dirname, '../static'),

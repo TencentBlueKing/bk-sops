@@ -69,7 +69,14 @@ const webpackConfig = merge(baseConf, {
             staticUrl: config.dev.env.staticUrl
         }),
 
-        new FriendlyErrorsPlugin()
+        new FriendlyErrorsPlugin(),
+        new CopyWebpackPlugin([
+            {
+                from: resolve('static/images'),
+                to: resolve('dist/static/images'),
+                toType: 'dir'
+            }
+        ]),
     ]
 })
 
