@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.contrib import admin
 
-from pipeline.contrib.external_plugins.models.forms import JsonModelForm
+from pipeline.contrib.external_plugins.models.forms import JsonFieldModelForm
 
 from gcloud.external_plugins.models import (
     GitRepoOriginalSource,
@@ -26,7 +26,7 @@ from gcloud.external_plugins.models import (
 
 @admin.register(GitRepoOriginalSource)
 class GitRepoOriginalSourceAdmin(admin.ModelAdmin):
-    form = JsonModelForm
+    form = JsonFieldModelForm
     list_display = ['id', 'name', 'base_source_id', 'repo_address', 'repo_raw_address', 'branch']
     list_filter = []
     search_fields = ['name', 'repo_address']
@@ -34,7 +34,7 @@ class GitRepoOriginalSourceAdmin(admin.ModelAdmin):
 
 @admin.register(S3OriginalSource)
 class S3OriginalSourceAdmin(admin.ModelAdmin):
-    form = JsonModelForm
+    form = JsonFieldModelForm
     list_display = ['id', 'name', 'base_source_id', 'service_address', 'bucket', 'access_key', 'secret_key']
     list_filter = []
     search_fields = ['name', 'service_address', 'bucket']
@@ -42,7 +42,7 @@ class S3OriginalSourceAdmin(admin.ModelAdmin):
 
 @admin.register(FileSystemOriginalSource)
 class FileSystemOriginalSourceAdmin(admin.ModelAdmin):
-    form = JsonModelForm
+    form = JsonFieldModelForm
     list_display = ['id', 'name', 'base_source_id', 'path']
     list_filter = []
     search_fields = ['name', 'path']
