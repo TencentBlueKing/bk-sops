@@ -11,20 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
-from django.db import models
+import json
+
+from django import forms
+
+from pipeline.contrib.external_plugins.models.fields import JSONTextField
 
 
-class JSONTextField(models.TextField):
+class JsonModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(JSONTextField, self).__init__(*args, **kwargs)
-
-    def get_prep_value(self, value):
-        return json.dumps(value)
-
-    def to_python(self, value):
-        value = super(JSONTextField, self).to_python(value)
-        return json.loads(value)
-
-    def from_db_value(self, value, expression, connection, context):
-        return self.to_python(value)
+        super(JsonModelForm, self).__init__(*args, **kwargs)
+        # for edit in django admin web
+        all_fields = self.instance.__class__._meta.get_fields()
+        for field in all_fields:
+            if isinstance(field, JSONTextField):
+                self.initial[field.name] = json.dumps(getattr(self.instance, field.name))
