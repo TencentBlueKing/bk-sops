@@ -42,7 +42,11 @@ def original_source(cls):
 class OriginalPackageSourceManager(PackageSourceManager):
     @transaction.atomic()
     def add_original_source(self, name, source_type, packages, original_kwargs=None, **base_kwargs):
-        full_kwargs = {}
+        full_kwargs = {
+            'type': source_type,
+            'name': name,
+            'packages': packages
+        }
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
@@ -54,15 +58,13 @@ class OriginalPackageSourceManager(PackageSourceManager):
                                                                                     **base_kwargs)
             full_kwargs['base_source_id'] = base_source.id
         original_source_cls = source_cls_factory[source_type]
-        return original_source_cls.objects.create(type=source_type,
-                                                  name=name,
-                                                  packages=packages,
-                                                  **full_kwargs)
+        return original_source_cls.objects.create(**full_kwargs)
 
     def update_original_source(self, package_source_id, packages, original_kwargs=None, **base_kwargs):
-        full_kwargs = {}
+        full_kwargs = {'packages': packages}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
+        full_kwargs.update(base_kwargs)
         # use filter instead of get,because it will be updated later
         package_objs = self.filter(id=package_source_id)
         package_obj = package_objs[0]
