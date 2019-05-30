@@ -54,7 +54,7 @@
                         type="default"
                         size="mini"
                         hide-text="true"
-                        icon="common-icon common-icon-dark-paper params-btn-icon"
+                        icon="common-icon common-icon-solid-eye params-btn-icon"
                         v-bktooltips.bottom="i18n.params"
                         @click="onTaskParamsClick('viewParams')">
                     </bk-button>
@@ -69,6 +69,12 @@
                         v-bktooltips.bottom="i18n.changeParams"
                         @click="onTaskParamsClick('modifyParams')">
                     </bk-button>
+                    <router-link
+                        class="jump-tpl-page-btn common-icon-link params-btn-icon"
+                        target="_blank"
+                        v-bktooltips.bottom="i18n.checkFlow"
+                        :to="getTplURL()">
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -199,7 +205,7 @@
             gatewaySelectDialog,
             revokeDialog
         },
-        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id', 'templateSource'],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -213,7 +219,8 @@
             return {
                 i18n: {
                     params: gettext('查看参数'),
-                    changeParams: gettext('修改参数')
+                    changeParams: gettext('修改参数'),
+                    checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -907,6 +914,15 @@
                     this.nodeInfoType = type
                 }
             },
+            getTplURL () {
+                let routerData = ''
+                if (this.templateSource === 'business') {
+                    routerData = `/template/edit/${this.cc_id}/?template_id=${this.template_id}`
+                } else if (this.templateSource === 'common') {
+                    routerData = `/template/home/${this.cc_id}/?common=1&common_template=common`
+                }
+                return routerData
+            },
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
@@ -1273,14 +1289,25 @@
             }
         }
         .task-params-btns {
-            .params-btn {
-                margin-right: 24px;
+            .params-btn, .jump-tpl-page-btn {
+                margin-right: 36px;
                 padding: 0;
                 color: #979ba5;
-                font-size: 16px;
+                font-size: 14px;
                 &.actived {
                     color: #63656e;
                 }
+                &:hover {
+                    color: #63656e;
+                }
+            }
+            .jump-tpl-page-btn {
+                display: inline-block;
+                position: relative;
+                height: 24px;
+                width: 16px;
+                top: 2px;
+                line-height: 22px;
             }
         }
     }
