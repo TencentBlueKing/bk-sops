@@ -19,6 +19,7 @@
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :topo-model-list="topoModelList"
+                :allow-empty="allowEmpty"
                 v-model="ipValue">
             </ip-selector>
         </div>
@@ -87,6 +88,9 @@
                     }
                 })
                 return val || '--'
+            },
+            allowEmpty () {
+                return !this.validateSet.includes('required')
             }
         },
         created () {
