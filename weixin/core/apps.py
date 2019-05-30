@@ -15,5 +15,6 @@ from django.apps import AppConfig
 
 
 class WeixinCoreConfig(AppConfig):
+    label = 'weixin_core'
     name = 'weixin.core'
     verbose_name = 'WeixinCore'
