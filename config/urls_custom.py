@@ -30,4 +30,5 @@ urlpatterns_custom = [
     url(r'^analysis/', include('gcloud.contrib.analysis.urls')),
     url(r'^periodictask/', include('gcloud.periodictask.urls')),
     url(r'^weixin/', include('weixin.urls')),
+    url(r'^weixin/login/', include('weixin.core.urls')),
 ]
