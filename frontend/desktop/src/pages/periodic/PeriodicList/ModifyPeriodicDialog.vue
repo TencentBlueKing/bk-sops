@@ -67,7 +67,7 @@
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import DialogLoadingBtn from '@/pages/template/DialogLoadingBtn'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
@@ -94,13 +94,17 @@
                 },
                 periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
                 periodicCron: this.cron,
-                dialogFooterData: {
-                    additionalBtnShow: false,
-                    confirmType: 'primary',
-                    confirmBtnPending: false,
-                    confirmText: gettext('确认'),
-                    cancelText: gettext('取消')
-                }
+                dialogFooterData: [
+                    {
+                        type: 'primary',
+                        lodaing: false,
+                        btnText: gettext('确认'),
+                        click: 'onConfirm'
+                    }, {
+                        btnText: gettext('取消'),
+                        click: 'onCancel'
+                    }
+                ]
             }
         },
         computed: {
@@ -117,7 +121,7 @@
                 this.$emit('onModifyPeriodicCancel')
             },
             onModifyPeriodicConfirm () {
-                this.dialogFooterData.confirmBtnPending = true
+                this.dialogFooterData[0].lodaing = true
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then((result) => {
                     let formValid = true
@@ -191,7 +195,7 @@
                                 'theme': 'error'
                             })
                         }
-                        this.dialogFooterData.confirmBtnPending = false
+                        this.dialogFooterData[0].lodaing = false
                         this.$emit('onModifyPeriodicConfirm')
                     })
                 } catch (e) {

@@ -128,7 +128,7 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import DialogLoadingBtn from '../DialogLoadingBtn.vue'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
@@ -166,13 +166,17 @@
                     classifyId: 'all',
                     keywords: ''
                 },
-                dialogFooterData: {
-                    additionalBtnShow: false,
-                    confirmType: 'primary',
-                    confirmBtnPending: false,
-                    confirmText: gettext('确认'),
-                    cancelText: gettext('取消')
-                }
+                dialogFooterData: [
+                    {
+                        type: 'primary',
+                        lodaing: false,
+                        btnText: gettext('确认'),
+                        click: 'onConfirm'
+                    }, {
+                        btnText: gettext('取消'),
+                        click: 'onCancel'
+                    }
+                ]
             }
         },
         computed: {
@@ -190,7 +194,7 @@
         },
         watch: {
             pending () {
-                this.dialogFooterData.confirmBtnPending = this.pending
+                this.dialogFooterData[0].lodaing = this.pending
             }
         },
         created () {
