@@ -18,9 +18,9 @@ from django import forms
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
 
 
-class JsonModelForm(forms.ModelForm):
+class JsonFieldModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(JsonModelForm, self).__init__(*args, **kwargs)
+        super(JsonFieldModelForm, self).__init__(*args, **kwargs)
         # for edit in django admin web
         all_fields = self.instance.__class__._meta.get_fields()
         for field in all_fields:
