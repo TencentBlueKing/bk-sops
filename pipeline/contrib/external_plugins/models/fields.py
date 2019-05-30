@@ -25,6 +25,3 @@ class JSONTextField(models.TextField):
     def to_python(self, value):
         value = super(JSONTextField, self).to_python(value)
         return json.loads(value)
-
-    def from_db_value(self, value, expression, connection, context):
-        return self.to_python(value)
