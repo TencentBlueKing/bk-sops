@@ -9,7 +9,7 @@
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
-    const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select']
+    const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select', 'password']
 
     const components = require.context(
         '.',
@@ -64,6 +64,7 @@
         },
         data () {
             return {
+                componentTag: 'cell',
                 domName: 'vant-cell',
                 domAttr: {},
                 atomConfig: {},
@@ -78,78 +79,95 @@
         },
         methods: {
             ...mapActions('component', [
+                'getVariableConfig',
                 'getAtomConfig'
             ]),
             async loadData () {
-                // 根据sourceCode加载atom配置
-                if (this.sourceCode) {
-                    const [atomCode, tagCode] = this.sourceCode.split('.')
+                const [configKey, tagCode] = this.sourceCode.split('.')
+                // customType参数加载配置文件
+                if (this.customType) {
                     try {
-                        if (!global.$.atoms || !global.$.atoms[atomCode]) {
-                            await this.getAtomConfig({ atomCode: atomCode })
+                        if (!global.$.atoms || !global.$.atoms[this.customType]) {
+                            await this.getVariableConfig({ customType: this.customType })
                         }
                     } catch (e) {
                         errorHandler(e, this)
                     }
-                    const atomConfigs = global.$.atoms[atomCode]
-                    if (atomConfigs && atomConfigs.length) {
-                        atomConfigs.some(item => {
-                            if (item['tag_code'] === tagCode) {
-                                this.atomConfig = item
-                                this.label = item.attrs.name
-                                this.domAttr.validation = item.attrs.validation
-                                if (this.domAttr.validation) {
-                                    this.attrs.required = this.domAttr.validation.some((v) => v.type === 'required')
-                                    this.key = this.attrs.required ? 'required' : ''
-                                }
-                                if (item.attrs.placeholder) {
-                                    this.placeholder = item.attrs.placeholder
-                                }
-                                if (item.type === 'select') {
-                                    this.domAttr.select = {
-                                        columns: item.attrs.items,
-                                        defaultVal: item.attrs.items.findIndex(o => o.text === this.value),
-                                        tagCode: this.sourceCode
-                                    }
-                                } else if (item.type === 'checkbox') {
-                                    const checkboxData = item.attrs.items
-                                    const checkedList = checkboxData.filter(o => item.attrs['default'].includes(o.value)).map(({ name }) => name)
-                                    this.data.value = checkedList.join(',')
-                                    console.log(this.data)
-                                    this.domAttr.checkbox = {
-                                        checkedList: item.attrs['default'],
-                                        list: checkboxData.map(({ value }) => value)
-                                    }
-                                }
-                                return true
-                            }
-                        })
-                        // 如果在移动端支持的组件列表，统一用cell做显示
-                        this.customType = MOBILE_SUPPORTTED_COMPONENTS.includes(this.atomConfig.type) ? this.atomConfig.type : 'cell'
+                } else {
+                    try {
+                        if (!global.$.atoms || !global.$.atoms[configKey]) {
+                            await this.getAtomConfig({ atomCode: configKey })
+                        }
+                    } catch (e) {
+                        errorHandler(e, this)
                     }
+                }
+                const atomConfigs = global.$.atoms[configKey]
+                if (atomConfigs && atomConfigs.length) {
+                    atomConfigs.some(item => {
+                        if (item['tag_code'] === tagCode) {
+                            this.atomConfig = item
+                            if (!this.customType) {
+                                this.label = item.attrs.name
+                                this.componentTag = item.type
+                            } else {
+                                this.componentTag = tagCode
+                            }
+                            if (item.attrs.validation) {
+                                this.attrs.required = item.attrs.validation.some((v) => v.type === 'required')
+                                this.domAttr.validation = { required: true }
+                            }
+                            if (item.attrs.placeholder) {
+                                this.placeholder = item.attrs.placeholder
+                            }
+                            if (item.type === 'select') {
+                                this.domAttr.select = {
+                                    columns: item.attrs.items,
+                                    defaultVal: item.attrs.items.findIndex(o => o.text === this.value),
+                                    tagCode: this.customType ? this.customType : this.sourceCode
+                                }
+                            } else if (item.type === 'checkbox') {
+                                const checkboxData = item.attrs.items
+                                const checkedList = checkboxData.filter(o => item.attrs['default'].includes(o.value)).map(({ name }) => name)
+                                this.data.value = checkedList.join(',')
+                                this.domAttr.checkbox = {
+                                    checkedList: item.attrs['default'],
+                                    list: checkboxData.map(({ value }) => value)
+                                }
+                            } else if (item.type === 'int') {
+                                this.value = this.value ? Number.parseInt(this.value) : 0
+                            } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
+                                this.componentTag = 'cell'
+                                this.value = JSON.stringify(this.data.value)
+                            } else if (item.type === 'password') {
+                                this.domAttr.type = item.type
+                                this.componentTag = 'input'
+                            }
+                            return true
+                        }
+                    })
                 }
                 this.fillDomConfig()
             },
             fillDomConfig () {
-                this.domName = 'vant-' + this.customType
+                this.domName = 'vant-' + this.componentTag
                 this.domAttr.label = this.label
                 this.domAttr.placeholder = this.placeholder
-                this.domAttr.value = this.customType === 'int' ? (this.value ? Number.parseInt(this.value) : 0) : this.value
-                this.domAttr.data = this.data
+                this.domAttr.value = this.value
+                this.$set(this.domAttr, 'data', this.data)
                 this.domAttr.name = this.data.name
-                if (this.data.validation) {
-                    this.domAttr.validation = {
-                        regex: new RegExp(this.data.validation)
-                    }
+                if (this.data.validation && this.domAttr.validation) {
+                    this.$set(this.domAttr.validation, 'regex', new RegExp(this.data.validation))
                 }
             }
         },
         render (h) {
             const self = this
+            console.log(this.domAttr)
             return h(this.domName, {
                 nativeOn: {
                     change: function (event) {
-                        self.$emit('dataChange', event.target.value, self.sourceCode ? self.sourceCode : self.data['key'], self.customType)
+                        self.$emit('dataChange', event.target.value, self.customType ? self.data['key'] : self.sourceCode, self.customType)
                     },
                     click: function (event) {
                         if (self.customType === 'datetime') {

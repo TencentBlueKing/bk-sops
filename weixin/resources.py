@@ -17,6 +17,7 @@ from tastypie.authorization import ReadOnlyAuthorization
 from gcloud.webservice3.resources import (
     GCloudReadOnlyAuthorization,
     BusinessResource,
+    VariableModelResource,
     ComponentModelResource
 )
 from gcloud.tasktmpl3.resources import (
@@ -50,5 +51,8 @@ class WxTemplateSchemeResource(TemplateSchemeResource):
 
 
 class WxComponentModelResource(ComponentModelResource):
-    class Meta(ComponentModelResource.Meta):
-        authorization = GCloudReadOnlyAuthorization()
+    pass
+
+
+class WxVariableModelResource(VariableModelResource):
+    pass
