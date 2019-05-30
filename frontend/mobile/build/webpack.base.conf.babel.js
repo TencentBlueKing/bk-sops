@@ -103,7 +103,7 @@ export default {
                 loader: 'url-loader',
                 options: {
                     limit: 10000,
-                    name: assetsPath('images/[name].[hash:7].[ext]')
+                    name: assetsPath('images/[name].[ext]')
                 }
             },
             {
@@ -112,7 +112,7 @@ export default {
                     loader: 'url-loader',
                     options: {
                         limit: 10000,
-                        name: assetsPath('media/[name].[hash:7].[ext]')
+                        name: assetsPath('media/[name].[ext]')
                     }
                 }
             },
@@ -122,7 +122,7 @@ export default {
                     loader: 'url-loader',
                     options: {
                         limit: 10000,
-                        name: assetsPath('fonts/[name].[hash:7].[ext]')
+                        name: assetsPath('fonts/[name].[ext]')
                     }
                 }
             }
@@ -132,13 +132,6 @@ export default {
         new VueLoaderPlugin(),
         // moment 优化，只提取本地包
         new webpack.ContextReplacementPlugin(/moment\/locale$/, /zh-cn/),
-        new CopyWebpackPlugin([
-            {
-                from: resolve('static/images'),
-                to: resolve('dist/static/images'),
-                toType: 'dir'
-            }
-        ]),
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery',
