@@ -10,7 +10,9 @@
         <van-list
             v-model="loading"
             :finished="finished"
-            :finished-text="i18n.finished_text"
+            :finished-text="i18n.finishedText"
+            :error.sync="error"
+            :error-text="i18n.errorText"
             @load="onLoad">
             <div class="panel-list">
                 <van-cell
@@ -41,9 +43,11 @@
             return {
                 businessList: [],
                 i18n: {
-                    finished_text: window.gettext('没有更多了')
+                    errorText: window.gettext('请求失败，点击重新加载'),
+                    finishedText: window.gettext('没有更多了')
                 },
                 loading: false,
+                error: false,
                 finished: false,
                 offset: 0,
                 limit: 10,
@@ -74,6 +78,7 @@
                         ({ tagColor: item.tagColor, tag: item.tag } = this.getTagColor(item))
                     })
                 } catch (e) {
+                    this.error = true
                     errorHandler(e, this)
                 } finally {
                     this.loading = false

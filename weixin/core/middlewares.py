@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
 
@@ -29,7 +30,7 @@ def get_user(request):
     return user or AnonymousUser()
 
 
-class WeixinAuthenticationMiddleware(object):
+class WeixinAuthenticationMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         assert hasattr(request, 'session'), (
@@ -41,7 +42,7 @@ class WeixinAuthenticationMiddleware(object):
         setattr(request, 'weixin_user', SimpleLazyObject(lambda: get_user(request)))
 
 
-class WeixinLoginMiddleware(object):
+class WeixinLoginMiddleware(MiddlewareMixin):
     """weixin Login middleware."""
 
     def process_view(self, request, view, args, kwargs):
