@@ -345,7 +345,7 @@ class CommonTemplateManager(BaseTemplateManager):
 
         return {
             'result': True,
-            'data': len(template),
+            'data': {'num_of_import': len(template)},
             'message': 'Successfully imported %s common flows' % len(template)
         }
 
