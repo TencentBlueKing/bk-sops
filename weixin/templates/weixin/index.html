@@ -1,0 +1,19 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	    <title>{%  trans "标准运维" %}|{% trans RUN_VER_NAME %}</title>
+            <script>
+                /* 全局变量 */
+                var RUN_VER = '{{RUN_VER}}';
+                var SITE_URL = '{{SITE_URL}}';
+                var USERNAME = '{{USERNAME}}';
+                var APP_CODE = '{{APP_CODE}}'
+            </script>
+    </head>
+    <body>
+        <div id="app"></div>
+    </body>
+</html>

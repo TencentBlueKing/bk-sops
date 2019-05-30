@@ -8,12 +8,14 @@
 <template>
     <van-cell
         :title="label"
-        :value="value" />
+        :value="value">
+        {{ value }}
+    </van-cell>
 </template>
 
 <script>
     export default {
-        name: 'VantSelect',
+        name: 'VantCell',
         props: {
             label: {
                 type: String,
