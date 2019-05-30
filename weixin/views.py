@@ -14,8 +14,8 @@ specific language governing permissions and limitations under the License.
 from django.shortcuts import render
 
 
-def index(request):
+def home(request):
     """
     @summary: 移动端首页
     """
-    return render(request, '/weixin/index.html')
+    return render(request, 'weixin/index.html')
