@@ -186,7 +186,7 @@
                 type: Object,
                 default () {
                     return {
-                        id: '',
+                        id: undefined,
                         name: '',
                         type: 'git',
                         desc: '',
@@ -286,7 +286,6 @@
                         modules: packages[key].modules
                     })
                 }
-                console.log(values)
                 return values
             },
             /**
