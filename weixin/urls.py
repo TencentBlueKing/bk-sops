@@ -19,6 +19,7 @@ from .resources import (
     WxTaskTemplateResource,
     WxTaskFlowInstanceResource,
     WxComponentModelResource,
+    WxVariableModelResource,
     WxTemplateSchemeResource
 )
 from . import views
@@ -29,6 +30,7 @@ weixin_v3_api.register(WxTaskTemplateResource())
 weixin_v3_api.register(WxTemplateSchemeResource())
 weixin_v3_api.register(WxTaskFlowInstanceResource())
 weixin_v3_api.register(WxComponentModelResource())
+weixin_v3_api.register(WxVariableModelResource())
 
 urlpatterns = [
     url(r'^$', views.home),

@@ -114,6 +114,7 @@ const routes = [
 ]
 
 const router = new VueRouter({
+    base: global.SITE_URL + 'weixin/',
     mode: 'history',
     routes: routes
 })
