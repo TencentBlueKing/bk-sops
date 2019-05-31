@@ -15,7 +15,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.account.forms import UserCreationForm
-from blueapps.account.models import User
+from blueapps.account.models import User, UserProperty
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -39,4 +39,11 @@ class UserAdmin(admin.ModelAdmin):
                     'is_superuser', 'last_login']
 
 
+class UserPropertyAdmin(admin.ModelAdmin):
+    list_display = ['user', 'key', 'value']
+    list_filter = ['user__username']
+    search_fields = ['user__username', 'key']
+
+
 admin.site.register(User, UserAdmin)
+admin.site.register(UserProperty, UserPropertyAdmin)

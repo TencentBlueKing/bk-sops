@@ -11,21 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf import settings as django_settings
+from __future__ import unicode_literals
 
-from weixin.conf import default_settings
-
-
-class WeixinSettings(object):
-
-    def __getattr__(self, key):
-        if hasattr(django_settings, key):
-            return getattr(django_settings, key)
-
-        if hasattr(default_settings, key):
-            return getattr(default_settings, key)
-
-        raise AttributeError('Settings object has no attribute %s' % key)
+from django.db import migrations, models
 
 
-settings = WeixinSettings()
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('weixin_core', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.RenameField(
+            model_name='BkWeixinUser',
+            old_name='openid',
+            new_name='userid',
+        ),
+        migrations.RenameField(
+            model_name='BkWeixinUser',
+            old_name='nickname',
+            new_name='name',
+        ),
+    ]
