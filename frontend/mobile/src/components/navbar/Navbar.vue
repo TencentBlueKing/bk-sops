@@ -34,15 +34,15 @@
                 actions: [
                     {
                         name: '流程模板',
-                        router: '/weixin/template/'
+                        router: '/template/'
                     },
                     {
                         name: '任务记录',
-                        router: '/weixin/task/list'
+                        router: '/task/list'
                     },
                     {
                         name: '业务选择',
-                        router: '/weixin/'
+                        router: '/'
                     }
                 ]
             }
@@ -59,7 +59,7 @@
                 // 点击选项时默认不会关闭菜单，可以手动关闭
                 this.show = false
                 this.$cookies.set('biz_selected', true)
-                if (item.router === '/weixin/template/') {
+                if (item.router === '/template/') {
                     this.$router.push({ path: item.router + this.bizId, query: { 'biz_selected': '1' } })
                 } else {
                     this.$router.push({ path: item.router, query: { 'biz_selected': '1' } })
