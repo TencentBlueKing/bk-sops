@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.conf import settings
 from django.shortcuts import render
 
 
@@ -19,5 +18,4 @@ def home(request):
     """
     @summary: 移动端首页
     """
-    print settings
     return render(request, 'weixin/index.html')

@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth import get_user_model
 
 from . import settings
 from .accounts import WeixinAccount
@@ -29,6 +30,17 @@ def get_user(request):
         except BkWeixinUser.DoesNotExist:
             user = None
     return user or AnonymousUser()
+
+
+def get_bk_user(request):
+    User = get_user_model()
+    bkuser = None
+    if request.weixin_user and not isinstance(request.weixin_user, AnonymousUser):
+        try:
+            bkuser = User.objects.get(wx_userid=request.weixin_user.userid)
+        except User.DoesNotExist:
+            bkuser = None
+    return bkuser or AnonymousUser()
 
 
 class WeixinProxyPatchMiddleware(MiddlewareMixin):
@@ -63,6 +75,7 @@ class WeixinAuthenticationMiddleware(MiddlewareMixin):
             "'weixin.core.middleware.WeixinAuthenticationMiddleware'."
         )
         setattr(request, 'weixin_user', SimpleLazyObject(lambda: get_user(request)))
+        setattr(request, 'user', SimpleLazyObject(lambda: get_bk_user(request)))
 
 
 class WeixinLoginMiddleware(MiddlewareMixin):
