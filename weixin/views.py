@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.shortcuts import render
 
 
-def index(request):
+def home(request):
     """
     @summary: 移动端首页
     """

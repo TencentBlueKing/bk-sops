@@ -14,6 +14,7 @@ import store from './store'
 import Exception from './components/exception'
 import VeeValidate, { Validator } from 'vee-validate'
 import { bus } from './common/bus'
+import { getMobileUrlSetting } from './api/urls.js'
 import {
     NavBar,
     Button,
@@ -75,6 +76,11 @@ Vue.config.devtools = true
 global.$ = $
 global.$.atoms = {}
 global.bus = bus
+global.getMobileUrlPrefix = (bizId) => {
+    const ajaxUrlPrefix = `${AJAX_URL_PREFIX}${global.SITE_URL || ''}`
+    return getMobileUrlSetting(ajaxUrlPrefix, bizId)
+}
+
 global.mainComponent = new Vue({
     el: '#app',
     router,
