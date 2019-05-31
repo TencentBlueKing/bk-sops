@@ -9,7 +9,7 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-export function getMobileUrlSetting (SITE_URL, BIZ_CC_ID, PLATFORM_URL = '/weixin/') {
+export function getMobileUrlSetting (SITE_URL, BIZ_CC_ID, PLATFORM_URL = 'weixin/') {
     return {
         business: SITE_URL + PLATFORM_URL + 'api/v3/business/',
         component: SITE_URL + PLATFORM_URL + 'api/v3/component/',
