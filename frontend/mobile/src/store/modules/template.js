@@ -21,18 +21,18 @@ export default {
     actions: {
         getTemplateList ({ rootState }, { limit, offset = 0 } = {}) {
             const pager = limit ? `limit=${limit}&offset=${offset}&` : ''
-            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/template/?${pager}business__cc_id=${rootState.bizId}`
+            const url = `${global.getMobileUrlPrefix().template}?${pager}business__cc_id=${rootState.bizId}`
             return http.get(url).then(response => response)
         },
 
         getTemplate ({ commit, state }, templateId) {
-            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/template/${templateId}/`
+            const url = `${global.getMobileUrlPrefix().template}${templateId}/`
             commit('setTemplateId', templateId)
             return http.get(url).then(response => response)
         },
 
         collectTemplate ({ rootState }, params) {
-            const url = `${AJAX_URL_PREFIX}/weixin/template/api/collect/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).templateCollect}`
             return http.post(
                 url,
                 qs.stringify(params),
@@ -41,7 +41,7 @@ export default {
         },
 
         getSchemeList ({ commit, state, rootState }) {
-            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/schemes/?biz_cc_id=${rootState.bizId}&template__template_id=${state.id}`
+            const url = `${global.getMobileUrlPrefix().schemes}?biz_cc_id=${rootState.bizId}&template__template_id=${state.id}`
             return http.get(url).then(response => {
                 const data = response.objects || []
                 data.map(o => {
@@ -53,12 +53,12 @@ export default {
         },
 
         getScheme ({ commit, state }, id) {
-            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/schemes/${id}/`
+            const url = `${global.getMobileUrlPrefix().schemes}${id}/`
             return http.get(url).then(response => response)
         },
 
         getPreviewTaskTree ({ rootState }, params) {
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/preview_task_tree/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instancePreview}`
             return http.post(
                 url,
                 qs.stringify(params),
@@ -69,7 +69,7 @@ export default {
         },
 
         createTask ({ rootState, state }, data) {
-            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/taskflow/`
+            const url = `${global.getMobileUrlPrefix().instance}`
             const requestData = {
                 'business': `api/v3/business/${rootState.bizId}/`,
                 'template_id': state.id,
