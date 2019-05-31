@@ -15,6 +15,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
 
+from . import settings
 from .accounts import WeixinAccount
 from .models import BkWeixinUser
 
@@ -28,6 +29,28 @@ def get_user(request):
         except BkWeixinUser.DoesNotExist:
             user = None
     return user or AnonymousUser()
+
+
+class WeixinProxyPatchMiddleware(MiddlewareMixin):
+    """
+    该中间件需要被放置在所有中间件之前
+    解决多级Nginx代理下原始来源Host(`X-Forwarded-Host`)被下层Nginx覆盖的问题
+    解决方式：单独设置一个Header，本中间件进行覆盖替换`X-Forwarded-Host`
+
+    # django 获取Host方式
+    # django.http.request +73
+    def get_host(self):
+        '''Returns the HTTP host using the environment or request headers.'''
+        # We try three options, in order of decreasing preference.
+        if settings.USE_X_FORWARDED_HOST and (
+                'HTTP_X_FORWARDED_HOST' in self.META):
+            host = self.META['HTTP_X_FORWARDED_HOST']
+            ...
+    """
+    def process_request(self, request):
+        if settings.USE_WEIXIN and settings.X_FORWARDED_WEIXIN_HOST in request.META:
+            # patch X-Forwaded-Host header
+            request.META["HTTP_X_FORWARDED_HOST"] = request.META.get(settings.X_FORWARDED_WEIXIN_HOST)
 
 
 class WeixinAuthenticationMiddleware(MiddlewareMixin):
