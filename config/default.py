@@ -106,6 +106,8 @@ MIDDLEWARE += (
     'weixin.core.middlewares.WeixinLoginMiddleware',
 )
 
+MIDDLEWARE = ('weixin.core.middlewares.WeixinProxyPatchMiddleware',) + MIDDLEWARE
+
 # 所有环境的日志级别可以在这里配置
 LOG_LEVEL = 'INFO'
 
