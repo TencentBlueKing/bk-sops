@@ -13,7 +13,7 @@ export default {
     mutations: {},
     actions: {
         getTaskStatus ({ commit, rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState).instanceStatus}?instance_id=${params.id}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceStatus}?instance_id=${params.id}`
             return http.get(url).then(response => {
                 return response.result ? response.data : {}
             })

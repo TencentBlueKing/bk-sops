@@ -19,66 +19,66 @@ export default {
         },
 
         getTaskStatus ({ commit, rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState).instanceStatus}?instance_id=${params.id}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceStatus}?instance_id=${params.id}`
             return http.get(url).then(response => response)
         },
 
         instanceStart ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${global.getMobileUrlPrefix(rootState).instanceStart}?instance_id=${params.id}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceStart}?instance_id=${params.id}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceRevoke ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${global.getMobileUrlPrefix(rootState).instanceRevoke}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceRevoke}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instancePause ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${global.getMobileUrlPrefix(rootState).instancePause}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instancePause}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceResume ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${global.getMobileUrlPrefix(rootState).instanceResume}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceResume}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeSkip ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id, node_id: params.nodeId })
-            const url = `${global.getMobileUrlPrefix(rootState).nodeSkip}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeSkip}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeRetry ({ commit, rootState }, params) {
             const data = qs.stringify(params)
-            const url = `${global.getMobileUrlPrefix(rootState).nodeRetry}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeRetry}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeResume ({ commit, rootState }, params) {
             params.callback = 'resume'
             const data = qs.stringify(params)
-            const url = `${global.getMobileUrlPrefix(rootState).pauseNodeResume}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).pauseNodeResume}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeEditTime ({ commit, rootState }, params) {
             const data = qs.stringify(params)
-            const url = `${global.getMobileUrlPrefix(rootState).setSleepNode}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).setSleepNode}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         getNodeDetail ({ rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState).nodeActDetails}?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeActDetails}?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
             return http.get(url).then(response => response)
         },
 
         getNodeRetryData ({ rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState).nodeActInfo}?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeActInfo}?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
             return http.get(url).then(response => response)
         }
     }

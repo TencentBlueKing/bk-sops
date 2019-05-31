@@ -13,7 +13,7 @@ export default {
     mutations: {},
     actions: {
         getBusinessList ({ commit, state, dispatch }, params) {
-            const url = global.getMobileUrlPrefix().business + `?limit=${params.limit}&offset=${params.offset}`
+            const url = `${global.getMobileUrlPrefix().business}?limit=${params.limit}&offset=${params.offset}`
             return http.get(url, params).then(response => response)
         }
     }
