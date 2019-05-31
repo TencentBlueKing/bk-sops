@@ -106,6 +106,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .step-wrapper {
+    padding-top: 50px;
     background: #f4f7fa;
     border: 1px solid #cacedb;
     .step-header {

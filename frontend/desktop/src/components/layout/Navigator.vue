@@ -305,13 +305,15 @@
 @import '@/scss/config.scss';
 header {
     position: fixed;
+    top: 0px;
+    left: 0px;
     min-width: 1320px;
     width: 100%;
     padding: 0 25px;
     height: 50px;
     font-size: 14px;
     background: #182131;
-    z-index: 9999;
+    z-index: 10;
     .logo {
         float: left;
         margin-top: 11px;

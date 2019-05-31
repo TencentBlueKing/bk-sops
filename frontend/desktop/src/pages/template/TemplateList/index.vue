@@ -662,7 +662,7 @@
 .template-container {
     min-width: 1320px;
     padding-top: 50px;
-    min-height: calc(100% - 50px);
+    min-height: calc(100% - 100px);
     background: $whiteNodeBg;
     .dialog-content {
         word-break: break-all;
