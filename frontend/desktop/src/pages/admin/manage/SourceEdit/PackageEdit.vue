@@ -28,7 +28,6 @@
             <bk-button
                 type="success"
                 class="next-step"
-                :disabled="sourceEmpty"
                 @click="onNextStepClick">
                 {{ i18n.nextStep }}
             </bk-button>
@@ -66,11 +65,6 @@
                 }
             }
         },
-        computed: {
-            sourceEmpty () {
-                return !this.list.length
-            }
-        },
         watch: {
             originList (val) {
                 this.list = tools.deepClone(val)
@@ -79,6 +73,7 @@
         methods: {
             onCreateSource () {
                 this.list.push({
+                    id: undefined,
                     name: '',
                     desc: '',
                     type: 'git',
@@ -91,9 +86,6 @@
                 })
             },
             onNextStepClick () {
-                if (this.sourceEmpty) {
-                    return
-                }
                 const packageComps = this.$children.filter(item => item.$options.name === 'PackageForm')
                 const packageValidations = packageComps.map(comp => {
                     return comp.validate()
@@ -106,6 +98,7 @@
             },
             deleteSource (index) {
                 this.list.splice(index, 1)
+                this.$emit('updateList', 'originList', this.list)
             },
             updateSource (key, value, index) {
                 const val = tools.deepClone(value)
@@ -119,7 +112,7 @@
 </script>
 <style lang="scss" scoped>
     .package-edit {
-        height: calc(100% - 60px);
+        height: calc(100% - 40px);
         background: #ffffff;
     }
     .source-centent {

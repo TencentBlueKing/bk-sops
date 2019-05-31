@@ -61,7 +61,7 @@
         height: calc(100% - 50px);
         background: #f4f7fa;
         .header-wrapper {
-            margin: 0 60px 20px;
+            margin: 0 60px 0;
         }
     }
 </style>
