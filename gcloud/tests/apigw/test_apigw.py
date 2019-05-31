@@ -226,7 +226,7 @@ class APITest(TestCase):
                                                                 name=TEST_PROJECT_NAME,
                                                                 cmdb_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
-    def test_get_template_info__for_business_template(self):
+    def test_get_template_info__for_project_template(self):
         pt1 = MockPipelineTemplate(id=1,
                                    name='pt1')
 
@@ -265,7 +265,7 @@ class APITest(TestCase):
                                                                 name=TEST_PROJECT_NAME,
                                                                 cmdb_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
-    def test_get_template_info__for_business_template_does_not_exists(self):
+    def test_get_template_info__for_project_template_does_not_exists(self):
         response = self.client.get(path=self.GET_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                           project_id=TEST_PROJECT_ID), )
 
