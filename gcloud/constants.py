@@ -11,20 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
-
-from gcloud.constants import *  # noqa
-
-# 任务流程创建方式
-TASK_CREATE_METHOD = [
-    ('app', _(u"手动")),
-    ('api', _(u"API网关")),
-    ('app_maker', _(u"轻应用")),
-    ('periodic', _(u"周期任务")),
-]
-
-# 任务引用的流程模板来源
-TEMPLATE_SOURCE = [
-    (PROJECT, _(u"项目流程")),
-    (COMMON, _(u"公共流程")),
-]
+PROJECT = 'project'
+BUSINESS = 'business'
+COMMON = 'common'
