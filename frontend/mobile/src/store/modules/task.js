@@ -14,71 +14,71 @@ export default {
     mutations: {},
     actions: {
         getTask ({ commit, state, dispatch } = {}, params) {
-            const url = `${AJAX_URL_PREFIX}/weixin/api/v3/taskflow/${params.id}/`
+            const url = `${global.getMobileUrlPrefix().instance}${params.id}/`
             return http.get(url).then(response => response)
         },
 
         getTaskStatus ({ commit, rootState }, params) {
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/status/${rootState.bizId}/?instance_id=${params.id}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceStatus}?instance_id=${params.id}`
             return http.get(url).then(response => response)
         },
 
         instanceStart ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/start/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceStart}?instance_id=${params.id}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceRevoke ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/revoke/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceRevoke}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instancePause ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/pause/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instancePause}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceResume ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id })
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/action/resume/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instanceResume}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeSkip ({ commit, rootState }, params) {
             const data = qs.stringify({ instance_id: params.id, node_id: params.nodeId })
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/action/skip/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeSkip}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeRetry ({ commit, rootState }, params) {
             const data = qs.stringify(params)
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/action/retry/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeRetry}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeResume ({ commit, rootState }, params) {
             params.callback = 'resume'
             const data = qs.stringify(params)
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/action/callback/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).pauseNodeResume}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         instanceNodeEditTime ({ commit, rootState }, params) {
             const data = qs.stringify(params)
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/spec/timer/reset/${rootState.bizId}/`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).setSleepNode}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
 
         getNodeDetail ({ rootState }, params) {
-            const url = `${AJAX_URL_PREFIX}/weixin/taskflow/api/nodes/detail/${rootState.bizId}/?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeActDetails}?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
             return http.get(url).then(response => response)
         },
 
         getNodeRetryData ({ rootState }, params) {
-            const url = `${AJAX_URL_PREFIX}/weixin//taskflow/api/nodes/data/${rootState.bizId}/?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).nodeActInfo}?instance_id=${params.taskId}&node_id=${params.nodeId}&component_code=${params.componentCode}&subprocess_stack=[]`
             return http.get(url).then(response => response)
         }
     }
