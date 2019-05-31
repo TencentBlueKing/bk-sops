@@ -211,14 +211,10 @@
                 })
             },
             fillSchemeData (response) {
-                console.log('at fillSchemeData')
-                console.log(response)
                 this.schemes = response
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
             },
             fillTemplateData (response) {
-                console.log('at fillTemplateData')
-                console.log(response)
                 this.templateData = response
                 const pipelineTree = JSON.parse(this.templateData.pipeline_tree)
                 this.templatePipelineTree = pipelineTree

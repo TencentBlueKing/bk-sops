@@ -32,7 +32,7 @@ export default {
         },
 
         collectTemplate ({ rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState).templateCollect}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).templateCollect}`
             return http.post(
                 url,
                 qs.stringify(params),
@@ -58,7 +58,7 @@ export default {
         },
 
         getPreviewTaskTree ({ rootState }, params) {
-            const url = `${global.getMobileUrlPrefix(rootState).instancePreview}`
+            const url = `${global.getMobileUrlPrefix(rootState.bizId).instancePreview}`
             return http.post(
                 url,
                 qs.stringify(params),

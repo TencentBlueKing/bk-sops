@@ -82,27 +82,10 @@
                 'getVariableConfig',
                 'getAtomConfig'
             ]),
-            async loadData () {
+            loadData () {
                 const [configKey, tagCode] = this.sourceCode.split('.')
-                // customType参数加载配置文件
-                if (this.customType) {
-                    try {
-                        if (!global.$.atoms || !global.$.atoms[this.customType]) {
-                            await this.getVariableConfig({ customType: this.customType })
-                        }
-                    } catch (e) {
-                        errorHandler(e, this)
-                    }
-                } else {
-                    try {
-                        if (!global.$.atoms || !global.$.atoms[configKey]) {
-                            await this.getAtomConfig({ atomCode: configKey })
-                        }
-                    } catch (e) {
-                        errorHandler(e, this)
-                    }
-                }
                 const atomConfigs = global.$.atoms[configKey]
+                this.loadAtomConfig(configKey, this.customType)
                 if (atomConfigs && atomConfigs.length) {
                     atomConfigs.some(item => {
                         if (item['tag_code'] === tagCode) {
@@ -136,12 +119,12 @@
                                 }
                             } else if (item.type === 'int') {
                                 this.value = this.value ? Number.parseInt(this.value) : 0
-                            } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
-                                this.componentTag = 'cell'
-                                this.value = JSON.stringify(this.data.value)
                             } else if (item.type === 'password') {
                                 this.domAttr.type = item.type
                                 this.componentTag = 'input'
+                            } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
+                                this.componentTag = 'cell'
+                                this.value = JSON.stringify(this.data.value)
                             }
                             return true
                         }
@@ -149,6 +132,21 @@
                 }
                 this.fillDomConfig()
             },
+
+            async loadAtomConfig (configKey, customType) {
+                if (!global.$.atoms || !global.$.atoms[configKey]) {
+                    try {
+                        if (customType) {
+                            await this.getVariableConfig({ customType: customType })
+                        } else {
+                            await this.getAtomConfig({ atomCode: configKey })
+                        }
+                    } catch (e) {
+                        errorHandler(e, this)
+                    }
+                }
+            },
+
             fillDomConfig () {
                 this.domName = 'vant-' + this.componentTag
                 this.domAttr.label = this.label
@@ -161,9 +159,9 @@
                 }
             }
         },
+
         render (h) {
             const self = this
-            console.log(this.domAttr)
             return h(this.domName, {
                 nativeOn: {
                     change: function (event) {

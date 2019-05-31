@@ -76,8 +76,9 @@ Vue.config.devtools = true
 global.$ = $
 global.$.atoms = {}
 global.bus = bus
-global.getMobileUrlPrefix = ({ siteUrl = `${AJAX_URL_PREFIX}${global.SITE_URL || ''}`, bizId, platformUrl } = {}) => {
-    return getMobileUrlSetting(siteUrl, bizId, platformUrl)
+global.getMobileUrlPrefix = (bizId) => {
+    const ajaxUrlPrefix = `${AJAX_URL_PREFIX}${global.SITE_URL || ''}`
+    return getMobileUrlSetting(ajaxUrlPrefix, bizId)
 }
 
 global.mainComponent = new Vue({
@@ -99,8 +100,6 @@ if (typeof (window.gettext) !== 'function') {
         return string
     }
 }
-
-console.log(global.ajaxUrlPrefix)
 
 Validator.localize({
     en: {
