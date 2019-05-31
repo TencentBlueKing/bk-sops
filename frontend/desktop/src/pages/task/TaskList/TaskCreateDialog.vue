@@ -244,6 +244,7 @@
                 this.$router.push(url)
             },
             onCancel () {
+                this.selectedId = ''
                 this.$emit('onCreateTaskCancel')
             },
             onSelectTask (template) {
