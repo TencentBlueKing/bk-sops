@@ -33,7 +33,7 @@ console.log('build mode:', process.env.NODE_ENV)
 console.log('SITE_URL:', SITE_URL)
 console.log('publicPath:', STATIC_ENV)
 
-const prodPubPath = SITE_URL + '/static/mobile/' + (STATIC_ENV ? STATIC_ENV + '/' : '')
+const prodPubPath = SITE_URL + '/static/weixin/' + (STATIC_ENV ? STATIC_ENV + '/' : '')
 
 export default {
     build: {
