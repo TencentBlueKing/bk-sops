@@ -15,7 +15,7 @@ export default {
             return http.get(url).then(response => {
                 if (response.form) {
                     // 注入到atoms list中
-                    global.$.getScript(AJAX_URL_PREFIX + response.form)
+                    global.$.getScript(response.form.replace('/static/', '/weixin/static/'))
                 }
                 return response
             })
@@ -26,7 +26,7 @@ export default {
             return http.get(url).then(response => {
                 if (response.form) {
                     // 注入到atoms list中
-                    global.$.getScript(AJAX_URL_PREFIX + response.form)
+                    global.$.getScript(response.form.replace('/static/', '/weixin/static/'))
                 }
                 return response
             })
