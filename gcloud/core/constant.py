@@ -112,7 +112,7 @@ class AnalysisElement(object):
     pipeline_template__edit_time = 'pipeline_template__edit_time'
     type = 'type'
     group_list = ['category',
-                  'biz_cc_id',
+                  'project_id',
                   'atom_template',
                   'atom_execute',
                   'atom_instance',

@@ -55,7 +55,7 @@ class Analysis(TestCase):
         conditions = {
             'create_time': int(time.mktime(timezone.datetime(2018, 6, 12, tzinfo=tz).timetuple())) * 1000,
             'finish_time': int(time.mktime(timezone.now().timetuple())) * 1000,
-            'biz_cc_id': 2,
+            'project_id': 2,
             'category': 'OpsTools',
             'type': 'day'
         }
@@ -127,7 +127,7 @@ class Analysis(TestCase):
         :return:
         """
         self.postRequest.path = '/analysis/query_instance_by_group/'
-        self.postRequest.POST['group_by'] = AE.biz_cc_id
+        self.postRequest.POST['group_by'] = AE.project_id
         response = query_instance_by_group(self.postRequest)
         response_dict = json.loads(response.content)
         if response_dict["data"]["total"] == 0:
@@ -177,13 +177,13 @@ class Analysis(TestCase):
         else:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
-    def test_appmaker_group_by_cc_id(self):
+    def test_appmaker_group_by_project_id(self):
         """
         各业务中轻应用个数和占比
         :return:
         """
         self.postRequest.path = '/analysis/query_appmaker_by_group/'
-        self.postRequest.POST['group_by'] = AE.biz_cc_id
+        self.postRequest.POST['group_by'] = AE.project_id
         response = query_appmaker_by_group(self.postRequest)
         response_dict = json.loads(response.content)
         if response_dict["data"]["total"] == 0:
@@ -191,13 +191,13 @@ class Analysis(TestCase):
         else:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_PROJECT_PARAMS), None)
 
-    def test_template_group_by_cc_id(self):
+    def test_template_group_by_project__id(self):
         """
         流程模板按业务维度统计数据
         :return:
         """
         self.postRequest.path = '/analysis/query_template_by_group/'
-        self.postRequest.POST['group_by'] = AE.biz_cc_id
+        self.postRequest.POST['group_by'] = AE.project_id
         response = query_template_by_group(self.postRequest)
         response_dict = json.loads(response.content)
         if response_dict["data"]["total"] == 0:
