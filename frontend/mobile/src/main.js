@@ -77,7 +77,7 @@ global.$ = $
 global.$.atoms = {}
 global.bus = bus
 global.getMobileUrlPrefix = (bizId) => {
-    const ajaxUrlPrefix = `${AJAX_URL_PREFIX}${global.SITE_URL || ''}`
+    const ajaxUrlPrefix = `${global.SITE_URL || '/'}`
     return getMobileUrlSetting(ajaxUrlPrefix, bizId)
 }
 
