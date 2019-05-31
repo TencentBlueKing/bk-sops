@@ -34,7 +34,3 @@
         }
     }
 </script>
-
-<style lang="scss">
-    @import '../../../static/style/app.scss';
-</style>

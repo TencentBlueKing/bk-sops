@@ -3,7 +3,7 @@ module.exports = {
     plugins: {
         // 把 import 的内容转换为 inline
         // @see https://github.com/postcss/postcss-import#postcss-import
-        'postcss-import': {},
+        // 'postcss-import': {},
 
         // mixins，本插件需要放在 postcss-simple-vars 和 postcss-nested 插件前面
         // @see https://github.com/postcss/postcss-mixins#postcss-mixins-
