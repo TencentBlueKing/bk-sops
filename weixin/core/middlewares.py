@@ -14,7 +14,8 @@ specific language governing permissions and limitations under the License.
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.auth import get_user_model
+
+from blueapps.account.models import UserProperty
 
 from . import settings
 from .accounts import WeixinAccount
@@ -33,12 +34,12 @@ def get_user(request):
 
 
 def get_bk_user(request):
-    User = get_user_model()
     bkuser = None
     if request.weixin_user and not isinstance(request.weixin_user, AnonymousUser):
         try:
-            bkuser = User.objects.get(wx_userid=request.weixin_user.userid)
-        except User.DoesNotExist:
+            user_property = UserProperty.objects.get(key='wx_userid', value=request.weixin_user.userid)
+            bkuser = user_property.user
+        except UserProperty.DoesNotExist:
             bkuser = None
     return bkuser or AnonymousUser()
 
