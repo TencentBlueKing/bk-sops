@@ -137,8 +137,6 @@
         }
     }
     .task-name {
-        padding-left: 0px;
-        padding-left: 30px;
         font-size: 14px;
         font-weight: 600;
     }
