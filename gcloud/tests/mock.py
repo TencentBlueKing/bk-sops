@@ -40,6 +40,10 @@ class MockBusiness(object):
 
 class MockProject(object):
     def __init__(self, **kwargs):
+        self.id = kwargs.get('project_id', 1)
+        self.name = kwargs.get('name', 'name')
+        self.cmdb_biz_id = kwargs.get('cmdb_biz_id', 'cmdb_biz_id')
+        self.from_cmdb = kwargs.get('from_cmdb', False)
         self.time_zone = kwargs.get('time_zone', 'time_zone')
 
 
