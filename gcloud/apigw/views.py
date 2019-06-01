@@ -26,13 +26,11 @@ from pipeline.engine import api as pipeline_api
 
 from gcloud.constants import PROJECT
 from gcloud.conf import settings
-from gcloud.apigw.decorators import api_check_user_perm_of_business, api_check_user_perm_of_task
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
 from gcloud.core.models import Project
 from gcloud.core.utils import strftime_with_timezone
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.commons.template.constants import PermNm
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.template.models import CommonTemplate
 
@@ -52,7 +50,6 @@ logger = logging.getLogger("root")
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def get_template_list(request, project_id):
     template_source = request.GET.get('template_source', PROJECT)
     project = Project.objects.get(id=project_id)
@@ -82,7 +79,6 @@ def get_template_list(request, project_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def get_template_info(request, template_id, project_id):
     project = Project.objects.get(id=project_id)
     template_source = request.GET.get('template_source', PROJECT)
@@ -133,8 +129,6 @@ def get_template_info(request, template_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.CREATE_TASK_PERM_NAME)
 def create_task(request, template_id, project_id):
     try:
         params = json.loads(request.body)
@@ -225,8 +219,6 @@ def create_task(request, template_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
 def start_task(request, task_id, project_id):
     username = request.user.username
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
@@ -238,8 +230,6 @@ def start_task(request, task_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
 def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
@@ -258,7 +248,6 @@ def operate_task(request, task_id, project_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def get_task_status(request, task_id, project_id):
     try:
         task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id, is_deleted=False)
@@ -296,7 +285,6 @@ def get_task_status(request, task_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def query_task_count(request, project_id):
     """
     @summary: 按照不同纬度统计业务任务总数
@@ -352,7 +340,6 @@ def info_data_from_period_task(task, detail=True):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def get_periodic_task_list(request, project_id):
     task_list = PeriodicTask.objects.filter(project_id=project_id)
     data = []
@@ -365,7 +352,6 @@ def get_periodic_task_list(request, project_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def get_periodic_task_info(request, task_id, project_id):
     try:
         task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
@@ -383,7 +369,6 @@ def get_periodic_task_info(request, task_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
 def create_periodic_task(request, template_id, project_id):
     try:
         template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
@@ -456,7 +441,6 @@ def create_periodic_task(request, template_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
 def set_periodic_task_enabled(request, task_id, project_id):
     try:
         params = json.loads(request.body)
@@ -489,7 +473,6 @@ def set_periodic_task_enabled(request, task_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
 def modify_cron_for_periodic_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
@@ -530,7 +513,6 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
 def modify_constants_for_periodic_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
@@ -567,7 +549,6 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def get_task_detail(request, task_id, project_id):
     """
     @summary: 获取任务详细信息
@@ -592,7 +573,6 @@ def get_task_detail(request, task_id, project_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
 def get_task_node_detail(request, task_id, project_id):
     """
     @summary: 获取节点输入输出
@@ -627,7 +607,6 @@ def get_task_node_detail(request, task_id, project_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
 def node_callback(request, task_id, project_id):
     try:
         params = json.loads(request.body)

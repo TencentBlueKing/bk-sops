@@ -17,10 +17,8 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from gcloud.core.decorators import check_user_perm_of_business
 from gcloud.core.models import Business
 from gcloud.config.forms import ConfigForm
-
 
 logger = logging.getLogger("root")
 
@@ -44,7 +42,6 @@ def biz_config(request, biz_cc_id):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
 def biz_executor(request, biz_cc_id):
     """
     @summary: 设置业务的执行者
