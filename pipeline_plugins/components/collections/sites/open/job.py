@@ -428,7 +428,6 @@ class JobCronTaskService(Service):
                 data.outputs.ex_data = job_update_result['message']
 
         data.outputs.cron_id = job_save_result['data']['cron_id']
-        data.outputs.client = client
         return True
 
     def outputs_format(self):
