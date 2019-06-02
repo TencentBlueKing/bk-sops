@@ -437,7 +437,7 @@ class JobCronTaskService(Service):
         ]
 
 
-class JobCronComponent(Component):
+class JobCronTaskComponent(Component):
     name = _(u'新建定时作业')
     code = 'job_cron_task'
     bound_service = JobCronTaskService

@@ -11,7 +11,7 @@ from pipeline.component_framework.test import (
     Call,
     Patcher
 )
-from pipeline_plugins.components.collections.sites.open.job import JobCronComponent
+from pipeline_plugins.components.collections.sites.open.job import JobCronTaskComponent
 
 
 class JobCronComponentTest(TestCase, ComponentTestMixin):
@@ -24,7 +24,7 @@ class JobCronComponentTest(TestCase, ComponentTestMixin):
         ]
 
     def component_cls(self):
-        return JobCronComponent
+        return JobCronTaskComponent
 
 
 class MockClient(object):
