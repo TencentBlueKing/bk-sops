@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 (function(){
-    $.atoms.transfer_host_to_resource = [
+    $.atoms.cmdb_transfer_host_resource = [
         {
             tag_code: "cc_host_ip",
             type: "textarea",

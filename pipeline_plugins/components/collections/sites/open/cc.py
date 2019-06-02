@@ -884,10 +884,10 @@ class CmdbTransferFaultHostService(Service):
 
 
 class CmdbTransferFaultHostComponent(Component):
-    name = _(u'上交主机到业务的故障机模块')
-    code = 'transfer_host_to_fault'
+    name = _(u'转移主机到业务的故障机模块')
+    code = 'cmdb_transfer_fault_host'
     bound_service = CmdbTransferFaultHostService
-    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_to_fault.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_fault_host.js' % (settings.STATIC_URL, settings.RUN_VER)
 
 
 class CmdbTransferHostResourceModuleService(Service):
@@ -927,7 +927,7 @@ class CmdbTransferHostResourceModuleService(Service):
 
 
 class CmdbTransferHostResourceModuleComponent(Component):
-    name = _(u'上交主机至资源池')
-    code = 'transfer_host_to_resource'
+    name = _(u'转移主机至资源池')
+    code = 'cmdb_transfer_host_resource'
     bound_service = CmdbTransferHostResourceModuleService
-    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_to_resource.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_host_resource.js' % (settings.STATIC_URL, settings.RUN_VER)
