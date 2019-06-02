@@ -84,6 +84,7 @@ TRANSFER_SUCCESS_CASE = ComponentTestCase(
                 'bk_host_id': [2, 3]
             })])
     ],
+    # add patch
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_SUCCESS_CLIENT),
         Patcher(target=GET_IP_BY_REGEX, return_value=['1.1.1.1', '2.2.2.2']),
