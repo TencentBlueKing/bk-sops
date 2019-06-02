@@ -43,7 +43,7 @@
             type: "input",
             attrs: {
                 name: gettext("定时表达式"),
-                placeholder: gettext("0 0/5 * * * ?"),
+                placeholder: gettext("输入格式：0 0/5 * * * ?"),
                 hookable: true,
                 validation: [
                     {

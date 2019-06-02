@@ -42,7 +42,6 @@ JOB_CRON_SUCCESS_CLIENT = MockClient(
     }
 )
 
-
 JOB_CRON_FAIL_CLIENT = MockClient(
     get_job_detail_return={
         'result': False,
@@ -54,9 +53,9 @@ JOB_CRON_FAIL_CLIENT = MockClient(
         'message': 'save cron fail',
     }
 )
+
+
 # test cases
-
-
 class JobCrontabTaskComponentTest(TestCase, ComponentTestMixin):
 
     @property
@@ -141,4 +140,4 @@ JOB_CORN_SUCCESS_CASE = ComponentTestCase(
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=JOB_CRON_SUCCESS_CLIENT),
     ]
-),
+)
