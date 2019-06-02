@@ -712,11 +712,6 @@ class PipelineInstance(models.Model):
             parser = parser_cls(pipeline_data)
             pipeline = parser.parse(get_pipeline_context(instance, 'instance'))
 
-            act_result = task_service.run_pipeline(pipeline)
-
-            if not act_result.result:
-                return act_result
-
             instance.start_time = timezone.now()
             instance.is_started = True
             instance.executor = executor
@@ -726,7 +721,17 @@ class PipelineInstance(models.Model):
 
             instance.save()
 
-            return act_result
+        act_result = task_service.run_pipeline(pipeline)
+
+        if not act_result.result:
+            with transaction.atomic():
+                instance = self.__class__.objects.select_for_update().get(id=self.id)
+                instance.start_time = None
+                instance.is_started = False
+                instance.executor = ''
+                instance.save()
+
+        return act_result
 
     def _get_node_id_set(self, node_id_set, data):
         """

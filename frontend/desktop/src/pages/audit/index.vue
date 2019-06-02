@@ -83,7 +83,7 @@
                             </bk-selector>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="loadFunctionTask">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -590,9 +590,12 @@
             background: #fafafa;
         }
         th,td {
-            padding: 10px;
+            padding: 13px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: #fafafa;
