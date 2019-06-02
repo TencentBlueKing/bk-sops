@@ -89,7 +89,7 @@ TRANSFER_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_IP_BY_REGEX, return_value=['1.1.1.1', '2.2.2.2']),
         Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={'result': True,
                                                                 'data': [2, 3]}),
-        ],
+        ]
 )
 
 
