@@ -42,7 +42,7 @@
                     </div>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
-                    <ul v-if="!searchMode" class="grouped-list">
+                    <ul class="grouped-list">
                         <template v-for="group in templateInPanel">
                             <li
                                 v-if="group.children.length"
@@ -68,26 +68,8 @@
                                 </ul>
                             </li>
                         </template>
+                        <NoData v-if="!templateInPanel.length" class="empty-template"></NoData>
                     </ul>
-                    <div v-else class="search-list">
-                        <ul v-if="searchList.length">
-                            <li
-                                v-for="template in searchList"
-                                :key="template.id"
-                                :title="template.name"
-                                :class="[
-                                    'template-item',
-                                    { 'template-item-selected': getTplIndexInSelected(template) > -1 }
-                                ]"
-                                @click="onSelectTemplate(template)">
-                                <div class="template-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
-                                <div class="template-item-name">
-                                    <span>{{template.name}}</span>
-                                </div>
-                            </li>
-                        </ul>
-                        <NoData v-else class="empty-task">{{i18n.noSearchResult}}</NoData>
-                    </div>
                 </div>
             </div>
             <div class="selected-wrapper">
@@ -115,6 +97,9 @@
                 <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
+            <div class="task-footer" v-if="selectError">
+                <span class="error-info">{{i18n.errorInfo}}</span>
+            </div>
         </div>
     </bk-dialog>
 </template>
@@ -133,13 +118,13 @@
         data () {
             return {
                 exportPending: false,
-                searchMode: false,
                 isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
                 templateList: [],
                 templateInPanel: [],
                 searchList: [],
                 selectedTemplates: [],
+                selectError: false,
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -150,7 +135,8 @@
                     num: gettext('项'),
                     selectAll: gettext('全选'),
                     delete: gettext('删除'),
-                    allCategories: gettext('全部分类')
+                    allCategories: gettext('全部分类'),
+                    errorInfo: gettext('请选择流程模版')
                 },
                 templateEmpty: false,
                 selectedTaskCategory: '',
@@ -234,6 +220,9 @@
                 return this.selectedTemplates.findIndex(item => item.id === template.id)
             },
             getTplIsAllSelected () {
+                if (!this.templateInPanel.length) {
+                    return false
+                }
                 return this.templateInPanel.every(group => {
                     return group.children.every(template => {
                         return this.selectedTemplates.findIndex(item => item.id === template.id) > -1
@@ -241,17 +230,32 @@
                 })
             },
             onSelectClassify (value) {
+                let groupedList = []
                 this.filterCondition.classifyId = value
+
                 if (value === 'all') {
-                    this.templateInPanel = this.templateList.slice(0)
+                    groupedList = this.templateList.slice(0)
                 } else {
-                    this.templateInPanel = this.templateList.filter(group => group.value === value)
+                    groupedList = this.templateList.filter(group => group.value === value)
                 }
+
+                if (this.filterCondition.keywords !== '') {
+                    this.searchInputhandler()
+                } else {
+                    this.templateInPanel = groupedList
+                }
+
                 this.isTplInPanelAllSelected = this.getTplIsAllSelected()
             },
             searchInputhandler () {
-                const templateList = toolsUtils.deepClone(this.templateList)
-                this.templateInPanel = templateList.filter(group => {
+                let searchList = []
+
+                if (this.filterCondition.classifyId !== 'all') {
+                    searchList = this.templateList.filter(group => group.value === this.filterCondition.classifyId)
+                } else {
+                    searchList = this.templateList.slice(0)
+                }
+                this.templateInPanel = toolsUtils.deepClone(searchList).filter(group => {
                     group.children = group.children.filter(template => {
                         return template.name.includes(this.filterCondition.keywords)
                     })
@@ -259,6 +263,7 @@
                 })
             },
             onSelectTemplate (template) {
+                this.selectError = false
                 const tplIndex = this.getTplIndexInSelected(template)
                 if (tplIndex > -1) {
                     this.selectedTemplates.splice(tplIndex, 1)
@@ -296,10 +301,14 @@
             },
             onConfirm () {
                 const idList = []
-                this.selectedTemplates.forEach(item => {
-                    idList.push(item.id)
-                })
-                this.$emit('onExportConfirm', idList)
+                if (this.selectedTemplates.length === 0) {
+                    this.selectError = true
+                } else {
+                    this.selectedTemplates.forEach(item => {
+                        idList.push(item.id)
+                    })
+                    this.$emit('onExportConfirm', idList)
+                }
             },
             onCancel () {
                 this.templateEmpty = false
@@ -422,6 +431,9 @@
             color: #ffffff;
         }
     }
+    .empty-template {
+        padding-top: 40px;
+    }
     .selected-wrapper {
         width: 292px;
         height: 100%;
@@ -540,6 +552,16 @@
             &::after {
                 background: #545454;
             }
+        }
+    }
+    .task-footer {
+        position: absolute;
+        right: 210px;
+        bottom: -40px;
+        .error-info {
+            margin-right: 20px;
+            font-size: 12px;
+            color: #ea3636;
         }
     }
 }

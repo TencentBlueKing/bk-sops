@@ -26,6 +26,7 @@ python manage.py collectstatic --noinput
 
 ## 创建应用  
 前往你部署的蓝鲸社区版平台，在"开发者中心"点击"应用创建"，填写需要的参数，注意代码仓库填写你的 Github 仓库地址，账号和密码。注意，由于官方已经存在一个名为"标准运维"的应用，你只能填写不一样的应用名称和应用 ID，如"标准运维定制版"、bk-sops-ce。
+后续文档中bk-sops-ce都代表你创建的应用的应用ID，如和文档示例不一致，请以你的应用ID为准。
 
 
 ## 修改配置  
@@ -50,8 +51,7 @@ add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "标准运维定制版"
 
 
 ## 修改标准运维环境变量配置
-打开蓝鲸桌面 http://{BK_PAAS_HOST}/console/，在应用市场找到名字为“标准运维” (APP_CODE: bk_sops) 的应用，添加到桌面并打开。
-修改浏览器链接为 http://{BK_PAAS_HOST}/o/bk-sops-ce/admin/，打开标准运维管理后台页面。
+在浏览器输入网址 http://{BK_PAAS_HOST}/o/bk-sops-ce/admin/，打开标准运维管理后台页面。
 
 ![](../resource/img/admin_home.png)
 
@@ -88,4 +88,4 @@ DATABASES = {
 ```
 
 2) 由于标准运维接入了蓝鲸PaaS平台API网关，你需要修改标准运维网关配置
-请参考[API网关替换方式](https://github.com/Tencent/bk-PaaS/blob/master/docs/install/replace_ce_with_opensource.md#open_paas)文档，把标准运维 API 转发到你的定制版本的接口。
+请参考[API网关替换方式](https://docs.bk.tencent.com/bk_osed/guide.html#SaaS)文档，把标准运维 API 转发到你的定制版本的接口。

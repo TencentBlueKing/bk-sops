@@ -40,3 +40,5 @@
 [(English Documents Available)](en/modify_cron_for_periodic_task.md)
 - [修改周期任务的全局参数](zh_hans/modify_constants_for_periodic_task.md)
 [(English Documents Available)](en/modify_constants_for_periodic_task.md)
+- [导入公共流程](zh_hans/import_common_template.md)
+[(English Documents Available)](en/import_common_template.md)

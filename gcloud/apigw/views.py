@@ -33,7 +33,7 @@ from gcloud.core.utils import strftime_with_timezone
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.commons.template.constants import PermNm
-from gcloud.commons.template.models import CommonTemplate
+from gcloud.commons.template.models import CommonTemplate, replace_template_id
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.tasktmpl3.models import TaskTemplate
 
@@ -430,6 +430,12 @@ def create_periodic_task(request, template_id, bk_biz_id):
     cron = params['cron']
 
     try:
+        replace_template_id(TaskTemplate, pipeline_tree)
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse({'result': False, 'message': e.message})
+
+    try:
         task = PeriodicTask.objects.create(
             business=business,
             template=template,
@@ -439,6 +445,7 @@ def create_periodic_task(request, template_id, bk_biz_id):
             creator=request.user.username
         )
     except Exception as e:
+        logger.exception(e)
         return JsonResponse({'result': False, 'message': e.message})
 
     data = info_data_from_period_task(task)
