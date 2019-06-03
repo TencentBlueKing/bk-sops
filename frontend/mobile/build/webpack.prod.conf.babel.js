@@ -14,6 +14,7 @@ import OptimizeCSSPlugin from 'optimize-css-assets-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import CopyWebpackPlugin from 'copy-webpack-plugin'
 import bundleAnalyzer from 'webpack-bundle-analyzer'
+import { CleanWebpackPlugin } from 'clean-webpack-plugin'
 
 import config from './config'
 import {assetsPath} from './util'
@@ -26,8 +27,8 @@ const prodConf = merge(baseConf, {
         main: './src/main.js'
     },
     output: {
-        filename: assetsPath('js/[name].[chunkhash].js'),
-        chunkFilename: assetsPath('js/[name].[chunkhash].js')
+        filename: assetsPath('js/[name].js'),
+        chunkFilename: assetsPath('js/[name].js')
     },
     optimization: {
         minimizer: [
@@ -115,15 +116,15 @@ const prodConf = merge(baseConf, {
     module: {
         rules: [
             {
-                test: /\.css?$/,
+                test: /\.s?[ac]ss$/,
                 use: [
                     MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                         options: {
-                            importLoaders: 1
+                            exportOnlyLocals: false
                         }
-                    },
+                    }, 
                     {
                         loader: 'postcss-loader',
                         options: {
@@ -131,13 +132,20 @@ const prodConf = merge(baseConf, {
                                 path: resolve(__dirname, '..', 'postcss.config.js')
                             }
                         }
-                    }
+                    },
+                    'sass-loader'
                 ]
-            }
+            },
         ]
     },
     plugins: [
         new webpack.DefinePlugin(config.build.env),
+
+        new CleanWebpackPlugin({
+            root: process.cwd(),
+            verbose: true,
+            dry: false
+        }),
 
         new webpack.DllReferencePlugin({
             context: __dirname,
@@ -162,9 +170,8 @@ const prodConf = merge(baseConf, {
         }),
 
         new MiniCssExtractPlugin({
-            filename: assetsPath('css/[name].[contenthash].css')
+            filename: assetsPath('css/[name].css')
         }),
-
         new CopyWebpackPlugin([
             {
                 from: resolve(__dirname, '../static'),
