@@ -8,12 +8,16 @@
 import os from 'os'
 import path from 'path'
 
+import config from './config'
+
+const isProd = process.env.NODE_ENV === 'production'
+
 export function resolve (dir) {
     return path.join(__dirname, '..', dir)
 }
 
 export function assetsPath (_path) {
-    const assetsSubDirectory = 'static'
+    const assetsSubDirectory = isProd ? config.build.assetsSubDirectory : config.dev.assetsSubDirectory
     return path.posix.join(assetsSubDirectory, _path)
 }
 

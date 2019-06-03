@@ -195,7 +195,7 @@
 </script>
 
 <style lang="scss" scoped>
-    @import '../../../static/style/app.scss';
+    @import '../../../static/style/var.scss';
     .bk-block .status{
         .task-icon{
             vertical-align: middle;
