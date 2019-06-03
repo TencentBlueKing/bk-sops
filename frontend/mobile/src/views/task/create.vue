@@ -75,6 +75,7 @@
                 <template v-if="Object.keys(templateConstants).length">
                     <template v-for="item in sortedConstants">
                         <VantComponent
+                            v-if="!loadingConfig"
                             :source-code="item.source_tag"
                             :custom-type="item.custom_type"
                             :key="item.key"
@@ -82,6 +83,7 @@
                             :placeholder="i18n.paramInput"
                             :value="item.value"
                             :data="item"
+                            :render-config="item.renderConfig"
                             @dataChange="onInputDataChange" />
                     </template>
                 </template>
@@ -128,6 +130,7 @@
         props: { templateId: String },
         data () {
             return {
+                loadingConfig: false,
                 creating: false,
                 show: false,
                 dateTimeShow: false,
@@ -178,6 +181,7 @@
                 sortedConstants.forEach((item) => {
                     sortedTemplateConstants[item['key']] = item
                 })
+                this.loadAtomOrVariableConfig(sortedConstants)
                 return sortedTemplateConstants
             }
         },
@@ -195,6 +199,10 @@
                 'getSchemeList',
                 'getScheme',
                 'getPreviewTaskTree'
+            ]),
+            ...mapActions('component', [
+                'getVariableConfig',
+                'getAtomConfig'
             ]),
             async loadData () {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
@@ -343,6 +351,27 @@
 
             onDateTimeCancel () {
                 this.dateTimeShow = false
+            },
+
+            async loadAtomOrVariableConfig (constants) {
+                this.loadingConfig = true
+                for (const key of Object.keys(constants)) {
+                    const constant = constants[key]
+                    const [configKey] = constant.source_tag.split('.')
+                    if (!global.$.atoms || !global.$.atoms[configKey]) {
+                        try {
+                            if (constant.custom_type) {
+                                await this.getVariableConfig({ customType: constant.custom_type })
+                            } else {
+                                await this.getAtomConfig({ atomCode: configKey })
+                            }
+                        } catch (e) {
+                            errorHandler(e, this)
+                        }
+                    }
+                    constant['renderConfig'] = global.$.atoms[configKey]
+                }
+                this.loadingConfig = false
             }
 
         }

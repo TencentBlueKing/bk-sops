@@ -13,22 +13,14 @@ export default {
         getAtomConfig ({ state }, { atomCode }) {
             const url = `${global.getMobileUrlPrefix().component}${atomCode}/`
             return http.get(url).then(response => {
-                if (response.form) {
-                    // 注入到atoms list中
-                    global.$.getScript(AJAX_URL_PREFIX + response.form)
-                }
-                return response
+                return global.$.getScript(AJAX_URL_PREFIX + response.form)
             })
         },
 
         getVariableConfig ({ state }, { customType }) {
             const url = `${global.getMobileUrlPrefix().variable}${customType}/`
             return http.get(url).then(response => {
-                if (response.form) {
-                    // 注入到atoms list中
-                    global.$.getScript(AJAX_URL_PREFIX + response.form)
-                }
-                return response
+                return global.$.getScript(AJAX_URL_PREFIX + response.form)
             })
         }
     }
