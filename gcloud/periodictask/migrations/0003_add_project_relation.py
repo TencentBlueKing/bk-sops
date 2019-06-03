@@ -24,22 +24,15 @@ def reverse_func(apps, schema_editor):
 
 def forward_func(apps, schema_editor):
     PeriodicTask = apps.get_model('periodictask', 'PeriodicTask')
-    Project = apps.get_model('core', 'Project')
     db_alias = schema_editor.connection.alias
 
-    projects = Project.objects.filter(from_cmdb=True)
-    cc_id_to_project = {proj.cmdb_biz_id: proj for proj in projects}
     tasks = PeriodicTask.objects.using(db_alias).all()
 
-    instance_count = len(tasks)
-    print('')
     for i, t in enumerate(tasks, start=1):
-        proj = cc_id_to_project[t.business.cc_id]
-        t.project = proj
-        t.task.extra_info['project_id'] = proj.id  # add project_id to extra_info
+        t.project_id = t.business.cc_id
+        t.task.extra_info['project_id'] = t.project_id  # add project_id to extra_info
         t.task.save()
         t.save()
-        print("PeriodicTask project relationship build: (%s/%s)" % (i, instance_count))
 
 
 class Migration(migrations.Migration):

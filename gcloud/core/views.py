@@ -22,9 +22,7 @@ from django.shortcuts import render
 from blueapps.account.middlewares import LoginRequiredMiddleware
 
 from gcloud.conf import settings
-from gcloud.core.roles import FUNCTOR, AUDITOR, NORMAL
-from gcloud.core.api_adapter import is_user_functor, is_user_auditor
-from gcloud.core.project import prepare_projects, get_default_project_for_user
+from gcloud.core.project import prepare_projects
 
 logger = logging.getLogger("root")
 
@@ -39,12 +37,6 @@ def page_not_found(request):
 
 
 def home(request):
-    user_role = NORMAL
-    if is_user_functor(request):
-        user_role = FUNCTOR
-    if is_user_auditor(request):
-        user_role = AUDITOR
-
     try:
         prepare_projects(request)
     except Exception:
@@ -52,27 +44,7 @@ def home(request):
             detail=traceback.format_exc()
         ))
 
-    default_project = get_default_project_for_user(request.user.username)
-
-    ctx = {
-        'user_role': user_role,
-        'default_project_id': default_project.id if default_project else None
-    }
-
-    return render(request, 'core/base_vue.html', ctx)
-
-
-def project_home(request, project_id):
-    """
-    @note: only use to authentication
-    @param request:
-    @param biz_cc_id:
-    @return:
-    """
-    ctx = {
-        'project_id': project_id
-    }
-    return render(request, 'core/base_vue.html', ctx)
+    return render(request, 'core/base_vue.html')
 
 
 def set_language(request):

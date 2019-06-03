@@ -148,6 +148,10 @@ class Project(models.Model):
 
     objects = ProjectManager()
 
+    class Meta:
+        verbose_name = _(u"项目 Project")
+        verbose_name_plural = _(u"项目 Project")
+
 
 class UserDefaultProjectManager(models.Manager):
 
@@ -163,6 +167,10 @@ class UserDefaultProject(models.Model):
     default_project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
 
     objects = UserDefaultProjectManager()
+
+    class Meta:
+        verbose_name = _(u"用户默认项目 UserDefaultProject")
+        verbose_name_plural = _(u"用户默认项目 UserDefaultProject")
 
     def __unicode__(self):
         return u'%s_%s' % (self.username, self.default_project)

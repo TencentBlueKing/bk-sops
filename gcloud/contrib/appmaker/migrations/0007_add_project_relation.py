@@ -13,19 +13,12 @@ def reverse_func(apps, schema_editor):
 
 def forward_func(apps, schema_editor):
     AppMaker = apps.get_model('appmaker', 'AppMaker')
-    Project = apps.get_model('core', 'Project')
-    db_alias = schema_editor.connection.alias
+    Business = apps.get_model('core', 'Business')
 
-    projects = Project.objects.filter(from_cmdb=True)
-    cc_id_to_project = {proj.cmdb_biz_id: proj for proj in projects}
-    apps = AppMaker.objects.using(db_alias).all()
+    cc_ids = Business.objects.all().values_list('cc_id', flat=True)
 
-    instance_count = len(apps)
-    print('')
-    for i, app in enumerate(apps, start=1):
-        app.project = cc_id_to_project[app.business.cc_id]
-        app.save()
-        print("AppMaker project relationship build: (%s/%s)" % (i, instance_count))
+    for cc_id in cc_ids:
+        AppMaker.objects.filter(business__cc_id=cc_id).update(project_id=cc_id)
 
 
 class Migration(migrations.Migration):

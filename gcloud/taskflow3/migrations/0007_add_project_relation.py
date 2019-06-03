@@ -24,21 +24,12 @@ def reverse_func(apps, schema_editor):
 
 def forward_func(apps, schema_editor):
     TaskFlowInstance = apps.get_model('taskflow3', 'TaskFlowInstance')
-    Project = apps.get_model('core', 'Project')
-    db_alias = schema_editor.connection.alias
+    Business = apps.get_model('core', 'Business')
 
-    projects = Project.objects.filter(from_cmdb=True)
-    cc_id_to_project = {proj.cmdb_biz_id: proj for proj in projects}
-    instances = TaskFlowInstance.objects.using(db_alias).all()
+    cc_ids = Business.objects.all().values_list('cc_id', flat=True)
 
-    instance_count = len(instances)
-    print('')
-    for i, instance in enumerate(instances, start=1):
-        instance.project = cc_id_to_project[instance.business.cc_id]
-        if instance.template_source == 'business':
-            instance.template_source = 'project'
-        instance.save()
-        print("TaskFlowInstance project relationship build: (%s/%s)" % (i, instance_count))
+    for cc_id in cc_ids:
+        TaskFlowInstance.objects.filter(business__cc_id=cc_id).update(project_id=cc_id)
 
 
 class Migration(migrations.Migration):
