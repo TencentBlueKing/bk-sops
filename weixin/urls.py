@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import include, url
 from tastypie.api import Api
-from weixin.views import home
 
 from .resources import (
     WxBusinessResource,
@@ -23,6 +22,7 @@ from .resources import (
     WxVariableModelResource,
     WxTemplateSchemeResource
 )
+from . import views
 
 weixin_v3_api = Api(api_name='v3')
 weixin_v3_api.register(WxBusinessResource())
@@ -33,8 +33,8 @@ weixin_v3_api.register(WxComponentModelResource())
 weixin_v3_api.register(WxVariableModelResource())
 
 urlpatterns = [
-    url(r'^$', home),
-    url(r'^api/', include(weixin_v3_api.urls)),
+    url(r'^$', views.home),
     url(r'^taskflow/', include('gcloud.taskflow3.urls')),
-    url(r'^template/', include('gcloud.tasktmpl3.urls'))
+    url(r'^template/', include('gcloud.tasktmpl3.urls')),
+    url(r'^api/', include(weixin_v3_api.urls)),
 ]

@@ -11,11 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.shortcuts import render
+from django.contrib import admin
+
+from . import models
 
 
-def home(request):
-    """
-    @summary: 移动端首页
-    """
-    return render(request, 'weixin/index.html')
+@admin.register(models.BkWeixinUser)
+class BkWeixinUserAdmin(admin.ModelAdmin):
+    list_display = ['userid', 'name', 'date_joined']
+    search_fields = ['userid', 'name']

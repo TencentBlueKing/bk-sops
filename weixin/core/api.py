@@ -16,7 +16,7 @@ import logging
 
 import requests
 
-from weixin.conf import settings as weixin_settings
+from . import settings as weixin_settings
 
 logger = logging.getLogger('root')
 
@@ -32,6 +32,7 @@ class API(object):
         """
         try:
             resp = requests.get(_http_url, params=kwargs, timeout=self.timeout, verify=self.ssl_verify)
+            resp.encoding = "utf-8"
             resp = resp.json()
             return resp
         except Exception as error:
@@ -51,7 +52,27 @@ class API(object):
             return {}
 
 
-class WeiXinApi(API):
+class ApiMixin(API):
+    """公共方法"""
+
+    def http_get(self, _http_url, **kwargs):
+        data = super(ApiMixin, self).http_get(_http_url, **kwargs)
+        # 企业微信和微信的接口返回格式不一致，这里做兼容处理
+        if data.get('errcode') and data.get('errcode') != 0:
+            logger.error('weixin api (url: %s) return error: %s' % (_http_url, data))
+            return {}
+        return data
+
+    def http_post(self, _http_url, **kwargs):
+        data = super(ApiMixin, self).http_post(_http_url, **kwargs)
+        # 企业微信和微信的接口返回格式不一致，这里做兼容处理
+        if data.get('errcode') and data.get('errcode') != 0:
+            logger.error('weixin api (url: %s) return error: %s' % (_http_url, data))
+            return {}
+        return data
+
+
+class WeiXinApi(ApiMixin):
     # 登录票据CODE验证URL
     WEIXIN_CHECK_CODE_URL = 'https://api.weixin.qq.com/sns/oauth2/access_token'
     # 获取微信信息API
@@ -61,20 +82,6 @@ class WeiXinApi(API):
         super(WeiXinApi, self).__init__()
         self.app_id = weixin_settings.WEIXIN_APP_ID
         self.secret = weixin_settings.WEIXIN_APP_SECRET
-
-    def http_get(self, _http_url, **kwargs):
-        data = super(WeiXinApi, self).http_get(_http_url, **kwargs)
-        if 'errcode' in data:
-            logger.error('weixin api (url: %s) return error: %s' % (_http_url, data))
-            return {}
-        return data
-
-    def http_post(self, _http_url, **kwargs):
-        data = super(WeiXinApi, self).http_post(_http_url, **kwargs)
-        if 'errcode' in data:
-            logger.error('weixin api (url: %s) return error: %s' % (_http_url, data))
-            return {}
-        return data
 
     def check_login_code(self, code):
         """
@@ -92,15 +99,138 @@ class WeiXinApi(API):
         if access_token is None or openid is None:
             logger.error(u"登录票据CODE接口返回无access_token或openid")
             return False, {}
-        return True, {'access_token': access_token, 'openid': openid}
+        return True, {'access_token': access_token, 'userid': openid}
 
-    def get_user_info(self, access_token, openid):
+    def _get_user_info(self, access_token, userid):
         """
         获取用户授权的用户信息
         """
         query_param = {
             'access_token': access_token,
-            'openid': openid
+            'openid': userid
         }
         data = self.http_get(self.WEIXIN_GET_USER_INFO_URL, **query_param)
         return data
+
+    def get_user_info_for_account(self, access_token, userid):
+        """
+        获取用户信息并转化为登录模块所需数据
+        """
+        # 静默授权只能获取openid
+        if weixin_settings.WEIXIN_SCOPE != 'snsapi_userinfo':
+            return {'userid': userid}
+        # 授权登录方式，则能获得更多用户信息
+        origin_userinfo = self._get_user_info(access_token, userid)
+        # 返回登录用户所需数据
+        userinfo = {
+            "userid": userid,
+            "name": origin_userinfo.get("nickname") or '',
+            "gender": origin_userinfo.get("sex") or '',
+            "avatar_url": origin_userinfo.get("headimgurl") or '',
+            # 公众号特有字段
+            "country": origin_userinfo.get("country") or '',
+            "city": origin_userinfo.get("city") or '',
+            "province": origin_userinfo.get("province") or '',
+        }
+        return userinfo
+
+
+class QyWeiXinApi(ApiMixin):
+    """企业微信应用登录认证"""
+
+    # 企业微信：获取access_token
+    QY_WEIXIN_GET_ACCESS_TOKEN_URL = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken'
+    # 企业微信：获取访问用户身份
+    QY_WEIXIN_GET_USER_INFO_URL = 'https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo'
+    # 企业微信：读取成员
+    QY_WEIXIN_GET_USER_URL = 'https://qyapi.weixin.qq.com/cgi-bin/user/get'
+
+    def __init__(self):
+        super(QyWeiXinApi, self).__init__()
+        self.app_id = weixin_settings.WEIXIN_APP_ID
+        self.secret = weixin_settings.WEIXIN_APP_SECRET
+
+    def _get_qy_user_id(self, access_token, code):
+        """
+        企业微信：获取用户授权的用户信息
+        企业成员 {
+           "errcode": 0,
+           "errmsg": "ok",
+           "UserId":"USERID",
+           "DeviceId":"DEVICEID"
+        } or 非企业成员
+        {
+           "errcode": 0,
+           "errmsg": "ok",
+           "OpenId":"OPENID",
+           "DeviceId":"DEVICEID"
+        }
+        """
+        query_param = {
+            'access_token': access_token,
+            'code': code
+        }
+        data = self.http_get(self.QY_WEIXIN_GET_USER_INFO_URL, **query_param)
+        return data
+
+    # Note: 若获取access_token 接口与其他服务的公用或者服务的调用量加大，需要进行缓存，否则会受微信频率控制而无法使用
+    # https://work.weixin.qq.com/api/doc#90000/90135/91039
+    def _get_access_token(self):
+        """
+        企业微信：获取access_token
+        {
+           "errcode": 0，
+           "errmsg": "ok"，
+           "access_token": "accesstoken000001",
+           "expires_in": 7200
+        }
+        """
+        query_param = {
+            'corpid': self.app_id,
+            'corpsecret': self.secret
+        }
+        data = self.http_get(self.QY_WEIXIN_GET_ACCESS_TOKEN_URL, **query_param)
+        return data
+
+    def check_login_code(self, code):
+        # def check_qy_login_code(self, code):
+        """
+        企业微信：校验用户登录回调code
+        返回内容比普通微信多了一个userid
+        """
+
+        access_token = self._get_access_token().get('access_token')
+        user_info = self._get_qy_user_id(access_token, code)
+
+        userid = user_info.get('UserId')
+        if not (access_token and userid):
+            logger.error(u"企业微信：登录票据CODE接口返回无access_token或userid")
+            return False, {}
+
+        return True, {'access_token': access_token, 'userid': userid}
+
+    def _get_user_info(self, access_token, userid):
+        """
+        企业微信：获取成员信息
+        https://work.weixin.qq.com/api/doc#90000/90135/90196
+        """
+        query_param = {
+            'access_token': access_token,
+            'userid': userid
+        }
+        data = self.http_get(self.QY_WEIXIN_GET_USER_URL, **query_param)
+        return data
+
+    def get_user_info_for_account(self, access_token, userid):
+        """
+        获取用户信息并转化为登录模块所需数据
+        """
+        origin_userinfo = self._get_user_info(access_token, userid)
+        # 返回登录用户所需数据
+        userinfo = {
+            "userid": userid,
+            "name": origin_userinfo.get("name") or '',
+            "gender": origin_userinfo.get("gender") or '',
+            "avatar_url": origin_userinfo.get("avatar") or '',
+        }
+        return userinfo

@@ -44,7 +44,7 @@
 </script>
 
 <style lang="scss" scoped>
-    @import '../../../static/style/app.scss';
+    @import '../../../static/style/var.scss';
     .parameter-info{
         background: #313238;
         min-height: calc(100vh - 60px);
