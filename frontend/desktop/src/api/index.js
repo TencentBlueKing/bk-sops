@@ -1376,12 +1376,13 @@ const api = {
     /**
      * 删除所有插件包源
      */
-    deletePackageSource () {
+    deletePackageSource (data) {
         const prefixUrl = this.getPrefix('packageSource')
 
         const opts = {
             method: 'DELETE',
-            url: prefixUrl
+            url: prefixUrl,
+            data
         }
         return request(opts)
     },

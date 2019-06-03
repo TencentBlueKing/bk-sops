@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="source-manage" v-bkloading="{ isLoading: loading }">
+    <div class="source-manage" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="operate-area">
             <router-link
                 to="/admin/manage/source_edit/package_edit/"
@@ -121,7 +121,7 @@
 </script>
 <style lang="scss" scoped>
     .source-manage {
-        padding: 0 60px 60px;
+        padding: 20px 60px 60px;
         min-height: calc(100% - 80px);
         background: #f4f7fa;
     }
@@ -155,12 +155,10 @@
         }
     }
     .empty-data {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: calc(100% - 130px);
+        margin-top: 300px;
         font-size: 14px;
         color: #c4c6cc;
+        text-align: center;
         a {
             color: #3a84ff;
         }

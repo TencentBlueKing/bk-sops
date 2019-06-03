@@ -13,95 +13,14 @@
     <div class="cache-edit">
         <div class="cache-content">
             <h3 class="edit-title">step2.{{ i18n.setting + i18n.cache }}</h3>
-            <div class="cache-setting">
-                <table class="form-table">
-                    <tbody>
-                        <tr>
-                            <th>
-                                <div class="form-label required">
-                                    <label>{{i18n.name}}</label>
-                                </div>
-                            </th>
-                            <td class="value">
-                                <div class="form-content">
-                                    <input
-                                        type="text"
-                                        class="cache-name"
-                                        name="cacheName"
-                                        :disabled="isEditing"
-                                        v-model="name"
-                                        v-validate="nameRule"
-                                        @blur="updateValue">
-                                    <span
-                                        v-show="errors.has('cacheName')"
-                                        class="common-error-tip error-msg">
-                                        {{ errors.first('cacheName') }}
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <div class="form-label required">
-                                    <label>{{i18n.type}}</label>
-                                </div>
-                            </th>
-                            <td class="value">
-                                <div class="form-content">
-                                    <bk-selector
-                                        :list="list"
-                                        :selected="type"
-                                        :disabled="isEditing"
-                                        @item-selected="onTypeSelect">
-                                    </bk-selector>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <div class="form-label">
-                                    <label>{{i18n.desc}}</label>
-                                </div>
-                            </th>
-                            <td class="value">
-                                <div class="form-content">
-                                    <textarea
-                                        rows="4"
-                                        class="cache-desc"
-                                        v-model="desc"
-                                        @blur="updateValue">
-                                    </textarea>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>
-                                <div class="form-label">
-                                    <label>{{i18n.detail}}</label>
-                                </div>
-                            </th>
-                            <td class="value">
-                                <table class="detail-table">
-                                    <tbody>
-                                        <tr v-for="field in detailFields" :key="field.id">
-                                            <th>{{field.name}}</th>
-                                            <td>
-                                                <input
-                                                    type="text"
-                                                    class="table-input"
-                                                    :placeholder="i18n.placeholder"
-                                                    v-model="details[field.id]"
-                                                    @blur="updateValue">
-                                            </td>
-                                            
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <cache-form
+                v-for="(item, index) in list"
+                :key="index"
+                :value="item"
+                @updateCache="updateCache"
+                @deleteCache="deleteCache">
+            </cache-form>
+            <div v-if="list.length === 0" class="add-cache" @click="onCreateCache">{{i18n.addCache}}</div>
         </div>
         <div class="operate-area">
             <router-link to="/admin/manage/source_edit/package_edit/" class="bk-button bk-default">{{ i18n.prevStep }}</router-link>
@@ -118,26 +37,19 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { VAR_REG, STRING_LENGTH } from '@/constants/index.js'
+    import tools from '@/utils/tools.js'
+    import CacheForm from './CacheForm.vue'
 
     export default {
         name: 'CacheEdit',
+        components: {
+            CacheForm
+        },
         props: {
             cacheList: {
                 type: Array,
                 default () {
-                    return [{
-                        name: '',
-                        type: 'git',
-                        desc: '',
-                        details: {
-                            access_key: '',
-                            bucket: '',
-                            secret_key: '',
-                            service_address: ''
-                        }
-                    }]
+                    return []
                 }
             },
             pending: {
@@ -146,34 +58,15 @@
             }
         },
         data () {
-            const list = this.getCacheTypeList()
-            const { name, type, desc, details, detailFields } = this.getCacheDataFromProps()
-            
             return {
-                name,
-                type,
-                desc,
-                details,
-                detailFields,
-                list,
-                cacheValid: false,
-                // 名称校验规则
-                nameRule: {
-                    required: true,
-                    max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
-                    regex: VAR_REG
-                },
+                list: tools.deepClone(this.cacheList),
                 i18n: {
                     setting: gettext('配置'),
                     cache: gettext('本地缓存'),
                     prevStep: gettext('上一步'),
                     save: gettext('完成'),
                     cancel: gettext('取消'),
-                    name: gettext('名称'),
-                    type: gettext('类型'),
-                    desc: gettext('描述'),
-                    detail: gettext('详细信息'),
-                    placeholder: gettext('请输入')
+                    addCache: gettext('添加本地缓存')
                 }
             }
         },
@@ -183,78 +76,41 @@
             }
         },
         watch: {
-            cacheList: {
-                handler (value) {
-                    const { name, type, desc, details, detailFields } = this.getCacheDataFromProps()
-                    this.name = name
-                    this.type = type
-                    this.desc = desc
-                    this.details = details
-                    this.detailFields = detailFields
-                },
-                deep: true
+            cacheList (val) {
+                this.list = tools.deepClone(val)
             }
         },
         methods: {
-            getCacheTypeList () {
-                return SOURCE_TYPE.filter(item => item.type !== 'git').map(item => {
-                    return {
-                        id: item.type,
-                        name: item.name
-                    }
-                })
-            },
-            getCacheDataFromProps () {
-                const cache = this.cacheList.length > 0 ? this.cacheList[0] : [{}]
-                const {
-                    name = '',
-                    type = 's3',
-                    desc = '',
-                    details = {
+            onCreateCache () {
+                this.list.push({
+                    id: undefined,
+                    name: '',
+                    type: 's3',
+                    desc: '',
+                    details: {
                         access_key: '',
                         bucket: '',
                         secret_key: '',
                         service_address: ''
                     }
-                } = cache
-                const [detailFields] = this.getCacheKeys(type)
-
-                return { name, type, desc, details, detailFields }
+                })
             },
-            getCacheKeys (type) {
-                const detailFields = []
-                const detailValues = {}
-
-                const source = SOURCE_TYPE.find(item => item.type === type)
-                for (const key in source.keys) {
-                    detailFields.push({
-                        id: key,
-                        name: source.keys[key]
-                    })
-                    detailValues[key] = ''
-                }
-                
-                return [detailFields, detailValues]
+            updateCache (value) {
+                const val = tools.deepClone(value)
+                this.list.splice(0, 1, val)
+                this.$emit('updateList', 'cacheList', this.list)
             },
-            updateValue () {
-                const data = [{
-                    name: this.name,
-                    type: this.type,
-                    desc: this.desc,
-                    details: this.details
-                }]
-                this.$emit('updateList', 'cacheList', data)
-            },
-            onTypeSelect (type) {
-                this.type = type
-                const keys = this.getCacheKeys(type)
-                this.detailFields = keys[0]
-                this.details = keys[1]
-                this.updateValue()
+            deleteCache () {
+                this.list = []
+                this.$emit('updateList', 'cacheList', [])
             },
             onSaveSetting () {
-                this.$validator.validateAll().then(result => {
-                    if (result) {
+                const packageComps = this.$children.filter(item => item.$options.name === 'CacheForm')
+                const packageValidations = packageComps.map(comp => {
+                    return comp.validate()
+                })
+                Promise.all(packageValidations).then(results => {
+                    if (results.every(item => item)) {
                         this.$emit('saveSetting')
                     }
                 })
@@ -264,115 +120,31 @@
 </script>
 <style lang="scss" scoped>
     .cache-edit {
-        height: calc(100% - 60px);
+        height: calc(100% - 40px);
         background: #ffffff;
     }
     .cache-content {
-        padding: 30px 60px 60px;
         min-height: 100%;
+        padding: 30px 60px 60px;
     }
     .edit-title {
         margin: 0 0 30px;
         font-size: 20px;
     }
-    .form-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-        th, td {
-            padding: 9px;
-        }
-        th {
-            position: relative;
-            width: 16%;
-            color: #313238;
-            font-weight: 400;
-        }
-        .form-label {
-            padding-right: 20%;
-            text-align: right;
-            label {
-                position: relative;
-            }
-            &.required {
-                label:after {
-                    content: '*';
-                    position: absolute;
-                    top: 1px;
-                    right: -10px;
-                    color: #F00;
-                    font-family: "SimSun";
-                }
-            }
-            
-        }
-        .form-content {
-            position: relative;
-            width: 40%;
-        }
-        .cache-name {
-            padding: 0 10px;
-            width: 100%;
-            height: 32px;
-            line-height: 32px;
-            border: 1px solid #c3cdd7;
-            border-radius: 2px;
-            color: #63656e;
-            outline: none;
-            &:hover {
-                border-color: #3c96ff;
-            }
-            &:active {
-                border-color: #3c96ff;
-            }
-            &[disabled="disabled"] {
-                color: #aaa;
-                cursor: not-allowed;
-                background: #fafafa;
-                &:hover {
-                    border-color: #c3cdd7;
-                }
-            }
-        }
-        .cache-desc {
-            display: inline-block;
-            padding: 10px;
-            width: 100%;
-            border: 1px solid #c3cdd7;
-            border-radius: 2px;
-            color: #63656e;
-            outline: none;
-            resize: vertical;
-            min-height: 102px;
-            max-height: 140px;
-            &:hover {
-                border-color: #3c96ff;
-            }
-            &:active {
-                border-color: #3c96ff;
-            }
-        }
-    }
-    .detail-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #ffffff;
+    .add-cache {
+        margin-bottom: 60px;
+        height: 60px;
+        line-height: 60px;
+        color: #c4c6cc;
         font-size: 12px;
-        th,td {
-            padding: 10px 20px;
-            border: 1px solid #dde4eb;
+        text-align: center;
+        border: 1px dashed #c4c6cc;
+        border-radius: 2px;
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+            border-color: #a3c5fd;
         }
-        th {
-            width: 30%;
-            font-weight: 700;
-            text-align: center;
-        }
-    }
-    .table-input {
-        width: 100%;
-        color: #63656e;
-        border: none;
-        outline: none;
     }
     .operate-area {
         margin-top: -60px;

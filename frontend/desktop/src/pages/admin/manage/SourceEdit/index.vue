@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="source-edit" v-bkloading="{ isLoading: loading }">
+    <div class="source-edit" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <edit-header></edit-header>
         <router-view
             :origin-list="originList"
@@ -35,6 +35,7 @@
         },
         data () {
             return {
+                sourceData: [],
                 emptyData: false,
                 isCreating: false,
                 originList: [],
@@ -50,7 +51,8 @@
             ...mapActions('manage', [
                 'loadPackageSource',
                 'createPackageSource',
-                'updatePackageSource'
+                'updatePackageSource',
+                'deletePackageSource'
             ]),
             async loadData () {
                 this.loading = true
@@ -60,6 +62,7 @@
                         this.emptyData = true
                         this.isCreating = true
                     } else {
+                        this.sourceData = data.objects
                         this.transformData(data.objects)
                     }
                 } catch (err) {
@@ -89,11 +92,13 @@
                     this.cacheList = val
                 }
             },
-            async saveSetting () {
+            saveSetting () {
                 if (this.pending) {
                     return
                 }
-                if (this.originList.length === 0) {
+                
+                // 本地缓存不为空，主包源为空
+                if (this.cacheList.length > 0 && this.originList.length === 0) {
                     this.$bkMessage({
                         theme: 'error',
                         message: gettext('请添加主包源'),
@@ -101,6 +106,43 @@
                     })
                     return
                 }
+
+                if (this.originList.length === 0 && this.cacheList.length === 0) {
+                    if (this.isCreating) {
+                        // 本地缓存、主包源在创建时为空
+                        this.$bkMessage({
+                            theme: 'error',
+                            message: gettext('请添加主包源'),
+                            delay: 10000
+                        })
+                    } else {
+                        // 本地缓存、主包源在编辑时为空
+                        this.deleteSetting()
+                    }
+                } else {
+                    this.createOrUpdateSetting()
+                }
+            },
+            async deleteSetting () {
+                this.pending = true
+                
+                const data = this.sourceData.map(item => {
+                    return {
+                        origin_source_id: item.origin_source_id,
+                        type: item.type,
+                        name: item.name
+                    }
+                })
+                try {
+                    await this.deletePackageSource(data)
+                    this.$router.push('/admin/manage/source_manage/')
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.pending = false
+                }
+            },
+            async createOrUpdateSetting () {
                 this.pending = true
 
                 const origins = this.originList.map(item => {
@@ -137,6 +179,7 @@
 </script>
 <style lang="scss" scoped>
     .source-edit {
+        padding-top: 20px;
         height: calc(100% - 80px);
     }
 </style>
