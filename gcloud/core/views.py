@@ -56,7 +56,7 @@ def home(request):
 
     ctx = {
         'user_role': user_role,
-        'default_project': default_project.id if default_project else None
+        'default_project_id': default_project.id if default_project else None
     }
 
     return render(request, 'core/base_vue.html', ctx)
