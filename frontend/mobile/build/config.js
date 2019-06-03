@@ -9,12 +9,38 @@ import path from 'path'
 import prodEnv from './prod.env'
 import devEnv from './dev.env'
 
+/**
+ * 生产环境分版本打包命令
+ * npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod"
+ */
+let SITE_URL = ''
+let STATIC_ENV = ''
+
+process.argv.forEach(val => {
+    if (/--SITE_URL=/.test(val)) {
+        SITE_URL = val.replace(/--SITE_URL=/, '')
+    }
+    if (/--STATIC_ENV=/.test(val)) {
+        STATIC_ENV = val.replace(/--STATIC_ENV=/, '')
+    }
+})
+
+process.env.STATIC_ENV = STATIC_ENV
+
+// const publicPath = path.posix.join(SITE_URL, '/static/')
+
+console.log('build mode:', process.env.NODE_ENV)
+console.log('SITE_URL:', SITE_URL)
+console.log('publicPath:', STATIC_ENV)
+
+const prodPubPath = SITE_URL + '/static/weixin/' + (STATIC_ENV ? STATIC_ENV + '/' : '')
+
 export default {
     build: {
         env: prodEnv,
-        assetsRoot: path.resolve(__dirname, '../dist'),
-        assetsSubDirectory: 'static',
-        assetsPublicPath: '/',
+        assetsRoot: path.resolve(__dirname, '../dist', STATIC_ENV),
+        assetsSubDirectory: 'dist',
+        assetsPublicPath: prodPubPath,
         productionSourceMap: true,
         productionGzip: false,
         productionGzipExtensions: ['js', 'css'],

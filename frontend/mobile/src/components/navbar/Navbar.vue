@@ -70,7 +70,7 @@
 </script>
 
 <style lang="scss">
-    @import '../../../static/style/app.scss';
+    @import '../../../static/style/var.scss';
     /*navbar*/
     .navbar{
         width: 100%;

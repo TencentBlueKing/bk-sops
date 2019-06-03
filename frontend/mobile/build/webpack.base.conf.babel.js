@@ -6,7 +6,6 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 import webpack from 'webpack'
-import CopyWebpackPlugin from 'copy-webpack-plugin'
 import {VueLoaderPlugin} from 'vue-loader'
 import friendlyFormatter from 'eslint-friendly-formatter'
 
@@ -103,7 +102,7 @@ export default {
                 loader: 'url-loader',
                 options: {
                     limit: 10000,
-                    name: assetsPath('images/[name].[hash:7].[ext]')
+                    name: assetsPath('images/[name].[ext]')
                 }
             },
             {
@@ -112,7 +111,7 @@ export default {
                     loader: 'url-loader',
                     options: {
                         limit: 10000,
-                        name: assetsPath('media/[name].[hash:7].[ext]')
+                        name: assetsPath('media/[name].[ext]')
                     }
                 }
             },
@@ -122,7 +121,7 @@ export default {
                     loader: 'url-loader',
                     options: {
                         limit: 10000,
-                        name: assetsPath('fonts/[name].[hash:7].[ext]')
+                        name: assetsPath('fonts/[name].[ext]')
                     }
                 }
             }
@@ -132,13 +131,6 @@ export default {
         new VueLoaderPlugin(),
         // moment 优化，只提取本地包
         new webpack.ContextReplacementPlugin(/moment\/locale$/, /zh-cn/),
-        new CopyWebpackPlugin([
-            {
-                from: resolve('static/images'),
-                to: resolve('dist/static/images'),
-                toType: 'dir'
-            }
-        ]),
         new webpack.ProvidePlugin({
             $: 'jquery',
             jQuery: 'jquery',

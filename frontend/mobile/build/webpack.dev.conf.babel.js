@@ -9,12 +9,16 @@ import path from 'path'
 
 import webpack from 'webpack'
 import merge from 'webpack-merge'
+import CopyWebpackPlugin from 'copy-webpack-plugin'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import FriendlyErrorsPlugin from 'friendly-errors-webpack-plugin'
 
 import config from './config'
 import baseConf from './webpack.base.conf.babel'
 import manifest from '../static/lib-manifest.json'
+
+import { resolve } from './util'
+
 
 // const HOST = 'localhost'
 // const PORT = 8080
@@ -69,7 +73,14 @@ const webpackConfig = merge(baseConf, {
             staticUrl: config.dev.env.staticUrl
         }),
 
-        new FriendlyErrorsPlugin()
+        new FriendlyErrorsPlugin(),
+        new CopyWebpackPlugin([
+            {
+                from: resolve('static/images'),
+                to: resolve('dist/static/images'),
+                toType: 'dir'
+            }
+        ]),
     ]
 })
 

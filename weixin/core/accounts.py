@@ -22,8 +22,8 @@ import logging
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.translation import ugettext as _
 
-from weixin.conf import settings as weixin_settings
-from .api import WeiXinApi
+from . import settings as weixin_settings
+from .api import WeiXinApi, QyWeiXinApi
 from .models import BkWeixinUser
 
 logger = logging.getLogger('root')
@@ -50,7 +50,10 @@ class WeixinAccount(WeixinAccountSingleton):
     WEIXIN_OAUTH_URL = 'https://open.weixin.qq.com/connect/oauth2/authorize'
 
     def __init__(self):
-        self.weixin_api = WeiXinApi()
+        if weixin_settings.IS_QY_WEIXIN:
+            self.weixin_api = QyWeiXinApi()
+        else:
+            self.weixin_api = WeiXinApi()
 
     def is_weixin_visit(self, request):
         """
@@ -130,22 +133,11 @@ class WeixinAccount(WeixinAccountSingleton):
 
     def get_user_info(self, base_data):
         """
-        根据access_token获取用户信息
+        根据access_token, userid获取用户信息
         """
-        openid = base_data.get('openid')
-        userinfo = {'openid': openid}
-        if weixin_settings.WEIXIN_SCOPE != 'snsapi_userinfo':
-            return userinfo
+        userid = base_data.get('userid')
         access_token = base_data.get('access_token')
-        data = self.weixin_api.get_user_info(access_token, openid)
-        userinfo.update({
-            'nickname': data.get('nickname') or '',
-            'gender': data.get('sex') or '',
-            'country': data.get('country') or '',
-            'province': data.get('province') or '',
-            'city': data.get('city') or '',
-            'avatar_url': data.get('headimgurl') or ''
-        })
+        userinfo = self.weixin_api.get_user_info_for_account(access_token, userid)
         return userinfo
 
     def get_callback_url(self, request):
@@ -172,11 +164,10 @@ class WeixinAccount(WeixinAccountSingleton):
             # TODO 改造为友好页面
             return HttpResponse(_(u"登录失败"))
 
-        # 设置登录
-        # 对于授权为snsapi_userinfo的，需获取用户信息
+        # 获取用户信息并设置用户
         userinfo = self.get_user_info(base_data)
-        openid = userinfo.pop('openid')
-        user = BkWeixinUser.objects.get_update_or_create_user(openid, **userinfo)
+        userid = userinfo.pop('userid')
+        user = BkWeixinUser.objects.get_update_or_create_user(userid, **userinfo)
         # 设置session
         request.session['weixin_user_id'] = user.id
         setattr(request, 'weixin_user', user)
