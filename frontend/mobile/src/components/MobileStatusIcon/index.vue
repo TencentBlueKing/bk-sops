@@ -58,7 +58,7 @@
 </script>
 
 <style lang="scss">
-    @import '../../../static/style/app.scss';
+    @import '../../../static/style/var.scss';
 
     .bk-block .status{
         .task-icon{
