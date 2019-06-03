@@ -100,7 +100,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    @import '../../../static/style/app.scss';
+    @import '../../../static/style/var.scss';
 
     .bk-flow-location {
         width: 152px;
