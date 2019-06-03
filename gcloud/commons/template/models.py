@@ -22,7 +22,6 @@ from pipeline.models import PipelineTemplate
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud.exceptions import FlowExportError
-from gcloud.commons.template.constants import PermNm
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username

@@ -28,7 +28,6 @@ from pipeline.parser.utils import replace_all_id
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
-from gcloud.commons.template.constants import PermNm
 from gcloud.core.constant import TASK_CATEGORY, AE
 from gcloud.core.models import Project
 from gcloud.core.utils import (
