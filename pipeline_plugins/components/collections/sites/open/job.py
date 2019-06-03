@@ -316,3 +316,52 @@ class JobFastExecuteScriptComponent(Component):
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
     form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+class CreateCronJobService(Service):
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+
+        client = get_client_by_user(executor)
+        kwargs = {
+            "bk_biz_id": biz_cc_id,
+            "bk_job_id": data.get_one_of_inputs("job_task_id"),
+            "cron_name": data.get_one_of_inputs("cron_name"),
+            "cron_expression": data.get_one_of_inputs("cron_expression")
+        }
+        job_result = client.job.save_cron(kwargs)
+        cron_id = None
+        if job_result['result']:
+            cron_id = job_result['data']['cron_id']
+            data.outputs.cron_id = cron_id
+            data.outputs.client = client
+        else:
+            data.outputs.ex_data = job_result['message']
+            return False
+
+        if "1" == data.get_one_of_inputs("cron_status"):
+            kwargs = {
+                "bk_biz_id": biz_cc_id,
+                "cron_status": 1,
+                "cron_id": cron_id
+            }
+            job_result = client.job.update_cron_status(kwargs)
+            if not job_result["result"]:
+                data.outputs.ex_data = "定时作业创建成功 cron_id=[%s]，定时作业启动失败 message=[%s]" \
+                    % (cron_id, job_result['message'])
+                return False
+        return True
+
+    def outputs_format(self):
+        return [
+            self.OutputItem(name=_(u'定时作业ID'), key='cron_id', type='int')
+        ]
+
+
+
+class CreateCronJobComponent(Component):
+    name = _(u'新建定时作业')
+    code = 'job_create_cron_job'
+    bound_service = CreateCronJobService
+    form = '%scomponents/atoms/sites/%s/job/job_create_cron_job.js' % (settings.STATIC_URL, settings.RUN_VER)
+
