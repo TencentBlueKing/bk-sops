@@ -93,9 +93,15 @@
                                         <input
                                             type="text"
                                             class="table-input"
+                                            name="detailValue"
                                             :placeholder="i18n.placeholder"
                                             v-model="details[field.id]"
+                                            v-validate="valueRule"
                                             @blur="updateValue">
+                                        <span
+                                            class="common-error-tip error-msg">
+                                            {{ i18n.required }}
+                                        </span>
                                     </td>
                                     
                                 </tr>
@@ -153,13 +159,17 @@
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
                     regex: VAR_REG
                 },
+                valueRule: {
+                    required: true
+                },
                 i18n: {
                     delete: gettext('删除'),
                     name: gettext('名称'),
                     type: gettext('类型'),
                     desc: gettext('描述'),
                     detail: gettext('详细信息'),
-                    placeholder: gettext('请输入')
+                    placeholder: gettext('请输入'),
+                    required: gettext('必填项')
                 }
             }
         },
@@ -312,6 +322,7 @@
             background: #ffffff;
             font-size: 12px;
             th,td {
+                position: relative;
                 padding: 10px 20px;
                 border: 1px solid #dde4eb;
             }
@@ -319,6 +330,17 @@
                 width: 30%;
                 font-weight: 700;
                 text-align: center;
+            }
+            input[aria-invalid="true"] + .common-error-tip {
+                display: inline-block;
+            }
+            .common-error-tip {
+                position: absolute;
+                display: none;
+                left: 0;
+                bottom: 0;
+                font-size: 12px;
+                white-space: nowrap;
             }
         }
         .table-input {
