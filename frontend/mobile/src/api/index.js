@@ -15,7 +15,7 @@ import { bus } from '../common/bus'
 
 // axios 实例
 const axiosInstance = axios.create({
-    xsrfCookieName: window.APP_CODE + '_csrftoken',
+    xsrfCookieName: global.APP_CODE + '_csrftoken',
     xsrfHeaderName: 'X-CSRFToken',
     withCredentials: true,
     'X-Requested-With': 'XMLHttpRequest'
