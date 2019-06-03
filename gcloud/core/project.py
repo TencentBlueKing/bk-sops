@@ -78,7 +78,7 @@ def prepare_projects(request, use_cache=True):
 
 
 def get_default_project_for_user(username):
-    # TODO change this implementation after introduce auth backend
+    # TODO change this implementation after introduce auth backend, and add cache
     project = None
 
     try:

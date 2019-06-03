@@ -18,7 +18,6 @@ from gcloud.core import views, api, command
 
 urlpatterns = [
     url(r'^$', views.home),
-    url(r'^project/home/(?P<biz_cc_id>\d+)/$', views.project_home),
     url(r'^set_lang/$', views.set_language),
 
     url(r'^core/api/get_basic_info/$', api.get_basic_info),

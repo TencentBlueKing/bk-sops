@@ -31,13 +31,13 @@ def forward_func(apps, schema_editor):
     active_business = Business.objects.using(db_alias).filter(status='enable')
 
     # query maintainers for all business
-    business_group_membership = BusinessGroupMembership.objects.using(db_alias).all().values('group__name',
-                                                                                             'business__cc_id',
-                                                                                             'group__user__username')
+    business_group_membership = BusinessGroupMembership.objects.using(db_alias) \
+        .filter(group__name__endswith='Maintainers').values('group__name',
+                                                            'business__cc_id',
+                                                            'group__user__username')
     biz_maintainers = {}
     for membership in business_group_membership:
-        if membership['group__name'].endswith('Maintainers'):
-            biz_maintainers.setdefault(membership['business__cc_id'], []).append(membership['group__user__username'])
+        biz_maintainers.setdefault(membership['business__cc_id'], []).append(membership['group__user__username'])
 
     # sort maintainer list
     for cc_id in biz_maintainers.keys():

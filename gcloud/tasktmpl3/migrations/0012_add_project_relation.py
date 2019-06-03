@@ -24,19 +24,12 @@ def reverse_func(apps, schema_editor):
 
 def forward_func(apps, schema_editor):
     TaskTemplate = apps.get_model('tasktmpl3', 'TaskTemplate')
-    Project = apps.get_model('core', 'Project')
-    db_alias = schema_editor.connection.alias
+    Business = apps.get_model('core', 'Business')
 
-    projects = Project.objects.filter(from_cmdb=True)
-    cc_id_to_project = {proj.cmdb_biz_id: proj for proj in projects}
-    templates = TaskTemplate.objects.using(db_alias).all()
+    cc_ids = Business.objects.all().values_list('cc_id', flat=True)
 
-    template_count = len(templates)
-    print('')
-    for i, t in enumerate(templates, start=1):
-        t.project = cc_id_to_project[t.business.cc_id]
-        t.save()
-        print("TaskTemplate project relationship build: (%s/%s)" % (i, template_count))
+    for cc_id in cc_ids:
+        TaskTemplate.objects.filter(business__cc_id=cc_id).update(project_id=cc_id)
 
 
 class Migration(migrations.Migration):

@@ -20,6 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
+from gcloud.core.project import get_default_project_for_user
 
 logger = logging.getLogger("root")
 
@@ -46,6 +47,7 @@ def mysetting(request):
     is_superuser = int(request.user.is_superuser)
     is_functor = int(is_user_functor(request))
     is_auditor = int(is_user_auditor(request))
+    default_project = get_default_project_for_user(request.user.username)
     business_timezone = request.session.get('blueking_timezone', settings.TIME_ZONE)
     return {
         'MEDIA_URL': settings.MEDIA_URL,  # MEDIA_URL
@@ -83,5 +85,6 @@ def mysetting(request):
         'IS_SUPERUSER': is_superuser,
         'IS_FUNCTOR': is_functor,
         'IS_AUDITOR': is_auditor,
-        'BUSINESS_TIMEZONE': business_timezone
+        'BUSINESS_TIMEZONE': business_timezone,
+        'DEFAULT_PROJECT_ID': default_project.id if default_project else None
     }
