@@ -36,8 +36,8 @@ def forward_func(apps, schema_editor):
     for i, t in enumerate(tasks, start=1):
         proj = cc_id_to_project[t.business.cc_id]
         t.project = proj
-        t.project.task.extra_info['project_id'] = proj.id  # add project_id to extra_info
-        t.project.task.save()
+        t.task.extra_info['project_id'] = proj.id  # add project_id to extra_info
+        t.task.save()
         t.save()
         print("PeriodicTask project relationship build: (%s/%s)" % (i, instance_count))
 
