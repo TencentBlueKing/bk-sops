@@ -14,7 +14,7 @@
 const SOURCE_TYPE = [
     {
         type: 'git',
-        name: gettext('git'),
+        name: gettext('GIT'),
         keys: {
             repo_address: gettext('仓库链接'),
             repo_raw_address: gettext('文件托管仓库链接'),
@@ -23,7 +23,7 @@ const SOURCE_TYPE = [
     },
     {
         type: 's3',
-        name: gettext('s3'),
+        name: gettext('S3'),
         keys: {
             service_address: gettext('对象存储服务地址'),
             bucket: gettext('bucket'),
