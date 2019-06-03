@@ -21,12 +21,12 @@
 
     const ROUTERS = [
         {
-            text: gettext('包源管理'),
+            text: gettext('远程插件包源管理'),
             name: 'sourceManage',
             path: '/admin/manage/source_manage/'
         },
         {
-            text: gettext('包源同步'),
+            text: gettext('远程插件同步'),
             name: 'sourceSync',
             path: '/admin/manage/source_sync/'
         }

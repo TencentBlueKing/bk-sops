@@ -102,9 +102,15 @@
                                             <input
                                                 type="text"
                                                 class="table-input"
+                                                name="detailValue"
                                                 :placeholder="i18n.placeholder"
                                                 v-model="details[field.id]"
+                                                v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
+                                            <span
+                                                class="common-error-tip error-msg">
+                                                {{i18n.required}}
+                                            </span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -139,7 +145,6 @@
                                                 v-validate="nameRule"
                                                 @blur="onPackageInputBlur($event, 'key', index)">
                                             <span
-                                                v-show="errors.has('moduleName')"
                                                 class="common-error-tip error-msg">
                                                 {{ errors.first('moduleName') }}
                                             </span>
@@ -148,17 +153,29 @@
                                             <input
                                                 type="text"
                                                 class="table-input"
+                                                name="moduleVersion"
                                                 :placeholder="i18n.placeholder"
-                                                :value="item.version"
+                                                v-model="item.version"
+                                                v-validate="valueRule"
                                                 @blur="onPackageInputBlur($event, 'version', index)">
+                                            <span
+                                                class="common-error-tip error-msg">
+                                                {{ i18n.required }}
+                                            </span>
                                         </td>
                                         <td>
                                             <input
                                                 type="text"
                                                 class="table-input"
-                                                :placeholder="i18n.placeholder"
-                                                :value="item.modules.join(',')"
+                                                name="modules"
+                                                :placeholder="i18n.importPlaceholder"
+                                                v-model="item.modules"
+                                                v-validate="valueRule"
                                                 @blur="onPackageInputBlur($event, 'modules', index)">
+                                            <span
+                                                class="common-error-tip error-msg">
+                                                {{ i18n.required }}
+                                            </span>
                                         </td>
                                         <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage">{{i18n.delete}}</bk-button></td>
                                     </tr>
@@ -226,6 +243,9 @@
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
                     regex: VAR_REG
                 },
+                valueRule: {
+                    required: true
+                },
                 i18n: {
                     sourceName: gettext('包源名'),
                     noName: gettext('未命名'),
@@ -236,12 +256,14 @@
                     detail: gettext('详细信息'),
                     module: gettext('模块配置'),
                     placeholder: gettext('请输入'),
+                    importPlaceholder: gettext('请输入模块绝对路径，如a.b.c，多个用,分隔'),
                     subModule: gettext('子模块名称'),
                     version: gettext('版本'),
                     importModule: gettext('导入模块'),
                     operation: gettext('操作'),
                     add: gettext('添加'),
-                    errorMsg: gettext('输入有误，请展开检查')
+                    errorMsg: gettext('输入有误，请展开检查'),
+                    required: gettext('必填项')
                 }
             }
         },
@@ -280,10 +302,11 @@
             getPackageValues (packages) {
                 const values = []
                 for (const key in packages) {
+                    console.log(packages[key].modules)
                     values.push({
                         key: key,
                         version: packages[key].version,
-                        modules: packages[key].modules
+                        modules: packages[key].modules.join(',')
                     })
                 }
                 return values
@@ -526,6 +549,7 @@
         border-collapse: collapse;
         background: #ffffff;
         th,td {
+            position: relative;
             padding: 10px 20px;
             border: 1px solid #dde4eb;
         }
@@ -533,6 +557,13 @@
             width: 30%;
             font-weight: 700;
             text-align: center;
+        }
+        input[aria-invalid="true"] + .common-error-tip {
+            display: inline-block;
+        }
+        .common-error-tip {
+            display: none;
+            bottom: 0;
         }
     }
     .module-table {
@@ -550,7 +581,11 @@
             font-weight: 700;
             text-align: center;
         }
+        input[aria-invalid="true"] + .common-error-tip {
+            display: inline-block;
+        }
         .common-error-tip {
+            display: none;
             bottom: 0;
         }
     }

@@ -112,7 +112,7 @@
                 isDetailDialogShow: false,
                 detail: '',
                 i18n: {
-                    sync: gettext('远程包同步'),
+                    sync: gettext('同步到本地缓存'),
                     startTime: gettext('开始时间'),
                     endTime: gettext('结束时间'),
                     operator: gettext('操作人'),
