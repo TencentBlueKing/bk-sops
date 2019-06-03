@@ -22,10 +22,8 @@ PROJECT_ID = 1
 TASK_ID = 1
 
 
-@override_settings(MIDDLEWARE=(
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.common.CommonMiddleware',
-))
+@override_settings(MIDDLEWARE=('django.contrib.sessions.middleware.SessionMiddleware',
+                               'django.middleware.common.CommonMiddleware',))
 class APITestCase(TestCase):
 
     @classmethod

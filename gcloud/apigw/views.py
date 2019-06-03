@@ -387,11 +387,10 @@ def create_periodic_task(request, template_id, project_id):
         })
 
     logger.info(
-        'apigw create_periodic_task info, template_id: {template_id}, project_id: {project_id}, params: {params}'.format(
-            template_id=template_id,
-            project_id=project_id,
-            params=params
-        ))
+        'apigw create_periodic_task info, '
+        'template_id: {template_id}, project_id: {project_id}, params: {params}'.format(template_id=template_id,
+                                                                                        project_id=project_id,
+                                                                                        params=params))
 
     try:
         params.setdefault('constants', {})

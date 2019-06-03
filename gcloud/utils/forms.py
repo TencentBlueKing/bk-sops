@@ -12,10 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
-import functools
 
 from django import forms
-from django.http.response import JsonResponse
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
 

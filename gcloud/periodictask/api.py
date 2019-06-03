@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 from blueapps_werkzeug.django.decorators import post_form_validator, model_instance_inject
