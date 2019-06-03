@@ -13,6 +13,7 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
+                <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
                 <span class="task-title">{{ taskTemplateTitle }}</span>
                 <span class="task-name">{{ instanceName }}</span>
             </div>
@@ -44,12 +45,13 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'instanceName'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName'],
         data () {
             return {
                 i18n: {
                     newTask: gettext('新建任务'),
-                    taskExecution: gettext('任务执行')
+                    taskExecution: gettext('任务执行'),
+                    return: gettext('返回')
                 }
             }
         },
@@ -100,6 +102,13 @@
                     style['left'] = nameLength * -2 + 'px'
                 }
                 return style
+            },
+            getHomeUrl () {
+                let url = `/template/home/${this.cc_id}/`
+                if (this.common) {
+                    url += '?common=1&common_template=common'
+                }
+                return url
             }
         }
     }
@@ -111,6 +120,13 @@
     border-bottom: 1px solid #cacedb;
     .step-header {
         background-color: #f4f7fa;
+        .bk-button-default {
+            float: right;
+            position: relative;
+            top: 16px;
+            right: 20px;
+            width: 90px
+        }
     }
     .step-section-title {
         height: 67px;
