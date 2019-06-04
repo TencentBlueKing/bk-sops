@@ -27,6 +27,7 @@ from pipeline.engine import api as pipeline_api
 
 from gcloud.constants import PROJECT
 from gcloud.conf import settings
+from gcloud.apigw.decorators import check_white_apps
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
 from gcloud.core.models import Project
 from gcloud.core.utils import strftime_with_timezone
