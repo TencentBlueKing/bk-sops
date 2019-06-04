@@ -65,10 +65,10 @@ class PackageSourceManager(models.Manager):
         base_source = base_source_cls.objects.create_source(name=name, packages=packages, from_config=False, **kwargs)
         return base_source
 
-    @staticmethod
-    def delete_base_source(package_source_id, source_type):
+    def delete_base_source(self, package_source_id, source_type):
         base_source_cls = base_source_cls_factory[source_type]
-        base_source_cls.objects.filter(id=package_source_id).delete()
+        package_source = self.get(id=package_source_id)
+        base_source_cls.objects.filter(id=package_source.base_source_id).delete()
 
     def update_base_source(self, package_source_id, source_type, packages, **kwargs):
         package_source = self.get(id=package_source_id)

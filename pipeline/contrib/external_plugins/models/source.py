@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.db import models
-from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.conf import settings
 from pipeline.contrib.external_plugins.utils.importer import (
     GitRepoModuleImporter,
     S3ModuleImporter,
@@ -42,9 +42,8 @@ class GitRepoSource(ExternalPackageSource):
         return GitRepoModuleImporter(repo_raw_url=self.repo_raw_address,
                                      branch=self.branch,
                                      modules=self.packages.keys(),
-                                     proxy=getattr(settings, 'EXTERNAL_SOURCE_PROXY', None),
-                                     secure_only=getattr(settings,
-                                                         'EXTERNAL_SOURCE_SECURE_RESTRICT', {}).get(self.name, True))
+                                     proxy=settings.EXTERNAL_PLUGINS_SOURCE_PROXY,
+                                     secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT)
 
     def details(self):
         return {
@@ -70,8 +69,7 @@ class S3Source(ExternalPackageSource):
                                 bucket=self.bucket,
                                 access_key=self.access_key,
                                 secret_key=self.secret_key,
-                                secure_only=getattr(settings,
-                                                    'EXTERNAL_SOURCE_SECURE_RESTRICT', {}).get(self.name, True))
+                                secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT)
 
     def details(self):
         return {
