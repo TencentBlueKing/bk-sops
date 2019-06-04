@@ -75,11 +75,16 @@
         },
         {
             tag_code: "cron_expression",
-            type: "input",
+            type: "textarea",
             attrs: {
                 name: gettext("定时规则"),
                 hookable: false,
-                default: "0 0 12 * * ? 2015"
+                placeholder: gettext("定时规则，填写：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015表示2015年每天中午12点触发"),
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
             }
         }
 
