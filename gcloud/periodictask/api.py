@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from blueapps.utils.decorators import post_form_validator, model_instance_inject
+from blueapps.utils.view_decorators import post_form_validator, model_instance_inject
 from gcloud.core.models import Project
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
