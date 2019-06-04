@@ -31,6 +31,7 @@ class CmdbTransferFaultHostComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         return [
             TRANSFER_SUCCESS_CASE,
+            TRANSFER_FAIL_CASE,
             INVALID_IP_CASE
         ]
 
@@ -59,6 +60,13 @@ TRANSFER_SUCCESS_CLIENT = MockClient(
         "data": {}
     })
 
+TRANSFER_FAIL_CLIENT = MockClient(
+    transfer_host_return={
+        "result": False,
+        "code": 2,
+        "message": "message token",
+        "data": {}
+    })
 
 TRANSFER_SUCCESS_CASE = ComponentTestCase(
     name='transfer success case',
@@ -92,6 +100,37 @@ TRANSFER_SUCCESS_CASE = ComponentTestCase(
                                                                 'data': [2, 3]})]
 )
 
+TRANSFER_FAIL_CASE = ComponentTestCase(
+    name='transfer fail case',
+    inputs={
+        'cc_host_ip': '1.1.1.1;2.2.2.2'
+    },
+    parent_data={
+        'executor': 'executor_token',
+        'biz_cc_id': 2,
+        'biz_supplier_account': 0
+    },
+    execute_assertion=ExecuteAssertion(
+        success=False,
+        outputs={'ex_data': u'调用配置平台(CMDB)接口cc.transfer_host_to_fault_module返回失败, '
+                            u'params={"bk_biz_id": 2, "bk_host_id": [2, 3]}, error=message token'}),
+    schedule_assertion=None,
+    execute_call_assertion=[
+        CallAssertion(func=CC_GET_HOST_ID_BY_INNERIP, calls=[Call('executor_token', 2, ['1.1.1.1', '2.2.2.2'], 0)]),
+        CallAssertion(
+            func=TRANSFER_FAIL_CLIENT.cc.transfer_host_to_faultmodule,
+            calls=[Call({
+                'bk_biz_id': 2,
+                'bk_host_id': [2, 3]
+            })])
+    ],
+    # add patch
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=TRANSFER_FAIL_CLIENT),
+        Patcher(target=GET_IP_BY_REGEX, return_value=['1.1.1.1', '2.2.2.2']),
+        Patcher(target=CC_GET_HOST_ID_BY_INNERIP, return_value={'result': True,
+                                                                'data': [2, 3]})]
+)
 
 INVALID_IP_CASE = ComponentTestCase(
     name='invalid ip case',
