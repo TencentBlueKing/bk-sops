@@ -17,10 +17,12 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.components.utils import handle_api_error
-
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_REQUEST as get_client_by_request
+from gcloud.conf import settings
 
 from .utils import get_cmdb_topo_tree
+from .constants import NO_ERROR, ERROR_CODES
+
+get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 
 
 def cmdb_search_topo_tree(request, bk_biz_id, bk_supplier_account=''):
@@ -70,7 +72,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
     host_result = client.cc.search_host(kwargs)
     if not host_result['result']:
         message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.search_host', kwargs, host_result['message'])
-        result = {'result': False, 'code': 110, 'message': message}
+        result = {'result': False, 'code': ERROR_CODES.API_CMDB_ERROR, 'message': message}
         return JsonResponse(result)
 
     host_info = host_result['data']['info']
@@ -99,7 +101,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
                                        'gse.get_agent_status',
                                        agent_kwargs,
                                        agent_result['message'])
-            result = {'result': False, 'code': 111, 'message': message}
+            result = {'result': False, 'code': ERROR_CODES.API_GSE_ERROR, 'message': message}
             return JsonResponse(result)
 
         agent_data = agent_result['data']
@@ -108,7 +110,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
             agent_info = agent_data.get('%s:%s' % (host['cloud'][0]['id'], host['bk_host_innerip']), {})
             host['agent'] = agent_info.get('bk_agent_alive', -1)
 
-    result = {'result': True, 'code': 0, 'data': data}
+    result = {'result': True, 'code': NO_ERROR, 'data': data}
     return JsonResponse(result)
 
 
@@ -126,12 +128,15 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=''):
     }
     client = get_client_by_request(request)
     cc_result = client.cc.get_mainline_object_topo(kwargs)
-    if not cc_result:
+    if not cc_result['result']:
         message = handle_api_error(_(u"配置平台(CMDB)"),
                                    'cc.get_mainline_object_topo',
                                    kwargs,
                                    cc_result['message'])
-    else:
-        message = cc_result['message']
-    result = {'result': cc_result['result'], 'code': cc_result['code'], 'data': cc_result['data'], 'message': message}
+        return {'result': cc_result['result'], 'code': cc_result['code'], 'message': message}
+    data = cc_result['data']
+    for bk_obj in data:
+        if bk_obj['bk_obj_id'] == 'host':
+            bk_obj['bk_obj_name'] = 'IP'
+    result = {'result': cc_result['result'], 'code': cc_result['code'], 'data': cc_result['data']}
     return JsonResponse(result)

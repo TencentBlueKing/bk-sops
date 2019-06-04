@@ -861,15 +861,20 @@ class TaskFlowInstance(models.Model):
 
     @property
     def url(self):
-        if settings.RUN_MODE == 'PRODUCT':
-            prefix = settings.APP_HOST
-        else:
-            prefix = settings.TEST_APP_HOST
-        return '%staskflow/execute/%s/?instance_id=%s' % (prefix, self.project.id, self.id)
+        return '%staskflow/execute/%s/?instance_id=%s' % (settings.APP_HOST, self.project.id, self.id)
 
     @property
     def subprocess_info(self):
         return self.pipeline_instance.template.subprocess_version_info
+
+    @property
+    def raw_state(self):
+        try:
+            state = pipeline_api.get_status_tree(self.pipeline_instance.instance_id)['state']
+        except exceptions.InvalidOperationException:
+            return None
+
+        return state
 
     @staticmethod
     def format_pipeline_status(status_tree):
@@ -963,7 +968,8 @@ class TaskFlowInstance(models.Model):
                 logger.exception(message)
                 outputs = {'ex_data': message}
             else:
-                outputs_data = outputs.get('outputs', {})
+                # for some special empty case e.g. ''
+                outputs_data = outputs.get('outputs') or {}
                 # 在标准插件定义中的预设输出参数
                 archived_keys = []
                 for outputs_item in outputs_format:
@@ -1080,6 +1086,10 @@ class TaskFlowInstance(models.Model):
                                                                                             e.failed_nodes)
                 logger.exception(message)
                 return {'result': False, 'message': message}
+
+            except TypeError:
+                logger.exception(traceback.format_exc())
+                return {'result': False, 'message': 'redis connection error, check redis configuration please'}
 
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)

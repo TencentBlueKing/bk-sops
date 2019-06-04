@@ -64,6 +64,11 @@ PIPELINE_NODE_CELERYTASK_DESTROY = 'pipeline.engine.models.NodeCeleryTask.object
 
 PIPELINE_FUNCTION_SWITCH_IS_FROZEN = 'pipeline.engine.models.FunctionSwitch.objects.is_frozen'
 
+PIPELINE_MODELS_TASK_SERVICE_RUN_PIPELINE = 'pipeline.models.task_service.run_pipeline'
+
+PIPELINE_PIPELINE_INSTANCE_CALCULATE_TREE_INFO = 'pipeline.models.PipelineInstance.calculate_tree_info'
+PIPELINE_PIPELINE_INSTANCE_IMPORT_STRING = 'pipeline.models.import_string'
+
 PIPELINE_PIPELINE_MODEL_GET = 'pipeline.engine.models.PipelineModel.objects.get'
 PIPELINE_PIPELINE_MODEL_PREPARE_FOR_PIPELINE = 'pipeline.engine.models.PipelineModel.objects.prepare_for_pipeline'
 PIPELINE_PIPELINE_MODEL_PIPELINE_READY = 'pipeline.engine.models.PipelineModel.objects.pipeline_ready'

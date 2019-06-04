@@ -28,6 +28,16 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
 
+    def _get_biz_cc_id_in_rest_request(self, request):
+        biz_cc_id = None
+        try:
+            body = json.loads(request.body)
+            biz_cc_id = int(body.get('business').split('/')[-2])
+        except Exception:
+            pass
+
+        return biz_cc_id
+
     def process_view(self, request, view_func, view_args, view_kwargs):
         """
         If a request path contains biz_cc_id parameter, check if current

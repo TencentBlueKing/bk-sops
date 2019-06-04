@@ -42,7 +42,8 @@ from gcloud.core.api_adapter import (
 )
 
 logger = logging.getLogger("root")
-
+get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 CACHE_PREFIX = __name__.replace('.', '_')
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 
@@ -60,7 +61,7 @@ def get_user_business_list(request, use_cache=True):
 
     if not (use_cache and data):
         user_info = _get_user_info(request)
-        client = settings.ESB_GET_CLIENT_BY_USER(request.user.username)
+        client = get_client_by_request(request)
         result = client.cc.search_business({
             'bk_supplier_account': user_info['bk_supplier_account'],
             'condition': {
@@ -137,14 +138,17 @@ def _get_business_info(request, app_id, use_cache=True, use_maintainer=False):
         if use_maintainer:
             client = get_client_by_user_and_biz_id(username, app_id)
         else:
-            client = settings.ESB_GET_CLIENT_BY_REQUEST(request)
+            client = get_client_by_request(request)
         result = client.cc.search_business({
             'bk_supplier_account': business.cc_owner,
             'condition': {
                 'bk_biz_id': int(app_id)
             }
         })
+
         if result['result']:
+            if not result['data']['info']:
+                raise exceptions.Forbidden()
             data = result['data']['info'][0]
         elif result.get('code') in ('20101', 20101):
             raise exceptions.Unauthorized(result['message'])
@@ -349,6 +353,10 @@ def prepare_business(request, cc_id, use_cache=True):
     else:
         obj, created, extras = get_business_obj(request, cc_id, use_cache)
 
+    # access archived business is not allowed
+    if not obj.available():
+        raise exceptions.Forbidden()
+
     # then, update business object relationships
     if extras:
         update_relationships(request, obj, extras)
@@ -392,17 +400,20 @@ def prepare_user_business(request, use_cache=True):
             }
 
             if defaults['status'] == 'disabled':
+                # do not create model for archived business
                 try:
                     Business.objects.get(cc_id=biz['bk_biz_id'])
                 except Business.DoesNotExist:
                     continue
 
+            # update business status
             obj, _ = Business.objects.update_or_create(
                 cc_id=biz['bk_biz_id'],
                 defaults=defaults
             )
 
-            if obj not in data and is_user_relate_business(user, biz):
+            # only append business which relate to user and not been archived
+            if obj not in data and is_user_relate_business(user, biz) and obj.available():
                 data.append(obj)
 
                 if user.username in set(str(biz[maintainer_key]).split(',')):
@@ -455,11 +466,9 @@ def get_biz_maintainer_info(biz_cc_id, username='', use_in_context=False):
     # 随机取包含 ESB 鉴权信息的运维
     authorized_maintainer = ''
     auth_token = ''
-    for item in maintainers:
-        if item.auth_token:
-            authorized_maintainer = item.username
-            auth_token = item.auth_token
-            break
+    if maintainers:
+        authorized_maintainer = maintainers[0].username
+        auth_token = maintainers[0].auth_token
 
     return authorized_maintainer, auth_token
 
@@ -474,10 +483,10 @@ def get_client_by_user_and_biz_id(username, biz_cc_id):
     # 首先以存在auth_token的运维身份调用接口
     maintainer, __ = get_biz_maintainer_info(biz_cc_id, username)
     if maintainer:
-        return settings.ESB_GET_CLIENT_BY_USER(maintainer)
+        return get_client_by_user(maintainer)
 
     # 无任何业务的运维auth_token信息，只能以自己身份执行
-    return settings.ESB_GET_CLIENT_BY_USER(username)
+    return get_client_by_user(username)
 
 
 def time_now_str():
