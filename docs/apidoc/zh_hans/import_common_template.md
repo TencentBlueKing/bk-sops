@@ -38,7 +38,9 @@ result = response.json()
 ```
 {
     "message": "Successfully imported 2 common flows",
-    "data": 2,
+    "data": {
+        "count": 2
+    },
     "result": true
 }
 ```
@@ -49,4 +51,10 @@ result = response.json()
 | ------------  | ---------- | ------------------------------ |
 |  result       | bool       | true/false 成功与否            |
 |  message      | string     | result=false 时错误信息        |
-|  data         | int        | 导入的流程数                    |
+|  data         | dict        | 返回数据                    |
+
+#### data
+
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+|  count      |    int    |      导入的流程数    |
