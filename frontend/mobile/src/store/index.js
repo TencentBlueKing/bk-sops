@@ -44,6 +44,7 @@ const store = new Vuex.Store({
         isActionSheetShow: true,
         setPreviewCanvasData: {}, // 预览数据
         pipelineTree: {},
+        rsa_pub_key: global.RSA_PUB_KEY || '',
         // 系统当前登录用户
         user: {}
     },
