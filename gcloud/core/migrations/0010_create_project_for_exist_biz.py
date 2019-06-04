@@ -48,7 +48,6 @@ def forward_func(apps, schema_editor):
         # set first maintainer as creator
         maintainers = biz_maintainers.get(business.cc_id)
         if not maintainers:
-            print(u'can not find maintainers for business(%s-%s), use admin.' % (business.cc_id, business.cc_name))
             creator = 'admin'
         else:
             creator = maintainers[0]
@@ -62,9 +61,6 @@ def forward_func(apps, schema_editor):
             from_cmdb=True,
             cmdb_biz_id=business.cc_id
         ))
-
-    print('')
-    print('create relate projects for %s business...' % len(active_business))
 
     Project.objects.using(db_alias).bulk_create(projects, batch_size=5000)
 
