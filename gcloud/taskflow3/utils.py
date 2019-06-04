@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import logging
 from django.utils import translation
 
-from gcloud.core.utils import get_biz_maintainer_info
 from gcloud.taskflow3.models import TaskFlowInstance
 
 logger = logging.getLogger("root")
@@ -26,19 +25,16 @@ def get_instance_context(obj):
     except TaskFlowInstance.DoesNotExist:
         logger.warning('TaskFlowInstance Does not exist: pipeline_template.id=%s' % obj.pk)
         return {}
-    operator = obj.executor
-    biz_cc_id = taskflow.business.cc_id
-    supplier_account = taskflow.business.cc_owner
-    executor, _ = get_biz_maintainer_info(biz_cc_id, operator, use_in_context=True)
+    project_id = taskflow.project_id
+    # TODO 上下文中的信息需要再完善一些
     context = {
         'language': translation.get_language(),
-        'biz_cc_id': biz_cc_id,
-        'biz_cc_name': taskflow.business.cc_name,
-        'biz_supplier_account': supplier_account,
+        'project_id': project_id,
+        'project_name': taskflow.project.name,
         # 执行任务的操作员
-        'operator': operator,
+        'operator': obj.executor,
         # 调用ESB接口的执行者
-        'executor': executor,
+        'executor': obj.executor,
         'task_id': taskflow.id,
         'task_name': taskflow.pipeline_instance.name
     }

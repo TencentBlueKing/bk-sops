@@ -22,19 +22,9 @@ from pipeline.models import PipelineTemplate
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
 
 from gcloud.exceptions import FlowExportError
-from gcloud.commons.template.constants import PermNm
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
-
-
-def get_common_permission_list():
-    permission_list = [
-        ('common_%s' % PermNm.CREATE_TASK_PERM_NAME, 'common template create task'),
-        ('common_%s' % PermNm.FILL_PARAMS_PERM_NAME, 'common template fill params'),
-        ('common_%s' % PermNm.EXECUTE_TASK_PERM_NAME, 'common template execute task'),
-    ]
-    return permission_list
 
 
 def replace_template_id(template_model, pipeline_data, reverse=False):
@@ -354,7 +344,6 @@ class CommonTmplPerm(models.Model):
     biz_cc_id = models.CharField(_(u"通用流程模板ID"), max_length=255)
 
     class Meta:
-        permissions = get_common_permission_list()
         unique_together = ('common_template_id', 'biz_cc_id')
         index_together = ['common_template_id', 'biz_cc_id']
         verbose_name = _(u"公共流程模板权限 CommonTmplPerm")

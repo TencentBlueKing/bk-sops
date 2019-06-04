@@ -48,7 +48,7 @@ DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 
 
 # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是非法值
-def _get_user_business_list(request, use_cache=True):
+def get_user_business_list(request, use_cache=True):
     """Get authorized business list for a exact username.
 
     :param object request: django request object.
@@ -376,7 +376,7 @@ def prepare_user_business(request, use_cache=True):
 
     if not (use_cache and data):
         data = []
-        biz_list = _get_user_business_list(request, use_cache)
+        biz_list = get_user_business_list(request, use_cache)
         maintainer_business = []
 
         for biz in biz_list:
@@ -552,8 +552,6 @@ def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
         logger.error(message)
         result_dict['content'] = message
         return result_dict
-    if 'biz_cc_id' in conditions:
-        conditions.update(business__cc_id=conditions.pop('biz_cc_id'))
     if not isinstance(conditions, dict):
         message = u"params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
@@ -565,10 +563,7 @@ def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
         logger.error(message)
         result_dict['content'] = message
         return result_dict
-    # 如果是 biz_cc_id 需要转换
-    # 为了防止显示出现外键调用
-    if group_by == 'biz_cc_id':
-        group_by = 'business__cc_id'
+
     result_dict['success'] = True
     result_dict['group_by'] = group_by
     result_dict['conditions'] = conditions

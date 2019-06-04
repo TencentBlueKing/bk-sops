@@ -51,7 +51,9 @@ def dummy_wrapper(func):
     return wrapper
 
 
-TEST_BIZ_CC_ID = '123'  # do not change this to non number
+TEST_PROJECT_ID = '123'  # do not change this to non number
+TEST_PROJECT_NAME = 'biz name'
+TEST_BIZ_CC_ID = '123'
 TEST_BIZ_CC_NAME = 'biz name'
 TEST_APP_CODE = 'app_code'
 TEST_TEMPLATE_ID = '1'  # do not change this to non number
@@ -71,21 +73,21 @@ class APITest(TestCase):
     @classmethod
     def setUpClass(cls):
         cls.GET_TEMPLATE_LIST_URL = '/apigw/get_template_list/{biz_cc_id}/'
-        cls.GET_TEMPLATE_INFO_URL = '/apigw/get_template_info/{template_id}/{bk_biz_id}/'
-        cls.CREATE_TASK_URL = '/apigw/create_task/{template_id}/{bk_biz_id}/'
-        cls.START_TASK_URL = '/apigw/start_task/{task_id}/{bk_biz_id}/'
-        cls.OPERATE_TASK_URL = '/apigw/operate_task/{task_id}/{bk_biz_id}/'
-        cls.GET_TASK_STATUS_URL = '/apigw/get_task_status/{task_id}/{bk_biz_id}/'
-        cls.QUERY_TASK_COUNT_URL = '/apigw/query_task_count/{bk_biz_id}/'
-        cls.GET_PERIODIC_TASK_LIST_URL = '/apigw/get_periodic_task_list/{bk_biz_id}/'
-        cls.GET_PERIODIC_TASK_INFO_URL = '/apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/'
-        cls.CREATE_PERIODIC_TASK_URL = '/apigw/create_periodic_task/{template_id}/{bk_biz_id}/'
-        cls.SET_PERIODIC_TASK_ENABLED_URL = '/apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/'
-        cls.MODIFY_PERIODIC_TASK_CRON_URL = '/apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/'
-        cls.MODIFY_PERIODIC_TASK_CONSTANTS_URL = '/apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/'
-        cls.GET_TASK_DETAIL = '/apigw/get_task_detail/{task_id}/{bk_biz_id}/'
-        cls.GET_TASK_NODE_DETAIL = '/apigw/get_task_node_detail/{task_id}/{bk_biz_id}/'
-        cls.NODE_CALLBACK = '/apigw/node_callback/{task_id}/{bk_biz_id}/'
+        cls.GET_TEMPLATE_INFO_URL = '/apigw/get_template_info/{template_id}/{project_id}/'
+        cls.CREATE_TASK_URL = '/apigw/create_task/{template_id}/{project_id}/'
+        cls.START_TASK_URL = '/apigw/start_task/{task_id}/{project_id}/'
+        cls.OPERATE_TASK_URL = '/apigw/operate_task/{task_id}/{project_id}/'
+        cls.GET_TASK_STATUS_URL = '/apigw/get_task_status/{task_id}/{project_id}/'
+        cls.QUERY_TASK_COUNT_URL = '/apigw/query_task_count/{project_id}/'
+        cls.GET_PERIODIC_TASK_LIST_URL = '/apigw/get_periodic_task_list/{project_id}/'
+        cls.GET_PERIODIC_TASK_INFO_URL = '/apigw/get_periodic_task_info/{task_id}/{project_id}/'
+        cls.CREATE_PERIODIC_TASK_URL = '/apigw/create_periodic_task/{template_id}/{project_id}/'
+        cls.SET_PERIODIC_TASK_ENABLED_URL = '/apigw/set_periodic_task_enabled/{task_id}/{project_id}/'
+        cls.MODIFY_PERIODIC_TASK_CRON_URL = '/apigw/modify_cron_for_periodic_task/{task_id}/{project_id}/'
+        cls.MODIFY_PERIODIC_TASK_CONSTANTS_URL = '/apigw/modify_constants_for_periodic_task/{task_id}/{project_id}/'
+        cls.GET_TASK_DETAIL = '/apigw/get_task_detail/{task_id}/{project_id}/'
+        cls.GET_TASK_NODE_DETAIL = '/apigw/get_task_node_detail/{task_id}/{project_id}/'
+        cls.NODE_CALLBACK = '/apigw/node_callback/{task_id}/{project_id}/'
 
         super(APITest, cls).setUpClass()
 
@@ -115,8 +117,11 @@ class APITest(TestCase):
         self.prepare_user_business_patcher.stop()
         self.business_exist_patcher.stop()
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
-    def test_get_template_list__for_business_template(self):
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
+    def test_get_template_list__for_project_template(self):
         pt1 = MockPipelineTemplate(id=1,
                                    name='pt1')
         pt2 = MockPipelineTemplate(id=2,
@@ -137,12 +142,14 @@ class APITest(TestCase):
                     'editor': tmpl.pipeline_template.editor,
                     'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
                     'category': tmpl.category,
-                    'bk_biz_id': TEST_BIZ_CC_ID,
-                    'bk_biz_name': TEST_BIZ_CC_NAME
+                    'project_id': TEST_PROJECT_ID,
+                    'project_name': TEST_PROJECT_NAME,
+                    'bk_biz_id': TEST_PROJECT_ID,
+                    'bk_biz_name': TEST_PROJECT_NAME
                 } for tmpl in task_templates
             ]
 
-            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_BIZ_CC_ID))
+            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_PROJECT_ID))
 
             self.assertEqual(response.status_code, 200)
 
@@ -154,14 +161,17 @@ class APITest(TestCase):
         with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[]))):
             assert_data = []
 
-            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_BIZ_CC_ID))
+            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
 
             self.assertTrue(data['result'])
             self.assertEqual(data['data'], assert_data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     def test_get_template_list__for_common_template(self):
         pt1 = MockPipelineTemplate(id=1,
                                    name='pt1')
@@ -184,12 +194,14 @@ class APITest(TestCase):
                     'editor': tmpl.pipeline_template.editor,
                     'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
                     'category': tmpl.category,
-                    'bk_biz_id': TEST_BIZ_CC_ID,
-                    'bk_biz_name': TEST_BIZ_CC_NAME
+                    'project_id': TEST_PROJECT_ID,
+                    'project_name': TEST_PROJECT_NAME,
+                    'bk_biz_id': TEST_PROJECT_ID,
+                    'bk_biz_name': TEST_PROJECT_NAME
                 } for tmpl in task_templates
             ]
 
-            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_BIZ_CC_ID),
+            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_PROJECT_ID),
                                        data={'template_source': 'common'})
 
             self.assertEqual(response.status_code, 200)
@@ -202,7 +214,7 @@ class APITest(TestCase):
         with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[]))):
             assert_data = []
 
-            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_BIZ_CC_ID),
+            response = self.client.get(path=self.GET_TEMPLATE_LIST_URL.format(biz_cc_id=TEST_PROJECT_ID),
                                        data={'template_source': 'common'})
 
             data = json.loads(response.content)
@@ -210,8 +222,11 @@ class APITest(TestCase):
             self.assertTrue(data['result'])
             self.assertEqual(data['data'], assert_data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
-    def test_get_template_info__for_business_template(self):
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
+    def test_get_template_info__for_project_template(self):
         pt1 = MockPipelineTemplate(id=1,
                                    name='pt1')
 
@@ -229,13 +244,15 @@ class APITest(TestCase):
                 'editor': tmpl.pipeline_template.editor,
                 'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
                 'category': tmpl.category,
+                'project_id': TEST_PROJECT_ID,
+                'project_name': TEST_PROJECT_NAME,
                 'bk_biz_id': TEST_BIZ_CC_ID,
-                'bk_biz_name': TEST_BIZ_CC_NAME,
+                'bk_biz_name': TEST_PROJECT_NAME,
                 'pipeline_tree': pipeline_tree
             }
 
             response = self.client.get(path=self.GET_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                              bk_biz_id=TEST_BIZ_CC_ID))
+                                                                              project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
 
@@ -244,17 +261,23 @@ class APITest(TestCase):
 
     @mock.patch(TASKTEMPLATE_SELECT_RELATE,
                 MagicMock(return_value=MockQuerySet(get_raise=TaskTemplate.DoesNotExist())))
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
-    def test_get_template_info__for_business_template_does_not_exists(self):
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
+    def test_get_template_info__for_project_template_does_not_exists(self):
         response = self.client.get(path=self.GET_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                          bk_biz_id=TEST_BIZ_CC_ID), )
+                                                                          project_id=TEST_PROJECT_ID), )
 
         data = json.loads(response.content)
 
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     def test_get_template_info__for_common_template(self):
         pt1 = MockPipelineTemplate(id=1,
                                    name='pt1')
@@ -273,13 +296,15 @@ class APITest(TestCase):
                 'editor': tmpl.pipeline_template.editor,
                 'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
                 'category': tmpl.category,
+                'project_id': TEST_PROJECT_ID,
+                'project_name': TEST_PROJECT_NAME,
                 'bk_biz_id': TEST_BIZ_CC_ID,
-                'bk_biz_name': TEST_BIZ_CC_NAME,
+                'bk_biz_name': TEST_PROJECT_NAME,
                 'pipeline_tree': pipeline_tree
             }
 
             response = self.client.get(path=self.GET_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                              bk_biz_id=TEST_BIZ_CC_ID),
+                                                                              project_id=TEST_PROJECT_ID),
                                        data={'template_source': 'common'})
 
             data = json.loads(response.content)
@@ -289,10 +314,13 @@ class APITest(TestCase):
 
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE,
                 MagicMock(return_value=MockQuerySet(get_raise=CommonTemplate.DoesNotExist())))
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     def test_get_template_info__for_common_template_does_not_exists(self):
         response = self.client.get(path=self.GET_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                          bk_biz_id=TEST_BIZ_CC_ID),
+                                                                          project_id=TEST_PROJECT_ID),
                                    data={'template_source': 'common'})
 
         data = json.loads(response.content)
@@ -307,15 +335,18 @@ class APITest(TestCase):
         pt1 = MockPipelineTemplate(id=1, name='pt1')
 
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
-        biz = MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)
+        proj = MockProject(id=TEST_PROJECT_ID,
+                           name=TEST_PROJECT_NAME,
+                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           from_cmdb=True)
 
-        with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
+        with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
                 assert_data = {'task_id': TEST_TASKFLOW_ID,
                                'task_url': TEST_TASKFLOW_URL,
                                'pipeline_tree': TEST_TASKFLOW_PIPELINE_TREE}
                 response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                             bk_biz_id=TEST_BIZ_CC_ID),
+                                                                             project_id=TEST_PROJECT_ID),
                                             data=json.dumps({'name': 'name',
                                                              'constants': 'constants',
                                                              'exclude_task_nodes_id': 'exclude_task_nodes_id',
@@ -330,7 +361,7 @@ class APITest(TestCase):
                     'exclude_task_nodes_id')
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
-                    business=biz,
+                    project=proj,
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
@@ -358,7 +389,7 @@ class APITest(TestCase):
                                'task_url': TEST_TASKFLOW_URL,
                                'pipeline_tree': TEST_TASKFLOW_PIPELINE_TREE}
                 response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                             bk_biz_id=TEST_BIZ_CC_ID),
+                                                                             project_id=TEST_PROJECT_ID),
                                             data=json.dumps({'name': 'name',
                                                              'constants': 'constants',
                                                              'exclude_task_nodes_id': 'exclude_task_nodes_id',
@@ -374,7 +405,7 @@ class APITest(TestCase):
                     'exclude_task_nodes_id')
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
-                    business=biz,
+                    project=proj,
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
@@ -389,13 +420,16 @@ class APITest(TestCase):
                 self.assertTrue(data['result'])
                 self.assertEqual(data['data'], assert_data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError('')))
     def test_create_task__validate_fail(self):
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                     bk_biz_id=TEST_BIZ_CC_ID),
+                                                                     project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'constants': 'constants',
                                                      'exclude_task_node_id': 'exclude_task_node_id'}),
                                     content_type="application/json")
@@ -406,7 +440,7 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                     bk_biz_id=TEST_BIZ_CC_ID),
+                                                                     project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'constants': 'constants',
                                                      'exclude_task_node_id': 'exclude_task_node_id',
                                                      'template_source': 'common'}),
@@ -417,13 +451,16 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__without_app_code(self):
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                     bk_biz_id=TEST_BIZ_CC_ID),
+                                                                     project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'constants': 'constants',
                                                      'exclude_task_node_id': 'exclude_task_node_id'}),
                                     content_type="application/json")
@@ -434,7 +471,7 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                     bk_biz_id=TEST_BIZ_CC_ID),
+                                                                     project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'constants': 'constants',
                                                      'exclude_task_node_id': 'exclude_task_node_id',
                                                      'template_source': 'common'}),
@@ -445,7 +482,10 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(side_effect=PipelineException()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__create_pipeline_raise(self):
@@ -456,7 +496,7 @@ class APITest(TestCase):
 
         with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                                                         project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
                                                          'constants': 'constants',
                                                          'exclude_task_node_id': 'exclude_task_node_id'}),
@@ -475,7 +515,7 @@ class APITest(TestCase):
 
         with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                                                         project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
                                                          'constants': 'constants',
                                                          'exclude_task_node_id': 'exclude_task_node_id',
@@ -488,7 +528,10 @@ class APITest(TestCase):
             self.assertFalse(data['result'])
             self.assertTrue('message' in data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=(False, '')))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__create_pipeline_fail(self):
@@ -499,7 +542,7 @@ class APITest(TestCase):
 
         with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                                                         project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
                                                          'constants': 'constants',
                                                          'exclude_task_node_id': 'exclude_task_node_id'}),
@@ -518,7 +561,7 @@ class APITest(TestCase):
 
         with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                                                         project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
                                                          'constants': 'constants',
                                                          'exclude_task_node_id': 'exclude_task_node_id',
@@ -537,7 +580,7 @@ class APITest(TestCase):
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
             response = self.client.post(path=self.START_TASK_URL.format(task_id=TEST_TASKFLOW_ID,
-                                                                        bk_biz_id=TEST_BIZ_CC_ID))
+                                                                        project_id=TEST_PROJECT_ID))
 
             task.task_action.assert_called_once_with('start', '')
 
@@ -552,7 +595,7 @@ class APITest(TestCase):
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
             response = self.client.post(path=self.OPERATE_TASK_URL.format(task_id=TEST_TASKFLOW_ID,
-                                                                          bk_biz_id=TEST_BIZ_CC_ID),
+                                                                          project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'action': assert_action}),
                                         content_type='application/json')
 
@@ -567,7 +610,7 @@ class APITest(TestCase):
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
             response = self.client.get(path=self.GET_TASK_STATUS_URL.format(task_id=TEST_TASKFLOW_ID,
-                                                                            bk_biz_id=TEST_BIZ_CC_ID))
+                                                                            project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
             self.assertTrue(data['result'])
@@ -578,7 +621,7 @@ class APITest(TestCase):
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
             response = self.client.get(path=self.GET_TASK_STATUS_URL.format(task_id=TEST_TASKFLOW_ID,
-                                                                            bk_biz_id=TEST_BIZ_CC_ID))
+                                                                            project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
             self.assertFalse(data['result'])
@@ -591,7 +634,7 @@ class APITest(TestCase):
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
             response = self.client.get(path=self.GET_TASK_STATUS_URL.format(task_id=TEST_TASKFLOW_ID,
-                                                                            bk_biz_id=TEST_BIZ_CC_ID))
+                                                                            project_id=TEST_PROJECT_ID))
 
             TaskFlowInstance.format_pipeline_status.assert_called_once_with(TEST_DATA)
 
@@ -606,7 +649,7 @@ class APITest(TestCase):
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
             with mock.patch(APIGW_VIEW_PIPELINE_API_GET_STATUS_TREE, MagicMock(side_effect=Exception())):
                 response = self.client.get(path=self.GET_TASK_STATUS_URL.format(task_id=TEST_TASKFLOW_ID,
-                                                                                bk_biz_id=TEST_BIZ_CC_ID))
+                                                                                project_id=TEST_PROJECT_ID))
 
                 data = json.loads(response.content)
                 self.assertFalse(data['result'])
@@ -614,7 +657,7 @@ class APITest(TestCase):
 
             with mock.patch(TASKINSTANCE_FORMAT_STATUS, MagicMock(side_effect=Exception())):
                 response = self.client.get(path=self.GET_TASK_STATUS_URL.format(task_id=TEST_TASKFLOW_ID,
-                                                                                bk_biz_id=TEST_BIZ_CC_ID))
+                                                                                project_id=TEST_PROJECT_ID))
 
                 data = json.loads(response.content)
                 self.assertFalse(data['result'])
@@ -622,7 +665,7 @@ class APITest(TestCase):
 
     @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(True, TEST_DATA)))
     def test_query_task_count__success(self):
-        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(bk_biz_id=TEST_BIZ_CC_ID),
+        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'group_by': 'category'}),
                                     content_type='application/json')
 
@@ -631,7 +674,7 @@ class APITest(TestCase):
         self.assertEqual(data['data'], TEST_DATA)
 
     def test_query_task_count__conditions_is_not_dict(self):
-        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(bk_biz_id=TEST_BIZ_CC_ID),
+        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'conditions': []}),
                                     content_type='application/json')
 
@@ -640,7 +683,7 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
     def test_query_task_count__group_by_is_not_valid(self):
-        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(bk_biz_id=TEST_BIZ_CC_ID),
+        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'group_by': 'invalid_value'}),
                                     content_type='application/json')
 
@@ -650,12 +693,12 @@ class APITest(TestCase):
 
     @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, '')))
     def test_query_task_count__extend_classified_count_fail(self):
-        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(bk_biz_id=TEST_BIZ_CC_ID),
+        response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'group_by': 'category'}),
                                     content_type='application/json')
 
         TaskFlowInstance.objects.extend_classified_count.assert_called_once_with('category',
-                                                                                 {'business__cc_id': TEST_BIZ_CC_ID,
+                                                                                 {'project_id': TEST_PROJECT_ID,
                                                                                   'is_deleted': False})
 
         data = json.loads(response.content)
@@ -681,7 +724,7 @@ class APITest(TestCase):
         } for task in periodic_tasks]
 
         with mock.patch(PERIODIC_TASK_FILTER, MagicMock(return_value=periodic_tasks)):
-            response = self.client.get(path=self.GET_PERIODIC_TASK_LIST_URL.format(bk_biz_id=TEST_BIZ_CC_ID))
+            response = self.client.get(path=self.GET_PERIODIC_TASK_LIST_URL.format(project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
 
@@ -705,7 +748,7 @@ class APITest(TestCase):
 
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
             response = self.client.get(path=self.GET_PERIODIC_TASK_INFO_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                                   bk_biz_id=TEST_BIZ_CC_ID))
+                                                                                   project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
 
@@ -715,7 +758,7 @@ class APITest(TestCase):
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_periodic_task_info__task_does_not_exist(self):
         response = self.client.get(path=self.GET_PERIODIC_TASK_INFO_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                               bk_biz_id=TEST_BIZ_CC_ID))
+                                                                               project_id=TEST_PROJECT_ID))
 
         data = json.loads(response.content)
 
@@ -738,14 +781,17 @@ class APITest(TestCase):
             'form': task.form,
             'pipeline_tree': task.pipeline_tree
         }
-        biz = MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)
+        proj = MockProject(id=TEST_PROJECT_ID,
+                           name=TEST_PROJECT_NAME,
+                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           from_cmdb=True)
         template = MockTaskTemplate()
 
         with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)):
-            with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
+            with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
                 with mock.patch(PERIODIC_TASK_CREATE, MagicMock(return_value=task)):
                     response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                                          bk_biz_id=TEST_BIZ_CC_ID),
+                                                                                          project_id=TEST_PROJECT_ID),
                                                 data=json.dumps({'name': task.name,
                                                                  'cron': task.cron,
                                                                  'exclude_task_nodes_id': 'exclude_task_nodes_id'}),
@@ -757,7 +803,7 @@ class APITest(TestCase):
                     )
 
                     PeriodicTask.objects.create.assert_called_once_with(
-                        business=biz,
+                        project=proj,
                         template=template,
                         name=task.name,
                         cron=task.cron,
@@ -773,7 +819,7 @@ class APITest(TestCase):
     @mock.patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist()))
     def test_create_periodic_task__template_does_not_exist(self):
         response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                              bk_biz_id=TEST_BIZ_CC_ID),
+                                                                              project_id=TEST_PROJECT_ID),
                                     content_type='application/json')
 
         data = json.loads(response.content)
@@ -785,7 +831,7 @@ class APITest(TestCase):
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError('')))
     def test_create_periodic_task__params_validate_fail(self):
         response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                              bk_biz_id=TEST_BIZ_CC_ID),
+                                                                              project_id=TEST_PROJECT_ID),
                                     content_type='application/json')
 
         data = json.loads(response.content)
@@ -798,7 +844,7 @@ class APITest(TestCase):
     @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock(side_effect=Exception()))
     def test_create_periodic_task__preview_pipeline_fail(self):
         response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                              bk_biz_id=TEST_BIZ_CC_ID),
+                                                                              project_id=TEST_PROJECT_ID),
                                     content_type='application/json')
 
         data = json.loads(response.content)
@@ -806,14 +852,17 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness(cc_id=TEST_BIZ_CC_ID, cc_name=TEST_BIZ_CC_NAME)))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
     @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
     @mock.patch(PERIODIC_TASK_CREATE, MagicMock(side_effect=Exception()))
     def test_create_periodic_task__periodic_task_create_fail(self):
         response = self.client.post(path=self.CREATE_PERIODIC_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
-                                                                              bk_biz_id=TEST_BIZ_CC_ID),
+                                                                              project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'name': 'name',
                                                      'cron': 'cron'}),
                                     content_type='application/json')
@@ -823,12 +872,15 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness()))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     def test_set_periodic_task_enabled__success(self):
         task = MockPeriodicTask()
         with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
             response = self.client.post(path=self.SET_PERIODIC_TASK_ENABLED_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                                       bk_biz_id=TEST_BIZ_CC_ID),
+                                                                                       project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'enabled': True}),
                                         content_type='application/json')
 
@@ -844,7 +896,7 @@ class APITest(TestCase):
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_set_periodic_task_enabled__task_does_not_exist(self):
         response = self.client.post(path=self.SET_PERIODIC_TASK_ENABLED_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                                   bk_biz_id=TEST_BIZ_CC_ID),
+                                                                                   project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'enabled': True}),
                                     content_type='application/json')
 
@@ -854,30 +906,36 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
     def test_modify_cron_for_periodic_task__success(self):
-        biz = MockBusiness()
+        proj = MockProject(id=TEST_PROJECT_ID,
+                           name=TEST_PROJECT_NAME,
+                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           from_cmdb=True)
         task = MockPeriodicTask()
         cron = {'minute': '*/1'}
 
-        with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
+        with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
                     path=self.MODIFY_PERIODIC_TASK_CRON_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                   bk_biz_id=TEST_BIZ_CC_ID),
+                                                                   project_id=TEST_PROJECT_ID),
                     data=json.dumps({'cron': cron}),
                     content_type='application/json')
 
-                task.modify_cron.assert_called_once_with(cron, biz.time_zone)
+                task.modify_cron.assert_called_once_with(cron, proj.time_zone)
 
                 data = json.loads(response.content)
 
                 self.assertTrue(data['result'])
                 self.assertEqual(data['data'], {'cron': task.cron})
 
-    @mock.patch(BUSINESS_GET, MagicMock(return_value=MockBusiness()))
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_modify_cron_for_periodic_task__task_does_not_exist(self):
         response = self.client.post(path=self.MODIFY_PERIODIC_TASK_CRON_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                                   bk_biz_id=TEST_BIZ_CC_ID),
+                                                                                   project_id=TEST_PROJECT_ID),
                                     data=json.dumps({'enabled': True}),
                                     content_type='application/json')
 
@@ -887,16 +945,19 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
     def test_modify_cron_for_periodic_task__modify_raise(self):
-        biz = MockBusiness()
         task = MockPeriodicTask()
         task.modify_cron = MagicMock(side_effect=Exception())
         cron = {'minute': '*/1'}
+        proj = MockProject(id=TEST_PROJECT_ID,
+                           name=TEST_PROJECT_NAME,
+                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           from_cmdb=True)
 
-        with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
+        with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
                     path=self.MODIFY_PERIODIC_TASK_CRON_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                   bk_biz_id=TEST_BIZ_CC_ID),
+                                                                   project_id=TEST_PROJECT_ID),
                     data=json.dumps({'cron': cron}),
                     content_type='application/json')
 
@@ -906,15 +967,18 @@ class APITest(TestCase):
                 self.assertTrue('message' in data)
 
     def test_modify_constants_for_periodic_task__success(self):
-        biz = MockBusiness()
         task = MockPeriodicTask()
         constants = {'k': 'v'}
+        proj = MockProject(id=TEST_PROJECT_ID,
+                           name=TEST_PROJECT_NAME,
+                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           from_cmdb=True)
 
-        with mock.patch(BUSINESS_GET, MagicMock(return_value=biz)):
+        with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
                     path=self.MODIFY_PERIODIC_TASK_CONSTANTS_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                        bk_biz_id=TEST_BIZ_CC_ID),
+                                                                        project_id=TEST_PROJECT_ID),
                     data=json.dumps({'constants': constants}),
                     content_type='application/json')
 
@@ -928,7 +992,7 @@ class APITest(TestCase):
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_modify_constants_for_periodic_task__task_does_not_exist(self):
         response = self.client.post(path=self.MODIFY_PERIODIC_TASK_CONSTANTS_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                                        bk_biz_id=TEST_BIZ_CC_ID),
+                                                                                        project_id=TEST_PROJECT_ID),
                                     content_type='application/json')
 
         data = json.loads(response.content)
@@ -945,7 +1009,7 @@ class APITest(TestCase):
             with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
                 response = self.client.post(
                     path=self.MODIFY_PERIODIC_TASK_CONSTANTS_URL.format(task_id=TEST_PERIODIC_TASK_ID,
-                                                                        bk_biz_id=TEST_BIZ_CC_ID),
+                                                                        project_id=TEST_PROJECT_ID),
                     content_type='application/json')
 
                 data = json.loads(response.content)
@@ -958,7 +1022,7 @@ class APITest(TestCase):
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_taskflow)):
             assert_data = TEST_DATA
             response = self.client.get(path=self.GET_TASK_DETAIL.format(task_id=TEST_TASKFLOW_ID,
-                                                                        bk_biz_id=TEST_BIZ_CC_ID))
+                                                                        project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
 
@@ -968,7 +1032,7 @@ class APITest(TestCase):
     @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
     def test_get_task_detail__success__taskflow_does_not_exists(self):
         response = self.client.get(path=self.GET_TASK_DETAIL.format(task_id=TEST_TASKFLOW_ID,
-                                                                    bk_biz_id=TEST_BIZ_CC_ID))
+                                                                    project_id=TEST_PROJECT_ID))
 
         data = json.loads(response.content)
 
@@ -980,7 +1044,7 @@ class APITest(TestCase):
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_taskflow)):
             assert_data = TEST_DATA
             response = self.client.get(path=self.GET_TASK_NODE_DETAIL.format(task_id=TEST_TASKFLOW_ID,
-                                                                             bk_biz_id=TEST_BIZ_CC_ID),
+                                                                             project_id=TEST_PROJECT_ID),
                                        data={'node_id': TEST_NODE_ID,
                                              'component_code': TEST_COMPONENT_CODE,
                                              'subprocess_stack': TEST_SUBPROCESS_STACK})
@@ -996,7 +1060,7 @@ class APITest(TestCase):
     @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
     def test_get_task_node_detail__taskflow_doest_not_exist(self):
         response = self.client.get(path=self.GET_TASK_NODE_DETAIL.format(task_id=TEST_TASKFLOW_ID,
-                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                                                         project_id=TEST_PROJECT_ID),
                                    data={'node_id': TEST_NODE_ID,
                                          'component_code': TEST_COMPONENT_CODE,
                                          'subprocess_stack': TEST_SUBPROCESS_STACK})
@@ -1007,7 +1071,7 @@ class APITest(TestCase):
 
     def test_get_task_node_detail__with_invalid_subprocess_stack(self):
         response = self.client.get(path=self.GET_TASK_NODE_DETAIL.format(task_id=TEST_TASKFLOW_ID,
-                                                                         bk_biz_id=TEST_BIZ_CC_ID),
+                                                                         project_id=TEST_PROJECT_ID),
                                    data={'node_id': TEST_NODE_ID,
                                          'component_code': TEST_COMPONENT_CODE,
                                          'subprocess_stack': 'abcdefg'})
@@ -1020,7 +1084,7 @@ class APITest(TestCase):
         mock_instance = MockTaskFlowInstance()
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=mock_instance)):
             response = self.client.post(path=self.NODE_CALLBACK.format(task_id=TEST_TASKFLOW_ID,
-                                                                       bk_biz_id=TEST_BIZ_CC_ID),
+                                                                       project_id=TEST_PROJECT_ID),
                                         data=json.dumps({
                                             'node_id': TEST_NODE_ID,
                                             'callback_data': TEST_CALLBACK_DATA
@@ -1035,7 +1099,7 @@ class APITest(TestCase):
     @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
     def test_node_callback__taskflow_does_not_exists(self):
         response = self.client.post(path=self.NODE_CALLBACK.format(task_id=TEST_TASKFLOW_ID,
-                                                                   bk_biz_id=TEST_BIZ_CC_ID),
+                                                                   project_id=TEST_PROJECT_ID),
                                     data=json.dumps({
                                         'node_id': TEST_NODE_ID,
                                         'callback_data': TEST_CALLBACK_DATA

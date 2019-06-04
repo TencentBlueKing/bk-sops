@@ -15,9 +15,6 @@ from django.db import migrations
 
 
 def set_min_template_id(apps, schema_editor):
-    """
-    添加用户为管理员
-    """
     CommmonTemplate = apps.get_model("template", "CommonTemplate")
     CommmonTemplate.objects.create(
         id=10000,

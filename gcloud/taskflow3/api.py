@@ -26,11 +26,9 @@ from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions, states
 from pipeline.engine.models import PipelineModel
 
-from gcloud.taskflow3.constants import TASK_CREATE_METHOD
+from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
-from gcloud.commons.template.constants import PermNm
-from gcloud.taskflow3.decorators import check_user_perm_of_task
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
 
@@ -38,10 +36,10 @@ logger = logging.getLogger("root")
 
 
 @require_GET
-def status(request, biz_cc_id):
+def status(request, project_id):
     instance_id = request.GET.get('instance_id')
     try:
-        task = TaskFlowInstance.objects.get(pk=instance_id, business__cc_id=biz_cc_id)
+        task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
         task_status = task.get_status()
         ctx = {'result': True, 'data': task_status}
         return JsonResponse(ctx)
@@ -68,33 +66,33 @@ def status(request, biz_cc_id):
 
 
 @require_GET
-def data(request, biz_cc_id):
+def data(request, project_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.get_node_data(node_id, component_code, subprocess_stack)
     return JsonResponse(ctx)
 
 
 @require_GET
-def detail(request, biz_cc_id):
+def detail(request, project_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.get_node_detail(node_id, component_code, subprocess_stack)
     return JsonResponse(ctx)
 
 
 @require_GET
-def get_job_instance_log(request, biz_cc_id):
+def get_job_instance_log(request, project_id):
     client = get_client_by_user(request.user.username)
     job_instance_id = request.GET.get('job_instance_id')
     log_kwargs = {
-        "bk_biz_id": biz_cc_id,
+        "bk_biz_id": project_id,
         "job_instance_id": job_instance_id
     }
     log_result = client.job.get_job_instance_log(log_kwargs)
@@ -102,18 +100,16 @@ def get_job_instance_log(request, biz_cc_id):
 
 
 @require_POST
-@check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
-def task_action(request, action, biz_cc_id):
+def task_action(request, action, project_id):
     task_id = request.POST.get('instance_id')
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
 
 
 @require_POST
-@check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
-def nodes_action(request, action, biz_cc_id):
+def nodes_action(request, action, project_id):
     task_id = request.POST.get('instance_id')
     node_id = request.POST.get('node_id')
     username = request.user.username
@@ -122,29 +118,27 @@ def nodes_action(request, action, biz_cc_id):
         'inputs': json.loads(request.POST.get('inputs', '{}')),
         'flow_id': request.POST.get('flow_id', ''),
     }
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.nodes_action(action, node_id, username, **kwargs)
     return JsonResponse(ctx)
 
 
 @require_POST
-@check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
-def spec_nodes_timer_reset(request, biz_cc_id):
+def spec_nodes_timer_reset(request, project_id):
     task_id = request.POST.get('instance_id')
     node_id = request.POST.get('node_id')
     username = request.user.username
     inputs = json.loads(request.POST.get('inputs', '{}'))
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.spec_nodes_timer_reset(node_id, username, inputs)
     return JsonResponse(ctx)
 
 
 @require_POST
-@check_user_perm_of_task(PermNm.CREATE_TASK_PERM_NAME)
-def task_clone(request, biz_cc_id):
+def task_clone(request, project_id):
     task_id = request.POST.get('instance_id')
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     kwargs = {'name': request.POST.get('name')}
     if request.POST.get('create_method'):
         kwargs['create_method'] = request.POST.get('create_method')
@@ -160,10 +154,9 @@ def task_clone(request, biz_cc_id):
 
 
 @require_POST
-@check_user_perm_of_task(PermNm.FILL_PARAMS_PERM_NAME)
-def task_modify_inputs(request, biz_cc_id):
+def task_modify_inputs(request, project_id):
     task_id = request.POST.get('instance_id')
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if task.is_started:
         ctx = {
             'result': False,
@@ -175,17 +168,25 @@ def task_modify_inputs(request, biz_cc_id):
             'message': 'task is finished'
         }
     else:
-        constants = json.loads(request.POST.get('constants'))
-        name = request.POST.get('name', '')
-        ctx = task.reset_pipeline_instance_data(constants, name)
+        try:
+            constants = json.loads(request.POST.get('constants'))
+        except Exception:
+            logger.error('load taskflow modify constants failed: %s' % traceback.format_exc())
+            ctx = {
+                'result': False,
+                'message': 'invalid constants format'
+            }
+        else:
+            name = request.POST.get('name', '')
+            ctx = task.reset_pipeline_instance_data(constants, name)
+
     return JsonResponse(ctx)
 
 
 @require_POST
-@check_user_perm_of_task(PermNm.FILL_PARAMS_PERM_NAME)
-def task_func_claim(request, biz_cc_id):
+def task_func_claim(request, project_id):
     task_id = request.POST.get('instance_id')
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     constants = json.loads(request.POST.get('constants'))
     name = request.POST.get('name', '')
     ctx = task.task_claim(request.user.username, constants, name)
@@ -193,19 +194,19 @@ def task_func_claim(request, biz_cc_id):
 
 
 @require_POST
-def preview_task_tree(request, biz_cc_id):
+def preview_task_tree(request, project_id):
     """
     @summary: 调整可选节点后预览任务流程，这里不创建任何实例，只返回调整后的pipeline_tree
     @param request:
-    @param biz_cc_id:
+    @param project_id:
     @return:
     """
-    template_source = request.POST.get('template_source', 'business')
+    template_source = request.POST.get('template_source', PROJECT)
     template_id = request.POST.get('template_id')
     version = request.POST.get('version')
-    if template_source == 'business':
+    if template_source == PROJECT:
         try:
-            template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, business__cc_id=biz_cc_id)
+            template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
         except TaskTemplate.DoesNotExist:
             return HttpResponseForbidden()
     else:
@@ -230,11 +231,11 @@ def preview_task_tree(request, biz_cc_id):
 
 
 @require_POST
-def query_task_count(request, biz_cc_id):
+def query_task_count(request, project_id):
     """
     @summary: 按任务分类统计总数
     @param request:
-    @param biz_cc_id:
+    @param project_id:
     @return:
     """
     conditions = request.POST.get('conditions', {})
@@ -248,7 +249,7 @@ def query_task_count(request, biz_cc_id):
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
 
-    filters = {'business__cc_id': biz_cc_id, 'is_deleted': False}
+    filters = {'project_id': project_id, 'is_deleted': False}
     filters.update(conditions)
     success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
     if not success:
@@ -256,11 +257,11 @@ def query_task_count(request, biz_cc_id):
     return JsonResponse({'result': True, 'data': content})
 
 
-def get_node_log(request, biz_cc_id, node_id):
+def get_node_log(request, project_id, node_id):
     """
     @summary: 查看某个节点的日志
     @param request:
-    @param biz_cc_id:
+    @param project_id:
     @param node_id
     @return:
     """
@@ -268,7 +269,7 @@ def get_node_log(request, biz_cc_id, node_id):
     history_id = request.GET.get('history_id')
 
     try:
-        task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
+        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     except TaskFlowInstance.DoesNotExist:
         return HttpResponseForbidden()
 

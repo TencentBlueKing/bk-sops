@@ -111,3 +111,66 @@ class EnvironmentVariables(models.Model):
     class Meta:
         verbose_name = _(u"环境变量 EnvironmentVariables")
         verbose_name_plural = _(u"环境变量 EnvironmentVariables")
+
+
+class ProjectManager(models.Manager):
+
+    def sync_project_from_cmdb_business(self, businesses):
+        if not businesses:
+            return []
+
+        exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('cmdb_biz_id', flat=True))
+        to_be_sync_cc_id = set(businesses.keys()) - exist_sync_cc_id
+        projects = []
+
+        for cc_id in to_be_sync_cc_id:
+            biz = businesses[cc_id]
+            projects.append(Project(name=biz['cc_name'],
+                                    time_zone=biz['time_zone'],
+                                    creator=biz['creator'],
+                                    desc='',
+                                    from_cmdb=True,
+                                    cmdb_biz_id=cc_id))
+
+        return self.bulk_create(projects, batch_size=5000)
+
+
+class Project(models.Model):
+    name = models.CharField(_(u"项目名"), max_length=256)
+    time_zone = models.CharField(_(u"项目时区"), max_length=100, blank=True)
+    creator = models.CharField(_(u"创建者"), max_length=256)
+    desc = models.CharField(_(u"项目描述"), max_length=512)
+    create_at = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
+    from_cmdb = models.BooleanField(_(u"是否是从 CMDB 业务同步过来的项目"), default=False)
+    cmdb_biz_id = models.IntegerField(_(u"业务同步项目对应的 CMDB 业务 ID"), default=-1)
+    is_disable = models.BooleanField(_(u"是否已停用"), default=False)
+    relate_business = models.ManyToManyField(verbose_name=_(u"关联项目"), to=Business)
+
+    objects = ProjectManager()
+
+    class Meta:
+        verbose_name = _(u"项目 Project")
+        verbose_name_plural = _(u"项目 Project")
+
+
+class UserDefaultProjectManager(models.Manager):
+
+    def init_user_default_project(self, username, project):
+        try:
+            return self.get(username=username)
+        except UserDefaultProject.DoesNotExist:
+            return self.create(username=username, default_project=project)
+
+
+class UserDefaultProject(models.Model):
+    username = models.CharField(_(u"用户名"), max_length=255, unique=True)
+    default_project = models.ForeignKey(verbose_name=_(u"用户默认项目"), to=Project)
+
+    objects = UserDefaultProjectManager()
+
+    class Meta:
+        verbose_name = _(u"用户默认项目 UserDefaultProject")
+        verbose_name_plural = _(u"用户默认项目 UserDefaultProject")
+
+    def __unicode__(self):
+        return u'%s_%s' % (self.username, self.default_project)

@@ -18,6 +18,7 @@ import traceback
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
+from tastypie.authorization import Authorization
 from djcelery.models import PeriodicTask as CeleryTask
 
 from pipeline.exceptions import PipelineException
@@ -26,20 +27,18 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.core.models import Business
+from gcloud.core.models import Project
 from gcloud.core.utils import (
     name_handler,
 )
 from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.webservice3.resources import (
-    BusinessResource,
+    ProjectResource,
     GCloudModelResource,
     GCloudReadOnlyAuthorization,
-    AppSerializer,
-    GCloudGenericAuthorization
+    AppSerializer
 )
 from gcloud.commons.template.models import replace_template_id
-
 
 logger = logging.getLogger('root')
 
@@ -92,9 +91,9 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
 
 
 class PeriodicTaskResource(GCloudModelResource):
-    business = fields.ForeignKey(
-        BusinessResource,
-        'business',
+    project = fields.ForeignKey(
+        ProjectResource,
+        'project',
         full=True
     )
     task_template_name = fields.CharField(
@@ -149,13 +148,13 @@ class PeriodicTaskResource(GCloudModelResource):
     class Meta:
         queryset = PeriodicTask.objects.all()
         resource_name = 'periodic_task'
-        authorization = GCloudGenericAuthorization()
+        authorization = Authorization()
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
             'id': ALL,
             'template_id': ALL,
-            'business': ALL_WITH_RELATIONS,
+            'projects': ALL_WITH_RELATIONS,
             'name': ALL,
             'enabled': ALL,
             'creator': ALL,
@@ -169,7 +168,7 @@ class PeriodicTaskResource(GCloudModelResource):
             name = bundle.data.pop('name')
             cron = json.loads(bundle.data.pop('cron'))
             pipeline_tree = json.loads(bundle.data.pop('pipeline_tree'))
-            business_path = bundle.data['business']
+            project_path = bundle.data['project']
         except (KeyError, ValueError) as e:
             raise BadRequest(e.message)
 
@@ -198,13 +197,13 @@ class PeriodicTaskResource(GCloudModelResource):
             raise BadRequest('cron must be a object json string')
 
         try:
-            business = Business.objects.get(cc_id=int(business_path.split('/')[-2]))
+            project = Project.objects.get(id=int(project_path.split('/')[-2]))
         except Exception as e:
             raise BadRequest(e.message)
 
         try:
             kwargs['task'] = PeriodicTask.objects.create_pipeline_task(
-                business=business,
+                project=project,
                 template=template,
                 name=name,
                 cron=cron,

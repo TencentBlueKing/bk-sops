@@ -22,11 +22,12 @@ from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
 from tastypie.paginator import Paginator
-from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.serializers import Serializer
+from tastypie.exceptions import BadRequest
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
@@ -34,7 +35,7 @@ from pipeline.core.data.library import VariableLibrary
 from pipeline.models import VariableModel
 
 from gcloud import exceptions
-from gcloud.core.models import Business
+from gcloud.core.models import Business, Project
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.core.utils import name_handler, prepare_user_business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
@@ -297,7 +298,7 @@ class GCloudModelResource(ModelResource):
 class BusinessResource(GCloudModelResource):
     class Meta:
         queryset = Business.objects.exclude(life_cycle__in=['3', _(u"停运")]) \
-                                   .exclude(status='disabled')
+            .exclude(status='disabled')
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
         authorization = GCloudReadOnlyAuthorization()
@@ -331,6 +332,45 @@ class BusinessResource(GCloudModelResource):
             return HttpResponse(status=503, content=e.error)
         cc_id_list = [biz.cc_id for biz in biz_list]
         return super(BusinessResource, self).get_object_list(request).filter(cc_id__in=cc_id_list)
+
+
+class ProjectResource(GCloudModelResource):
+    name = fields.CharField(attribute='name')
+    time_zone = fields.CharField(attribute='time_zone')
+    creator = fields.CharField(attribute='creator')
+    desc = fields.CharField(attribute='desc')
+    create_at = fields.DateTimeField(attribute='create_at', readonly=True)
+    from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
+    cmdb_biz_id = fields.IntegerField(attribute='cmdb_biz_id', readonly=True)
+    is_disable = fields.BooleanField(attribute='is_disable')
+
+    ALLOW_UPDATE_FIELD = {'desc', 'is_disable'}
+
+    class Meta:
+        queryset = Project.objects.all()
+        resource_name = 'project'
+        authorization = Authorization()
+        always_return_data = True
+
+    def dehydrate(self, bundle):
+        bundle.data['create_at'] = bundle.data['create_at'].strftime('%Y-%m-%d %H:%M:%S')
+        return bundle
+
+    def obj_create(self, bundle, **kwargs):
+        bundle.data['creator'] = bundle.request.user.username
+        return super(ProjectResource, self).obj_create(bundle, **kwargs)
+
+    def obj_update(self, bundle, skip_errors=False, **kwargs):
+        update_data = {}
+        for field in self.ALLOW_UPDATE_FIELD:
+            update_data[field] = bundle.data.get(field, getattr(bundle.obj, field))
+
+        bundle.data = update_data
+
+        return super(ProjectResource, self).obj_update(bundle, skip_errors, **kwargs)
+
+    def obj_delete(self, bundle, **kwargs):
+        raise BadRequest("can not delete project")
 
 
 class ComponentModelResource(ModelResource):
