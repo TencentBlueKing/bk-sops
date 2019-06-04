@@ -45,6 +45,8 @@ import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
 import 'amfe-flexible'
 
+import '../static/style/app.scss'
+
 Vue.use(NavBar)
     .use(Search)
     .use(Button)
