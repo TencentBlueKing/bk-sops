@@ -338,6 +338,7 @@
 @import '@/scss/config.scss';
 .tag-datatable {
     .el-table .tag-form.tag-input {
+        font-size: 12px;
         margin-right: 0;
     }
     .rf-form-item {

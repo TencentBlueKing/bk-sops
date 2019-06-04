@@ -62,6 +62,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .rf-view-textarea-value {
     .el-textarea__inner {
+        font-size: 12px;
         padding: 6px 0;
         border: none;
         resize: none;
@@ -74,6 +75,7 @@
 }
 .el-textarea {
     /deep/ .el-textarea__inner {
+        font-size: 12px;
         padding-left: 10px;
         padding-right: 10px;
         word-break: break-all;
@@ -82,6 +84,7 @@
 }
 .rf-view-textarea-value {
     /deep/ .el-textarea__inner {
+        font-size: 1px;
         padding-left: 0px;
     }
 }

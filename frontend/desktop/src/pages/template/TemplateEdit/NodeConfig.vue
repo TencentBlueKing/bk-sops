@@ -1228,7 +1228,7 @@
         border-collapse: collapse;
         th, td {
             padding: 10px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: normal;
             border: 1px solid $commonBorderColor;
             text-align: center;
