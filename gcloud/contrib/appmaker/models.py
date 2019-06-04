@@ -92,10 +92,10 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
             # update app link
             app_id = app_maker_obj.id
-            app_link = '{appmaker_prefix}{app_id}/newtask/{biz_cc_id}/selectnode/?template_id={template_id}'.format(
+            app_link = '{appmaker_prefix}{app_id}/newtask/{project_id}/selectnode/?template_id={template_id}'.format(
                 appmaker_prefix=app_params['link_prefix'],
                 app_id=app_id,
-                biz_cc_id=biz_cc_id,
+                project_id=project_id,
                 template_id=template_id
             )
             app_maker_obj.link = app_link
