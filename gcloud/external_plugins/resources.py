@@ -74,8 +74,12 @@ class PackageSourceResource(Resource):
         source_models = origin_models + [CachePackageSource]
         return source_models
 
+    @staticmethod
+    def get_all_source_objects():
+        return list(chain(*[source.objects.all() for source in PackageSourceResource.get_source_models()]))
+
     def get_object_list(self, request):
-        return list(chain(*[source.objects.all() for source in self.get_source_models()]))
+        return self.get_all_source_objects()
 
     def apply_filters(self, request, applicable_filters):
         source_models = self.get_source_models()
@@ -129,7 +133,7 @@ class PackageSourceResource(Resource):
                 try:
                     jsonschema.validate(cache, ADD_SOURCE_SCHEMA)
                 except jsonschema.ValidationError as e:
-                    message = 'Invalid origin source params: %s' % e
+                    message = 'Invalid cache source params: %s' % e
                     logger.error(message)
                     raise BadRequest(message)
                 try:
@@ -187,7 +191,7 @@ class PackageSourceResource(Resource):
                     try:
                         jsonschema.validate(origin, UPDATE_SOURCE_SCHEMA)
                     except jsonschema.ValidationError as e:
-                        message = 'Invalid origin source params: %s' % e.message
+                        message = 'Invalid origin source params: %s' % e
                         logger.error(message)
                         raise BadRequest(message)
                     cache_packages.update(origin['packages'])
@@ -200,7 +204,7 @@ class PackageSourceResource(Resource):
                     try:
                         jsonschema.validate(cache, UPDATE_SOURCE_SCHEMA)
                     except jsonschema.ValidationError as e:
-                        message = 'Invalid origin source params: %s' % e
+                        message = 'Invalid cache source params: %s' % e
                         logger.error(message)
                         raise BadRequest(message)
                     if 'id' in cache:
@@ -318,4 +322,8 @@ class SyncTaskResource(GCloudModelResource):
         model = bundle.obj.__class__
         if model.objects.filter(status=RUNNING).exists():
             raise BadRequest('There is already a running sync task, please wait for it to complete and try again')
+        if not CachePackageSource.objects.all().exists():
+            raise BadRequest('No cache package found, please add cache package in Backend Manage')
+        if len(PackageSourceResource.get_all_source_objects()) <= 1:
+            raise BadRequest('No original packages found, please add original packages in Backend Manage')
         return super(SyncTaskResource, self).obj_create(bundle, **kwargs)
