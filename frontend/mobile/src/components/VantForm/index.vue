@@ -6,8 +6,8 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 <script>
-    import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
+
+    import { JSEncrypt } from 'jsencrypt'
 
     const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select', 'password']
 
@@ -74,17 +74,13 @@
                 key: '',
                 attrs: {
                     required: false
-                } // 普通的 HTML 特性
+                }
             }
         },
         created () {
             this.beforeRender()
         },
         methods: {
-            ...mapActions('component', [
-                'getVariableConfig',
-                'getAtomConfig'
-            ]),
             beforeRender () {
                 const tagCode = this.sourceCode.split('.')[1]
                 this.renderConfig.some(item => {
@@ -119,9 +115,6 @@
                             }
                         } else if (item.type === 'int') {
                             this.value = this.value ? Number.parseInt(this.value) : 0
-                        } else if (item.type === 'password') {
-                            this.domAttr.type = item.type
-                            this.componentTag = 'input'
                         } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
                             this.componentTag = 'cell'
                             this.value = JSON.stringify(this.data.value)
@@ -130,20 +123,6 @@
                     }
                 })
                 this.fillDomConfig()
-            },
-
-            async loadAtomConfig (configKey, customType) {
-                if (!global.$.atoms || !global.$.atoms[configKey]) {
-                    try {
-                        if (customType) {
-                            await this.getVariableConfig({ customType: customType })
-                        } else {
-                            await this.getAtomConfig({ atomCode: configKey })
-                        }
-                    } catch (e) {
-                        errorHandler(e, this)
-                    }
-                }
             },
 
             fillDomConfig () {
@@ -164,7 +143,13 @@
             return h(this.domName, {
                 nativeOn: {
                     change: function (event) {
-                        self.$emit('dataChange', event.target.value, self.customType ? self.data['key'] : self.sourceCode, self.customType)
+                        if (self.customType !== 'password') {
+                            self.$emit('dataChange', event.target.value, self.customType ? self.data['key'] : self.sourceCode, self.customType)
+                        } else {
+                            const crypt = new JSEncrypt()
+                            const cryptVal = crypt.encrypt(event.target.value)
+                            self.$emit('dataChange', cryptVal || event.target.value, self.customType ? self.data['key'] : self.sourceCode, self.customType)
+                        }
                     },
                     click: function (event) {
                         if (self.customType === 'datetime') {
