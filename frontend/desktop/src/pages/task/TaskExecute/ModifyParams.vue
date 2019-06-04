@@ -10,7 +10,10 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="modify-params-container" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div
+        class="modify-params-container"
+        v-bkloading="{ isLoading: loading, opacity: 1 }"
+        @click="e => e.stopPropagation()">
         <div class="panel-title">
             <h3>{{ i18n.change_params }}</h3>
         </div>

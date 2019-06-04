@@ -84,21 +84,6 @@
                 <div class="content-title">{{i18n.instanceTime}}</div>
                 <div class="content-task-instance">
                     <div class="content-instance-time">
-                        <!--时间维度选择-->
-                        <bk-selector
-                            :list="taskDimensionArray"
-                            :display-key="'name'"
-                            :setting-name="'value'"
-                            :search-key="'name'"
-                            :setting-key="'value'"
-                            :selected.sync="choiceDate"
-                            :placeholder="i18n.choice"
-                            :searchable="true"
-                            :allow-clear="true"
-                            @item-selected="onChangeTimeType">
-                        </bk-selector>
-                    </div>
-                    <div class="content-instance-time">
                         <!--业务选择-->
                         <bk-selector
                             :list="businessList"
@@ -138,9 +123,23 @@
                         </bk-date-range>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': choiceDownShow }]"></i>
                     </div>
+                    <div class="content-instance-time date-scope">
+                        <!--时间维度选择-->
+                        <bk-selector
+                            :list="taskDimensionArray"
+                            :display-key="'name'"
+                            :setting-name="'value'"
+                            :search-key="'name'"
+                            :setting-key="'value'"
+                            :selected.sync="choiceDate"
+                            :placeholder="i18n.choice"
+                            :allow-clear="true"
+                            @item-selected="onChangeTimeType">
+                        </bk-selector>
+                    </div>
                 </div>
             </div>
-            <data-statistics :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></data-statistics>
+            <vertical-bar-chart :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></vertical-bar-chart>
         </div>
         <div class="content-process-detail">
             <bk-tab :type="'fill'" :active-name="tabName" @tab-changed="onChangeTabPanel">
@@ -272,6 +271,7 @@
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import DataStatistics from '../dataStatistics/index.vue'
+    import VerticalBarChart from '../verticalBarChart/index.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
@@ -306,6 +306,7 @@
         name: 'StatisticsInstance',
         components: {
             DataStatistics,
+            VerticalBarChart,
             DataTablePagination
         },
         mixins: [AnalysisMixins],

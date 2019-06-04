@@ -14,6 +14,8 @@ npm install
 
 ## 启动前端工程  
 进入 bk_sops/src/frontend/desktop/，执行以下命令运行前端工程。默认启动的是 9000 端口，然后通过 http://dev.{BK_PAAS_HOST}:9000/ 访问前端应用，此时后端请求会自动转发到你启动的 django 工程，即 8000 端口。
+
+如果需要把接口请求代理到正式环境，请将 frontend/desktop/src/assets/html/template.html 和 frontend/desktop/builds/webpack.dev.config.js 文件里的 SITE_URL 变量设置为 /o/{APP_CODE}/（例如：/o/bk_sops/）， frontend/desktop/builds/webpack.dev.config.js 文件里 proxyPath 对应的 target 和 referer 替换为 BK_PAAS_HOST，若正式环境为 https，则需要将 https 配置项设置为 true。
 ```bash
 npm run dev
 ```

@@ -11,8 +11,8 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-basic" @click.self="onGotoAppMaker">
-            <div class="logo">
+        <div class="card-basic">
+            <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
@@ -67,7 +67,7 @@
                 </div>
             </div>
             <div class="app-synopsis">{{i18n.appDesc}}
-                <p>{{appData.desc || '--'}}</p>
+                <p class="synopsis-content">{{appData.desc || '--'}}</p>
             </div>
         </div>
     </div>
@@ -90,7 +90,7 @@
                     appDesc: gettext('应用简介'),
                     editor: gettext('更新人'),
                     editTime: gettext('更新时间'),
-                    executive: gettext('执行记录'),
+                    executive: gettext('执行历史'),
                     modifier: gettext('修改轻应用'),
                     jurisdiction: gettext('使用权限')
                 }
@@ -117,17 +117,14 @@
             },
             onGotoAppMaker () {
                 if (self === top) {
-                    this.$bkMessage({
-                        'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
-                        'theme': 'warning'
-                    })
+                    window.open(this.appData.link, '_blank')
                 } else {
                     window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
                 }
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {
-                return `/taskflow/home/${this.cc_id}/?template_id=${id}`
+                return `/taskflow/home/${this.cc_id}/?template_id=${id}&create_method=app_maker`
             }
         }
     }
@@ -137,7 +134,7 @@
 @import '@/scss/mixins/multiLineEllipsis.scss';
 .card-wrapper {
     position: relative;
-    width: 345px;
+    min-width: 345px;
     height: 184px;
     color: #63656e;
     background: $whiteDefault;
@@ -171,13 +168,14 @@
     float: left;
     width: 136px;
     height: 100%;
-    padding: 20px;
+    padding: 20px 15px;
     overflow: hidden;
     border-right: 1px solid $commonBorderColor;
     .logo {
         width: 60px;
         height: 60px;
         margin: 0 auto;
+        cursor: pointer;
         .logo-pic {
             width: 60px;
             height: 60px;
@@ -212,6 +210,7 @@
             &:hover {
                 color: $blueDefault;
             }
+
         }
     }
     &:hover {
@@ -257,7 +256,6 @@
 }
 .card-particular {
     float: left;
-    width: 207px;
     height: 100%;
     .app-detail {
         padding: 20px;
@@ -288,7 +286,7 @@
         position: absolute;
         bottom: 0px;
         height: 100%;
-        width: 206px;
+        width: 70%;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;
@@ -297,6 +295,13 @@
             margin-top: 3px;
             font-weight: 400;
         }
+    }
+    .synopsis-content {
+        height: 130px;
+        width: 100%;
+        white-space: pre-line;
+        word-wrap:break-word;
+        overflow-y: auto;
     }
 }
 </style>
