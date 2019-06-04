@@ -36,6 +36,9 @@
             ...registry
         },
         props: {
+            renderConfig: {
+                type: Array
+            },
             // 如果tagCode不为空，则为原子表单组件，需要加载atom的配置文件
             sourceCode: {
                 type: String,
@@ -75,61 +78,57 @@
             }
         },
         created () {
-            this.loadData()
+            this.beforeRender()
         },
         methods: {
             ...mapActions('component', [
                 'getVariableConfig',
                 'getAtomConfig'
             ]),
-            loadData () {
-                const [configKey, tagCode] = this.sourceCode.split('.')
-                const atomConfigs = global.$.atoms[configKey]
-                this.loadAtomConfig(configKey, this.customType)
-                if (atomConfigs && atomConfigs.length) {
-                    atomConfigs.some(item => {
-                        if (item['tag_code'] === tagCode) {
-                            this.atomConfig = item
-                            if (!this.customType) {
-                                this.label = item.attrs.name
-                                this.componentTag = item.type
-                            } else {
-                                this.componentTag = tagCode
-                            }
-                            if (item.attrs.validation) {
-                                this.attrs.required = item.attrs.validation.some((v) => v.type === 'required')
-                                this.domAttr.validation = { required: true }
-                            }
-                            if (item.attrs.placeholder) {
-                                this.placeholder = item.attrs.placeholder
-                            }
-                            if (item.type === 'select') {
-                                this.domAttr.select = {
-                                    columns: item.attrs.items,
-                                    defaultVal: item.attrs.items.findIndex(o => o.text === this.value),
-                                    tagCode: this.customType ? this.customType : this.sourceCode
-                                }
-                            } else if (item.type === 'checkbox') {
-                                const checkboxData = item.attrs.items
-                                const checkedList = checkboxData.filter(o => item.attrs['default'].includes(o.value)).map(({ name }) => name)
-                                this.data.value = checkedList.join(',')
-                                this.domAttr.checkbox = {
-                                    checkedList: item.attrs['default'],
-                                    list: checkboxData.map(({ value }) => value)
-                                }
-                            } else if (item.type === 'int') {
-                                this.value = this.value ? Number.parseInt(this.value) : 0
-                            } else if (item.type === 'password') {
-                                this.domAttr.type = item.type
-                                this.componentTag = 'input'
-                            } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
-                                this.componentTag = 'cell'
-                                this.value = JSON.stringify(this.data.value)
-                            }
-                            return true
+            beforeRender () {
+                const tagCode = this.sourceCode.split('.')[1]
+                this.renderConfig.some(item => {
+                    if (item['tag_code'] === tagCode) {
+                        this.atomConfig = item
+                        if (!this.customType) {
+                            this.label = item.attrs.name
+                            this.componentTag = item.type
+                        } else {
+                            this.componentTag = tagCode
                         }
-                    })
-                }
+                        if (item.attrs.validation) {
+                            this.attrs.required = item.attrs.validation.some((v) => v.type === 'required')
+                            this.domAttr.validation = { required: this.attrs.required }
+                        }
+                        if (item.attrs.placeholder) {
+                            this.placeholder = item.attrs.placeholder
+                        }
+                        if (item.type === 'select') {
+                            this.domAttr.select = {
+                                columns: item.attrs.items,
+                                defaultVal: item.attrs.items.findIndex(o => o.text === this.value),
+                                tagCode: this.customType ? this.customType : this.sourceCode
+                            }
+                        } else if (item.type === 'checkbox') {
+                            const checkboxData = item.attrs.items
+                            const checkedList = checkboxData.filter(o => item.attrs['default'].includes(o.value)).map(({ name }) => name)
+                            this.data.value = checkedList.join(',')
+                            this.domAttr.checkbox = {
+                                checkedList: item.attrs['default'],
+                                list: checkboxData.map(({ value }) => value)
+                            }
+                        } else if (item.type === 'int') {
+                            this.value = this.value ? Number.parseInt(this.value) : 0
+                        } else if (item.type === 'password') {
+                            this.domAttr.type = item.type
+                            this.componentTag = 'input'
+                        } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
+                            this.componentTag = 'cell'
+                            this.value = JSON.stringify(this.data.value)
+                        }
+                        return true
+                    }
+                })
                 this.fillDomConfig()
             },
 
