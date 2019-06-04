@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-04-10 21:07+0800\n"
+"POT-Creation-Date: 2019-05-23 12:30+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -158,44 +158,44 @@ msgstr "【标准运维APP通知】周期任务启动失败"
 msgid "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
 msgstr "您在【{cc_name}】业务中计划于【{start_time}】执行的周期任务【{task_name}】启动失败，错误信息：【{ex_data}】"
 
-#: gcloud/commons/template/models.py:174
+#: gcloud/commons/template/models.py:132
 msgid "模板类型"
 msgstr "模板类型"
 
-#: gcloud/commons/template/models.py:184
+#: gcloud/commons/template/models.py:142
 msgid "收藏模板的人"
 msgstr "收藏模板的人"
 
-#: gcloud/commons/template/models.py:186
+#: gcloud/commons/template/models.py:144
 msgid "流程事件通知方式"
 msgstr "流程事件通知方式"
 
-#: gcloud/commons/template/models.py:191
+#: gcloud/commons/template/models.py:149
 msgid "流程事件通知人"
 msgstr "流程事件通知人"
 
-#: gcloud/commons/template/models.py:194
+#: gcloud/commons/template/models.py:152
 msgid "流程超时时间(分钟)"
 msgstr "流程超时时间(分钟)"
 
-#: gcloud/commons/template/models.py:197 gcloud/contrib/appmaker/models.py:292
-#: gcloud/taskflow3/models.py:780 pipeline/models.py:284
+#: gcloud/commons/template/models.py:155 gcloud/contrib/appmaker/models.py:293
+#: gcloud/taskflow3/models.py:786 pipeline/models.py:284
 msgid "是否删除"
 msgstr "是否删除"
 
-#: gcloud/commons/template/models.py:342 gcloud/commons/template/models.py:343
+#: gcloud/commons/template/models.py:360 gcloud/commons/template/models.py:361
 msgid "公共流程模板 CommonTemplate"
 msgstr "公共流程模板 CommonTemplate"
 
-#: gcloud/commons/template/models.py:353 gcloud/commons/template/models.py:354
+#: gcloud/commons/template/models.py:371 gcloud/commons/template/models.py:372
 msgid "通用流程模板ID"
 msgstr "通用流程模板ID"
 
-#: gcloud/commons/template/models.py:360 gcloud/commons/template/models.py:361
+#: gcloud/commons/template/models.py:378 gcloud/commons/template/models.py:379
 msgid "公共流程模板权限 CommonTmplPerm"
 msgstr "公共流程模板权限 CommonTmplPerm"
 
-#: gcloud/conf/sites/community/ver_settings.py:41
+#: gcloud/conf/sites/community/ver_settings.py:22
 msgid "蓝鲸智云社区版"
 msgstr "蓝鲸智云社区版"
 
@@ -216,87 +216,87 @@ msgstr "LOGO 文件大小必须小于 100K"
 msgid "图片格式非法"
 msgstr "图片格式非法"
 
-#: gcloud/contrib/appmaker/models.py:71
+#: gcloud/contrib/appmaker/models.py:72
 msgid "保存失败，引用的流程模板不存在！"
 msgstr "保存失败，引用的流程模板不存在！"
 
-#: gcloud/contrib/appmaker/models.py:114
+#: gcloud/contrib/appmaker/models.py:115
 #, python-format
 msgid "创建轻应用失败：%s"
 msgstr "创建轻应用失败：%s"
 
-#: gcloud/contrib/appmaker/models.py:131
+#: gcloud/contrib/appmaker/models.py:132
 msgid "保存失败，当前操作的轻应用不存在或已删除！"
 msgstr "保存失败，当前操作的轻应用不存在或已删除！"
 
-#: gcloud/contrib/appmaker/models.py:149
+#: gcloud/contrib/appmaker/models.py:150
 #, python-format
 msgid "编辑轻应用失败：%s"
 msgstr "编辑轻应用失败：%s"
 
-#: gcloud/contrib/appmaker/models.py:185
+#: gcloud/contrib/appmaker/models.py:186
 msgid "当前操作的轻应用不存在或已删除！"
 msgstr "当前操作的轻应用不存在或已删除！"
 
-#: gcloud/contrib/appmaker/models.py:196 gcloud/contrib/appmaker/models.py:202
+#: gcloud/contrib/appmaker/models.py:197 gcloud/contrib/appmaker/models.py:203
 #, python-format
 msgid "删除失败：%s"
 msgstr "删除失败：%s"
 
-#: gcloud/contrib/appmaker/models.py:279 gcloud/tasktmpl3/models.py:446
+#: gcloud/contrib/appmaker/models.py:280 gcloud/tasktmpl3/models.py:446
 msgid "所属业务"
 msgstr "所属业务"
 
-#: gcloud/contrib/appmaker/models.py:280
+#: gcloud/contrib/appmaker/models.py:281
 msgid "APP名称"
 msgstr "APP名称"
 
-#: gcloud/contrib/appmaker/models.py:281
+#: gcloud/contrib/appmaker/models.py:282
 msgid "APP编码"
 msgstr "APP编码"
 
-#: gcloud/contrib/appmaker/models.py:282
+#: gcloud/contrib/appmaker/models.py:283
 msgid "APP基本信息"
 msgstr "APP基本信息"
 
-#: gcloud/contrib/appmaker/models.py:283
+#: gcloud/contrib/appmaker/models.py:284
 msgid "APP描述信息"
 msgstr "APP描述信息"
 
-#: gcloud/contrib/appmaker/models.py:284
+#: gcloud/contrib/appmaker/models.py:285
 msgid "轻应用logo存放地址"
 msgstr "轻应用logo存放地址"
 
-#: gcloud/contrib/appmaker/models.py:285
+#: gcloud/contrib/appmaker/models.py:286
 msgid "gcloud链接"
 msgstr "gcloud链接"
 
-#: gcloud/contrib/appmaker/models.py:286
+#: gcloud/contrib/appmaker/models.py:287
 msgid "创建人"
 msgstr "创建人"
 
-#: gcloud/contrib/appmaker/models.py:287 pipeline/engine/models/core.py:815
+#: gcloud/contrib/appmaker/models.py:288 pipeline/engine/models/core.py:817
 #: pipeline/models.py:78 pipeline/models.py:276 pipeline/models.py:590
 msgid "创建时间"
 msgstr "创建时间"
 
-#: gcloud/contrib/appmaker/models.py:288
+#: gcloud/contrib/appmaker/models.py:289
 msgid "编辑人"
 msgstr "编辑人"
 
-#: gcloud/contrib/appmaker/models.py:289
+#: gcloud/contrib/appmaker/models.py:290
 msgid "编辑时间"
 msgstr "编辑时间"
 
-#: gcloud/contrib/appmaker/models.py:290
+#: gcloud/contrib/appmaker/models.py:291
 msgid "关联模板"
 msgstr "关联模板"
 
-#: gcloud/contrib/appmaker/models.py:291
+#: gcloud/contrib/appmaker/models.py:292
 msgid "执行方案"
 msgstr "执行方案"
 
-#: gcloud/contrib/appmaker/models.py:316 gcloud/contrib/appmaker/models.py:317
+#: gcloud/contrib/appmaker/models.py:317 gcloud/contrib/appmaker/models.py:318
 msgid "轻应用 AppMaker"
 msgstr "轻应用 AppMaker"
 
@@ -474,59 +474,59 @@ msgstr "邮件"
 msgid "语音"
 msgstr "语音"
 
-#: gcloud/core/middlewares.py:76
+#: gcloud/core/middlewares.py:86
 msgid "您没有权限进行此操作"
 msgstr "您没有权限进行此操作"
 
-#: gcloud/core/models.py:37
+#: gcloud/core/models.py:39
 msgid "生命周期"
 msgstr "生命周期"
 
-#: gcloud/core/models.py:38
+#: gcloud/core/models.py:40
 msgid "任务执行者"
 msgstr "任务执行者"
 
-#: gcloud/core/models.py:40
+#: gcloud/core/models.py:42
 msgid "业务状态"
 msgstr "业务状态"
 
-#: gcloud/core/models.py:41
+#: gcloud/core/models.py:43
 msgid "是否始终使用任务执行者"
 msgstr "是否始终使用任务执行者"
 
-#: gcloud/core/models.py:51 gcloud/core/models.py:52
+#: gcloud/core/models.py:57 gcloud/core/models.py:58
 msgid "业务 Business"
 msgstr "业务 Business"
 
-#: gcloud/core/models.py:66
+#: gcloud/core/models.py:75
 msgid "用户QQ"
 msgstr "用户QQ"
 
-#: gcloud/core/models.py:67
+#: gcloud/core/models.py:76
 msgid "默认业务"
 msgstr "默认业务"
 
-#: gcloud/core/models.py:73 gcloud/core/models.py:74
+#: gcloud/core/models.py:82 gcloud/core/models.py:83
 msgid "用户默认业务 UserBusiness"
 msgstr "用户默认业务 UserBusiness"
 
-#: gcloud/core/models.py:84 gcloud/core/models.py:85
+#: gcloud/core/models.py:93 gcloud/core/models.py:94
 msgid "业务用户组 BusinessGroupMembership"
 msgstr "业务用户组 BusinessGroupMembership"
 
-#: gcloud/core/models.py:102
+#: gcloud/core/models.py:111
 msgid "变量KEY"
 msgstr "变量KEY"
 
-#: gcloud/core/models.py:103
+#: gcloud/core/models.py:112
 msgid "变量描述"
 msgstr "变量描述"
 
-#: gcloud/core/models.py:104
+#: gcloud/core/models.py:113
 msgid "变量值"
 msgstr "变量值"
 
-#: gcloud/core/models.py:112 gcloud/core/models.py:113
+#: gcloud/core/models.py:121 gcloud/core/models.py:122
 msgid "环境变量 EnvironmentVariables"
 msgstr "环境变量 EnvironmentVariables"
 
@@ -579,7 +579,7 @@ msgstr "调用远程服务失败，Http请求返回数据格式错误!"
 msgid "调用远程服务失败，Http请求错误状态码：%(code)s， 请求url：%(url)s"
 msgstr "调用远程服务失败，Http请求错误状态码：%(code)s， 请求url：%(url)s"
 
-#: gcloud/periodictask/models.py:75 gcloud/taskflow3/models.py:755
+#: gcloud/periodictask/models.py:75 gcloud/taskflow3/models.py:761
 msgid "业务"
 msgstr "业务"
 
@@ -587,7 +587,7 @@ msgstr "业务"
 msgid "pipeline 层周期任务"
 msgstr "pipeline 层周期任务"
 
-#: gcloud/periodictask/models.py:80 gcloud/taskflow3/models.py:765
+#: gcloud/periodictask/models.py:80 gcloud/taskflow3/models.py:771
 msgid "创建任务所用的模板ID"
 msgstr "创建任务所用的模板ID"
 
@@ -620,7 +620,7 @@ msgstr "异常信息"
 
 #: gcloud/periodictask/models.py:173
 #: pipeline/contrib/periodic_task/models.py:404
-#: pipeline/engine/models/core.py:816 pipeline/engine/models/core.py:907
+#: pipeline/engine/models/core.py:818 pipeline/engine/models/core.py:909
 #: pipeline/engine/models/loop_activity.py:67
 msgid "开始时间"
 msgstr "开始时间"
@@ -658,33 +658,37 @@ msgstr "未执行"
 msgid "执行中"
 msgstr "执行中"
 
-#: gcloud/taskflow3/models.py:763
+#: gcloud/taskflow3/models.py:769
 msgid "任务类型，继承自模板"
 msgstr "任务类型，继承自模板"
 
-#: gcloud/taskflow3/models.py:766
+#: gcloud/taskflow3/models.py:772
 msgid "流程模板来源"
 msgstr "流程模板来源"
 
-#: gcloud/taskflow3/models.py:769
+#: gcloud/taskflow3/models.py:775
 msgid "创建方式"
 msgstr "创建方式"
 
-#: gcloud/taskflow3/models.py:773
+#: gcloud/taskflow3/models.py:779
 msgid "创建任务额外信息（App maker ID或者APP CODE）"
 msgstr "创建任务额外信息（App maker ID或者APP CODE）"
 
-#: gcloud/taskflow3/models.py:775
+#: gcloud/taskflow3/models.py:781
 msgid "任务流程类型"
 msgstr "任务流程类型"
 
-#: gcloud/taskflow3/models.py:779
+#: gcloud/taskflow3/models.py:785
 msgid "当前任务流程阶段"
 msgstr "当前任务流程阶段"
 
-#: gcloud/taskflow3/models.py:788 gcloud/taskflow3/models.py:789
+#: gcloud/taskflow3/models.py:794 gcloud/taskflow3/models.py:795
 msgid "流程实例 TaskFlowInstance"
 msgstr "流程实例 TaskFlowInstance"
+
+#: gcloud/taskflow3/resources.py:267
+msgid "无法删除未进入完成或撤销状态的流程"
+msgstr "无法删除未进入完成或撤销状态的流程"
 
 #: gcloud/tasktmpl3/models.py:46
 msgid "新建任务"
@@ -702,23 +706,23 @@ msgstr "执行任务"
 msgid "流程模板 TaskTemplate"
 msgstr "流程模板 TaskTemplate"
 
-#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:28
+#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:29
 msgid "测试"
 msgstr "测试"
 
-#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:29
+#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:30
 msgid "体验"
 msgstr "体验"
 
-#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:30
+#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:31
 msgid "正式"
 msgstr "正式"
 
-#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:34
+#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:35
 msgid "关闭"
 msgstr "关闭"
 
-#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:35
+#: gcloud/tasktmpl3/sites/open/import_data_2_to_3.py:36
 msgid "开放"
 msgstr "开放"
 
@@ -734,7 +738,7 @@ msgstr "json.loads result is not instance of list or tuple "
 msgid "json.loads result is not list"
 msgstr "json.loads result is not list"
 
-#: gcloud/webservice3/resources.py:299
+#: gcloud/webservice3/resources.py:302
 msgid "停运"
 msgstr "停运"
 
@@ -855,7 +859,7 @@ msgstr "执行者"
 msgid "启动时间"
 msgstr "启动时间"
 
-#: pipeline/engine/models/core.py:908
+#: pipeline/engine/models/core.py:910
 #: pipeline/engine/models/loop_activity.py:68 pipeline/models.py:593
 msgid "结束时间"
 msgstr "结束时间"
@@ -891,18 +895,6 @@ msgstr "提前计算好的一些流程结构数据"
 #: pipeline/models.py:623 pipeline/models.py:624
 msgid "Pipeline实例"
 msgstr "Pipeline实例"
-
-#: pipeline/models.py:784
-msgid "变量编码"
-msgstr "变量编码"
-
-#: pipeline/models.py:785
-msgid "变量是否可用"
-msgstr "变量是否可用"
-
-#: pipeline/models.py:788 pipeline/models.py:789
-msgid "Variable变量"
-msgstr "Variable变量"
 
 #: pipeline/component_framework/models.py:40
 #: pipeline/contrib/statistics/models.py:19
@@ -1142,8 +1134,8 @@ msgstr "标准插件执行耗时(s)"
 msgid "是否执行成功"
 msgstr "是否执行成功"
 
-#: pipeline/contrib/statistics/models.py:43 pipeline/engine/models/core.py:813
-#: pipeline/engine/models/core.py:910
+#: pipeline/contrib/statistics/models.py:43 pipeline/engine/models/core.py:815
+#: pipeline/engine/models/core.py:912
 msgid "是否跳过"
 msgstr "是否跳过"
 
@@ -1239,173 +1231,173 @@ msgstr "关闭所选的功能"
 msgid "用于冻结引擎, 冻结期间会屏蔽所有内部信号及暂停所有进程，同时拒绝所有流程控制请求"
 msgstr "用于冻结引擎, 冻结期间会屏蔽所有内部信号及暂停所有进程，同时拒绝所有流程控制请求"
 
-#: pipeline/engine/models/core.py:53
+#: pipeline/engine/models/core.py:55
 msgid "pipeline 运行时数据"
 msgstr "pipeline 运行时数据"
 
-#: pipeline/engine/models/core.py:158
+#: pipeline/engine/models/core.py:160
 msgid "Process ID"
 msgstr "Process ID"
 
-#: pipeline/engine/models/core.py:159
+#: pipeline/engine/models/core.py:161
 msgid "根 pipeline 的 ID"
 msgstr "根 pipeline 的 ID"
 
-#: pipeline/engine/models/core.py:160
+#: pipeline/engine/models/core.py:162
 msgid "当前推进到的节点的 ID"
 msgstr "当前推进到的节点的 ID"
 
-#: pipeline/engine/models/core.py:161
+#: pipeline/engine/models/core.py:163
 msgid "遇到该 ID 的节点就停止推进"
 msgstr "遇到该 ID 的节点就停止推进"
 
-#: pipeline/engine/models/core.py:162
+#: pipeline/engine/models/core.py:164
 msgid "父 process 的 ID"
 msgstr "父 process 的 ID"
 
-#: pipeline/engine/models/core.py:163
+#: pipeline/engine/models/core.py:165
 msgid "收到子节点 ACK 的数量"
 msgstr "收到子节点 ACK 的数量"
 
-#: pipeline/engine/models/core.py:164
+#: pipeline/engine/models/core.py:166
 msgid "需要收到的子节点 ACK 的数量"
 msgstr "需要收到的子节点 ACK 的数量"
 
-#: pipeline/engine/models/core.py:165
+#: pipeline/engine/models/core.py:167
 msgid "该 process 是否还有效"
 msgstr "该 process 是否还有效"
 
-#: pipeline/engine/models/core.py:166
+#: pipeline/engine/models/core.py:168
 msgid "该 process 是否正在休眠"
 msgstr "该 process 是否正在休眠"
 
-#: pipeline/engine/models/core.py:167
+#: pipeline/engine/models/core.py:169
 msgid "该 process 是否被冻结"
 msgstr "该 process 是否被冻结"
 
-#: pipeline/engine/models/core.py:543
+#: pipeline/engine/models/core.py:545
 msgid "祖先 ID"
 msgstr "祖先 ID"
 
-#: pipeline/engine/models/core.py:544
+#: pipeline/engine/models/core.py:546
 msgid "后代 ID"
 msgstr "后代 ID"
 
-#: pipeline/engine/models/core.py:545
+#: pipeline/engine/models/core.py:547
 msgid "距离"
 msgstr "距离"
 
-#: pipeline/engine/models/core.py:808 pipeline/engine/models/core.py:855
-#: pipeline/engine/models/core.py:950 pipeline/engine/models/core.py:1108
+#: pipeline/engine/models/core.py:810 pipeline/engine/models/core.py:857
+#: pipeline/engine/models/core.py:952 pipeline/engine/models/core.py:1110
 #: pipeline/engine/models/loop_activity.py:36 pipeline/log/models.py:50
 msgid "节点 ID"
 msgstr "节点 ID"
 
-#: pipeline/engine/models/core.py:809
+#: pipeline/engine/models/core.py:811
 msgid "状态"
 msgstr "状态"
 
-#: pipeline/engine/models/core.py:810
+#: pipeline/engine/models/core.py:812
 msgid "节点名称"
 msgstr "节点名称"
 
-#: pipeline/engine/models/core.py:811
+#: pipeline/engine/models/core.py:813
 msgid "重试次数"
 msgstr "重试次数"
 
-#: pipeline/engine/models/core.py:812 pipeline/engine/models/core.py:909
+#: pipeline/engine/models/core.py:814 pipeline/engine/models/core.py:911
 msgid "循环次数"
 msgstr "循环次数"
 
-#: pipeline/engine/models/core.py:814
+#: pipeline/engine/models/core.py:816
 msgid "是否出错后自动忽略"
 msgstr "是否出错后自动忽略"
 
-#: pipeline/engine/models/core.py:817
+#: pipeline/engine/models/core.py:819
 msgid "归档时间"
 msgstr "归档时间"
 
-#: pipeline/engine/models/core.py:818
+#: pipeline/engine/models/core.py:820
 msgid "版本"
 msgstr "版本"
 
-#: pipeline/engine/models/core.py:856 pipeline/engine/models/core.py:864
+#: pipeline/engine/models/core.py:858 pipeline/engine/models/core.py:866
 msgid "输入数据"
 msgstr "输入数据"
 
-#: pipeline/engine/models/core.py:857 pipeline/engine/models/core.py:865
+#: pipeline/engine/models/core.py:859 pipeline/engine/models/core.py:867
 msgid "输出数据"
 msgstr "输出数据"
 
-#: pipeline/engine/models/core.py:858 pipeline/engine/models/core.py:866
+#: pipeline/engine/models/core.py:860 pipeline/engine/models/core.py:868
 msgid "异常数据"
 msgstr "异常数据"
 
-#: pipeline/engine/models/core.py:906
+#: pipeline/engine/models/core.py:908
 #: pipeline/engine/models/loop_activity.py:65
 #: pipeline/engine/models/loop_activity.py:99
 msgid "节点 id"
 msgstr "节点 id"
 
-#: pipeline/engine/models/core.py:949
+#: pipeline/engine/models/core.py:951
 #: pipeline/engine/models/loop_activity.py:35
 msgid "ID 节点ID+version"
 msgstr "ID 节点ID+version"
 
-#: pipeline/engine/models/core.py:951
+#: pipeline/engine/models/core.py:953
 msgid "Pipeline 进程 ID"
 msgstr "Pipeline 进程 ID"
 
-#: pipeline/engine/models/core.py:952
+#: pipeline/engine/models/core.py:954
 #: pipeline/engine/models/loop_activity.py:37
 msgid "被调度次数"
 msgstr "被调度次数"
 
-#: pipeline/engine/models/core.py:953
+#: pipeline/engine/models/core.py:955
 #: pipeline/engine/models/loop_activity.py:38
 msgid "是否是回调型调度"
 msgstr "是否是回调型调度"
 
-#: pipeline/engine/models/core.py:954
+#: pipeline/engine/models/core.py:956
 #: pipeline/engine/models/loop_activity.py:39
 msgid "回调数据"
 msgstr "回调数据"
 
-#: pipeline/engine/models/core.py:955
+#: pipeline/engine/models/core.py:957
 msgid "待调度服务"
 msgstr "待调度服务"
 
-#: pipeline/engine/models/core.py:956
+#: pipeline/engine/models/core.py:958
 msgid "是否已完成"
 msgstr "是否已完成"
 
-#: pipeline/engine/models/core.py:957
+#: pipeline/engine/models/core.py:959
 #: pipeline/engine/models/loop_activity.py:40
 msgid "Activity 的版本"
 msgstr "Activity 的版本"
 
-#: pipeline/engine/models/core.py:958
+#: pipeline/engine/models/core.py:960
 msgid "是否正在被调度"
 msgstr "是否正在被调度"
 
-#: pipeline/engine/models/core.py:1016
+#: pipeline/engine/models/core.py:1018
 msgid "子流程 ID"
 msgstr "子流程 ID"
 
-#: pipeline/engine/models/core.py:1017
+#: pipeline/engine/models/core.py:1019
 msgid "对应的进程 ID"
 msgstr "对应的进程 ID"
 
-#: pipeline/engine/models/core.py:1049
+#: pipeline/engine/models/core.py:1051
 msgid "pipeline 进程 ID"
 msgstr "pipeline 进程 ID"
 
-#: pipeline/engine/models/core.py:1050 pipeline/engine/models/core.py:1077
-#: pipeline/engine/models/core.py:1109
+#: pipeline/engine/models/core.py:1052 pipeline/engine/models/core.py:1079
+#: pipeline/engine/models/core.py:1111
 msgid "celery 任务 ID"
 msgstr "celery 任务 ID"
 
-#: pipeline/engine/models/core.py:1076
+#: pipeline/engine/models/core.py:1078
 msgid "schedule ID"
 msgstr "schedule ID"
 
@@ -1512,30 +1504,43 @@ msgstr "汇聚网关没有汇聚其对应的并行网关的所有分支"
 msgid "无法获取该网关距离开始节点的距离"
 msgstr "无法获取该网关距离开始节点的距离"
 
-#: pipeline_plugins/cmdb_ip_picker/query.py:72
-#: pipeline_plugins/cmdb_ip_picker/query.py:130
-#: pipeline_plugins/cmdb_ip_picker/utils.py:80
-#: pipeline_plugins/cmdb_ip_picker/utils.py:188
-#: pipeline_plugins/cmdb_ip_picker/utils.py:194
-#: pipeline_plugins/components/collections/sites/open/cc.py:28
+#: pipeline/variable_framework/models.py:24
+msgid "变量编码"
+msgstr "变量编码"
+
+#: pipeline/variable_framework/models.py:25
+msgid "变量是否可用"
+msgstr "变量是否可用"
+
+#: pipeline/variable_framework/models.py:28
+#: pipeline/variable_framework/models.py:29
+msgid "Variable变量"
+msgstr "Variable变量"
+
+#: pipeline_plugins/cmdb_ip_picker/query.py:74
+#: pipeline_plugins/cmdb_ip_picker/query.py:132
+#: pipeline_plugins/cmdb_ip_picker/utils.py:51
+#: pipeline_plugins/cmdb_ip_picker/utils.py:276
+#: pipeline_plugins/cmdb_ip_picker/utils.py:282
+#: pipeline_plugins/components/collections/sites/open/cc.py:27
 msgid "配置平台(CMDB)"
 msgstr "配置平台(CMDB)"
 
-#: pipeline_plugins/cmdb_ip_picker/query.py:98
+#: pipeline_plugins/cmdb_ip_picker/query.py:100
 msgid "管控平台(GSE)"
 msgstr "管控平台(GSE)"
 
-#: pipeline_plugins/cmdb_ip_picker/utils.py:204
+#: pipeline_plugins/cmdb_ip_picker/utils.py:292
 msgid "集群"
 msgstr "集群"
 
-#: pipeline_plugins/cmdb_ip_picker/utils.py:210
+#: pipeline_plugins/cmdb_ip_picker/utils.py:298
 msgid "模块"
 msgstr "模块"
 
 #: pipeline_plugins/components/collections/common.py:25
 #: pipeline_plugins/components/collections/controller.py:28
-#: pipeline_plugins/components/collections/sites/open/bk.py:26
+#: pipeline_plugins/components/collections/sites/open/bk.py:24
 msgid "蓝鲸服务(BK)"
 msgstr "蓝鲸服务(BK)"
 
@@ -1582,15 +1587,15 @@ msgstr "输入参数%s不符合【秒(s) 或 时间(%%Y-%%m-%%d %%H:%%M:%%S)】�
 msgid "定时"
 msgstr "定时"
 
-#: pipeline_plugins/components/collections/sites/open/bk.py:51
+#: pipeline_plugins/components/collections/sites/open/bk.py:50
 msgid "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 msgstr "从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}"
 
-#: pipeline_plugins/components/collections/sites/open/bk.py:119
+#: pipeline_plugins/components/collections/sites/open/bk.py:118
 msgid "返回码"
 msgstr "返回码"
 
-#: pipeline_plugins/components/collections/sites/open/bk.py:120
+#: pipeline_plugins/components/collections/sites/open/bk.py:119
 msgid "信息"
 msgstr "信息"
 
@@ -1602,138 +1607,119 @@ msgstr "发送通知"
 msgid "API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
 msgstr "API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:81
+#: pipeline_plugins/components/collections/sites/open/cc.py:80
 msgid "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
 msgstr "查询配置平台(CMDB)接口cc.search_host表明，存在不属于当前业务的IP: {ip}"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:186
+#: pipeline_plugins/components/collections/sites/open/cc.py:185
 msgid "转移主机模块"
 msgstr "转移主机模块"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:225
+#: pipeline_plugins/components/collections/sites/open/cc.py:224
 msgid "所属运营商校验失败，请重试并修改为正确的所属运营商"
 msgstr "所属运营商校验失败，请重试并修改为正确的所属运营商"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:240
+#: pipeline_plugins/components/collections/sites/open/cc.py:239
 msgid "所在国家校验失败，请重试并修改为正确的所在国家"
 msgstr "所在国家校验失败，请重试并修改为正确的所在国家"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:253
+#: pipeline_plugins/components/collections/sites/open/cc.py:252
 msgid "所在省份校验失败，请重试并修改为正确的所在省份"
 msgstr "所在省份校验失败，请重试并修改为正确的所在省份"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:278
+#: pipeline_plugins/components/collections/sites/open/cc.py:277
 msgid "更新主机属性"
 msgstr "更新主机属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:372
-#: pipeline_plugins/components/collections/sites/open/cc.py:376
+#: pipeline_plugins/components/collections/sites/open/cc.py:371
+#: pipeline_plugins/components/collections/sites/open/cc.py:375
 #, python-format
 msgid "无法查询到 %s 机器信息，请确认该机器是否在当前业务下"
 msgstr "无法查询到 %s 机器信息，请确认该机器是否在当前业务下"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:438
+#: pipeline_plugins/components/collections/sites/open/cc.py:439
 #, python-format
 msgid "成功替换的机器: %s"
 msgstr "成功替换的机器: %s"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:448
+#: pipeline_plugins/components/collections/sites/open/cc.py:449
 msgid "故障机替换"
 msgstr "故障机替换"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:487
+#: pipeline_plugins/components/collections/sites/open/cc.py:488
 msgid "清空集群中主机"
 msgstr "清空集群中主机"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:528
+#: pipeline_plugins/components/collections/sites/open/cc.py:529
 msgid "删除集群"
 msgstr "删除集群"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:571
+#: pipeline_plugins/components/collections/sites/open/cc.py:572
 msgid "修改集群服务状态"
 msgstr "修改集群服务状态"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:614
-#: pipeline_plugins/components/collections/sites/open/cc.py:696
+#: pipeline_plugins/components/collections/sites/open/cc.py:615
+#: pipeline_plugins/components/collections/sites/open/cc.py:697
 msgid "环境类型校验失败，请重试并修改为正确的环境类型"
 msgstr "环境类型校验失败，请重试并修改为正确的环境类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:629
-#: pipeline_plugins/components/collections/sites/open/cc.py:681
+#: pipeline_plugins/components/collections/sites/open/cc.py:630
+#: pipeline_plugins/components/collections/sites/open/cc.py:682
 msgid "服务状态校验失败，请重试并修改为正确的服务状态"
 msgstr "服务状态校验失败，请重试并修改为正确的服务状态"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:648
+#: pipeline_plugins/components/collections/sites/open/cc.py:649
 msgid "创建集群"
 msgstr "创建集群"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:725
+#: pipeline_plugins/components/collections/sites/open/cc.py:726
 msgid "更新集群属性"
 msgstr "更新集群属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:769
+#: pipeline_plugins/components/collections/sites/open/cc.py:770
 msgid "模块类型校验失败，请重试并填写正确的模块类型"
 msgstr "模块类型校验失败，请重试并填写正确的模块类型"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:798
+#: pipeline_plugins/components/collections/sites/open/cc.py:799
 msgid "更新模块属性"
 msgstr "更新模块属性"
 
-#: pipeline_plugins/components/collections/sites/open/cc.py:843
+#: pipeline_plugins/components/collections/sites/open/cc.py:844
 msgid "转移主机至空闲机"
 msgstr "转移主机至空闲机"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:50
+#: pipeline_plugins/components/collections/sites/open/job.py:48
 msgid "作业平台(JOB)"
 msgstr "作业平台(JOB)"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:99
+#: pipeline_plugins/components/collections/sites/open/job.py:98
 #, python-format
 msgid "任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
 msgstr "任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:110
+#: pipeline_plugins/components/collections/sites/open/job.py:109
 msgid "JOB任务ID"
 msgstr "JOB任务ID"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:111
+#: pipeline_plugins/components/collections/sites/open/job.py:110
 msgid "JOB任务链接"
 msgstr "JOB任务链接"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:174
+#: pipeline_plugins/components/collections/sites/open/job.py:136
+msgid "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"
+msgstr "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:177
 msgid "执行作业"
 msgstr "执行作业"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:242
+#: pipeline_plugins/components/collections/sites/open/job.py:245
 msgid "快速分发文件"
 msgstr "快速分发文件"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:312
+#: pipeline_plugins/components/collections/sites/open/job.py:315
 msgid "快速执行脚本"
 msgstr "快速执行脚本"
-
-#: pipeline_plugins/components/query/common_query.py:45
-#, python-format
-msgid "查询配置平台(CMDB)的业务[app_id=%s]的集群拓扑接口cc.get_topo_tree_by_app_id返回失败: %s"
-msgstr "查询配置平台(CMDB)的业务[app_id=%s]的集群拓扑接口cc.get_topo_tree_by_app_id返回失败: %s"
-
-#: pipeline_plugins/components/query/common_query.py:57
-msgid "所有集群(all)"
-msgstr "所有集群(all)"
-
-#: pipeline_plugins/components/query/common_query.py:81
-#, python-format
-msgid "查询配置平台(CMDB)的业务[app_id=%s]的所有模块接口cc.get_modules返回失败: %s"
-msgstr "查询配置平台(CMDB)的业务[app_id=%s]的所有模块接口cc.get_modules返回失败: %s"
-
-#: pipeline_plugins/components/query/common_query.py:91
-msgid "所有模块(all)"
-msgstr "所有模块(all)"
-
-#: pipeline_plugins/components/query/common_query.py:105
-#, python-format
-msgid "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
-msgstr "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
 
 #: pipeline_plugins/components/query/sites/open/query.py:270
 msgid "文件上传失败， 文件大小超过500M"
@@ -1772,6 +1758,38 @@ msgstr "文件"
 #: pipeline_plugins/components/utils/common.py:56
 msgid "调用{system}接口{api_name}返回失败, params={params}, error={error}"
 msgstr "调用{system}接口{api_name}返回失败, params={params}, error={error}"
+
+#: pipeline_plugins/variables/collections/common.py:34
+msgid "输入框"
+msgstr "输入框"
+
+#: pipeline_plugins/variables/collections/common.py:42
+msgid "文本框"
+msgstr "文本框"
+
+#: pipeline_plugins/variables/collections/common.py:50
+msgid "日期时间"
+msgstr "日期时间"
+
+#: pipeline_plugins/variables/collections/common.py:58
+msgid "整数"
+msgstr "整数"
+
+#: pipeline_plugins/variables/collections/common.py:66
+msgid "密码"
+msgstr "密码"
+
+#: pipeline_plugins/variables/collections/common.py:77
+msgid "下拉框"
+msgstr "下拉框"
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py:33
+msgid "IP选择器(简单版)"
+msgstr "IP选择器(简单版)"
+
+#: pipeline_plugins/variables/collections/sites/open/cc.py:85
+msgid "IP选择器"
+msgstr "IP选择器"
 
 #~ msgid "循环测试"
 #~ msgstr "循环测试"
@@ -1964,4 +1982,19 @@ msgstr "调用{system}接口{api_name}返回失败, params={params}, error={erro
 
 #~ msgid "查询配置平台(CMDB)的业务[app_id=%s]接口cc.get_app_by_id返回失败: %s"
 #~ msgstr "查询配置平台(CMDB)的业务[app_id=%s]接口cc.get_app_by_id返回失败: %s"
+
+#~ msgid "查询配置平台(CMDB)的业务[app_id=%s]的集群拓扑接口cc.get_topo_tree_by_app_id返回失败: %s"
+#~ msgstr "查询配置平台(CMDB)的业务[app_id=%s]的集群拓扑接口cc.get_topo_tree_by_app_id返回失败: %s"
+
+#~ msgid "所有集群(all)"
+#~ msgstr "所有集群(all)"
+
+#~ msgid "查询配置平台(CMDB)的业务[app_id=%s]的所有模块接口cc.get_modules返回失败: %s"
+#~ msgstr "查询配置平台(CMDB)的业务[app_id=%s]的所有模块接口cc.get_modules返回失败: %s"
+
+#~ msgid "所有模块(all)"
+#~ msgstr "所有模块(all)"
+
+#~ msgid "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
+#~ msgstr "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
 

@@ -93,10 +93,11 @@ class AppMakerResource(GCloudModelResource):
             raise BadRequest('appmaker[id=%s] does not exist' % appmaker_id)
         project_id = appmaker.project.id
 
-        if settings.RUN_MODE in ['PRODUCT', 'STAGING']:
-            fake = False
-        else:
+        if settings.IS_LOCAL:
             fake = True
+        else:
+            fake = False
+
         result, data = AppMaker.objects.del_app_maker(
             project_id, appmaker_id, fake
         )
