@@ -218,7 +218,7 @@ const api = {
             // 标准插件配置项内嵌到 form 字段
             if (embedded) {
                 eval(formResource)
-                return Promise.resolve()
+                return Promise.resolve({ data: $.atoms[type] })
             }
 
             return $.getScript(formResource)
