@@ -48,7 +48,7 @@ def forward_func(apps, schema_editor):
         # set first maintainer as creator
         maintainers = biz_maintainers.get(business.cc_id)
         if not maintainers:
-            print('can not find maintainers for business(%s-%s), use admin.' % (business.cc_id, business.cc_name))
+            print(u'can not find maintainers for business(%s-%s), use admin.' % (business.cc_id, business.cc_name))
             creator = 'admin'
         else:
             creator = maintainers[0]
