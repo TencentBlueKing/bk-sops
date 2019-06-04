@@ -86,7 +86,7 @@
                 'getAtomConfig'
             ]),
             beforeRender () {
-                const [, tagCode] = this.sourceCode.split('.')
+                const tagCode = this.sourceCode.split('.')[1]
                 this.renderConfig.some(item => {
                     if (item['tag_code'] === tagCode) {
                         this.atomConfig = item
@@ -98,7 +98,7 @@
                         }
                         if (item.attrs.validation) {
                             this.attrs.required = item.attrs.validation.some((v) => v.type === 'required')
-                            this.domAttr.validation = { required: true }
+                            this.domAttr.validation = { required: this.attrs.required }
                         }
                         if (item.attrs.placeholder) {
                             this.placeholder = item.attrs.placeholder

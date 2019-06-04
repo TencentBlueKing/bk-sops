@@ -181,7 +181,6 @@
                 sortedConstants.forEach((item) => {
                     sortedTemplateConstants[item['key']] = item
                 })
-                this.loadAtomOrVariableConfig(sortedConstants)
                 return sortedTemplateConstants
             }
         },
@@ -231,6 +230,7 @@
                 this.collected = this.isTemplateCollected()
                 this.$store.commit('setTemplate', this.templateData)
                 this.$store.commit('setPipelineTree', pipelineTree)
+                this.loadAtomOrVariableConfig(this.templateConstants)
             },
             onCreateClick () {
                 this.$validator.validateAll().then((result) => {
@@ -369,7 +369,7 @@
                             errorHandler(e, this)
                         }
                     }
-                    constant['renderConfig'] = global.$.atoms[configKey]
+                    this.$set(constant, 'renderConfig', global.$.atoms[configKey])
                 }
                 this.loadingConfig = false
             }
