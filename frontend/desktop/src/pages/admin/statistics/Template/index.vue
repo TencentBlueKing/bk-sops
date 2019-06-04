@@ -369,7 +369,7 @@
                     }
                 ],
                 selectedCcId: -1,
-                businessSelected: 'all',
+                businessSelected: 0,
                 categorySelected: 'all',
                 selectedCategory: -1,
                 categoryStartTime: undefined,
@@ -394,7 +394,7 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: gettext('全部业务') })
+                list.unshift({ cc_id: 0, cc_name: gettext('全部业务') })
                 return list
             },
             categoryList () {

@@ -91,7 +91,8 @@
                             :setting-name="'cc_id'"
                             :search-key="'cc_name'"
                             :setting-key="'cc_id'"
-                            :selected.sync="businessSelected"
+                            :selected.sync="timeBusinessSelected"
+                            :placeholder="i18n.choice"
                             :searchable="true"
                             :allow-clear="true"
                             @item-selected="onChangeTimeTypeBusiness">
@@ -105,7 +106,7 @@
                             :setting-name="'value'"
                             :search-key="'name'"
                             :setting-key="'value'"
-                            :selected.sync="categorySelected"
+                            :selected.sync="timeCategorySelected"
                             :placeholder="i18n.choice"
                             :searchable="true"
                             :allow-clear="true"
@@ -461,8 +462,10 @@
                 timeTypeEndTime: undefined,
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
-                businessSelected: 'all',
+                businessSelected: 0,
+                timeBusinessSelected: 0,
                 categorySelected: 'all',
+                timeCategorySelected: 'all',
                 choiceDate: 'day'
             }
         },
@@ -477,7 +480,7 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: i18n.choiceAllBusiness })
+                list.unshift({ cc_id: 0, cc_name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
@@ -738,6 +741,7 @@
                 this.timeTypeStartTime = startTime
             },
             onDatePickerClick () {
+                console.log('0000')
                 this.datePickerRefShow = !this.datePickerRefShow
                 this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
             },
