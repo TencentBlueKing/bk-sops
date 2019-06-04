@@ -1,0 +1,197 @@
+@font-face {
+  font-family: 'commonicon';
+  src:  url('./assets/fonts/commonicon.eot?bdoeg4');
+  src:  url('./assets/fonts/commonicon.eot?bdoeg4#iefix') format('embedded-opentype'),
+    url('./assets/fonts/commonicon.ttf?bdoeg4') format('truetype'),
+    url('./assets/fonts/commonicon.woff?bdoeg4') format('woff'),
+    url('./assets/fonts/commonicon.svg?bdoeg4#commonicon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+[class^="common-icon"], [class*=" common-icon"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'commonicon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  &.bk-icon {
+    font-family: 'commonicon' !important;
+  }
+}
+
+.common-icon-add:before {
+  content: "\e900";
+}
+.common-icon-arrow-down:before {
+  content: "\e901";
+}
+.common-icon-black-box:before {
+  content: "\e902";
+}
+.common-icon-black-figure:before {
+  content: "\e903";
+}
+.common-icon-black-hook:before {
+  content: "\e904";
+}
+.common-icon-blueking:before {
+  content: "\e905";
+}
+.common-icon-box:before {
+  content: "\e906";
+}
+.common-icon-box-pen:before {
+  content: "\e907";
+}
+.common-icon-circulation:before {
+  content: "\e908";
+}
+.common-icon-clock:before {
+  content: "\e909";
+}
+.common-icon-clock-inversion:before {
+  content: "\e90a";
+}
+.common-icon-clock-reload:before {
+  content: "\e90b";
+}
+.common-icon-close:before {
+  content: "\e90c";
+}
+.common-icon-dark-circle-avatar:before {
+  content: "\e90d";
+}
+.common-icon-dark-circle-close:before {
+  content: "\e90e";
+}
+.common-icon-dark-circle-ellipsis:before {
+  content: "\e90f";
+}
+.common-icon-dark-circle-i:before {
+  content: "\e910";
+}
+.common-icon-dark-circle-pause:before {
+  content: "\e911";
+}
+.common-icon-dark-circle-question:before {
+  content: "\e912";
+}
+.common-icon-dark-circle-r:before {
+  content: "\e913";
+}
+.common-icon-dark-circle-s:before {
+  content: "\e914";
+}
+.common-icon-dark-circle-shape:before {
+  content: "\e915";
+}
+.common-icon-dark-circle-warning:before {
+  content: "\e916";
+}
+.common-icon-dark-paper:before {
+  content: "\e917";
+}
+.common-icon-done-thin:before {
+  content: "\e918";
+}
+.common-icon-double-arrow:before {
+  content: "\e919";
+}
+.common-icon-double-paper:before {
+  content: "\e91a";
+}
+.common-icon-double-vertical-line:before {
+  content: "\e91b";
+}
+.common-icon-drag:before {
+  content: "\e91c";
+}
+.common-icon-edit:before {
+  content: "\e91d";
+}
+.common-icon-eye-close:before {
+  content: "\e91e";
+}
+.common-icon-eye-open:before {
+  content: "\e91f";
+}
+.common-icon-flag-circle:before {
+  content: "\e920";
+}
+.common-icon-four-square:before {
+  content: "\e921";
+}
+.common-icon-gray-edit:before {
+  content: "\e922";
+}
+.common-icon-left-pin:before {
+  content: "\e923";
+}
+.common-icon-loading:before {
+  content: "\e924";
+}
+.common-icon-marquee:before {
+  content: "\e925";
+}
+.common-icon-no-data:before {
+  content: "\e926";
+}
+.common-icon-node-branchgateway:before {
+  content: "\e927";
+}
+.common-icon-node-convergegateway:before {
+  content: "\e928";
+}
+.common-icon-node-parallelgateway:before {
+  content: "\e929";
+}
+.common-icon-node-subflow:before {
+  content: "\e92a";
+}
+.common-icon-node-tasknode:before {
+  content: "\e92b";
+}
+.common-icon-paper:before {
+  content: "\e92c";
+}
+.common-icon-reduction:before {
+  content: "\e92d";
+}
+.common-icon-return-arrow:before {
+  content: "\e92e";
+}
+.common-icon-right-triangle:before {
+  content: "\e92f";
+}
+.common-icon-search:before {
+  content: "\e930";
+}
+.common-icon-source-in:before {
+  content: "\e931";
+}
+.common-icon-source-out:before {
+  content: "\e932";
+}
+.common-icon-square-attribute:before {
+  content: "\e933";
+}
+.common-icon-square-code:before {
+  content: "\e934";
+}
+.common-icon-tooltips:before {
+  content: "\e935";
+}
+.common-icon-zoom-in:before {
+  content: "\e936";
+}
+.common-icon-zoom-out:before {
+  content: "\e937";
+}

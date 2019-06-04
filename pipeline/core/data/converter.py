@@ -27,7 +27,7 @@ def get_variable(key, info, context, pipeline_data):
         elif info['type'] == 'splice':
             variable = SpliceVariable(key, info['value'], context)
         elif info['type'] == 'lazy':
-            variable = library.VariableLibrary.get_var_class(info['source_tag'].split('.')[0])(
+            variable = library.VariableLibrary.get_var_class(info['custom_type'])(
                 key, info['value'], context, pipeline_data)
         else:
             raise exceptions.DataTypeErrorException(

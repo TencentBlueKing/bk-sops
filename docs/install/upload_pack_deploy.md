@@ -10,13 +10,13 @@
 
 ## 打包并收集前端静态资源
 1）安装依赖包  
-进入 pipeline/blueflow/，执行以下命令安装
+进入 frontend/desktop/，执行以下命令安装
 ```bash
 npm install
 ```
 
 2）本地打包
-在 pipeline/blueflow/ 目录下，继续执行以下命令打包前端静态资源
+在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 ```bash
 npm run build -- --STATIC_ENV=dev
 ```

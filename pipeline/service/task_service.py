@@ -18,8 +18,8 @@ from pipeline.conf import settings
 adapter_api = importlib.import_module(settings.PIPELINE_ENGINE_ADAPTER_API)
 
 
-def run_pipeline(pipeline, instance_id=None):
-    return adapter_api.run_pipeline(pipeline, instance_id)
+def run_pipeline(pipeline, instance_id=None, check_workers=True):
+    return adapter_api.run_pipeline(pipeline, instance_id, check_workers=check_workers)
 
 
 def pause_pipeline(pipeline_id):

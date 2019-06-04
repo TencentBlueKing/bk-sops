@@ -22,6 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
 
+from gcloud.conf import settings
 from gcloud.core.api_adapter import (
     create_maker_app,
     edit_maker_app,
@@ -29,14 +30,14 @@ from gcloud.core.api_adapter import (
     modify_app_logo,
     get_app_logo_url,
 )
-from gcloud.conf import settings
 from gcloud.core.constant import AE
 from gcloud.core.models import Project
 from gcloud.core.utils import (
     convert_readable_username,
     name_handler,
     time_now_str,
-    timestamp_to_datetime)
+    timestamp_to_datetime
+)
 from gcloud.tasktmpl3.models import TaskTemplate
 
 logger = logging.getLogger("root")
@@ -89,6 +90,16 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 fields['template_scheme_id'] = app_params['template_scheme_id']
             app_maker_obj = AppMaker.objects.create(**fields)
 
+            # update app link
+            app_id = app_maker_obj.id
+            app_link = '{appmaker_prefix}{app_id}/newtask/{project_id}/selectnode/?template_id={template_id}'.format(
+                appmaker_prefix=app_params['link_prefix'],
+                app_id=app_id,
+                project_id=project_id,
+                template_id=template_id
+            )
+            app_maker_obj.link = app_link
+
             if fake:
                 app_maker_obj.code = '%s%s' % (settings.APP_CODE, time_now_str())
                 app_maker_obj.is_deleted = False
@@ -96,12 +107,6 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
                 return True, app_maker_obj
 
             # create app on blueking desk
-            app_id = app_maker_obj.id
-            app_link = '%s%s/newtask/%s/selectnode/?template_id=%s' % (
-                app_params['link_prefix'],
-                app_id,
-                project_id,
-                template_id)
             app_create_result = create_maker_app(
                 app_params['username'],
                 app_params['name'],
@@ -115,7 +120,6 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
             app_code = app_create_result['data']['bk_light_app_code']
             app_maker_obj.code = app_code
-            app_maker_obj.link = app_link
             app_maker_obj.is_deleted = False
 
         # edit appmaker

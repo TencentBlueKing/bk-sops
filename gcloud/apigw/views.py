@@ -17,6 +17,7 @@ import sys
 
 import jsonschema
 from django.http import JsonResponse
+from django.forms.fields import BooleanField
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 
@@ -26,15 +27,17 @@ from pipeline.engine import api as pipeline_api
 
 from gcloud.constants import PROJECT
 from gcloud.conf import settings
+from gcloud.apigw.decorators import check_white_apps
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
 from gcloud.core.models import Project
 from gcloud.core.utils import strftime_with_timezone
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask
+from gcloud.commons.template.models import CommonTemplate, replace_template_id
+from gcloud.commons.template.utils import read_template_data_file
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import CommonTemplate
 
-if not sys.argv[1:2] == ['test'] and settings.RUN_VER != 'open':
+if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:
         from bkoauth.decorators import apigw_required
     except ImportError:
@@ -287,7 +290,7 @@ def get_task_status(request, task_id, project_id):
 @apigw_required
 def query_task_count(request, project_id):
     """
-    @summary: 按照不同纬度统计业务任务总数
+    @summary: 按照不同维度统计业务任务总数
     @param request:
     @param project_id:
     @return:
@@ -418,6 +421,12 @@ def create_periodic_task(request, template_id, project_id):
     cron = params['cron']
 
     try:
+        replace_template_id(TaskTemplate, pipeline_tree)
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse({'result': False, 'message': e.message})
+
+    try:
         task = PeriodicTask.objects.create(
             project=project,
             template=template,
@@ -427,6 +436,7 @@ def create_periodic_task(request, template_id, project_id):
             creator=request.user.username
         )
     except Exception as e:
+        logger.exception(e)
         return JsonResponse({'result': False, 'message': e.message})
 
     data = info_data_from_period_task(task)
@@ -628,3 +638,33 @@ def node_callback(request, task_id, project_id):
     callback_data = params.get('callback_data')
 
     return JsonResponse(task.callback(node_id, callback_data))
+
+
+@login_exempt
+@csrf_exempt
+@require_POST
+@apigw_required
+def import_common_template(request):
+    if not check_white_apps(request):
+        return JsonResponse({
+            'result': False,
+            'message': 'you have no permission to call this api.'
+        })
+
+    f = request.FILES.get('data_file', None)
+    r = read_template_data_file(f)
+    if not r['result']:
+        return JsonResponse(r)
+
+    override = BooleanField().to_python(request.POST.get('override', False))
+
+    try:
+        import_result = CommonTemplate.objects.import_templates(r['data']['template_data'], override)
+    except Exception as e:
+        logger.exception(e)
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid flow data or error occur, please contact administrator'
+        })
+
+    return JsonResponse(import_result)
