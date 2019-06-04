@@ -24,7 +24,7 @@ def forward_func(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ('appmaker', '0006_appmaker_project'),
-        ('core', '0010_create_project_for_exist_biz'),
+        ('core', '0011_create_project_for_non_active_biz'),
     ]
 
     operations = [
