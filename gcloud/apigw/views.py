@@ -24,14 +24,13 @@ from blueapps.account.decorators import login_exempt
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
 
+from gcloud.constants import PROJECT
 from gcloud.conf import settings
-from gcloud.apigw.decorators import api_check_user_perm_of_business, api_check_user_perm_of_task
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
-from gcloud.core.models import Business
+from gcloud.core.models import Project
 from gcloud.core.utils import strftime_with_timezone
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.commons.template.constants import PermNm
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.commons.template.models import CommonTemplate
 
@@ -51,12 +50,12 @@ logger = logging.getLogger("root")
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_template_list(request, bk_biz_id):
-    template_source = request.GET.get('template_source', 'business')
-    biz = Business.objects.get(cc_id=bk_biz_id)
-    if template_source == 'business':
-        templates = TaskTemplate.objects.select_related('pipeline_template').filter(business=biz, is_deleted=False)
+def get_template_list(request, project_id):
+    template_source = request.GET.get('template_source', PROJECT)
+    project = Project.objects.get(id=project_id)
+    if template_source == PROJECT:
+        templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project_id,
+                                                                                    is_deleted=False)
     else:
         templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
     data = [
@@ -68,8 +67,10 @@ def get_template_list(request, bk_biz_id):
             'editor': tmpl.pipeline_template.editor,
             'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
             'category': tmpl.category,
-            'bk_biz_id': bk_biz_id,
-            'bk_biz_name': biz.cc_name
+            'project_id': project_id,
+            'project_name': project.name,
+            'bk_biz_id': project.cmdb_biz_id,
+            'bk_biz_name': project.name if project.from_cmdb else None
         } for tmpl in templates
     ]
     return JsonResponse({'result': True, 'data': data})
@@ -78,21 +79,20 @@ def get_template_list(request, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_template_info(request, template_id, bk_biz_id):
-    biz = Business.objects.get(cc_id=bk_biz_id)
-    template_source = request.GET.get('template_source', 'business')
-    if template_source == 'business':
+def get_template_info(request, template_id, project_id):
+    project = Project.objects.get(id=project_id)
+    template_source = request.GET.get('template_source', PROJECT)
+    if template_source == PROJECT:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                business__cc_id=bk_biz_id,
+                                                                                project_id=project_id,
                                                                                 is_deleted=False)
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'template[id={template_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+                'message': 'template[id={template_id}] of business[project_id={project_id}] does not exist'.format(
                     template_id=template_id,
-                    bk_biz_id=bk_biz_id)
+                    project_id=project_id)
             }
             return JsonResponse(result)
     else:
@@ -116,8 +116,10 @@ def get_template_info(request, template_id, bk_biz_id):
         'editor': tmpl.pipeline_template.editor,
         'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
         'category': tmpl.category,
-        'bk_biz_id': bk_biz_id,
-        'bk_biz_name': biz.cc_name,
+        'project_id': project_id,
+        'project_name': project.name,
+        'bk_biz_id': project.cmdb_biz_id,
+        'bk_biz_name': project.name if project.from_cmdb else None,
         'pipeline_tree': pipeline_tree
     }
     return JsonResponse({'result': True, 'data': data})
@@ -127,9 +129,7 @@ def get_template_info(request, template_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.CREATE_TASK_PERM_NAME)
-def create_task(request, template_id, bk_biz_id):
+def create_task(request, template_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
@@ -137,23 +137,23 @@ def create_task(request, template_id, bk_biz_id):
             'result': False,
             'message': 'invalid param format'
         })
-    logger.info('apigw create_task info, template_id: {template_id}, bk_biz_id: {bk_biz_id}, params: {params}'.format(
+    logger.info('apigw create_task info, template_id: {template_id}, project_id: {project_id}, params: {params}'.format(
         template_id=template_id,
-        bk_biz_id=bk_biz_id,
+        project_id=project_id,
         params=params))
-    biz = Business.objects.get(cc_id=bk_biz_id)
+    project = Project.objects.get(id=project_id)
     template_source = params.get('template_source', 'business')
     if template_source == 'business':
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                business=biz,
+                                                                                project_id=project_id,
                                                                                 is_deleted=False)
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'template[id={template_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+                'message': 'template[id={template_id}] of business[project_id={project_id}] does not exist'.format(
                     template_id=template_id,
-                    bk_biz_id=bk_biz_id)
+                    project_id=project_id)
             }
             return JsonResponse(result)
     else:
@@ -197,7 +197,7 @@ def create_task(request, template_id, bk_biz_id):
         return JsonResponse({'result': False, 'message': data})
 
     task = TaskFlowInstance.objects.create(
-        business=biz,
+        project=project,
         pipeline_instance=data,
         category=tmpl.category,
         template_id=template_id,
@@ -219,11 +219,9 @@ def create_task(request, template_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
-def start_task(request, task_id, bk_biz_id):
+def start_task(request, task_id, project_id):
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=bk_biz_id)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.task_action('start', username)
     return JsonResponse(ctx)
 
@@ -232,9 +230,7 @@ def start_task(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
-def operate_task(request, task_id, bk_biz_id):
+def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
@@ -244,7 +240,7 @@ def operate_task(request, task_id, bk_biz_id):
         })
     action = params.get('action')
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=bk_biz_id, is_deleted=False)
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id, is_deleted=False)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
 
@@ -252,10 +248,9 @@ def operate_task(request, task_id, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_task_status(request, task_id, bk_biz_id):
+def get_task_status(request, task_id, project_id):
     try:
-        task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=bk_biz_id, is_deleted=False)
+        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id, is_deleted=False)
         task_status = task.get_status()
         result = {
             'result': True,
@@ -290,12 +285,11 @@ def get_task_status(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def query_task_count(request, bk_biz_id):
+def query_task_count(request, project_id):
     """
     @summary: 按照不同纬度统计业务任务总数
     @param request:
-    @param bk_biz_id:
+    @param project_id:
     @return:
     """
     try:
@@ -316,7 +310,7 @@ def query_task_count(request, bk_biz_id):
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
 
-    filters = {'business__cc_id': bk_biz_id, 'is_deleted': False}
+    filters = {'project_id': project_id, 'is_deleted': False}
     filters.update(conditions)
     success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
     if not success:
@@ -346,9 +340,8 @@ def info_data_from_period_task(task, detail=True):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_periodic_task_list(request, bk_biz_id):
-    task_list = PeriodicTask.objects.filter(business__cc_id=bk_biz_id)
+def get_periodic_task_list(request, project_id):
+    task_list = PeriodicTask.objects.filter(project_id=project_id)
     data = []
     for task in task_list:
         data.append(info_data_from_period_task(task, detail=False))
@@ -359,10 +352,9 @@ def get_periodic_task_list(request, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_periodic_task_info(request, task_id, bk_biz_id):
+def get_periodic_task_info(request, task_id, project_id):
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -377,10 +369,9 @@ def get_periodic_task_info(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def create_periodic_task(request, template_id, bk_biz_id):
+def create_periodic_task(request, template_id, project_id):
     try:
-        template = TaskTemplate.objects.get(pk=template_id, business__cc_id=bk_biz_id, is_deleted=False)
+        template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
     except TaskTemplate.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -396,11 +387,10 @@ def create_periodic_task(request, template_id, bk_biz_id):
         })
 
     logger.info(
-        'apigw create_periodic_task info, template_id: {template_id}, bk_biz_id: {bk_biz_id}, params: {params}'.format(
-            template_id=template_id,
-            bk_biz_id=bk_biz_id,
-            params=params
-        ))
+        'apigw create_periodic_task info, '
+        'template_id: {template_id}, project_id: {project_id}, params: {params}'.format(template_id=template_id,
+                                                                                        project_id=project_id,
+                                                                                        params=params))
 
     try:
         params.setdefault('constants', {})
@@ -423,13 +413,13 @@ def create_periodic_task(request, template_id, bk_biz_id):
         if key in pipeline_tree['constants']:
             pipeline_tree['constants'][key]['value'] = val
 
-    business = Business.objects.get(cc_id=bk_biz_id)
+    project = Project.objects.get(id=project_id)
     name = params['name']
     cron = params['cron']
 
     try:
         task = PeriodicTask.objects.create(
-            business=business,
+            project=project,
             template=template,
             name=name,
             cron=cron,
@@ -450,8 +440,7 @@ def create_periodic_task(request, template_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def set_periodic_task_enabled(request, task_id, bk_biz_id):
+def set_periodic_task_enabled(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
@@ -463,7 +452,7 @@ def set_periodic_task_enabled(request, task_id, bk_biz_id):
     enabled = params.get('enabled', False)
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -483,8 +472,7 @@ def set_periodic_task_enabled(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def modify_cron_for_periodic_task(request, task_id, bk_biz_id):
+def modify_cron_for_periodic_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
@@ -494,10 +482,10 @@ def modify_cron_for_periodic_task(request, task_id, bk_biz_id):
         })
 
     cron = params.get('cron', {})
-    tz = Business.objects.get(cc_id=bk_biz_id).time_zone
+    tz = Project.objects.get(id=project_id).time_zone
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -524,8 +512,7 @@ def modify_cron_for_periodic_task(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def modify_constants_for_periodic_task(request, task_id, bk_biz_id):
+def modify_constants_for_periodic_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
@@ -537,7 +524,7 @@ def modify_constants_for_periodic_task(request, task_id, bk_biz_id):
     constants = params.get('constants', {})
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -561,20 +548,20 @@ def modify_constants_for_periodic_task(request, task_id, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_task_detail(request, task_id, bk_biz_id):
+def get_task_detail(request, task_id, project_id):
     """
     @summary: 获取任务详细信息
     @param request:
     @param task_id:
+    @param project_id:
     @return:
     """
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+        message = 'task[id={task_id}] of business[project_id={project_id}] does not exist'.format(
             task_id=task_id,
-            bk_biz_id=bk_biz_id)
+            project_id=project_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -585,20 +572,20 @@ def get_task_detail(request, task_id, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_task_node_detail(request, task_id, bk_biz_id):
+def get_task_node_detail(request, task_id, project_id):
     """
     @summary: 获取节点输入输出
     @param request:
-    @param bk_biz_id:
+    @param task_id:
+    @param project_id:
     @return:
     """
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+        message = 'task[id={task_id}] of business[project_id={project_id}] does not exist'.format(
             task_id=task_id,
-            bk_biz_id=bk_biz_id)
+            project_id=project_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -619,8 +606,7 @@ def get_task_node_detail(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def node_callback(request, task_id, bk_biz_id):
+def node_callback(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
@@ -630,11 +616,11 @@ def node_callback(request, task_id, bk_biz_id):
         })
 
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+        message = 'task[id={task_id}] of business[project_id={project_id}] does not exist'.format(
             task_id=task_id,
-            bk_biz_id=bk_biz_id)
+            project_id=project_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 

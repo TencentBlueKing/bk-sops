@@ -13,81 +13,34 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-from django.http.response import HttpResponseForbidden
 from django.contrib.auth import get_user_model
-from guardian.shortcuts import get_objects_for_user
 from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse
+from tastypie.exceptions import BadRequest
 from tastypie.resources import ModelResource
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.core.api_adapter import is_user_functor
 from gcloud.core.utils import name_handler
-from gcloud.core.models import Business
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.commons.template.resources import PipelineTemplateResource
-from gcloud.commons.template.constants import PermNm
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.webservice3.resources import (
     pipeline_node_name_handle,
-    get_business_for_user,
-    GCloudGenericAuthorization,
     AppSerializer,
     GCloudModelResource,
-    BusinessResource,
+    ProjectResource,
     TemplateFilterPaginator
 )
 
 
-class TaskTemplateAuthorization(GCloudGenericAuthorization):
-    def read_list(self, object_list, bundle):
-        """
-        @summary: 管理员——返回所有有view_business权限的业务（所有业务）下的流程模板
-            业务管理员——返回所有有view_business权限的业务（运维身份的业务）下的流程模板
-            业务普通人员——返回所有有view_business权限的业务（属于某一人员角色的业务）下的有操作权限的流程模板
-            职能化人员——返回所有有view_business权限的业务（所有业务）下的有新建任务权限的流程模板
-        @param object_list:
-        @param bundle:
-        @return:
-        """
-        templates = super(TaskTemplateAuthorization, self).read_list(object_list, bundle)
-        user = bundle.request.user
-        if user.is_superuser:
-            return templates
-
-        biz_cc_id = bundle.request.GET.get('business__cc_id')
-        if not biz_cc_id and templates.exists():
-            biz_cc_id = templates[0].business.cc_id
-
-        if biz_cc_id is not None:
-            try:
-                biz = Business.objects.get(cc_id=biz_cc_id)
-            except Business.DoesNotExist:
-                return []
-            if user.has_perm('manage_business', biz):
-                return templates
-
-        if is_user_functor(bundle.request):
-            return get_objects_for_user(user,
-                                        PermNm.CREATE_TASK_PERM_NAME,
-                                        templates,
-                                        any_perm=True)
-
-        return get_objects_for_user(user,
-                                    PermNm.PERM_LIST,
-                                    templates,
-                                    any_perm=True)
-
-
 class TaskTemplateResource(GCloudModelResource):
-    business = fields.ForeignKey(
-        BusinessResource,
-        'business',
+    project = fields.ForeignKey(
+        ProjectResource,
+        'project',
         full=True)
     pipeline_template = fields.ForeignKey(
         PipelineTemplateResource,
@@ -147,12 +100,13 @@ class TaskTemplateResource(GCloudModelResource):
     class Meta:
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
-        authorization = TaskTemplateAuthorization()
         always_return_data = True
+        authorization = Authorization()
         serializer = AppSerializer()
+
         filtering = {
             "id": ALL,
-            "business": ALL_WITH_RELATIONS,
+            "project": ALL_WITH_RELATIONS,
             "name": ALL,
             "category": ALL,
             "pipeline_template": ALL_WITH_RELATIONS,
@@ -279,8 +233,8 @@ class TemplateSchemeResource(ModelResource):
         orm_filters = super(TemplateSchemeResource, self).build_filters(filters, **kwargs)
         try:
             template_id = filters.pop('template__template_id')[0]
-            biz_cc_id = filters.pop('biz_cc_id')[0]
-            template = TaskTemplate.objects.get(pk=template_id, business__cc_id=biz_cc_id)
+            project_id = filters.pop('project_id')[0]
+            template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
             orm_filters.update({'template__template_id': template.pipeline_template.template_id})
         except Exception:
             pass
@@ -295,28 +249,13 @@ class TemplateSchemeResource(ModelResource):
     def obj_create(self, bundle, **kwargs):
         try:
             template_id = bundle.data.pop('template_id', '')
-            biz_cc_id = bundle.data.pop('biz_cc_id')
-            template = TaskTemplate.objects.get(pk=template_id, business__cc_id=biz_cc_id)
+            project_id = bundle.data.pop('project_id')
+            template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
         except Exception:
-            raise BadRequest('template[id=%s] in business[%s] does not exist' % (template_id, biz_cc_id))
-        business = get_business_for_user(bundle.request.user, ['view_business'])
-        if not business.filter(cc_id=biz_cc_id).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to make such operation'))
+            raise BadRequest('template[id=%s] in project_id[%s] does not exist' % (template_id, project_id))
         bundle.data['name'] = name_handler(bundle.data['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
         kwargs['unique_id'] = '%s-%s' % (template_id, bundle.data['name'])
         if TemplateScheme.objects.filter(unique_id=kwargs['unique_id']).exists():
             raise BadRequest('template scheme name has existed, please change the name')
         kwargs['template'] = template.pipeline_template
         return super(TemplateSchemeResource, self).obj_create(bundle, **kwargs)
-
-    def obj_delete(self, bundle, **kwargs):
-        try:
-            scheme_id = kwargs['pk']
-            scheme = TemplateScheme.objects.get(pk=scheme_id)
-            template = TaskTemplate.objects.get(pipeline_template=scheme.template)
-        except Exception:
-            raise BadRequest('scheme or template does not exist')
-        business = get_business_for_user(bundle.request.user, ['manage_business'])
-        if not business.filter(cc_id=template.business.cc_id).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to make such operation'))
-        return super(TemplateSchemeResource, self).obj_delete(bundle, **kwargs)

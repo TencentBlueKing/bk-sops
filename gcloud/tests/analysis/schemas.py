@@ -33,7 +33,7 @@ ANALYSIS_NO_DATA_PARAMS = {
     }
 }
 
-ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS = {
+ANALYSIS_CATEGORY_AND_PROJECT_PARAMS = {
     'type': 'object',
     'required': ['data', 'result'],
     'properties': {
@@ -113,10 +113,10 @@ ANALYSIS_ATOM_TEMPLATE_PARAMS = {
                         'templateId': {
                             'number'
                         },
-                        'businessId': {
+                        'projectId': {
                             'number'
                         },
-                        'businessName': {
+                        'projectName': {
                             'string'
                         },
                         'templateName': {
@@ -157,10 +157,10 @@ ANALYSIS_ATOM_INSTANCE_PARAMS = {
                         'instanceId': {
                             'number'
                         },
-                        'businessId': {
+                        'projectId': {
                             'number'
                         },
-                        'businessName': {
+                        'projectName': {
                             'string'
                         },
                         'instanceName': {
@@ -275,10 +275,10 @@ ANALYSIS_TEMPLATE_NODE_PARAMS = {
                         'templateId': {
                             'number'
                         },
-                        'businessId': {
+                        'projectId': {
                             'number'
                         },
-                        'businessName': {
+                        'projectName': {
                             'string'
                         },
                         'templateName': {
@@ -328,10 +328,10 @@ ANALYSIS_APPMAKER_INSTANCE_PARAMS = {
                         'templateId': {
                             'number'
                         },
-                        'businessId': {
+                        'projectId': {
                             'number'
                         },
-                        'businessName': {
+                        'projectName': {
                             'string'
                         },
                         'templateName': {
@@ -374,10 +374,10 @@ ANALYSIS_INSTANCE_NODE_PARAMS = {
                         'instanceId': {
                             'number'
                         },
-                        'businessId': {
+                        'projectId': {
                             'number'
                         },
-                        'businessName': {
+                        'projectName': {
                             'string'
                         },
                         'instanceName': {
@@ -426,10 +426,10 @@ ANALYSIS_INSTANCE_DETAILS_PARAMS = {
                         'instanceId': {
                             'number'
                         },
-                        'businessId': {
+                        'projectId': {
                             'number'
                         },
-                        'businessName': {
+                        'projectName': {
                             'string'
                         },
                         'instanceName': {

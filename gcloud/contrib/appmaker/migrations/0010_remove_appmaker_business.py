@@ -11,16 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.http import JsonResponse
+from __future__ import unicode_literals
 
-from gcloud.core.decorators import check_user_perm_of_business
+from django.db import migrations
 
 
-@check_user_perm_of_business('manage_business')
-def import_v1(request, biz_cc_id):
-    result = {
-        'result': True,
-        'data': 0,
-        'message': 'nothing to do'
-    }
-    return JsonResponse(result)
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('appmaker', '0009_set_business_to_none'),
+    ]
+
+    operations = [
+        migrations.RemoveField(
+            model_name='appmaker',
+            name='business',
+        ),
+    ]

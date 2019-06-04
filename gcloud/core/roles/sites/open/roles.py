@@ -22,6 +22,7 @@ COOPERATION = 'Cooperation'
 ADMIN = 'Admin'
 FUNCTOR = 'Functor'  # 职能化人员
 AUDITOR = 'Auditor'
+NORMAL = 'Normal'
 
 ROLES_DECS = {
     MAINTAINERS: _(u"运维人员"),

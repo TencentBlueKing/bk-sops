@@ -16,11 +16,11 @@ specific language governing permissions and limitations under the License.
 from django.shortcuts import render
 
 
-def home(request, biz_cc_id):
+def home(request, project_id):
     """
     @summary: 任务记录首页
     @param request:
-    @param biz_cc_id:
+    @param project_id:
     @return:
     """
     ctx = {
