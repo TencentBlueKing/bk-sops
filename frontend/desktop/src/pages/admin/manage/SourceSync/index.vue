@@ -34,8 +34,8 @@
                 <tbody>
                     <tr v-for="item in list" :key="item.id">
                         <td style="padding: 12px 30px;">{{item.id}}</td>
-                        <td>{{item.start_time}}</td>
-                        <td>{{item.finish_time}}</td>
+                        <td>{{item.start_time || '--'}}</td>
+                        <td>{{item.finish_time || '--'}}</td>
                         <td>{{item.creator}}</td>
                         <td>
                             <div class="task-status">
