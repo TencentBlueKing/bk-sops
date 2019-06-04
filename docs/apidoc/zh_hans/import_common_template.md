@@ -51,7 +51,7 @@ result = response.json()
 | ------------  | ---------- | ------------------------------ |
 |  result       | bool       | true/false 成功与否            |
 |  message      | string     | result=false 时错误信息        |
-|  data         | object        | 返回数据                    |
+|  data         | dict        | 返回数据                    |
 
 #### data
 
