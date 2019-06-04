@@ -9,7 +9,7 @@
 
     import { JSEncrypt } from 'jsencrypt'
 
-    const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select', 'password']
+    const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select', 'password', 'meta']
 
     const components = require.context(
         '.',
@@ -92,6 +92,8 @@
                         } else {
                             this.componentTag = tagCode
                         }
+                        // 处理元变量的情况
+                        this.processMetaVariable(item)
                         if (item.attrs.validation) {
                             this.attrs.required = item.attrs.validation.some((v) => v.type === 'required')
                             this.domAttr.validation = { required: this.attrs.required }
@@ -115,6 +117,8 @@
                             }
                         } else if (item.type === 'int') {
                             this.value = this.value ? Number.parseInt(this.value) : 0
+                        } else if (item.type === 'meta') {
+                            this.componentTag = 'cell'
                         } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
                             this.componentTag = 'cell'
                             this.value = JSON.stringify(this.data.value)
@@ -123,6 +127,16 @@
                     }
                 })
                 this.fillDomConfig()
+            },
+
+            processMetaVariable (variable) {
+                if (variable.meta_transform && this.data.is_meta) {
+                    const metaConfig = variable.meta_transform(this.data.meta || this.data)
+                    variable.attrs = metaConfig.attrs
+                    variable.type = 'meta'
+                    // 元变量暂时只做展示，无法进行修改和选择
+                    this.value = metaConfig.attrs.value.join(',')
+                }
             },
 
             fillDomConfig () {
