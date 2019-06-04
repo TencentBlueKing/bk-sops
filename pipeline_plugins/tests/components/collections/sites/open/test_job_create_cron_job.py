@@ -4,7 +4,6 @@ from mock import patch, MagicMock
 from pipeline.component_framework.test import (ComponentTestMixin,
                                                ComponentTestCase,
                                                ExecuteAssertion)
-
 from pipeline_plugins.components.collections.sites.open.job import CreateCronJobComponent
 
 
@@ -19,7 +18,7 @@ class ClientSuccess(object):
             }
             return data
     job = Job()
-clientSuccess = ClientSuccess()
+
 
 class ClientSaveCronFail(object):
     class Job(object):
@@ -30,7 +29,7 @@ class ClientSaveCronFail(object):
             }
             return data
     job = Job()
-clientSaveCronFail = ClientSaveCronFail()
+
 
 class ClientUpdateCronStatusFail(object):
     class Job(object):
@@ -41,25 +40,26 @@ class ClientUpdateCronStatusFail(object):
             }
             return data
     job = Job()
+
+
+clientSuccess = ClientSuccess()
+clientSaveCronFail = ClientSaveCronFail()
 clientUpdateCronStatusFail = ClientUpdateCronStatusFail()
 
-class CreateCronJobComponentTest(TestCase, ComponentTestMixin):
 
+class CreateCronJobComponentTest(TestCase, ComponentTestMixin):
     @property
     def cases(self):
         return [
             ComponentTestCase(name='execute success case',
-                              inputs={'job_task_id': '1',
-                                      'cron_name': '测试定时作业-成功',
-                                      'job_task_id':'11',
+                              inputs={'cron_name': '测试定时作业-成功',
+                                      'job_task_id': '11',
                                       'cron_status': '2',
                                       'cron_expression': '0 0 12 * * ? 2015'},
                               parent_data={},
                               execute_assertion=ExecuteAssertion(success=True,
-                                                                 outputs={
-                                                                    "cron_id": 1,
-                                                                    "client": clientSuccess
-                                                                 }),
+                                                                 outputs={"cron_id": 1,
+                                                                          "client": clientSuccess}),
                               schedule_assertion=None,
                               patchers=[
                                   patch('pipeline_plugins.components.collections.sites.open.job.get_client_by_user',
@@ -68,14 +68,11 @@ class CreateCronJobComponentTest(TestCase, ComponentTestMixin):
             ComponentTestCase(name='execute save cron fail case',
                               inputs={'job_task_id': '1',
                                       'cron_name': '创建任务失败',
-                                      'job_task_id':'11',
                                       'cron_status': '2',
                                       'cron_expression': '0 0 12 * * ? abcd'},
                               parent_data={},
                               execute_assertion=ExecuteAssertion(success=False,
-                                                                 outputs={
-                                                                    "ex_data": "save cron fail"
-                                                                 }),
+                                                                 outputs={"ex_data": "save cron fail"}),
                               schedule_assertion=None,
                               patchers=[
                                   patch('pipeline_plugins.components.collections.sites.open.job.get_client_by_user',
@@ -84,24 +81,20 @@ class CreateCronJobComponentTest(TestCase, ComponentTestMixin):
             ComponentTestCase(name='execute update cron status fail case',
                               inputs={'job_task_id': '1',
                                       'cron_name': '创建启动状态的任务失败',
-                                      'job_task_id':'11',
                                       'cron_status': '1',
                                       'cron_expression': '0 0 12 * * ? 2015'},
                               parent_data={},
                               execute_assertion=ExecuteAssertion(success=False,
-                                                                 outputs={
-                                                                    "cron_id": 1,
-                                                                    "client": clientUpdateCronStatusFail,
-                                                                    "ex_data": "定时作业创建成功 cron_id=[1]，定时作业启动失败 message=[update cron status fail]"
-                                                                 }),
+                                                                 outputs={"cron_id": 1,
+                                                                          "client": clientUpdateCronStatusFail,
+                                                                          "ex_data": "定时作业创建成功 cron_id=[1]，定时作业启动失"
+                                                                          "败 message=[update cron status fail]"}),
                               schedule_assertion=None,
                               patchers=[
                                   patch('pipeline_plugins.components.collections.sites.open.job.get_client_by_user',
                                         MagicMock(return_value=clientUpdateCronStatusFail)),
-                              ]),
-            ]
+                              ])]
 
     @property
     def component_cls(self):
         return CreateCronJobComponent
-

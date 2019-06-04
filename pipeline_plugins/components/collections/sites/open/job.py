@@ -317,6 +317,7 @@ class JobFastExecuteScriptComponent(Component):
     bound_service = JobFastExecuteScriptService
     form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)
 
+
 class CreateCronJobService(Service):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -358,10 +359,8 @@ class CreateCronJobService(Service):
         ]
 
 
-
 class CreateCronJobComponent(Component):
     name = _(u'新建定时作业')
     code = 'job_create_cron_job'
     bound_service = CreateCronJobService
     form = '%scomponents/atoms/sites/%s/job/job_create_cron_job.js' % (settings.STATIC_URL, settings.RUN_VER)
-
