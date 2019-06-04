@@ -42,14 +42,15 @@ def get_cur_pos_from_url(request):
 
 
 def mysetting(request):
-    # 嵌入CICD
+    # 嵌入CICD，隐藏头部
     hide_header = int(request.GET.get('hide_header', '0') == '1')
     is_superuser = int(request.user.is_superuser)
     is_functor = int(is_user_functor(request))
     is_auditor = int(is_user_auditor(request))
     default_project = get_default_project_for_user(request.user.username)
     business_timezone = request.session.get('blueking_timezone', settings.TIME_ZONE)
-    return {
+    cur_pos = get_cur_pos_from_url(request)
+    ctx = {
         'MEDIA_URL': settings.MEDIA_URL,  # MEDIA_URL
         'STATIC_URL': settings.STATIC_URL,  # 本地静态文件访问
         'BK_PAAS_HOST': settings.BK_PAAS_HOST,
@@ -75,7 +76,7 @@ def mysetting(request):
         # 'NICK': request.session.get('nick', ''),          # 用户昵称
         'NICK': request.user.username,  # 用户昵称
         'AVATAR': request.session.get('avatar', ''),  # 用户头像
-        'CUR_POS': get_cur_pos_from_url(request),
+        'CUR_POS': cur_pos,
         'BK_CC_HOST': settings.BK_CC_HOST,
         'RSA_PUB_KEY': settings.RSA_PUB_KEY,
         'STATIC_VER': settings.STATIC_VER[settings.RUN_MODE],
@@ -88,3 +89,5 @@ def mysetting(request):
         'BUSINESS_TIMEZONE': business_timezone,
         'DEFAULT_PROJECT_ID': default_project.id if default_project else None
     }
+
+    return ctx

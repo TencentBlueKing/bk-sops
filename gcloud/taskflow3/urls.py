@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from django.conf.urls import url
 
-from gcloud.taskflow3 import views, api
+from gcloud.taskflow3 import api
 
 urlpatterns = [
-    url(r'^home/(?P<project_id>\d+)/$', views.home),
     url(r'^api/status/(?P<project_id>\d+)/$', api.status),
     url(r'^api/clone/(?P<project_id>\d+)/$', api.task_clone),
     url(r'^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$', api.task_action),
@@ -26,7 +25,7 @@ urlpatterns = [
     url(r'^api/nodes/action/(?P<action>\w+)/(?P<project_id>\d+)/$', api.nodes_action),
     url(r'^api/nodes/data/(?P<project_id>\d+)/$', api.data),
     url(r'^api/nodes/detail/(?P<project_id>\d+)/$', api.detail),
-    url(r'^api/nodes/get_job_instance_log/(?P<project_id>\d+)/$', api.get_job_instance_log),
+    url(r'^api/nodes/get_job_instance_log/(?P<biz_cc_id>\d+)/$', api.get_job_instance_log),
     url(r'^api/nodes/spec/timer/reset/(?P<project_id>\d+)/$', api.spec_nodes_timer_reset),
 
     url(r'^api/preview_task_tree/(?P<project_id>\d+)/$', api.preview_task_tree),

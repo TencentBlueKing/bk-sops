@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import importlib
+
 from django.conf import settings
 
 from pipeline_plugins.components.utils.common import *  # noqa

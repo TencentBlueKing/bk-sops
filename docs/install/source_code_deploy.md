@@ -6,13 +6,13 @@
 
 ## 打包并收集前端静态资源
 1）安装依赖包  
-进入 pipeline/blueflow/，执行以下命令安装
+进入 frontend/desktop/，执行以下命令安装
 ```bash
 npm install
 ```
 
 2）本地打包
-在 pipeline/blueflow/ 目录下，继续执行以下命令打包前端静态资源
+在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 ```bash
 npm run build -- --STATIC_ENV=dev
 ```
@@ -26,6 +26,7 @@ python manage.py collectstatic --noinput
 
 ## 创建应用  
 前往你部署的蓝鲸社区版平台，在"开发者中心"点击"应用创建"，填写需要的参数，注意代码仓库填写你的 Github 仓库地址，账号和密码。注意，由于官方已经存在一个名为"标准运维"的应用，你只能填写不一样的应用名称和应用 ID，如"标准运维定制版"、bk-sops-ce。
+后续文档中bk-sops-ce都代表你创建的应用的应用ID，如和文档示例不一致，请以你的应用ID为准。
 
 
 ## 修改配置  
@@ -33,7 +34,7 @@ python manage.py collectstatic --noinput
 
 
 ## 开通 API 白名单
-手动在你部署的蓝鲸社区版的中控机执行如下命令，开通标准运维访问蓝鲸PaaS平台API网关的白名单，以便标准运维原子可以正常调用 API。
+手动在你部署的蓝鲸社区版的中控机执行如下命令，开通标准运维访问蓝鲸PaaS平台API网关的白名单，以便标准插件可以正常调用 API。
 ```bash
 source /data/install/utils.fc
 add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "标准运维定制版"
@@ -50,8 +51,7 @@ add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "标准运维定制版"
 
 
 ## 修改标准运维环境变量配置
-打开蓝鲸桌面 http://{BK_PAAS_HOST}/console/，在应用市场找到名字为“标准运维” (APP_CODE: bk_sops) 的应用，添加到桌面并打开。
-修改浏览器链接为 http://{BK_PAAS_HOST}/o/bk-sops-ce/admin/，打开标准运维管理后台页面。
+在浏览器输入网址 http://{BK_PAAS_HOST}/o/bk-sops-ce/admin/，打开标准运维管理后台页面。
 
 ![](../resource/img/admin_home.png)
 
@@ -88,4 +88,4 @@ DATABASES = {
 ```
 
 2) 由于标准运维接入了蓝鲸PaaS平台API网关，你需要修改标准运维网关配置
-请参考[API网关替换方式](https://github.com/Tencent/bk-PaaS/blob/master/docs/install/replace_ce_with_opensource.md#open_paas)文档，把标准运维 API 转发到你的定制版本的接口。
+请参考[API网关替换方式](https://docs.bk.tencent.com/bk_osed/guide.html#SaaS)文档，把标准运维 API 转发到你的定制版本的接口。

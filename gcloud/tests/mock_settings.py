@@ -21,6 +21,7 @@ TASKTEMPLATE_CREATE_PIPELINE_TEMPLATE = 'gcloud.tasktmpl3.models.TaskTemplate.ob
 TASKTEMPLATE_MODEL = 'gcloud.tasktmpl3.models.TaskTemplate.objects.model'
 
 COMMONTEMPLATE_SELECT_RELATE = 'gcloud.commons.template.models.CommonTemplate.objects.select_related'
+COMMONTEMPLATE_IMPORT_TEMPLATES = 'gcloud.commons.template.models.CommonTemplate.objects.import_templates'
 
 TASKINSTANCE_CREATE_PIPELINE = \
     'gcloud.taskflow3.models.TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes'
@@ -43,11 +44,15 @@ PERIODIC_TASK_HISTORY_CREATE = 'gcloud.periodictask.models.PeriodicTaskHistory.o
 APIGW_BIZ_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_business'
 APIGW_TASK_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_task'
 APIGW_VIEW_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.jsonschema.validate'
+APIGW_VIEW_CHECK_WHITE_LIST = 'gcloud.apigw.views.check_white_apps'
 APIGW_VIEW_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.pipeline_api.get_status_tree'
 APIGW_DECORATOR_CHECK_WHITE_LIST = 'gcloud.apigw.decorators.check_white_apps'
 APIGW_DECORATOR_GET_USER_MODEL = 'gcloud.apigw.decorators.get_user_model'
 APIGW_DECORATOR_PREPARE_USER_BUSINESS = 'gcloud.apigw.decorators.prepare_user_business'
 APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
+APIGW_READ_TEMPLATE_DATA_FILE = 'gcloud.apigw.views.read_template_data_file'
+APIGW_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.replace_template_id'
+
 
 CORE_PROJECT_CACHE = 'gcloud.core.project.cache'
 CORE_PROJECT_GET_USER_BUSINESS_LIST = 'gcloud.core.project.get_user_business_list'
