@@ -72,12 +72,12 @@
                 i18n: {
                     create: gettext('新建'),
                     edit: gettext('编辑'),
-                    noData: gettext('暂无数据，'),
-                    sourceManage: gettext('包源管理'),
+                    noData: gettext('无数据，'),
+                    sourceManage: gettext('远程插件包源'),
                     mainSource: gettext('主包源'),
                     localCache: gettext('本地缓存'),
-                    sourceTip: gettext('Xxxxxxxx'),
-                    cacheTip: gettext('Yyyyyyyyy')
+                    sourceTip: gettext('远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突'),
+                    cacheTip: gettext('可选配置，所有远程插件源都可以同步到本地进行缓存，避免在不能访问远程插件源时无法加载标准插件')
                 }
             }
         },
