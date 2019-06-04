@@ -38,7 +38,9 @@ result = response.json()
 ```
 {
     "message": "Successfully imported 2 common flows",
-    "data": 2,
+    "data": {
+        "count": 2
+    },
     "result": true
 }
 ```
@@ -49,4 +51,10 @@ result = response.json()
 | ------------  | ---------- | ------------------------------ |
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  message  |    string  |      error message returned when result is false  |
-|  data         | int        | the number of flows had been imported                    |
+|  data         | dict        |    return data                |
+
+#### data
+
+| Field      | Type      | Description      |
+| ------------ | ---------- | ------------------------------ |
+|  count      |    int    |       the number of flows had been imported    |
