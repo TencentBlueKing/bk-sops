@@ -38,6 +38,7 @@
 - [开发环境前端部署](docs/install/dev_web.md)
 - [正式环境源码部署](docs/install/source_code_deploy.md)
 - [正式环境上传部署](docs/install/upload_pack_deploy.md)
+- [标准插件开发](docs/develop/dev_plugins.md)
 - [API使用说明](docs/apidoc/readme.md)
 
 
