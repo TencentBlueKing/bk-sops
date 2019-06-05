@@ -18,8 +18,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
+
 from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
+from pipeline_plugins.components.utils.common import supplier_account_for_business
 
 __group_name__ = _(u"蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -68,12 +70,12 @@ class NotifyService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
         notify_type = data.get_one_of_inputs('bk_notify_type')
         receiver_info = data.get_one_of_inputs('bk_receiver_info')
         # 兼容原有数据格式

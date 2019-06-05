@@ -28,13 +28,21 @@ ip_re = r'(([12][0-9][0-9]|[1-9][0-9]|[0-9])\.){3,3}' \
 ip_pattern = re.compile(ip_re)
 
 
+def supplier_account_for_business(biz_cc_id):
+    try:
+        supplier_account = Business.objects.supplier_account_for_business(biz_cc_id)
+    except Business.DoesNotExist:
+        logger.warning('get supplier account for business(biz_cc_id: %s) failed, use 0' % biz_cc_id)
+        supplier_account = 0
+
+    return supplier_account
+
+
 def supplier_account_inject(func):
     def wrapper(*args, **kwargs):
         if 'biz_cc_id' in kwargs:
-            try:
-                kwargs['supplier_account'] = Business.objects.supplier_account_for_business(kwargs['biz_cc_id'])
-            except Business.DoesNotExist:
-                kwargs['supplier_account'] = 0
+            kwargs['supplier_account'] = supplier_account_for_business(kwargs['biz_cc_id'])
+
         return func(*args, **kwargs)
 
     return wrapper
@@ -43,10 +51,8 @@ def supplier_account_inject(func):
 def supplier_id_inject(func):
     def wrapper(*args, **kwargs):
         if 'biz_cc_id' in kwargs:
-            try:
-                kwargs['supplier_id'] = Business.objects.supplier_id_for_business(kwargs['biz_cc_id'])
-            except Business.DoesNotExist:
-                kwargs['supplier_id'] = 0
+            kwargs['supplier_account'] = supplier_account_for_business(kwargs['biz_cc_id'])
+
         return func(*args, **kwargs)
 
     return wrapper
