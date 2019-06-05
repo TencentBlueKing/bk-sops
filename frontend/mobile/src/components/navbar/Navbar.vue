@@ -69,7 +69,7 @@
     }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
     @import '../../../static/style/var.scss';
     /*navbar*/
     .navbar{
