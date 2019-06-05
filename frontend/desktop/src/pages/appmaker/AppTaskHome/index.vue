@@ -257,12 +257,12 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .appmaker-container {
-    padding-top: 20px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #fafafa;
 }
 .list-wrapper {
+    padding-top: 50px;
     padding: 0 60px;
     min-height: calc(100vh - 240px);
 }
