@@ -17,19 +17,35 @@
                 v-loading="loading"
                 clearable
                 filterable
-                :disabled="!editable"
+                :disabled="!selectEditable"
                 :remote="remote"
                 :multiple-limit="multiple_limit"
                 :multiple="multiple"
                 :no-data-text="empty_text"
                 :placeholder="placeholder">
-                <el-option
-                    v-for="item in items"
-                    v-loading="loading"
-                    :key="item.text"
-                    :label="item.text"
-                    :value="item.value">
-                </el-option>
+                <template v-if="hasGroup">
+                    <el-option
+                        v-for="item in items"
+                        v-loading="loading"
+                        :key="item.text"
+                        :label="item.text"
+                        :value="item.value">
+                    </el-option>
+                </template>
+                <template v-else>
+                    <el-option-group
+                        v-for="group in items"
+                        :key="group.text"
+                        :label="group.text">
+                         <el-option
+                            v-for="item in group.options"
+                            v-loading="loading"
+                            :key="item.text"
+                            :label="item.text"
+                            :value="item.value">
+                        </el-option>
+                    </el-option-group>
+                </template>
             </el-select>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
@@ -85,6 +101,18 @@
             },
             desc: 'how to process data after getting remote data'
         },
+        hasGroup: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'whether the options in group'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'selector is disabled'
+        },
         placeholder: {
             type: String,
             required: false,
@@ -109,6 +137,9 @@
             }
         },
         computed: {
+            selectEditable () {
+                return this.editable && !this.disabled
+            },
             seletedValue: {
                 get () {
                     return this.value
