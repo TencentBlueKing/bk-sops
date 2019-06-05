@@ -44,11 +44,11 @@ const prodConf = merge(baseConf, {
                 parallel: true,
                 sourceMap: true
             }),
-            // new OptimizeCSSPlugin({
-            //     cssProcessorOptions: {
-            //         safe: true
-            //     }
-            // })
+            new OptimizeCSSPlugin({
+                cssProcessorOptions: {
+                    safe: true
+                }
+            })
         ],
         splitChunks: {
             // 表示从哪些 chunks 里面提取代码，除了三个可选字符串值 initial、async、all 之外，还可以通过函数来过滤所需的 chunks
