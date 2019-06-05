@@ -126,6 +126,10 @@
                 type: Boolean,
                 default: true
             },
+            allowEmpty: {
+                type: Boolean,
+                default: true
+            },
             // 静态IP可选列表
             staticIpList: {
                 type: Array,
@@ -190,7 +194,10 @@
             },
             validate () {
                 const selector = this.isMultiple ? this.$refs.multipleIpSelector : this.$refs.singleIpSelector
-                const selectorValidate = selector.validate()
+                let selectorValidate = true
+                if (!this.allowEmpty) {
+                    selectorValidate = selector.validate()
+                }
                 const filterValidate = this.$refs.filterConditions.validate()
                 const excludeValidate = this.$refs.excludeConditions.validate()
             
