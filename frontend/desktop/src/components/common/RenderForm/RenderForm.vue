@@ -42,7 +42,8 @@
         showGroup: false, // 是否显示 combine 类型标准插件名称
         showLabel: false, // 是否显示标准插件名称
         formEdit: true, // 是否可编辑
-        formMode: true // 是否为表单模式（查看参数时，input、textarea等不需要用表单展示）
+        formMode: true, // 是否为表单模式（查看参数时，input、textarea等不需要用表单展示）
+        validateSet: ['required', 'custom', 'regex'] // 选择开启的校验类型，默认都开启
     }
 
     export default {
