@@ -19,7 +19,9 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
+
 from gcloud.conf import settings
+from pipeline_plugins.components.utils.common import supplier_account_for_business
 
 logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -144,13 +146,14 @@ class CCTransferHostModuleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
@@ -192,13 +195,14 @@ class CCUpdateHostService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
@@ -284,14 +288,14 @@ class CCReplaceFaultMachineService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_hosts = data.get_one_of_inputs('cc_host_replace_detail')
 
         # 查询主机可编辑属性
@@ -456,13 +460,14 @@ class CCEmptySetHostsService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
         for set_id in cc_set_select:
@@ -495,13 +500,14 @@ class CCBatchDeleteSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
@@ -536,14 +542,14 @@ class CCUpdateSetServiceStatusService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
         for set_id in cc_set_select:
@@ -579,14 +585,14 @@ class CCCreateSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_parent_select'))
         cc_set_info = data.get_one_of_inputs('cc_set_info')
         cc_kwargs = {
@@ -656,14 +662,14 @@ class CCUpdateSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
         cc_set_property = data.get_one_of_inputs('cc_set_property')
@@ -733,14 +739,14 @@ class CCUpdateModuleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
         kwargs = {
             "bk_biz_id": biz_cc_id,
             "bk_supplier_account": supplier_account
@@ -806,13 +812,14 @@ class CCTransferHostToIdleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
