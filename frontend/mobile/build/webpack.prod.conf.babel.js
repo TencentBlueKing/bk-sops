@@ -44,11 +44,11 @@ const prodConf = merge(baseConf, {
                 parallel: true,
                 sourceMap: true
             }),
-            new OptimizeCSSPlugin({
-                cssProcessorOptions: {
-                    safe: true
-                }
-            })
+            // new OptimizeCSSPlugin({
+            //     cssProcessorOptions: {
+            //         safe: true
+            //     }
+            // })
         ],
         splitChunks: {
             // 表示从哪些 chunks 里面提取代码，除了三个可选字符串值 initial、async、all 之外，还可以通过函数来过滤所需的 chunks
@@ -119,18 +119,13 @@ const prodConf = merge(baseConf, {
                 test: /\.s?[ac]ss$/,
                 use: [
                     MiniCssExtractPlugin.loader,
+                    'css-loader',
                     {
-                        loader: 'css-loader',
+                        loader: 'px2rem-loader',
+                        // options here
                         options: {
-                            exportOnlyLocals: false
-                        }
-                    }, 
-                    {
-                        loader: 'postcss-loader',
-                        options: {
-                            config: {
-                                path: resolve(__dirname, '..', 'postcss.config.js')
-                            }
+                            remUnit: 37.5,
+                            remPrecision: 8//换算的rem保留几位小数点
                         }
                     },
                     'sass-loader'
