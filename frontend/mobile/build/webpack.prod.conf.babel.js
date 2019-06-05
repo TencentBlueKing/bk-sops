@@ -119,18 +119,13 @@ const prodConf = merge(baseConf, {
                 test: /\.s?[ac]ss$/,
                 use: [
                     MiniCssExtractPlugin.loader,
+                    'css-loader',
                     {
-                        loader: 'css-loader',
+                        loader: 'px2rem-loader',
+                        // options here
                         options: {
-                            exportOnlyLocals: false
-                        }
-                    }, 
-                    {
-                        loader: 'postcss-loader',
-                        options: {
-                            config: {
-                                path: resolve(__dirname, '..', 'postcss.config.js')
-                            }
+                            remUnit: 37.5,
+                            remPrecision: 8//换算的rem保留几位小数点
                         }
                     },
                     'sass-loader'
