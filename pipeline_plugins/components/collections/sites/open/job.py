@@ -426,7 +426,7 @@ class JobCronTaskService(Service):
             if job_update_result['result']:
                 data.outputs.status = _(u'启动')
             else:
-                data.outputs.ex_data = _(u"新建定时任务成功但是启动失败：{error}").format(error=job_update_result['message'])
+                data.outputs.ex_data = _(u'新建定时任务成功但是启动失败：{error}').format(error=job_update_result['message'])
                 return False
 
         return True
