@@ -357,6 +357,7 @@
     .task-item {
         display: inline-block;
         margin-left: 15px;
+        margin-bottom: 5px;
         width: 260px;
         cursor: pointer;
         &:nth-child(3n + 1) {
@@ -372,6 +373,7 @@
             color: #ffffff;
             font-size: 28px;
             overflow: hidden;
+            border-radius: 4px 0 0 4px;
         }
         .task-item-name {
             margin-left: 56px;
@@ -383,6 +385,7 @@
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
+            border-radius: 0 4px 4px 0;
         }
         &:hover {
             color: $blueDefault;

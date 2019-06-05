@@ -263,7 +263,15 @@
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
             isSubNavActived (route) {
-                return new RegExp('^' + route.path).test(this.$route.path)
+                let path = ''
+                let isNavigation = ''
+                if (route.path === '/admin/statistics/template/') {
+                    path = '/admin/statistics/'
+                    isNavigation = new RegExp('^' + path).test(this.$route.path)
+                } else {
+                    isNavigation = new RegExp('^' + route.path).test(this.$route.path)
+                }
+                return isNavigation
             },
             getPath (route) {
                 /** 404 页面时，导航统一跳转到首页 */

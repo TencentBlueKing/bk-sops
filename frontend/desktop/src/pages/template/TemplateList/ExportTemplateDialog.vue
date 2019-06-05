@@ -393,7 +393,7 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border-radius: 2px;
+        border-radius: 4px;
         cursor: pointer;
         &:nth-child(2n + 1) {
             margin-left: 0;
@@ -407,6 +407,7 @@
             font-size: 24px;
             color: #ffffff;
             text-align: center;
+            border-radius: 4px 0 0 4px;
         }
         .template-item-name {
             margin-left: 56px;
@@ -417,6 +418,7 @@
             white-space: nowrap;
             text-overflow: ellipsis;
             color: #313238;
+            border-radius: 0 4px 4px 0;
         }
         &:nth-child(2n) {
             margin-right: 0;
@@ -461,7 +463,6 @@
             margin: 0 0 10px 14px;
             width: 254px;
             height: 56px;
-            border-radius: 2px;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -472,6 +473,7 @@
             height: 56px;
             line-height: 56px;
             background: #666a7c;
+            border-radius: 4px 0 0 4px;
             .selected-name {
                 display: flex;
                 justify-content: center;
@@ -490,6 +492,7 @@
             white-space: nowrap;
             text-overflow: ellipsis;
             color: #ffffff;
+            border-radius: 0 4px 4px 0;
         }
         .selected-delete {
             display: none;

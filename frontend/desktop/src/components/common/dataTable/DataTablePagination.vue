@@ -307,6 +307,7 @@
       }
     }
     .el-table-column--selection .cell {
+      font-size: 12px;
       padding: 0;
       text-align: center;
     }
