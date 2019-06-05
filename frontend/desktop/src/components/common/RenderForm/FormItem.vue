@@ -328,7 +328,7 @@
         position: relative;
         margin-top: 8px;
         width: 100px;
-        font-size: 14px;
+        font-size: 12px;
         color: #313238;
         text-align: right;
         word-wrap: break-word;
@@ -357,7 +357,7 @@
         display: inline-block;
         height: 36px;
         line-height: 36px;
-        font-size: 14px;
+        font-size: 12px;
         word-wrap: break-word;
         word-break: break-all;
     }

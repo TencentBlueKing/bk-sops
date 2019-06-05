@@ -26,7 +26,7 @@
                 <span class="title">{{i18n.title}}</span>
                 <bk-tooltip placement="bottom-end" width="400" class="desc-tooltip">
                     <i class="bk-icon icon-info-circle"></i>
-                    <div slot="content" style="white-space: normal;">
+                    <div slot="content" clss="tooltip" style="white-space: normal;">
                         <div>{{i18n.executorTips}}</div>
                     </div>
                 </bk-tooltip>
@@ -111,6 +111,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .task-param-wrapper {
+    max-width: 620px;
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
@@ -144,6 +145,10 @@
         .desc-tooltip {
             float: right;
             margin: 20px;
+        }
+        /deep/.bk-tooltip-inner {
+            background: #333;
+            border: 0px;
         }
         .icon-info-circle {
             position: relative;
