@@ -9,7 +9,7 @@
 
     import { JSEncrypt } from 'jsencrypt'
 
-    const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select', 'password', 'meta']
+    const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select', 'password']
 
     const components = require.context(
         '.',
@@ -103,8 +103,9 @@
                         }
                         if (item.type === 'select') {
                             this.domAttr.select = {
+                                multiple: item.attrs.multiple,
                                 columns: item.attrs.items,
-                                defaultVal: item.attrs.items.findIndex(o => o.text === this.value),
+                                defaultVal: item.attrs.multiple ? item.attrs.value : [item.attrs.items.findIndex(o => o.text === this.value)],
                                 tagCode: this.customType ? this.customType : this.sourceCode
                             }
                         } else if (item.type === 'checkbox') {
@@ -133,9 +134,8 @@
                 if (variable.meta_transform && this.data.is_meta) {
                     const metaConfig = variable.meta_transform(this.data.meta || this.data)
                     variable.attrs = metaConfig.attrs
-                    variable.type = 'meta'
-                    // 元变量暂时只做展示，无法进行修改和选择
-                    this.value = metaConfig.attrs.value.join(',')
+                    variable.type = metaConfig.type
+                    this.value = metaConfig.attrs.items.filter(item => metaConfig.attrs.value.includes(item.value)).map(obj => obj.text).join(',')
                 }
             },
 
@@ -158,22 +158,26 @@
                 nativeOn: {
                     change: function (event) {
                         if (self.customType !== 'password') {
-                            self.$emit('dataChange', event.target.value, self.customType ? self.data['key'] : self.sourceCode, self.customType)
+                            self.$emit('dataChange', event.target.value, self.data.key)
                         } else {
                             const crypt = new JSEncrypt()
                             const cryptVal = crypt.encrypt(event.target.value)
-                            self.$emit('dataChange', cryptVal || event.target.value, self.customType ? self.data['key'] : self.sourceCode, self.customType)
+                            self.$emit('dataChange', cryptVal || event.target.value, self.data.key)
                         }
                     },
                     click: function (event) {
                         if (self.customType === 'datetime') {
-                            self.$emit('dataChange', event.target.value, self.data['key'], self.customType)
+                            self.$emit('dataChange', event.target.value, self.data.key, self.customType)
                         } else if (self.customType === 'select') {
-                            self.$emit('onSelect', self.domAttr.select)
+                            const val = self.$refs[self.data.key].value
+                            if (val !== self.data.value) {
+                                self.$emit('dataChange', val ? val.split(',') : [], self.data.key, self.customType)
+                            }
                         }
                     }
                 },
-                props: this.domAttr
+                props: this.domAttr,
+                ref: this.data.key
             })
         }
     }
