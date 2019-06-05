@@ -19,6 +19,7 @@ class JobCronComponentTest(TestCase, ComponentTestMixin):
     def cases(self):
         return [
             SAVE_CRON_FAIL_CASE,
+            SAVE_CRON_SUCCESS_CASE,
             UPDATE_CRON_STATUS_FAIL_CASE,
             JOB_CRON_SUCCESS_CASE
         ]
@@ -114,6 +115,41 @@ SAVE_CRON_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=SAVE_CRON_CALL_FAIL_CLIENT),
     ]
 )
+SAVE_CRON_SUCCESS_CASE = ComponentTestCase(
+    name='save cron call success case',
+    inputs={
+        'job_cron_job_id': 1,
+        'job_cron_name': 'job_cron_name',
+        'job_cron_expression': '0 0/5 * * * ?',
+        'job_cron_status': 2,
+    },
+    parent_data={
+        'executor': 'executor',
+        'biz_cc_id': 1
+    },
+    execute_assertion=ExecuteAssertion(
+        success=True,
+        outputs={
+            'cron_id': 1,
+            'status': u'暂停'
+        }
+    ),
+    schedule_assertion=None,
+    execute_call_assertion=[
+        CallAssertion(
+            func=SAVE_CRON_CALL_SUCCESS_CLIENT.job.save_cron,
+            calls=[Call({
+                'bk_biz_id': 1,
+                'bk_job_id': 1,
+                'cron_name': 'job_cron_name',
+                'cron_expression': '0 0/5 * * * ?'
+            })]
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=SAVE_CRON_CALL_SUCCESS_CLIENT),
+    ]
+)
 UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
     name='update cron status call failed case',
     inputs={
@@ -127,10 +163,10 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
         'biz_cc_id': 1
     },
     execute_assertion=ExecuteAssertion(
-        success=True,
+        success=False,
         outputs={
             'cron_id': 1,
-            'ex_data': 'update_cron_status fail',
+            'ex_data': u"新建定时任务成功但是启动失败：update_cron_status fail",
             'status': u'暂停'
         }
     ),

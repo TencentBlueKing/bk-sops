@@ -412,6 +412,7 @@ class JobCronTaskService(Service):
             data.outputs.ex_data = job_save_result['message']
             return False
 
+        data.outputs.cron_id = job_save_result['data']['cron_id']
         data.outputs.status = _(u'暂停')
         # 更新作业状态
         job_cron_status = data.get_one_of_inputs('job_cron_status')
@@ -425,9 +426,9 @@ class JobCronTaskService(Service):
             if job_update_result['result']:
                 data.outputs.status = _(u'启动')
             else:
-                data.outputs.ex_data = job_update_result['message']
+                data.outputs.ex_data = _(u"新建定时任务成功但是启动失败：{error}").format(error=job_update_result['message'])
+                return False
 
-        data.outputs.cron_id = job_save_result['data']['cron_id']
         return True
 
     def outputs_format(self):
