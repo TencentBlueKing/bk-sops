@@ -531,7 +531,7 @@
                 margin-left: 5px;
             }
         }
-        .bk-button {
+        /deep/.bk-button {
             height: 32px;
             line-height: 30px;
         }
@@ -560,6 +560,7 @@
         .bk-button {
             width: 100px;
             height: 32px;
+            line-height: 32px;
             margin-right: 24px;
             margin-bottom: 4px;
         }
