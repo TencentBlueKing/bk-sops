@@ -166,7 +166,7 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             'cron_id': 1,
-            'ex_data': u"新建定时任务成功但是启动失败：update_cron_status fail",
+            'ex_data': u'新建定时任务成功但是启动失败：update_cron_status fail',
             'status': u'暂停'
         }
     ),
