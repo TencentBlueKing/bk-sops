@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.middleware.csrf import rotate_token
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
@@ -96,7 +95,6 @@ class WeixinLoginMiddleware(MiddlewareMixin):
 
         # 验证OK
         if request.weixin_user.is_authenticated():
-            rotate_token(request)
             return None
 
         # 微信登录失效或者未通过验证，直接重定向到微信登录
