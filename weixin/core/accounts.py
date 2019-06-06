@@ -20,6 +20,7 @@ import urllib
 import logging
 
 from django.http import HttpResponseRedirect, HttpResponse
+from django.middleware.csrf import rotate_token
 from django.utils.translation import ugettext as _
 
 from . import settings as weixin_settings
@@ -171,6 +172,9 @@ class WeixinAccount(WeixinAccountSingleton):
         # 设置session
         request.session['weixin_user_id'] = user.id
         setattr(request, 'weixin_user', user)
+
+        # need csrftoken
+        rotate_token(request)
 
         # 跳转到用户实际访问URL
         callback_url = self.get_callback_url(request)
