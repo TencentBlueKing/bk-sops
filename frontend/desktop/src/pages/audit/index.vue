@@ -477,6 +477,7 @@
 .audit-fieldset {
     width: 100%;
     margin-bottom: 15px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .audit-query-content {
