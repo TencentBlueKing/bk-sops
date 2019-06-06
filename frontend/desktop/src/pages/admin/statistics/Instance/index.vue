@@ -741,7 +741,6 @@
                 this.timeTypeStartTime = startTime
             },
             onDatePickerClick () {
-                console.log('0000')
                 this.datePickerRefShow = !this.datePickerRefShow
                 this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
             },
