@@ -58,7 +58,9 @@
                                         :class="['task-item', { 'task-item-selected': selectedId === template.id }]"
                                         @click="onSelectTask(template)">
                                         <div class="task-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
-                                        <div class="task-item-name">{{template.name}}</div>
+                                        <div class="task-item-name-box">
+                                            <div class="task-item-name">{{template.name}}</div>
+                                        </div>
                                     </li>
                                 </ul>
                             </li>
@@ -286,6 +288,7 @@
 
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
 .task-container {
     position: relative;
@@ -360,6 +363,8 @@
         margin-bottom: 5px;
         width: 260px;
         cursor: pointer;
+        background: #dcdee5;
+        border-radius: 4px;
         &:nth-child(3n + 1) {
             margin-left: 0;
         }
@@ -376,29 +381,39 @@
             border-radius: 4px 0 0 4px;
         }
         .task-item-name {
-            margin-left: 56px;
-            padding: 0 12px;
-            height: 56px;
-            line-height: 56px;
             color: #313238;
-            background: #dcdee5;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
+            word-break: break-all;
             border-radius: 0 4px 4px 0;
+            @include multiLineEllipsis(14px, 2);
+            &:after {
+                background: #dcdee5
+            }
         }
         &:hover {
             color: $blueDefault;
         }
+    }
+    .task-item-name-box {
+        display: table-cell;
+        vertical-align: middle;
+        margin-left: 56px;
+        padding: 0 15px;
+        height: 56px;
+        width: 205px;
+        font-size: 12px;
+        border-radius: 0 4px 4px 0;
     }
     .task-item-selected {
         .task-item-icon {
             background: #666a7c;
             color: #ffffff;
         }
-        .task-item-name {
+        .task-item-name, .task-item-name-box {
             background: #838799;
             color: #ffffff;
+            &:after {
+                background: #838799
+            }
         }
     }
     .task-footer {
