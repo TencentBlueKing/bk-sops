@@ -12,13 +12,36 @@
 (function () {
     $.atoms.cc_update_set_service_status = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: false,
+                remote: true,
+                remote_url: $.context.site_url + 'pipeline/get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: $.context.project.from_cmdb,
+                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "cc_set_select",
             type: "tree",
             attrs: {
                 name: gettext("集群"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/cc_search_topo/set/normal/' + $.context.biz_cc_id + '/',
+                remote_url: function () {
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/set/normal/' + $.context.project.cmdb_biz_id + '/' : '';
+                    return url;
+                },
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
@@ -26,7 +49,18 @@
                     {
                         type: "required"
                     }
-                ]
+                ],
+                events: [
+                    {
+                        source: "biz_cc_id",
+                        type: "change",
+                        action: function (value) {
+                            this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/set/normal/' + value + '/';
+                            this._set_value('');
+                            this.remoteMethod();
+                        }
+                    }
+                ],
             },
             methods: {}
         },

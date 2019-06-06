@@ -12,13 +12,36 @@
 (function () {
     $.atoms.cc_create_set = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: false,
+                remote: true,
+                remote_url: $.context.site_url + 'pipeline/get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: $.context.project.from_cmdb,
+                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "cc_set_parent_select",
             type: "tree",
             attrs: {
                 name: gettext("父实例"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + $.context.biz_cc_id + '/',
+                remote_url: function () {
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + $.context.project.cmdb_biz_id + '/' : '';
+                    return url
+                },
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
@@ -28,6 +51,17 @@
                     }
                 ]
             },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + value + '/';
+                        this._set_value('');
+                        this.remoteMethod();
+                    }
+                }
+            ],
             methods: {}
         },
         {
