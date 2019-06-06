@@ -260,6 +260,7 @@
     float: left;
     width: 60%;
     height: 100%;
+    background: #f7f9fa;
     .app-detail {
         padding: 20px;
         font-size: 12px;
