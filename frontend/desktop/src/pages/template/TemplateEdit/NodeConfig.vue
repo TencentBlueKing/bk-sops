@@ -25,7 +25,7 @@
                                 :tools="!isSingleAtom"
                                 :searchable="true"
                                 :list="atomList"
-                                :selected="parseInt(currentAtom)"
+                                :selected="currentAtom"
                                 @item-selected="onAtomSelect"
                                 @edit="onJumpToProcess">
                             </bk-selector>
@@ -615,7 +615,6 @@
                 if (this.isSingleAtom) {
                     const data = tools.deepClone(formData.component.data)
                     this.currentAtom = formData.component.code || ''
-                    console.log(this.currentAtom)
                     this.errorCouldBeIgnored = formData.error_ignorable
                     for (const form in data) {
                         inputFormHooks[form] = data[form].hook || false
@@ -624,8 +623,7 @@
                         }
                     }
                 } else {
-                    this.currentAtom = formData.template_id
-                    console.log(this.currentAtom)
+                    this.currentAtom = parseInt(formData.template_id)
                     for (const key in formData.constants) {
                         const form = formData.constants[key]
                         const tagCode = key.match(varKeyReg)[1]
