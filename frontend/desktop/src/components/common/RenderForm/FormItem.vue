@@ -328,7 +328,7 @@
         position: relative;
         margin-top: 8px;
         width: 100px;
-        font-size: 12px;
+        font-size: 14px;
         color: #313238;
         text-align: right;
         word-wrap: break-word;

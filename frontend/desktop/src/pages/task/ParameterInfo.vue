@@ -26,7 +26,7 @@
                 <span class="title">{{i18n.title}}</span>
                 <bk-tooltip placement="bottom-end" width="400" class="desc-tooltip">
                     <i class="bk-icon icon-info-circle"></i>
-                    <div slot="content" clss="tooltip" style="white-space: normal;">
+                    <div slot="content" style="white-space: normal;">
                         <div>{{i18n.executorTips}}</div>
                     </div>
                 </bk-tooltip>
