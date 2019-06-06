@@ -99,12 +99,12 @@
                 name: gettext('流程模板'),
                 children: [
                     {
-                        key: 'template',
+                        key: 'home',
                         name: gettext('业务流程'),
                         path: '/template/home/'
                     },
                     {
-                        key: 'commonTemplate',
+                        key: 'template/common',
                         name: gettext('公共流程'),
                         path: '/template/common/'
                     }
@@ -141,7 +141,7 @@
                         path: '/admin/statistics/template/'
                     },
                     {
-                        key: 'common',
+                        key: 'admin/common',
                         parent: 'admin',
                         name: gettext('公共流程'),
                         path: '/admin/common/template/'
@@ -259,19 +259,10 @@
                 } else if (this.userType === 'auditor') {
                     return key === 'audit'
                 }
-
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
             isSubNavActived (route) {
-                let path = ''
-                let isNavigation = ''
-                if (route.path === '/admin/statistics/template/') {
-                    path = '/admin/statistics/'
-                    isNavigation = new RegExp('^' + path).test(this.$route.path)
-                } else {
-                    isNavigation = new RegExp('^' + route.path).test(this.$route.path)
-                }
-                return isNavigation
+                return new RegExp(route.key).test(this.$route.path)
             },
             getPath (route) {
                 /** 404 页面时，导航统一跳转到首页 */
