@@ -17,7 +17,7 @@
             :key="index"
             :type="item.type"
             :icon="item.icon"
-            :loading="item.lodaing"
+            :loading="item.loading"
             :disabled="item.disabled"
             @click="onClick(item.click)">
             {{item.btnText}}

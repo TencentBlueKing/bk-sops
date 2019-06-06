@@ -97,7 +97,7 @@
                 dialogFooterData: [
                     {
                         type: 'primary',
-                        lodaing: false,
+                        loading: false,
                         btnText: gettext('确认'),
                         click: 'onConfirm'
                     }, {
@@ -121,7 +121,7 @@
                 this.$emit('onModifyPeriodicCancel')
             },
             onModifyPeriodicConfirm () {
-                this.dialogFooterData[0].lodaing = true
+                this.dialogFooterData[0].loading = true
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then((result) => {
                     let formValid = true
@@ -195,7 +195,7 @@
                                 'theme': 'error'
                             })
                         }
-                        this.dialogFooterData[0].lodaing = false
+                        this.dialogFooterData[0].loading = false
                         this.$emit('onModifyPeriodicConfirm')
                     })
                 } catch (e) {

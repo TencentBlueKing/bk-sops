@@ -169,7 +169,7 @@
                 dialogFooterData: [
                     {
                         type: 'primary',
-                        lodaing: false,
+                        loading: false,
                         btnText: gettext('确认'),
                         click: 'onConfirm'
                     }, {
@@ -194,7 +194,7 @@
         },
         watch: {
             pending () {
-                this.dialogFooterData[0].lodaing = this.pending
+                this.dialogFooterData[0].loading = this.pending
             }
         },
         created () {
