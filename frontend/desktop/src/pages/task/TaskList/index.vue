@@ -789,7 +789,7 @@
             width: 110px;
         }
         .task-method {
-            width: 110px;
+            width: 120px;
         }
         .task-status {
             width: 105px;
