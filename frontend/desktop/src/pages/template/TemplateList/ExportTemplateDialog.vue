@@ -63,7 +63,9 @@
                                         ]"
                                         @click="onSelectTemplate(template)">
                                         <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
-                                        <div class="template-item-name">{{template.name}}</div>
+                                        <div class="item-name-box">
+                                            <div class="template-item-name">{{template.name}}</div>
+                                        </div>
                                     </li>
                                 </ul>
                             </li>
@@ -86,8 +88,8 @@
                         <div class="selected-item-icon">
                             <span class="selected-name" :title="template.name">{{getTemplateIcon(template)}}</span>
                         </div>
-                        <div class="selected-item-name">
-                            <span class="item-name">{{template.name}}</span>
+                        <div class="item-name-box">
+                            <div class="selected-item-name">{{template.name}}</div>
                         </div>
                         <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
                     </li>
@@ -319,6 +321,7 @@
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
 .export-container {
     position: relative;
@@ -410,27 +413,38 @@
             border-radius: 4px 0 0 4px;
         }
         .template-item-name {
-            margin-left: 56px;
-            padding: 0 12px;
-            height: 56px;
-            line-height: 56px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             color: #313238;
+            word-break: break-all;
             border-radius: 0 4px 4px 0;
+            @include multiLineEllipsis(14px, 2);
+            &:after {
+                background: #dcdee5
+            }
         }
         &:nth-child(2n) {
             margin-right: 0;
         }
     }
+    .item-name-box {
+        display: table-cell;
+        vertical-align: middle;
+        margin-left: 56px;
+        padding: 0 15px;
+        height: 56px;
+        width: 195px;
+        font-size: 12px;
+        border-radius: 0 4px 4px 0;
+    }
     .template-item-selected {
         .template-item-icon {
             background: #666a7c;
         }
-        .template-item-name {
+        .template-item-name, .item-name-box {
             background: #838799;
             color: #ffffff;
+            &:after {
+                background: #838799
+            }
         }
     }
     .empty-template {
@@ -463,6 +477,7 @@
             margin: 0 0 10px 14px;
             width: 254px;
             height: 56px;
+            background: #838799;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -483,16 +498,13 @@
             }
         }
         .selected-item-name {
-            margin-left: 56px;
-            padding: 0 12px;
-            height: 56px;
-            line-height: 56px;
-            background: #838799;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             color: #ffffff;
+            word-break: break-all;
             border-radius: 0 4px 4px 0;
+            @include multiLineEllipsis(14px, 2);
+            &:after {
+                background: #838799
+            }
         }
         .selected-delete {
             display: none;
