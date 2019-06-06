@@ -98,12 +98,12 @@ INSTALLED_APPS += (
 
 # 自定义中间件
 MIDDLEWARE += (
+    'weixin.core.middlewares.WeixinAuthenticationMiddleware',
+    'weixin.core.middlewares.WeixinLoginMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
-    'weixin.core.middlewares.WeixinAuthenticationMiddleware',
-    'weixin.core.middlewares.WeixinLoginMiddleware',
 )
 
 MIDDLEWARE = ('weixin.core.middlewares.WeixinProxyPatchMiddleware',) + MIDDLEWARE
