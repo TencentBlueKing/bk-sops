@@ -12,6 +12,26 @@
 (function(){
     $.atoms.cc_update_host = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: false,
+                remote: true,
+                remote_url: $.context.site_url + 'pipeline/get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: $.context.project.from_cmdb,
+                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "cc_host_ip",
             type: "textarea",
             attrs: {
@@ -33,7 +53,10 @@
                 placeholder: gettext("请选择需要更新的主机属性"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/cc_search_object_attribute/host/' + $.context.biz_cc_id + '/',
+                remote_url: function () {
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_object_attribute/host/' + $.context.project.cmdb_biz_id + '/' : '';
+                    return url
+                },
                 remote_data_init: function(resp) {
                     return resp.data;
                 },
@@ -41,7 +64,18 @@
                     {
                         type: "required"
                     }
-                ]
+                ],
+                events: [
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        this.remote_url = $.context.site_url + 'pipeline/cc_search_object_attribute/host/' + value + '/';
+                        this._set_value('');
+                        this.remoteMethod();
+                    }
+                }
+            ],
             }
         },
         {

@@ -12,6 +12,26 @@
 (function(){
     $.atoms.job_fast_execute_script = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: false,
+                remote: true,
+                remote_url: $.context.site_url + 'pipeline/get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: $.context.project.from_cmdb,
+                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "job_script_source",
             type: "radio",
             attrs: {
@@ -147,7 +167,10 @@
                 name: gettext("脚本列表"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/job_get_script_list/' + $.context.biz_cc_id + '/?type=public',
+                remote_url: function () {
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/job_get_script_list/' + $.context.project.cmdb_biz_id + '/?type=public' : '';
+                    return url;
+                },
                 remote_data_init: function(resp) {
                     return resp.data;
                 },
@@ -174,7 +197,18 @@
                             return result
                         }
                     }
-                ]
+                ],
+                events: [
+                    {
+                        source: "biz_cc_id",
+                        type: "change",
+                        action: function (value) {
+                            this.remote_url = $.context.site_url + 'pipeline/job_get_script_list/' + value + '/?type=public';
+                            this._set_value('');
+                            this.remoteMethod();
+                        }
+                    }
+                ],
             },
             events: [
                 {

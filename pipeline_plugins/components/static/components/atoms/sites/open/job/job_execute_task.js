@@ -12,13 +12,36 @@
 (function () {
     $.atoms.job_execute_task = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: false,
+                remote: true,
+                remote_url: $.context.site_url + 'pipeline/get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: $.context.project.from_cmdb,
+                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "job_task_id",
             type: "select",
             attrs: {
                 name: gettext("作业模板"),
                 hookable: false,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + $.context.biz_cc_id + '/',
+                remote_url: function () {
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + $.context.project.cmdb_biz_id + '/' : '';
+                    return url;
+                },
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
@@ -26,7 +49,18 @@
                     {
                         type: "required"
                     }
-                ]
+                ],
+                events: [
+                    {
+                        source: "biz_cc_id",
+                        type: "change",
+                        action: function (value) {
+                            this.remote_url = $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + value + '/';
+                            this._set_value('');
+                            this.remoteMethod();
+                        }
+                    }
+                ],
             }
         },
         {
