@@ -6,7 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<title>{%  trans "标准运维移动版" %}|{% trans RUN_VER_NAME %}</title>
+    <script src="{{STATIC_URL}}weixin/debug/vconsole.min.js?v={{STATIC_VERSION}}" type="text/javascript"></script>
     <script>
+        var vConsole = new VConsole();
         /* 全局变量 */
         var RUN_VER = '{{RUN_VER}}';
         var SITE_URL = '{{SITE_URL}}';
