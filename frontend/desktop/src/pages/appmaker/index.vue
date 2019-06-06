@@ -428,6 +428,7 @@
     .appmaker-fieldset {
         width: 100%;
         margin: 0;
+        padding: 8px;
         border: 1px solid $commonBorderColor;
         background: $whiteDefault;
         margin-bottom: 15px;
