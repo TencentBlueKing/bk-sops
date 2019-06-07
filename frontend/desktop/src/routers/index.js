@@ -32,6 +32,8 @@ const ConfigPage = () => import('@/pages/config/index.vue')
 const AppMaker = () => import('@/pages/appmaker/index.vue')
 const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
 
+const ProjectHome = () => import('@/pages/project/index.vue')
+
 const ErrorPage = () => import('@/pages/error/index.vue')
 
 const Admin = () => import('@/pages/admin/index.vue')
@@ -203,6 +205,11 @@ const routers = new VueRouter({
                 cc_id: route.params.cc_id,
                 app_id: route.params.app_id
             })
+        },
+        {
+            path: '/project/home/',
+            name: 'projectHome',
+            component: ProjectHome
         },
         {
             path: '/error/:code(401|403|405|406|500)/',
