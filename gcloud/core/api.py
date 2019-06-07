@@ -11,29 +11,31 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib.auth.models import Group
 from django.http import JsonResponse
+from django.contrib.auth.models import Group
 from django.views.decorators.http import require_POST, require_GET
 from django.utils.translation import ugettext_lazy as _
 
 from gcloud.core import roles
 from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
-from gcloud.core.models import UserBusiness
+from gcloud.core.models import UserDefaultProject
 from gcloud.core.utils import convert_group_name
 
 
 @require_POST
-def change_default_business(request, biz_cc_id):
+def change_default_project(request, project_id):
     """
-    @summary: 切换用户默认业务
+    @summary: 切换用户默认项目
     """
-    UserBusiness.objects.update_or_create(
-        user=request.user.username,
-        defaults={'default_buss': biz_cc_id})
+    UserDefaultProject.objects.update_or_create(
+        username=request.user.username,
+        default_project_id=project_id
+    )
+
     return JsonResponse({
         'result': True,
         'data': {},
-        'message': _(u"用户默认业务切换成功")
+        'message': _(u"用户默认项目切换成功")
     })
 
 

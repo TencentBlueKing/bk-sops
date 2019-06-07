@@ -131,6 +131,11 @@
                 name: gettext('轻应用')
             },
             {
+                key: 'project',
+                path: '/project/home/',
+                name: gettext('项目管理')
+            },
+            {
                 key: 'admin',
                 name: gettext('管理员入口'),
                 children: [
@@ -285,7 +290,7 @@
                 let path
                 if (route.key === 'appmakerTaskCreate') {
                     path = `${route.path}?template_id=${this.templateId}`
-                } else if (this.userType !== 'maintainer' || route.parent === 'admin') {
+                } else if (this.userType !== 'maintainer' || route.key === 'project' || route.parent === 'admin') {
                     path = `${route.path}`
                 } else {
                     path = { path: `${route.path}${this.cc_id}/`, query: route.query }
