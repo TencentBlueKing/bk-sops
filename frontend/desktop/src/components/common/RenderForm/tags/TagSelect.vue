@@ -104,7 +104,6 @@
         data () {
             return {
                 loading: false,
-                remote_cache: null,
                 loading_text: gettext('加载中')
             }
         },
@@ -167,7 +166,7 @@
                 if (!remote_url) return
 
                 // 请求远程数据
-                if (!this.remote_cache && remote_url) {
+                if (remote_url) {
                     this.loading = true
                     $.ajax({
                         url: remote_url,
@@ -176,7 +175,6 @@
                             const data = self.remote_data_init(res) || []
 
                             self.items = data
-                            self.remote_cache = data
                             self.loading = false
                         },
                         error: function (resp) {
@@ -184,8 +182,6 @@
                             self.loading = false
                         }
                     })
-                } else {
-                    this.items = this.remote_cache || []
                 }
             }
         }
