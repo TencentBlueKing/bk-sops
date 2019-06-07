@@ -246,7 +246,7 @@ class JobFastPushFileComponent(Component):
     name = _(u'快速分发文件')
     code = 'job_fast_push_file'
     bound_service = JobFastPushFileService
-    form = '%scomponents/atoms/job/job_fast_push_file.js' % settings.STATIC_URL
+    form = '%scomponents/atoms/sites/%s/job/job_fast_push_file.js' % (settings.STATIC_URL, settings.RUN_VER)
 
 
 class JobFastExecuteScriptService(JobService):

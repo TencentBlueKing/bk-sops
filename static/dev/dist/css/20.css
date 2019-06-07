@@ -1,0 +1,224 @@
+.footer-wrapper[data-v-1a93b6c8] {
+  margin-top: 50px;
+  padding-bottom: 30px;
+  min-width: 1320px;
+}
+.footer-wrapper .copyright[data-v-1a93b6c8] {
+    font-size: 12px;
+    color: #999999;
+    text-align: center;
+}
+.footer-wrapper .link-list[data-v-1a93b6c8] {
+    margin-bottom: 6px;
+}
+.footer-wrapper .link-item[data-v-1a93b6c8] {
+    display: inline-block;
+    margin-left: -4px;
+    padding: 0 4px;
+    line-height: 1;
+    color: #3480fe;
+    border-right: 1px solid #3480fe;
+}
+.footer-wrapper .link-item[data-v-1a93b6c8]:last-child {
+      border-right: none;
+}
+.footer-wrapper .desc[data-v-1a93b6c8] {
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.list-wrapper-title[data-v-59bc4ae2] {
+  height: 60px;
+  line-height: 60px;
+  border-bottom: 1px solid #dde4eb;
+}
+.list-wrapper-title .list-wrapper-border[data-v-59bc4ae2] {
+    color: #a3c5fd;
+}
+.list-wrapper-title .list-wrapper-name[data-v-59bc4ae2] {
+    margin-left: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #313238;
+}
+
+.appmaker-container[data-v-50029384] {
+  padding-top: 20px;
+  min-width: 1320px;
+  min-height: calc(100% - 50px);
+  background: #fafafa;
+}
+.list-wrapper[data-v-50029384] {
+  padding: 0 60px;
+  min-height: calc(100vh - 240px);
+}
+.operation-area[data-v-50029384] {
+  margin: 20px 0;
+}
+.operation-area .appmaker-search[data-v-50029384] {
+    float: right;
+    position: relative;
+}
+.operation-area .search-input[data-v-50029384] {
+    padding: 0 40px 0 10px;
+    width: 360px;
+    height: 32px;
+    line-height: 32px;
+    font-size: 14px;
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    outline: none;
+}
+.operation-area .search-input[data-v-50029384]:hover {
+      border-color: #c0c4cc;
+}
+.operation-area .search-input[data-v-50029384]:focus {
+      border-color: #3c96ff;
+}
+.operation-area .search-input:focus + i[data-v-50029384] {
+        color: #3c96ff;
+}
+.operation-area .common-icon-search[data-v-50029384] {
+    position: absolute;
+    right: 15px;
+    top: 8px;
+    color: #dddddd;
+}
+.appmaker-table-content table[data-v-50029384] {
+  width: 100%;
+  border: 1px solid #ebebeb;
+  border-collapse: collapse;
+  font-size: 12px;
+  background: #ffffff;
+  table-layout: fixed;
+}
+.appmaker-table-content table tr[data-v-50029384]:not(.empty-tr):hover {
+    background: #fafafa;
+}
+.appmaker-table-content table th[data-v-50029384], .appmaker-table-content table td[data-v-50029384] {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #dddddd;
+}
+.appmaker-table-content table th[data-v-50029384] {
+    background: #fafafa;
+}
+.appmaker-table-content table .appmaker-id[data-v-50029384] {
+    padding-left: 20px;
+    width: 80px;
+}
+.appmaker-table-content table .appmaker-name[data-v-50029384] {
+    text-align: left;
+}
+.appmaker-table-content table .appmaker-name a[data-v-50029384] {
+      display: block;
+      width: 100%;
+      color: #3c96ff;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      word-break: break-all;
+      overflow: hidden;
+}
+.appmaker-table-content table .appmaker-type[data-v-50029384] {
+    width: 110px;
+}
+.appmaker-table-content table .appmaker-time[data-v-50029384] {
+    width: 220px;
+}
+.appmaker-table-content table .appmaker-creator[data-v-50029384] {
+    width: 110px;
+}
+.appmaker-table-content table .appmaker-operator[data-v-50029384] {
+    width: 110px;
+}
+.appmaker-table-content table .appmaker-category[data-v-50029384] {
+    width: 110px;
+}
+.appmaker-table-content table .appmaker-name[data-v-50029384] {
+    width: 220px;
+}
+.appmaker-table-content table .appmaker-status[data-v-50029384] {
+    width: 84px;
+}
+.appmaker-table-content table .appmaker-status .common-icon-dark-circle-shape[data-v-50029384] {
+      display: inline-block;
+      -webkit-transform: scale(0.9);
+              transform: scale(0.9);
+      font-size: 12px;
+      color: #979BA5;
+}
+.appmaker-table-content table .appmaker-status .common-icon-dark-circle-ellipsis[data-v-50029384] {
+      color: #3c96ff;
+      font-size: 12px;
+}
+.appmaker-table-content table .appmaker-status .icon-check-circle-shape[data-v-50029384] {
+      color: #30d878;
+}
+.appmaker-table-content table .appmaker-status .common-icon-dark-circle-close[data-v-50029384] {
+      color: #ff5757;
+}
+.appmaker-table-content table .appmaker-status.revoke[data-v-50029384] {
+      color: #878c9c;
+}
+.appmaker-table-content table .appmaker-status .common-icon-loading[data-v-50029384] {
+      display: inline-block;
+      -webkit-animation: bk-button-loading-data-v-50029384 1.4s infinite linear;
+              animation: bk-button-loading-data-v-50029384 1.4s infinite linear;
+}
+@-webkit-keyframes bk-button-loading-data-v-50029384 {
+from {
+    -webkit-transform: rotate(0);
+    transform: rotate(0);
+}
+to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+}
+}
+@keyframes bk-button-loading-data-v-50029384 {
+from {
+    -webkit-transform: rotate(0);
+    transform: rotate(0);
+}
+to {
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+}
+}
+.appmaker-table-content .btn-size-mini[data-v-50029384] {
+  height: 24px;
+  line-height: 22px;
+  padding: 0 11px;
+  font-size: 12px;
+}
+.appmaker-table-content .empty-data[data-v-50029384] {
+  padding: 120px 0;
+}
+.panagation[data-v-50029384] {
+  padding: 10px 20px;
+  text-align: right;
+  border: 1px solid #dde4eb;
+  border-top: none;
+  background: #fafbfd;
+}
+.panagation .page-info[data-v-50029384] {
+    float: left;
+    line-height: 36px;
+    font-size: 14px;
+}
+.panagation .bk-page[data-v-50029384] {
+    display: inline-block;
+}
+.success[data-v-50029384] {
+  color: #30d878;
+}
+.warning[data-v-50029384] {
+  color: #f8b53f;
+}
+.primary[data-v-50029384] {
+  color: #4a9bff;
+}
+
+
+/*# sourceMappingURL=20.css.map*/
