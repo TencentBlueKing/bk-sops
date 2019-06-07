@@ -211,6 +211,10 @@ BK_JOB_HOST = os.environ.get('BK_JOB_HOST')
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = 'v2'
 
+# IAM权限中心配置
+BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
+BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
+
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']
 
