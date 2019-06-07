@@ -1330,6 +1330,75 @@ const api = {
             url: prefixUrl
         }
         return request(opts)
+    },
+    /**
+     * 加载项目列表
+     */
+    loadProjectList (data) {
+        const { limit, offset } = data
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                limit,
+                offset
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 创建项目
+     * @param {Object} data 项目配置参数
+     */
+    createProject (data) {
+        const { name, time_zone, desc } = data
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                name,
+                time_zone,
+                desc
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 获取项目详情
+     * @param {String} id 项目id
+     */
+    loadProjectDetail (id) {
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'GET',
+            url: `${prefixUrl}id`
+        }
+        return request(opts)
+    },
+    /**
+     * 更新项目详情
+     * @param {Object} data 项目配置参数
+     */
+    updateProject (data) {
+        const { id, name, time_zone, desc, is_disable } = data
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'PATCH',
+            url: `${prefixUrl}${id}`,
+            data: {
+                name,
+                time_zone,
+                desc,
+                is_disable
+            }
+        }
+        return request(opts)
     }
 }
 
