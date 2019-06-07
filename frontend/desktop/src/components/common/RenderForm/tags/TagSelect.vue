@@ -37,7 +37,7 @@
                         v-for="group in items"
                         :key="group.text"
                         :label="group.text">
-                         <el-option
+                        <el-option
                             v-for="item in group.options"
                             v-loading="loading"
                             :key="item.text"
