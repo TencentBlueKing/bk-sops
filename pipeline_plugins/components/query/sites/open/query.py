@@ -409,16 +409,15 @@ def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
     return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
 
 
-@supplier_account_inject
-def get_business(request, biz_cc_id, supplier_account):
+def get_business(request):
     try:
         business = get_user_business_list(request)
     except Exception:
         logger.error('an error occurred when fetch user business: %s' % traceback.format_exc())
-        return {
+        return JsonResponse({
             'result': False,
             'message': 'fetch business list failed, please contact administrator'
-        }
+        })
 
     data = []
     for biz in business:
@@ -427,10 +426,10 @@ def get_business(request, biz_cc_id, supplier_account):
             'value': str(biz['bk_biz_id'])
         })
 
-    return {
+    return JsonResponse({
         'result': True,
         'data': data
-    }
+    })
 
 
 urlpatterns = [
