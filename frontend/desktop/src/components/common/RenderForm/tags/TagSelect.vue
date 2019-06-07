@@ -23,7 +23,7 @@
                 :multiple="multiple"
                 :no-data-text="empty_text"
                 :placeholder="placeholder">
-                <template v-if="hasGroup">
+                <template v-if="!hasGroup">
                     <el-option
                         v-for="item in items"
                         v-loading="loading"
@@ -37,7 +37,7 @@
                         v-for="group in items"
                         :key="group.text"
                         :label="group.text">
-                         <el-option
+                        <el-option
                             v-for="item in group.options"
                             v-loading="loading"
                             :key="item.text"
