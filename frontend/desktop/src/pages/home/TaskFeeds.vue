@@ -12,7 +12,7 @@
 <template>
     <div class="task-feeds-content">
         <h3 class="title">{{i18n.feeds}}</h3>
-        <router-link class="view-more-task" :to="`/taskflow/home/${cc_id}/`">{{i18n.viewMore}}</router-link>
+        <router-link class="view-more-task" :to="`/taskflow/home/${project_id}/`">{{i18n.viewMore}}</router-link>
         <div v-if="topThreeTaskFeeds.length" class="feed-container">
             <ul class="feed-list">
                 <li v-for="(item, index) in topThreeTaskFeeds" :key="item.id" class="feed-item">
@@ -31,7 +31,7 @@
                     <div class="action-detail">
                         [{{item.finish_time || item.create_time}}]{{item.name}}, {{i18n.time}} {{getLastTime(item)}}
                     </div>
-                    <router-link class="goto-task-detail" :to="`/taskflow/execute/${cc_id}/?instance_id=${item.id}`">{{i18n.detail}}</router-link>
+                    <router-link class="goto-task-detail" :to="`/taskflow/execute/${project_id}/?instance_id=${item.id}`">{{i18n.detail}}</router-link>
                 </li>
                 <li class="feed-item feed-end">
                     <div class="item-mark-icon">
@@ -56,7 +56,7 @@
         components: {
             NoData
         },
-        props: ['topThreeTaskFeeds', 'cc_id'],
+        props: ['topThreeTaskFeeds', 'project_id'],
         data () {
             return {
                 feedsStatus: this.getTaskStatus(),
@@ -108,7 +108,7 @@
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)

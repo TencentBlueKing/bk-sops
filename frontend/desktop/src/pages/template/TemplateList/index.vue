@@ -372,8 +372,10 @@
                 'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
                 'businessBaseInfo': state => state.template.businessBaseInfo,
-                'v1_import_flag': state => state.v1_import_flag,
-                'businessTimezone': state => state.businessTimezone
+                'v1_import_flag': state => state.v1_import_flag
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             listData () {
                 return this.common === 1 ? this.commonTemplateData : this.templateList
@@ -430,8 +432,8 @@
                             data['pipeline_template__edit_time__lte'] = moment(this.editEndTime).add('1', 'd').format('YYYY-MM-DD')
                         // 无时区的公共流程使用本地的时间
                         } else {
-                            data['pipeline_template__edit_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_template__edit_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__gte'] = moment.tz(this.editStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__lte'] = moment.tz(this.editEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const templateListData = await this.loadTemplateList(data)

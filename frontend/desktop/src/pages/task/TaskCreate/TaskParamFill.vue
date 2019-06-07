@@ -174,8 +174,10 @@
                 'templateName': state => state.template.name,
                 'userType': state => state.userType,
                 'viewMode': state => state.view_mode,
-                'app_id': state => state.app_id,
-                'businessTimezone': state => state.businessTimezone
+                'app_id': state => state.app_id
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             isSchemeShow () {
                 return this.pipelineData.location.some(item => item.optional)
@@ -252,7 +254,7 @@
                     // 无时区的公共流程使用本地的时间
                     nowTime = moment().format('YYYYMMDDHHmmss')
                 } else {
-                    nowTime = moment.tz(this.businessTimezone).format('YYYYMMDDHHmmss')
+                    nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 }
                 return this.templateName + '_' + nowTime
             },

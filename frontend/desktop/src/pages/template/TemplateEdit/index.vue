@@ -168,10 +168,12 @@
                 'businessBaseInfo': state => state.template.businessBaseInfo,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
-                'businessTimezone': state => state.businessTimezone,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
                 'atomFormConfig': state => state.atomForm.config
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             ...mapGetters('atomList/', [
                 'singleAtomGrouped'
@@ -238,7 +240,7 @@
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
-                const name = 'new' + moment.tz(this.businessTimezone).format('YYYYMMDDHHmmss')
+                const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
             }
             // 复制并替换本地缓存的内容
