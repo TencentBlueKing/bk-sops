@@ -24,6 +24,7 @@ export function getUrlSetting (SITE_URL, BIZ_CC_ID) {
         instance: SITE_URL + 'api/v3/taskflow/',
         function: SITE_URL + 'api/v3/function_task/',
         periodic: SITE_URL + 'api/v3/periodic_task/',
+        project: SITE_URL + 'api/v3/project/',
         subform: SITE_URL + 'template/api/form/' + BIZ_CC_ID + '/',
         // 有某模板权限的人员列表
         templatePersons: SITE_URL + 'template/api/get_perms/' + BIZ_CC_ID + '/',
