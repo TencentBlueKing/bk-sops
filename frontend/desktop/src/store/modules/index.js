@@ -17,6 +17,7 @@ import atomList from './atomList.js'
 import atomForm from './atomForm.js'
 import config from './config'
 import appmaker from './appmaker'
+import project from './project'
 import functionTask from './function.js'
 import auditTask from './audit.js'
 import periodic from './periodic.js'
@@ -32,7 +33,8 @@ const modules = {
     appmaker,
     functionTask,
     auditTask,
-    periodic
+    periodic,
+    project
 }
 
 export default modules
