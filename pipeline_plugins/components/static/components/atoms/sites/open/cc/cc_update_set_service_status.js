@@ -12,7 +12,7 @@
 (function () {
     $.atoms.cc_update_set_service_status = [
         {
-            tag_code: "cc_stes",
+            tag_code: "cc_sets",
             type: "combine",
             attrs: {
                 name: gettext("业务集群"),

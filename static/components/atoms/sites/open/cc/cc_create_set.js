@@ -12,7 +12,7 @@
 (function () {
     $.atoms.cc_create_set = [
         {
-            tag_code: "cc_set_group",
+            tag_code: "cc_sets",
             type: "combine",
             attrs: {
                 name: gettext("集群选择"),
