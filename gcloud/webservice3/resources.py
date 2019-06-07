@@ -351,6 +351,10 @@ class ProjectResource(GCloudModelResource):
         resource_name = 'project'
         authorization = Authorization()
         always_return_data = True
+        filtering = {
+            "name": ALL,
+            "is_disable": ALL,
+        }
 
     def dehydrate(self, bundle):
         bundle.data['create_at'] = bundle.data['create_at'].strftime('%Y-%m-%d %H:%M:%S')
