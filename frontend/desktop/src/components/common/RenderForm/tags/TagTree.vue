@@ -138,28 +138,26 @@
                 this.loading = true
 
                 // 请求远程数据
-                if (remote_url) {
-                    $.ajax({
-                        url: remote_url,
-                        method: 'GET',
-                        success: function (res) {
-                            let treeData = self.remote_data_init(res)
-                            // 表单为展示模式时，去掉未被选中的数据项
-                            if (!self.editable || !self.formMode) {
-                                treeData = self.filterTreeItem(treeData)
-                            }
-
-                            self.items = treeData
-                            self.$refs.tree.setCheckedKeys(self.value)
-
-                            self.loading = false
-                        },
-                        error: function () {
-                            self.empty_text = gettext('请求数据失败')
-                            self.loading = false
+                $.ajax({
+                    url: remote_url,
+                    method: 'GET',
+                    success: function (res) {
+                        let treeData = self.remote_data_init(res)
+                        // 表单为展示模式时，去掉未被选中的数据项
+                        if (!self.editable || !self.formMode) {
+                            treeData = self.filterTreeItem(treeData)
                         }
-                    })
-                }
+
+                        self.items = treeData
+                        self.$refs.tree.setCheckedKeys(self.value)
+
+                        self.loading = false
+                    },
+                    error: function () {
+                        self.empty_text = gettext('请求数据失败')
+                        self.loading = false
+                    }
+                })
             },
             filterTreeItem (data) {
                 return data.filter(item => {
