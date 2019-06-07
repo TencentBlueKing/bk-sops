@@ -14,17 +14,17 @@ import bus from '@/utils/bus.js'
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
  * @param {String} site_url
- * @param {String} BIZ_CC_ID
+ * @param {String} PROJECT_ID
  */
-export function setAtomConfigApiUrls (SITE_URL, BIZ_CC_ID) {
+export function setAtomConfigApiUrls (SITE_URL, PROJECT_ID) {
     $.context = {
         site_url: SITE_URL,
-        biz_cc_id: BIZ_CC_ID,
-        homelist: SITE_URL + 'template/home/' + BIZ_CC_ID + '/',
+        project_id: PROJECT_ID,
+        homelist: SITE_URL + 'template/home/' + PROJECT_ID + '/',
         component: SITE_URL + 'api/v3/component/',
         variable: SITE_URL + 'api/v3/variable/',
         template: SITE_URL + 'api/v3/template/',
-        subform: SITE_URL + 'template/api/form/' + BIZ_CC_ID + '/',
+        subform: SITE_URL + 'template/api/form/' + PROJECT_ID + '/',
         instance: SITE_URL + 'api/v3/taskflow/'
     }
 }

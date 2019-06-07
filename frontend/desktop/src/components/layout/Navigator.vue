@@ -48,7 +48,7 @@
             </div>
         </nav>
         <div class="header-right clearfix">
-            <BizSelector v-if="showHeaderRight" :disabled="disabled"></BizSelector>
+            <ProjectSelector v-if="showHeaderRight" :disabled="disabled"></ProjectSelector>
             <div class="help-doc">
                 <a
                     class="common-icon-dark-circle-question"
@@ -73,7 +73,7 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import BizSelector from './BizSelector.vue'
+    import ProjectSelector from './ProjectSelector.vue'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -155,7 +155,7 @@
         inject: ['reload'],
         name: 'Navigator',
         components: {
-            BizSelector
+            ProjectSelector
         },
         props: ['appmakerDataLoading'],
         data () {
@@ -183,8 +183,11 @@
                 notFoundPage: state => state.notFoundPage,
                 isSuperUser: state => state.isSuperUser
             }),
+            ...mapState('project', {
+                projectList: state => state.projectList
+            }),
             showHeaderRight () {
-                return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.bizList.length
+                return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
             },
             routeList () {
                 if (this.view_mode === 'appmaker') {
@@ -229,18 +232,22 @@
             this.initHome()
         },
         methods: {
-            initHome () {
-                if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.getBizList()
-                }
-            },
+            
             ...mapActions([
                 'getBizList',
                 'changeDefaultBiz'
             ]),
+            ...mapActions('project', [
+                'loadProjectList'
+            ]),
             ...mapMutations([
                 'setBizId'
             ]),
+            initHome () {
+                if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
+                    this.loadProjectList({ limit: 0 })
+                }
+            },
             isNavActived (route) {
                 const key = route.key
 

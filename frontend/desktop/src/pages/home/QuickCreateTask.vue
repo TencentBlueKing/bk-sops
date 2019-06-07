@@ -21,7 +21,7 @@
                     <router-link
                         class="task-name"
                         :title="item.name"
-                        :to="`/template/newtask/${cc_id}/selectnode/?template_id=${item.id}`">
+                        :to="`/template/newtask/${project_id}/selectnode/?template_id=${item.id}`">
                         {{item.name}}
                     </router-link>
                     <i
@@ -44,7 +44,7 @@
             </NoData>
         </div>
         <SelectTemplateDialog
-            :cc_id="cc_id"
+            :project_id="project_id"
             :submitting="submitting"
             :is-select-template-dialog-show="isSelectTemplateDialogShow"
             :template-list="templateList"
@@ -68,7 +68,7 @@
             NoData,
             SelectTemplateDialog
         },
-        props: ['quickTaskList', 'cc_id', 'templateClassify', 'totalTemplate'],
+        props: ['quickTaskList', 'project_id', 'templateClassify', 'totalTemplate'],
         data () {
             return {
                 isSelectTemplateDialogShow: false,
@@ -150,7 +150,7 @@
                         'message': gettext('业务下无流程模板，为您跳转至新建流程'),
                         'theme': 'success'
                     })
-                    this.$router.push(`/template/new/${this.cc_id}`)
+                    this.$router.push(`/template/new/${this.project_id}`)
                     return
                 }
                 this.selectTemplateLoading = true

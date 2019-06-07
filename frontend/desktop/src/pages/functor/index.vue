@@ -315,7 +315,12 @@
             ...mapState({
                 bizList: state => state.bizList,
                 categorys: state => state.categorys
-            })
+            }),
+            computed: {
+                ...mapState('project', {
+                    'timeZone': state => state.timezone
+                })
+            }
         },
         created () {
             this.loadFunctionTask()
@@ -352,8 +357,8 @@
                             data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['create_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['create_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['create_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['create_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)

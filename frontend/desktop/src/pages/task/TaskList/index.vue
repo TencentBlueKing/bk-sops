@@ -278,8 +278,10 @@
         },
         computed: {
             ...mapState({
-                taskList: state => state.taskList.taskListData,
-                businessTimezone: state => state.businessTimezone
+                taskList: state => state.taskList.taskListData
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             })
         },
         created () {
@@ -331,8 +333,8 @@
                             data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
