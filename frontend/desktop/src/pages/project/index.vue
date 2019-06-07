@@ -21,7 +21,7 @@
                     {{i18n.createProject}}
                 </bk-button>
                 <div class="filter-area">
-                    <div class="switch-status" @click="isClosedShow = !isClosedShow">
+                    <div class="switch-status" @click="onClosedProjectToggle">
                         <span :class="['checkbox', { checked: isClosedShow }]"></span>
                         <span class="checkbox-name">{{i18n.showClosedProject}}</span>
                     </div>
@@ -164,6 +164,7 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { getTimeZoneList } from '@/constants/timeZones.js'
 
     export default {
         name: 'ProjectHome',
@@ -192,15 +193,10 @@
                 updatePending: false,
                 projectDetail: {
                     name: '',
-                    timeZone: 'Asia/shanghai',
+                    timeZone: 'Asia/Shanghai',
                     desc: ''
                 },
-                timeZoneList: [
-                    {
-                        id: 'Asia/shanghai',
-                        name: 'Asia/shanghai'
-                    }
-                ],
+                timeZoneList: getTimeZoneList(),
                 nameRule: {
                     required: true,
                     max: STRING_LENGTH.PROJECT_NAME_MAX_LENGTH,
@@ -258,9 +254,14 @@
                 try {
                     const data = {
                         limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage
+                        offset: (this.currentPage - 1) * this.countPerPage,
+                        is_disable: this.isClosedShow
                     }
                     
+                    if (this.searchStr !== '') {
+                        data.name = this.searchStr
+                    }
+
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
                     this.totalCount = projectList.meta.total_count
@@ -344,9 +345,14 @@
             clearProjectDetail () {
                 this.projectDetail = {
                     name: '',
-                    timeZone: 'Asia/shanghai',
+                    timeZone: 'Asia/Shanghai',
                     desc: ''
                 }
+            },
+            onClosedProjectToggle () {
+                this.isClosedShow = !this.isClosedShow
+                this.currentPage = 1
+                this.getProjectList()
             },
             onCreateProject () {
                 this.dialogType = 'create'

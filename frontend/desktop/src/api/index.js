@@ -1335,7 +1335,7 @@ const api = {
      * 加载项目列表
      */
     loadProjectList (data) {
-        const { limit, offset } = data
+        const { limit, offset, is_disable, name } = data
         const prefixUrl = this.getPrefix('project')
 
         const opts = {
@@ -1343,7 +1343,9 @@ const api = {
             url: prefixUrl,
             params: {
                 limit,
-                offset
+                offset,
+                is_disable,
+                name
             }
         }
         return request(opts)
