@@ -166,23 +166,21 @@
                 if (!remote_url) return
 
                 // 请求远程数据
-                if (remote_url) {
-                    this.loading = true
-                    $.ajax({
-                        url: remote_url,
-                        method: 'GET',
-                        success: function (res) {
-                            const data = self.remote_data_init(res) || []
+                this.loading = true
+                $.ajax({
+                    url: remote_url,
+                    method: 'GET',
+                    success: function (res) {
+                        const data = self.remote_data_init(res) || []
 
-                            self.items = data
-                            self.loading = false
-                        },
-                        error: function (resp) {
-                            self.placeholder = gettext('请求数据失败')
-                            self.loading = false
-                        }
-                    })
-                }
+                        self.items = data
+                        self.loading = false
+                    },
+                    error: function (resp) {
+                        self.placeholder = gettext('请求数据失败')
+                        self.loading = false
+                    }
+                })
             }
         }
     }
