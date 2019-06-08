@@ -50,20 +50,6 @@ const api = {
         return getUrlSetting(site_url, project_id)[path]
     },
     /**
-     * 获取当前用户有权限业务
-     */
-    getBizList (isAll) {
-        const prefixUrl = this.getPrefix('business')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                all: isAll
-            }
-        }
-        return request(opts)
-    },
-    /**
      * 更新默认业务
      */
     changeDefaultProject (project_id) {
@@ -1118,25 +1104,6 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: querystring
-        }
-        return request(opts)
-    },
-    loadFunctionBusinessList () {
-        const prefixUrl = this.getPrefix('business')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
-    loadFunctionTemplateList (project_id) {
-        const prefixUrl = this.getPrefix('template')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                project_id
-            }
         }
         return request(opts)
     },

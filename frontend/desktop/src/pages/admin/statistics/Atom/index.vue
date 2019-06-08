@@ -18,11 +18,7 @@
                     <div class="content-date">
                         <div class="content-date-business">
                             <bk-selector
-                                :list="businessList"
-                                :display-key="'cc_name'"
-                                :setting-name="'cc_id'"
-                                :search-key="'cc_name'"
-                                :setting-key="'cc_id'"
+                                :list="allProjectList"
                                 :selected.sync="businessSelected"
                                 :searchable="true"
                                 :allow-clear="true"
@@ -81,11 +77,7 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
-                                    :list="allBusinessList"
-                                    :display-key="'cc_name'"
-                                    :setting-name="'cc_id'"
-                                    :search-key="'cc_name'"
-                                    :setting-key="'cc_id'"
+                                    :list="projectList"
                                     :selected.sync="selectedCcId"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
@@ -141,11 +133,7 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
-                                    :list="allBusinessList"
-                                    :display-key="'cc_name'"
-                                    :setting-name="'cc_id'"
-                                    :search-key="'cc_name'"
-                                    :setting-key="'cc_id'"
+                                    :list="projectList"
                                     :selected.sync="selectedCcId"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
@@ -217,11 +205,7 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
-                                    :list="allBusinessList"
-                                    :display-key="'cc_name'"
-                                    :setting-name="'cc_id'"
-                                    :search-key="'cc_name'"
-                                    :setting-key="'cc_id'"
+                                    :list="projectList"
                                     :selected.sync="selectedCcId"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
@@ -316,7 +300,7 @@
         data () {
             return {
                 i18n: i18n,
-                bizCcId: undefined,
+                projectId: undefined,
                 category: undefined,
                 choiceBusinessName: '',
                 isDropdownShow: false,
@@ -515,16 +499,18 @@
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
                 categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
+            ...mapState('project', {
+                projectList: state => state.projectList
+            }),
+            allProjectList () {
+                if (this.projectList.length === 0) {
+                    this.loadProjectList({ limit: 0 })
                 }
-                const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: i18n.choiceAllBusiness })
+                const list = tools.deepClone(this.projectList)
+                list.unshift({ id: undefined, name: i18n.choiceAllBusiness })
                 return list
             },
             componentsList () {
@@ -553,8 +539,10 @@
                 'loadSingleAtomList'
             ]),
             ...mapActions([
-                'getBizList',
                 'getCategorys'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             onTemplateHandleSizeChange (limit) {
                 this.templatePageIndex = 1
@@ -602,7 +590,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        project_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
                     })
                 }
                 this.atomData(data)
@@ -626,7 +614,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         component_code: this.atom
                     }),
@@ -657,7 +645,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category
                     }),
                     pageIndex: this.executePageIndex,
@@ -723,7 +711,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         component_code: this.atom
                     }),
@@ -784,11 +772,11 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectedBizCcId (id) {
+                if (this.projectId === id) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = id
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
@@ -802,7 +790,7 @@
             },
             onClearBizCcId () {
                 this.selectedCcId = -1
-                this.bizCcId = undefined
+                this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },

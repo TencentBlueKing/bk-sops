@@ -56,7 +56,7 @@
                         v-for="item in appList"
                         :key="item.id"
                         :app-data="item"
-                        :cc_id="cc_id"
+                        :project_id="project_id"
                         @onCardEdit="onCardEdit"
                         @onCardDelete="onCardDelete"
                         @onOpenPermissions="onOpenPermissions" />
@@ -72,7 +72,7 @@
             v-if="isEditDialogShow"
             :is-edit-dialog-show="isEditDialogShow"
             :is-create-new-app="isCreateNewApp"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :current-app-data="currentAppData"
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
@@ -145,7 +145,7 @@
             AppEditDialog,
             BaseSearch
         },
-        props: ['cc_id', 'common'],
+        props: ['project_id', 'common'],
         data () {
             return {
                 loading: true,

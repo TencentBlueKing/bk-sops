@@ -39,9 +39,8 @@ const project = {
             return api.loadProjectList(data).then(response => {
                 if (data && data.limit === 0) {
                     commit('setProjectList', response.data.objects)
-                } else {
-                    return response.data
                 }
+                return response.data
             })
         },
         createProject ({ commit }, data) {

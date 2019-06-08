@@ -17,7 +17,7 @@
         <ConfigBar
             v-if="isConfigBarShow"
             :name="name"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :type="type"
             :common="common"
             :template_id="template_id"
@@ -164,7 +164,7 @@
                 type: String,
                 required: false
             },
-            cc_id: {
+            project_id: {
                 type: String,
                 required: false
             },

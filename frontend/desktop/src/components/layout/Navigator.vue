@@ -180,16 +180,15 @@
                 site_url: state => state.site_url,
                 username: state => state.username,
                 userType: state => state.userType,
-                cc_id: state => state.cc_id,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
-                bizList: state => state.bizList,
                 templateId: state => state.templateId,
                 notFoundPage: state => state.notFoundPage,
                 isSuperUser: state => state.isSuperUser
             }),
             ...mapState('project', {
-                projectList: state => state.projectList
+                projectList: state => state.projectList,
+                project_id: state => state.project_id
             }),
             showHeaderRight () {
                 return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
@@ -199,7 +198,7 @@
                     return [
                         {
                             key: 'appmakerTaskCreate',
-                            path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode`,
+                            path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode`,
                             query: { template_id: this.template_id },
                             name: gettext('新建任务')
                         },
@@ -237,11 +236,6 @@
             this.initHome()
         },
         methods: {
-            
-            ...mapActions([
-                'getBizList',
-                'changeDefaultBiz'
-            ]),
             ...mapActions('project', [
                 'loadProjectList'
             ]),
@@ -293,7 +287,7 @@
                 } else if (this.userType !== 'maintainer' || route.key === 'project' || route.parent === 'admin') {
                     path = `${route.path}`
                 } else {
-                    path = { path: `${route.path}${this.cc_id}/`, query: route.query }
+                    path = { path: `${route.path}${this.project_id}/`, query: route.query }
                 }
                 return path
             },

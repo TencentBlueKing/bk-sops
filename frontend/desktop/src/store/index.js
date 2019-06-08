@@ -44,7 +44,6 @@ const store = new Vuex.Store({
         view_mode: window.VIEW_MODE,
         project_id: window.PROJECT_ID,
         lang: getAppLang(),
-        bizList: [],
         templateId: '', // 轻应用页面全局 template_id
         notFoundPage: false,
         categorys: [],
@@ -64,9 +63,6 @@ const store = new Vuex.Store({
         setProjectId (state, id) {
             state.project_id = id
         },
-        setBizList (state, data) {
-            state.bizList = data
-        },
         setTemplateId (state, id) {
             state.templateId = id
         },
@@ -78,24 +74,9 @@ const store = new Vuex.Store({
         },
         setSingleAtomList (state, data) {
             state.components = data
-        },
-        setAllBusinessList (state, data) {
-            state.allBusinessList = data
         }
     },
     actions: {
-        getBizList ({ commit }, isAll) {
-            api.getBizList(isAll).then(response => {
-                if (isAll) {
-                    commit('setAllBusinessList', response.data.objects)
-                } else {
-                    commit('setBizList', response.data.objects)
-                }
-            })
-        },
-        changeDefaultBiz ({ commit }, ccId) {
-            return api.changeDefaultBiz(ccId).then(response => response.data)
-        },
         getCategorys ({ commit }) {
             api.getCategorys().then(response => {
                 commit('setCategorys', response.data.data)
