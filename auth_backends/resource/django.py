@@ -26,15 +26,15 @@ class DjangoModelResource(ObjectResource):
         # register django model action handlers
         self._dispatch_handlers()
 
-    def _post_save_handler(self, sender, instance, created, **kwargs):
+    def post_save_handler(self, sender, instance, created, **kwargs):
         if created:
             self.register_instance(instance)
         else:
             self.update_instance(instance)
 
-    def _post_delete_handler(self, sender, instance, **kwargs):
+    def post_delete_handler(self, sender, instance, **kwargs):
         self.delete_instance(instance)
 
     def _dispatch_handlers(self):
-        post_save.connect(receiver=self._post_save_handler, sender=self.resource_cls)
-        post_delete.connect(receiver=self._post_delete_handler, sender=self.resource_cls)
+        post_save.connect(receiver=self.post_save_handler, sender=self.resource_cls)
+        post_delete.connect(receiver=self.post_delete_handler, sender=self.resource_cls)
