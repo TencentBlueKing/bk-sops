@@ -98,7 +98,7 @@
                 <NoData>
                     <div>
                         {{i18n.noTemplate}}
-                        <router-link class="create-template" :to="`/template/new/${cc_id}`">{{i18n.createTemplate}}</router-link>
+                        <router-link class="create-template" :to="`/template/new/${project_id}`">{{i18n.createTemplate}}</router-link>
                     </div>
                 </NoData>
             </div>
@@ -114,7 +114,7 @@
         components: {
             NoData
         },
-        props: ['cc_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading'],
+        props: ['project_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading'],
         data () {
             const selectedTemplate = this.quickTaskList.slice(0)
             return {

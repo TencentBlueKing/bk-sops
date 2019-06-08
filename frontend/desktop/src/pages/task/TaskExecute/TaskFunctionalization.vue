@@ -99,7 +99,7 @@
             TaskParamEdit,
             NodePreview
         },
-        props: ['cc_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        props: ['project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName'],
         data () {
             return {
                 i18n: {

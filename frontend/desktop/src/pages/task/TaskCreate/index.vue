@@ -22,7 +22,7 @@
             :ref="currentComponent"
             :is="currentComponent"
             :current-step="currentStep"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :common="common"
             :template_id="template_id"
             :exclude-node="excludeNode"
@@ -65,7 +65,7 @@
             TaskSelectNode,
             TaskParamFill
         },
-        props: ['template_id', 'cc_id', 'step', 'common'],
+        props: ['template_id', 'project_id', 'step', 'common'],
         data () {
             return {
                 stepList: STEP_DICT.slice(),

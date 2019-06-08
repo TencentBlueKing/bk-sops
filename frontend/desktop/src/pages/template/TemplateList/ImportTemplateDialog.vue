@@ -173,8 +173,10 @@
         },
         computed: {
             ...mapState({
-                'site_url': state => state.site_url,
-                'cc_id': state => state.cc_id
+                'site_url': state => state.site_url
+            }),
+            ...mapState('project', {
+                'project_id': state => state.project_id
             }),
             exportConflict () {
                 return this.overrideList.length ? this.i18n.replaceSubmit : this.i18n.replaceWithoutConflict

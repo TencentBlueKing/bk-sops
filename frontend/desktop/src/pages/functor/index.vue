@@ -29,10 +29,6 @@
                             <span class="query-span">{{i18n.ownBusiness}}</span>
                             <bk-selector
                                 :list="business.list"
-                                :display-key="'cc_name'"
-                                :setting-name="'cc_id'"
-                                :search-key="'cc_name'"
-                                :setting-key="'cc_id'"
                                 :selected.sync="selectedCcId"
                                 :placeholder="i18n.choice"
                                 :searchable="true"
@@ -90,12 +86,12 @@
                     </thead>
                     <tbody>
                         <tr v-for="item in functorList" :key="item.id">
-                            <td class="functor-business">{{item.task.business.cc_name}}</td>
+                            <td class="functor-business">{{item.task.project.name}}</td>
                             <td class="functor-id">{{item.task.id}}</td>
                             <td class="functor-name">
                                 <router-link
                                     :title="item.task.name"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
+                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
                                     {{item.task.name}}
                                 </router-link>
                             </td>
@@ -110,12 +106,12 @@
                             <td class="functor-operation">
                                 <router-link v-if="item.status === 'submitted'"
                                     class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
+                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
                                     {{ i18n.claim }}
                                 </router-link>
                                 <router-link v-else
                                     class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
+                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
                                     {{ i18n.view }}
                                 </router-link>
                             </td>
@@ -147,7 +143,7 @@
             :has-header="true"
             :quick-close="false"
             :ext-cls="'common-dialog'"
-            :close-icon="false"
+            :close-icon="true"
             width="600"
             padding="30px"
             :title="i18n.new">
@@ -159,9 +155,6 @@
                             :allow-clear="true"
                             :list="business.list"
                             :selected="business.id"
-                            :setting-key="'cc_id'"
-                            :display-key="'cc_name'"
-                            :search-key="'cc_name'"
                             :is-loading="business.loading"
                             :searchable="business.searchable"
                             @item-selected="onSelectedBusiness"
@@ -219,7 +212,7 @@
             BaseTitle,
             NoData
         },
-        props: ['cc_id', 'app_id'],
+        props: ['project_id', 'app_id'],
         data () {
             return {
                 i18n: {
@@ -292,7 +285,7 @@
                     empty: false,
                     disabled: true
                 },
-                bizCcId: undefined,
+                projectId: undefined,
                 billTime: undefined,
                 creator: undefined,
                 executeStartTime: undefined,
@@ -313,31 +306,29 @@
         },
         computed: {
             ...mapState({
-                bizList: state => state.bizList,
                 categorys: state => state.categorys
             }),
-            computed: {
-                ...mapState('project', {
-                    'timeZone': state => state.timezone
-                })
-            }
+            ...mapState('project', {
+                'timeZone': state => state.timezone
+            })
         },
         created () {
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            this.getBusinessList()
+            this.getProjectList()
         },
         methods: {
             ...mapActions('functionTask/', [
-                'loadFunctionTaskList',
-                'loadFunctionBusinessList',
-                'loadFunctionTemplateList'
+                'loadFunctionTaskList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             async loadFunctionTask () {
                 this.listLoading = true
@@ -349,7 +340,7 @@
                         creator: this.creator || undefined,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
-                        task__business__cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         status: this.status
                     }
                     if (this.executeEndTime) {
@@ -422,10 +413,10 @@
             onCreateTask () {
                 this.isShowNewTaskDialog = true
             },
-            async getBusinessList () {
+            async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadFunctionBusinessList()
+                    const businessData = await this.loadProjectList({ limit: 0 })
                     this.business.list = businessData.objects
                 } catch (e) {
                     errorHandler(e, this)
@@ -438,7 +429,7 @@
                 try {
                     // 查询职能化数据及公共流程数据
                     await Promise.all([
-                        this.loadFunctionTemplateList(this.business.id),
+                        this.loadTemplateList({ project_id: this.business.id }),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
                         if (value[0].objects.length === 0) {
@@ -462,11 +453,11 @@
                     this.template.loading = false
                 }
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectedBizCcId (id) {
+                if (this.projectId === id) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = id
             },
             onSelectedBusiness (id, data) {
                 this.business.id = id

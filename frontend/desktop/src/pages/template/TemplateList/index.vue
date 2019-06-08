@@ -279,7 +279,7 @@
             BaseSearch,
             NoData
         },
-        props: ['cc_id', 'common', 'common_template'],
+        props: ['project_id', 'common', 'common_template'],
         data () {
             return {
                 i18n: {
@@ -568,7 +568,7 @@
             },
             // 获取编辑按钮的跳转链接
             getEditTemplateUrl (id) {
-                let url = `/template/edit/${this.cc_id}/?template_id=${id}`
+                let url = `/template/edit/${this.project_id}/?template_id=${id}`
                 if (this.common) {
                     url += '&common=1'
                 }
@@ -576,7 +576,7 @@
             },
             // 获取新建模板的跳转链接
             getNewTemplateUrl () {
-                let url = `/template/new/${this.cc_id}`
+                let url = `/template/new/${this.project_id}`
                 if (this.common) {
                     url += '/?&common=1'
                 }
@@ -584,21 +584,21 @@
             },
             // 获取新建任务的跳转链接
             getNewTaskUrl (id) {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${id}`
+                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }
                 return url
             },
             getExecuteHistoryUrl (id) {
-                let url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
+                let url = `/taskflow/home/${this.project_id}/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }
                 return url
             },
             getCloneUrl (id) {
-                let url = `/template/clone/${this.cc_id}/?template_id=${id}`
+                let url = `/template/clone/${this.project_id}/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }

@@ -202,7 +202,7 @@
             gatewaySelectDialog,
             revokeDialog
         },
-        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        props: ['project_id', 'instance_id', 'instanceFlow', 'instanceName'],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -350,7 +350,7 @@
             async loadTaskStatus () {
                 const data = {
                     instance_id: this.taskId,
-                    cc_id: this.cc_id
+                    project_id: this.project_id
                 }
                 try {
                     this.$emit('taskStatusLoadChange', true)
