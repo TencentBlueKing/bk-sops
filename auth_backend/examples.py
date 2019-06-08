@@ -13,10 +13,10 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
-from auth_backends.resource.base import Action
-from auth_backends.backend.bkiam import BkIAMBackend
-from auth_backends.resource.django import DjangoModelResource
-from auth_backends.resource.inspect import FixedCreatorFieldInspect
+from auth_backend.resources.base import Action
+from auth_backend.backends.bkiam import BkIAMBackend
+from auth_backend.resources.django import DjangoModelResource
+from auth_backend.resources.inspect import FixedCreatorFieldInspect
 
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
