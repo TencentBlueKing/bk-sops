@@ -19,7 +19,7 @@ from requests.exceptions import HTTPError
 
 from . import conf
 
-logger = logging.getLogger('auth')
+logger = logging.getLogger('component')
 
 
 class BkIAMClient(object):
