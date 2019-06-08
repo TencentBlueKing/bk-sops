@@ -31,3 +31,9 @@ class AuthBackend(object):
 
     def batch_delete_instance(self, resource, instances):
         raise NotImplementedError()
+
+    def verify_principal_perms(self, principal_type, principal_id, resource, action_ids, instance=None):
+        raise NotImplementedError()
+
+    def batch_verify_principal_perms(self, principal_type, principal_id, resource, action_ids, instances=None):
+        raise NotImplementedError()

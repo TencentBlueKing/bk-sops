@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
-from auth_backend.resources.base import Action
+from auth_backend.resources.base import Action, NeverInitiateResource
 from auth_backend.backends.bkiam import BkIAMBackend
 from auth_backend.resources.django import DjangoModelResource
 from auth_backend.resources.inspect import FixedCreatorFieldInspect
@@ -30,6 +30,7 @@ c_handler.setFormatter(c_format)
 logger.addHandler(c_handler)
 logger.setLevel(logging.DEBUG)
 
+# no parent resource
 project_resource = DjangoModelResource(
     rtype='project',
     name=_(u"项目"),
@@ -51,6 +52,7 @@ project_resource = DjangoModelResource(
                                      resource_name_f='name',
                                      parent_f=None))
 
+# has parent resource
 task_template_resource = DjangoModelResource(
     rtype='flow-template',
     name=_(u"流程模板"),
@@ -68,7 +70,17 @@ task_template_resource = DjangoModelResource(
     resource_cls=TaskTemplate,
     backend=BkIAMBackend(),
     inspect=FixedCreatorFieldInspect(creator_type='user',
-                                     creator_id_f='creator',
+                                     creator_id_f='creator_name',
                                      resource_id_f='id',
                                      resource_name_f='name',
                                      parent_f='project'))
+
+# no instance resource
+statistics_resource = NeverInitiateResource(
+    rtype='statistics',
+    name=_(u"统计数据"),
+    scope_type='system',
+    scope_id='bk_sops',
+    actions=[Action(id='view', name=_(u"查看"), is_instance_related=False)],
+    backend=BkIAMBackend()
+)

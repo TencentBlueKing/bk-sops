@@ -28,6 +28,7 @@ class BkIAMBackend(AuthBackend):
             parent_resource = resource.parent
             BkIAMBackend.__gen_complete_id(parent_resource, resource.parent_instance(instance), id_tree)
 
+        # bk_iam only accept str type id
         id_tree.append({'resource_type': resource.rtype, 'resource_id': str(resource.resource_id(instance))})
 
     @classmethod
@@ -88,3 +89,36 @@ class BkIAMBackend(AuthBackend):
             })
 
         return self.client.batch_delete_resource(resources=iam_resources)
+
+    def verify_principal_perms(self, principal_type, principal_id, resource, action_ids, instance=None):
+        actions = []
+        for action_id in action_ids:
+            action = {'action_id': action_id,
+                      'resource_type': resource.rtype}
+            if resource.is_instance_related_action(action_id) and instance:
+                action['resource_id'] = self._resource_id_for(resource, instance)
+
+            actions.append(action)
+
+        return self.client.batch_verify_resources_perms(principal_type=principal_type,
+                                                        principal_id=principal_id,
+                                                        scope_type=resource.scope_type,
+                                                        scope_id=resource.scope_id,
+                                                        resources_actions=actions)
+
+    def batch_verify_principal_perms(self, principal_type, principal_id, resource, action_ids, instances=None):
+        actions = []
+        for action_id in action_ids:
+            action = {'action_id': action_id,
+                      'resource_type': resource.rtype}
+            if resource.is_instance_related_action(action_id) and instances:
+                for instance in instances:
+                    action['resource_id'] = self._resource_id_for(resource, instance)
+
+            actions.append(action)
+
+        return self.client.batch_verify_resources_perms(principal_type=principal_type,
+                                                        principal_id=principal_id,
+                                                        scope_type=resource.scope_type,
+                                                        scope_id=resource.scope_id,
+                                                        resources_actions=actions)
