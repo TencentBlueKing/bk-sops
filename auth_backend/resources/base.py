@@ -79,19 +79,19 @@ class Resource(object):
     def batch_delete_instance(self, instances):
         return self.backend.batch_delete_instance(resource=self, instances=instances)
 
-    def verify_principal_perms(self, principal_type, principal_id, action_ids, instance=None):
-        return self.backend.verify_principal_perms(principal_type=principal_type,
-                                                   principal_id=principal_id,
-                                                   resource=self,
-                                                   instance=instance,
-                                                   action_ids=action_ids)
+    def verify_perms(self, principal_type, principal_id, action_ids, instance=None):
+        return self.backend.verify_perms(principal_type=principal_type,
+                                         principal_id=principal_id,
+                                         resource=self,
+                                         instance=instance,
+                                         action_ids=action_ids)
 
-    def batch_verify_principal_perms(self, principal_type, principal_id, action_ids, instances=None):
-        return self.backend.verify_principal_perms(principal_type=principal_type,
-                                                   principal_id=principal_id,
-                                                   resource=self,
-                                                   instances=instances,
-                                                   action_ids=action_ids)
+    def batch_verify_perms(self, principal_type, principal_id, action_ids, instances=None):
+        return self.backend.batch_verify_perms(principal_type=principal_type,
+                                               principal_id=principal_id,
+                                               resource=self,
+                                               instances=instances,
+                                               action_ids=action_ids)
 
 
 class NeverInitiateResource(Resource):

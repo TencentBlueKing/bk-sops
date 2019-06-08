@@ -15,6 +15,7 @@ from __future__ import absolute_import
 from bkiam.client import BkIAMClient
 
 from .base import AuthBackend
+from ..resources import resource_type_lib
 
 
 class BkIAMBackend(AuthBackend):
@@ -90,7 +91,7 @@ class BkIAMBackend(AuthBackend):
 
         return self.client.batch_delete_resource(resources=iam_resources)
 
-    def verify_principal_perms(self, principal_type, principal_id, resource, action_ids, instance=None):
+    def verify_perms(self, principal_type, principal_id, resource, action_ids, instance=None):
         actions = []
         for action_id in action_ids:
             action = {'action_id': action_id,
@@ -106,7 +107,7 @@ class BkIAMBackend(AuthBackend):
                                                         scope_id=resource.scope_id,
                                                         resources_actions=actions)
 
-    def batch_verify_principal_perms(self, principal_type, principal_id, resource, action_ids, instances=None):
+    def batch_verify_perms(self, principal_type, principal_id, resource, action_ids, instances=None):
         actions = []
         for action_id in action_ids:
             action = {'action_id': action_id,
@@ -121,4 +122,24 @@ class BkIAMBackend(AuthBackend):
                                                         principal_id=principal_id,
                                                         scope_type=resource.scope_type,
                                                         scope_id=resource.scope_id,
+                                                        resources_actions=actions)
+
+    def verify_multi_resource_perms(self, principal_type, principal_id, resource_actions):
+        actions = []
+        for resource_id, action_ids in resource_actions.items():
+            for action_id in action_ids:
+                actions.append({
+                    'action_id': action_id,
+                    'resource_type': resource_id
+                })
+
+        # use first resource type's scope info
+        resource = resource_type_lib[list(resource_actions.keys())[0]]
+        scope_type = resource.scope_type
+        scope_id = resource.scope_id
+
+        return self.client.batch_verify_resources_perms(principal_type=principal_type,
+                                                        principal_id=principal_id,
+                                                        scope_type=scope_type,
+                                                        scope_id=scope_id,
                                                         resources_actions=actions)

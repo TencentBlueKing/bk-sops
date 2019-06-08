@@ -20,11 +20,13 @@ from django.db.models.signals import post_save, post_delete
 
 class DjangoModelResource(ObjectResource):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, auto_register=True, *args, **kwargs):
         super(DjangoModelResource, self).__init__(*args, **kwargs)
+        self.auto_register = auto_register
 
-        # register django model action handlers
-        self._dispatch_handlers()
+        if auto_register:
+            # register django model action handlers
+            self._dispatch_handlers()
 
     def post_save_handler(self, sender, instance, created, **kwargs):
         if created:
