@@ -11,6 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import abc
 
-def deco_model_resource(cls):
-    pass
+
+class AuthBackend(object):
+    __metaclass__ = abc.ABCMeta
+
+    def register_instance(self, resource, instance):
+        raise NotImplementedError()
+
+    def batch_register_instance(self, resource, instances):
+        raise NotImplementedError()
+
+    def update_instance(self, resource, instance):
+        raise NotImplementedError()
+
+    def delete_instance(self, resource, instance):
+        raise NotImplementedError()
+
+    def batch_delete_instance(self, resource, instances):
+        raise NotImplementedError()

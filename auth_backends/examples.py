@@ -13,83 +13,62 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
-# from gcloud.core.models import Project
-# from gcloud.tasktmpl3.models import TaskTemplate
+from auth_backends.resource.base import Action
+from auth_backends.backend.bkiam import BkIAMBackend
+from auth_backends.resource.django import DjangoModelResource
+from auth_backends.resource.inspect import FixedCreatorFieldInspect
 
-from .resources import Resource
+from gcloud.core.models import Project
+from gcloud.tasktmpl3.models import TaskTemplate
 
+import logging
 
-project_resource = Resource(
+logger = logging.getLogger('auth')
+c_handler = logging.StreamHandler()
+c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+c_handler.setFormatter(c_format)
+logger.addHandler(c_handler)
+logger.setLevel(logging.DEBUG)
+
+project_resource = DjangoModelResource(
     rtype='project',
     name=_(u"项目"),
+    scope_type='system',
+    scope_id='bk_sops',
     actions=[
-        {
-            'action_id': 'create',
-            'action_name': _(u"创建"),
-            'is_related_resource': False
-        },
-        {
-            'action_id': 'view',
-            'action_name': _(u"查看"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'edit',
-            'action_name': _(u"编辑"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'disable',
-            'action_name': _(u"停用"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'create_template',
-            'action_name': _(u"新建流程"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'use_common_template',
-            'action_name': _(u"创建"),
-            'is_related_resource': True
-        }
-    ]
-)
+        Action(id='create', name=_(u"创建"), is_instance_related=False),
+        Action(id='view', name=_(u"查看"), is_instance_related=True),
+        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
+        Action(id='disable', name=_(u"停用"), is_instance_related=True),
+        Action(id='create_template', name=_(u"新建流程"), is_instance_related=True),
+        Action(id='use_common_template', name=_(u"使用公共流程"), is_instance_related=True),
+    ],
+    resource_cls=Project,
+    backend=BkIAMBackend(),
+    inspect=FixedCreatorFieldInspect(creator_type='user',
+                                     creator_id_f='creator',
+                                     resource_id_f='id',
+                                     resource_name_f='name',
+                                     parent_f=None))
 
-template_rsource = Resource(
+task_template_resource = DjangoModelResource(
     rtype='flow-template',
     name=_(u"流程模板"),
+    scope_type='system',
+    scope_id='bk_sops',
     actions=[
-        {
-            'action_id': 'view',
-            'action_name': _(u"查看"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'edit',
-            'action_name': _(u"编辑"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'delete',
-            'action_name': _(u"删除"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'create_task',
-            'action_name': _(u"新建任务"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'create_mini_app',
-            'action_name': _(u"新建轻应用"),
-            'is_related_resource': True
-        },
-        {
-            'action_id': 'create_periodic_task',
-            'action_name': _(u"新建周期任务"),
-            'is_related_resource': True
-        }
+        Action(id='view', name=_(u"查看"), is_instance_related=True),
+        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
+        Action(id='delete', name=_(u"删除"), is_instance_related=True),
+        Action(id='create_task', name=_(u"新建任务"), is_instance_related=True),
+        Action(id='create_mini_app', name=_(u"新建轻应用"), is_instance_related=True),
+        Action(id='create_periodic_task', name=_(u"新建周期任务"), is_instance_related=True),
     ],
     parent=project_resource,
-)
+    resource_cls=TaskTemplate,
+    backend=BkIAMBackend(),
+    inspect=FixedCreatorFieldInspect(creator_type='user',
+                                     creator_id_f='creator',
+                                     resource_id_f='id',
+                                     resource_name_f='name',
+                                     parent_f='project'))
