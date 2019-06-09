@@ -61,7 +61,7 @@ JOB_CRON_FAIL_CLIENT = MockClient(
         'result': False,
         'message': 'save cron fail',
     },
-    update_cron_status_return= {
+    update_cron_status_return={
         'result': False,
         'message': 'update cron fail'
     }
