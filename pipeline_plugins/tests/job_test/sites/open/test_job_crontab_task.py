@@ -17,11 +17,12 @@ GET_CLIENT_BY_USER = 'pipeline_plugins.components.collections.sites.open.job.get
 
 
 class MockClient(object):
-    def __init__(self, get_job_detail_return, save_cron_return):
+    def __init__(self, get_job_detail_return, save_cron_return, update_cron_status_return):
         self.set_bk_api_ver = MagicMock()
         self.job = MagicMock()
         self.job.get_job_detail = MagicMock(return_value=get_job_detail_return)
         self.job.save_cron = MagicMock(return_value=save_cron_return)
+        self.job.update_cron_status = MagicMock(return_value=update_cron_status_return)
 
 
 # mock clients
@@ -30,7 +31,7 @@ JOB_CRON_SUCCESS_CLIENT = MockClient(
         'result': True,
         'message': 'get cron name success',
         'data': {
-            'job_cron_name': 'cron_name',
+            'name': 'cron_name',
             'bk_job_id': 1,
             'bk_biz_id': 1
         },
@@ -39,6 +40,14 @@ JOB_CRON_SUCCESS_CLIENT = MockClient(
     save_cron_return={
         'result': True,
         'message': 'save cron success',
+        'data': {
+            "cron_id": 1
+        }
+    },
+    update_cron_status_return={
+        'result': True,
+        'message': 'update cron success',
+
     }
 )
 
@@ -51,6 +60,10 @@ JOB_CRON_FAIL_CLIENT = MockClient(
     save_cron_return={
         'result': False,
         'message': 'save cron fail',
+    },
+    update_cron_status_return= {
+        'result': False,
+        'message': 'update cron fail'
     }
 )
 
@@ -58,14 +71,14 @@ JOB_CRON_FAIL_CLIENT = MockClient(
 # test cases
 class JobCrontabTaskComponentTest(TestCase, ComponentTestMixin):
 
-    @property
+    # @property
     def cases(self):
         return [
             JOB_CRON_FAIL_CASE,
             JOB_CORN_SUCCESS_CASE
         ]
 
-    @property
+    # @property
     def component_cls(self):
         return JobCrontabTaskComponent
 
@@ -76,7 +89,7 @@ JOB_CRON_FAIL_CASE = ComponentTestCase(
         'job_task_id': 1,
         'job_cron_name': '',
         'job_cron_expression': '1 * * * * ?',
-        'cron_status': 1
+        'cron_status': "1"
     },
     parent_data={
         'executor': 'executor_token',
@@ -112,7 +125,7 @@ JOB_CORN_SUCCESS_CASE = ComponentTestCase(
         'job_task_id': 1,
         'job_cron_name': '',
         'job_cron_expression': '1 * * * * ?',
-        'cron_status': 1
+        'cron_status': "1"
     },
     parent_data={
         'executor': 'executor_token',
@@ -138,6 +151,6 @@ JOB_CORN_SUCCESS_CASE = ComponentTestCase(
         ),
     ],
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=JOB_CRON_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=JOB_CRON_SUCCESS_CLIENT)
     ]
 )
