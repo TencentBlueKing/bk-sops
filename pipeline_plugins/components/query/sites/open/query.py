@@ -11,27 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
-import os
 import logging
+import os
+import re
 
-from django.http import JsonResponse
-from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 from django.conf.urls import url
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
+from gcloud.conf import settings
+from pipeline_plugins.cmdb_ip_picker.query import (
+    cmdb_search_host,
+    cmdb_search_topo_tree,
+    cmdb_get_mainline_object_topo
+)
 from pipeline_plugins.components.utils import (
     cc_get_inner_ip_by_module_id,
     supplier_account_inject,
     handle_api_error,
     supplier_id_inject
 )
-from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
-    cmdb_get_mainline_object_topo
-)
-from gcloud.conf import settings
 
 logger = logging.getLogger('root')
 get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
@@ -224,15 +224,19 @@ def job_get_script_list(request, biz_cc_id):
     """
     # 查询脚本列表
     client = get_client_by_request(request)
-    script_type = request.GET.get('type')
+    source_type = request.GET.get('type')
+    script_type = request.GET.get('script_type')
+
     kwargs = {
         'bk_biz_id': biz_cc_id,
-        'is_public': True if script_type == 'public' else False
+        'is_public': True if source_type == 'public' else False,
+        'script_type': script_type or 0,
     }
+
     script_result = client.job.get_script_list(kwargs)
 
     if not script_result['result']:
-        message = handle_api_error('cc', 'job.get_script_list', kwargs, script_result['message'])
+        message = handle_api_error('job', 'job.get_script_list', kwargs, script_result['message'])
         logger.error(message)
         result = {
             'result': False,
@@ -252,6 +256,33 @@ def job_get_script_list(request, biz_cc_id):
         })
 
     return JsonResponse({'result': True, 'data': version_data})
+
+
+def job_get_own_db_account_list(request, biz_cc_id):
+    """
+    查询用户有权限的DB帐号列表
+    :param biz_cc_id:
+    :param request:
+    :return:
+    """
+    client = get_client_by_request(request)
+    kwargs = {
+        'bk_biz_id': biz_cc_id
+    }
+    job_result = client.job.get_own_db_account_list(kwargs)
+
+    if not job_result['result']:
+        message = handle_api_error('job', 'get_own_db_account_list', kwargs, job_result['message'])
+        logger.error(message)
+        result = {
+            'result': False,
+            'message': message
+        }
+        return JsonResponse(result)
+
+    data = [{'text': item['db_alias'], 'value': item['db_account_id']} for item in job_result['data']]
+
+    return JsonResponse({'result': True, 'data': data})
 
 
 def file_upload(request, biz_cc_id):
@@ -413,6 +444,7 @@ urlpatterns = [
     url(r'^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_topo),
     url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cc_get_host_by_module_id),
     url(r'^job_get_script_list/(?P<biz_cc_id>\d+)/$', job_get_script_list),
+    url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
     url(r'^file_upload/(?P<biz_cc_id>\d+)/$', file_upload),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
     url(r'^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_job_task_detail),
