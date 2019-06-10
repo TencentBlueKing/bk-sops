@@ -14,13 +14,13 @@
         <div v-if="!loading">
             <div class="summary-info">
                 <HomeSummary
-                    :cc_id="cc_id"
+                    :project_id="project_id"
                     :summary-data="summaryData">
                 </HomeSummary>
             </div>
             <div class="main-wrapper">
                 <QuickCreateTask
-                    :cc_id="cc_id"
+                    :project_id="project_id"
                     :quick-task-list="quickTaskList"
                     :template-classify="templateClassify"
                     :total-template="totalTemplate"
@@ -30,7 +30,7 @@
                     <div class="col-item">
                         <TaskFeeds
                             :top-three-task-feeds="topThreeTaskFeeds"
-                            :cc_id="cc_id">
+                            :project_id="project_id">
                         </TaskFeeds>
                     </div>
                     <div class="col-item">
@@ -61,7 +61,7 @@
             TaskFeeds,
             TaskPercentChart
         },
-        props: ['cc_id', 'template_id'],
+        props: ['project_id', 'template_id'],
         data () {
             return {
                 loading: true,
@@ -79,7 +79,7 @@
             }
         },
         watch: {
-            'cc_id' (val) {
+            'project_id' (val) {
                 this.getData()
             }
         },

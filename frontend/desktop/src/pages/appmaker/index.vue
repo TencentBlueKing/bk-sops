@@ -56,7 +56,7 @@
                         v-for="item in appList"
                         :key="item.id"
                         :app-data="item"
-                        :cc_id="cc_id"
+                        :project_id="project_id"
                         @onCardEdit="onCardEdit"
                         @onCardDelete="onCardDelete"
                         @onOpenPermissions="onOpenPermissions" />
@@ -72,7 +72,7 @@
             v-if="isEditDialogShow"
             :is-edit-dialog-show="isEditDialogShow"
             :is-create-new-app="isCreateNewApp"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :current-app-data="currentAppData"
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
@@ -145,7 +145,7 @@
             AppEditDialog,
             BaseSearch
         },
-        props: ['cc_id', 'common'],
+        props: ['project_id', 'common'],
         data () {
             return {
                 loading: true,
@@ -191,8 +191,8 @@
             }
         },
         computed: {
-            ...mapState({
-                'businessTimezone': state => state.businessTimezone
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             appList () {
                 return this.searchMode ? this.searchList : this.list
@@ -224,8 +224,8 @@
                         editor: this.editor || undefined
                     }
                     if (this.editEndTime) {
-                        data['edit_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                        data['edit_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                        data['edit_time__gte'] = moment.tz(this.editStartTime, this.timeZone).format('YYYY-MM-DD')
+                        data['edit_time__lte'] = moment.tz(this.editEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects

@@ -67,7 +67,7 @@
                             <td class="periodic-name" :title="item.name">
                                 <router-link
                                     :title="item.task_template_name"
-                                    :to="`/template/edit/${cc_id}/?template_id=${item.template_id}`">
+                                    :to="`/template/edit/${project_id}/?template_id=${item.template_id}`">
                                     {{item.task_template_name}}
                                 </router-link>
                             </td>
@@ -100,7 +100,7 @@
                                             <a href="javascript:void(0);" @click="onDeletePeriodic(item.id, item.name)">{{ i18n.delete }}</a>
                                         </li>
                                         <li>
-                                            <router-link :to="`/taskflow/home/${cc_id}/?template_id=${item.template_id}&create_method=periodic`">
+                                            <router-link :to="`/taskflow/home/${project_id}/?template_id=${item.template_id}&create_method=periodic`">
                                                 {{ i18n.executeHistory }}
                                             </router-link>
                                         </li>
@@ -170,7 +170,7 @@
             ModifyPeriodicDialog,
             DeletePeriodicDialog
         },
-        props: ['cc_id'],
+        props: ['project_id'],
         data () {
             return {
                 i18n: {
