@@ -13,14 +13,14 @@ specific language governing permissions and limitations under the License.
 
 from gcloud.conf import settings
 
-get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def get_user_info(request):
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     auth = getattr(client, settings.ESB_AUTH_COMPONENT_SYSTEM)
     _get_user_info = getattr(auth, settings.ESB_AUTH_GET_USER_INFO)
     user_info = _get_user_info({})
-    if 'data' in user_info:
+    if user_info['result']:
         user_info['data']['bk_supplier_account'] = 0
     return user_info
