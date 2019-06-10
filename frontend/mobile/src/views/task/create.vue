@@ -150,8 +150,8 @@
                 scheme: DEFAULT_SCHEMES_NAME,
                 i18n: {
                     loading: window.gettext('加载中'),
-                    btnCreate: window.gettext('执行任务'),
-                    btnCreating: window.gettext('执行任务...'),
+                    btnCreate: window.gettext('新建任务'),
+                    btnCreating: window.gettext('新建任务...'),
                     taskName: window.gettext('任务名称'),
                     scheme: window.gettext('方案'),
                     canvasPreview: window.gettext('预览流程图'),
@@ -266,8 +266,8 @@
                         if (response) {
                             this.taskId = response.id
                             this.$store.commit('setTaskId', this.taskId)
+                            this.$router.push({ path: '/task/canvas', query: { taskId: this.taskId } })
                         }
-                        this.$router.push({ path: '/task/canvas', query: { 'executeTask': 'true', taskId: this.taskId } })
                     } catch (e) {
                         errorHandler(e, this)
                     } finally {
