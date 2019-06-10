@@ -332,7 +332,6 @@ class JobCrontabTaskService(JobService):
 
         job_task_id = data.get_one_of_inputs('job_task_id')
         job_cron_name = data.get_one_of_inputs('job_cron_name')
-        print job_cron_name
         if not job_cron_name:
             job_kwargs = {
                 "bk_biz_id": biz_cc_id,
