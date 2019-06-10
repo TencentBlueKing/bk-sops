@@ -16,7 +16,7 @@
                 <div>
                     <router-link
                         class="summary-module"
-                        :to="`/taskflow/home/${cc_id}`">
+                        :to="`/taskflow/home/${project_id}`">
                         <i class="common-icon-clock-inversion module-icon"></i>
                         <span class="module-entry">{{i18n.enter}}</span>
                     </router-link>
@@ -39,7 +39,7 @@
             <div class="count-title">
                 <router-link
                     class="summary-module"
-                    :to="`/template/new/${cc_id}`">
+                    :to="`/template/new/${project_id}`">
                     <i class="common-icon-circulation module-icon"></i>
                     <span class="module-entry">{{i18n.enter}}</span>
                 </router-link>
@@ -61,7 +61,7 @@
             <div class="count-title">
                 <router-link
                     class="summary-module"
-                    :to="`/appmaker/home/${cc_id}`">
+                    :to="`/appmaker/home/${project_id}`">
                     <i class="common-icon-box module-icon"></i>
                     <span class="module-entry">{{i18n.enter}}</span>
                 </router-link>
@@ -84,7 +84,7 @@
     import '@/utils/i18n.js'
     export default {
         name: 'HomeSummary',
-        props: ['cc_id', 'summaryData'],
+        props: ['project_id', 'summaryData'],
         data () {
             return {
                 i18n: {

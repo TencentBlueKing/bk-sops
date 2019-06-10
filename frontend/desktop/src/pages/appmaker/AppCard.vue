@@ -77,7 +77,7 @@
 
     export default {
         name: 'AppCard',
-        props: ['appData', 'cc_id'],
+        props: ['appData', 'project_id'],
         data () {
             return {
                 isShowDefaultLogo: false,
@@ -127,7 +127,7 @@
             },
             // 查询执行记录
             getExecuteHistoryUrl (id) {
-                return `/taskflow/home/${this.cc_id}/?template_id=${id}&create_method=app_maker`
+                return `/taskflow/home/${this.project_id}/?template_id=${id}&create_method=app_maker`
             }
         }
     }

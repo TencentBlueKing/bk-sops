@@ -14,14 +14,34 @@ import api from '@/api/index.js'
 const project = {
     namespaced: true,
     state: {
+        project_id: window.PROJECT_ID,
+        projectList: [],
+        timeZone: window.TIMEZONE
     },
     mutations: {
+        setProjectList (state, data) {
+            state.projectList = data
+        },
+        setProjectId (state, data) {
+            state.project_id = data
+        },
+        setTimeZone (state, data) {
+            state.timeZone = data
+        }
     },
     actions: {
-        loadProjectList ({ commit }, data) {
-            return api.loadProjectList(data).then(
+        changeDefaultProject ({ commit }, data) {
+            return api.changeDefaultProject(data).then(
                 response => response.data
             )
+        },
+        loadProjectList ({ commit }, data) {
+            return api.loadProjectList(data).then(response => {
+                if (data && data.limit === 0) {
+                    commit('setProjectList', response.data.objects)
+                }
+                return response.data
+            })
         },
         createProject ({ commit }, data) {
             return api.createProject(data).then(

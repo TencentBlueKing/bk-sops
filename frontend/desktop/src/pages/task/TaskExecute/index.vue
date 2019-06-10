@@ -20,14 +20,14 @@
         </TaskStep>
         <TaskFunctionalization
             v-if="isFunctional && !loading"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow">
         </TaskFunctionalization>
         <TaskOperation
             v-if="!isFunctional && !loading"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
@@ -63,7 +63,7 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['cc_id', 'instance_id'],
+        props: ['project_id', 'instance_id'],
         data () {
             return {
                 taskDataLoading: true,
