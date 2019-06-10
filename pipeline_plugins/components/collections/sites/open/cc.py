@@ -845,3 +845,89 @@ class CCTransferHostToIdleComponent(Component):
     code = 'cc_transfer_to_idle'
     bound_service = CCTransferHostToIdleService
     form = '%scomponents/atoms/sites/%s/cc/cc_transfer_to_idle.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+
+class CmdbTransferFaultHostService(Service):
+
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
+
+        client = get_client_by_user(executor)
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        # 查询主机id
+        ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
+        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        if not host_result['result']:
+            data.set_outputs('ex_data', host_result['message'])
+            return False
+
+        transfer_params = {
+            "bk_biz_id": biz_cc_id,
+            "bk_host_id": [int(host_id) for host_id in host_result['data']]
+        }
+        transfer_result = client.cc.transfer_host_to_faultmodule(transfer_params)
+        if transfer_result['result']:
+            return True
+        else:
+            message = cc_handle_api_error('cc.transfer_host_to_fault_module',
+                                          transfer_params, transfer_result['message'])
+            data.set_outputs('ex_data', message)
+            return False
+
+    def outputs_format(self):
+        return []
+
+
+class CmdbTransferFaultHostComponent(Component):
+    name = _(u'转移主机到业务的故障机模块')
+    code = 'cmdb_transfer_fault_host'
+    bound_service = CmdbTransferFaultHostService
+    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_fault_host.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+
+class CmdbTransferHostResourceModuleService(Service):
+
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
+
+        client = get_client_by_user(executor)
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        # 查询主机id
+        ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
+        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        if not host_result['result']:
+            data.set_outputs('ex_data', host_result['message'])
+            return False
+
+        transfer_params = {
+            "bk_biz_id": biz_cc_id,
+            "bk_host_id": [int(host_id) for host_id in host_result['data']]
+        }
+        transfer_result = client.cc.transfer_host_to_resourcemodule(transfer_params)
+        if transfer_result['result']:
+            return True
+        else:
+            message = cc_handle_api_error('cc.transfer_host_to_resource_module',
+                                          transfer_params, transfer_result['message'])
+            data.set_outputs('ex_data', message)
+            return False
+
+    def outputs_format(self):
+        return []
+
+
+class CmdbTransferHostResourceModuleComponent(Component):
+    name = _(u'转移主机至资源池')
+    code = 'cmdb_transfer_host_resource'
+    bound_service = CmdbTransferHostResourceModuleService
+    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_host_resource.js' % (settings.STATIC_URL, settings.RUN_VER)

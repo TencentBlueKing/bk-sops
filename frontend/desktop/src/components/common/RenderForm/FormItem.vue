@@ -178,6 +178,7 @@
                 attrs.showVarList = this.option.showVarList // 是否自动显示变量列表
                 attrs.formEdit = this.option.formEdit
                 attrs.formMode = this.option.formMode
+                attrs.validateSet = this.option.validateSet
 
                 // UI 配置项里的 formEdit 优先于标准插件配置项里的 editable 属性
                 // if ('editable' in this.option) {

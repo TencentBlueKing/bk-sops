@@ -159,6 +159,7 @@ const routers = new VueRouter({
                     component: TaskExecute,
                     props: (route) => ({
                         cc_id: route.params.cc_id,
+                        common: route.query.common,
                         instance_id: route.query.instance_id
                     })
                 }]
