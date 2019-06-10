@@ -19,7 +19,7 @@ from requests.exceptions import HTTPError
 
 from . import conf
 
-logger = logging.getLogger('auth')
+logger = logging.getLogger('component')
 
 
 class BkIAMClient(object):
@@ -68,14 +68,11 @@ class BkIAMClient(object):
 
         response = method_func(url, data=json.dumps(data or {}), headers=_headers, params=params or {})
 
-        return self._handle_response(response)
-
-    def _handle_response(self, response):
         try:
             response.raise_for_status()
         except HTTPError as e:
             message = u'bk_iam request({url}) error: {e}, response: {response}'.format(
-                url=response.request.url, e=e, response=response.content)
+                url=response.request.url, e=e, response=response.text)
             logger.error(message)
 
             return {
@@ -84,7 +81,19 @@ class BkIAMClient(object):
             }
 
         try:
-            return response.json()
+            data = response.json()
+            logger.debug(u'bk_iam request({url}) return: {data}'.format(url=response.request.url, data=data))
+            if not data['result']:
+                logger.error(u'bk_iam return error, message {message}, request_id={request_id}, '
+                             u'url={url}, headers={headers}, params={params}, data={data}, '
+                             u'response={response}'.format(message=data['message'],
+                                                           request_id=data.get('request_id'),
+                                                           url=url,
+                                                           headers=_headers,
+                                                           params=params,
+                                                           data=data,
+                                                           response=response.text))
+            return data
         except Exception as e:
             message = u'bk_iam request({url}) error, response json convert failed: {e}, response: {response}'.format(
                 url=response.request.url, e=e, response=response.content)
@@ -254,7 +263,12 @@ class BkIAMClient(object):
             scope_type {str} -- 作用域类型
             scope_id {str} -- 作用域 ID
             resource_type {str} -- 资源类型
-            resource_id {str} -- 资源实例 ID
+            resource_id {str} -- 资源实例 ID  [
+                        {
+                            'resource_type': '资源类型',
+                            'resource_id': '资源实例 ID'
+                        }, ...
+                    ],
             resource_name {str} -- 资源实例名
         """
         return self.batch_register_resource(creator_type=creator_type,
