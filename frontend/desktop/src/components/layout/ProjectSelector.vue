@@ -124,6 +124,16 @@
                 color: #616d7d;
             }
         }
+        &[disabled="disabled"] {
+            color: #979ba5;
+            background: transparent;
+            cursor: not-allowed;
+            &:hover {
+                & + .bk-icon {
+                    color: #616d7d;
+                }
+            }
+        }
         &.active {
             color: #ffffff;
             border-color: #616d7d !important;
