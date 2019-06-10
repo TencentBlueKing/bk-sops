@@ -76,7 +76,7 @@
                 <template v-if="Object.keys(templateConstants).length">
                     <template v-for="item in sortedConstants">
                         <VantComponent
-                            v-if="!loadingConfig"
+                            v-if="!loadingConfig && item.show_type === 'show'"
                             :source-code="item.source_tag"
                             :custom-type="item.custom_type"
                             :key="item.key"
