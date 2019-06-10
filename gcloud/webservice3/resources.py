@@ -351,14 +351,11 @@ class ProjectResource(GCloudModelResource):
         resource_name = 'project'
         authorization = Authorization()
         always_return_data = True
+        serializer = AppSerializer()
         filtering = {
             "name": ALL,
             "is_disable": ALL,
         }
-
-    def dehydrate(self, bundle):
-        bundle.data['create_at'] = bundle.data['create_at'].strftime('%Y-%m-%d %H:%M:%S')
-        return bundle
 
     def obj_create(self, bundle, **kwargs):
         bundle.data['creator'] = bundle.request.user.username
