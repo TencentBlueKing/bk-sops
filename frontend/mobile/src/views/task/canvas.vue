@@ -80,7 +80,7 @@
 
     const TASK_STATE = {
         'CREATED': [window.gettext('未执行'), 'info'],
-        'RUNNING': [window.gettext('执行中'), 'warning'],
+        'RUNNING': [window.gettext('执行中'), 'info'],
         'SUSPENDED': [window.gettext('暂停'), 'warning'],
         'NODE_SUSPENDED': [window.gettext('节点暂停'), 'warning'],
         'FAILED': [window.gettext('失败'), 'danger'],
@@ -180,7 +180,6 @@
             },
             async loadTaskStatus () {
                 try {
-                    this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const taskState = await this.getTaskStatus({ id: this.taskId })
                     if (taskState.result) {
                         this.taskState = taskState.data.state
@@ -196,8 +195,6 @@
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     errorHandler(e, this)
-                } finally {
-                    this.$toast.clear()
                 }
             },
 
