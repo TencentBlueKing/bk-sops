@@ -218,11 +218,11 @@
                 i18n: {
                     functorList: gettext('职能化中心'),
                     placeholder: gettext('请输入ID或流程名称'),
-                    business: gettext('所属业务'),
+                    business: gettext('所属项目'),
                     taskId: gettext('任务ID'),
                     createdTime: gettext('提单时间'),
                     claimedTime: gettext('认领时间'),
-                    ownBusiness: gettext('所属业务'),
+                    ownBusiness: gettext('所属项目'),
                     finishedTime: gettext('执行结束'),
                     name: gettext('任务名称'),
                     billTime: gettext('提单时间'),
@@ -234,9 +234,9 @@
                     claim: gettext('认领'),
                     view: gettext('查看'),
                     new: gettext('新建任务'),
-                    choiceBusiness: gettext('选择业务'),
+                    choiceBusiness: gettext('选择项目'),
                     choiceTemplate: gettext('选择模板'),
-                    tips: gettext('如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
+                    tips: gettext('如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
                     total: gettext('共'),
                     item: gettext('条记录'),
                     comma: gettext('，'),
@@ -271,7 +271,7 @@
                 template: {
                     list: [
                         {
-                            name: gettext('业务流程'),
+                            name: gettext('项目流程'),
                             children: []
                         },
                         {

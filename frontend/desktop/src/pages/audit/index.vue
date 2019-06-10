@@ -175,7 +175,7 @@
                 i18n: {
                     auditList: gettext('审计中心'),
                     placeholder: gettext('请输入ID或流程名称'),
-                    business: gettext('所属业务'),
+                    business: gettext('所属项目'),
                     startedTime: gettext('执行开始'),
                     finishedTime: gettext('执行结束'),
                     name: gettext('任务名称'),

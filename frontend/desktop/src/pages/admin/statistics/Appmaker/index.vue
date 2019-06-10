@@ -147,16 +147,16 @@
     import moment from 'moment-timezone'
 
     const i18n = {
-        ownBusiness: gettext('所属业务'),
+        ownBusiness: gettext('所属项目'),
         applicationTime: gettext('轻应用创建时间'),
         applicationDetails: gettext('轻应用详情'),
         choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceBusiness: gettext('选择项目'),
         choiceTime: gettext('选择时间'),
         choice: gettext('请选择'),
         atom: gettext('标准插件'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         templateName: gettext('轻应用名称'),
         createTime: gettext('创建时间'),
         editTime: gettext('更新时间'),

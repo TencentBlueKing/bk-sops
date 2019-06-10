@@ -95,7 +95,7 @@
                         </bk-selector>
                     </div>
                     <div class="content-instance-time">
-                        <!--业务选择-->
+                        <!--项目选择-->
                         <bk-selector
                             :list="allProjectList"
                             :selected.sync="businessSelected"
@@ -264,17 +264,17 @@
 
     const i18n = {
         taskCategory: gettext('任务分类'),
-        ownBusiness: gettext('所属业务'),
+        ownBusiness: gettext('所属项目'),
         taskDetail: gettext('任务详情'),
         executionName: gettext('执行耗时'),
         timeLimit: gettext('时间范围'),
         choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceBusiness: gettext('选择项目'),
         instanceTime: gettext('时间维度'),
         day: gettext('天'),
         choice: gettext('请选择'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         instanceName: gettext('任务名称'),
         createTime: gettext('创建时间'),
         creator: gettext('创建人'),

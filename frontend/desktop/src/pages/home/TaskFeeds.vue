@@ -61,7 +61,7 @@
             return {
                 feedsStatus: this.getTaskStatus(),
                 i18n: {
-                    feeds: gettext('业务动态'),
+                    feeds: gettext('项目动态'),
                     viewMore: gettext('查看更多'),
                     detail: gettext('查看详情'),
                     time: gettext('耗时')
