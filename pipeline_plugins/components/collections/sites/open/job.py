@@ -370,8 +370,6 @@ class JobCrontabTaskService(JobService):
             return False
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobCrontabTaskService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return super(JobCrontabTaskService, self).outputs_format()
