@@ -197,7 +197,7 @@
         }
     }
 
-    .bk-flow-location.suspended {
+    .bk-flow-location.running, .bk-flow-location.suspended {
         .node-name {
             border-color: #f8b53f;
         }
