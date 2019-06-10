@@ -49,7 +49,7 @@
                         :key="item.index"
                         :title="item.name"
                         v-html="getOutputValue(item)"
-                        :value="item.value === '' ? '--' : str(item.value)" />
+                        :value="item.value ? item.value.toString() : '--'" />
                 </template>
                 <template v-else>
                     <no-data />
@@ -169,7 +169,7 @@
             getOutputValue (output) {
                 if (output.value === 'undefined' || output.value === '') {
                     return '--'
-                } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
+                } else if (!output.preset && this.$route.params.node.componentCode === 'job_execute_task') {
                     return output.value
                 } else {
                     if (URL_REG.test(output.value)) {
