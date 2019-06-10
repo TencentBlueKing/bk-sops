@@ -51,6 +51,7 @@
             <van-picker
                 show-toolbar
                 :columns="columns"
+                :default-index="defaultSchemaIndex"
                 @confirm="onConfirm"
                 @cancel="show = false" />
         </van-popup>
@@ -113,7 +114,7 @@
 <script>
     import { NAME_REG } from '@/constants/index.js'
     import moment from 'moment'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { dateFormatter } from '@/common/util.js'
     import NoData from '@/components/NoData/index.vue'
     import VantComponent from '@/components/VantForm/index.vue'
@@ -175,6 +176,10 @@
             }
         },
         computed: {
+            ...mapState({
+                defaultSchemaIndex: state => state.defaultSchemaIndex
+            }),
+
             sortedConstants () {
                 const sortedTemplateConstants = {}
                 const sortedConstants = Object.values(this.templateConstants).sort((a, b) => a.index - b.index)
@@ -220,6 +225,7 @@
             fillSchemeData (response) {
                 this.schemes = response
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
+                this.scheme = this.columns[this.defaultSchemaIndex]
             },
             fillTemplateData (response) {
                 this.templateData = response
@@ -227,7 +233,7 @@
                 this.templatePipelineTree = pipelineTree
                 this.templateConstants = pipelineTree.constants
                 this.taskName = this.getDefaultTaskName()
-                this.collected = this.isTemplateCollected()
+                this.isTemplateCollected()
                 this.$store.commit('setTemplate', this.templateData)
                 this.$store.commit('setPipelineTree', pipelineTree)
                 this.loadAtomOrVariableConfig(this.templateConstants)
@@ -283,6 +289,7 @@
             },
             async onConfirm (value) {
                 this.show = false
+                let selectedSchemaIndex = 0
                 if (value.id) {
                     try {
                         this.scheme = await this.getScheme(value.id)
@@ -296,13 +303,15 @@
                     if (includeNodesStr && includeNodesStr.length) {
                         const includeNodes = JSON.parse(includeNodesStr)
                         // 两个数组的差集，即被排除的节点
-                        // this.excludeTaskNodes = includeNodes.concat(existNodes).filter(v => includeNodes.includes(v) ^ existNodes.includes(v))
                         this.excludeTaskNodes = existNodes.filter(n => !includeNodes.includes(n))
-                        this.$store.commit('setExcludeTaskNodes', this.excludeTaskNodes)
                     }
+                    selectedSchemaIndex = this.columns.findIndex(col => col.id === value.id)
                 } else {
+                    this.excludeTaskNodes = []
                     this.scheme = value
                 }
+                this.$store.commit('setExcludeTaskNodes', this.excludeTaskNodes)
+                this.$store.commit('setDefaultSchemaIndex', selectedSchemaIndex)
             },
             async collect () {
                 // 防止重复提交
@@ -339,7 +348,7 @@
                         errorHandler(e, this)
                     }
                 }
-                return Boolean(this.templateData.is_add)
+                this.collected = Boolean(this.templateData.is_add)
             },
 
             onDateTimeConfirm (value) {
@@ -355,6 +364,9 @@
 
             async loadAtomOrVariableConfig (constants) {
                 this.loadingConfig = true
+                if (!global.$.context) {
+                    global.$.context = {}
+                }
                 for (const key of Object.keys(constants)) {
                     const constant = constants[key]
                     const [configKey] = constant.source_tag.split('.')
