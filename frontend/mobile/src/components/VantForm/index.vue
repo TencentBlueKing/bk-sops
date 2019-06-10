@@ -169,9 +169,10 @@
                         if (self.customType === 'datetime') {
                             self.$emit('dataChange', event.target.value, self.data.key, self.customType)
                         } else if (self.customType === 'select') {
-                            const val = self.$refs[self.data.key].value
+                            let val = self.$refs[self.data.key].value
                             if (val !== self.data.value) {
-                                self.$emit('dataChange', val ? val.split(',') : [], self.data.key, self.customType)
+                                val = val ? val.split(',') : []
+                                self.$emit('dataChange', val, self.data.key, self.customType)
                             }
                         }
                     }

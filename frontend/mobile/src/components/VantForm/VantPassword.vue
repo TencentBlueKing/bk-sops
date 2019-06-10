@@ -41,13 +41,14 @@
             },
             validation: {
                 type: Object,
-                default: {}
+                default () {
+                    return {}
+                }
             }
         },
         data () {
             return {
-                tempValue: '',
-                formValue: '',
+                password: '',
                 encrypted: true,
                 passwordPlaceholder: '*****',
                 i18n: {
@@ -56,14 +57,6 @@
             }
         },
         computed: {
-            password: {
-                get () {
-                    return this.tempValue
-                },
-                set (val) {
-                    this.tempValue = val
-                }
-            },
             isError () {
                 return this.errors.has('parameterInput')
             }
@@ -75,12 +68,11 @@
             init () {
                 if (this.value) {
                     this.encrypted = true
-                    this.tempValue = this.passwordPlaceholder
+                    this.password = this.passwordPlaceholder
                 }
             },
             clearPassword () {
                 this.password = ''
-                this.tempValue = ''
                 this.encrypted = false
             }
         }
