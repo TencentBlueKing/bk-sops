@@ -54,7 +54,7 @@
             </van-tabbar-item>
             <van-tabbar-item>
                 <van-icon
-                    v-if="taskState !== 'CREATED' && !operating"
+                    v-if="!operating"
                     slot="icon"
                     class-prefix="icon"
                     name="file"
@@ -145,9 +145,6 @@
                     this.pipelineTree = JSON.parse(this.task.pipeline_tree)
                     this.$store.commit('setPipelineTree', this.pipelineTree)
                     await this.loadTaskStatus()
-                    if (this.$route.query.executeTask && this.taskState === 'CREATED') {
-                        this.onOperationClick('execute')
-                    }
                     this.$nextTick(() => {
                         this.loading = false
                         this.$toast.clear()
