@@ -6,7 +6,7 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 <template>
-    <div>
+    <div class="select-list">
         <template v-if="multiple">
             <van-cell
                 is-link
@@ -40,7 +40,7 @@
                         slot="right-icon"
                         name="success"
                         v-show="iconShow = option.selected"
-                        color="rgb(25, 137, 250)" />
+                        color="#1989FA" />
                 </van-cell>
             </van-cell-group>
         </van-popup>
