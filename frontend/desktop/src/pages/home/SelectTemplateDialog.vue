@@ -130,7 +130,7 @@
                     num: gettext('项'),
                     maxSelect: gettext('，最多可选'),
                     noSearchResult: gettext('搜索结果为空'),
-                    noTemplate: gettext('该业务下暂无流程，'),
+                    noTemplate: gettext('该项目下暂无流程，'),
                     createTemplate: gettext('立即创建')
                 }
             }

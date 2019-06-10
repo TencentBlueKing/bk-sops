@@ -50,7 +50,7 @@ const api = {
         return getUrlSetting(site_url, project_id)[path]
     },
     /**
-     * 更新默认业务
+     * 更新默认项目
      */
     changeDefaultProject (project_id) {
         const prefixUrl = this.getPrefix('projectDefaultChange')
@@ -76,7 +76,7 @@ const api = {
         return request(opts)
     },
     /**
-     * 获取业务基础配置信息
+     * 获取项目基础配置信息
      */
     getBusinessBaseInfo () {
         const prefixUrl = this.getPrefix('businessBaseInfo')

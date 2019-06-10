@@ -77,7 +77,7 @@
                     myTasks: gettext('快速新建任务'),
                     cancelCollect: gettext('取消常用流程'),
                     addTasks: gettext('添加常用流程'),
-                    addTips1: gettext('业务下无常用流程，'),
+                    addTips1: gettext('项目下无常用流程，'),
                     addTips2: gettext('立即添加')
                 },
                 selectTemplateLoading: false,
@@ -147,7 +147,7 @@
             async getTemplateData () {
                 if (this.totalTemplate === 0) {
                     this.$bkMessage({
-                        'message': gettext('业务下无流程模板，为您跳转至新建流程'),
+                        'message': gettext('项目下无流程模板，为您跳转至新建流程'),
                         'theme': 'success'
                     })
                     this.$router.push(`/template/new/${this.project_id}`)

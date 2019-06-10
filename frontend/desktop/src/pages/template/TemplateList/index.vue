@@ -129,7 +129,7 @@
                             </td>
                             <td class="template-creator">{{item.creator_name}}</td>
                             <td class="template-operation" v-if="!common && !common_template">
-                                <!-- 业务流程按钮 -->
+                                <!-- 项目流程按钮 -->
                                 <router-link
                                     class="create-template-btn"
                                     :to="getNewTaskUrl(item.id)">
@@ -159,7 +159,7 @@
                                 </bk-dropdown-menu>
                             </td>
                             <td class="template-operation" v-else-if="common_template || !common">
-                                <!-- 嵌套在业务流程页面中的公共流程，通过查询条件切换 -->
+                                <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                 <router-link
                                     class="create-template-btn"
                                     :to="getNewTaskUrl(item.id)">
@@ -284,7 +284,7 @@
             return {
                 i18n: {
                     placeholder: gettext('请输入ID或流程名称'),
-                    businessFlow: gettext('业务流程'),
+                    businessFlow: gettext('项目流程'),
                     commonFlow: gettext('公共流程'),
                     new: gettext('新建'),
                     name: gettext('流程名称'),

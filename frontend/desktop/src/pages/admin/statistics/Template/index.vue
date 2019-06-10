@@ -188,18 +188,18 @@
 
     const i18n = {
         flowCategory: gettext('流程分类'),
-        flowBusiness: gettext('所属业务'),
+        flowBusiness: gettext('所属项目'),
         choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceBusiness: gettext('选择项目'),
         timeLimit: gettext('时间范围'),
         node: gettext('流程详情'),
-        prop: gettext('所属业务'),
+        prop: gettext('所属项目'),
         cite: gettext('流程引用'),
         choice: gettext('请选择'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         templateName: gettext('流程名称'),
-        businessName: gettext('业务'),
+        businessName: gettext('项目'),
         category: gettext('分类'),
         atomTotal: gettext('标准插件数'),
         subprocessTotal: gettext('子流程数'),
@@ -384,7 +384,7 @@
                     this.loadProjectList({ limit: 0 })
                 }
                 const list = tools.deepClone(this.projectList)
-                list.unshift({ id: undefined, name: gettext('全部业务') })
+                list.unshift({ id: undefined, name: gettext('全部项目') })
                 return list
             },
             categoryList () {
