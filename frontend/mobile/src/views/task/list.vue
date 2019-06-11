@@ -13,6 +13,7 @@
             :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"
+            @change="search()"
             @search="search()">
         </van-search>
         <!-- 列表 -->
@@ -120,6 +121,7 @@
             },
 
             search () {
+                console.log(this.originalTaskList)
                 this.taskList = this.originalTaskList.filter(item => item.name.includes(this.value))
             },
 
