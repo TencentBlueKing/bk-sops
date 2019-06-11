@@ -85,13 +85,3 @@ class AuthBackend(object):
         :return:
         """
         raise NotImplementedError()
-
-    def verify_multi_resource_perms(self, principal_type, principal_id, resource_actions):
-        """
-        校验主体是否拥有多种资源下的某些不关联资源的操作权限
-        :param principal_type: 主体类型
-        :param principal_id: 主体 ID
-        :param resource_actions: 资源类型 ID : [actions_id] 的字典
-        :return:
-        """
-        raise NotImplementedError()
