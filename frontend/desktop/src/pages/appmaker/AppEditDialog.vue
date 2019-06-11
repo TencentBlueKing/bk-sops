@@ -110,7 +110,7 @@
         components: {
             BaseInput
         },
-        props: ['cc_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
+        props: ['project_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
         data () {
             return {
                 templateLoading: true,
@@ -184,7 +184,7 @@
                 this.schemeLoading = true
                 try {
                     const data = {
-                        cc_id: this.cc_id,
+                        project_id: this.project_id,
                         template_id: this.appData.appTemplate
                     }
                     this.schemeList = await this.loadTaskScheme(data)

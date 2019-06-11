@@ -14,9 +14,11 @@
         type="text"
         class="base-input"
         ref="baseInput"
+        :placeholder="placeholder"
         :title="title"
         :value="value"
         :name="name"
+        :disabled="disabled"
         @input="onInput"
         @blur="onBlur"
         @keyup.enter="onKeyupEnter">
@@ -29,7 +31,7 @@
             prop: 'value',
             event: 'input'
         },
-        props: ['value', 'name', 'title'],
+        props: ['value', 'name', 'title', 'placeholder', 'disabled'],
         methods: {
             focus () {
                 this.$refs.baseInput.focus()
@@ -69,7 +71,7 @@
     &:focus {
         border-color: #3c96ff;
     }
-    &.disabled {
+    &[disabled="disabled"] {
         color: #aaa;
         background: #fafafa;
         cursor: not-allowed;

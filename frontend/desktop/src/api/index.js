@@ -45,31 +45,18 @@ const api = {
      * @param {String} path 路径名称
      */
     getPrefix (path) {
-        const { site_url, cc_id } = store.state
-        return getUrlSetting(site_url, cc_id)[path]
+        const { site_url } = store.state
+        const { project_id } = store.state.project
+        return getUrlSetting(site_url, project_id)[path]
     },
     /**
-     * 获取当前用户有权限业务
+     * 更新默认项目
      */
-    getBizList (isAll) {
-        const prefixUrl = this.getPrefix('business')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                all: isAll
-            }
-        }
-        return request(opts)
-    },
-    /**
-     * 更新默认业务
-     */
-    changeDefaultBiz (ccId) {
-        const prefixUrl = this.getPrefix('bizDefaultChange')
+    changeDefaultProject (project_id) {
+        const prefixUrl = this.getPrefix('projectDefaultChange')
         const opts = {
             method: 'POST',
-            url: `${prefixUrl}${ccId}/`,
+            url: `${prefixUrl}${project_id}/`,
             headers: { 'content-type': 'application/x-www-form-urlencoded' }
         }
         return request(opts)
@@ -89,7 +76,7 @@ const api = {
         return request(opts)
     },
     /**
-     * 获取业务基础配置信息
+     * 获取项目基础配置信息
      */
     getBusinessBaseInfo () {
         const prefixUrl = this.getPrefix('businessBaseInfo')
@@ -104,7 +91,7 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getTemplateList (data) {
-        const { cc_id } = store.state
+        const { project_id } = store.state.project
         let prefixUrl = ''
         if (data) {
             const { common } = data
@@ -116,7 +103,7 @@ const api = {
         } else {
             prefixUrl = this.getPrefix('template')
         }
-        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
+        const querystring = Object.assign({}, data, { project_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -168,7 +155,7 @@ const api = {
      */
     getSubAtomList (data) {
         let prefixUrl = ''
-        const { ccId, common } = data
+        const { project_id, common } = data
         if (common) {
             prefixUrl = this.getPrefix('commonTemplate')
         } else {
@@ -178,7 +165,7 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                business__cc_id: ccId
+                project_id
             }
         }
         return request(opts)
@@ -240,7 +227,7 @@ const api = {
      * @param {String} data 包含templateId 模板Id, common 是否是公共流程
      */
     getTemplatePersons (data) {
-        const { cc_id } = store.state
+        const { project_id } = store.state.project
         const { templateId, common } = data
         let prefixUrl = ''
         const params = {
@@ -248,7 +235,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersons')
-            params['biz_cc_id'] = cc_id
+            params['project_id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersons')
         }
@@ -264,7 +251,7 @@ const api = {
      * @param {Object} data 模板人员配置数据
      */
     saveTemplatePersons (data) {
-        const { cc_id } = store.state
+        const { project_id } = store.state.project
         const { templateId, createTask, fillParams, executeTask, common } = data
         let prefixUrl = ''
         const bodyData = {
@@ -275,7 +262,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersonsSave')
-            bodyData['biz_cc_id'] = cc_id
+            bodyData['project_id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersonsSave')
         }
@@ -384,8 +371,9 @@ const api = {
         }
         return request(opts).then(res => {
             if (res.headers['content-type'].indexOf('json') === -1) { // 处理arraybuffer数据
-                const { site_url, cc_id } = store.state
-                let filename = `${site_url}_${cc_id}.bat`
+                const { site_url } = store.state
+                const { project_id } = store.state.project
+                let filename = `${site_url}_${project_id}.bat`
                 const disposition = res.headers['content-disposition'].split(',')
                 const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
                 const matches = filenameRegex.exec(disposition)
@@ -464,9 +452,9 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getTaskList (data) {
-        const { cc_id } = store.state
+        const { project_id } = store.state.project
         const { common, template_id } = data
-        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
+        const querystring = Object.assign({}, data, { project_id })
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
             querystring['template_source'] = 'business'
@@ -521,12 +509,12 @@ const api = {
      */
     getTaskScheme (data) {
         const prefixUrl = this.getPrefix('schemes')
-        const { cc_id, template_id } = data
+        const { project_id, template_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                'biz_cc_id': cc_id,
+                project_id,
                 'template__template_id': template_id
             }
         }
@@ -538,15 +526,15 @@ const api = {
      */
     createTaskScheme (schemeData) {
         const prefixUrl = this.getPrefix('schemes')
-        const { cc_id, template_id, data, name } = schemeData
+        const { project_id, template_id, data, name } = schemeData
         const opts = {
             method: 'POST',
             url: prefixUrl,
             data: {
+                project_id,
                 template_id,
                 data,
-                name,
-                biz_cc_id: cc_id
+                name
             }
         }
         return request(opts)
@@ -604,11 +592,12 @@ const api = {
      * @param {Object} data 模板数据
      */
     createTask (data) {
-        const { cc_id, app_id, view_mode, username } = store.state
+        const { app_id, view_mode, username } = store.state
+        const { project_id } = store.state
         const { templateId, name, description, execData, flowType, common } = data
         const prefixUrl = this.getPrefix('instance')
         const requestData = {
-            'business': `api/v3/business/${cc_id}/`,
+            'business': `api/v3/business/${project_id}/`,
             'template_id': templateId,
             'creator': username,
             'name': name,
@@ -661,11 +650,11 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, cc_id } = data
+        const { instance_id, project_id } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}${cc_id}/`,
+            url: `${prefixUrl}${project_id}/`,
             params: {
                 instance_id
             }
@@ -988,9 +977,9 @@ const api = {
      * 加载轻应用数据
      */
     loadAppmaker (data) {
-        const { cc_id } = store.state
+        const { project_id } = store.state.project
         const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
+        const querystring = Object.assign({}, data, { project_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -1118,25 +1107,6 @@ const api = {
         }
         return request(opts)
     },
-    loadFunctionBusinessList () {
-        const prefixUrl = this.getPrefix('business')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
-    loadFunctionTemplateList (cc_id) {
-        const prefixUrl = this.getPrefix('template')
-        const opts = {
-            method: 'GET',
-            url: prefixUrl,
-            params: {
-                business__cc_id: cc_id
-            }
-        }
-        return request(opts)
-    },
     loadAuditTaskList (data) {
         const prefixUrl = this.getPrefix('instance')
         const querystring = Object.assign({}, data)
@@ -1164,13 +1134,13 @@ const api = {
      */
     createPeriodic (data) {
         const prefixUrl = this.getPrefix('periodic')
-        const { cc_id } = store.state
+        const { project_id } = store.state.project
         const { name, cron, templateId, execData } = data
         const opts = {
             method: 'POST',
             url: prefixUrl,
             data: {
-                business: `api/v3/business/${cc_id}/`,
+                business: `api/v3/business/${project_id}/`,
                 cron: cron,
                 name: name,
                 template_id: templateId,
@@ -1184,8 +1154,8 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getPeriodicList (data) {
-        const { cc_id } = store.state
-        const querystring = Object.assign({}, data, { business__cc_id: cc_id })
+        const { project_id } = store.state.project
+        const querystring = Object.assign({}, data, { project_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
@@ -1247,9 +1217,9 @@ const api = {
         return request(opts)
     },
     getPeriodic (data) {
-        const { cc_id } = store.state
+        const { project_id } = store.state.project
         const { taskId } = data
-        const querystring = Object.assign({}, { business__cc_id: cc_id })
+        const querystring = Object.assign({}, { project_id })
         const prefixUrl = this.getPrefix('periodic') + taskId + '/'
         const opts = {
             method: 'GET',
@@ -1280,17 +1250,6 @@ const api = {
         }
         return request(opts)
     },
-    getBusinessTimezone () {
-        const { cc_id } = store.state
-        const prefixUrl = this.getPrefix('business') + cc_id + '/'
-
-        const opts = {
-            method: 'GET',
-            url: prefixUrl
-        }
-        return request(opts)
-    },
-
     /**
      * 查询业务在 CMDB 的主机
      * @param {Array} filels 主机查询字段
@@ -1328,6 +1287,77 @@ const api = {
         const opts = {
             method: 'GET',
             url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
+     * 加载项目列表
+     */
+    loadProjectList (data = {}) {
+        const { limit, offset, is_disable, name } = data
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                limit,
+                offset,
+                is_disable,
+                name
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 创建项目
+     * @param {Object} data 项目配置参数
+     */
+    createProject (data) {
+        const { name, time_zone, desc } = data
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                name,
+                time_zone,
+                desc
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 获取项目详情
+     * @param {String} id 项目id
+     */
+    loadProjectDetail (id) {
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'GET',
+            url: `${prefixUrl}id`
+        }
+        return request(opts)
+    },
+    /**
+     * 更新项目详情
+     * @param {Object} data 项目配置参数
+     */
+    updateProject (data) {
+        const { id, name, time_zone, desc, is_disable } = data
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'PATCH',
+            url: `${prefixUrl}${id}`,
+            data: {
+                name,
+                time_zone,
+                desc,
+                is_disable
+            }
         }
         return request(opts)
     }

@@ -32,6 +32,8 @@ const ConfigPage = () => import('@/pages/config/index.vue')
 const AppMaker = () => import('@/pages/appmaker/index.vue')
 const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
 
+const ProjectHome = () => import('@/pages/project/index.vue')
+
 const ErrorPage = () => import('@/pages/error/index.vue')
 
 const Admin = () => import('@/pages/admin/index.vue')
@@ -58,14 +60,14 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: to => {
-                return `/business/home/${store.state.cc_id}/`
+                return `/business/home/${store.state.project_id}/`
             }
         },
         {
-            path: '/business/home/:cc_id',
+            path: '/business/home/:project_id',
             component: Home,
             props: (route) => ({
-                cc_id: route.params.cc_id
+                project_id: route.params.project_id
             })
         },
         {
@@ -77,58 +79,58 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:cc_id/',
+                    path: 'home/:project_id/',
                     component: TemplateList,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         common: route.query.common,
                         common_template: route.query.common_template
                     })
                 },
                 {
-                    path: 'common/:cc_id/',
+                    path: 'common/:project_id/',
                     component: TemplateList,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         common: 1,
                         common_template: 'common'
                     })
                 },
                 {
-                    path: 'edit/:cc_id?/',
+                    path: 'edit/:project_id?/',
                     component: TemplateEdit,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: 'edit',
                         common: route.query.common
                     })
                 },
                 {
-                    path: 'new/:cc_id/',
+                    path: 'new/:project_id/',
                     component: TemplateEdit,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         type: 'new',
                         common: route.query.common
                     })
                 },
                 {
-                    path: 'clone/:cc_id/',
+                    path: 'clone/:project_id/',
                     component: TemplateEdit,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: 'clone',
                         common: route.query.common
                     })
                 },
                 {
-                    path: 'newtask/:cc_id/:step/',
+                    path: 'newtask/:project_id/:step/',
                     component: TaskCreate,
                     name: 'templateStep',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         step: route.params.step,
                         template_id: route.query.template_id,
                         common: route.query.common
@@ -144,65 +146,70 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:cc_id/',
+                    path: 'home/:project_id/',
                     component: TaskList,
                     name: 'taskList',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         common: route.query.common,
                         create_method: route.query.create_method
                     })
                 },
                 {
-                    path: 'execute/:cc_id/',
+                    path: 'execute/:project_id/',
                     component: TaskExecute,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         instance_id: route.query.instance_id
                     })
                 }]
         },
         {
-            path: '/config/home/:cc_id/',
+            path: '/config/home/:project_id/',
             component: ConfigPage,
             props: (route) => ({
-                cc_id: route.params.cc_id
+                project_id: route.params.project_id
             })
         },
         {
-            path: '/appmaker/home/:cc_id/',
+            path: '/appmaker/home/:project_id/',
             component: AppMaker,
             props: (route) => ({
-                cc_id: route.params.cc_id
+                project_id: route.params.project_id
             })
         },
         {
-            path: '/appmaker/:app_id/newtask/:cc_id/:step',
+            path: '/appmaker/:app_id/newtask/:project_id/:step',
             name: 'appmakerTaskCreate',
             component: TaskCreate,
             props: (route) => ({
-                cc_id: route.params.cc_id,
+                project_id: route.params.project_id,
                 step: route.params.step,
                 template_id: route.query.template_id
             })
         },
         {
-            path: '/appmaker/:app_id/execute/:cc_id/',
+            path: '/appmaker/:app_id/execute/:project_id/',
             name: 'appmakerTaskExecute',
             component: TaskExecute,
             props: (route) => ({
-                cc_id: route.params.cc_id,
+                project_id: route.params.project_id,
                 instance_id: route.query.instance_id
             })
         },
         {
-            path: '/appmaker/:app_id/task_home/:cc_id/',
+            path: '/appmaker/:app_id/task_home/:project_id/',
             name: 'appmakerTaskHome',
             component: AppMakerTaskHome,
             props: (route) => ({
-                cc_id: route.params.cc_id,
+                project_id: route.params.project_id,
                 app_id: route.params.app_id
             })
+        },
+        {
+            path: '/project/home/',
+            name: 'projectHome',
+            component: ProjectHome
         },
         {
             path: '/error/:code(401|403|405|406|500)/',
@@ -267,11 +274,11 @@ const routers = new VueRouter({
             path: '/periodic',
             component: periodic,
             children: [{
-                path: 'home/:cc_id/',
+                path: 'home/:project_id/',
                 component: periodicTemplateList,
                 name: 'periodicTemplate',
                 props: (route) => ({
-                    cc_id: route.params.cc_id
+                    project_id: route.params.project_id
                 })
             }]
         },
@@ -290,9 +297,9 @@ routers.beforeEach((to, from, next) => {
     } else {
         store.commit('setNotFoundPage', false)
     }
-    if (to.params.cc_id) {
-        store.commit('setBizId', to.params.cc_id)
-        setAtomConfigApiUrls(store.state.site_url, to.params.cc_id)
+    if (to.params.project_id) {
+        store.commit('setProjectId', to.params.project_id)
+        setAtomConfigApiUrls(store.state.site_url, to.params.project_id)
     }
     next()
 })

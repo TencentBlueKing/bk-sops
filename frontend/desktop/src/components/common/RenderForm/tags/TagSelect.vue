@@ -23,7 +23,7 @@
                 :multiple="multiple"
                 :no-data-text="empty_text"
                 :placeholder="placeholder">
-                <template v-if="hasGroup">
+                <template v-if="!hasGroup">
                     <el-option
                         v-for="item in items"
                         v-loading="loading"
@@ -37,7 +37,7 @@
                         v-for="group in items"
                         :key="group.text"
                         :label="group.text">
-                         <el-option
+                        <el-option
                             v-for="item in group.options"
                             v-loading="loading"
                             :key="item.text"
@@ -132,7 +132,6 @@
         data () {
             return {
                 loading: false,
-                remote_cache: null,
                 loading_text: gettext('加载中')
             }
         },
@@ -198,26 +197,21 @@
                 if (!remote_url) return
 
                 // 请求远程数据
-                if (!this.remote_cache && remote_url) {
-                    this.loading = true
-                    $.ajax({
-                        url: remote_url,
-                        method: 'GET',
-                        success: function (res) {
-                            const data = self.remote_data_init(res) || []
+                this.loading = true
+                $.ajax({
+                    url: remote_url,
+                    method: 'GET',
+                    success: function (res) {
+                        const data = self.remote_data_init(res) || []
 
-                            self.items = data
-                            self.remote_cache = data
-                            self.loading = false
-                        },
-                        error: function (resp) {
-                            self.placeholder = gettext('请求数据失败')
-                            self.loading = false
-                        }
-                    })
-                } else {
-                    this.items = this.remote_cache || []
-                }
+                        self.items = data
+                        self.loading = false
+                    },
+                    error: function (resp) {
+                        self.placeholder = gettext('请求数据失败')
+                        self.loading = false
+                    }
+                })
             }
         }
     }

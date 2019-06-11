@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
 import ujson as json
 
 from django.db import transaction
@@ -18,7 +19,7 @@ from django.contrib.auth import get_user_model
 from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest
+from tastypie.exceptions import BadRequest, InvalidFilterError
 from tastypie.resources import ModelResource
 
 from pipeline.models import TemplateScheme
@@ -36,6 +37,8 @@ from gcloud.webservice3.resources import (
     ProjectResource,
     TemplateFilterPaginator
 )
+
+logger = logging.getLogger('root')
 
 
 class TaskTemplateResource(GCloudModelResource):
@@ -219,6 +222,11 @@ class TaskTemplateResource(GCloudModelResource):
 
 
 class TemplateSchemeResource(ModelResource):
+    data = fields.CharField(
+        attribute='data',
+        use_in='detail',
+    )
+
     class Meta:
         queryset = TemplateScheme.objects.all()
         resource_name = 'schemes'
@@ -233,28 +241,35 @@ class TemplateSchemeResource(ModelResource):
 
     def build_filters(self, filters=None, **kwargs):
         orm_filters = super(TemplateSchemeResource, self).build_filters(filters, **kwargs)
-        try:
-            template_id = filters.pop('template__template_id')[0]
+        if 'project_id' in filters and 'template_id' in filters:
+            template_id = filters.pop('template_id')[0]
             project_id = filters.pop('project_id')[0]
-            template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
+            try:
+                template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
+            except TaskTemplate.DoesNotExist:
+                message = 'flow template[id={template_id}] in project[id={project_id}] does not exist'.format(
+                    template_id=template_id, project_id=project_id)
+                logger.error(message)
+                raise InvalidFilterError(message)
             orm_filters.update({'template__template_id': template.pipeline_template.template_id})
-        except Exception:
-            pass
         return orm_filters
-
-    def alter_list_data_to_serialize(self, request, data):
-        for bundle in data['objects']:
-            bundle.data.pop('data')
-
-        return data
 
     def obj_create(self, bundle, **kwargs):
         try:
-            template_id = bundle.data.pop('template_id', '')
+            template_id = bundle.data.pop('template_id')
             project_id = bundle.data.pop('project_id')
+            _ = json.loads(bundle.data['data'])
+        except Exception as e:
+            message = 'create scheme params error: %s' % e
+            logger.error(message)
+            raise BadRequest(message)
+        try:
             template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
-        except Exception:
-            raise BadRequest('template[id=%s] in project_id[%s] does not exist' % (template_id, project_id))
+        except TaskTemplate.DoesNotExist:
+            message = 'flow template[id={template_id}] in project[id={project_id}] does not exist'.format(
+                template_id=template_id, project_id=project_id)
+            logger.error(message)
+            raise BadRequest(message)
         bundle.data['name'] = name_handler(bundle.data['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
         kwargs['unique_id'] = '%s-%s' % (template_id, bundle.data['name'])
         if TemplateScheme.objects.filter(unique_id=kwargs['unique_id']).exists():

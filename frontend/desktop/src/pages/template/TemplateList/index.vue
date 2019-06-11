@@ -129,7 +129,7 @@
                             </td>
                             <td class="template-creator">{{item.creator_name}}</td>
                             <td class="template-operation" v-if="!common && !common_template">
-                                <!-- 业务流程按钮 -->
+                                <!-- 项目流程按钮 -->
                                 <router-link
                                     class="create-template-btn"
                                     :to="getNewTaskUrl(item.id)">
@@ -159,7 +159,7 @@
                                 </bk-dropdown-menu>
                             </td>
                             <td class="template-operation" v-else-if="common_template || !common">
-                                <!-- 嵌套在业务流程页面中的公共流程，通过查询条件切换 -->
+                                <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                 <router-link
                                     class="create-template-btn"
                                     :to="getNewTaskUrl(item.id)">
@@ -279,12 +279,12 @@
             BaseSearch,
             NoData
         },
-        props: ['cc_id', 'common', 'common_template'],
+        props: ['project_id', 'common', 'common_template'],
         data () {
             return {
                 i18n: {
                     placeholder: gettext('请输入ID或流程名称'),
-                    businessFlow: gettext('业务流程'),
+                    businessFlow: gettext('项目流程'),
                     commonFlow: gettext('公共流程'),
                     new: gettext('新建'),
                     name: gettext('流程名称'),
@@ -372,8 +372,10 @@
                 'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
                 'businessBaseInfo': state => state.template.businessBaseInfo,
-                'v1_import_flag': state => state.v1_import_flag,
-                'businessTimezone': state => state.businessTimezone
+                'v1_import_flag': state => state.v1_import_flag
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             listData () {
                 return this.common === 1 ? this.commonTemplateData : this.templateList
@@ -430,8 +432,8 @@
                             data['pipeline_template__edit_time__lte'] = moment(this.editEndTime).add('1', 'd').format('YYYY-MM-DD')
                         // 无时区的公共流程使用本地的时间
                         } else {
-                            data['pipeline_template__edit_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_template__edit_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__gte'] = moment.tz(this.editStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__lte'] = moment.tz(this.editEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const templateListData = await this.loadTemplateList(data)
@@ -566,7 +568,7 @@
             },
             // 获取编辑按钮的跳转链接
             getEditTemplateUrl (id) {
-                let url = `/template/edit/${this.cc_id}/?template_id=${id}`
+                let url = `/template/edit/${this.project_id}/?template_id=${id}`
                 if (this.common) {
                     url += '&common=1'
                 }
@@ -574,7 +576,7 @@
             },
             // 获取新建模板的跳转链接
             getNewTemplateUrl () {
-                let url = `/template/new/${this.cc_id}`
+                let url = `/template/new/${this.project_id}`
                 if (this.common) {
                     url += '/?&common=1'
                 }
@@ -582,21 +584,21 @@
             },
             // 获取新建任务的跳转链接
             getNewTaskUrl (id) {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${id}`
+                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }
                 return url
             },
             getExecuteHistoryUrl (id) {
-                let url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
+                let url = `/taskflow/home/${this.project_id}/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }
                 return url
             },
             getCloneUrl (id) {
-                let url = `/template/clone/${this.cc_id}/?template_id=${id}`
+                let url = `/template/clone/${this.project_id}/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }
