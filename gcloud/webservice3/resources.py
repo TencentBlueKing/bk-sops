@@ -23,12 +23,16 @@ from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
 from tastypie.paginator import Paginator
-from tastypie.authorization import ReadOnlyAuthorization, Authorization
+from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.serializers import Serializer
 from tastypie.exceptions import BadRequest
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAuthorization
+from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
+from auth_backend.examples import project_resource
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
@@ -227,7 +231,7 @@ class TemplateFilterPaginator(PropertyFilterPaginator):
                 'has_subprocess': BooleanField()}
 
 
-class GCloudModelResource(ModelResource):
+class GCloudModelResource(ModelResource, BkSaaSLabeledDataResourceMixin):
     login_exempt = False
 
     def determine_format(self, request):
@@ -349,7 +353,9 @@ class ProjectResource(GCloudModelResource):
     class Meta:
         queryset = Project.objects.all()
         resource_name = 'project'
-        authorization = Authorization()
+        authorization = BkSaaSLooseReadOnlyAuthorization(auth_resource=project_resource,
+                                                         read_action_id='view',
+                                                         update_action_id='edit')
         always_return_data = True
 
     def dehydrate(self, bundle):

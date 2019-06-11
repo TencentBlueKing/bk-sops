@@ -12,17 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 
-class AuthBaseException(Exception):
-    pass
-
-
-class AuthKeyError(AuthBaseException):
-    pass
-
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
+class BkSaaSLabeledDataResourceMixin(object):
+    def dehydrate(self, bundle):
+        return bundle

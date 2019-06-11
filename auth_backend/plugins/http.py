@@ -11,18 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import json
 
-class AuthBaseException(Exception):
-    pass
-
-
-class AuthKeyError(AuthBaseException):
-    pass
+from django.http import HttpResponse
 
 
-class AuthInvalidOperationError(AuthBaseException):
-    pass
+class HttpResponseAuthFailed(HttpResponse):
+    status_code = 499
 
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
+    def __init__(self, resource_type_name, resource_name, action_name, *args, **kwargs):
+        super(HttpResponse, self).__init__(*args, **kwargs)
+        # Content is a bytestring. See the `content` property methods.
+        result = {
+            'resource_type_name': resource_type_name,
+            'resource_name': resource_name,
+            'action_name': action_name,
+        }
+        self.content = json.dumps(result)
