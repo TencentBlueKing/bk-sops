@@ -361,4 +361,7 @@
 .el-pager, .el-pager li{
     vertical-align: unset;
 }
+.is-scrolling-none {
+    max-height: 750px !important;
+}
 </style>
