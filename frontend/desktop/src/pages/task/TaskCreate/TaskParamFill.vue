@@ -19,8 +19,7 @@
                 <div class="common-form-item">
                     <label class="required">{{ i18n.taskName }}</label>
                     <div class="common-form-content">
-                        <BaseInput
-                            class="step-form-content-size"
+                        <BaseInput class="step-form-content-size"
                             name="taskName"
                             v-model="taskName"
                             v-validate="taskNameRule">
@@ -28,44 +27,43 @@
                         <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
-                <div class="common-form-item" v-if="isStartNowShow">
+                <div class="common-form-item"
+                    v-if="isStartNowShow">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
-                            <bk-button
-                                @click="onChangeStartNow(true)"
+                            <bk-button @click="onChangeStartNow(true)"
                                 :type="!isStartNow ? 'default' : 'primary'">
                                 {{ i18n.startNow }}
                             </bk-button>
-                            <bk-button
-                                @click="onChangeStartNow(false)"
+                            <bk-button @click="onChangeStartNow(false)"
                                 :type="!isStartNow ? 'primary' : 'default'">
                                 {{ i18n.periodicStart }}
                             </bk-button>
                         </div>
                     </div>
                 </div>
-                <div class="common-form-item" v-if="isTaskTypeShow">
+                <div class="common-form-item"
+                    v-if="isTaskTypeShow">
                     <label class="required">{{ i18n.flowType }}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
-                            <bk-button
-                                @click="onSwitchTaskType(false)"
+                            <bk-button @click="onSwitchTaskType(false)"
                                 :type="isSelectFunctionalType ? 'default' : 'primary'">
                                 {{ i18n.defaultFlowType }}
                             </bk-button>
-                            <bk-button
-                                @click="onSwitchTaskType(true)"
+                            <bk-button @click="onSwitchTaskType(true)"
                                 :type="isSelectFunctionalType ? 'primary' : 'default'">
                                 {{ i18n.functionFlowType }}
                             </bk-button>
                         </div>
                     </div>
                 </div>
-                <div class="common-form-item" v-if="!isStartNow">
+                <div class="common-form-item"
+                    v-if="!isStartNow">
                     <label class="required">{{i18n.periodicCron}}</label>
                     <div class="common-form-content step-form-item-cron">
-                        <BaseInput
+                        <!-- <BaseInput
                             class="step-form-content-size"
                             name="periodicCron"
                             v-model="periodicCron"
@@ -76,7 +74,9 @@
                                 <img :src="periodicCronImg" class="">
                             </div>
                         </bk-tooltip>
-                        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
+                        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span> -->
+                        <LoopRulueSelect>
+                        </LoopRulueSelect>
                     </div>
                 </div>
             </div>
@@ -88,8 +88,7 @@
                 </span>
             </div>
             <div>
-                <ParameterInfo
-                    :referenced-variable="pipelineData.constants"
+                <ParameterInfo :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
                     :task-message-loading="taskMessageLoading"
                     @onParameterInfoLoading="onParameterInfoLoading">
@@ -97,13 +96,11 @@
             </div>
         </div>
         <div class="action-wrapper">
-            <bk-button
-                class="preview-step-button"
+            <bk-button class="preview-step-button"
                 @click="onGotoSelectNode">
                 {{ i18n.previous }}
             </bk-button>
-            <bk-button
-                class="next-step-button"
+            <bk-button class="next-step-button"
                 type="success"
                 :disabled="disabledButton"
                 :loading="isSubmit"
@@ -123,12 +120,13 @@
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
-
+    import LoopRulueSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     export default {
         name: 'TaskParamFill',
         components: {
             BaseInput,
-            ParameterInfo
+            ParameterInfo,
+            LoopRulueSelect
         },
         props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance'],
         data () {
@@ -379,127 +377,130 @@
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
+@import "@/scss/config.scss";
 .param-fill-wrapper {
-    padding-top: 50px;
-    @media screen and (max-width: 1300px){
-        width: calc(100% - 40px);
-    }
-    /deep/ .no-data-wrapper {
-        margin: 50px 0;
-    }
+  padding-top: 50px;
+  @media screen and (max-width: 1300px) {
+    width: calc(100% - 40px);
+  }
+  /deep/ .no-data-wrapper {
+    margin: 50px 0;
+  }
 }
-.task-info, .param-info {
-    margin: 0 40px 50px 40px;
-    .task-info-title, .param-info-title {
-        font-size: 14px;
-        line-height: 32px;
-        font-weight: 600;
-        color: #313238;
-        border-bottom: 1px solid #cacedb;
-        margin-bottom: 30px;
+.task-info,
+.param-info {
+  margin: 0 40px 50px 40px;
+  .task-info-title,
+  .param-info-title {
+    font-size: 14px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #313238;
+    border-bottom: 1px solid #cacedb;
+    margin-bottom: 30px;
+  }
+  .common-form-item {
+    label {
+      color: #313238;
+      font-weight: normal;
     }
-    .common-form-item {
-        label {
-            color: #313238;
-            font-weight: normal;
-        }
-    }
+  }
 }
-.param-info{
-    margin: 0 20px 50px 20px;
+.param-info {
+  margin: 0 20px 50px 20px;
 }
 .param-info-title {
-    margin: 0 20px 0 20px;
+  margin: 0 20px 0 20px;
 }
 .functor-task-info {
-    padding-bottom: 0px;
+  padding-bottom: 0px;
 }
 .common-section-title {
-    margin-bottom: 24px;
+  margin-bottom: 24px;
 }
 .bk-button-group {
-    .bk-button {
-        width: 150px;
-        margin: 0px;
-    }
-    .bk-button.bk-primary {
-        position: relative;
-        z-index: 4;
-        color: #3a84ff;
-        background-color: #c7dcff;
-        border-radius: 2px;
-        border:1px solid #3a84ff;
-    }
-    .bk-button:last-child {
-        margin-left: -1px;
-    }
+  .bk-button {
+    width: 150px;
+    margin: 0px;
+  }
+  .bk-button.bk-primary {
+    position: relative;
+    z-index: 4;
+    color: #3a84ff;
+    background-color: #c7dcff;
+    border-radius: 2px;
+    border: 1px solid #3a84ff;
+  }
+  .bk-button:last-child {
+    margin-left: -1px;
+  }
 }
 .periodic-img-tooltip {
-    position: relative;
-    bottom: -6px;
-    left: 5px;
-    color: #c4c6cc;
-    font-size: 14px;
-    &:hover {
-        color: #f4aa1a;
-    }
-    /deep/ .bk-tooltip-arrow {
-        display: none;
-    }
+  position: relative;
+  bottom: -6px;
+  left: 5px;
+  color: #c4c6cc;
+  font-size: 14px;
+  &:hover {
+    color: #f4aa1a;
+  }
+  /deep/ .bk-tooltip-arrow {
+    display: none;
+  }
 }
-.startnow-form-content, .periodic-form-content {
-    margin-top: 10px;
+.startnow-form-content,
+.periodic-form-content {
+  margin-top: 10px;
 }
 .radio-input {
-    margin-right: 30px;
+  margin-right: 30px;
 }
 .step-form-content-size {
-    max-width: 500px;
+  max-width: 500px;
 }
 /deep/ .bk-tooltip-inner {
-    max-width: 600px;
-    border:1px solid #c4c6cc;
-    background-color: #000;
+  max-width: 600px;
+  border: 1px solid #c4c6cc;
+  background-color: #000;
 }
 .step-form-content {
-    /deep/ .bk-tooltip-arrow {
-        position: absolute;
-        bottom: 6px;
-    }
-    img {
-        position: relative;
-        bottom: -4px;
-        left: 13px;
-        background-color: $whiteDefault;
-        border: 1px solid #dddddd;
-    }
+  /deep/ .bk-tooltip-arrow {
+    position: absolute;
+    bottom: 6px;
+  }
+  img {
+    position: relative;
+    bottom: -4px;
+    left: 13px;
+    background-color: $whiteDefault;
+    border: 1px solid #dddddd;
+  }
 }
 .step-form-item-cron {
-    input {
-        vertical-align: top;
-    }
+  input {
+    vertical-align: top;
+  }
 }
 .action-wrapper {
-    border-top: 1px solid #cacedb;
-    background-color: #ffffff;
-    button {
-        margin-top: -7px;
-    }
-    .preview-step-button {
-        padding: 0px;
-        margin-left: 40px;
-        width: 90px;
-        height: 32px;
-        line-height: 32px;
-        color: #313238;
-    }
-    .next-step-button {
-        width: 140px;
-        height: 32px;
-        line-height: 32px;
-        background-color: #2dcb56;
-        border-color: #2dcb56;
-    }
+  border-top: 1px solid #cacedb;
+  background-color: #ffffff;
+  button {
+    margin-top: -7px;
+  }
+  .preview-step-button {
+    padding: 0px;
+    margin-left: 40px;
+    width: 90px;
+    height: 32px;
+    line-height: 32px;
+    color: #313238;
+  }
+  .next-step-button {
+    width: 140px;
+    height: 32px;
+    line-height: 32px;
+    background-color: #2dcb56;
+    border-color: #2dcb56;
+  }
 }
 </style>
