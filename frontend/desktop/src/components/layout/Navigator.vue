@@ -99,12 +99,12 @@
                 name: gettext('流程模板'),
                 children: [
                     {
-                        key: 'home',
+                        key: 'template',
                         name: gettext('业务流程'),
                         path: '/template/home/'
                     },
                     {
-                        key: 'template/common',
+                        key: 'commonTemplate',
                         name: gettext('公共流程'),
                         path: '/template/common/'
                     }
@@ -141,7 +141,7 @@
                         path: '/admin/statistics/template/'
                     },
                     {
-                        key: 'admin/common',
+                        key: 'common',
                         parent: 'admin',
                         name: gettext('公共流程'),
                         path: '/admin/common/template/'
@@ -262,7 +262,12 @@
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
             isSubNavActived (route) {
-                return new RegExp(route.key).test(this.$route.path)
+                let index = route.path.indexOf('/')
+                for (let i = 0; i < 2; i++) {
+                    index = route.path.indexOf('/', index + 1)
+                }
+                const newPath = route.path.substring(0, index + 1)
+                return new RegExp('^' + newPath).test(this.$route.path)
             },
             getPath (route) {
                 /** 404 页面时，导航统一跳转到首页 */
