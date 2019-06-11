@@ -705,7 +705,7 @@ label.required:after {
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 13px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
         }
