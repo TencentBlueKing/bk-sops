@@ -106,7 +106,7 @@
 
             async fillTaskStatus () {
                 for (const task of this.taskList) {
-                    if (task.is_started) {
+                    if (task.is_started && !task.is_finished) {
                         try {
                             const response = await this.getTaskStatus({ id: task.id })
                             this.$set(task, 'status', response.state)
