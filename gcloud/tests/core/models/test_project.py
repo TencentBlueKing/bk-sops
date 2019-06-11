@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import factory
+from django.db.models import signals
 from django.test import TestCase
 
 from gcloud.core.models import Project
@@ -18,9 +20,11 @@ from gcloud.core.models import Project
 
 class ProjectTestCase(TestCase):
 
+    @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def tearDown(self):
         Project.objects.all().delete()
 
+    @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_sync_project_from_cmdb_business__full_sync(self):
         businesses = {
             i: {
@@ -41,6 +45,7 @@ class ProjectTestCase(TestCase):
             self.assertEqual(proj.desc, '')
             self.assertTrue(proj.from_cmdb)
 
+    @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_sync_project_from_cmdb_business__partial_sync(self):
         for i in range(1, 3):
             Project.objects.create(name='biz_%s' % i,
@@ -69,6 +74,7 @@ class ProjectTestCase(TestCase):
             self.assertEqual(proj.desc, '')
             self.assertTrue(proj.from_cmdb)
 
+    @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_sync_project_from_cmdb_business__no_business(self):
         projs = Project.objects.sync_project_from_cmdb_business({})
         self.assertEqual(len(projs), 0)
