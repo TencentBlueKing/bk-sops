@@ -16,6 +16,7 @@
             :appmaker-data-loading="appmakerDataLoading" />
         <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
+        <PermissionModal ref="permissionModal"></PermissionModal>
         <router-view v-if="isRouterAlive"></router-view>
     </div>
 </template>
@@ -26,6 +27,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
+    import PermissionModal from '@/components/common/modal/PermissionModal.vue'
     import Navigator from '@/components/layout/Navigator.vue'
 
     export default {
@@ -33,7 +35,8 @@
         components: {
             Navigator,
             UserLoginModal,
-            ErrorCodeModal
+            ErrorCodeModal,
+            PermissionModal
         },
         provide () {
             return {
@@ -74,6 +77,9 @@
             })
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
+            })
+            bus.$on('showPermisionModal', (data) => {
+                this.$refs.PermissionModal.show(data)
             })
             bus.$on('showMessage', (info) => {
                 this.$bkMessage({
