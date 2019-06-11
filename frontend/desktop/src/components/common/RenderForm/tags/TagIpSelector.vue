@@ -127,6 +127,5 @@
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
     padding: 0 10px 10px;
-    background: #fafbfd;
 }
 </style>

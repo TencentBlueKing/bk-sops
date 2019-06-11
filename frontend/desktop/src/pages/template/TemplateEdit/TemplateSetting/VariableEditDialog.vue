@@ -15,7 +15,7 @@
             :quick-close="false"
             :ext-cls="'common-dialog'"
             :title="i18n.edit"
-            width="600"
+            width="636"
             :is-show.sync="isShow"
             @confirm="onConfirm"
             @cancel="onCancel">
@@ -49,7 +49,7 @@
                 formData: tools.deepClone(this.renderData),
                 formError: false,
                 i18n: {
-                    edit: gettext('编辑变量'),
+                    edit: gettext('选择服务器'),
                     checkData: gettext('变量的参数值不合法')
                 }
             }
@@ -82,7 +82,7 @@
         margin-left: 0;
     }
     /deep/ .bk-dialog-body {
-        max-height: 360px;
+        max-height: 700px;
         overflow-y: auto;
     }
     .error-tips {

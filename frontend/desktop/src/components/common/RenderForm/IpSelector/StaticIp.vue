@@ -15,6 +15,7 @@
             <div class="operation-area">
                 <bk-button type="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
+                    v-if="isShowQuantity"
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
@@ -35,7 +36,7 @@
                 </bk-dropdown-menu>
                 <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch"></ip-search-input>
             </div>
-            <div class="selected-num">{{i18n.selected}}
+            <div v-if="isShowQuantity" class="selected-num">{{i18n.selected}}
                 <span class="total-ip">{{staticIps.length}}</span>
                 {{i18n.staticIpNum}}
                 <span class="total-not-installed">{{failedAgentLength}}</span>
@@ -69,9 +70,9 @@
                         <tr v-else>
                             <td class="static-ip-empty" colspan="4">
                                 <span v-if="!isSearchMode && editable">
-                                    {{i18n.noDataClick}}
-                                    <a class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</a>
-                                    {{i18n.server}}
+                                    <span class="noDataClick">{{i18n.noDataClick}}</span>
+                                    <span class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</span>
+                                    <span class="server">{{i18n.server}}</span>
                                 </span>
                                 <span v-else>{{i18n.noData}}</span>
                             </td>
@@ -80,6 +81,7 @@
                 </table>
                 <div class="table-pagination" v-if="isPaginationShow">
                     <bk-paging
+                        :size="small"
                         :location="'right'"
                         :cur-page.sync="currentPage"
                         :total-page="totalPage"
@@ -134,7 +136,7 @@
         },
         props: ['editable', 'staticIpList', 'staticIps'],
         data () {
-            const listCountPerPage = 10
+            const listCountPerPage = 5
             const totalPage = Math.ceil(this.staticIps.length / listCountPerPage)
             return {
                 isDropdownShow: false,
@@ -171,11 +173,17 @@
         computed: {
             failedAgentLength () {
                 return this.staticIps.filter(item => !item.agent).length
+            },
+            isShowQuantity () {
+                return this.staticIps.length
             }
         },
         watch: {
             staticIps (val) {
                 this.setPanigation(val)
+                if (this.staticIps.length !== 0) {
+                    this.dataError = false
+                }
             }
         },
         methods: {
@@ -279,6 +287,7 @@
     margin: 20px 0;
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
+        padding: 0px;
     }
 }
 .operation-btn {
@@ -299,6 +308,9 @@
     .total-not-installed {
         color: #ea3636;
     }
+}
+/deep/.bk-button .bk-icon {
+    margin-left: 55px;
 }
 .ip-search-wrap {
     position: absolute;
@@ -345,6 +357,14 @@
             color: #3a84ff;
             cursor: pointer;
         }
+        .noDataClick {
+            position: relative;
+            left: 3px;
+        }
+        .server {
+            position: relative;
+            right: 3px;;
+        }
     }
 }
 .table-pagination {
@@ -354,7 +374,7 @@
         /deep/ .page-item {
             min-width: 30px;
             height: 30px;
-            line-height: 30px;
+            line-height: 28px;
             font-size: 12px;
         }
     }

@@ -13,9 +13,10 @@
     <div class="single-ip-selector">
         <div class="selector-choose-wrap">
             <div
-                v-for="selector in selectorTabs"
+                v-for="(selector, index) in selectorTabs"
                 :key="selector.type"
                 :class="['ip-tab-radio', { 'disabled': !editable }]"
+                :style="isLableSelected(selector, index)"
                 @click="onChooseSelector(selector.id)">
                 <span :class="['radio', { 'checked': activeSelector === selector.id }]"></span>
                 <span class="radio-text">{{selector.name}}</span>
@@ -79,24 +80,45 @@
             },
             validate () {
                 return this.$refs[this.activeSelector].validate()
+            },
+            isLableSelected (selector, index) {
+                const style = {}
+                const item = 100 / this.selectorTabs.length + '%'
+                style['width'] = item
+                if (index === this.selectorTabs.length - 1) {
+                    style['border-right'] = '1px solid #dcdee5'
+                }
+                if (this.activeSelector === selector.id) {
+                    style['border-bottom'] = 0
+                    style['background'] = '#fff'
+                }
+                return style
             }
         }
     }
 </script>
 <style lang="scss" scoped>
 .selector-choose-wrap {
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-around;
 }
 .ip-tab-radio {
     display: inline-block;
-    margin-right: 20px;
     font-size: 14px;
+    height: 42px;
+    background: #f7f7f7;
+    border: 1px solid #dcdee5;
+    border-right: 0;
     cursor: pointer;
+    .radio-box {
+        display: flex;
+    }
     .radio {
         display: inline-block;
         position: relative;
         width: 16px;
         height: 16px;
+        margin: 12px 5px 12px 20px;
         border: 1px solid #c4c6cc;
         border-radius: 50%;
         vertical-align: middle;
