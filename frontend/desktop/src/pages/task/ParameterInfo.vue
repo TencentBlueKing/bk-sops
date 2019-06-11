@@ -114,7 +114,7 @@
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
-    min-height: 180px;
+    min-height: 324px;
 }
 .variable-wrap {
     background: #f0f1f5;
