@@ -48,7 +48,7 @@
                 </div>
                 <div class="task-params-btns">
                     <bk-button
-                        :class="['params-btn', {
+                        :class="['params-btn', 'solid-eye', {
                             actived: nodeInfoType === 'viewParams'
                         }]"
                         type="default"
@@ -1308,6 +1308,9 @@
                 width: 16px;
                 top: 2px;
                 line-height: 22px;
+            }
+            .solid-eye {
+                font-size: 12px;
             }
         }
     }
