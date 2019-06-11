@@ -127,7 +127,7 @@
             BaseInput,
             TaskParamEdit
         },
-        props: ['cc_id', 'template_id', 'common', 'previewData'],
+        props: ['project_id', 'template_id', 'common', 'previewData'],
         data () {
             return {
                 i18n: {
@@ -174,8 +174,10 @@
                 'templateName': state => state.template.name,
                 'userType': state => state.userType,
                 'viewMode': state => state.view_mode,
-                'app_id': state => state.app_id,
-                'businessTimezone': state => state.businessTimezone
+                'app_id': state => state.app_id
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             isSchemeShow () {
                 return this.pipelineData.location.some(item => item.optional)
@@ -230,7 +232,7 @@
                             templateId: this.template_id,
                             excludeTaskNodesId: JSON.stringify([]),
                             common: this.common,
-                            cc_id: this.cc_id,
+                            project_id: this.project_id,
                             template_source: templateSource,
                             version: templateData.version
                         }
@@ -252,7 +254,7 @@
                     // 无时区的公共流程使用本地的时间
                     nowTime = moment().format('YYYYMMDDHHmmss')
                 } else {
-                    nowTime = moment.tz(this.businessTimezone).format('YYYYMMDDHHmmss')
+                    nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 }
                 return this.templateName + '_' + nowTime
             },
@@ -263,12 +265,12 @@
             onGotoSelectNode () {
                 this.$emit('setFunctionalStep', false)
                 if (this.viewMode === 'appmaker') {
-                    this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                    this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id } })
                 } else {
                     if (this.common) {
-                        this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
+                        this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
                     } else {
-                        this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                        this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id } })
                     }
                 }
             },
@@ -307,18 +309,18 @@
 
                             if (this.viewMode === 'appmaker') {
                                 if (this.isSelectFunctionalType) {
-                                    this.$router.push({ path: `/appmaker/${this.app_id}/task_home/${this.cc_id}/` })
+                                    this.$router.push({ path: `/appmaker/${this.app_id}/task_home/${this.project_id}/` })
                                 } else {
-                                    this.$router.push({ path: `/appmaker/${this.app_id}/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id } })
+                                    this.$router.push({ path: `/appmaker/${this.app_id}/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id } })
                                 }
                             } else if (this.isSelectFunctionalType) {
                                 if (this.common) {
-                                    this.$router.push({ path: `/taskflow/home/${this.cc_id}/`, query: { common: this.common } })
+                                    this.$router.push({ path: `/taskflow/home/${this.project_id}/`, query: { common: this.common } })
                                 } else {
-                                    this.$router.push({ path: `/taskflow/home/${this.cc_id}/` })
+                                    this.$router.push({ path: `/taskflow/home/${this.project_id}/` })
                                 }
                             } else {
-                                this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id } })
+                                this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id } })
                             }
                         } catch (e) {
                             errorHandler(e, this)
@@ -347,7 +349,7 @@
                                 'message': gettext('创建周期任务成功'),
                                 'theme': 'success'
                             })
-                            this.$router.push({ path: `/periodic/home/${this.cc_id}/` })
+                            this.$router.push({ path: `/periodic/home/${this.project_id}/` })
                         } catch (e) {
                             errorHandler(e, this)
                         } finally {

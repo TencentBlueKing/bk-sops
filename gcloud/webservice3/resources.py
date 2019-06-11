@@ -357,10 +357,11 @@ class ProjectResource(GCloudModelResource):
                                                          read_action_id='view',
                                                          update_action_id='edit')
         always_return_data = True
-
-    def dehydrate(self, bundle):
-        bundle.data['create_at'] = bundle.data['create_at'].strftime('%Y-%m-%d %H:%M:%S')
-        return bundle
+        serializer = AppSerializer()
+        filtering = {
+            "name": ALL,
+            "is_disable": ALL,
+        }
 
     def obj_create(self, bundle, **kwargs):
         bundle.data['creator'] = bundle.request.user.username

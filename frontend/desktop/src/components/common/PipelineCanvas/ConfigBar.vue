@@ -68,7 +68,7 @@
             BaseInput
         },
         props: [
-            'name', 'cc_id', 'template_id', 'type', 'common', 'templateSaving',
+            'name', 'project_id', 'template_id', 'type', 'common', 'templateSaving',
             'createTaskSaving', 'isTemplateDataChanged'
         ],
         data () {
@@ -125,14 +125,14 @@
                 })
             },
             getHomeUrl () {
-                let url = `/template/home/${this.cc_id}/`
+                let url = `/template/home/${this.project_id}/`
                 if (this.common) {
                     url += '?common=1'
                 }
                 return url
             },
             getTaskUrl () {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
+                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${this.template_id}`
                 if (this.common) {
                     url += '&common=1'
                 }

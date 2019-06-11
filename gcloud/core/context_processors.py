@@ -48,7 +48,7 @@ def mysetting(request):
     is_functor = int(is_user_functor(request))
     is_auditor = int(is_user_auditor(request))
     default_project = get_default_project_for_user(request.user.username)
-    business_timezone = request.session.get('blueking_timezone', settings.TIME_ZONE)
+    project_timezone = request.session.get('blueking_timezone', settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
     ctx = {
         'MEDIA_URL': settings.MEDIA_URL,  # MEDIA_URL
@@ -86,7 +86,7 @@ def mysetting(request):
         'IS_SUPERUSER': is_superuser,
         'IS_FUNCTOR': is_functor,
         'IS_AUDITOR': is_auditor,
-        'BUSINESS_TIMEZONE': business_timezone,
+        'PROJECT_TIMEZONE': project_timezone,
         'DEFAULT_PROJECT_ID': default_project.id if default_project else None
     }
 
