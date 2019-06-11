@@ -493,7 +493,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
-$localBorderColor:#d8e2e7;
+$localBorderColor: #d8e2e7;
 .variable-edit-wrapper {
     padding: 20px;
     font-size: 14px;
