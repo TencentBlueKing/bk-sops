@@ -24,7 +24,7 @@ ROLE_MAPS = {
     'functor': 3,
     'auditor': 4
 }
-get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def get_operate_user_list(request):
@@ -48,7 +48,7 @@ def get_role_user_list(request, role):
     user_list = cache.get(cache_key)
 
     if user_list is None:
-        client = get_client_by_request(request)
+        client = get_client_by_user(request.user.username)
         auth = getattr(client, settings.ESB_AUTH_COMPONENT_SYSTEM)
         result = auth.get_all_users(
             {'bk_role': ROLE_MAPS[role]}
@@ -86,7 +86,7 @@ def is_user_role(request, role):
     is_role = cache.get(cache_key)
 
     if is_role is None:
-        client = get_client_by_request(request)
+        client = get_client_by_user(request.user.username)
         auth = getattr(client, settings.ESB_AUTH_COMPONENT_SYSTEM)
         get_user_info = getattr(auth, settings.ESB_AUTH_GET_USER_INFO)
         result = get_user_info({})
