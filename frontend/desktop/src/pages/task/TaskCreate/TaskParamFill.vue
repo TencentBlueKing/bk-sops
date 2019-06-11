@@ -382,11 +382,13 @@
 @import '@/scss/config.scss';
 .param-fill-wrapper {
     padding-top: 50px;
+    background: #fff;
     @media screen and (max-width: 1300px){
         width: calc(100% - 40px);
     }
     /deep/ .no-data-wrapper {
-        margin: 50px 0;
+        position: relative;
+        top: 122px;
     }
 }
 .task-info, .param-info {
