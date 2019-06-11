@@ -24,7 +24,7 @@
                     name="pause"
                     @click="onOperationClick('pause')" />
                 <van-icon
-                    v-else-if="taskState === 'PAUSE' && !operating"
+                    v-else-if="taskState === 'SUSPENDED' && !operating"
                     slot="icon"
                     class-prefix="icon"
                     name="play"
@@ -135,6 +135,7 @@
                 'getTaskStatus',
                 'instanceStart',
                 'instancePause',
+                'instanceResume',
                 'instanceRevoke'
             ]),
             async loadData () {
@@ -242,6 +243,7 @@
                 }
             },
             onDetailClick () {
+                this.cancelTaskStatusTimer()
                 this.$router.push({ path: '/task/detail', query: { taskId: String(this.taskId) } })
             },
             async pause () {
@@ -258,9 +260,9 @@
                     this.operating = false
                 }
             },
-            async taskResume () {
+            async resume () {
                 try {
-                    const response = await this.instanceResume(this.instance_id)
+                    const response = await this.instanceResume({ id: this.taskId })
                     if (response.result) {
                         this.setTaskStatusTimer()
                         global.bus.$emit('notify', { message: window.gettext('任务继续成功') })
@@ -270,7 +272,7 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.pending.task = false
+                    this.operating = false
                 }
             },
             onRevokeConfirm () {
