@@ -257,7 +257,6 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .appmaker-container {
-    padding-top: 20px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #fafafa;
@@ -311,7 +310,7 @@
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 13px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
         }
