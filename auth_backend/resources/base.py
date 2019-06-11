@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import abc
 
-from ..exceptions import InvalidOperation
+from .. import exceptions
 
 resource_type_lib = {}
 
@@ -41,7 +41,7 @@ class Resource(object):
         self.actions_map = {act.id: act for act in actions}
 
         if rtype in resource_type_lib:
-            raise KeyError('Resource with rtype: {rtype} already exist.'.format(rtype=rtype))
+            raise exceptions.AuthKeyError('Resource with rtype: {rtype} already exist.'.format(rtype=rtype))
 
         resource_type_lib[rtype] = self
 
@@ -105,34 +105,44 @@ class NeverInitiateResource(Resource):
                                                     inspect=None)
 
     def resource_id(self, instance):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def resource_name(self, instance):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def creator_type(self, instance):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def creator_id(self, instance):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def parent_instance(self, child):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def register_instance(self, instance):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def batch_register_instance(self, instances):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def update_instance(self, instance):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def delete_instance(self, instance):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
     def batch_delete_instance(self, instances):
-        raise InvalidOperation('can not perform instance related operation on NeverInitiateResource')
+        raise exceptions.AuthInvalidOperationError(
+            'can not perform instance related operation on NeverInitiateResource')
 
 
 class ObjectResource(Resource):
