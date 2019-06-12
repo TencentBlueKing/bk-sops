@@ -337,7 +337,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .tag-datatable {
-    /deep/.el-table .tag-form.tag-input {
+    .el-table .tag-form.tag-input {
         margin-right: 0;
     }
     .rf-form-item {
