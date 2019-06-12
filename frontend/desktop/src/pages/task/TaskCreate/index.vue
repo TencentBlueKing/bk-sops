@@ -15,6 +15,7 @@
         'fill-height': currentStep === 'selectnode'
     }">
         <TaskStep
+            :cc_id="cc_id"
             :list="stepList"
             :common="common"
             :current-step="currentStep">

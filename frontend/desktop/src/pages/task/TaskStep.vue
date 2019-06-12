@@ -45,7 +45,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id'],
         data () {
             return {
                 i18n: {
