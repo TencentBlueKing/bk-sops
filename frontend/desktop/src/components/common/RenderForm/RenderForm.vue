@@ -38,6 +38,7 @@
     import FormItem from './FormItem.vue'
 
     const DEFAUTL_OPTION = {
+        NoShowEssential: false, // 是否不展示必填
         showHook: false, // 是否可以勾选
         showGroup: false, // 是否显示 combine 类型标准插件名称
         showLabel: false, // 是否显示标准插件名称
