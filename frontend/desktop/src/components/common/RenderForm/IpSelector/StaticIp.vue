@@ -70,9 +70,9 @@
                         <tr v-else>
                             <td class="static-ip-empty" colspan="4">
                                 <span v-if="!isSearchMode && editable">
-                                    <span class="noDataClick">{{i18n.noDataClick}}</span>
+                                    {{i18n.noDataClick}}
                                     <span class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</span>
-                                    <span class="server">{{i18n.server}}</span>
+                                    {{i18n.server}}
                                 </span>
                                 <span v-else>{{i18n.noData}}</span>
                             </td>
@@ -354,16 +354,9 @@
         text-align: center;
         color: #c4c6cc;
         .add-ip-btn {
+            margin: 0 -2px 0 -2px;
             color: #3a84ff;
             cursor: pointer;
-        }
-        .noDataClick {
-            position: relative;
-            left: 3px;
-        }
-        .server {
-            position: relative;
-            right: 3px;;
         }
     }
 }
@@ -374,7 +367,7 @@
         /deep/ .page-item {
             min-width: 30px;
             height: 30px;
-            line-height: 28px;
+            line-height: 30px;
             font-size: 12px;
         }
     }

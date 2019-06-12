@@ -82,7 +82,7 @@
         margin-left: 0;
     }
     /deep/ .bk-dialog-body {
-        max-height: 700px;
+        max-height: 360px;
         overflow-y: auto;
     }
     .error-tips {
