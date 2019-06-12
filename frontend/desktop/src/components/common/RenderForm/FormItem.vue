@@ -357,7 +357,7 @@
         display: inline-block;
         height: 36px;
         line-height: 36px;
-        font-size: 12px;
+        font-size: 14px;
         word-wrap: break-word;
         word-break: break-all;
     }
