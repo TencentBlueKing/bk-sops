@@ -22,6 +22,9 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 from tastypie.resources import ModelResource
 
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAuthorization
+from auth_backend.examples import task_template_resource
+
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -105,7 +108,36 @@ class TaskTemplateResource(GCloudModelResource):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
         always_return_data = True
-        authorization = Authorization()
+        auth_resource = task_template_resource
+        authorization = BkSaaSLooseReadOnlyAuthorization(auth_resource=auth_resource,
+                                                         read_action_id='view',
+                                                         update_action_id='edit')
+        auth_operations = [
+            # {
+            #     'operate_id': 'create',
+            #     'actions': [auth_resource.actions.create.dict()]
+            # },
+            {
+                'operate_id': 'view',
+                'actions': [auth_resource.actions.view.dict()]
+            },
+            {
+                'operate_id': 'edit',
+                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.edit.dict()]
+            },
+            {
+                'operate_id': 'delete',
+                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.delete.dict()]
+            },
+            {
+                'operate_id': 'create_task',
+                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_task.dict()]
+            },
+            {
+                'operate_id': 'create_periodic_task',
+                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_periodic_task.dict()]
+            }
+        ]
         serializer = AppSerializer()
 
         filtering = {

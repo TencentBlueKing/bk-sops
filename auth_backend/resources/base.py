@@ -24,6 +24,15 @@ class Action(object):
         self.name = name
         self.is_instance_related = is_instance_related
 
+    def dict(self):
+        return {'id': self.id, 'name': self.name}
+
+
+class ActionCollection(object):
+    def __init__(self, actions):
+        for action in actions:
+            setattr(self, action.id, action)
+
 
 class Resource(object):
     __metaclass__ = abc.ABCMeta
@@ -31,7 +40,7 @@ class Resource(object):
     def __init__(self, rtype, name, scope_type, scope_id, actions, inspect, backend, parent=None, parent_getter=None):
         self.rtype = rtype
         self.name = name
-        self.actions = actions
+        self.actions = ActionCollection(actions)
         self.scope_type = scope_type
         self.scope_id = scope_id
         self.inspect = inspect
