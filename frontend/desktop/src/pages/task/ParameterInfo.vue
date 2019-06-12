@@ -35,6 +35,7 @@
                 class="unreferenced"
                 v-show="isUnrefVarShow"
                 ref="TaskParamEdit"
+                :no-show-essential="true"
                 :constants="unReferencedVariable"
                 :editable="false"
                 @onChangeConfigLoading="onUnrefVarLoadingChange">
