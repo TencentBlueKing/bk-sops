@@ -348,7 +348,6 @@
     margin-bottom: 10px;
 }
 .operate-btn {
-    font-size: 12px;
     color: $blueDefault;
     white-space: nowrap;
     cursor: pointer;
