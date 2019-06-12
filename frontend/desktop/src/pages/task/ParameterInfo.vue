@@ -58,7 +58,7 @@
             return {
                 i18n: {
                     title: gettext('查看未引用变量'),
-                    executorTips: gettext('在创建流程时可选择“变量”是否被引用，未被引用的“变量”则在创建任务时（当前步骤）不可编辑。')
+                    executorTips: gettext('在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑')
                 },
                 isUnrefVarShow: false,
                 isRefVarLoading: true,
