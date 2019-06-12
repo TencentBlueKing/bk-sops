@@ -339,7 +339,6 @@
 .tag-datatable {
     /deep/.el-table .tag-form.tag-input {
         margin-right: 0;
-        font-size: 12px !important;
     }
     .rf-form-item {
         margin: 0;
