@@ -299,6 +299,9 @@
             refreshCurrentPage () {
                 this.reload()
             },
+            /**
+             * @param {object} route -router对象
+             */
             jumpToFirstPath (route) {
                 const firstPath = this.getPath(route.children[0])
                 this.$router.push(firstPath)
