@@ -61,7 +61,7 @@
             attrs: {
                 name: gettext("定时规则"),
                 hookable: true,
-                placeholder: gettext("定时任务crontab的定时规则，新建时必填，修改时选填，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015表示2015年每天中午12点触发"),
+                placeholder: gettext("Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"),
                 validation: [
                     {
                         type: "required"
