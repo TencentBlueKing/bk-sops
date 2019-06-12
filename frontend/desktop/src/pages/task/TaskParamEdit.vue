@@ -34,11 +34,12 @@
             RenderForm,
             NoData
         },
-        props: ['constants', 'editable'],
+        props: ['constants', 'editable', 'noShowEssential'],
         data () {
             return {
                 variables: tools.deepClone(this.constants),
                 renderOption: {
+                    NoShowEssential: false,
                     showGroup: true,
                     showLabel: true,
                     showHook: false,
@@ -68,6 +69,9 @@
         },
         created () {
             this.getFormData()
+            if (this.noShowEssential === true) {
+                this.renderOption.NoShowEssential = this.noShowEssential
+            }
         },
         beforeDestroy () {
             this.clearAtomForm()
