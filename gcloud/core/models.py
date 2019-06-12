@@ -128,7 +128,7 @@ class ProjectManager(models.Manager):
         if not businesses:
             return []
 
-        exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('cmdb_biz_id', flat=True))
+        exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('bk_biz_id', flat=True))
         to_be_sync_cc_id = set(businesses.keys()) - exist_sync_cc_id
         projects = []
 
@@ -139,7 +139,7 @@ class ProjectManager(models.Manager):
                                     creator=biz['creator'],
                                     desc='',
                                     from_cmdb=True,
-                                    cmdb_biz_id=cc_id))
+                                    bk_biz_id=cc_id))
 
         return self.bulk_create(projects, batch_size=5000)
 
@@ -148,18 +148,21 @@ class Project(models.Model):
     name = models.CharField(_(u"项目名"), max_length=256)
     time_zone = models.CharField(_(u"项目时区"), max_length=100, blank=True)
     creator = models.CharField(_(u"创建者"), max_length=256)
-    desc = models.CharField(_(u"项目描述"), max_length=512)
+    desc = models.CharField(_(u"项目描述"), max_length=512, blank=True)
     create_at = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
     from_cmdb = models.BooleanField(_(u"是否是从 CMDB 业务同步过来的项目"), default=False)
-    cmdb_biz_id = models.IntegerField(_(u"业务同步项目对应的 CMDB 业务 ID"), default=-1)
+    bk_biz_id = models.IntegerField(_(u"业务同步项目对应的 CMDB 业务 ID"), default=-1)
     is_disable = models.BooleanField(_(u"是否已停用"), default=False)
-    relate_business = models.ManyToManyField(verbose_name=_(u"关联项目"), to=Business)
+    relate_business = models.ManyToManyField(verbose_name=_(u"关联项目"), to=Business, blank=True)
 
     objects = ProjectManager()
 
     class Meta:
         verbose_name = _(u"项目 Project")
         verbose_name_plural = _(u"项目 Project")
+
+    def __unicode__(self):
+        return u'%s_%s' % (self.id, self.name)
 
 
 class UserDefaultProjectManager(models.Manager):

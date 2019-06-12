@@ -59,7 +59,7 @@ def forward_func(apps, schema_editor):
             creator=creator,
             desc='',
             from_cmdb=True,
-            cmdb_biz_id=business.cc_id
+            bk_biz_id=business.cc_id
         ))
 
     Project.objects.using(db_alias).bulk_create(projects, batch_size=5000)
