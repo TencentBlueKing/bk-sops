@@ -22,10 +22,12 @@
                         <label class="required">{{ atomNameType }}</label>
                         <div class="form-content">
                             <bk-selector
+                                :tools="!isSingleAtom"
                                 :searchable="true"
                                 :list="atomList"
                                 :selected="currentAtom"
-                                @item-selected="onAtomSelect">
+                                @item-selected="onAtomSelect"
+                                @edit="onJumpToProcess">
                             </bk-selector>
                             <!-- 标准插件节点说明 -->
                             <bk-tooltip v-if="atomDesc" placement="left" width="400" class="desc-tooltip">
@@ -220,7 +222,8 @@
             'subAtom',
             'idOfNodeInConfigPanel',
             'template_id',
-            'common'
+            'common',
+            'cc_id'
         ],
         data () {
             return {
@@ -620,7 +623,7 @@
                         }
                     }
                 } else {
-                    this.currentAtom = formData.template_id
+                    this.currentAtom = parseInt(formData.template_id)
                     for (const key in formData.constants) {
                         const form = formData.constants[key]
                         const tagCode = key.match(varKeyReg)[1]
@@ -823,6 +826,11 @@
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
+            },
+            onJumpToProcess (index) {
+                const item = this.atomList[index].id
+                const { href } = this.$router.resolve({ path: `/template/edit/${this.cc_id}/?template_id=${item}` })
+                window.open(href, '_blank')
             },
             /**
              * 更新子流程版本
@@ -1118,7 +1126,6 @@
     .common-icon-dark-circle-r {
         color: #a6b0c7;
     }
-
 }
 .form-item {
     margin-bottom: 20px;
@@ -1167,7 +1174,6 @@
         .common-icon-dark-circle-r {
             color: #a6b0c7;
         }
-
     }
     .desc-tooltip, .update-tooltip, .error-ingored-tootip {
         margin-left: 15px;
@@ -1238,5 +1244,18 @@
             width: 20%;
         }
     }
+}
+/deep/.icon-edit2:before {
+    content: "\e938";
+    font-family: 'commonicon' !important;
+    font-size: 16px;
+    color: #546a9e;
+    margin-right: 10px;
+}
+/deep/.bk-selector-tools {
+    top: 13px !important;
+}
+/deep/.icon-close {
+    display: none;
 }
 </style>

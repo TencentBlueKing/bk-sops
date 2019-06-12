@@ -97,6 +97,9 @@
                 <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
+            <div class="task-footer" v-if="selectError">
+                <span class="error-info">{{i18n.errorInfo}}</span>
+            </div>
         </div>
     </bk-dialog>
 </template>
@@ -121,6 +124,7 @@
                 templateInPanel: [],
                 searchList: [],
                 selectedTemplates: [],
+                selectError: false,
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -131,7 +135,8 @@
                     num: gettext('项'),
                     selectAll: gettext('全选'),
                     delete: gettext('删除'),
-                    allCategories: gettext('全部分类')
+                    allCategories: gettext('全部分类'),
+                    errorInfo: gettext('请选择流程模版')
                 },
                 templateEmpty: false,
                 selectedTaskCategory: '',
@@ -258,6 +263,7 @@
                 })
             },
             onSelectTemplate (template) {
+                this.selectError = false
                 const tplIndex = this.getTplIndexInSelected(template)
                 if (tplIndex > -1) {
                     this.selectedTemplates.splice(tplIndex, 1)
@@ -295,10 +301,14 @@
             },
             onConfirm () {
                 const idList = []
-                this.selectedTemplates.forEach(item => {
-                    idList.push(item.id)
-                })
-                this.$emit('onExportConfirm', idList)
+                if (this.selectedTemplates.length === 0) {
+                    this.selectError = true
+                } else {
+                    this.selectedTemplates.forEach(item => {
+                        idList.push(item.id)
+                    })
+                    this.$emit('onExportConfirm', idList)
+                }
             },
             onCancel () {
                 this.templateEmpty = false
@@ -542,6 +552,16 @@
             &::after {
                 background: #545454;
             }
+        }
+    }
+    .task-footer {
+        position: absolute;
+        right: 210px;
+        bottom: -40px;
+        .error-info {
+            margin-right: 20px;
+            font-size: 12px;
+            color: #ea3636;
         }
     }
 }

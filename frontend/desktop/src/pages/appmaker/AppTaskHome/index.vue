@@ -311,9 +311,12 @@
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: #fafafa;

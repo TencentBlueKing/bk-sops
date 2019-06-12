@@ -41,6 +41,7 @@
             </PipelineCanvas>
             <NodeConfig
                 ref="nodeConfig"
+                :cc_id="cc_id"
                 v-if="isNodeConfigPanelShow"
                 :template_id="template_id"
                 :single-atom="singleAtom"

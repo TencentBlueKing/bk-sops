@@ -12,7 +12,7 @@
 <template>
     <div class="task-operation">
         <div class="operation-header clearfix">
-            <div class="bread-crumbs-wrapper">
+            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow">
                 <span
                     :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
                     v-for="(path, index) in nodeNav"
@@ -21,11 +21,7 @@
                     <span v-if="!!index && showNodeList.includes(index) || index === 1">
                         &gt;
                     </span>
-                    <span
-                        v-if="showNodeList.includes(index)"
-                        class="node-name"
-                        :title="path.name"
-                        @click="onSelectSubflow(path.id)">
+                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
                         {{path.name}}
                     </span>
                     <span class="node-ellipsis" v-else-if="index === 1">
@@ -52,13 +48,13 @@
                 </div>
                 <div class="task-params-btns">
                     <bk-button
-                        :class="['params-btn', {
+                        :class="['params-btn', 'solid-eye', {
                             actived: nodeInfoType === 'viewParams'
                         }]"
                         type="default"
                         size="mini"
                         hide-text="true"
-                        icon="common-icon common-icon-dark-paper params-btn-icon"
+                        icon="common-icon common-icon-solid-eye params-btn-icon"
                         v-bktooltips.bottom="i18n.params"
                         @click="onTaskParamsClick('viewParams')">
                     </bk-button>
@@ -73,6 +69,12 @@
                         v-bktooltips.bottom="i18n.changeParams"
                         @click="onTaskParamsClick('modifyParams')">
                     </bk-button>
+                    <router-link
+                        class="jump-tpl-page-btn common-icon-link params-btn-icon"
+                        target="_blank"
+                        v-bktooltips.bottom="i18n.checkFlow"
+                        :to="getTplURL()">
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -97,6 +99,7 @@
             </div>
         </div>
         <transition name="slideRight">
+            <!-- 执行详情 -->
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
                 <ViewParams
                     v-if="nodeInfoType === 'viewParams'"
@@ -202,7 +205,7 @@
             gatewaySelectDialog,
             revokeDialog
         },
-        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id', 'templateSource'],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -216,7 +219,8 @@
             return {
                 i18n: {
                     params: gettext('查看参数'),
-                    changeParams: gettext('修改参数')
+                    changeParams: gettext('修改参数'),
+                    checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -253,6 +257,11 @@
         computed: {
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
+            },
+            isBreadcrumbShow () {
+                return this.completePipelineData.location.some(item => {
+                    return item.type === 'subflow'
+                })
             },
             canvasData () {
                 const { line, location, gateways } = this.pipelineData
@@ -905,6 +914,15 @@
                     this.nodeInfoType = type
                 }
             },
+            getTplURL () {
+                let routerData = ''
+                if (this.templateSource === 'business') {
+                    routerData = `/template/edit/${this.cc_id}/?template_id=${this.template_id}`
+                } else if (this.templateSource === 'common') {
+                    routerData = `/template/home/${this.cc_id}/?common=1&common_template=common`
+                }
+                return routerData
+            },
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
                 this.nodeInfoType = ''
@@ -1271,14 +1289,28 @@
             }
         }
         .task-params-btns {
-            .params-btn {
-                margin-right: 24px;
+            .params-btn, .jump-tpl-page-btn {
+                margin-right: 36px;
                 padding: 0;
                 color: #979ba5;
-                font-size: 16px;
+                font-size: 14px;
                 &.actived {
                     color: #63656e;
                 }
+                &:hover {
+                    color: #63656e;
+                }
+            }
+            .jump-tpl-page-btn {
+                display: inline-block;
+                position: relative;
+                height: 24px;
+                width: 16px;
+                top: 2px;
+                line-height: 22px;
+            }
+            .solid-eye {
+                font-size: 12px;
             }
         }
     }

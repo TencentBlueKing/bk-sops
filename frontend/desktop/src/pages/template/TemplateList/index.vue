@@ -663,7 +663,7 @@
     min-width: 1320px;
     padding-top: 50px;
     min-height: calc(100% - 100px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
     .dialog-content {
         word-break: break-all;
     }
@@ -827,9 +827,12 @@
             background: $whiteNodeBg;
         }
         th, td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: $whiteNodeBg;
