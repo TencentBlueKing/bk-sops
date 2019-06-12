@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-05-23 12:30+0800\n"
+"POT-Creation-Date: 2019-06-12 11:44+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -178,7 +178,7 @@ msgstr "流程事件通知人"
 msgid "流程超时时间(分钟)"
 msgstr "流程超时时间(分钟)"
 
-#: gcloud/commons/template/models.py:155 gcloud/contrib/appmaker/models.py:293
+#: gcloud/commons/template/models.py:155 gcloud/contrib/appmaker/models.py:296
 #: gcloud/taskflow3/models.py:786 pipeline/models.py:284
 msgid "是否删除"
 msgstr "是否删除"
@@ -220,83 +220,83 @@ msgstr "图片格式非法"
 msgid "保存失败，引用的流程模板不存在！"
 msgstr "保存失败，引用的流程模板不存在！"
 
-#: gcloud/contrib/appmaker/models.py:115
+#: gcloud/contrib/appmaker/models.py:119
 #, python-format
 msgid "创建轻应用失败：%s"
 msgstr "创建轻应用失败：%s"
 
-#: gcloud/contrib/appmaker/models.py:132
+#: gcloud/contrib/appmaker/models.py:135
 msgid "保存失败，当前操作的轻应用不存在或已删除！"
 msgstr "保存失败，当前操作的轻应用不存在或已删除！"
 
-#: gcloud/contrib/appmaker/models.py:150
+#: gcloud/contrib/appmaker/models.py:153
 #, python-format
 msgid "编辑轻应用失败：%s"
 msgstr "编辑轻应用失败：%s"
 
-#: gcloud/contrib/appmaker/models.py:186
+#: gcloud/contrib/appmaker/models.py:189
 msgid "当前操作的轻应用不存在或已删除！"
 msgstr "当前操作的轻应用不存在或已删除！"
 
-#: gcloud/contrib/appmaker/models.py:197 gcloud/contrib/appmaker/models.py:203
+#: gcloud/contrib/appmaker/models.py:200 gcloud/contrib/appmaker/models.py:206
 #, python-format
 msgid "删除失败：%s"
 msgstr "删除失败：%s"
 
-#: gcloud/contrib/appmaker/models.py:280 gcloud/tasktmpl3/models.py:446
+#: gcloud/contrib/appmaker/models.py:283 gcloud/tasktmpl3/models.py:446
 msgid "所属业务"
 msgstr "所属业务"
 
-#: gcloud/contrib/appmaker/models.py:281
+#: gcloud/contrib/appmaker/models.py:284
 msgid "APP名称"
 msgstr "APP名称"
 
-#: gcloud/contrib/appmaker/models.py:282
+#: gcloud/contrib/appmaker/models.py:285
 msgid "APP编码"
 msgstr "APP编码"
 
-#: gcloud/contrib/appmaker/models.py:283
+#: gcloud/contrib/appmaker/models.py:286
 msgid "APP基本信息"
 msgstr "APP基本信息"
 
-#: gcloud/contrib/appmaker/models.py:284
+#: gcloud/contrib/appmaker/models.py:287
 msgid "APP描述信息"
 msgstr "APP描述信息"
 
-#: gcloud/contrib/appmaker/models.py:285
+#: gcloud/contrib/appmaker/models.py:288
 msgid "轻应用logo存放地址"
 msgstr "轻应用logo存放地址"
 
-#: gcloud/contrib/appmaker/models.py:286
+#: gcloud/contrib/appmaker/models.py:289
 msgid "gcloud链接"
 msgstr "gcloud链接"
 
-#: gcloud/contrib/appmaker/models.py:287
+#: gcloud/contrib/appmaker/models.py:290
 msgid "创建人"
 msgstr "创建人"
 
-#: gcloud/contrib/appmaker/models.py:288 pipeline/engine/models/core.py:817
+#: gcloud/contrib/appmaker/models.py:291 pipeline/engine/models/core.py:817
 #: pipeline/models.py:78 pipeline/models.py:276 pipeline/models.py:590
 msgid "创建时间"
 msgstr "创建时间"
 
-#: gcloud/contrib/appmaker/models.py:289
+#: gcloud/contrib/appmaker/models.py:292
 msgid "编辑人"
 msgstr "编辑人"
 
-#: gcloud/contrib/appmaker/models.py:290
+#: gcloud/contrib/appmaker/models.py:293
 msgid "编辑时间"
 msgstr "编辑时间"
 
-#: gcloud/contrib/appmaker/models.py:291
+#: gcloud/contrib/appmaker/models.py:294
 msgid "关联模板"
 msgstr "关联模板"
 
-#: gcloud/contrib/appmaker/models.py:292
+#: gcloud/contrib/appmaker/models.py:295
 msgid "执行方案"
 msgstr "执行方案"
 
-#: gcloud/contrib/appmaker/models.py:317 gcloud/contrib/appmaker/models.py:318
+#: gcloud/contrib/appmaker/models.py:320 gcloud/contrib/appmaker/models.py:321
 msgid "轻应用 AppMaker"
 msgstr "轻应用 AppMaker"
 
@@ -478,25 +478,30 @@ msgstr "语音"
 msgid "您没有权限进行此操作"
 msgstr "您没有权限进行此操作"
 
-#: gcloud/core/models.py:39
+#: gcloud/core/models.py:38
 msgid "生命周期"
 msgstr "生命周期"
 
-#: gcloud/core/models.py:40
+#: gcloud/core/models.py:39
 msgid "任务执行者"
 msgstr "任务执行者"
 
-#: gcloud/core/models.py:42
+#: gcloud/core/models.py:41
 msgid "业务状态"
 msgstr "业务状态"
 
-#: gcloud/core/models.py:43
+#: gcloud/core/models.py:42
 msgid "是否始终使用任务执行者"
 msgstr "是否始终使用任务执行者"
 
 #: gcloud/core/models.py:57 gcloud/core/models.py:58
 msgid "业务 Business"
 msgstr "业务 Business"
+
+#: gcloud/core/models.py:68 gcloud/webservice3/resources.py:88
+#: gcloud/webservice3/resources.py:304
+msgid "停运"
+msgstr "停运"
 
 #: gcloud/core/models.py:75
 msgid "用户QQ"
@@ -737,10 +742,6 @@ msgstr "json.loads result is not instance of list or tuple "
 #: gcloud/utils/forms.py:79
 msgid "json.loads result is not list"
 msgstr "json.loads result is not list"
-
-#: gcloud/webservice3/resources.py:302
-msgid "停运"
-msgstr "停运"
 
 #: pipeline/models.py:77
 msgid "快照字符串的md5sum"
@@ -1575,6 +1576,7 @@ msgid "提示: 1.请求URL需要在当前网络下可以访问，否则会超时
 msgstr "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 2.响应状态码在200-300(不包括300)之间，并且相应内容是 JSON 格式才会执行成功"
 
 #: pipeline_plugins/components/collections/controller.py:47
+#: pipeline_plugins/components/collections/sites/open/job.py:416
 msgid "暂停"
 msgstr "暂停"
 
@@ -1688,6 +1690,14 @@ msgstr "更新模块属性"
 msgid "转移主机至空闲机"
 msgstr "转移主机至空闲机"
 
+#: pipeline_plugins/components/collections/sites/open/cc.py:887
+msgid "转移主机到业务的故障机模块"
+msgstr "转移主机到业务的故障机模块"
+
+#: pipeline_plugins/components/collections/sites/open/cc.py:930
+msgid "转移主机至资源池"
+msgstr "转移主机至资源池"
+
 #: pipeline_plugins/components/collections/sites/open/job.py:48
 msgid "作业平台(JOB)"
 msgstr "作业平台(JOB)"
@@ -1706,6 +1716,7 @@ msgid "JOB任务链接"
 msgstr "JOB任务链接"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:136
+#: pipeline_plugins/components/collections/sites/open/job.py:341
 msgid "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"
 msgstr "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"
 
@@ -1721,37 +1732,61 @@ msgstr "快速分发文件"
 msgid "快速执行脚本"
 msgstr "快速执行脚本"
 
-#: pipeline_plugins/components/query/sites/open/query.py:270
+#: pipeline_plugins/components/collections/sites/open/job.py:383
+msgid "快速执行SQL脚本"
+msgstr "快速执行SQL脚本"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:427
+msgid "启动"
+msgstr "启动"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:429
+msgid "新建定时任务成功但是启动失败：{error}"
+msgstr "新建定时任务成功但是启动失败：{error}"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:436
+msgid "定时作业ID"
+msgstr "定时作业ID"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:437
+msgid "定时作业状态"
+msgstr "定时作业状态"
+
+#: pipeline_plugins/components/collections/sites/open/job.py:442
+msgid "新建定时作业"
+msgstr "新建定时作业"
+
+#: pipeline_plugins/components/query/sites/open/query.py:301
 msgid "文件上传失败， 文件大小超过500M"
 msgstr "文件上传失败， 文件大小超过500M"
 
-#: pipeline_plugins/components/query/sites/open/query.py:276
+#: pipeline_plugins/components/query/sites/open/query.py:307
 msgid "文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符"
 msgstr "文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符"
 
-#: pipeline_plugins/components/query/sites/open/query.py:286
+#: pipeline_plugins/components/query/sites/open/query.py:317
 msgid "非法业务 ID"
 msgstr "非法业务 ID"
 
-#: pipeline_plugins/components/query/sites/open/query.py:313
+#: pipeline_plugins/components/query/sites/open/query.py:344
 msgid "文件上传失败，路径不合法或者程序异常"
 msgstr "文件上传失败，路径不合法或者程序异常"
 
-#: pipeline_plugins/components/query/sites/open/query.py:323
+#: pipeline_plugins/components/query/sites/open/query.py:354
 #, python-format
 msgid "查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s"
 msgstr "查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s"
 
-#: pipeline_plugins/components/query/sites/open/query.py:346
+#: pipeline_plugins/components/query/sites/open/query.py:377
 #, python-format
 msgid "查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s"
 msgstr "查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s"
 
-#: pipeline_plugins/components/query/sites/open/query.py:357
+#: pipeline_plugins/components/query/sites/open/query.py:388
 msgid "脚本"
 msgstr "脚本"
 
-#: pipeline_plugins/components/query/sites/open/query.py:358
+#: pipeline_plugins/components/query/sites/open/query.py:389
 msgid "文件"
 msgstr "文件"
 
