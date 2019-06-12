@@ -385,7 +385,8 @@
                 color:#f4aa1a;
             }
         }
-        .bk-tooltip-popper {
+        /deep/.bk-tooltip-popper {
+            transform: translate3d(-7px, 104px, 0px) !important;
             .tips-item {
                 margin-bottom: 20px;
                 &:last-child {
