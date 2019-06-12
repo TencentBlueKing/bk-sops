@@ -72,7 +72,7 @@ def get_template_list(request, project_id):
             'category': tmpl.category,
             'project_id': project_id,
             'project_name': project.name,
-            'bk_biz_id': project.cmdb_biz_id,
+            'bk_biz_id': project.bk_biz_id,
             'bk_biz_name': project.name if project.from_cmdb else None
         } for tmpl in templates
     ]
@@ -121,7 +121,7 @@ def get_template_info(request, template_id, project_id):
         'category': tmpl.category,
         'project_id': project_id,
         'project_name': project.name,
-        'bk_biz_id': project.cmdb_biz_id,
+        'bk_biz_id': project.bk_biz_id,
         'bk_biz_name': project.name if project.from_cmdb else None,
         'pipeline_tree': pipeline_tree
     }
