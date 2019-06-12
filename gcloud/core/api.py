@@ -29,7 +29,9 @@ def change_default_project(request, project_id):
     """
     UserDefaultProject.objects.update_or_create(
         username=request.user.username,
-        default_project_id=project_id
+        defaults={
+            'default_project_id': project_id
+        }
     )
 
     return JsonResponse({
