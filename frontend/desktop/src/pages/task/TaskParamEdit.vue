@@ -34,12 +34,12 @@
             RenderForm,
             NoData
         },
-        props: ['constants', 'editable', 'noShowEssential'],
+        props: ['constants', 'editable', 'showRequired'],
         data () {
             return {
                 variables: tools.deepClone(this.constants),
                 renderOption: {
-                    NoShowEssential: false,
+                    showRequired: true,
                     showGroup: true,
                     showLabel: true,
                     showHook: false,
@@ -69,8 +69,8 @@
         },
         created () {
             this.getFormData()
-            if (this.noShowEssential === true) {
-                this.renderOption.NoShowEssential = this.noShowEssential
+            if (this.showRequired === false) {
+                this.renderOption.showRequired = this.showRequired
             }
         },
         beforeDestroy () {
