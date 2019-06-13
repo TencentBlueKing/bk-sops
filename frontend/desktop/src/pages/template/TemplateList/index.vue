@@ -661,6 +661,7 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/cursor.scss';
 .template-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
@@ -881,6 +882,7 @@
     .create-template-btn {
         padding: 5px;
         color: #3c96ff;
+        @include cursor;
     }
     .drop-icon-ellipsis {
         position: absolute;
