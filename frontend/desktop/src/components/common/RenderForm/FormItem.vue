@@ -283,14 +283,10 @@
             },
             isRequired () {
                 let required = false
-                if (this.option.NoShowEssential === false) {
-                    if ('validation' in this.scheme.attrs) {
-                        required = this.scheme.attrs.validation.some(item => {
-                            return item.type === 'required'
-                        })
-                    }
-                } else {
-                    required = false
+                if (this.option.showRequired === true && 'validation' in this.scheme.attrs) {
+                    required = this.scheme.attrs.validation.some(item => {
+                        return item.type === 'required'
+                    })
                 }
                 return required
             },
