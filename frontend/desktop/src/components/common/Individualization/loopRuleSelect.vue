@@ -22,6 +22,7 @@
             </bk-button>
         </div>
         <div class="content-wrapper">
+            <!-- 自动生成 -->
             <bk-tab v-if="currentWay === 'selectGeneration'"
                 :type="'fill'"
                 :size="'small'"
@@ -34,10 +35,11 @@
                     <div class="tabpanel-container">
                         <div class="radio-group">
                             <div class="radio-item loop-radio">
-                                <input class="ui-radio"
-                                    type="radio"
+                                <input
                                     id="loop"
                                     v-model="item.radio"
+                                    class="ui-radio"
+                                    type="radio"
                                     value="0"
                                     :name="item.k" />
                                 <label class="ui-label"
@@ -47,10 +49,11 @@
                                 </label>
                             </div>
                             <div class="radio-item appoint-radio">
-                                <input class="ui-radio"
-                                    type="radio"
+                                <input
                                     id="appoint"
                                     v-model="item.radio"
+                                    class="ui-radio"
+                                    type="radio"
                                     value="1"
                                     :name="item.k" />
                                 <label class="ui-label"
@@ -60,19 +63,37 @@
                                 </label>
                             </div>
                         </div>
+                        <!-- 循环 -->
                         <div v-if="item.radio === '0'"
                             class="loop-select-bd">
-                            111
+                            {{ item.k !== 'week' ? autoWay.loop.start : autoWay.loop.start_week }}
+                            <BaseInput
+                                v-model.number="item.loop.start"
+                                v-validate="item.loop.reg"
+                                :name="item.k + 'Rule'"
+                                class="loop-time"
+                                @blur="renderRule()" />
+                            {{ item.k !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
+                            <BaseInput
+                                v-model.number="item.loop.inter"
+                                class="loop-time"
+                                @blur="renderRule()" />
+                            {{ item.k !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
+                            <div v-show="errors.has(item.k + 'Rule')" class="local-error-tip error-msg">{{ errors.first(item.k + 'Rule') }}</div>
                         </div>
-                        <div v-else
+                        <!-- 指定 -->
+                        <div
+                            v-else
                             class="appoint-select-bd">
-                            <div v-for="(box, i) in item.showTextList"
+                            <div v-for="(box, i) in item.checkboxList"
                                 :key="i"
                                 class="ui-checkbox-group">
-                                <input type="checkbox"
+                                <input
                                     v-model="box.checked"
+                                    type="checkbox"
+                                    :id="box.name"
                                     :name="box.name"
-                                    :id="box.name">
+                                    @change="renderRule('auto', index)">
                                 <label class="ui-checkbox"
                                     :for="box.name">
                                     <!-- {{i|add0}} -->
@@ -83,68 +104,121 @@
                         <div class="expression">
                             {{ i18n.expression }} {{ expressionShowText }}
                             <span
-                                class="clear-selected">{{ i18n.clearSelected }}
+                                class="clear-selected"
+                                @click.stop="clearRule">
+                                {{ i18n.clearSelected }}
                             </span>
                         </div>
                     </div>
                 </bk-tabpanel>
             </bk-tab>
+            <!-- 手动输入 -->
             <div v-else
                 class="hand-input">
-                <BaseInput ref="canvasNameInput"
-                    v-model="tName"
-                    data-vv-name="templateName"
-                    v-validate="templateNameRule"
-                    :title="tName"
-                    :placeholder="i18n.placeholder"
-                    :name="'ruleName'"
-                    @input="onInputName"
-                    @blur="onInputBlur"
-                    @enter="onInputBlur">
-                </BaseInput>
+                <BaseInput
+                    class="step-form-content-size"
+                    name="periodicCron"
+                    v-model="periodicCron"
+                    v-validate="periodicRule" />
             </div>
         </div>
+        <!-- 说明 -->
+        <bk-tooltip placement="left-end" class="periodic-img-tooltip">
+            <i class="common-icon-tooltips"></i>
+            <div slot="content">
+                <img :src="periodicCronImg" class="">
+            </div>
+        </bk-tooltip>
+        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
+    // import { deepClone } from '@/utils/tools.js'
+    import { PERIODIC_REG } from '@/constants/index.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     const autoRuleList = [
         {
             k: 'min',
             title: gettext('分钟'),
-            radio: '1',
-            long: 60
+            radio: '0',
+            long: 60,
+            max: 59,
+            loop: {
+                start: 0,
+                inter: 1,
+                reg: {
+                    required: true,
+                    regex: /^[0-59]{1,2}$/
+                }
+            }
         },
         {
             k: 'hour',
             title: gettext('小时'),
             radio: '1',
-            long: 24
+            long: 24,
+            max: 23,
+            loop: {
+                start: 0,
+                inter: 1,
+                reg: {
+                    required: true,
+                    regex: /^[0-23]{1,2}$/
+                }
+            }
         },
         {
             k: 'week',
             title: gettext('星期'),
             radio: '0',
-            long: 7
+            long: 7,
+            max: 6,
+            loop: {
+                start: 0,
+                inter: 1,
+                reg: {
+                    required: true,
+                    regex: /^[0-6]{1,2}$/
+                }
+            }
         },
         {
             k: 'day',
             title: gettext('日期'),
             radio: '0',
-            long: 31
+            long: 31,
+            max: 31,
+            loop: {
+                start: 1,
+                inter: 1,
+                reg: {
+                    required: true,
+                    regex: /^[1-31]{1,2}$/
+                }
+            }
         },
         {
             k: 'month',
             title: gettext('月份'),
             radio: '0',
-            long: 12
+            long: 12,
+            max: 12,
+            loop: {
+                start: 1,
+                inter: 1,
+                reg: {
+                    required: true,
+                    regex: /^[1-12]{1,2}$/
+                }
+            }
         }
     ]
     const autoWay = {
         'loop': {
             name: gettext('循环'),
             start: gettext('从第'),
+            start_week: gettext('从星期'),
             center: gettext('开始,每隔'),
             end: gettext('执行')
         },
@@ -152,14 +226,15 @@
             name: gettext('指定')
         }
     }
+    const loopStar0List = ['min', 'hour', 'week']
     const numberMap = {
-        0: gettext('星期一'),
-        1: gettext('星期二'),
-        2: gettext('星期三'),
-        3: gettext('星期四'),
-        4: gettext('星期五'),
-        5: gettext('星期六'),
-        6: gettext('星期天')
+        1: gettext('星期一'),
+        2: gettext('星期二'),
+        3: gettext('星期三'),
+        4: gettext('星期四'),
+        5: gettext('星期五'),
+        6: gettext('星期六'),
+        0: gettext('星期天')
     }
     export default {
         name: 'loopRuleSelect',
@@ -175,14 +250,19 @@
             return {
                 i18n: {
                     error_code: gettext('错误码'),
-                    placeholder: gettext('请输入 IP'),
+                    placeholder: gettext('0 12 * 10-17 */11'),
                     selectGeneration: gettext('选择生成'),
                     manualInput: gettext('手动输入'),
                     expression: gettext('表达式：'),
                     clearSelected: gettext('清空已选'),
-                    TimeNavTex: []
+                    dayName: gettext('天')
                 },
-                expressionList: ['0', '*', '11', '522'],
+                periodicRule: {
+                    required: true,
+                    regex: PERIODIC_REG
+                },
+                expressionList: ['*', '*', '*', '*', '*'],
+                periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
                 // 规则列表
                 autoRuleList: autoRuleList,
                 // 循环选择方式
@@ -190,22 +270,24 @@
                 // manualInput 手动 / selectGeneration 选择生成
                 currentWay: 'selectGeneration',
                 currentRadio: 'loop',
+                periodicCron: '',
                 tName: '',
                 templateNameRule: ''
             }
         },
         computed: {
             expressionShowText () {
-                return this.expressionList.join(',').replace(/\,/g, ' ')
+                return this.expressionList.join('^').replace(/\^/g, '~')
             }
         },
         watch: {
         },
         created () {
-            // this.initializeAutoRuleListData()
+            this.initializeAutoRuleListData()
+            this.renderRule()
         },
         mounted () {
-            this.initializeAutoRuleListData()
+            // this.initializeAutoRuleListData()
         },
         methods: {
             onInputName () { },
@@ -213,8 +295,12 @@
             onSwitchWay (way) {
                 this.currentWay = way
             },
-            tabChanged (e) {
-                console.log(e, 'sssssssss')
+            /**
+             * 周期选择方式切换触发
+             * @param {String} name -tab name
+             */
+            tabChanged (name) {
+                console.log(name, 'sssssssss')
             },
             /**
              * 周期循环方式切换,循环/指定
@@ -223,7 +309,12 @@
              */
             onAutoWaySwitch (index, value) {
                 this.$set(this.autoRuleList[index], 'radio', value)
+                this.renderRule()
             },
+            /**
+             * 初始化数据
+             * @description 根据 autoRuleList 动态插入 radio 项
+             */
             initializeAutoRuleListData () {
                 this.autoRuleList.forEach((item, index) => {
                     const pushArr = []
@@ -231,12 +322,37 @@
                         pushArr.push({
                             name: `${item.k}${i}`,
                             checked: false,
-                            value: item.k !== 'week'
-                                ? (i < 10 ? `0${i}`
-                                    : `${i}`) : numberMap[i]
+                            v: i,
+                            value: item.k !== 'week' ? (i < 10 ? `0${i}` : `${i}`) : numberMap[i]
                         })
                     }
-                    this.$set(this.autoRuleList[index], 'showTextList', pushArr)
+                    this.$set(this.autoRuleList[index], 'checkboxList', pushArr)
+                })
+            },
+            clearRule () {
+                this.autoRuleList.forEach((item, index) => {
+                    item.checkboxList.forEach((m, i) => {
+                        m.checked = false
+                    })
+                    item.loop.start = loopStar0List.includes(item.k) ? 0 : 1
+                    item.loop.inter = 1
+                })
+                this.renderRule()
+            },
+            /**
+             *  渲染规则
+             *  @param {String} key --tab key
+             *  @param {String} way --自动/手动
+             *  @param {Number} index --下标
+             */
+            renderRule (way = 'auto', index) {
+                this.autoRuleList.map((m, i) => {
+                    const { radio, loop, checkboxList, max } = m
+                    const loopStr = loop.start === (loopStar0List.includes(m.k) ? 0 : 1) && loop.inter === 1
+                        ? '*' : `${loop.start}-${max}/${loop.inter}`
+                    const pointStr = checkboxList.filter(res => res.checked).map(res => res.v).join(',') || '*'
+                    const data = radio === '0' ? loopStr : pointStr
+                    this.$set(this.expressionList, i, data)
                 })
             }
         }
@@ -276,7 +392,14 @@ $colorGrey: #63656e;
     background-color: $blueDefault;
   }
 }
+.local-error-tip{
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1;
+    color: #ff5757;
+}
 .loop-rule-select {
+  position: relative;
   max-width: 500px;
   // 选择 title
   .loop-rule-title {
@@ -348,8 +471,11 @@ $colorGrey: #63656e;
       }
       .loop-select-bd {
         margin-top: 18px;
-        padding: 20px;
-        border: 1px solid $commonBorderColor;
+        font-size: 14px;
+        .loop-time{
+            margin: 0 10px;
+            width: 46px;
+        }
       }
       .appoint-select-bd {
         margin-top: 18px;
@@ -357,7 +483,7 @@ $colorGrey: #63656e;
         border: 1px solid $commonBorderColor;
       }
       .expression{
-          margin-top: 18px;
+          margin-top: 20px;
           font-size: 14px;
           .clear-selected{
               margin-left: 20px;
@@ -367,5 +493,19 @@ $colorGrey: #63656e;
       }
     }
   }
+  .periodic-img-tooltip {
+  position: absolute;
+  right: -20px;
+  top: 10px;
+  color: #c4c6cc;
+  font-size: 14px;
+  z-index: 4;
+  &:hover {
+    color: #f4aa1a;
+  }
+  /deep/ .bk-tooltip-arrow {
+    display: none;
+  }
+}
 }
 </style>

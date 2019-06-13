@@ -67,16 +67,16 @@
                             class="step-form-content-size"
                             name="periodicCron"
                             v-model="periodicCron"
-                            v-validate="periodicRule" />
-                        <bk-tooltip placement="left-end" class="periodic-img-tooltip">
+                            v-validate="periodicRule" /> -->
+                        <LoopRulueSelect>
+                        </LoopRulueSelect>
+                        <!-- <bk-tooltip placement="left-end" class="periodic-img-tooltip">
                             <i class="common-icon-tooltips"></i>
                             <div slot="content">
                                 <img :src="periodicCronImg" class="">
                             </div>
                         </bk-tooltip>
                         <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span> -->
-                        <LoopRulueSelect>
-                        </LoopRulueSelect>
                     </div>
                 </div>
             </div>
@@ -436,11 +436,12 @@
   }
 }
 .periodic-img-tooltip {
-  position: relative;
-  bottom: -6px;
-  left: 5px;
+  position: absolute;
+  right: 20px;
+  top: 0;
   color: #c4c6cc;
   font-size: 14px;
+  z-index: 4;
   &:hover {
     color: #f4aa1a;
   }
@@ -477,6 +478,7 @@
   }
 }
 .step-form-item-cron {
+    position: relative;
   input {
     vertical-align: top;
   }
