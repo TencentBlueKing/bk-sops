@@ -16,7 +16,8 @@
             :appmaker-data-loading="appmakerDataLoading" />
         <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
-        <router-view v-if="isRouterAlive"></router-view>
+        <permission-apply ref="permissionApply" v-if="permissinApplyShow"></permission-apply>
+        <router-view v-if="isRouterViewShow"></router-view>
     </div>
 </template>
 <script>
@@ -27,13 +28,15 @@
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import Navigator from '@/components/layout/Navigator.vue'
+    import permissionApply from '@/components/layout/permissionApply.vue'
 
     export default {
         name: 'App',
         components: {
             Navigator,
             UserLoginModal,
-            ErrorCodeModal
+            ErrorCodeModal,
+            permissionApply
         },
         provide () {
             return {
@@ -42,6 +45,7 @@
         },
         data () {
             return {
+                permissinApplyShow: false,
                 isRouterAlive: true,
                 appmakerDataLoading: false // 轻应用加载 app 详情
             }
@@ -51,7 +55,10 @@
                 'hideHeader': state => state.hideHeader,
                 'viewMode': state => state.view_mode,
                 'appId': state => state.app_id
-            })
+            }),
+            isRouterViewShow () {
+                return !this.permissinApplyShow && this.isRouterAlive
+            }
         },
         created () {
             /**
