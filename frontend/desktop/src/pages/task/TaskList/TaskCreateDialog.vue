@@ -232,7 +232,7 @@
                     this.selectError = true
                     return
                 }
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.selectedId}`
+                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.selectedId}&identity=0`
                 if (this.selectedTplType === this.templateType[1].name) {
                     url += '&common=1'
                 }

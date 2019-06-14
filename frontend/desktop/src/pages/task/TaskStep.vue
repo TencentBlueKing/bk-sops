@@ -45,7 +45,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'identity'],
         data () {
             return {
                 i18n: {
@@ -104,9 +104,16 @@
                 return style
             },
             getHomeUrl () {
-                let url = `/template/home/${this.cc_id}/`
-                if (this.common) {
-                    url += '?common=1&common_template=common'
+                let url = ''
+                if (this.identity === '0') {
+                    url = `/template/home/${this.cc_id}/`
+                    if (this.common) {
+                        url += '?common=1&common_template=common'
+                    }
+                } else if (this.identity === '1') {
+                    url = `/function/home/`
+                } else if (this.identity === '2') {
+                    url = `/audit/home/`
                 }
                 return url
             }

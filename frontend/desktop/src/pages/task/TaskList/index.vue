@@ -126,7 +126,7 @@
                             <td class="task-name">
                                 <router-link
                                     :title="item.name"
-                                    :to="`/taskflow/execute/${cc_id}/?instance_id=${item.id}`">
+                                    :to="`/taskflow/execute/${cc_id}/?instance_id=${item.id}&identity=0`">
                                     {{item.name}}
                                 </router-link>
                             </td>

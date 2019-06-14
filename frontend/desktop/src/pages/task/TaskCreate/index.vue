@@ -18,6 +18,8 @@
             :cc_id="cc_id"
             :list="stepList"
             :common="common"
+            :identity="identity"
+            :create-environment="'template'"
             :current-step="currentStep">
         </TaskStep>
         <component
@@ -27,6 +29,7 @@
             :cc_id="cc_id"
             :common="common"
             :entrance="entrance"
+            :identity="identity"
             :template_id="template_id"
             :exclude-node="excludeNode"
             :preview-data="previewData"
@@ -68,7 +71,7 @@
             TaskSelectNode,
             TaskParamFill
         },
-        props: ['template_id', 'cc_id', 'step', 'common', 'entrance'],
+        props: ['template_id', 'cc_id', 'step', 'common', 'entrance', 'identity'],
         data () {
             return {
                 stepList: STEP_DICT.slice(),

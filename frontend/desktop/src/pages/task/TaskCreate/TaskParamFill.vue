@@ -130,7 +130,7 @@
             BaseInput,
             ParameterInfo
         },
-        props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance'],
+        props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance', 'identity'],
         data () {
             return {
                 i18n: {
@@ -259,12 +259,12 @@
                     this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
                 } else {
                     if (this.common) {
-                        this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
+                        this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common, identity: this.identity } })
                     } else {
                         if (this.entrance !== undefined) {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, identity: this.identity, entrance: this.entrance } })
                         } else {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, identity: this.identity } })
                         }
                     }
                 }
@@ -316,9 +316,9 @@
                                 }
                             } else {
                                 if (this.common) {
-                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id, common: this.common } })
+                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id, common: this.common, identity: this.identity } })
                                 } else {
-                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id } })
+                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id, identity: this.identity } })
                                 }
                             }
                         } catch (e) {

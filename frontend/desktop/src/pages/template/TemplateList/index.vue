@@ -586,6 +586,7 @@
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }
+                url += '&identity=0'
                 return url
             },
             getExecuteHistoryUrl (id) {

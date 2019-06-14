@@ -17,6 +17,8 @@
             :list="stepList"
             :current-step="currentStep"
             :common="common"
+            :identity="identity"
+            :cc_id="cc_id"
             :instance-name="instanceName"
             :all-finished="isAllStepsFinished">
         </TaskStep>
@@ -67,7 +69,7 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['cc_id', 'instance_id', 'common'],
+        props: ['cc_id', 'instance_id', 'common', 'identity'],
         data () {
             return {
                 taskDataLoading: true,

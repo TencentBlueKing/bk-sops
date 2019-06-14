@@ -132,7 +132,8 @@ const routers = new VueRouter({
                         step: route.params.step,
                         template_id: route.query.template_id,
                         common: route.query.common,
-                        entrance: route.query.entrance
+                        entrance: route.query.entrance,
+                        identity: route.query.identity
                     })
                 }]
         },
@@ -160,7 +161,8 @@ const routers = new VueRouter({
                     props: (route) => ({
                         cc_id: route.params.cc_id,
                         common: route.query.common,
-                        instance_id: route.query.instance_id
+                        instance_id: route.query.instance_id,
+                        identity: route.query.identity
                     })
                 }]
         },
