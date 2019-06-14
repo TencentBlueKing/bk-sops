@@ -143,6 +143,7 @@
         },
         mounted () {
             this.remoteMethod()
+            this.updateForm(this.value)
         },
         methods: {
             filterLabel (val) {
