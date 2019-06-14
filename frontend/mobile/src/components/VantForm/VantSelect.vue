@@ -39,7 +39,7 @@
                     <van-icon
                         slot="right-icon"
                         name="success"
-                        v-show="iconShow = option.selected"
+                        v-show="option.selected"
                         color="#1989FA" />
                 </van-cell>
             </van-cell-group>

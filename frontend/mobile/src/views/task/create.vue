@@ -98,7 +98,7 @@
                 v-if="creating"
                 loading
                 disabled
-                :loading-text="i18n.btnCreating"
+                :loading-text="`${i18n.btnCreate}...`"
                 size="large"
                 type="info" />
             <van-button
@@ -151,7 +151,6 @@
                 i18n: {
                     loading: window.gettext('加载中'),
                     btnCreate: window.gettext('新建任务'),
-                    btnCreating: window.gettext('新建任务...'),
                     taskName: window.gettext('任务名称'),
                     scheme: window.gettext('方案'),
                     canvasPreview: window.gettext('预览流程图'),
