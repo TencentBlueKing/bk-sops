@@ -26,7 +26,7 @@
             <bk-tab v-if="currentWay === 'selectGeneration'"
                 :type="'fill'"
                 :size="'small'"
-                :active-name="'min'"
+                :active-name="tabName"
                 @tab-changed="tabChanged">
                 <bk-tabpanel v-for="(item, index) in autoRuleList"
                     :key="index"
@@ -79,6 +79,13 @@
                                 class="loop-time"
                                 @blur="renderRule()" />
                             {{ item.k !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
+                            <!-- 说明 -->
+                            <bk-tooltip v-if="item.k === 'week'" placement="left-end" class="month-tips">
+                                <i class="common-icon-tooltips"></i>
+                                <div slot="content">
+                                    {{ i18n.monthTips }}
+                                </div>
+                            </bk-tooltip>
                             <div v-show="errors.has(item.k + 'Rule')" class="local-error-tip error-msg">{{ errors.first(item.k + 'Rule') }}</div>
                         </div>
                         <!-- 指定 -->
@@ -88,17 +95,11 @@
                             <div v-for="(box, i) in item.checkboxList"
                                 :key="i"
                                 class="ui-checkbox-group">
-                                <input
+                                <el-checkbox class="appoint-checkbox"
                                     v-model="box.checked"
-                                    type="checkbox"
-                                    :id="box.name"
-                                    :name="box.name"
-                                    @change="renderRule('auto', index)">
-                                <label class="ui-checkbox"
-                                    :for="box.name">
-                                    <!-- {{i|add0}} -->
-                                    {{ box.value }}
-                                </label>
+                                    @change="renderRule">
+                                    {{ box.value | add0(item.k) }}
+                                </el-checkbox>
                             </div>
                         </div>
                         <div class="expression">
@@ -116,10 +117,11 @@
             <div v-else
                 class="hand-input">
                 <BaseInput
-                    class="step-form-content-size"
                     name="periodicCron"
+                    class="step-form-content-size"
+                    v-validate="periodicRule"
                     v-model="periodicCron"
-                    v-validate="periodicRule" />
+                    :placeholder="i18n.placeholder" />
             </div>
         </div>
         <!-- 说明 -->
@@ -149,14 +151,14 @@
                 inter: 1,
                 reg: {
                     required: true,
-                    regex: /^[0-59]{1,2}$/
+                    regex: /^([0-9]|0[1-9]|[0-5][0-9])$/
                 }
             }
         },
         {
             k: 'hour',
             title: gettext('小时'),
-            radio: '1',
+            radio: '0',
             long: 24,
             max: 23,
             loop: {
@@ -164,7 +166,7 @@
                 inter: 1,
                 reg: {
                     required: true,
-                    regex: /^[0-23]{1,2}$/
+                    regex: /^([0-9]|0[1-9]|[0-1][0-9]|20|21|23)$/
                 }
             }
         },
@@ -179,7 +181,7 @@
                 inter: 1,
                 reg: {
                     required: true,
-                    regex: /^[0-6]{1,2}$/
+                    regex: /^[0-6]$/
                 }
             }
         },
@@ -194,7 +196,7 @@
                 inter: 1,
                 reg: {
                     required: true,
-                    regex: /^[1-31]{1,2}$/
+                    regex: /^([1-9]|0[1-9]|1[0-9]|2[0-9]|30|31)$/
                 }
             }
         },
@@ -209,11 +211,13 @@
                 inter: 1,
                 reg: {
                     required: true,
-                    regex: /^[1-12]{1,2}$/
+                    regex: /^([1-9]|0[1-9]|10|11|12)$/
                 }
             }
         }
     ]
+    const loopStar0List = ['min', 'hour', 'week']
+    const loopStar1List = ['day', 'month']
     const autoWay = {
         'loop': {
             name: gettext('循环'),
@@ -226,7 +230,6 @@
             name: gettext('指定')
         }
     }
-    const loopStar0List = ['min', 'hour', 'week']
     const numberMap = {
         1: gettext('星期一'),
         2: gettext('星期二'),
@@ -242,20 +245,27 @@
             BaseInput
         },
         filters: {
-            add0 (v) {
-                return v < 10 ? '0' + v : v
+            add0 (v, k) {
+                return k === 'week' ? v : (v < 10 ? '0' + v : v)
+            }
+        },
+        props: {
+            manualInputValue: {
+                type: String,
+                default: ''
             }
         },
         data () {
             return {
                 i18n: {
+                    dayName: gettext('天'),
                     error_code: gettext('错误码'),
-                    placeholder: gettext('0 12 * 10-17 */11'),
-                    selectGeneration: gettext('选择生成'),
-                    manualInput: gettext('手动输入'),
                     expression: gettext('表达式：'),
+                    manualInput: gettext('手动输入'),
                     clearSelected: gettext('清空已选'),
-                    dayName: gettext('天')
+                    selectGeneration: gettext('选择生成'),
+                    placeholder: gettext('0 12 * 10-17 */11'),
+                    monthTips: gettext('0 表示新期天，6 表示星期六')
                 },
                 periodicRule: {
                     required: true,
@@ -270,8 +280,9 @@
                 // manualInput 手动 / selectGeneration 选择生成
                 currentWay: 'selectGeneration',
                 currentRadio: 'loop',
-                periodicCron: '',
+                tabName: 'min',
                 tName: '',
+                periodicCron: '',
                 templateNameRule: ''
             }
         },
@@ -281,13 +292,19 @@
             }
         },
         watch: {
+            manualInputValue: {
+                handler (v) {
+                    this.periodicCron = v
+                    this.setValue(v)
+                },
+                immediate: true
+            }
         },
         created () {
             this.initializeAutoRuleListData()
             this.renderRule()
         },
         mounted () {
-            // this.initializeAutoRuleListData()
         },
         methods: {
             onInputName () { },
@@ -300,7 +317,7 @@
              * @param {String} name -tab name
              */
             tabChanged (name) {
-                console.log(name, 'sssssssss')
+                this.tabName = name
             },
             /**
              * 周期循环方式切换,循环/指定
@@ -319,16 +336,18 @@
                 this.autoRuleList.forEach((item, index) => {
                     const pushArr = []
                     for (let i = 0; i < item.long; i++) {
+                        const realityIndex = loopStar1List.includes(item.k) ? i + 1 : i
                         pushArr.push({
                             name: `${item.k}${i}`,
-                            checked: false,
+                            checked: true,
                             v: i,
-                            value: item.k !== 'week' ? (i < 10 ? `0${i}` : `${i}`) : numberMap[i]
+                            value: item.k !== 'week' ? realityIndex : numberMap[realityIndex]
                         })
                     }
                     this.$set(this.autoRuleList[index], 'checkboxList', pushArr)
                 })
             },
+            // 清空已选
             clearRule () {
                 this.autoRuleList.forEach((item, index) => {
                     item.checkboxList.forEach((m, i) => {
@@ -350,9 +369,92 @@
                     const { radio, loop, checkboxList, max } = m
                     const loopStr = loop.start === (loopStar0List.includes(m.k) ? 0 : 1) && loop.inter === 1
                         ? '*' : `${loop.start}-${max}/${loop.inter}`
-                    const pointStr = checkboxList.filter(res => res.checked).map(res => res.v).join(',') || '*'
+                    const pointStr = checkboxList.filter(res => res.checked).map(res => {
+                        // satrt 1 时 显示 i + 1
+                        return loopStar1List.includes(m.k) ? res.v + 1 : res.v
+                    }).join(',') || '*'
                     const data = radio === '0' ? loopStr : pointStr
                     this.$set(this.expressionList, i, data)
+                })
+            },
+            /**
+             * 合并相近数字 1,2,3 => 1-3
+             * @param {Object} arr 数字数组
+             */
+            mergeCloseNumber (arr) {
+                if (Array.isArray(arr)) {
+                    let hasMergeList = []
+                    const exportList = []
+                    for (let i = 0; i < arr.length; i++) {
+                        if (hasMergeList.some(t => t === arr[i])) continue
+                        const mergeItem = []
+                        let nowValue = arr[i]
+                        mergeItem.push(arr[i])
+                        for (let j = i + 1; j < arr.length; j++) {
+                            if (nowValue + 1 === arr[j]) {
+                                mergeItem.push(arr[j])
+                                nowValue = arr[j]
+                                continue
+                            }
+                            break
+                        }
+                        exportList.push(mergeItem)
+                        hasMergeList = [...hasMergeList, ...mergeItem]
+                    }
+                    return exportList.map(m => m.length > 1 ? `${m[0]}-${m[m.length - 1]}` : `${m[0]}`)
+                } else {
+                    return arr
+                }
+            },
+            /**
+             * 提交时验证表达式
+             * @returns {Boolean} true/false
+             */
+            validationExpression () {
+                autoRuleList.forEach(m => {
+                    if (this.$validator.errors.has(m.k + 'Rule')) {
+                        this.tabName = m.k
+                        return m.k
+                    }
+                })
+            },
+            /**
+             * 根据表达式设置选中状态
+             * @param {String} v
+             * 目前传入值仅支持 4 中形式
+             * 1. *
+             * 2. min-max/d
+             * 3. d,d,d,d
+             * 4. ※/d <===> min-max/d
+             */
+            setValue (setValue) {
+                this.$nextTick(() => {
+                    const periodicList = setValue.split(' ')
+                    periodicList.forEach((m, i) => {
+                        const item = this.autoRuleList[i]
+                        if (m === '*') {
+                            item.radio = '0'
+                            item.checkboxList.forEach(t => {
+                                t.checked = true
+                            })
+                        } else if (m.indexOf('/') !== -1 && m.split('/')[0].split('-')[1] * 1 === item.max) {
+                            item.radio = '0'
+                            item.loop.start = m.split('/')[0].split('-')[0] * 1
+                            item.loop.inter = m.split('/')[1] * 1
+                        } else if (m.indexOf('*/') !== -1) {
+                            item.radio = '0'
+                            item.loop.start = loopStar0List.includes(item.k) ? 0 : 1
+                            item.loop.inter = m.split('/')[1] * 1
+                        } else {
+                            item.radio = '1'
+                            item.checkboxList.forEach((box, boxIndex) => {
+                                box.checked = m.split(',').some(s => {
+                                    return loopStar1List.includes(item.k) ? s * 1 - 1 === box.v * 1 : s * 1 === box.v * 1
+                                })
+                            })
+                        }
+                    })
+                    this.renderRule()
                 })
             }
         }
@@ -364,33 +466,16 @@ $blueBtnBg: #c7dcff;
 $colorBalck: #313238;
 $colorBlue: #3A84FF;
 $colorGrey: #63656e;
+
 .ui-checkbox-group {
-  display: inline-block;
-  position: relative;
-  margin-right: 24px;
-  margin-top: 20px;
-  font-size: 14px;
-  & > label {
-    cursor: pointer;
-    color: $colorGrey;
-  }
-  & > input {
-    position: absolute;
-    clip: rect(0, 0, 0, 0);
-  }
-  & > label::before {
-    content: "\a0"; /*不换行空格*/
     display: inline-block;
-    vertical-align: middle;
-    width: 15px;
-    height: 16px;
-    margin-right: 8px;
-    border: 1px solid $commonBorderColor;
-    box-sizing: border-box;
-  }
-  & > input:checked + label::before {
-    background-color: $blueDefault;
-  }
+    .appoint-checkbox{
+        margin-right: 18px;
+        margin-top: 20px;
+        /deep/ .el-checkbox__label{
+            color: $colorGrey;
+        }
+    }
 }
 .local-error-tip{
     margin-top: 10px;
@@ -427,8 +512,9 @@ $colorGrey: #63656e;
         border-left: 1px solid $commonBorderColor !important;
       }
     }
-    /deep/ .active {
+    /deep/.bk-tab2-nav .active {
       border-bottom: none;
+      border-right: none !important;
     }
     /deep/ .bk-tab2 {
       border: 1px solid $commonBorderColor;
@@ -476,6 +562,17 @@ $colorGrey: #63656e;
             margin: 0 10px;
             width: 46px;
         }
+        .month-tips{
+            margin-left: 10px;
+            color: #c4c6cc;
+            font-size: 14px;
+            &:hover {
+            color: #f4aa1a;
+            }
+            /deep/ .bk-tooltip-arrow {
+                display: none;
+            }
+        }
       }
       .appoint-select-bd {
         margin-top: 18px;
@@ -485,6 +582,7 @@ $colorGrey: #63656e;
       .expression{
           margin-top: 20px;
           font-size: 14px;
+          word-break: break-all;
           .clear-selected{
               margin-left: 20px;
               color: $colorBlue;
@@ -494,18 +592,18 @@ $colorGrey: #63656e;
     }
   }
   .periodic-img-tooltip {
-  position: absolute;
-  right: -20px;
-  top: 10px;
-  color: #c4c6cc;
-  font-size: 14px;
-  z-index: 4;
-  &:hover {
-    color: #f4aa1a;
-  }
-  /deep/ .bk-tooltip-arrow {
-    display: none;
-  }
+    position: absolute;
+    right: -20px;
+    top: 10px;
+    color: #c4c6cc;
+    font-size: 14px;
+    z-index: 4;
+    &:hover {
+        color: #f4aa1a;
+    }
+    /deep/ .bk-tooltip-arrow {
+        display: none;
+    }
 }
 }
 </style>

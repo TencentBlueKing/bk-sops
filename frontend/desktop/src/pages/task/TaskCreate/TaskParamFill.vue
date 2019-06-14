@@ -68,8 +68,11 @@
                             name="periodicCron"
                             v-model="periodicCron"
                             v-validate="periodicRule" /> -->
-                        <LoopRulueSelect>
+                        <LoopRulueSelect
+                            ref="loopRuleSelect"
+                            :manual-input-value="periodicCron">
                         </LoopRulueSelect>
+                        <span @click="test">test</span>
                         <!-- <bk-tooltip placement="left-end" class="periodic-img-tooltip">
                             <i class="common-icon-tooltips"></i>
                             <div slot="content">
@@ -372,6 +375,9 @@
                 if (this.taskMessageLoading === false && val === false) {
                     this.disabledButton = false
                 }
+            },
+            test () {
+                this.$refs.loopRuleSelect.validationExpression()
             }
         }
     }
