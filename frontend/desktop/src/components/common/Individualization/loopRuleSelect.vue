@@ -414,8 +414,9 @@
                 autoRuleList.forEach(m => {
                     if (this.$validator.errors.has(m.k + 'Rule')) {
                         this.tabName = m.k
-                        return m.k
+                        return false
                     }
+                    return this.expressionShowText
                 })
             },
             /**
