@@ -120,7 +120,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     def test_get_template_list__for_project_template(self):
         pt1 = MockPipelineTemplate(id=1,
@@ -171,7 +171,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     def test_get_template_list__for_common_template(self):
         pt1 = MockPipelineTemplate(id=1,
@@ -225,7 +225,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     def test_get_template_info__for_project_template(self):
         pt1 = MockPipelineTemplate(id=1,
@@ -264,7 +264,7 @@ class APITest(TestCase):
                 MagicMock(return_value=MockQuerySet(get_raise=TaskTemplate.DoesNotExist())))
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     def test_get_template_info__for_project_template_does_not_exists(self):
         response = self.client.get(path=self.GET_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID,
@@ -277,7 +277,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     def test_get_template_info__for_common_template(self):
         pt1 = MockPipelineTemplate(id=1,
@@ -317,7 +317,7 @@ class APITest(TestCase):
                 MagicMock(return_value=MockQuerySet(get_raise=CommonTemplate.DoesNotExist())))
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     def test_get_template_info__for_common_template_does_not_exists(self):
         response = self.client.get(path=self.GET_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID,
@@ -338,7 +338,7 @@ class APITest(TestCase):
         tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
         proj = MockProject(id=TEST_PROJECT_ID,
                            name=TEST_PROJECT_NAME,
-                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           bk_biz_id=TEST_BIZ_CC_ID,
                            from_cmdb=True)
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
@@ -423,7 +423,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
@@ -454,7 +454,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
@@ -485,7 +485,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(side_effect=PipelineException()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
@@ -531,7 +531,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=(False, '')))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
@@ -784,7 +784,7 @@ class APITest(TestCase):
         }
         proj = MockProject(id=TEST_PROJECT_ID,
                            name=TEST_PROJECT_NAME,
-                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           bk_biz_id=TEST_BIZ_CC_ID,
                            from_cmdb=True)
         template = MockTaskTemplate()
         replace_template_id_mock = MagicMock()
@@ -860,7 +860,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
@@ -880,7 +880,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=MockTaskTemplate()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
@@ -901,7 +901,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     def test_set_periodic_task_enabled__success(self):
         task = MockPeriodicTask()
@@ -935,7 +935,7 @@ class APITest(TestCase):
     def test_modify_cron_for_periodic_task__success(self):
         proj = MockProject(id=TEST_PROJECT_ID,
                            name=TEST_PROJECT_NAME,
-                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           bk_biz_id=TEST_BIZ_CC_ID,
                            from_cmdb=True)
         task = MockPeriodicTask()
         cron = {'minute': '*/1'}
@@ -957,7 +957,7 @@ class APITest(TestCase):
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
-                                                                cmdb_biz_id=TEST_BIZ_CC_ID,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
                                                                 from_cmdb=True)))
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
     def test_modify_cron_for_periodic_task__task_does_not_exist(self):
@@ -977,7 +977,7 @@ class APITest(TestCase):
         cron = {'minute': '*/1'}
         proj = MockProject(id=TEST_PROJECT_ID,
                            name=TEST_PROJECT_NAME,
-                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           bk_biz_id=TEST_BIZ_CC_ID,
                            from_cmdb=True)
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
@@ -998,7 +998,7 @@ class APITest(TestCase):
         constants = {'k': 'v'}
         proj = MockProject(id=TEST_PROJECT_ID,
                            name=TEST_PROJECT_NAME,
-                           cmdb_biz_id=TEST_BIZ_CC_ID,
+                           bk_biz_id=TEST_BIZ_CC_ID,
                            from_cmdb=True)
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
