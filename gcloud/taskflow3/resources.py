@@ -35,10 +35,10 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.constants import PROJECT
 from gcloud.webservice3.resources import (
     GCloudModelResource,
-    AppSerializer,
-    pipeline_node_name_handle,
     ProjectResource,
 )
+from gcloud.webservice3.serializers import AppSerializer
+from gcloud.core.utils import pipeline_node_name_handle
 
 logger = logging.getLogger('root')
 

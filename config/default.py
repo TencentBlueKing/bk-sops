@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.utils.translation import ugettext_lazy
+
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
 
@@ -214,6 +216,7 @@ DEFAULT_BK_API_VER = 'v2'
 
 # IAM权限中心配置
 BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
+BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', ugettext_lazy(u"标准运维"))
 BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
 
 # tastypie 配置
