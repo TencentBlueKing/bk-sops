@@ -36,6 +36,7 @@ project_resource = DjangoModelResource(
     name=_(u"项目"),
     scope_type='system',
     scope_id='bk_sops',
+    scope_name=_(u"标准运维"),
     actions=[
         Action(id='create', name=_(u"创建"), is_instance_related=False),
         Action(id='view', name=_(u"查看"), is_instance_related=True),
@@ -58,6 +59,7 @@ task_template_resource = DjangoModelResource(
     name=_(u"流程模板"),
     scope_type='system',
     scope_id='bk_sops',
+    scope_name=_(u"标准运维"),
     actions=[
         Action(id='view', name=_(u"查看"), is_instance_related=True),
         Action(id='edit', name=_(u"编辑"), is_instance_related=True),
@@ -81,6 +83,7 @@ statistics_resource = NeverInitiateResource(
     name=_(u"统计数据"),
     scope_type='system',
     scope_id='bk_sops',
+    scope_name=_(u"标准运维"),
     actions=[Action(id='view', name=_(u"查看"), is_instance_related=False)],
     backend=BkIAMBackend()
 )

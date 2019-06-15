@@ -22,7 +22,7 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 from tastypie.resources import ModelResource
 
-from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAuthorization
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 from auth_backend.examples import task_template_resource
 
 from pipeline.models import TemplateScheme
@@ -34,12 +34,13 @@ from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.webservice3.resources import (
-    pipeline_node_name_handle,
-    AppSerializer,
     GCloudModelResource,
     ProjectResource,
-    TemplateFilterPaginator
 )
+from gcloud.webservice3.serializers import AppSerializer
+from gcloud.webservice3.paginator import TemplateFilterPaginator
+from gcloud.core.utils import pipeline_node_name_handle
+
 
 logger = logging.getLogger('root')
 
@@ -109,14 +110,10 @@ class TaskTemplateResource(GCloudModelResource):
         resource_name = 'template'
         always_return_data = True
         auth_resource = task_template_resource
-        authorization = BkSaaSLooseReadOnlyAuthorization(auth_resource=auth_resource,
-                                                         read_action_id='view',
-                                                         update_action_id='edit')
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit')
         auth_operations = [
-            # {
-            #     'operate_id': 'create',
-            #     'actions': [auth_resource.actions.create.dict()]
-            # },
             {
                 'operate_id': 'view',
                 'actions': [auth_resource.actions.view.dict()]
@@ -136,6 +133,18 @@ class TaskTemplateResource(GCloudModelResource):
             {
                 'operate_id': 'create_periodic_task',
                 'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_periodic_task.dict()]
+            },
+            {
+                'operate_id': 'create_mini_app',
+                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_mini_app.dict()]
+            },
+            {
+                'operate_id': 'clone',
+                'actions': [auth_resource.actions.view.dict()]
+            },
+            {
+                'operate_id': 'export',
+                'actions': [auth_resource.actions.view.dict()]
             }
         ]
         serializer = AppSerializer()

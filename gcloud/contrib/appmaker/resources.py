@@ -21,8 +21,8 @@ from gcloud.tasktmpl3.resources import TaskTemplateResource
 from gcloud.webservice3.resources import (
     GCloudModelResource,
     ProjectResource,
-    AppSerializer,
 )
+from gcloud.webservice3.serializers import AppSerializer
 from gcloud.contrib.appmaker.models import AppMaker
 
 

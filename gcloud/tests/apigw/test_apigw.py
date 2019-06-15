@@ -22,7 +22,7 @@ from django.test import TestCase, Client
 
 from pipeline.exceptions import PipelineException
 
-from gcloud.core.utils import strftime_with_timezone
+from gcloud.core.utils import format_datetime
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
@@ -139,9 +139,9 @@ class APITest(TestCase):
                     'id': tmpl.id,
                     'name': tmpl.pipeline_template.name,
                     'creator': tmpl.pipeline_template.creator,
-                    'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
+                    'create_time': format_datetime(tmpl.pipeline_template.create_time),
                     'editor': tmpl.pipeline_template.editor,
-                    'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
+                    'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
                     'category': tmpl.category,
                     'project_id': TEST_PROJECT_ID,
                     'project_name': TEST_PROJECT_NAME,
@@ -191,9 +191,9 @@ class APITest(TestCase):
                     'id': tmpl.id,
                     'name': tmpl.pipeline_template.name,
                     'creator': tmpl.pipeline_template.creator,
-                    'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
+                    'create_time': format_datetime(tmpl.pipeline_template.create_time),
                     'editor': tmpl.pipeline_template.editor,
-                    'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
+                    'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
                     'category': tmpl.category,
                     'project_id': TEST_PROJECT_ID,
                     'project_name': TEST_PROJECT_NAME,
@@ -241,9 +241,9 @@ class APITest(TestCase):
                 'id': tmpl.id,
                 'name': tmpl.pipeline_template.name,
                 'creator': tmpl.pipeline_template.creator,
-                'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
+                'create_time': format_datetime(tmpl.pipeline_template.create_time),
                 'editor': tmpl.pipeline_template.editor,
-                'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
+                'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
                 'category': tmpl.category,
                 'project_id': TEST_PROJECT_ID,
                 'project_name': TEST_PROJECT_NAME,
@@ -293,9 +293,9 @@ class APITest(TestCase):
                 'id': tmpl.id,
                 'name': tmpl.pipeline_template.name,
                 'creator': tmpl.pipeline_template.creator,
-                'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
+                'create_time': format_datetime(tmpl.pipeline_template.create_time),
                 'editor': tmpl.pipeline_template.editor,
-                'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
+                'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
                 'category': tmpl.category,
                 'project_id': TEST_PROJECT_ID,
                 'project_name': TEST_PROJECT_NAME,
@@ -720,7 +720,7 @@ class APITest(TestCase):
             'creator': task.creator,
             'cron': task.cron,
             'enabled': task.enabled,
-            'last_run_at': strftime_with_timezone(task.last_run_at),
+            'last_run_at': format_datetime(task.last_run_at),
             'total_run_count': task.total_run_count,
         } for task in periodic_tasks]
 
@@ -741,7 +741,7 @@ class APITest(TestCase):
             'creator': task.creator,
             'cron': task.cron,
             'enabled': task.enabled,
-            'last_run_at': strftime_with_timezone(task.last_run_at),
+            'last_run_at': format_datetime(task.last_run_at),
             'total_run_count': task.total_run_count,
             'form': task.form,
             'pipeline_tree': task.pipeline_tree
@@ -777,7 +777,7 @@ class APITest(TestCase):
             'creator': task.creator,
             'cron': task.cron,
             'enabled': task.enabled,
-            'last_run_at': strftime_with_timezone(task.last_run_at),
+            'last_run_at': format_datetime(task.last_run_at),
             'total_run_count': task.total_run_count,
             'form': task.form,
             'pipeline_tree': task.pipeline_tree

@@ -21,9 +21,11 @@ from django.core.cache import cache as default_cache
 try:
     import celery
     from celery import task
-except:
+except Exception:
     celery = None
-    task = lambda x: x
+
+    def task(func):
+        return func
 
 
 def with_cache(seconds=60, prefix="", ex=None, check=lambda data: True, pre_get=False, countdown=0, cache=None):
