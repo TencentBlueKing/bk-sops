@@ -111,6 +111,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .task-param-wrapper {
+    max-width: 620px;
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
@@ -144,6 +145,10 @@
         .desc-tooltip {
             float: right;
             margin: 20px;
+        }
+        /deep/.bk-tooltip-inner {
+            background: #333;
+            border: 0px;
         }
         .icon-info-circle {
             position: relative;
