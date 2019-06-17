@@ -6,8 +6,8 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 <script>
-    import { mapActions } from 'vuex'
-    import { errorHandler } from '@/utils/errorHandler.js'
+
+    import { JSEncrypt } from 'jsencrypt'
 
     const MOBILE_SUPPORTTED_COMPONENTS = ['input', 'int', 'textarea', 'datetime', 'checkbox', 'radio', 'select', 'password']
 
@@ -74,17 +74,13 @@
                 key: '',
                 attrs: {
                     required: false
-                } // 普通的 HTML 特性
+                }
             }
         },
         created () {
             this.beforeRender()
         },
         methods: {
-            ...mapActions('component', [
-                'getVariableConfig',
-                'getAtomConfig'
-            ]),
             beforeRender () {
                 const tagCode = this.sourceCode.split('.')[1]
                 this.renderConfig.some(item => {
@@ -96,6 +92,8 @@
                         } else {
                             this.componentTag = tagCode
                         }
+                        // 处理元变量的情况
+                        this.processMetaVariable(item)
                         if (item.attrs.validation) {
                             this.attrs.required = item.attrs.validation.some((v) => v.type === 'required')
                             this.domAttr.validation = { required: this.attrs.required }
@@ -105,8 +103,9 @@
                         }
                         if (item.type === 'select') {
                             this.domAttr.select = {
+                                multiple: item.attrs.multiple,
                                 columns: item.attrs.items,
-                                defaultVal: item.attrs.items.findIndex(o => o.text === this.value),
+                                defaultVal: item.attrs.multiple ? item.attrs.value : [item.attrs.items.findIndex(o => o.text === this.value)],
                                 tagCode: this.customType ? this.customType : this.sourceCode
                             }
                         } else if (item.type === 'checkbox') {
@@ -119,9 +118,8 @@
                             }
                         } else if (item.type === 'int') {
                             this.value = this.value ? Number.parseInt(this.value) : 0
-                        } else if (item.type === 'password') {
-                            this.domAttr.type = item.type
-                            this.componentTag = 'input'
+                        } else if (item.type === 'meta') {
+                            this.componentTag = 'cell'
                         } else if (!MOBILE_SUPPORTTED_COMPONENTS.includes(item.type)) {
                             this.componentTag = 'cell'
                             this.value = JSON.stringify(this.data.value)
@@ -132,17 +130,12 @@
                 this.fillDomConfig()
             },
 
-            async loadAtomConfig (configKey, customType) {
-                if (!global.$.atoms || !global.$.atoms[configKey]) {
-                    try {
-                        if (customType) {
-                            await this.getVariableConfig({ customType: customType })
-                        } else {
-                            await this.getAtomConfig({ atomCode: configKey })
-                        }
-                    } catch (e) {
-                        errorHandler(e, this)
-                    }
+            processMetaVariable (variable) {
+                if (variable.meta_transform && this.data.is_meta) {
+                    const metaConfig = variable.meta_transform(this.data.meta || this.data)
+                    variable.attrs = metaConfig.attrs
+                    variable.type = metaConfig.type
+                    this.value = metaConfig.attrs.items.filter(item => metaConfig.attrs.value.includes(item.value)).map(obj => obj.text).join(',')
                 }
             },
 
@@ -164,17 +157,28 @@
             return h(this.domName, {
                 nativeOn: {
                     change: function (event) {
-                        self.$emit('dataChange', event.target.value, self.customType ? self.data['key'] : self.sourceCode, self.customType)
+                        if (self.customType !== 'password') {
+                            self.$emit('dataChange', event.target.value, self.data.key)
+                        } else {
+                            const crypt = new JSEncrypt()
+                            const cryptVal = crypt.encrypt(event.target.value)
+                            self.$emit('dataChange', cryptVal || event.target.value, self.data.key)
+                        }
                     },
                     click: function (event) {
                         if (self.customType === 'datetime') {
-                            self.$emit('dataChange', event.target.value, self.data['key'], self.customType)
+                            self.$emit('dataChange', event.target.value, self.data.key, self.customType)
                         } else if (self.customType === 'select') {
-                            self.$emit('onSelect', self.domAttr.select)
+                            let val = self.$refs[self.data.key].value
+                            if (val !== self.data.value) {
+                                val = val ? val.split(',') : []
+                                self.$emit('dataChange', val, self.data.key, self.customType)
+                            }
                         }
                     }
                 },
-                props: this.domAttr
+                props: this.domAttr,
+                ref: this.data.key
             })
         }
     }
