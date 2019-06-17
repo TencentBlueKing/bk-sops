@@ -15,9 +15,10 @@ import logging
 
 from blueapps.utils.cache import with_cache
 
+from ..constants import PRINCIPAL_TYPE_USER
+
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')
-PRINCIPAL_TYPE = 'user'
 
 
 class BkSaaSLabeledDataResourceMixin(object):
@@ -46,7 +47,7 @@ def search_all_resources_authorized_actions(username, resource_type, auth_resour
     """
     authorized_result = auth_resource.backend.search_authorized_resources(
         resource=auth_resource,
-        principal_type=PRINCIPAL_TYPE,
+        principal_type=PRINCIPAL_TYPE_USER,
         principal_id=username,
         action_ids=auth_resource.actions_map.keys())
     if not authorized_result['result']:
@@ -62,6 +63,5 @@ def search_all_resources_authorized_actions(username, resource_type, auth_resour
             for relative_resource in absolute_resource:
                 if relative_resource['resource_type'] == auth_resource.rtype:
                     resource_id = str(relative_resource['resource_id'])
-                    resources_perms.setdefault(resource_id, [])
-                    resources_perms[resource_id].append(action_resource['action_id'])
+                    resources_perms.setdefault(resource_id, []).append(action_resource['action_id'])
     return resources_perms
