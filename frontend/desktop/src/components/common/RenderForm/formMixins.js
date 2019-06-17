@@ -144,6 +144,7 @@ export function getFormMixins (attrs = {}) {
                 this.$emit('change', fieldsArr, val)
                 this.$nextTick(() => {
                     this.onChange()
+                    this.validate()
                 })
             },
             /**

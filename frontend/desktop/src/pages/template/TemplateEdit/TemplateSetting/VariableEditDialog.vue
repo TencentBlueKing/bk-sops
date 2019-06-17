@@ -15,7 +15,7 @@
             :quick-close="false"
             :ext-cls="'common-dialog'"
             :title="i18n.edit"
-            width="636"
+            width="600"
             :is-show.sync="isShow"
             @confirm="onConfirm"
             @cancel="onCancel">
@@ -49,7 +49,7 @@
                 formData: tools.deepClone(this.renderData),
                 formError: false,
                 i18n: {
-                    edit: gettext('选择服务器'),
+                    edit: gettext('编辑变量'),
                     checkData: gettext('变量的参数值不合法')
                 }
             }
