@@ -748,7 +748,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';
 .select-node-wrapper {
-    height: calc(100% - 132px);
+    height: calc(100% - 90px);
 }
 .canvas-content {
     position: relative;

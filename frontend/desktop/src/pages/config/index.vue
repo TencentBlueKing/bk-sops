@@ -136,14 +136,8 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .config-page {
-    padding: 0 60px;
+    padding: 50px 60px 0 60px;
     min-width: 1320px;
-    padding-top: 50px;
-    min-height: calc(100% - 100px);
-    background: $whiteNodeBg;
-}
-.page-container {
-    border: 1px solid $commonBorderColor;
     min-height: calc(100% - 50px);
     background: #f4f7fa;
     .list-wrapper-title {

@@ -136,7 +136,8 @@
 <style lang="scss" scoped>
     .task-execute-container {
         min-width: 1320px;
-        height: calc(100% - 62px);
+        padding-top: 50px;
+        height: 100%;
         background-color: #f4f7fa;
     }
     .task-function-container {
