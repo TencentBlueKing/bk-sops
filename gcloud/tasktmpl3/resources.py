@@ -109,44 +109,9 @@ class TaskTemplateResource(GCloudModelResource):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
         always_return_data = True
-        auth_resource = task_template_resource
-        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+        authorization = BkSaaSLooseAuthorization(auth_resource=task_template_resource,
                                                  read_action_id='view',
                                                  update_action_id='edit')
-        auth_operations = [
-            {
-                'operate_id': 'view',
-                'actions': [auth_resource.actions.view.dict()]
-            },
-            {
-                'operate_id': 'edit',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.edit.dict()]
-            },
-            {
-                'operate_id': 'delete',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.delete.dict()]
-            },
-            {
-                'operate_id': 'create_task',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_task.dict()]
-            },
-            {
-                'operate_id': 'create_periodic_task',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_periodic_task.dict()]
-            },
-            {
-                'operate_id': 'create_mini_app',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_mini_app.dict()]
-            },
-            {
-                'operate_id': 'clone',
-                'actions': [auth_resource.actions.view.dict()]
-            },
-            {
-                'operate_id': 'export',
-                'actions': [auth_resource.actions.view.dict()]
-            }
-        ]
         serializer = AppSerializer()
 
         filtering = {

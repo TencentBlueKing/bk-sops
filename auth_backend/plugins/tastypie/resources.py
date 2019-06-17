@@ -16,6 +16,7 @@ import logging
 from blueapps.utils.cache import with_cache
 
 from ..constants import PRINCIPAL_TYPE_USER
+from .authorization import BkSaaSLooseReadOnlyAuthorization, BkSaaSLooseAuthorization
 
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')
@@ -24,15 +25,15 @@ CACHE_PREFIX = __name__.replace('.', '_')
 class BkSaaSLabeledDataResourceMixin(object):
     def dehydrate(self, bundle):
         username = bundle.request.user.username
-        auth_resource = getattr(self._meta, 'auth_resource', None)
-        auth_operations = getattr(self._meta, 'auth_operations', None)
-        if auth_resource is None or auth_operations is None:
+        authorization = getattr(self._meta, 'authorization', None)
+        if not isinstance(authorization, (BkSaaSLooseReadOnlyAuthorization, BkSaaSLooseAuthorization)):
             return bundle
 
+        auth_resource = authorization.auth_resource
         resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource)
         auth_actions = resources_perms.get(str(bundle.obj.pk), [])
         bundle.data['auth_actions'] = auth_actions
-        bundle.data['auth_operations'] = auth_operations
+        bundle.data['auth_operations'] = auth_resource.operations
         return bundle
 
 

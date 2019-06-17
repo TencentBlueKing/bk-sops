@@ -38,7 +38,7 @@ class Resource(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, inspect, backend,
-                 parent=None, parent_getter=None):
+                 parent=None, parent_getter=None, operations=None):
         self.rtype = rtype
         self.name = name
         self.actions = ActionCollection(actions)
@@ -53,6 +53,12 @@ class Resource(object):
 
         if rtype in resource_type_lib:
             raise exceptions.AuthKeyError('Resource with rtype: {rtype} already exist.'.format(rtype=rtype))
+
+        if operations is None:
+            operations = []
+        for operation in operations:
+            operation['actions'] = [getattr(self.actions, act).dict() for act in operation['actions_id']]
+        self.operations = operations
 
         resource_type_lib[rtype] = self
 

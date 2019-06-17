@@ -170,36 +170,9 @@ class ProjectResource(GCloudModelResource):
     class Meta:
         queryset = Project.objects.all()
         resource_name = 'project'
-        auth_resource = project_resource
-        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+        authorization = BkSaaSLooseAuthorization(auth_resource=project_resource,
                                                  read_action_id='view',
                                                  update_action_id='edit')
-        auth_operations = [
-            {
-                'operate_id': 'create',
-                'actions': [auth_resource.actions.create.dict()]
-            },
-            {
-                'operate_id': 'view',
-                'actions': [auth_resource.actions.view.dict()]
-            },
-            {
-                'operate_id': 'edit',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.edit.dict()]
-            },
-            {
-                'operate_id': 'disable',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.disable.dict()]
-            },
-            {
-                'operate_id': 'create_template',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.create_template.dict()]
-            },
-            {
-                'operate_id': 'use_common_template',
-                'actions': [auth_resource.actions.view.dict(), auth_resource.actions.use_common_template.dict()]
-            }
-        ]
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
