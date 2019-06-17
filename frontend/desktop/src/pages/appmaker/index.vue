@@ -428,6 +428,7 @@
     .appmaker-fieldset {
         width: 100%;
         margin: 0;
+        padding: 8px;
         border: 1px solid $commonBorderColor;
         background: $whiteDefault;
         margin-bottom: 15px;
@@ -531,7 +532,7 @@
                 margin-left: 5px;
             }
         }
-        .bk-button {
+        /deep/.bk-button {
             height: 32px;
             line-height: 30px;
         }
@@ -560,6 +561,7 @@
         .bk-button {
             width: 100px;
             height: 32px;
+            line-height: 30px;
             margin-right: 24px;
             margin-bottom: 4px;
         }

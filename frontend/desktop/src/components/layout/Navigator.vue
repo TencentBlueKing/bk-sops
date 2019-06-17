@@ -259,11 +259,15 @@
                 } else if (this.userType === 'auditor') {
                     return key === 'audit'
                 }
-
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
             isSubNavActived (route) {
-                return new RegExp('^' + route.path).test(this.$route.path)
+                let index = route.path.indexOf('/')
+                for (let i = 0; i < 2; i++) {
+                    index = route.path.indexOf('/', index + 1)
+                }
+                const newPath = route.path.substring(0, index + 1)
+                return new RegExp('^' + newPath).test(this.$route.path)
             },
             getPath (route) {
                 /** 404 页面时，导航统一跳转到首页 */
