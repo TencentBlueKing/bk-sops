@@ -79,13 +79,9 @@
                                 class="loop-time"
                                 @blur="renderRule()" />
                             {{ item.k !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
-                            <!-- 说明 -->
-                            <bk-tooltip v-if="item.k === 'week'" placement="left-end" class="month-tips">
-                                <i class="common-icon-tooltips"></i>
-                                <div slot="content">
-                                    {{ i18n.monthTips }}
-                                </div>
-                            </bk-tooltip>
+                            <!-- 星期说明 -->
+                            <i v-if="item.k === 'week'" v-bktooltips.right="i18n.monthTips" class="common-icon-tooltips month-tips"></i>
+                            <!-- startInput 错误提示 -->
                             <div v-show="errors.has(item.k + 'Rule')" class="local-error-tip error-msg">{{ errors.first(item.k + 'Rule') }}</div>
                         </div>
                         <!-- 指定 -->
@@ -136,7 +132,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    // import { deepClone } from '@/utils/tools.js'
     import { PERIODIC_REG } from '@/constants/index.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     const autoRuleList = [
@@ -265,7 +260,7 @@
                     clearSelected: gettext('清空已选'),
                     selectGeneration: gettext('选择生成'),
                     placeholder: gettext('0 12 * 10-17 */11'),
-                    monthTips: gettext('0 表示新期天，6 表示星期六')
+                    monthTips: gettext('0 表示星期天，6 表示星期六')
                 },
                 periodicRule: {
                     required: true,
@@ -564,14 +559,10 @@ $colorGrey: #63656e;
             width: 46px;
         }
         .month-tips{
-            margin-left: 10px;
             color: #c4c6cc;
             font-size: 14px;
             &:hover {
             color: #f4aa1a;
-            }
-            /deep/ .bk-tooltip-arrow {
-                display: none;
             }
         }
       }
