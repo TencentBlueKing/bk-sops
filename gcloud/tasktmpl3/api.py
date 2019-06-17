@@ -21,9 +21,11 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 
+from auth_backend.plugins.decorators import verify_perms
+from auth_backend.examples import task_template_resource
+
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
-
 from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
@@ -35,6 +37,9 @@ VAR_ID_MAP = 'var_id_map'
 
 
 @require_GET
+@verify_perms(auth_resource=task_template_resource,
+              resource_get={'from': 'request', 'key': 'template_id'},
+              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
 def form(request, project_id):
     template_id = request.GET.get('template_id')
     version = request.GET.get('version')
@@ -59,6 +64,9 @@ def form(request, project_id):
 
 
 @require_POST
+@verify_perms(auth_resource=task_template_resource,
+              resource_get={'from': 'request', 'key': 'template_id'},
+              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
 def collect(request, project_id):
     template_id = request.POST.get('template_id')
     template_list = json.loads(request.POST.get('template_list', '[]'))
@@ -107,6 +115,9 @@ def collect(request, project_id):
 
 
 @require_GET
+@verify_perms(auth_resource=task_template_resource,
+              resource_get={'from': 'request', 'key': 'template_id'},
+              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
 def export_templates(request, project_id):
     try:
         template_id_list = json.loads(request.GET.get('template_id_list'))
@@ -188,48 +199,6 @@ def check_before_import(request, project_id):
         'result': True,
         'data': check_info
     })
-
-
-def job_id_map_convert(origin_id_maps):
-    new_id_map = {}
-    for id_map in origin_id_maps:
-        _map = {'id': int(id_map['new_job_id']),
-                VAR_ID_MAP: {}}
-
-        for var_id_map in id_map['global_var_id_mapping']:
-            _map[VAR_ID_MAP][int(var_id_map['original_id'])] = int(var_id_map['new_id'])
-
-        new_id_map[int(id_map['original_job_id'])] = _map
-
-    return new_id_map
-
-
-def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
-    for template in templates_data['pipeline_template_data']['template'].values():
-
-        # for each act in template
-        for act in filter(lambda act: act['type'] == 'ServiceActivity', template['tree']['activities'].values()):
-            act_comp = act['component']
-            constants = template['tree']['constants']
-
-            # try to replace job id
-            if act_comp['code'] == 'job_execute_task':
-                origin_job_id = act_comp['data']['job_task_id']['value']
-                id_map = job_id_map.get(origin_job_id, {})
-
-                # replace job id
-                act_comp['data']['job_task_id']['value'] = id_map.get('id', origin_job_id)
-
-                # replace global vars id
-                if act_comp['data']['job_global_var']['hook']:
-                    constant_key = act_comp['data']['job_global_var']['value']
-                    for var in constants[constant_key]['value']:
-                        if 'id' in var:
-                            var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
-                else:
-                    for var in act_comp['data']['job_global_var']['value']:
-                        if 'id' in var:
-                            var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
 
 
 @require_POST
@@ -315,3 +284,45 @@ def get_collect_template(request, project_id):
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})
+
+
+def job_id_map_convert(origin_id_maps):
+    new_id_map = {}
+    for id_map in origin_id_maps:
+        _map = {'id': int(id_map['new_job_id']),
+                VAR_ID_MAP: {}}
+
+        for var_id_map in id_map['global_var_id_mapping']:
+            _map[VAR_ID_MAP][int(var_id_map['original_id'])] = int(var_id_map['new_id'])
+
+        new_id_map[int(id_map['original_job_id'])] = _map
+
+    return new_id_map
+
+
+def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
+    for template in templates_data['pipeline_template_data']['template'].values():
+
+        # for each act in template
+        for act in filter(lambda act: act['type'] == 'ServiceActivity', template['tree']['activities'].values()):
+            act_comp = act['component']
+            constants = template['tree']['constants']
+
+            # try to replace job id
+            if act_comp['code'] == 'job_execute_task':
+                origin_job_id = act_comp['data']['job_task_id']['value']
+                id_map = job_id_map.get(origin_job_id, {})
+
+                # replace job id
+                act_comp['data']['job_task_id']['value'] = id_map.get('id', origin_job_id)
+
+                # replace global vars id
+                if act_comp['data']['job_global_var']['hook']:
+                    constant_key = act_comp['data']['job_global_var']['value']
+                    for var in constants[constant_key]['value']:
+                        if 'id' in var:
+                            var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
+                else:
+                    for var in act_comp['data']['job_global_var']['value']:
+                        if 'id' in var:
+                            var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
