@@ -17,9 +17,9 @@ from functools import wraps
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
+from .constants import PRINCIPAL_TYPE_USER, AUTH_FORBIDDEN_CODE
+
 logger = logging.getLogger('root')
-PRINCIPAL_TYPE = 'user'
-AUTH_FORBIDDEN_CODE = 9900403
 
 
 def verify_perms(auth_resource, resource_get, actions):
@@ -48,7 +48,10 @@ def verify_perms(auth_resource, resource_get, actions):
             permissions = []
             self_actions = [action['id'] for action in actions if not action['parent_resource']]
             if self_actions:
-                self_verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE, username, self_actions, instance_id)
+                self_verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER,
+                                                                username,
+                                                                self_actions,
+                                                                instance_id)
                 if not self_verify_result['result']:
                     message = ('verify perms of Resource[{resource}] by backend[{beckend_cls}] '
                                'return error: {error}').format(
