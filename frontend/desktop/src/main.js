@@ -137,6 +137,26 @@ Validator.localize({
                 required: gettext('本地缓存名称不能为空'),
                 regex: gettext('本地缓存名称包含') + InvalidNameChar + gettext('非法字符'),
                 max: gettext('本地缓存名称不能超过') + STRING_LENGTH.DRAFT_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            minRule: {
+                required: gettext('开始分钟数不能为空'),
+                regex: gettext('请输入 0 - 59 之间的数')
+            },
+            hourRule: {
+                required: gettext('开始小时数不能为空'),
+                regex: gettext('请输入 0 - 23 之间的数')
+            },
+            weekRule: {
+                required: gettext('开始周数不能为空'),
+                regex: gettext('请输入 0 - 6 之间的数')
+            },
+            dayRule: {
+                required: gettext('开始天数不能为空'),
+                regex: gettext('请输入 1 - 31 之间的数')
+            },
+            monthRule: {
+                required: gettext('开始月数不能为空'),
+                regex: gettext('请输入 1 - 12 之间的数')
             }
         }
     }

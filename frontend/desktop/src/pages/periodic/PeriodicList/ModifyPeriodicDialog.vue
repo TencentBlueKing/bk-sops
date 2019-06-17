@@ -23,7 +23,7 @@
             <div class="periodic-info">
                 <h3 class="common-section-title">{{ i18n.periodicInfo }}</h3>
                 <div class="common-form-item">
-                    <label class="required">{{i18n.periodicRule}}</label>
+                    <!-- <label class="required">{{i18n.periodicRule}}</label>
                     <div class="common-form-content">
                         <BaseInput
                             name="periodicCron"
@@ -36,7 +36,10 @@
                                 <img :src="periodicCronImg" alt="i18n.errorPicture">
                             </div>
                         </bk-tooltip>
-                    </div>
+                    </div> -->
+                    <LoopRulueSelect
+                        ref="loopRuleSelect"
+                        :manual-input-value="periodicCron" />
                 </div>
                 <div class="param-info" v-if="!loading">
                     <h3 class="common-section-title">{{ i18n.paramsInfo }}</h3>
@@ -58,7 +61,8 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { PERIODIC_REG } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
+    import LoopRulueSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    // import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -66,9 +70,10 @@
     export default {
         name: 'ModifyPeriodicDialog',
         components: {
-            BaseInput,
+            // BaseInput,
             TaskParamEdit,
-            NoData
+            NoData,
+            LoopRulueSelect
         },
         props: ['isModifyDialogShow', 'taskId', 'cron', 'constants', 'loading'],
         data () {
@@ -102,6 +107,8 @@
                 this.$emit('onModifyPeriodicCancel')
             },
             onModifyPeriodicConfirm () {
+                const loopRule = this.$refs.loopRuleSelect.validationExpression()
+                if (typeof loopRule !== 'string') return
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then((result) => {
                     let formValid = true
@@ -111,7 +118,8 @@
                         periodicConstants = formData
                         formValid = paramEditComp.validate()
                     }
-                    const cronArray = this.periodicCron.split(' ')
+                    // const cronArray = this.periodicCron.split(' ')
+                    const cronArray = loopRule.split(' ')
                     if (cronArray.length !== 5) {
                         this.$bkMessage({
                             'message': gettext('输入周期表达式非法，请校验'),
