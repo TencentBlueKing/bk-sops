@@ -73,9 +73,6 @@ def verify_perms(auth_resource, resource_get, actions):
                                                                  action_resource['action_id'],
                                                                  instance_id))
 
-            # TODO if need check parent resource perm
-            # parent_actions = [action['id'] for action in actions if action['parent_resource']]
-
             if permissions:
                 result = {
                     'result': False,

@@ -42,6 +42,9 @@ class DjangoModelResource(ObjectResource):
         post_delete.connect(receiver=self.post_delete_handler, sender=self.resource_cls)
 
     def clean_instances(self, instances):
+        if instances is None:
+            return None
+
         if isinstance(instances, list):
             cleaned = []
             for inst in instances:

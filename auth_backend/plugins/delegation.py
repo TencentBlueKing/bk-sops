@@ -11,22 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
-
-from django.http import HttpResponse
-from django.core.serializers.json import DjangoJSONEncoder
+from abc import abstractmethod
 
 
-class HttpResponseAuthFailed(HttpResponse):
-    status_code = 499
+class AuthDelegation(object):
+    def __init__(self, delegate_resource, action_ids):
+        self.delegate_resource = delegate_resource
+        self.action_ids = action_ids
 
-    def __init__(self, resource_type_name, resource_name, action_name, *args, **kwargs):
-        kwargs.setdefault('content_type', 'application/json')
-        super(HttpResponse, self).__init__(*args, **kwargs)
-        # Content is a bytestring. See the `content` property methods.
-        result = {
-            'resource_type_name': resource_type_name,
-            'resource_name': resource_name,
-            'action_name': action_name,
-        }
-        self.content = json.dumps(result, cls=DjangoJSONEncoder)
+    @abstractmethod
+    def delegate_instance(self, client_instance):
+        raise NotImplementedError()
+
+
+class RelateAuthDelegation(AuthDelegation):
+    def __init__(self, delegate_instance_f=None, *args, **kwargs):
+        super(RelateAuthDelegation, self).__init__(*args, **kwargs)
+        self.delegate_instance_f = delegate_instance_f
+
+    def delegate_instance(self, client_instance):
+        return getattr(client_instance, self.delegate_instance_f, None)
