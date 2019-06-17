@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
+    <div class="config-wrapper" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
         <div class="config-title">
             <span>{{i18n.basic_information}}</span>
         </div>
@@ -59,7 +59,7 @@
         components: {
             BaseInput
         },
-        props: ['businessInfoLoading', 'isTemplateConfigValid'],
+        props: ['projectInfoLoading', 'isTemplateConfigValid'],
         data () {
             return {
                 i18n: {
@@ -75,12 +75,12 @@
         },
         computed: {
             ...mapState({
-                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'timeout': state => state.template.time_out
             }),
             notifyGroup () {
-                if (this.businessBaseInfo.notify_group) {
-                    return this.businessBaseInfo.notify_group.map(item => {
+                if (this.projectBaseInfo.notify_group) {
+                    return this.projectBaseInfo.notify_group.map(item => {
                         return {
                             id: item.value,
                             name: item.text
@@ -90,8 +90,8 @@
                 return []
             },
             notifyTypeList () {
-                if (this.businessBaseInfo.notify_type_list) {
-                    return this.businessBaseInfo.notify_type_list.map(item => {
+                if (this.projectBaseInfo.notify_type_list) {
+                    return this.projectBaseInfo.notify_type_list.map(item => {
                         return {
                             id: item.value,
                             name: item.name
@@ -101,8 +101,8 @@
                 return []
             },
             taskCategories () {
-                if (this.businessBaseInfo.task_categories) {
-                    return this.businessBaseInfo.task_categories.map(item => {
+                if (this.projectBaseInfo.task_categories) {
+                    return this.projectBaseInfo.task_categories.map(item => {
                         return {
                             id: item.value,
                             name: item.name

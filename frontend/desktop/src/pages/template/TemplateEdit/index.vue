@@ -55,7 +55,7 @@
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
-                :business-info-loading="businessInfoLoading"
+                :project-info-loading="projectInfoLoading"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
                 :variable-type-list="variableTypeList"
@@ -129,7 +129,7 @@
                 exception: {},
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
-                businessInfoLoading: false,
+                projectInfoLoading: false,
                 templateDataLoading: false,
                 templateSaving: false,
                 createTaskSaving: false,
@@ -165,7 +165,7 @@
                 'lines': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
-                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
                 'username': state => state.username,
@@ -233,7 +233,7 @@
         },
         created () {
             if (this.common) {
-                this.defaultCCId = this.project_id
+                this.defaultProjectId = this.project_id
                 setAtomConfigApiUrls(this.site_url, 0)
             }
             this.initTemplateData()
@@ -265,7 +265,7 @@
         },
         mounted () {
             this.getSingleAtomList()
-            this.getBusinessBaseInfo()
+            this.getProjectBaseInfo()
             this.getCustomVarCollection()
         },
         beforeDestroy () {
@@ -277,7 +277,7 @@
                 'loadSubAtomList'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo',
+                'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
                 'loadCommonTemplateData',
@@ -295,7 +295,7 @@
             ...mapMutations('template/', [
                 'initTemplateData',
                 'resetTemplateData',
-                'setBusinessBaseInfo',
+                'setProjectBaseInfo',
                 'setTemplateName',
                 'setTemplateData',
                 'setLocation',
@@ -327,13 +327,13 @@
                     this.singleAtomListLoading = false
                 }
             },
-            async getBusinessBaseInfo () {
-                this.businessInfoLoading = true
+            async getProjectBaseInfo () {
+                this.projectInfoLoading = true
                 try {
-                    const data = await this.loadBusinessBaseInfo()
-                    this.setBusinessBaseInfo(data)
+                    const data = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(data)
                     const subAtomData = {
-                        ccId: this.project_id,
+                        project_id: this.project_id,
                         common: this.common,
                         templateId: this.template_id
                     }
@@ -341,7 +341,7 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.businessInfoLoading = false
+                    this.projectInfoLoading = false
                 }
             },
             async getSubAtomList (subAtomData) {
@@ -460,7 +460,7 @@
                 }
 
                 try {
-                    const data = await this.saveTemplateData({ 'templateId': template_id, 'ccId': this.project_id, 'common': this.common })
+                    const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
                         draft.draftReplace(this.username, this.project_id, data.template_id, this.templateUUID)
@@ -505,7 +505,7 @@
                 const primaryData = this.subAtom
                 const groups = []
                 const atomGrouped = []
-                this.businessBaseInfo.task_categories.forEach(item => {
+                this.projectBaseInfo.task_categories.forEach(item => {
                     groups.push(item.value)
                     atomGrouped.push({
                         type: item.value,
@@ -914,7 +914,7 @@
                     draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
                 }
                 if (this.common) {
-                    to.params.project_id = this.defaultCCId
+                    to.params.project_id = this.defaultProjectId
                 }
                 this.clearAtomForm()
                 next()
