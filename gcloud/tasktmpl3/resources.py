@@ -22,6 +22,9 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 from tastypie.resources import ModelResource
 
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.examples import task_template_resource
+
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
 from pipeline_web.parser.validator import validate_web_pipeline_tree
@@ -31,12 +34,13 @@ from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.webservice3.resources import (
-    pipeline_node_name_handle,
-    AppSerializer,
     GCloudModelResource,
     ProjectResource,
-    TemplateFilterPaginator
 )
+from gcloud.webservice3.serializers import AppSerializer
+from gcloud.webservice3.paginator import TemplateFilterPaginator
+from gcloud.core.utils import pipeline_node_name_handle
+
 
 logger = logging.getLogger('root')
 
@@ -105,7 +109,9 @@ class TaskTemplateResource(GCloudModelResource):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
         always_return_data = True
-        authorization = Authorization()
+        authorization = BkSaaSLooseAuthorization(auth_resource=task_template_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit')
         serializer = AppSerializer()
 
         filtering = {

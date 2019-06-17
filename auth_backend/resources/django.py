@@ -40,3 +40,23 @@ class DjangoModelResource(ObjectResource):
     def _dispatch_handlers(self):
         post_save.connect(receiver=self.post_save_handler, sender=self.resource_cls)
         post_delete.connect(receiver=self.post_delete_handler, sender=self.resource_cls)
+
+    def clean_instances(self, instances):
+        if isinstance(instances, list):
+            cleaned = []
+            for inst in instances:
+                if isinstance(inst, self.resource_cls):
+                    cleaned.append(inst)
+                else:
+                    id_filter = {
+                        self.inspect.resource_unique_key: inst
+                    }
+                    cleaned.append(self.resource_cls.objects.get(**id_filter))
+            return cleaned
+        elif isinstance(instances, self.resource_cls):
+            return instances
+        else:
+            id_filter = {
+                self.inspect.resource_unique_key: instances
+            }
+            return self.resource_cls.objects.get(**id_filter)
