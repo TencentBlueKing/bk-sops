@@ -16,11 +16,8 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
 from gcloud.core.api_adapter import is_user_functor
-
-from gcloud.webservice3.resources import (
-    GCloudModelResource,
-    AppSerializer,
-)
+from gcloud.webservice3.resources import GCloudModelResource
+from gcloud.webservice3.serializers import AppSerializer
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
 

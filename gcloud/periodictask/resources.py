@@ -18,7 +18,7 @@ import traceback
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
-from tastypie.authorization import Authorization
+from tastypie.authorization import Authorization, ReadOnlyAuthorization
 from djcelery.models import PeriodicTask as CeleryTask
 
 from pipeline.exceptions import PipelineException
@@ -28,16 +28,13 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.core.models import Project
-from gcloud.core.utils import (
-    name_handler,
-)
+from gcloud.core.utils import name_handler
 from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.webservice3.resources import (
     ProjectResource,
     GCloudModelResource,
-    GCloudReadOnlyAuthorization,
-    AppSerializer
 )
+from gcloud.webservice3.serializers import AppSerializer
 from gcloud.commons.template.models import replace_template_id
 
 logger = logging.getLogger('root')
@@ -51,7 +48,7 @@ class CeleryTaskResource(GCloudModelResource):
 
     class Meta:
         queryset = CeleryTask.objects.all()
-        authorization = GCloudReadOnlyAuthorization()
+        authorization = ReadOnlyAuthorization()
         resource_name = 'celery_task'
         always_return_data = True
         serializer = AppSerializer()
@@ -78,7 +75,7 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
 
     class Meta:
         queryset = PipelinePeriodicTask.objects.all()
-        authorization = GCloudReadOnlyAuthorization()
+        authorization = ReadOnlyAuthorization()
         resource_name = 'pipeline_periodic_task'
         always_return_data = True
         serializer = AppSerializer()

@@ -29,12 +29,10 @@ from gcloud.commons.template.models import CommonTemplate
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
-from gcloud.webservice3.resources import (
-    GCloudModelResource,
-    AppSerializer,
-    pipeline_node_name_handle,
-    TemplateFilterPaginator
-)
+from gcloud.webservice3.resources import GCloudModelResource
+from gcloud.webservice3.serializers import AppSerializer
+from gcloud.webservice3.paginator import TemplateFilterPaginator
+from gcloud.core.utils import pipeline_node_name_handle
 
 
 class PipelineTemplateResource(ModelResource):
