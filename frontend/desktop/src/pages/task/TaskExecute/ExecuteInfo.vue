@@ -374,7 +374,7 @@
         display: inline-block;
         white-space: nowrap;
         :first-child {
-            margin: 0 5px;
+            margin: 0 6px;
             vertical-align: middle;
         }
     }
@@ -424,6 +424,7 @@
     /deep/ .el-table {
         .el-table__header {
             tr, th {
+                font-size: 12px;
                 background: $whiteNodeBg;
                 color: $greyDefault;
             }
@@ -436,15 +437,19 @@
         }
     }
     .common-icon-dark-circle-ellipsis {
+        font-size: 12px;
         color: #3c96ff;
     }
     .common-icon-dark-circle-pause {
+        font-size: 12px;
         color: #f8B53f;
     }
     .icon-check-circle-shape {
+        font-size: 12px;
         color: #30d878;
     }
     .common-icon-dark-circle-close {
+        font-size: 12px;
         color: #ff5757;
     }
 }
