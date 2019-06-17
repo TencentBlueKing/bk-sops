@@ -45,6 +45,32 @@ project_resource = DjangoModelResource(
         Action(id='create_template', name=_(u"新建流程"), is_instance_related=True),
         Action(id='use_common_template', name=_(u"使用公共流程"), is_instance_related=True),
     ],
+    operations=[
+        {
+            'operate_id': 'create',
+            'actions_id': ['create']
+        },
+        {
+            'operate_id': 'view',
+            'actions_id': ['view']
+        },
+        {
+            'operate_id': 'edit',
+            'actions_id': ['view', 'edit']
+        },
+        {
+            'operate_id': 'disable',
+            'actions_id': ['view', 'disable']
+        },
+        {
+            'operate_id': 'create_template',
+            'actions_id': ['view', 'create_template']
+        },
+        {
+            'operate_id': 'use_common_template',
+            'actions_id': ['view', 'use_common_template']
+        }
+    ],
     resource_cls=Project,
     backend=BkIAMBackend(),
     inspect=FixedCreatorFieldInspect(creator_type='user',
@@ -52,6 +78,7 @@ project_resource = DjangoModelResource(
                                      resource_id_f='id',
                                      resource_name_f='name',
                                      parent_f=None))
+
 
 # has parent resource
 task_template_resource = DjangoModelResource(
@@ -67,6 +94,40 @@ task_template_resource = DjangoModelResource(
         Action(id='create_task', name=_(u"新建任务"), is_instance_related=True),
         Action(id='create_mini_app', name=_(u"新建轻应用"), is_instance_related=True),
         Action(id='create_periodic_task', name=_(u"新建周期任务"), is_instance_related=True),
+    ],
+    operations=[
+        {
+            'operate_id': 'view',
+            'actions_id': ['view']
+        },
+        {
+            'operate_id': 'edit',
+            'actions_id': ['view', 'edit']
+        },
+        {
+            'operate_id': 'delete',
+            'actions_id': ['view', 'delete']
+        },
+        {
+            'operate_id': 'create_task',
+            'actions_id': ['view', 'create_task']
+        },
+        {
+            'operate_id': 'create_periodic_task',
+            'actions_id': ['view', 'create_periodic_task']
+        },
+        {
+            'operate_id': 'create_mini_app',
+            'actions_id': ['view', 'create_mini_app']
+        },
+        {
+            'operate_id': 'clone',
+            'actions_id': ['view']
+        },
+        {
+            'operate_id': 'export',
+            'actions_id': ['view']
+        }
     ],
     parent=project_resource,
     resource_cls=TaskTemplate,
