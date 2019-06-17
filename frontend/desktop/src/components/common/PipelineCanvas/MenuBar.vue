@@ -303,7 +303,6 @@
     background-color: #ffffff;
     border: 1px solid #546a9e;
     .node-content {
-        font-size: 10px;
         transform: scale(0.8);
     }
 }
