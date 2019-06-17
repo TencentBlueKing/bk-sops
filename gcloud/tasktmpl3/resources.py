@@ -22,7 +22,7 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 from tastypie.resources import ModelResource
 
-from auth_backend.plugins.delegation import TastypieAuthDelegation
+from auth_backend.plugins.delegation import RelateAuthDelegation
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 from auth_backend.examples import task_template_resource, project_resource
 
@@ -109,9 +109,9 @@ class TaskTemplateResource(GCloudModelResource):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
         always_return_data = True
-        create_delegation = TastypieAuthDelegation(delegate_resource=project_resource,
-                                                   action_ids=['create_template'],
-                                                   instance_field='project')
+        create_delegation = RelateAuthDelegation(delegate_resource=project_resource,
+                                                 action_ids=['create_template'],
+                                                 delegate_instance_f='project')
         authorization = BkSaaSLooseAuthorization(auth_resource=task_template_resource,
                                                  read_action_id='view',
                                                  update_action_id='edit',

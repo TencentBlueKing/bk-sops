@@ -11,14 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from abc import abstractmethod
+
 
 class AuthDelegation(object):
     def __init__(self, delegate_resource, action_ids):
         self.delegate_resource = delegate_resource
         self.action_ids = action_ids
 
+    @abstractmethod
+    def delegate_instance(self, client_instance):
+        raise NotImplementedError()
 
-class TastypieAuthDelegation(AuthDelegation):
-    def __init__(self, instance_field=None, *args, **kwargs):
-        super(TastypieAuthDelegation, self).__init__(*args, **kwargs)
-        self.instance_field = instance_field
+
+class RelateAuthDelegation(AuthDelegation):
+    def __init__(self, delegate_instance_f=None, *args, **kwargs):
+        super(RelateAuthDelegation, self).__init__(*args, **kwargs)
+        self.delegate_instance_f = delegate_instance_f
+
+    def delegate_instance(self, client_instance):
+        return getattr(client_instance, self.delegate_instance_f, None)

@@ -84,8 +84,7 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
         if self.create_delegation:
             auth_resource = self.create_delegation.delegate_resource
             action_ids = self.create_delegation.action_ids
-            if self.create_delegation.instance_field:
-                instance = getattr(bundle.obj, self.create_delegation.instance_field)
+            instance = self.create_delegation.delegate_instance(bundle.obj)
 
         username = bundle.request.user.username
         authorized_result = auth_resource.verify_perms(principal_type=self.principal_type,
@@ -132,5 +131,5 @@ class BkSaaSLooseReadOnlyAuthorization(BkSaaSReadOnlyAuthorization):
         return True
 
 
-class BkSaaSLooseAuthorization(BkSaaSAuthorization, BkSaaSLooseReadOnlyAuthorization):
+class BkSaaSLooseAuthorization(BkSaaSLooseReadOnlyAuthorization, BkSaaSAuthorization):
     pass
