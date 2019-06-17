@@ -22,8 +22,9 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
 from tastypie.resources import ModelResource
 
+from auth_backend.plugins.delegation import TastypieAuthDelegation
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
-from auth_backend.examples import task_template_resource
+from auth_backend.examples import task_template_resource, project_resource
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
@@ -40,7 +41,6 @@ from gcloud.webservice3.resources import (
 from gcloud.webservice3.serializers import AppSerializer
 from gcloud.webservice3.paginator import TemplateFilterPaginator
 from gcloud.core.utils import pipeline_node_name_handle
-
 
 logger = logging.getLogger('root')
 
@@ -109,9 +109,13 @@ class TaskTemplateResource(GCloudModelResource):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
         always_return_data = True
+        create_delegation = TastypieAuthDelegation(delegate_resource=project_resource,
+                                                   action_ids=['create_template'],
+                                                   instance_field='project')
         authorization = BkSaaSLooseAuthorization(auth_resource=task_template_resource,
                                                  read_action_id='view',
-                                                 update_action_id='edit')
+                                                 update_action_id='edit',
+                                                 create_delegation=create_delegation)
         serializer = AppSerializer()
 
         filtering = {
