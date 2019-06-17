@@ -13,6 +13,7 @@
             :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"
+            @change="search()"
             @search="search()">
         </van-search>
         <!-- 列表 -->
@@ -106,7 +107,7 @@
 
             async fillTaskStatus () {
                 for (const task of this.taskList) {
-                    if (task.is_started) {
+                    if (task.is_started && !task.is_finished) {
                         try {
                             const response = await this.getTaskStatus({ id: task.id })
                             this.$set(task, 'status', response.state)
@@ -120,6 +121,7 @@
             },
 
             search () {
+                console.log(this.originalTaskList)
                 this.taskList = this.originalTaskList.filter(item => item.name.includes(this.value))
             },
 

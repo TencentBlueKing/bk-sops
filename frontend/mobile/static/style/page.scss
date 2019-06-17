@@ -126,6 +126,18 @@ a{
             color: $text-color-light;
         }
     }
+    .select-list .van-popup{
+        .van-cell{
+            padding: 10px 15px;
+        }
+        .van-cell:not(:last-child):after{
+            left: 15px;
+            right: 0px;
+        }
+        .van-cell__title{
+            max-width: none;
+        }
+    }
 }
 /*popup*/
 .van-overlay{

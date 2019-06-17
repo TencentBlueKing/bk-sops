@@ -24,7 +24,7 @@
                     name="pause"
                     @click="onOperationClick('pause')" />
                 <van-icon
-                    v-else-if="taskState === 'PAUSE' && !operating"
+                    v-else-if="taskState === 'SUSPENDED' && !operating"
                     slot="icon"
                     class-prefix="icon"
                     name="play"
@@ -54,7 +54,7 @@
             </van-tabbar-item>
             <van-tabbar-item>
                 <van-icon
-                    v-if="taskState !== 'CREATED' && !operating"
+                    v-if="!operating"
                     slot="icon"
                     class-prefix="icon"
                     name="file"
@@ -80,7 +80,7 @@
 
     const TASK_STATE = {
         'CREATED': [window.gettext('未执行'), 'info'],
-        'RUNNING': [window.gettext('执行中'), 'warning'],
+        'RUNNING': [window.gettext('执行中'), 'info'],
         'SUSPENDED': [window.gettext('暂停'), 'warning'],
         'NODE_SUSPENDED': [window.gettext('节点暂停'), 'warning'],
         'FAILED': [window.gettext('失败'), 'danger'],
@@ -135,6 +135,7 @@
                 'getTaskStatus',
                 'instanceStart',
                 'instancePause',
+                'instanceResume',
                 'instanceRevoke'
             ]),
             async loadData () {
@@ -145,9 +146,6 @@
                     this.pipelineTree = JSON.parse(this.task.pipeline_tree)
                     this.$store.commit('setPipelineTree', this.pipelineTree)
                     await this.loadTaskStatus()
-                    if (this.$route.query.executeTask && this.taskState === 'CREATED') {
-                        this.onOperationClick('execute')
-                    }
                     this.$nextTick(() => {
                         this.loading = false
                         this.$toast.clear()
@@ -180,7 +178,6 @@
             },
             async loadTaskStatus () {
                 try {
-                    this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const taskState = await this.getTaskStatus({ id: this.taskId })
                     if (taskState.result) {
                         this.taskState = taskState.data.state
@@ -196,8 +193,6 @@
                 } catch (e) {
                     this.cancelTaskStatusTimer()
                     errorHandler(e, this)
-                } finally {
-                    this.$toast.clear()
                 }
             },
 
@@ -248,6 +243,7 @@
                 }
             },
             onDetailClick () {
+                this.cancelTaskStatusTimer()
                 this.$router.push({ path: '/task/detail', query: { taskId: String(this.taskId) } })
             },
             async pause () {
@@ -264,9 +260,9 @@
                     this.operating = false
                 }
             },
-            async taskResume () {
+            async resume () {
                 try {
-                    const response = await this.instanceResume(this.instance_id)
+                    const response = await this.instanceResume({ id: this.taskId })
                     if (response.result) {
                         this.setTaskStatusTimer()
                         global.bus.$emit('notify', { message: window.gettext('任务继续成功') })
@@ -276,7 +272,7 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.pending.task = false
+                    this.operating = false
                 }
             },
             onRevokeConfirm () {
