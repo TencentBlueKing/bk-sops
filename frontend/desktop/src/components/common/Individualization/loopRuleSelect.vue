@@ -30,34 +30,32 @@
                 @tab-changed="tabChanged">
                 <bk-tabpanel v-for="(item, index) in autoRuleList"
                     :key="index"
-                    :name="item.k"
+                    :name="item.key"
                     :title="item.title">
                     <div class="tabpanel-container">
                         <div class="radio-group">
                             <div class="radio-item loop-radio">
-                                <input
-                                    :id="'loop' + item.k"
+                                <input :id="'loop' + item.key"
                                     v-model.number="item.radio"
                                     class="ui-radio"
                                     type="radio"
                                     :value="0"
-                                    :name="item.k" />
+                                    :name="item.key" />
                                 <label class="ui-label"
-                                    :for="'loop' + item.k"
+                                    :for="'loop' + item.key"
                                     @click.stop="onAutoWaySwitch(index, '0')">
                                     {{ autoWay.loop.name }}
                                 </label>
                             </div>
                             <div class="radio-item appoint-radio">
-                                <input
-                                    :id="'appoint' + item.k"
+                                <input :id="'appoint' + item.key"
                                     v-model.number="item.radio"
                                     class="ui-radio"
                                     type="radio"
                                     :value="1"
-                                    :name="item.k" />
+                                    :name="item.key" />
                                 <label class="ui-label"
-                                    :for="'appoint' + item.k"
+                                    :for="'appoint' + item.key"
                                     @click.stop="onAutoWaySwitch(index, '1')">
                                     {{ autoWay.appoint.name }}
                                 </label>
@@ -66,42 +64,46 @@
                         <!-- 循环 -->
                         <div v-if="item.radio === 0"
                             class="loop-select-bd">
-                            {{ item.k !== 'week' ? autoWay.loop.start : autoWay.loop.start_week }}
-                            <BaseInput
-                                v-model.number="item.loop.start"
+                            {{ item.key !== 'week' ? autoWay.loop.start : autoWay.loop.startWeek }}
+                            <BaseInput v-model.number="item.loop.start"
                                 v-validate="item.loop.reg"
-                                :name="item.k + 'Rule'"
+                                :name="item.key + 'Rule'"
                                 class="loop-time"
                                 @blur="renderRule()" />
-                            {{ item.k !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
-                            <BaseInput
-                                v-model.number="item.loop.inter"
+                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
+                            <BaseInput v-model.number="item.loop.inter"
                                 class="loop-time"
                                 @blur="renderRule()" />
-                            {{ item.k !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
+                            {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
-                            <i v-if="item.k === 'week'" v-bktooltips.right="i18n.monthTips" class="common-icon-tooltips month-tips"></i>
+                            <i v-if="item.key === 'week'"
+                                v-bktooltips.right="i18n.monthTips"
+                                class="common-icon-tooltips month-tips"></i>
                             <!-- startInput 错误提示 -->
-                            <div v-show="errors.has(item.k + 'Rule')" class="local-error-tip error-msg">{{ errors.first(item.k + 'Rule') }}</div>
+                            <div v-show="errors.has(item.key + 'Rule')"
+                                class="local-error-tip error-msg">{{ errors.first(item.key + 'Rule') }}</div>
                         </div>
                         <!-- 指定 -->
-                        <div
-                            v-else
+                        <div v-else
                             class="appoint-select-bd">
                             <div v-for="(box, i) in item.checkboxList"
                                 :key="i"
                                 class="ui-checkbox-group">
-                                <el-checkbox class="appoint-checkbox"
+                                <input :id="item.key + 'box' + i"
+                                    type="checkbox"
                                     v-model="box.checked"
+                                    class="ui-checkbox-input"
                                     @change="renderRule">
-                                    {{ box.value | add0(item.k) }}
-                                </el-checkbox>
+                                <label class="ui-checkbox-label"
+                                    :for="item.key + 'box' + i">
+                                    <span class="ui-checkbox-icon"></span>
+                                    <span class="ui-checkbox-tex"> {{ box.value | addZero(item.key) }}</span>
+                                </label>
                             </div>
                         </div>
                         <div class="expression">
                             {{ i18n.expression }} {{ expressionShowText }}
-                            <span
-                                class="clear-selected"
+                            <span class="clear-selected"
                                 @click.stop="clearRule">
                                 {{ i18n.clearSelected }}
                             </span>
@@ -112,8 +114,7 @@
             <!-- 手动输入 -->
             <div v-show="currentWay === 'manualInput'"
                 class="hand-input">
-                <BaseInput
-                    name="periodicCron"
+                <BaseInput name="periodicCron"
                     class="step-form-content-size"
                     v-validate="periodicRule"
                     v-model="periodicCron"
@@ -121,13 +122,16 @@
             </div>
         </div>
         <!-- 说明 -->
-        <bk-tooltip placement="bottom-end" class="periodic-img-tooltip">
+        <bk-tooltip placement="bottom-end"
+            class="periodic-img-tooltip">
             <i class="common-icon-tooltips"></i>
             <div slot="content">
-                <img class="__ui-img" :src="periodicCronImg">
+                <img class="ui-img"
+                    :src="periodicCronImg">
             </div>
         </bk-tooltip>
-        <span v-show="errors.has('periodicCron') && currentWay === 'manualInput'" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
+        <span v-show="errors.has('periodicCron') && currentWay === 'manualInput'"
+            class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
     </div>
 </template>
 <script>
@@ -136,7 +140,7 @@
     import BaseInput from '@/components/common/base/BaseInput.vue'
     const autoRuleList = [
         {
-            k: 'min',
+            key: 'min',
             title: gettext('分钟'),
             radio: 0,
             long: 60,
@@ -151,7 +155,7 @@
             }
         },
         {
-            k: 'hour',
+            key: 'hour',
             title: gettext('小时'),
             radio: 0,
             long: 24,
@@ -166,7 +170,7 @@
             }
         },
         {
-            k: 'week',
+            key: 'week',
             title: gettext('星期'),
             radio: 0,
             long: 7,
@@ -181,7 +185,7 @@
             }
         },
         {
-            k: 'day',
+            key: 'day',
             title: gettext('日期'),
             radio: 0,
             long: 31,
@@ -196,7 +200,7 @@
             }
         },
         {
-            k: 'month',
+            key: 'month',
             title: gettext('月份'),
             radio: 0,
             long: 12,
@@ -211,13 +215,13 @@
             }
         }
     ]
-    const loopStar0List = ['min', 'hour', 'week']
-    const loopStar1List = ['day', 'month']
+    const loopStarZeroList = ['min', 'hour', 'week']
+    const loopStarOneList = ['day', 'month']
     const autoWay = {
         'loop': {
             name: gettext('循环'),
             start: gettext('从第'),
-            start_week: gettext('从星期'),
+            startWeek: gettext('从星期'),
             center: gettext('开始,每隔'),
             end: gettext('执行')
         },
@@ -240,7 +244,7 @@
             BaseInput
         },
         filters: {
-            add0 (v, k) {
+            addZero (v, k) {
                 return k === 'week' ? v : (v < 10 ? '0' + v : v)
             }
         },
@@ -299,8 +303,6 @@
             this.initializeAutoRuleListData()
             this.renderRule()
         },
-        mounted () {
-        },
         methods: {
             onSwitchWay (way) {
                 this.currentWay = way
@@ -329,12 +331,12 @@
                 this.autoRuleList.forEach((item, index) => {
                     const pushArr = []
                     for (let i = 0; i < item.long; i++) {
-                        const realityIndex = loopStar1List.includes(item.k) ? i + 1 : i
+                        const realityIndex = loopStarOneList.includes(item.key) ? i + 1 : i
                         pushArr.push({
-                            name: `${item.k}${i}`,
+                            name: `${item.key}${i}`,
                             checked: true,
                             v: i,
-                            value: item.k !== 'week' ? realityIndex : numberMap[realityIndex]
+                            value: item.key !== 'week' ? realityIndex : numberMap[realityIndex]
                         })
                     }
                     this.$set(this.autoRuleList[index], 'checkboxList', pushArr)
@@ -346,7 +348,7 @@
                     item.checkboxList.forEach((m, i) => {
                         m.checked = false
                     })
-                    item.loop.start = loopStar0List.includes(item.k) ? 0 : 1
+                    item.loop.start = loopStarZeroList.includes(item.key) ? 0 : 1
                     item.loop.inter = 1
                 })
                 this.renderRule()
@@ -364,7 +366,7 @@
                 this.autoRuleList.map((m, i) => {
                     const { radio, loop, checkboxList, max } = m
                     let loopStr = ''
-                    if (loop.start === (loopStar0List.includes(m.k) ? 0 : 1)) {
+                    if (loop.start === (loopStarZeroList.includes(m.key) ? 0 : 1)) {
                         loopStr = `*/${loop.inter}`
                         if (loop.inter === 1) {
                             loopStr = '*'
@@ -374,7 +376,7 @@
                     }
                     const pointStr = checkboxList.filter(res => res.checked).map(res => {
                         // satrt 1 时 显示 i + 1
-                        return loopStar1List.includes(m.k) ? res.v + 1 : res.v
+                        return loopStarOneList.includes(m.key) ? res.v + 1 : res.v
                     }).join(',') || '*'
                     const data = radio === 0 ? loopStr : pointStr
                     this.$set(this.expressionList, i, data)
@@ -416,8 +418,8 @@
             validationExpression () {
                 let flag = true
                 autoRuleList.forEach(m => {
-                    if (this.$validator.errors.has(m.k + 'Rule') && this.currentWay === 'selectGeneration') {
-                        this.tabName = m.k
+                    if (this.$validator.errors.has(m.key + 'Rule') && this.currentWay === 'selectGeneration') {
+                        this.tabName = m.key
                         flag = false
                     }
                 })
@@ -454,14 +456,14 @@
                         } else if (m.indexOf('*/') !== -1) {
                             // */d
                             item.radio = 0
-                            item.loop.start = loopStar0List.includes(item.k) ? 0 : 1
+                            item.loop.start = loopStarZeroList.includes(item.key) ? 0 : 1
                             item.loop.inter = m.split('/')[1] * 1
                         } else if (!/[^(\d{1,2},)]|[^(\d{1,2})]/g.test(m)) {
                             // d,d,d,d
                             item.radio = 1
                             item.checkboxList.forEach((box, boxIndex) => {
                                 box.checked = m.split(',').some(s => {
-                                    return loopStar1List.includes(item.k) ? s * 1 - 1 === box.v * 1 : s * 1 === box.v * 1
+                                    return loopStarOneList.includes(item.key) ? s * 1 - 1 === box.v * 1 : s * 1 === box.v * 1
                                 })
                             })
                         } else {
@@ -479,30 +481,66 @@
 @import "@/scss/config.scss";
 $blueBtnBg: #c7dcff;
 $colorBalck: #313238;
-$colorBlue: #3A84FF;
+$colorBlue: #3a84ff;
 $colorGrey: #63656e;
+$bgBlue: #3a84ff;
 
 .ui-checkbox-group {
+  margin-top: 20px;
+  margin-right: 12px;
+  display: inline-block;
+  .ui-checkbox-input {
+    display: none;
+  }
+  .ui-checkbox-icon {
+    box-sizing: border-box;
     display: inline-block;
-    .appoint-checkbox{
-        margin-right: 18px;
-        margin-top: 20px;
-        /deep/ .el-checkbox__label{
-            color: $colorGrey;
-        }
-    }
-}
-.local-error-tip{
-    margin-top: 10px;
-    font-size: 14px;
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #a9adb5;
+    text-align: center;
+    padding-left: 12px;
     line-height: 1;
-    color: #ff5757;
+  }
+  .ui-checkbox-label {
+    user-select: none;
+    cursor: pointer;
+    color: $colorGrey;
+    .ui-checkbox-tex,
+    .ui-checkbox-icon {
+      vertical-align: middle;
+    }
+  }
+  .ui-checkbox-input:checked + .ui-checkbox-label > .ui-checkbox-icon::after {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 2px;
+    height: 4px;
+    width: 8px;
+    border-left: 2px solid;
+    border-bottom: 2px solid;
+    border-color: #ffffff;
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+  }
+  .ui-checkbox-input:checked + .ui-checkbox-label > .ui-checkbox-icon {
+    background: $bgBlue;
+  }
+}
+.local-error-tip {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1;
+  color: #ff5757;
 }
 .loop-rule-select {
   position: relative;
   width: 500px;
   // 选择 title
   .loop-rule-title {
+    white-space: nowrap;
     .rule-btn {
       width: 50%;
       border: 1px solid $commonBorderColor;
@@ -573,16 +611,17 @@ $colorGrey: #63656e;
       .loop-select-bd {
         margin-top: 18px;
         font-size: 14px;
-        .loop-time{
-            margin: 0 10px;
-            width: 46px;
+        color: $colorBalck;
+        .loop-time {
+          margin: 0 10px;
+          width: 46px;
         }
-        .month-tips{
-            color: #c4c6cc;
-            font-size: 14px;
-            &:hover {
+        .month-tips {
+          color: #c4c6cc;
+          font-size: 14px;
+          &:hover {
             color: #f4aa1a;
-            }
+          }
         }
       }
       .appoint-select-bd {
@@ -590,15 +629,15 @@ $colorGrey: #63656e;
         padding: 0 20px 20px 20px;
         border: 1px solid $commonBorderColor;
       }
-      .expression{
-          margin-top: 20px;
-          font-size: 14px;
-          word-break: break-all;
-          .clear-selected{
-              margin-left: 20px;
-              color: $colorBlue;
-              cursor: pointer;
-          }
+      .expression {
+        margin-top: 20px;
+        font-size: 14px;
+        word-break: break-all;
+        .clear-selected {
+          margin-left: 20px;
+          color: $colorBlue;
+          cursor: pointer;
+        }
       }
     }
   }
@@ -609,19 +648,19 @@ $colorGrey: #63656e;
     color: #c4c6cc;
     font-size: 14px;
     z-index: 4;
-    .__ui-img {
-        width: 500px;
-        background: #000;
+    .ui-img {
+      width: 500px;
+      background: #000;
     }
     &:hover {
-        color: #f4aa1a;
+      color: #f4aa1a;
     }
     /deep/ .bk-tooltip-arrow {
-        display: none;
+      display: none;
     }
-    /deep/ .bk-tooltip-inner{
-        max-width: auto !important;
+    /deep/ .bk-tooltip-inner {
+      max-width: auto !important;
     }
-}
+  }
 }
 </style>

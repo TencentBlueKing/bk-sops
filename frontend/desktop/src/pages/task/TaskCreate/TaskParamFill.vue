@@ -63,22 +63,9 @@
                     v-if="!isStartNow">
                     <label class="required">{{i18n.periodicCron}}</label>
                     <div class="common-form-content step-form-item-cron">
-                        <!-- <BaseInput
-                            class="step-form-content-size"
-                            name="periodicCron"
-                            v-model="periodicCron"
-                            v-validate="periodicRule" /> -->
-                        <LoopRulueSelect
-                            ref="loopRuleSelect"
+                        <LoopRuleSelect ref="loopRuleSelect"
                             :manual-input-value="periodicCron">
-                        </LoopRulueSelect>
-                        <!-- <bk-tooltip placement="left-end" class="periodic-img-tooltip">
-                            <i class="common-icon-tooltips"></i>
-                            <div slot="content">
-                                <img :src="periodicCronImg" class="">
-                            </div>
-                        </bk-tooltip>
-                        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span> -->
+                        </LoopRuleSelect>
                     </div>
                 </div>
             </div>
@@ -122,13 +109,13 @@
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
-    import LoopRulueSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     export default {
         name: 'TaskParamFill',
         components: {
             BaseInput,
             ParameterInfo,
-            LoopRulueSelect
+            LoopRuleSelect
         },
         props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance'],
         data () {
@@ -483,7 +470,7 @@
   }
 }
 .step-form-item-cron {
-    position: relative;
+  position: relative;
   input {
     vertical-align: top;
   }
