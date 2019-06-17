@@ -63,7 +63,6 @@ from gcloud.taskflow3.constants import (
 )
 from gcloud.core.utils import (
     convert_readable_username,
-    strftime_with_timezone,
     timestamp_to_datetime,
     format_datetime,
     camel_case_to_underscore_naming,
@@ -885,8 +884,8 @@ class TaskFlowInstance(models.Model):
         status_tree.setdefault('children', {})
         status_tree.pop('created_time', '')
 
-        status_tree['start_time'] = strftime_with_timezone(status_tree.pop('started_time'))
-        status_tree['finish_time'] = strftime_with_timezone(status_tree.pop('archived_time'))
+        status_tree['start_time'] = format_datetime(status_tree.pop('started_time'))
+        status_tree['finish_time'] = format_datetime(status_tree.pop('archived_time'))
         child_status = []
         for identifier_code, child_tree in status_tree['children'].iteritems():
             TaskFlowInstance.format_pipeline_status(child_tree)

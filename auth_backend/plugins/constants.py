@@ -11,19 +11,5 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-try:
-    from django.conf import settings
-
-    APP_CODE = settings.APP_CODE
-    SECRET_KEY = settings.SECRET_KEY
-    SYSTEM_ID = getattr(settings, 'BK_IAM_SYSTEM_ID', APP_CODE)
-    SYSTEM_NAME = getattr(settings, 'BK_IAM_SYSTEM_NAME', APP_CODE)
-    BK_IAM_HOST = getattr(settings, 'BK_IAM_HOST', '')
-    BK_IAM_API_VERSION = getattr(settings, 'BK_IAM_API_VERSION', 'v1')
-
-except Exception:
-    APP_CODE = ''
-    APP_SECRET_KEY = ''
-    SYSTEM_ID = ''
-    BK_IAM_HOST = ''
-    BK_IAM_API_VERSION = 'v1'
+PRINCIPAL_TYPE_USER = 'user'
+AUTH_FORBIDDEN_CODE = 9900403

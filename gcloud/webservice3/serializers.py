@@ -11,19 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-try:
-    from django.conf import settings
+import datetime
 
-    APP_CODE = settings.APP_CODE
-    SECRET_KEY = settings.SECRET_KEY
-    SYSTEM_ID = getattr(settings, 'BK_IAM_SYSTEM_ID', APP_CODE)
-    SYSTEM_NAME = getattr(settings, 'BK_IAM_SYSTEM_NAME', APP_CODE)
-    BK_IAM_HOST = getattr(settings, 'BK_IAM_HOST', '')
-    BK_IAM_API_VERSION = getattr(settings, 'BK_IAM_API_VERSION', 'v1')
+from django.utils import timezone
+from tastypie.serializers import Serializer
 
-except Exception:
-    APP_CODE = ''
-    APP_SECRET_KEY = ''
-    SYSTEM_ID = ''
-    BK_IAM_HOST = ''
-    BK_IAM_API_VERSION = 'v1'
+
+class AppSerializer(Serializer):
+
+    def format_datetime(self, data):
+        # translate to time in local timezone
+        if timezone.is_aware(data):
+            data = timezone.localtime(data)
+        return data.strftime("%Y-%m-%d %H:%M:%S %z")
+
+    def format_date(self, data):
+        return data.strftime("%Y-%m-%d")
+
+    def format_time(self, data):
+        return datetime.time.strftime(data, "%H:%M:%S")
