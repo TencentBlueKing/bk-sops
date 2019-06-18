@@ -20,8 +20,6 @@ from auth_backend.resources.inspect import FixedCreatorFieldInspect
 
 from gcloud.commons.template.models import CommonTemplate
 
-from gcloud.core.permissions import project_resource
-
 common_template_resource = DjangoModelResource(
     rtype='common-template',
     name=_(u"公共流程"),
@@ -57,7 +55,6 @@ common_template_resource = DjangoModelResource(
             'actions_id': ['view', 'create_task']
         }
     ],
-    parent=project_resource,
     resource_cls=CommonTemplate,
     backend=BkIAMBackend(),
     inspect=FixedCreatorFieldInspect(creator_type='user',
