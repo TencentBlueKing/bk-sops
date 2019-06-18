@@ -23,20 +23,6 @@
             <div class="periodic-info">
                 <h3 class="common-section-title">{{ i18n.periodicInfo }}</h3>
                 <div class="common-form-item">
-                    <!-- <label class="required">{{i18n.periodicRule}}</label>
-                    <div class="common-form-content">
-                        <BaseInput
-                            name="periodicCron"
-                            v-model="periodicCron"
-                            v-validate="periodicRule" />
-                        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
-                        <bk-tooltip placement="bottom-start" class="periodic-img-tooltip">
-                            <i class="bk-icon icon-info-circle"></i>
-                            <div slot="content">
-                                <img :src="periodicCronImg" alt="i18n.errorPicture">
-                            </div>
-                        </bk-tooltip>
-                    </div> -->
                     <LoopRulueSelect
                         ref="loopRuleSelect"
                         :manual-input-value="periodicCron" />
@@ -62,7 +48,6 @@
     import { mapActions } from 'vuex'
     import { PERIODIC_REG } from '@/constants/index.js'
     import LoopRulueSelect from '@/components/common/Individualization/loopRuleSelect.vue'
-    // import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -70,7 +55,6 @@
     export default {
         name: 'ModifyPeriodicDialog',
         components: {
-            // BaseInput,
             TaskParamEdit,
             NoData,
             LoopRulueSelect
@@ -118,7 +102,6 @@
                         periodicConstants = formData
                         formValid = paramEditComp.validate()
                     }
-                    // const cronArray = this.periodicCron.split(' ')
                     const cronArray = loopRule.split(' ')
                     if (cronArray.length !== 5) {
                         this.$bkMessage({

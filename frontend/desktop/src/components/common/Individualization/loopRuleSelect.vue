@@ -12,49 +12,57 @@
 <template>
     <div class="loop-rule-select">
         <div class="loop-rule-title">
-            <bk-button :class="['rule-btn', { 'active-btn': currentWay === 'selectGeneration' }]"
+            <bk-button
+                :class="['rule-btn', { 'active-btn': currentWay === 'selectGeneration' }]"
                 @click="onSwitchWay('selectGeneration')">
                 {{ i18n.selectGeneration }}
             </bk-button>
-            <bk-button :class="['rule-btn', 'manual-input-btn', { 'active-btn': currentWay === 'manualInput' }]"
+            <bk-button
+                :class="['rule-btn', 'manual-input-btn', { 'active-btn': currentWay === 'manualInput' }]"
                 @click="onSwitchWay('manualInput')">
                 {{ i18n.manualInput }}
             </bk-button>
         </div>
         <div class="content-wrapper">
             <!-- 自动生成 -->
-            <bk-tab v-show="currentWay === 'selectGeneration'"
+            <bk-tab
+                v-show="currentWay === 'selectGeneration'"
                 :type="'fill'"
                 :size="'small'"
                 :active-name="tabName"
                 @tab-changed="tabChanged">
-                <bk-tabpanel v-for="(item, index) in autoRuleList"
+                <bk-tabpanel
+                    v-for="(item, index) in autoRuleList"
                     :key="index"
                     :name="item.key"
                     :title="item.title">
                     <div class="tabpanel-container">
                         <div class="radio-group">
                             <div class="radio-item loop-radio">
-                                <input :id="'loop' + item.key"
+                                <input
                                     v-model.number="item.radio"
                                     class="ui-radio"
                                     type="radio"
+                                    :id="'loop' + item.key"
                                     :value="0"
                                     :name="item.key" />
-                                <label class="ui-label"
+                                <label
+                                    class="ui-label"
                                     :for="'loop' + item.key"
                                     @click.stop="onAutoWaySwitch(index, '0')">
                                     {{ autoWay.loop.name }}
                                 </label>
                             </div>
                             <div class="radio-item appoint-radio">
-                                <input :id="'appoint' + item.key"
+                                <input
+                                    type="radio"
                                     v-model.number="item.radio"
                                     class="ui-radio"
-                                    type="radio"
+                                    :id="'appoint' + item.key"
                                     :value="1"
                                     :name="item.key" />
-                                <label class="ui-label"
+                                <label
+                                    class="ui-label"
                                     :for="'appoint' + item.key"
                                     @click.stop="onAutoWaySwitch(index, '1')">
                                     {{ autoWay.appoint.name }}
@@ -62,39 +70,48 @@
                             </div>
                         </div>
                         <!-- 循环 -->
-                        <div v-if="item.radio === 0"
+                        <div
+                            v-if="item.radio === 0"
                             class="loop-select-bd">
                             {{ item.key !== 'week' ? autoWay.loop.start : autoWay.loop.startWeek }}
-                            <BaseInput v-model.number="item.loop.start"
+                            <BaseInput
+                                v-model.number="item.loop.start"
                                 v-validate="item.loop.reg"
                                 :name="item.key + 'Rule'"
                                 class="loop-time"
                                 @blur="renderRule()" />
                             {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
-                            <BaseInput v-model.number="item.loop.inter"
+                            <BaseInput
+                                v-model.number="item.loop.inter"
                                 class="loop-time"
                                 @blur="renderRule()" />
                             {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
-                            <i v-if="item.key === 'week'"
+                            <i
+                                v-if="item.key === 'week'"
                                 v-bktooltips.right="i18n.monthTips"
                                 class="common-icon-tooltips month-tips"></i>
                             <!-- startInput 错误提示 -->
-                            <div v-show="errors.has(item.key + 'Rule')"
+                            <div
+                                v-show="errors.has(item.key + 'Rule')"
                                 class="local-error-tip error-msg">{{ errors.first(item.key + 'Rule') }}</div>
                         </div>
                         <!-- 指定 -->
-                        <div v-else
+                        <div
+                            v-else
                             class="appoint-select-bd">
-                            <div v-for="(box, i) in item.checkboxList"
+                            <div
+                                v-for="(box, i) in item.checkboxList"
                                 :key="i"
                                 class="ui-checkbox-group">
-                                <input :id="item.key + 'box' + i"
-                                    type="checkbox"
+                                <input
+                                    :id="item.key + 'box' + i"
                                     v-model="box.checked"
+                                    type="checkbox"
                                     class="ui-checkbox-input"
                                     @change="renderRule">
-                                <label class="ui-checkbox-label"
+                                <label
+                                    class="ui-checkbox-label"
                                     :for="item.key + 'box' + i">
                                     <span class="ui-checkbox-icon"></span>
                                     <span class="ui-checkbox-tex"> {{ box.value | addZero(item.key) }}</span>
@@ -103,7 +120,8 @@
                         </div>
                         <div class="expression">
                             {{ i18n.expression }} {{ expressionShowText }}
-                            <span class="clear-selected"
+                            <span
+                                class="clear-selected"
                                 @click.stop="clearRule">
                                 {{ i18n.clearSelected }}
                             </span>
@@ -112,9 +130,11 @@
                 </bk-tabpanel>
             </bk-tab>
             <!-- 手动输入 -->
-            <div v-show="currentWay === 'manualInput'"
+            <div
+                v-show="currentWay === 'manualInput'"
                 class="hand-input">
-                <BaseInput name="periodicCron"
+                <BaseInput
+                    name="periodicCron"
                     class="step-form-content-size"
                     v-validate="periodicRule"
                     v-model="periodicCron"
@@ -122,7 +142,8 @@
             </div>
         </div>
         <!-- 说明 -->
-        <bk-tooltip placement="bottom-end"
+        <bk-tooltip
+            placement="bottom-end"
             class="periodic-img-tooltip">
             <i class="common-icon-tooltips"></i>
             <div slot="content">
@@ -130,7 +151,8 @@
                     :src="periodicCronImg">
             </div>
         </bk-tooltip>
-        <span v-show="errors.has('periodicCron') && currentWay === 'manualInput'"
+        <span
+            v-show="errors.has('periodicCron') && currentWay === 'manualInput'"
             class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
     </div>
 </template>
