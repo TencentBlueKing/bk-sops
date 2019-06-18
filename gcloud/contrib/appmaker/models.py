@@ -40,7 +40,6 @@ from gcloud.core.utils import (
     time_now_str,
     timestamp_to_datetime
 )
-from gcloud.contrib.appmaker.permissions import mini_app_resource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 
@@ -76,6 +75,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             return False, _(u"保存失败，引用的流程模板不存在！")
 
         # create appmaker
+        from gcloud.contrib.appmaker.permissions import mini_app_resource
         if not app_id:
             verify_or_raise_auth_failed(principal_type='user',
                                         principal_id=app_params['username'],

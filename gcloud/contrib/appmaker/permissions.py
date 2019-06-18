@@ -19,7 +19,6 @@ from auth_backend.resources.django import DjangoModelResource
 from auth_backend.resources.inspect import FixedCreatorFieldInspect
 
 from gcloud.contrib.appmaker.models import AppMaker
-
 from gcloud.core.permissions import project_resource
 
 mini_app_resource = DjangoModelResource(
