@@ -11,4 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .utils import get_backend_from_config  # noqa
+from django.conf import settings
+from django.utils.module_loading import import_string
+
+
+def get_backend_from_config():
+    backend_path = getattr(settings, 'AUTH_BACKEND_CLS', None)
+    if not backend_path:
+        return None
+
+    try:
+        backend_cls = import_string(backend_path)
+    except ImportError:
+        return None
+
+    return backend_cls()

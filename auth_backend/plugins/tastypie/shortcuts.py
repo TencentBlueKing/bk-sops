@@ -11,4 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .utils import get_backend_from_config  # noqa
+import logging
+
+from tastypie.exceptions import ImmediateHttpResponse
+
+from ..http import HttpResponseAuthFailed
+from ..shortcuts import verify_or_return_insufficient_perms
+
+logger = logging.getLogger('root')
+
+
+def verify_or_raise_immediate_response(principal_type, principal_id, perms_tuples):
+    permissions = verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples)
+
+    if permissions:
+        raise ImmediateHttpResponse(HttpResponseAuthFailed(permissions))
