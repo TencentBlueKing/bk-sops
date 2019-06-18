@@ -55,7 +55,7 @@
                                 :placeholder="i18n.choice"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onTemplateBizCcId">
+                                @item-selected="onSelectProject">
                             </bk-selector>
                         </div>
                         <div class="content-business-picker" @click="onTemplatePickerClick">
@@ -94,7 +94,7 @@
                                 <span class="content-detail-label">{{i18n.choiceBusiness}}</span>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
@@ -149,12 +149,12 @@
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onTemplateByCiteData"
-                                    @clear="onClearBizCcId"
+                                    @clear="onClearProject"
                                     @item-selected="onSelectedProject">
                                 </bk-selector>
                             </div>
@@ -356,7 +356,7 @@
                         sortable: 'custom'
                     }
                 ],
-                selectedCcId: -1,
+                selectedProject: -1,
                 businessSelected: 'all',
                 categorySelected: 'all',
                 selectedCategory: -1,
@@ -464,7 +464,7 @@
                     errorHandler(e, this)
                 }
             },
-            onTemplateBizCcId (category, name) {
+            onSelectProject (category, name) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -636,8 +636,8 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onClearBizCcId () {
-                this.selectedCcId = -1
+            onClearProject () {
+                this.selectedProject = -1
                 this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
@@ -662,7 +662,7 @@
                     this.businessStartTime = dateArray[0]
                     this.businessEndTime = dateArray[1]
                 }
-                this.onTemplateBizCcId(null)
+                this.onSelectProject(null)
             },
             resetPageIndex () {
                 switch (this.tabName) {

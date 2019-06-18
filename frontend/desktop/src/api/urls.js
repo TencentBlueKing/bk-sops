@@ -15,7 +15,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         bizPerson: SITE_URL + 'core/api/get_roles_and_personnel/' + PROJECT_ID + '/',
         // 更改默认项目
         projectDefaultChange: SITE_URL + 'core/api/change_default_project/',
-        businessBaseInfo: SITE_URL + 'core/api/get_basic_info/',
+        projectBaseInfo: SITE_URL + 'core/api/get_basic_info/',
         homelist: SITE_URL + 'taskflow/home/' + PROJECT_ID + '/',
         business: SITE_URL + 'api/v3/business/',
         component: SITE_URL + 'api/v3/component/',
