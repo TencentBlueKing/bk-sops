@@ -36,7 +36,7 @@ from gcloud.core.models import Business, Project
 from gcloud.core.utils import prepare_user_business
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.webservice3.serializers import AppSerializer
-from permissions.resources import project_resource
+from gcloud.core.permissions import project_resource
 
 logger = logging.getLogger('root')
 

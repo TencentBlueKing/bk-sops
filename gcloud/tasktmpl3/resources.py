@@ -40,7 +40,7 @@ from gcloud.webservice3.resources import (
 from gcloud.webservice3.serializers import AppSerializer
 from gcloud.webservice3.paginator import TemplateFilterPaginator
 from gcloud.core.utils import pipeline_node_name_handle
-from permissions.resources import task_template_resource, project_resource
+from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
 

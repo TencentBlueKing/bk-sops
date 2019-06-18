@@ -20,3 +20,4 @@ class PeriodicTaskConfig(AppConfig):
 
     def ready(self):
         from gcloud.periodictask.signals.handlers import *  # noqa
+        from permissions import periodic_task_resource  # noqa
