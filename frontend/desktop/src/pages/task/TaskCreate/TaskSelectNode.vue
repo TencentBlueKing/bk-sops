@@ -120,7 +120,7 @@
             BaseInput,
             NodePreview
         },
-        props: ['cc_id', 'template_id', 'common', 'excludeNode'],
+        props: ['project_id', 'template_id', 'common', 'excludeNode'],
         data () {
             return {
                 i18n: {
@@ -242,7 +242,7 @@
                     const templateData = await this.loadTemplateData(data)
                     this.version = templateData.version
                     this.taskName = templateData.name
-                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id })
+                    const schemeData = await this.loadTaskScheme({ 'project_id': this.project_id, 'template_id': this.template_id })
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
                         const schemeId = Number(appmakerData.template_scheme_id)
@@ -322,14 +322,14 @@
                     this.selectedNodes = selectedNodes
                     this.schemeName = this.schemeName.trim()
                     const scheme = {
-                        cc_id: this.cc_id,
+                        project_id: this.project_id,
                         template_id: this.template_id,
                         name: this.schemeName,
                         data: JSON.stringify(selectedNodes)
                     }
                     try {
                         const newScheme = await this.createTaskScheme(scheme)
-                        const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id })
+                        const schemeData = await this.loadTaskScheme({ 'project_id': this.project_id, 'template_id': this.template_id })
                         this.setTaskScheme(schemeData)
                         this.selectedScheme = newScheme.id
                         this.lastSelectSchema = newScheme.id
@@ -407,7 +407,7 @@
                 this.isDelete = true
                 try {
                     await this.deleteTaskScheme(id)
-                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id })
+                    const schemeData = await this.loadTaskScheme({ 'project_id': this.project_id, 'template_id': this.template_id })
                     this.setTaskScheme(schemeData)
                     this.$bkMessage({
                         message: gettext('方案删除成功'),
@@ -463,15 +463,15 @@
                     this.loading = false
                     if (this.viewMode === 'appmaker') {
                         if (this.common) {
-                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/paramfill/`, query: { 'template_id': this.template_id, common: this.common } })
+                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`, query: { 'template_id': this.template_id, common: this.common } })
                         } else {
-                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/paramfill/`, query: { 'template_id': this.template_id } })
+                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`, query: { 'template_id': this.template_id } })
                         }
                     } else {
                         if (this.common) {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
+                            this.$router.push({ path: `/template/newtask/${this.project_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
                         } else {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                            this.$router.push({ path: `/template/newtask/${this.project_id}/paramfill/`, query: { template_id: this.template_id } })
                         }
                     }
                 } catch (e) {
@@ -515,7 +515,7 @@
                     templateId: templateId,
                     excludeTaskNodesId: JSON.stringify(excludeNode),
                     common: this.common,
-                    cc_id: this.cc_id,
+                    project_id: this.project_id,
                     template_source: templateSource,
                     version: this.version
                 }

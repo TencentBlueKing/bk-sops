@@ -341,7 +341,7 @@ class ProjectResource(GCloudModelResource):
     desc = fields.CharField(attribute='desc')
     create_at = fields.DateTimeField(attribute='create_at', readonly=True)
     from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
-    cmdb_biz_id = fields.IntegerField(attribute='cmdb_biz_id', readonly=True)
+    bk_biz_id = fields.IntegerField(attribute='bk_biz_id', readonly=True)
     is_disable = fields.BooleanField(attribute='is_disable')
 
     ALLOW_UPDATE_FIELD = {'desc', 'is_disable'}
@@ -351,14 +351,11 @@ class ProjectResource(GCloudModelResource):
         resource_name = 'project'
         authorization = Authorization()
         always_return_data = True
+        serializer = AppSerializer()
         filtering = {
             "name": ALL,
             "is_disable": ALL,
         }
-
-    def dehydrate(self, bundle):
-        bundle.data['create_at'] = bundle.data['create_at'].strftime('%Y-%m-%d %H:%M:%S')
-        return bundle
 
     def obj_create(self, bundle, **kwargs):
         bundle.data['creator'] = bundle.request.user.username

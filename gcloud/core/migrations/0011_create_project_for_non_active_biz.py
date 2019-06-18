@@ -60,7 +60,7 @@ def forward_func(apps, schema_editor):
             creator=creator,
             desc='',
             from_cmdb=True,
-            cmdb_biz_id=business.cc_id,
+            bk_biz_id=business.cc_id,
             is_disable=True
         ))
 

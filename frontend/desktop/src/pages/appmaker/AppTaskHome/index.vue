@@ -38,7 +38,7 @@
                             <td class="appmaker-id">{{item.id}}</td>
                             <td class="appmaker-name">
                                 <router-link
-                                    :to="`/appmaker/${item.create_info}/execute/${item.business.cc_id}/?instance_id=${item.id}`">
+                                    :to="`/appmaker/${item.create_info}/execute/${item.id}/?instance_id=${item.id}`">
                                     {{item.name}}
                                 </router-link>
                             </td>
@@ -89,7 +89,7 @@
             BaseTitle,
             NoData
         },
-        props: ['cc_id', 'app_id'],
+        props: ['project_id', 'app_id'],
         data () {
             return {
                 i18n: {
@@ -180,7 +180,7 @@
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)

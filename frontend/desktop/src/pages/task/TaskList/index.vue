@@ -112,7 +112,7 @@
                             <td class="task-name">
                                 <router-link
                                     :title="item.name"
-                                    :to="`/taskflow/execute/${cc_id}/?instance_id=${item.id}`">
+                                    :to="`/taskflow/execute/${project_id}/?instance_id=${item.id}`">
                                     {{item.name}}
                                 </router-link>
                             </td>
@@ -196,7 +196,20 @@
             NoData,
             TaskCloneDialog
         },
-        props: ['cc_id', 'common', 'create_method'],
+        props: {
+            project_id: {
+                type: String,
+                default: ''
+            },
+            common: {
+                type: String,
+                default: ''
+            },
+            create_method: {
+                type: String,
+                default: ''
+            }
+        },
         data () {
             return {
                 listLoading: true,
@@ -273,13 +286,15 @@
                 isFinished: undefined,
                 statusSync: 0,
                 taskCreateMethodList: [],
-                createMethod: undefined
+                createMethod: ''
             }
         },
         computed: {
             ...mapState({
-                taskList: state => state.taskList.taskListData,
-                businessTimezone: state => state.businessTimezone
+                taskList: state => state.taskList.taskListData
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             })
         },
         created () {
@@ -288,7 +303,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapActions('task/', [
                 'getInstanceStatus',
@@ -300,7 +315,7 @@
                 'cloneTask'
             ]),
             ...mapMutations('template/', [
-                'setBusinessBaseInfo'
+                'setProjectBaseInfo'
             ]),
             ...mapMutations('taskList/', [
                 'setTaskListData'
@@ -318,21 +333,28 @@
                         offset: (this.currentPage - 1) * this.countPerPage,
                         category: this.activeTaskCategory,
                         template_id: this.templateId,
-                        common: this.common,
                         pipeline_instance__creator__contains: this.creator,
                         pipeline_instance__executor__contains: this.executor,
                         pipeline_instance__name__contains: this.flowName,
                         pipeline_instance__is_started: this.isStarted,
-                        pipeline_instance__is_finished: this.isFinished,
-                        create_method: this.createMethod || this.create_method
+                        pipeline_instance__is_finished: this.isFinished
                     }
+
+                    if (this.common !== '') {
+                        data.common = this.common
+                    }
+
+                    if (this.createMethod !== '') {
+                        data.create_method = this.createMethod
+                    }
+
                     if (this.executeEndTime) {
                         if (this.common) {
                             data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
@@ -368,7 +390,7 @@
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)
@@ -410,9 +432,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
+                    const bizBasicInfo = await this.loadProjectBaseInfo()
                     this.taskCategory = bizBasicInfo.task_categories
-                    this.setBusinessBaseInfo(bizBasicInfo)
+                    this.setProjectBaseInfo(bizBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -474,7 +496,7 @@
                 }
                 try {
                     const data = await this.cloneTask(config)
-                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: data.data.new_instance_id } })
+                    this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: data.data.new_instance_id } })
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -497,7 +519,7 @@
                 this.isFinished = id === 'finished'
             },
             onClearCreateMethod () {
-                this.createMethod = undefined
+                this.createMethod = ''
             },
             onClearStatus () {
                 this.isStarted = undefined
@@ -511,7 +533,7 @@
                 this.$refs.bkRanger.clear()
                 this.isStarted = undefined
                 this.isFinished = undefined
-                this.createMethod = undefined
+                this.createMethod = ''
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined

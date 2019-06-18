@@ -30,7 +30,7 @@
         name: 'CopyrightFooter',
         data () {
             return {
-                year: moment.tz(this.businessTimezone).year(),
+                year: moment.tz(this.timezone).year(),
                 i18n: {
                     qq: gettext('QQ咨询'),
                     bk: gettext('蓝鲸官网'),
@@ -40,8 +40,8 @@
             }
         },
         computed: {
-            ...mapState({
-                businessTimezone: state => state.businessTimezone
+            ...mapState('project', {
+                timezone: state => state.timezone
             })
         }
     }

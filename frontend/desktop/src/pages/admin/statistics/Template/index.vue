@@ -18,11 +18,7 @@
                     <div class="content-date">
                         <div class="content-date-business">
                             <bk-selector
-                                :list="businessList"
-                                :display-key="'cc_name'"
-                                :setting-name="'cc_id'"
-                                :search-key="'cc_name'"
-                                :setting-key="'cc_id'"
+                                :list="allProjectList"
                                 :selected.sync="businessSelected"
                                 :searchable="true"
                                 :allow-clear="true"
@@ -59,7 +55,7 @@
                                 :placeholder="i18n.choice"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onTemplateBizCcId">
+                                @item-selected="onSelectProject">
                             </bk-selector>
                         </div>
                         <div class="content-business-picker" @click="onTemplatePickerClick">
@@ -97,16 +93,12 @@
                             <div class="content-wrap-select">
                                 <span class="content-detail-label">{{i18n.choiceBusiness}}</span>
                                 <bk-selector
-                                    :list="allBusinessList"
-                                    :display-key="'cc_name'"
-                                    :setting-name="'cc_id'"
-                                    :search-key="'cc_name'"
-                                    :setting-key="'cc_id'"
-                                    :selected.sync="selectedCcId"
+                                    :list="projectList"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
-                                    @item-selected="onSelectedBizCcId">
+                                    @item-selected="onSelectedProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -156,18 +148,14 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
-                                    :list="allBusinessList"
-                                    :display-key="'cc_name'"
-                                    :setting-name="'cc_id'"
-                                    :search-key="'cc_name'"
-                                    :setting-key="'cc_id'"
-                                    :selected.sync="selectedCcId"
+                                    :list="projectList"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onTemplateByCiteData"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectedProject">
                                 </bk-selector>
                             </div>
                         </div>
@@ -200,18 +188,18 @@
 
     const i18n = {
         flowCategory: gettext('流程分类'),
-        flowBusiness: gettext('所属业务'),
+        flowBusiness: gettext('所属项目'),
         choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceBusiness: gettext('选择项目'),
         timeLimit: gettext('时间范围'),
         node: gettext('流程详情'),
-        prop: gettext('所属业务'),
+        prop: gettext('所属项目'),
         cite: gettext('流程引用'),
         choice: gettext('请选择'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         templateName: gettext('流程名称'),
-        businessName: gettext('业务'),
+        businessName: gettext('项目'),
         category: gettext('分类'),
         atomTotal: gettext('标准插件数'),
         subprocessTotal: gettext('子流程数'),
@@ -235,7 +223,7 @@
             return {
                 i18n: i18n,
                 business: '',
-                bizCcId: undefined,
+                projectId: undefined,
                 isDropdownShow: false,
                 isCateLoading: true,
                 isBussLoading: true,
@@ -368,7 +356,7 @@
                         sortable: 'custom'
                     }
                 ],
-                selectedCcId: -1,
+                selectedProject: -1,
                 businessSelected: 'all',
                 categorySelected: 'all',
                 selectedCategory: -1,
@@ -385,16 +373,18 @@
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
                 categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
+            ...mapState('project', {
+                projectList: state => state.projectList
+            }),
+            allProjectList () {
+                if (this.projectList.length === 0) {
+                    this.loadProjectList({ limit: 0 })
                 }
-                const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: gettext('全部业务') })
+                const list = tools.deepClone(this.projectList)
+                list.unshift({ id: undefined, name: gettext('全部项目') })
                 return list
             },
             categoryList () {
@@ -411,11 +401,13 @@
         },
         methods: {
             ...mapActions([
-                'getBizList',
                 'getCategorys'
             ]),
             ...mapActions('template/', [
                 'queryTemplateData'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             onTemplateCategory (business, name) {
                 if (business) {
@@ -436,7 +428,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        project_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
                     })
                 }
                 this.templateData(data)
@@ -459,7 +451,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         order_by: this.nodeOrderBy
                     }),
@@ -472,7 +464,7 @@
                     errorHandler(e, this)
                 }
             },
-            onTemplateBizCcId (category, name) {
+            onSelectProject (category, name) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -487,7 +479,7 @@
                 }
                 const time = this.getUTCTime([this.businessStartTime, this.businessEndTime])
                 const data = {
-                    group_by: 'biz_cc_id',
+                    group_by: 'project_id',
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
@@ -553,7 +545,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         order_by: this.citeOrderBy
                     }),
@@ -636,17 +628,17 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectedProject (id) {
+                if (this.projectId === id) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = id
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onClearBizCcId () {
-                this.selectedCcId = -1
-                this.bizCcId = undefined
+            onClearProject () {
+                this.selectedProject = -1
+                this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
@@ -670,7 +662,7 @@
                     this.businessStartTime = dateArray[0]
                     this.businessEndTime = dateArray[1]
                 }
-                this.onTemplateBizCcId(null)
+                this.onSelectProject(null)
             },
             resetPageIndex () {
                 switch (this.tabName) {
