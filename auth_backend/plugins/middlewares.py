@@ -11,24 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
-class AuthBaseException(Exception):
-    pass
-
-
-class AuthKeyError(AuthBaseException):
-    pass
+from ..exceptions import AuthFailedException
+from .http import HttpResponseAuthFailed
 
 
-class AuthInvalidOperationError(AuthBaseException):
-    pass
+class AuthFailedExceptionMiddleware(object):
+    def __init__(self, get_response):
+        self.get_response = get_response
 
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
+    def process_exception(self, request, exception):
+        if isinstance(exception, AuthFailedException):
+            return HttpResponseAuthFailed(permissions=exception.permissions)

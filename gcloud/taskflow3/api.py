@@ -21,6 +21,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from blueapps.account.decorators import login_exempt
+
+from auth_backend.plugins.decorators import verify_perms
+
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions, states
 from pipeline.engine.models import PipelineModel
@@ -28,6 +31,7 @@ from pipeline.engine.models import PipelineModel
 from gcloud.conf import settings
 from gcloud.taskflow3.constants import TASK_CREATE_METHOD, PROJECT
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 
@@ -100,6 +104,9 @@ def get_job_instance_log(request, biz_cc_id):
 
 
 @require_POST
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[{'id': taskflow_resource.actions.operate.id, 'parent_resource': False}])
 def task_action(request, action, project_id):
     task_id = request.POST.get('instance_id')
     username = request.user.username
@@ -109,6 +116,9 @@ def task_action(request, action, project_id):
 
 
 @require_POST
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[{'id': taskflow_resource.actions.operate.id, 'parent_resource': False}])
 def nodes_action(request, action, project_id):
     task_id = request.POST.get('instance_id')
     node_id = request.POST.get('node_id')
@@ -124,6 +134,9 @@ def nodes_action(request, action, project_id):
 
 
 @require_POST
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[{'id': taskflow_resource.actions.operate.id, 'parent_resource': False}])
 def spec_nodes_timer_reset(request, project_id):
     task_id = request.POST.get('instance_id')
     node_id = request.POST.get('node_id')
@@ -135,6 +148,9 @@ def spec_nodes_timer_reset(request, project_id):
 
 
 @require_POST
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[{'id': taskflow_resource.actions.clone.id, 'parent_resource': False}])
 def task_clone(request, project_id):
     task_id = request.POST.get('instance_id')
     username = request.user.username
@@ -184,6 +200,9 @@ def task_modify_inputs(request, project_id):
 
 
 @require_POST
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[{'id': taskflow_resource.actions.claim.id, 'parent_resource': False}])
 def task_func_claim(request, project_id):
     task_id = request.POST.get('instance_id')
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)

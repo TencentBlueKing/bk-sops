@@ -18,15 +18,20 @@ import traceback
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
-from tastypie.authorization import Authorization, ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization
 from djcelery.models import PeriodicTask as CeleryTask
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
 
 from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.periodictask.models import PeriodicTask
+from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.core.models import Project
 from gcloud.core.utils import name_handler
 from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
@@ -87,6 +92,11 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
         limit = 0
 
 
+class CustomCreateDetailAuthorization(BkSaaSLooseAuthorization):
+    def create_detail(self, object_list, bundle):
+        return True
+
+
 class PeriodicTaskResource(GCloudModelResource):
     project = fields.ForeignKey(
         ProjectResource,
@@ -145,7 +155,9 @@ class PeriodicTaskResource(GCloudModelResource):
     class Meta:
         queryset = PeriodicTask.objects.all()
         resource_name = 'periodic_task'
-        authorization = Authorization()
+        authorization = CustomCreateDetailAuthorization(auth_resource=periodic_task_resource,
+                                                        read_action_id='view',
+                                                        update_action_id='edit')
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
@@ -184,6 +196,12 @@ class PeriodicTaskResource(GCloudModelResource):
             kwargs['template_id'] = template.id
         except TaskTemplate.DoesNotExist:
             raise BadRequest('template[id=%s] does not exist' % template_id)
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=creator,
+                                           resource=task_template_resource,
+                                           action_ids=[task_template_resource.actions.create_periodic_task.id],
+                                           instance=template)
 
         try:
             replace_template_id(TaskTemplate, pipeline_tree)

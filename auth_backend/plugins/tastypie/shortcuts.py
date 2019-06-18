@@ -21,8 +21,14 @@ from ..shortcuts import verify_or_return_insufficient_perms
 logger = logging.getLogger('root')
 
 
-def verify_or_raise_immediate_response(principal_type, principal_id, perms_tuples):
+def batch_verify_or_raise_immediate_response(principal_type, principal_id, perms_tuples):
     permissions = verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples)
 
     if permissions:
         raise ImmediateHttpResponse(HttpResponseAuthFailed(permissions))
+
+
+def verify_or_raise_immediate_response(principal_type, principal_id, resource, action_ids, instance):
+    batch_verify_or_raise_immediate_response(principal_type,
+                                             principal_id,
+                                             [(resource, action_ids, instance)])
