@@ -24,7 +24,6 @@ from tastypie.resources import ModelResource
 
 from auth_backend.plugins.delegation import RelateAuthDelegation
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
-from auth_backend.examples import task_template_resource, project_resource
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
@@ -41,6 +40,7 @@ from gcloud.webservice3.resources import (
 from gcloud.webservice3.serializers import AppSerializer
 from gcloud.webservice3.paginator import TemplateFilterPaginator
 from gcloud.core.utils import pipeline_node_name_handle
+from permissions.resources import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
 
