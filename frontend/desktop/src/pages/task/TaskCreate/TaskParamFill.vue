@@ -20,63 +20,61 @@
                     <label class="required">{{ i18n.taskName }}</label>
                     <div class="common-form-content">
                         <BaseInput
-                            class="step-form-content-size"
-                            name="taskName"
                             v-model="taskName"
-                            v-validate="taskNameRule">
+                            v-validate="taskNameRule"
+                            class="step-form-content-size"
+                            name="taskName">
                         </BaseInput>
                         <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
-                <div class="common-form-item" v-if="isStartNowShow">
+                <div
+                    v-if="isStartNowShow"
+                    class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                @click="onChangeStartNow(true)"
-                                :type="!isStartNow ? 'default' : 'primary'">
+                                :type="!isStartNow ? 'default' : 'primary'"
+                                @click="onChangeStartNow(true)">
                                 {{ i18n.startNow }}
                             </bk-button>
                             <bk-button
-                                @click="onChangeStartNow(false)"
-                                :type="!isStartNow ? 'primary' : 'default'">
+                                :type="!isStartNow ? 'primary' : 'default'"
+                                @click="onChangeStartNow(false)">
                                 {{ i18n.periodicStart }}
                             </bk-button>
                         </div>
                     </div>
                 </div>
-                <div class="common-form-item" v-if="isTaskTypeShow">
+                <div
+                    v-if="isTaskTypeShow"
+                    class="common-form-item">
                     <label class="required">{{ i18n.flowType }}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                @click="onSwitchTaskType(false)"
-                                :type="isSelectFunctionalType ? 'default' : 'primary'">
+                                :type="isSelectFunctionalType ? 'default' : 'primary'"
+                                @click="onSwitchTaskType(false)">
                                 {{ i18n.defaultFlowType }}
                             </bk-button>
                             <bk-button
-                                @click="onSwitchTaskType(true)"
-                                :type="isSelectFunctionalType ? 'primary' : 'default'">
+                                :type="isSelectFunctionalType ? 'primary' : 'default'"
+                                @click="onSwitchTaskType(true)">
                                 {{ i18n.functionFlowType }}
                             </bk-button>
                         </div>
                     </div>
                 </div>
-                <div class="common-form-item" v-if="!isStartNow">
+                <div
+                    v-if="!isStartNow"
+                    class="common-form-item">
                     <label class="required">{{i18n.periodicCron}}</label>
                     <div class="common-form-content step-form-item-cron">
-                        <BaseInput
-                            class="step-form-content-size"
-                            name="periodicCron"
-                            v-model="periodicCron"
-                            v-validate="periodicRule" />
-                        <bk-tooltip placement="left-end" class="periodic-img-tooltip">
-                            <i class="common-icon-tooltips"></i>
-                            <div slot="content">
-                                <img :src="periodicCronImg" class="">
-                            </div>
-                        </bk-tooltip>
-                        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
+                        <LoopRuleSelect
+                            ref="loopRuleSelect"
+                            :manual-input-value="periodicCron">
+                        </LoopRuleSelect>
                     </div>
                 </div>
             </div>
@@ -123,12 +121,14 @@
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
+    import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     const cron = require('@/plugins/node-cron-valid/node-cron-vaild.js')
     export default {
         name: 'TaskParamFill',
         components: {
             BaseInput,
-            ParameterInfo
+            ParameterInfo,
+            LoopRuleSelect
         },
         props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance'],
         data () {
@@ -272,7 +272,9 @@
                 }
             },
             onCreateTask () {
+                const loopRule = this.$refs.loopRuleSelect.validationExpression()
                 if (this.isSubmit) return
+                if (typeof loopRule !== 'string') return
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then(async (result) => {
                     let formValid = true
@@ -330,7 +332,7 @@
                         }
                     } else {
                         // 创建周期任务
-                        const cronArray = this.periodicCron.split(' ')
+                        const cronArray = loopRule.split(' ')
                         const cron = JSON.stringify({
                             'minute': cronArray[0],
                             'hour': cronArray[1],
@@ -381,7 +383,7 @@
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
+@import "@/scss/config.scss";
 .param-fill-wrapper {
     padding-top: 50px;
     background: #fff;
@@ -393,9 +395,11 @@
         top: 122px;
     }
 }
-.task-info, .param-info {
+.task-info,
+.param-info {
     margin: 0 40px 50px 40px;
-    .task-info-title, .param-info-title {
+    .task-info-title,
+    .param-info-title {
         font-size: 14px;
         line-height: 32px;
         font-weight: 600;
@@ -410,7 +414,7 @@
         }
     }
 }
-.param-info{
+.param-info {
     margin: 0 20px 50px 20px;
 }
 .param-info-title {
@@ -433,18 +437,19 @@
         color: #3a84ff;
         background-color: #c7dcff;
         border-radius: 2px;
-        border:1px solid #3a84ff;
+        border: 1px solid #3a84ff;
     }
     .bk-button:last-child {
         margin-left: -1px;
     }
 }
 .periodic-img-tooltip {
-    position: relative;
-    bottom: -6px;
-    left: 5px;
+    position: absolute;
+    right: 20px;
+    top: 0;
     color: #c4c6cc;
     font-size: 14px;
+    z-index: 4;
     &:hover {
         color: #f4aa1a;
     }
@@ -452,7 +457,8 @@
         display: none;
     }
 }
-.startnow-form-content, .periodic-form-content {
+.startnow-form-content,
+.periodic-form-content {
     margin-top: 10px;
 }
 .radio-input {
@@ -463,7 +469,7 @@
 }
 /deep/ .bk-tooltip-inner {
     max-width: 600px;
-    border:1px solid #c4c6cc;
+    border: 1px solid #c4c6cc;
     background-color: #000;
 }
 .step-form-content {
@@ -480,6 +486,7 @@
     }
 }
 .step-form-item-cron {
+    position: relative;
     input {
         vertical-align: top;
     }
