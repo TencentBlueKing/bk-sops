@@ -203,7 +203,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
             create_method = bundle.data['create_method']
 
             if create_method == 'app_maker':
-                app_maker_id = bundle.data['create_method']
+                app_maker_id = bundle.data['create_info']
                 try:
                     app_maker = AppMaker.objects.get(id=app_maker_id)
                 except AppMaker.DoesNotExist:

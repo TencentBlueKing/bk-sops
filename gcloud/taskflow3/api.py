@@ -170,6 +170,9 @@ def task_clone(request, project_id):
 
 
 @require_POST
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[{'id': taskflow_resource.actions.edit.id, 'parent_resource': False}])
 def task_modify_inputs(request, project_id):
     task_id = request.POST.get('instance_id')
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)

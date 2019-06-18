@@ -103,6 +103,7 @@ MIDDLEWARE += (
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
+    'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
 )
 
 # 所有环境的日志级别可以在这里配置
