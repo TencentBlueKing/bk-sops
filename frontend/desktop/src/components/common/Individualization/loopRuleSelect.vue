@@ -486,181 +486,181 @@ $colorGrey: #63656e;
 $bgBlue: #3a84ff;
 
 .ui-checkbox-group {
-  margin-top: 20px;
-  margin-right: 12px;
-  display: inline-block;
-  .ui-checkbox-input {
-    display: none;
-  }
-  .ui-checkbox-icon {
-    box-sizing: border-box;
+    margin-top: 20px;
+    margin-right: 18px;
     display: inline-block;
-    position: relative;
-    width: 16px;
-    height: 16px;
-    border: 1px solid #a9adb5;
-    text-align: center;
-    padding-left: 12px;
-    line-height: 1;
-  }
-  .ui-checkbox-label {
-    user-select: none;
-    cursor: pointer;
-    color: $colorGrey;
-    .ui-checkbox-tex,
-    .ui-checkbox-icon {
-      vertical-align: middle;
+    .ui-checkbox-input {
+        display: none;
     }
-  }
-  .ui-checkbox-input:checked + .ui-checkbox-label > .ui-checkbox-icon::after {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 2px;
-    height: 4px;
-    width: 8px;
-    border-left: 2px solid;
-    border-bottom: 2px solid;
-    border-color: #ffffff;
-    -webkit-transform: rotate(-45deg);
-    transform: rotate(-45deg);
-  }
-  .ui-checkbox-input:checked + .ui-checkbox-label > .ui-checkbox-icon {
-    background: $bgBlue;
-  }
+    .ui-checkbox-icon {
+        box-sizing: border-box;
+        display: inline-block;
+        position: relative;
+        width: 16px;
+        height: 16px;
+        border: 1px solid #979BA5;
+        text-align: center;
+        padding-left: 12px;
+        line-height: 1;
+    }
+    .ui-checkbox-label {
+        user-select: none;
+        cursor: pointer;
+        color: $colorGrey;
+        .ui-checkbox-tex,
+        .ui-checkbox-icon {
+            vertical-align: middle;
+        }
+    }
+    .ui-checkbox-input:checked + .ui-checkbox-label > .ui-checkbox-icon::after {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: 2px;
+        height: 4px;
+        width: 8px;
+        border-left: 2px solid;
+        border-bottom: 2px solid;
+        border-color: #ffffff;
+        -webkit-transform: rotate(-45deg);
+        transform: rotate(-45deg);
+    }
+    .ui-checkbox-input:checked + .ui-checkbox-label > .ui-checkbox-icon {
+        background: $bgBlue;
+        border-color: $bgBlue;
+    }
 }
 .local-error-tip {
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 1;
-  color: #ff5757;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1;
+    color: #ff5757;
 }
 .loop-rule-select {
-  position: relative;
-  width: 500px;
-  // 选择 title
-  .loop-rule-title {
-    white-space: nowrap;
-    .rule-btn {
-      width: 50%;
-      border: 1px solid $commonBorderColor;
-    }
-    .manual-input-btn {
-      margin-left: -5px;
-    }
-    .active-btn {
-      background-color: $blueBtnBg;
-      border-color: $blueDefault;
-      color: $blueDefault;
-    }
-  }
-  // content
-  .content-wrapper {
-    margin-top: 18px;
-    background-color: $whiteDefault;
-    /deep/ .tab2-nav-item {
-      width: 20%;
-      border-bottom: 1px solid $commonBorderColor;
-      &:not(:first-child) {
-        border-left: 1px solid $commonBorderColor !important;
-      }
-    }
-    /deep/.bk-tab2-nav .active {
-      border-bottom: none;
-      border-right: none !important;
-    }
-    /deep/ .bk-tab2 {
-      border: 1px solid $commonBorderColor;
-    }
-    .tabpanel-container {
-      padding: 20px;
-      .radio-item {
-        display: inline-block;
-        &:not(:first-child) {
-          margin-left: 48px;
-        }
-        .ui-label {
-          font-size: 14px;
-          color: $colorGrey;
-          &::before {
-            content: "\a0"; /*不换行空格*/
-            display: inline-block;
-            vertical-align: middle;
-            width: 1em;
-            height: 1em;
-            margin-right: 0.4em;
-            border-radius: 50%;
+    position: relative;
+    width: 500px;
+    .loop-rule-title {
+        white-space: nowrap;
+        .rule-btn {
+            width: 50%;
             border: 1px solid $commonBorderColor;
-            text-indent: 0.15em;
-            line-height: 1;
-            box-sizing: border-box;
-            font-size: 16px;
-          }
         }
-        .ui-radio {
-          position: absolute;
-          clip: rect(0, 0, 0, 0);
+        .manual-input-btn {
+            margin-left: -5px;
         }
-        .ui-radio:checked + .ui-label::before {
-          background-color: $blueDefault;
-          background-clip: content-box;
-          box-sizing: border-box;
-          padding: 0.2em;
+        .active-btn {
+            background-color: $blueBtnBg;
+            border-color: $blueDefault;
+            color: $blueDefault;
         }
-      }
-      .loop-select-bd {
+    }
+    // content
+    .content-wrapper {
         margin-top: 18px;
-        font-size: 14px;
-        color: $colorBalck;
-        .loop-time {
-          margin: 0 10px;
-          width: 46px;
+        background-color: $whiteDefault;
+        /deep/ .tab2-nav-item {
+            width: 20%;
+            border-bottom: 1px solid $commonBorderColor;
+            &:not(:first-child) {
+                border-left: 1px solid $commonBorderColor !important;
+            }
         }
-        .month-tips {
-          color: #c4c6cc;
-          font-size: 14px;
-          &:hover {
+        /deep/.bk-tab2-nav .active {
+            border-bottom: none;
+            border-right: none !important;
+        }
+        /deep/ .bk-tab2 {
+            border: 1px solid $commonBorderColor;
+        }
+        .tabpanel-container {
+            padding: 20px;
+            .radio-item {
+                display: inline-block;
+                &:not(:first-child) {
+                    margin-left: 48px;
+                }
+                .ui-label {
+                    font-size: 14px;
+                    color: $colorGrey;
+                    &::before {
+                        content: "\a0"; /*不换行空格*/
+                        display: inline-block;
+                        vertical-align: middle;
+                        width: 1em;
+                        height: 1em;
+                        margin-right: 0.4em;
+                        border-radius: 50%;
+                        border: 1px solid $commonBorderColor;
+                        text-indent: 0.15em;
+                        line-height: 1;
+                        box-sizing: border-box;
+                        font-size: 16px;
+                    }
+                }
+                .ui-radio {
+                    position: absolute;
+                    clip: rect(0, 0, 0, 0);
+                }
+                .ui-radio:checked + .ui-label::before {
+                    background-color: $blueDefault;
+                    background-clip: content-box;
+                    box-sizing: border-box;
+                    padding: 0.2em;
+                }
+            }
+            .loop-select-bd {
+                margin-top: 18px;
+                font-size: 14px;
+                color: $colorBalck;
+                .loop-time {
+                    margin: 0 10px;
+                    width: 46px;
+                }
+                .month-tips {
+                    color: #c4c6cc;
+                    font-size: 14px;
+                    &:hover {
+                        color: #f4aa1a;
+                    }
+                }
+            }
+            .appoint-select-bd {
+                margin-top: 18px;
+                padding: 0 20px 20px 20px;
+                border: 1px solid $commonBorderColor;
+            }
+            .expression {
+                margin-top: 20px;
+                font-size: 14px;
+                word-break: break-all;
+                .clear-selected {
+                    margin-left: 20px;
+                    color: $colorBlue;
+                    cursor: pointer;
+                }
+            }
+        }
+    }
+    .periodic-img-tooltip {
+        position: absolute;
+        right: -20px;
+        top: 10px;
+        color: #c4c6cc;
+        font-size: 14px;
+        z-index: 4;
+        .ui-img {
+            width: 500px;
+            background: #000;
+        }
+        &:hover {
             color: #f4aa1a;
-          }
         }
-      }
-      .appoint-select-bd {
-        margin-top: 18px;
-        padding: 0 20px 20px 20px;
-        border: 1px solid $commonBorderColor;
-      }
-      .expression {
-        margin-top: 20px;
-        font-size: 14px;
-        word-break: break-all;
-        .clear-selected {
-          margin-left: 20px;
-          color: $colorBlue;
-          cursor: pointer;
+        /deep/ .bk-tooltip-arrow {
+            display: none;
         }
-      }
+        /deep/ .bk-tooltip-inner {
+            max-width: auto !important;
+        }
     }
-  }
-  .periodic-img-tooltip {
-    position: absolute;
-    right: -20px;
-    top: 10px;
-    color: #c4c6cc;
-    font-size: 14px;
-    z-index: 4;
-    .ui-img {
-      width: 500px;
-      background: #000;
-    }
-    &:hover {
-      color: #f4aa1a;
-    }
-    /deep/ .bk-tooltip-arrow {
-      display: none;
-    }
-    /deep/ .bk-tooltip-inner {
-      max-width: auto !important;
-    }
-  }
 }
 </style>
