@@ -22,7 +22,6 @@ from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 
 from auth_backend.plugins.decorators import verify_perms
-from auth_backend.examples import task_template_resource
 
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
@@ -30,6 +29,7 @@ from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.permissions import task_template_resource
 
 logger = logging.getLogger('root')
 

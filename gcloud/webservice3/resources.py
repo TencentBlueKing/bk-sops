@@ -27,7 +27,6 @@ from tastypie.http import HttpForbidden
 
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
-from auth_backend.examples import project_resource
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
@@ -37,6 +36,7 @@ from gcloud.core.models import Business, Project
 from gcloud.core.utils import prepare_user_business
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.webservice3.serializers import AppSerializer
+from gcloud.core.permissions import project_resource
 
 logger = logging.getLogger('root')
 

@@ -186,6 +186,7 @@ class PeriodicTaskTestCase(TestCase):
         self.assertFalse(self.task.enabled)
         self.assertFalse(self.task.task.enabled)
 
+    @factory.django.mute_signals(signals.post_delete)
     def test_delete(self):
         pipeline_periodic_task_id = self.task.task.id
         self.task = self.task.delete()
