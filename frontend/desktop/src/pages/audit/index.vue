@@ -26,11 +26,11 @@
                             <span class="query-span">{{i18n.business}}</span>
                             <bk-selector
                                 :list="business.list"
-                                :selected.sync="selectedCcId"
+                                :selected.sync="selectedProject"
                                 :placeholder="i18n.choice"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onSelectedBizCcId">
+                                @item-selected="onSelectProject">
                             </bk-selector>
                         </div>
                         <div class="query-content">
@@ -204,14 +204,14 @@
                 listLoading: true,
                 isAdvancedSerachShow: false,
                 currentPage: 1,
-                selectedCcId: -1,
+                selectedProject: -1,
                 totalPage: 1,
                 countPerPage: 15,
                 totalCount: 0,
                 taskSync: 0,
                 statusSync: 0,
                 searchStr: '',
-                bizCcId: undefined,
+                projectId: undefined,
                 creator: undefined,
                 executor: undefined,
                 activeTaskCategory: undefined,
@@ -245,7 +245,7 @@
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
-            this.getBusinessBaseInfo()
+            this.getProjectBaseInfo()
         },
         methods: {
             ...mapActions('auditTask/', [
@@ -255,7 +255,7 @@
                 'getInstanceStatus'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapActions('project/', [
                 'loadProjectList'
@@ -266,7 +266,7 @@
                     const data = {
                         limit: this.countPerPage,
                         offset: (this.currentPage - 1) * this.countPerPage,
-                        project_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.activeTaskCategory,
                         audit__pipeline_instance__name__contains: this.searchStr,
                         pipeline_instance__is_started: this.isStarted,
@@ -375,10 +375,10 @@
                     this.business.loading = false
                 }
             },
-            async getBusinessBaseInfo () {
+            async getProjectBaseInfo () {
                 this.taskBasicInfoLoading = true
                 try {
-                    const data = await this.loadBusinessBaseInfo()
+                    const data = await this.loadProjectBaseInfo()
                     this.taskCategory = data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
@@ -407,7 +407,7 @@
                 this.executor = undefined
                 this.searchStr = undefined
                 this.statusSync = 0
-                this.selectedCcId = 0
+                this.selectedProject = 0
                 this.taskSync = 0
                 this.activeTaskCategory = undefined
                 this.executeStartTime = undefined
@@ -421,11 +421,11 @@
                 this.isStarted = undefined
                 this.isFinished = undefined
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectProject (name, value) {
+                if (this.projectId === name) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = name
             }
         }
     }

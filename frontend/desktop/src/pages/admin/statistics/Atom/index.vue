@@ -78,13 +78,13 @@
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProjectId"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onAtomTemplateData"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -134,13 +134,13 @@
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProjectId"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onAtomExecuteData"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -206,13 +206,13 @@
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProjectId"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onAtomInstanceData"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -485,7 +485,7 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: -1,
+                selectedProjectId: -1,
                 selectedCategory: -1,
                 selectedAtom: -1,
                 choiceBusiness: undefined,
@@ -772,7 +772,7 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onSelectedBizCcId (id) {
+            onSelectProject (id) {
                 if (this.projectId === id) {
                     return
                 }
@@ -788,8 +788,8 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onClearBizCcId () {
-                this.selectedCcId = -1
+            onClearProject () {
+                this.selectedProjectId = -1
                 this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)

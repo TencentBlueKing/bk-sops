@@ -54,7 +54,7 @@
                                 :selected.sync="categorySelected"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onAppMarkerBizCcid">
+                                @item-selected="onSelectCategory">
                             </bk-selector>
                         </div>
                         <div class="content-business-picker" @click="onInstanceClick">
@@ -93,13 +93,13 @@
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onAppMarkerInstance"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -265,7 +265,7 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: -1,
+                selectedProject: -1,
                 selectedCategory: -1,
                 categoryStartTime: undefined,
                 categoryEndTime: undefined,
@@ -365,7 +365,7 @@
                 }
                 this.appMakerData(data)
             },
-            onAppMarkerBizCcid (category, name) {
+            onSelectCategory (category, name) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -480,7 +480,7 @@
                 this.resetPageIndex()
                 this.onAppMarkerInstance()
             },
-            onSelectedBizCcId (id) {
+            onSelectProject (id) {
                 if (this.projectId === id) {
                     return
                 }
@@ -488,8 +488,8 @@
                 this.resetPageIndex()
                 this.onAppMarkerInstance()
             },
-            onClearBizCcId () {
-                this.selectedCcId = -1
+            onClearProject () {
+                this.selectedProject = -1
                 this.projectId = undefined
                 this.resetPageIndex()
                 this.onAppMarkerInstance()
@@ -514,7 +514,7 @@
                     this.businessStartTime = dateArray[0]
                     this.businessEndTime = dateArray[1]
                 }
-                this.onAppMarkerBizCcid(null)
+                this.onSelectCategory(null)
             },
             resetPageIndex () {
                 this.appmakerPageIndex = 1
