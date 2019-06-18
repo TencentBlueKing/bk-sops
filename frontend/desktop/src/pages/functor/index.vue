@@ -29,11 +29,11 @@
                             <span class="query-span">{{i18n.ownBusiness}}</span>
                             <bk-selector
                                 :list="business.list"
-                                :selected.sync="selectedCcId"
+                                :selected.sync="selectedProject"
                                 :placeholder="i18n.choice"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onSelectedBizCcId">
+                                @item-selected="onSelectProject">
                             </bk-selector>
                         </div>
                         <div class="query-content">
@@ -250,7 +250,7 @@
                     reset: gettext('清空')
                 },
                 listLoading: true,
-                selectedCcId: -1,
+                selectedProject: -1,
                 currentPage: 1,
                 totalPage: 1,
                 countPerPage: 15,
@@ -453,7 +453,7 @@
                     this.template.loading = false
                 }
             },
-            onSelectedBizCcId (id) {
+            onSelectProject (id) {
                 if (this.projectId === id) {
                     return
                 }
@@ -535,7 +535,7 @@
                 this.status = undefined
                 this.creator = undefined
                 this.statusSync = 0
-                this.selectedCcId = 0
+                this.selectedProject = 0
                 this.funtorSync = 0
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined

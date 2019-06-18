@@ -37,7 +37,7 @@ class EnvironmentVariablesAdmin(admin.ModelAdmin):
 
 @admin.register(models.Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ['name', 'time_zone', 'creator', 'desc', 'from_cmdb', 'cmdb_biz_id', 'is_disable']
+    list_display = ['name', 'time_zone', 'creator', 'desc', 'from_cmdb', 'bk_biz_id', 'is_disable']
     search_fields = ['id', 'name']
 
 

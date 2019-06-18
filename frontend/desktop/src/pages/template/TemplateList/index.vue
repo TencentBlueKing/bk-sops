@@ -12,7 +12,7 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <BaseTitle :title="common ? i18n.commonFlow : i18n.businessFlow"></BaseTitle>
+            <BaseTitle :title="common ? i18n.commonFlow : i18n.projectFlow"></BaseTitle>
             <div class="operation-area clearfix">
                 <router-link
                     class="bk-button bk-primary create-template"
@@ -224,7 +224,7 @@
             v-if="isExportDialogShow"
             :common="common"
             :is-export-dialog-show="isExportDialogShow"
-            :business-info-loading="businessInfoLoading"
+            :project-info-loading="projectInfoLoading"
             :export-pending="pending.export"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
@@ -284,7 +284,7 @@
             return {
                 i18n: {
                     placeholder: gettext('请输入ID或流程名称'),
-                    businessFlow: gettext('项目流程'),
+                    projectFlow: gettext('项目流程'),
                     commonFlow: gettext('公共流程'),
                     new: gettext('新建'),
                     name: gettext('流程名称'),
@@ -325,7 +325,7 @@
                     searchName: gettext('搜索流程名称')
                 },
                 listLoading: true,
-                businessInfoLoading: true, // 模板分类信息 loading
+                projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
                 currentPage: 1,
                 totalPage: 1,
@@ -371,7 +371,7 @@
                 'site_url': state => state.site_url,
                 'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
-                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'v1_import_flag': state => state.v1_import_flag
             }),
             ...mapState('project', {
@@ -386,12 +386,12 @@
         },
         created () {
             this.getTemplateList()
-            this.getBusinessBaseInfo()
+            this.getProjectBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -401,7 +401,7 @@
                 'templateExport'
             ]),
             ...mapMutations('template/', [
-                'setBusinessBaseInfo'
+                'setProjectBaseInfo'
             ]),
             ...mapMutations('templateList/', [
                 'setTemplateListData'
@@ -452,17 +452,17 @@
                     this.listLoading = false
                 }
             },
-            async getBusinessBaseInfo () {
-                this.businessInfoLoading = true
+            async getProjectBaseInfo () {
+                this.projectInfoLoading = true
                 this.categoryLoading = true
                 try {
-                    const data = await this.loadBusinessBaseInfo()
-                    this.setBusinessBaseInfo(data)
+                    const data = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(data)
                     this.templateCategoryList = data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.businessInfoLoading = false
+                    this.projectInfoLoading = false
                     this.categoryLoading = false
                 }
             },
