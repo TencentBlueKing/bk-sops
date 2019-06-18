@@ -40,7 +40,6 @@ project_resource = DjangoModelResource(
         Action(id='create', name=_(u"创建"), is_instance_related=False),
         Action(id='view', name=_(u"查看"), is_instance_related=True),
         Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='disable', name=_(u"停用"), is_instance_related=True),
         Action(id='create_template', name=_(u"新建流程"), is_instance_related=True),
         Action(id='use_common_template', name=_(u"使用公共流程"), is_instance_related=True),
     ],
