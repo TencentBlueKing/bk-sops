@@ -24,7 +24,8 @@ common_exports = [
     'format_datetime',
     'gen_day_dates',
     'get_month_dates',
-    'time_now_str'
+    'time_now_str',
+    'apply_permission_url'
 ]
 for func in common_exports:
     locals()[func] = getattr(common_utils, func)
