@@ -22,10 +22,13 @@ from tastypie.authorization import Authorization, ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
 
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate
 
 from gcloud.commons.template.models import CommonTemplate
+from gcloud.commons.template.permissions import common_template_resource
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
@@ -49,37 +52,6 @@ class PipelineTemplateResource(ModelResource):
             'edit_time': ['gte', 'lte']
         }
         limit = 0
-
-
-class CommonAuthorization(Authorization):
-    """
-    @summary: common authorization
-        create/update/delete: only superuser
-        read: all users
-    """
-
-    def is_superuser(self, bundle):
-        if bundle.request.user.is_superuser:
-            return True
-        raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write common flows'))
-
-    def create_list(self, object_list, bundle):
-        return []
-
-    def create_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
 
 
 class CommonTemplateResource(GCloudModelResource):
@@ -141,7 +113,9 @@ class CommonTemplateResource(GCloudModelResource):
     class Meta:
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'common_template'
-        authorization = CommonAuthorization()
+        authorization = BkSaaSLooseAuthorization(auth_resource=common_template_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit')
         always_return_data = True
         serializer = AppSerializer()
         filtering = {

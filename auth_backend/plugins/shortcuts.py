@@ -15,6 +15,7 @@ import logging
 
 from ..resources.base import resource_type_lib
 from ..backends import get_backend_from_config
+from ..exceptions import AuthFailedException
 from .utils import build_need_permission
 
 logger = logging.getLogger('root')
@@ -46,3 +47,15 @@ def verify_or_return_insufficient_perms(principal_type, principal_id, perms_tupl
                                                  instance=instance_id))
 
     return permissions
+
+
+def batch_verify_or_raise_auth_failed(principal_type, principal_id, perms_tuples):
+    permissions = verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples)
+    if permissions:
+        raise AuthFailedException(permissions=permissions)
+
+
+def verify_or_raise_auth_failed(principal_type, principal_id, resource, action_ids, instance):
+    batch_verify_or_raise_auth_failed(principal_type,
+                                      principal_id,
+                                      [(resource, action_ids, instance)])
