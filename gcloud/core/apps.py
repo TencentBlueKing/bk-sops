@@ -26,6 +26,7 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         from gcloud.core.signals.handlers import business_post_save_handler  # noqa
+        from permissions import project_resource, admin_operate_resource  # noqa
         if not hasattr(settings, 'REDIS'):
             try:
                 from gcloud.core.models import EnvironmentVariables

@@ -29,7 +29,7 @@ from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
-from permissions.resources import task_template_resource
+from gcloud.tasktmpl3.permissions import task_template_resource
 
 logger = logging.getLogger('root')
 

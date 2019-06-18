@@ -11,15 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.apps import AppConfig
+from django.utils.translation import ugettext_lazy as _
 
+from auth_backend.resources.base import Action, NeverInitiateResource
+from auth_backend.backends.bkiam import BkIAMBackend
 
-class Taskflow3Config(AppConfig):
-    name = 'gcloud.taskflow3'
-    verbose_name = 'GcloudTaskflow3'
-
-    def ready(self):
-        from gcloud.taskflow3.signals.handlers import pipeline_post_save_handler  # noqa
-        from gcloud.taskflow3.signals.dispatch import dispatch_activity_failed
-        from permissions import taskflow_resource  # noqa
-        dispatch_activity_failed()
+audit_data_resource = NeverInitiateResource(
+    rtype='audit-data',
+    name=_(u"审计数据"),
+    scope_type='system',
+    scope_id='bk_sops',
+    scope_name=_(u"标准运维"),
+    actions=[Action(id='view', name=_(u"查看"), is_instance_related=False)],
+    backend=BkIAMBackend())
