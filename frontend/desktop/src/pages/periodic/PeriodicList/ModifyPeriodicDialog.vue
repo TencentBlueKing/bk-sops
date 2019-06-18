@@ -27,7 +27,9 @@
                         ref="loopRuleSelect"
                         :manual-input-value="periodicCron" />
                 </div>
-                <div class="param-info" v-if="!loading">
+                <div
+                    v-if="!loading"
+                    class="param-info">
                     <h3 class="common-section-title">{{ i18n.paramsInfo }}</h3>
                     <div class="common-form-content">
                         <NoData v-if="isVariableEmpty"></NoData>

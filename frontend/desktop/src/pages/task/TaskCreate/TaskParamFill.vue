@@ -20,36 +20,36 @@
                     <label class="required">{{ i18n.taskName }}</label>
                     <div class="common-form-content">
                         <BaseInput
-                            class="step-form-content-size"
-                            name="taskName"
                             v-model="taskName"
-                            v-validate="taskNameRule">
+                            v-validate="taskNameRule"
+                            class="step-form-content-size"
+                            name="taskName">
                         </BaseInput>
                         <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
                 <div
-                    class="common-form-item"
-                    v-if="isStartNowShow">
+                    v-if="isStartNowShow"
+                    class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                @click="onChangeStartNow(true)"
-                                :type="!isStartNow ? 'default' : 'primary'">
+                                :type="!isStartNow ? 'default' : 'primary'"
+                                @click="onChangeStartNow(true)">
                                 {{ i18n.startNow }}
                             </bk-button>
                             <bk-button
-                                @click="onChangeStartNow(false)"
-                                :type="!isStartNow ? 'primary' : 'default'">
+                                :type="!isStartNow ? 'primary' : 'default'"
+                                @click="onChangeStartNow(false)">
                                 {{ i18n.periodicStart }}
                             </bk-button>
                         </div>
                     </div>
                 </div>
                 <div
-                    class="common-form-item"
-                    v-if="isTaskTypeShow">
+                    v-if="isTaskTypeShow"
+                    class="common-form-item">
                     <label class="required">{{ i18n.flowType }}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
@@ -67,8 +67,8 @@
                     </div>
                 </div>
                 <div
-                    class="common-form-item"
-                    v-if="!isStartNow">
+                    v-if="!isStartNow"
+                    class="common-form-item">
                     <label class="required">{{i18n.periodicCron}}</label>
                     <div class="common-form-content step-form-item-cron">
                         <LoopRuleSelect

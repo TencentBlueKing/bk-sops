@@ -40,12 +40,12 @@
                         <div class="radio-group">
                             <div class="radio-item loop-radio">
                                 <input
-                                    v-model.number="item.radio"
-                                    class="ui-radio"
-                                    type="radio"
                                     :id="'loop' + item.key"
+                                    v-model.number="item.radio"
                                     :value="0"
-                                    :name="item.key" />
+                                    :name="item.key"
+                                    class="ui-radio"
+                                    type="radio" />
                                 <label
                                     class="ui-label"
                                     :for="'loop' + item.key"
@@ -55,10 +55,10 @@
                             </div>
                             <div class="radio-item appoint-radio">
                                 <input
-                                    type="radio"
-                                    v-model.number="item.radio"
-                                    class="ui-radio"
                                     :id="'appoint' + item.key"
+                                    v-model.number="item.radio"
+                                    type="radio"
+                                    class="ui-radio"
                                     :value="1"
                                     :name="item.key" />
                                 <label
@@ -94,7 +94,9 @@
                             <!-- startInput 错误提示 -->
                             <div
                                 v-show="errors.has(item.key + 'Rule')"
-                                class="local-error-tip error-msg">{{ errors.first(item.key + 'Rule') }}</div>
+                                class="local-error-tip error-msg">
+                                {{ errors.first(item.key + 'Rule') }}
+                            </div>
                         </div>
                         <!-- 指定 -->
                         <div
@@ -134,10 +136,10 @@
                 v-show="currentWay === 'manualInput'"
                 class="hand-input">
                 <BaseInput
+                    v-model="periodicCron"
+                    v-validate="periodicRule"
                     name="periodicCron"
                     class="step-form-content-size"
-                    v-validate="periodicRule"
-                    v-model="periodicCron"
                     :placeholder="i18n.placeholder" />
             </div>
         </div>
