@@ -16,8 +16,8 @@
         <TaskStep
             :list="stepList"
             :current-step="currentStep"
+            :task-status="'TaskExecute'"
             :common="common"
-            :identity="identity"
             :cc_id="cc_id"
             :instance-name="instanceName"
             :all-finished="isAllStepsFinished">
@@ -69,14 +69,14 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['cc_id', 'instance_id', 'common', 'identity'],
+        props: ['cc_id', 'instance_id', 'common'],
         data () {
             return {
                 taskDataLoading: true,
                 taskStatusLoading: true,
                 bkMessageInstance: null,
                 exception: {},
-                stepList: STEP_DICT,
+                stepList: STEP_DICT.slice(),
                 currentStep: 'taskexecute',
                 isFunctional: false,
                 isAllStepsFinished: false,

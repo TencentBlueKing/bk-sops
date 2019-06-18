@@ -128,7 +128,7 @@
                             <td class="audit-operation">
                                 <router-link
                                     class="audit-operation-btn"
-                                    :to="`/taskflow/execute/${item.business.cc_id}/?instance_id=${item.id}&identity=2`">
+                                    :to="`/taskflow/execute/${item.business.cc_id}/?instance_id=${item.id}`">
                                     {{ i18n.view }}
                                 </router-link>
                             </td>

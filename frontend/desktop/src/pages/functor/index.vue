@@ -110,12 +110,12 @@
                             <td class="functor-operation">
                                 <router-link v-if="item.status === 'submitted'"
                                     class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}&identity=1`">
+                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
                                     {{ i18n.claim }}
                                 </router-link>
                                 <router-link v-else
                                     class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}&identity=1`">
+                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
                                     {{ i18n.view }}
                                 </router-link>
                             </td>
