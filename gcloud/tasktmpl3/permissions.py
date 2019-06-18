@@ -13,74 +13,14 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
-from auth_backend.resources.base import Action, NeverInitiateResource
+from auth_backend.resources.base import Action
 from auth_backend.backends.bkiam import BkIAMBackend
 from auth_backend.resources.django import DjangoModelResource
 from auth_backend.resources.inspect import FixedCreatorFieldInspect
 
-from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.core.permissions import project_resource
 
-import logging
-
-logger = logging.getLogger('auth')
-c_handler = logging.StreamHandler()
-c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-c_handler.setFormatter(c_format)
-logger.addHandler(c_handler)
-logger.setLevel(logging.DEBUG)
-
-# no parent resource
-project_resource = DjangoModelResource(
-    rtype='project',
-    name=_(u"项目"),
-    scope_type='system',
-    scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
-    actions=[
-        Action(id='create', name=_(u"创建"), is_instance_related=False),
-        Action(id='view', name=_(u"查看"), is_instance_related=True),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='disable', name=_(u"停用"), is_instance_related=True),
-        Action(id='create_template', name=_(u"新建流程"), is_instance_related=True),
-        Action(id='use_common_template', name=_(u"使用公共流程"), is_instance_related=True),
-    ],
-    operations=[
-        {
-            'operate_id': 'create',
-            'actions_id': ['create']
-        },
-        {
-            'operate_id': 'view',
-            'actions_id': ['view']
-        },
-        {
-            'operate_id': 'edit',
-            'actions_id': ['view', 'edit']
-        },
-        {
-            'operate_id': 'disable',
-            'actions_id': ['view', 'disable']
-        },
-        {
-            'operate_id': 'create_template',
-            'actions_id': ['view', 'create_template']
-        },
-        {
-            'operate_id': 'use_common_template',
-            'actions_id': ['view', 'use_common_template']
-        }
-    ],
-    resource_cls=Project,
-    backend=BkIAMBackend(),
-    inspect=FixedCreatorFieldInspect(creator_type='user',
-                                     creator_id_f='creator',
-                                     resource_id_f='id',
-                                     resource_name_f='name',
-                                     parent_f=None))
-
-
-# has parent resource
 task_template_resource = DjangoModelResource(
     rtype='flow-template',
     name=_(u"流程模板"),
@@ -137,14 +77,3 @@ task_template_resource = DjangoModelResource(
                                      resource_id_f='id',
                                      resource_name_f='name',
                                      parent_f='project'))
-
-# no instance resource
-statistics_resource = NeverInitiateResource(
-    rtype='statistics',
-    name=_(u"统计数据"),
-    scope_type='system',
-    scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
-    actions=[Action(id='view', name=_(u"查看"), is_instance_related=False)],
-    backend=BkIAMBackend()
-)
