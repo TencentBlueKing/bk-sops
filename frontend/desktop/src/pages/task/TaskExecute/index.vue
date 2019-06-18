@@ -74,7 +74,7 @@
                 taskStatusLoading: true,
                 bkMessageInstance: null,
                 exception: {},
-                stepList: STEP_DICT,
+                stepList: STEP_DICT.slice(),
                 currentStep: 'taskexecute',
                 isFunctional: false,
                 isAllStepsFinished: false,
