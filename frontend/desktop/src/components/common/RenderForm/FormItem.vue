@@ -283,7 +283,7 @@
             },
             isRequired () {
                 let required = false
-                if ('validation' in this.scheme.attrs) {
+                if (this.option.showRequired === true && 'validation' in this.scheme.attrs) {
                     required = this.scheme.attrs.validation.some(item => {
                         return item.type === 'required'
                     })
