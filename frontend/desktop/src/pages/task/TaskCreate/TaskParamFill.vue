@@ -123,7 +123,7 @@
     import tools from '@/utils/tools.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
-
+    const cron = require('@/plugins/node-cron-valid/node-cron-vaild.js')
     export default {
         name: 'TaskParamFill',
         components: {
@@ -191,6 +191,8 @@
         mounted () {
             this.loadData()
             this.period()
+            const rese = cron.validate('1 12 2 12 12', { language: 'ch' })
+            console.log(rese, 'ssssssss')
         },
         methods: {
             ...mapActions('template/', [
