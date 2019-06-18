@@ -17,7 +17,9 @@ from functools import wraps
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
-from .constants import PRINCIPAL_TYPE_USER, AUTH_FORBIDDEN_CODE
+from .constants import PRINCIPAL_TYPE_USER
+from .http import HttpResponseAuthFailed
+from .utils import build_need_permission
 
 logger = logging.getLogger('root')
 
@@ -74,39 +76,10 @@ def verify_perms(auth_resource, resource_get, actions):
                                                                  instance_id))
 
             if permissions:
-                result = {
-                    'result': False,
-                    'code': AUTH_FORBIDDEN_CODE,
-                    'message': 'you have no permission to operate',
-                    'data': {},
-                    'permissions': permissions
-                }
-                return JsonResponse(result)
+                return HttpResponseAuthFailed(permissions)
 
             return view_func(request, *args, **kwargs)
 
         return _wrapped_view
 
     return decorator
-
-
-def build_need_permission(auth_resource, action_id, instance_id):
-    return {
-        'system_id': auth_resource.backend.client.system_id,
-        'system_name': auth_resource.backend.client.system_name,
-        'scope_type': auth_resource.scope_type,
-        'scope_id': auth_resource.scope_id,
-        'scope_name': auth_resource.scope_name,
-        'action_id': action_id,
-        'action_name': auth_resource.actions_map[action_id].name,
-        'resources': [
-            [
-                {
-                    'resource_type': auth_resource.rtype,
-                    'resource_type_name': auth_resource.name,
-                    'resource_id': instance_id,
-                    'resource_name': auth_resource.clean_instances(instance_id)
-                }
-            ]
-        ]
-    }
