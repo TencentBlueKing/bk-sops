@@ -11,7 +11,7 @@
 */
 <template>
     <header>
-        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(businessHomeRoute)">
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(homeRoute)">
             <img :src="logo" class="logo" />
         </router-link>
         <img v-else :src="logo" class="logo" />
@@ -48,7 +48,7 @@
             </div>
         </nav>
         <div class="header-right clearfix">
-            <BizSelector v-if="showHeaderRight" :disabled="disabled"></BizSelector>
+            <ProjectSelector v-if="showHeaderRight" :disabled="disabled"></ProjectSelector>
             <div class="help-doc">
                 <a
                     class="common-icon-dark-circle-question"
@@ -73,7 +73,7 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import BizSelector from './BizSelector.vue'
+    import ProjectSelector from './ProjectSelector.vue'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -131,6 +131,11 @@
                 name: gettext('轻应用')
             },
             {
+                key: 'project',
+                path: '/project/home/',
+                name: gettext('项目管理')
+            },
+            {
                 key: 'admin',
                 name: gettext('管理员入口'),
                 children: [
@@ -155,7 +160,7 @@
         inject: ['reload'],
         name: 'Navigator',
         components: {
-            BizSelector
+            ProjectSelector
         },
         props: ['appmakerDataLoading'],
         data () {
@@ -164,9 +169,9 @@
                 i18n: {
                     help: gettext('帮助文档')
                 },
-                businessHomeRoute: {
-                    key: 'business',
-                    path: '/business/home/'
+                homeRoute: {
+                    key: 'home',
+                    path: '/project/home/'
                 }
             }
         },
@@ -175,23 +180,25 @@
                 site_url: state => state.site_url,
                 username: state => state.username,
                 userType: state => state.userType,
-                cc_id: state => state.cc_id,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
-                bizList: state => state.bizList,
                 templateId: state => state.templateId,
                 notFoundPage: state => state.notFoundPage,
                 isSuperUser: state => state.isSuperUser
             }),
+            ...mapState('project', {
+                projectList: state => state.projectList,
+                project_id: state => state.project_id
+            }),
             showHeaderRight () {
-                return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.bizList.length
+                return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
             },
             routeList () {
                 if (this.view_mode === 'appmaker') {
                     return [
                         {
                             key: 'appmakerTaskCreate',
-                            path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode`,
+                            path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode`,
                             query: { template_id: this.template_id },
                             name: gettext('新建任务')
                         },
@@ -229,18 +236,17 @@
             this.initHome()
         },
         methods: {
-            initHome () {
-                if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.getBizList()
-                }
-            },
-            ...mapActions([
-                'getBizList',
-                'changeDefaultBiz'
+            ...mapActions('project', [
+                'loadProjectList'
             ]),
             ...mapMutations([
                 'setBizId'
             ]),
+            initHome () {
+                if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
+                    this.loadProjectList({ limit: 0 })
+                }
+            },
             isNavActived (route) {
                 const key = route.key
 
@@ -278,10 +284,10 @@
                 let path
                 if (route.key === 'appmakerTaskCreate') {
                     path = `${route.path}?template_id=${this.templateId}`
-                } else if (this.userType !== 'maintainer' || route.parent === 'admin') {
+                } else if (this.userType !== 'maintainer' || route.key === 'project' || route.parent === 'admin') {
                     path = `${route.path}`
                 } else {
-                    path = { path: `${route.path}${this.cc_id}/`, query: route.query }
+                    path = { path: `${route.path}${this.project_id}/`, query: route.query }
                 }
                 return path
             },

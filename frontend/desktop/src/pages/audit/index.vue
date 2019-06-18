@@ -26,15 +26,11 @@
                             <span class="query-span">{{i18n.business}}</span>
                             <bk-selector
                                 :list="business.list"
-                                :display-key="'cc_name'"
-                                :setting-name="'cc_id'"
-                                :search-key="'cc_name'"
-                                :setting-key="'cc_id'"
-                                :selected.sync="selectedCcId"
+                                :selected.sync="selectedProject"
                                 :placeholder="i18n.choice"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onSelectedBizCcId">
+                                @item-selected="onSelectProject">
                             </bk-selector>
                         </div>
                         <div class="query-content">
@@ -108,11 +104,11 @@
                     <tbody>
                         <tr v-for="(item, index) in auditList" :key="item.id">
                             <td class="audit-id">{{item.id}}</td>
-                            <td class="audit-business">{{item.business.cc_name}}</td>
+                            <td class="audit-business">{{item.project.name}}</td>
                             <td class="audit-name">
                                 <router-link
                                     :title="item.name"
-                                    :to="`/taskflow/execute/${item.business.cc_id}/?instance_id=${item.id}`">
+                                    :to="`/taskflow/execute/${item.project.id}/?instance_id=${item.id}`">
                                     {{item.name}}
                                 </router-link>
                             </td>
@@ -128,7 +124,7 @@
                             <td class="audit-operation">
                                 <router-link
                                     class="audit-operation-btn"
-                                    :to="`/taskflow/execute/${item.business.cc_id}/?instance_id=${item.id}`">
+                                    :to="`/taskflow/execute/${item.project.id}/?instance_id=${item.id}`">
                                     {{ i18n.view }}
                                 </router-link>
                             </td>
@@ -157,7 +153,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -179,7 +175,7 @@
                 i18n: {
                     auditList: gettext('审计中心'),
                     placeholder: gettext('请输入ID或流程名称'),
-                    business: gettext('所属业务'),
+                    business: gettext('所属项目'),
                     startedTime: gettext('执行开始'),
                     finishedTime: gettext('执行结束'),
                     name: gettext('任务名称'),
@@ -208,14 +204,14 @@
                 listLoading: true,
                 isAdvancedSerachShow: false,
                 currentPage: 1,
-                selectedCcId: -1,
+                selectedProject: -1,
                 totalPage: 1,
                 countPerPage: 15,
                 totalCount: 0,
                 taskSync: 0,
                 statusSync: 0,
                 searchStr: '',
-                bizCcId: undefined,
+                projectId: undefined,
                 creator: undefined,
                 executor: undefined,
                 activeTaskCategory: undefined,
@@ -240,24 +236,29 @@
                 executeStatus: [] // 任务执行态
             }
         },
+        computed: {
+            ...mapState('project', {
+                'timeZone': state => state.timezone
+            })
+        },
         created () {
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            this.getBusinessList()
-            this.getBusinessBaseInfo()
+            this.getProjectList()
+            this.getProjectBaseInfo()
         },
         methods: {
             ...mapActions('auditTask/', [
                 'loadAuditTaskList'
             ]),
-            ...mapActions('functionTask/', [
-                'loadFunctionBusinessList'
-            ]),
             ...mapActions('task/', [
                 'getInstanceStatus'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             async loadFunctionTask () {
                 this.listLoading = true
@@ -265,7 +266,7 @@
                     const data = {
                         limit: this.countPerPage,
                         offset: (this.currentPage - 1) * this.countPerPage,
-                        business__cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.activeTaskCategory,
                         audit__pipeline_instance__name__contains: this.searchStr,
                         pipeline_instance__is_started: this.isStarted,
@@ -278,8 +279,8 @@
                             data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
@@ -323,7 +324,7 @@
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)
@@ -363,10 +364,10 @@
                     errorHandler(e, this)
                 }
             },
-            async getBusinessList () {
+            async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadFunctionBusinessList()
+                    const businessData = await this.loadProjectList({ limit: 0 })
                     this.business.list = businessData.objects
                 } catch (e) {
                     errorHandler(e, this)
@@ -374,10 +375,10 @@
                     this.business.loading = false
                 }
             },
-            async getBusinessBaseInfo () {
+            async getProjectBaseInfo () {
                 this.taskBasicInfoLoading = true
                 try {
-                    const data = await this.loadBusinessBaseInfo()
+                    const data = await this.loadProjectBaseInfo()
                     this.taskCategory = data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
@@ -406,7 +407,7 @@
                 this.executor = undefined
                 this.searchStr = undefined
                 this.statusSync = 0
-                this.selectedCcId = 0
+                this.selectedProject = 0
                 this.taskSync = 0
                 this.activeTaskCategory = undefined
                 this.executeStartTime = undefined
@@ -420,16 +421,16 @@
                 this.isStarted = undefined
                 this.isFinished = undefined
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectProject (name, value) {
+                if (this.projectId === name) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = name
             }
         }
     }
 </script>
-<style lang='scss'>
+<style lang='scss' scoped>
 @import '@/scss/config.scss';
 .audit-container {
     padding-top: 20px;
@@ -442,36 +443,6 @@
     min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 20px 0px;
-    }
-}
-.operation-area {
-    margin: 20px 0;
-    float: right;
-    .search-input {
-        padding: 0 40px 0 10px;
-        width: 360px;
-        height: 32px;
-        line-height: 32px;
-        font-size: 14px;
-        background: $whiteDefault;
-        border: 1px solid $commonBorderColor;
-        border-radius: 4px;
-        outline: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: $blueDefault;
-            & + i {
-                color: $blueDefault;
-            }
-        }
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
     }
 }
 .audit-fieldset {

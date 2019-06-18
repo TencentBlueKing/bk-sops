@@ -34,7 +34,7 @@ class ProjectTestCase(TestCase):
         self.assertEqual(len(projs), len(businesses))
 
         for i in range(1, 10):
-            proj = Project.objects.get(cmdb_biz_id=i)
+            proj = Project.objects.get(bk_biz_id=i)
             self.assertEqual(proj.name, businesses[i]['cc_name'])
             self.assertEqual(proj.time_zone, businesses[i]['time_zone'])
             self.assertEqual(proj.creator, businesses[i]['creator'])
@@ -48,7 +48,7 @@ class ProjectTestCase(TestCase):
                                    creator='creator_%s' % i,
                                    desc='',
                                    from_cmdb=True,
-                                   cmdb_biz_id=i)
+                                   bk_biz_id=i)
 
         businesses = {
             i: {
@@ -62,7 +62,7 @@ class ProjectTestCase(TestCase):
         self.assertEqual(len(projs), 7)
 
         for i in range(1, 10):
-            proj = Project.objects.get(cmdb_biz_id=i)
+            proj = Project.objects.get(bk_biz_id=i)
             self.assertEqual(proj.name, businesses[i]['cc_name'])
             self.assertEqual(proj.time_zone, businesses[i]['time_zone'])
             self.assertEqual(proj.creator, businesses[i]['creator'])

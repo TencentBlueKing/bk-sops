@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^set_lang/$', views.set_language),
 
     url(r'^core/api/get_basic_info/$', api.get_basic_info),
-    url(r'^core/api/change_default_business/(?P<biz_cc_id>\d+)/$', api.change_default_business),
+    url(r'^core/api/change_default_project/(?P<project_id>\d+)/$', api.change_default_project),
     url(r'^core/api/get_roles_and_personnel/(?P<biz_cc_id>\d+)/$', api.get_roles_and_personnel),
 
     url(r'^core/get_cache_key/(?P<key>\w+)/$', command.get_cache_key),

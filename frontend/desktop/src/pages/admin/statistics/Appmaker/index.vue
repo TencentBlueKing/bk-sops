@@ -18,11 +18,7 @@
                     <div class="content-date">
                         <div class="content-date-business">
                             <bk-selector
-                                :list="businessList"
-                                :display-key="'cc_name'"
-                                :setting-name="'cc_id'"
-                                :search-key="'cc_name'"
-                                :setting-key="'cc_id'"
+                                :list="allProjectList"
                                 :selected.sync="businessSelected"
                                 :searchable="true"
                                 :allow-clear="true"
@@ -58,7 +54,7 @@
                                 :selected.sync="categorySelected"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onAppMarkerBizCcid">
+                                @item-selected="onSelectCategory">
                             </bk-selector>
                         </div>
                         <div class="content-business-picker" @click="onInstanceClick">
@@ -96,18 +92,14 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
-                                    :list="allBusinessList"
-                                    :display-key="'cc_name'"
-                                    :setting-name="'cc_id'"
-                                    :search-key="'cc_name'"
-                                    :setting-key="'cc_id'"
-                                    :selected.sync="selectedCcId"
+                                    :list="projectList"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onAppMarkerInstance"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -155,16 +147,16 @@
     import moment from 'moment-timezone'
 
     const i18n = {
-        ownBusiness: gettext('所属业务'),
+        ownBusiness: gettext('所属项目'),
         applicationTime: gettext('轻应用创建时间'),
         applicationDetails: gettext('轻应用详情'),
         choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceBusiness: gettext('选择项目'),
         choiceTime: gettext('选择时间'),
         choice: gettext('请选择'),
         atom: gettext('标准插件'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         templateName: gettext('轻应用名称'),
         createTime: gettext('创建时间'),
         editTime: gettext('更新时间'),
@@ -183,7 +175,7 @@
         data () {
             return {
                 i18n: i18n,
-                bizCcId: undefined,
+                projectId: undefined,
                 category: undefined,
                 choiceBusinessName: '',
                 choiceCategoryName: '',
@@ -273,7 +265,7 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: -1,
+                selectedProject: -1,
                 selectedCategory: -1,
                 categoryStartTime: undefined,
                 categoryEndTime: undefined,
@@ -291,16 +283,18 @@
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
                 categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
+            ...mapState('project', {
+                projectList: state => state.projectList
+            }),
+            allProjectList () {
+                if (this.projectList.length === 0) {
+                    this.loadProjectList({ limit: 0 })
                 }
-                const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: i18n.choiceAllBusiness })
+                const list = tools.deepClone(this.projectList)
+                list.unshift({ id: undefined, name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
@@ -322,8 +316,10 @@
                 'queryAppmakerData'
             ]),
             ...mapActions([
-                'getBizList',
                 'getCategorys'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             handleSizeChange (limit) {
                 this.limit = limit
@@ -364,12 +360,12 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusines
+                        project_id: this.choiceBusiness === 'all' ? '' : this.choiceBusines
                     })
                 }
                 this.appMakerData(data)
             },
-            onAppMarkerBizCcid (category, name) {
+            onSelectCategory (category, name) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -384,7 +380,7 @@
                 }
                 const time = this.getUTCTime([this.categoryStartTime, this.categoryEndTime])
                 const data = {
-                    group_by: 'biz_cc_id',
+                    group_by: 'project_id',
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
@@ -445,7 +441,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         order_by: this.appmakerOrderBy
                     }),
@@ -484,17 +480,17 @@
                 this.resetPageIndex()
                 this.onAppMarkerInstance()
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectProject (id) {
+                if (this.projectId === id) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = id
                 this.resetPageIndex()
                 this.onAppMarkerInstance()
             },
-            onClearBizCcId () {
-                this.selectedCcId = -1
-                this.bizCcId = undefined
+            onClearProject () {
+                this.selectedProject = -1
+                this.projectId = undefined
                 this.resetPageIndex()
                 this.onAppMarkerInstance()
             },
@@ -518,7 +514,7 @@
                     this.businessStartTime = dateArray[0]
                     this.businessEndTime = dateArray[1]
                 }
-                this.onAppMarkerBizCcid(null)
+                this.onSelectCategory(null)
             },
             resetPageIndex () {
                 this.appmakerPageIndex = 1
