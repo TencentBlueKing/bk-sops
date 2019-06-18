@@ -21,7 +21,7 @@ def build_need_permission(auth_resource, action_id, instance=None):
         resource_id = instance if isinstance(instance, (basestring, int)) else auth_resource.resource_id(instance)
         resource.update({
             'resource_id': resource_id,
-            'resource_name': auth_resource.clean_instances(instance)
+            'resource_name': auth_resource.resource_name(instance)
         })
     return {
         'system_id': auth_resource.backend.client.system_id,
