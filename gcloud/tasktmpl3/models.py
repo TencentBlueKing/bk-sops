@@ -455,7 +455,7 @@ class TaskTemplate(BaseTemplate):
     objects = TaskTemplateManager()
 
     def __unicode__(self):
-        return u'%s_%s' % (self.project, self.pipeline_template or 'None')
+        return u'%s_%s' % (self.project, self.pipeline_template)
 
     class Meta(BaseTemplate.Meta):
         verbose_name = _(u"流程模板 TaskTemplate")

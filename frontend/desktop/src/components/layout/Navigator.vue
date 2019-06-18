@@ -11,7 +11,7 @@
 */
 <template>
     <header>
-        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(businessHomeRoute)">
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(homeRoute)">
             <img :src="logo" class="logo" />
         </router-link>
         <img v-else :src="logo" class="logo" />
@@ -169,9 +169,9 @@
                 i18n: {
                     help: gettext('帮助文档')
                 },
-                businessHomeRoute: {
-                    key: 'business',
-                    path: '/business/home/'
+                homeRoute: {
+                    key: 'home',
+                    path: '/project/home/'
                 }
             }
         },
