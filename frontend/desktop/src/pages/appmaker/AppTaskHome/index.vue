@@ -38,7 +38,7 @@
                             <td class="appmaker-id">{{item.id}}</td>
                             <td class="appmaker-name">
                                 <router-link
-                                    :to="`/appmaker/${item.create_info}/execute/${item.business.project_id}/?instance_id=${item.id}`">
+                                    :to="`/appmaker/${item.create_info}/execute/${item.id}/?instance_id=${item.id}`">
                                     {{item.name}}
                                 </router-link>
                             </td>
@@ -180,7 +180,7 @@
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    project_id: task.business.project_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)
