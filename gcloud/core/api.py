@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import json
+
 from django.http import JsonResponse
 from django.contrib.auth.models import Group
 from django.views.decorators.http import require_POST, require_GET
@@ -19,7 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 from gcloud.core import roles
 from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
 from gcloud.core.models import UserDefaultProject
-from gcloud.core.utils import convert_group_name
+from gcloud.core.utils import convert_group_name, apply_permission_url
 
 
 @require_POST
@@ -103,3 +105,23 @@ def get_basic_info(request):
         "notify_type_list": notify_type_list
     }
     return JsonResponse(ctx, safe=False)
+
+
+@require_POST
+def query_apply_permission_url(request):
+    """
+    @summary: 获取无权限时申请权限的URL，该接口无需鉴权，获取到申请URL后在很短时间内（可能1分钟）将失效
+    @param request:
+    @return:
+    """
+    try:
+        permission = json.loads(request.POST.get('permission'))
+    except Exception:
+        ctx = {
+            'result': False,
+            'data': {},
+            'message': _(u"请求参数错误，permission不是json格式的列表"),
+            'code': -1
+        }
+        return JsonResponse(ctx)
+    return JsonResponse(apply_permission_url(permission))
