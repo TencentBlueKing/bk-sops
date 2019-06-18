@@ -429,6 +429,9 @@
     }
     .task-table-content{
         margin: 20px 0px;
+        .task-create-btn {
+            min-width: 120px;
+        }
     }
 }
 .periodic-fieldset {
@@ -436,6 +439,7 @@
     margin-bottom: 15px;
     border: 1px solid $commonBorderColor;
     background: #ffffff;
+    padding: 8px;
     .periodic-query-content {
         display: flex;
         flex-wrap: wrap;
@@ -530,7 +534,7 @@
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 13px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
         }

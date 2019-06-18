@@ -623,7 +623,7 @@
                         }
                     }
                 } else {
-                    this.currentAtom = formData.template_id
+                    this.currentAtom = parseInt(formData.template_id)
                     for (const key in formData.constants) {
                         const form = formData.constants[key]
                         const tagCode = key.match(varKeyReg)[1]
@@ -1228,7 +1228,7 @@
         border-collapse: collapse;
         th, td {
             padding: 10px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: normal;
             border: 1px solid $commonBorderColor;
             text-align: center;

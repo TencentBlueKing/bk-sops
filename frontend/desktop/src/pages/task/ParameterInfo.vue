@@ -58,7 +58,7 @@
             return {
                 i18n: {
                     title: gettext('查看未引用变量'),
-                    executorTips: gettext('在创建流程时可选择“变量”是否被引用，未被引用的“变量”则在创建任务时（当前步骤）不可编辑。')
+                    executorTips: gettext('在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑')
                 },
                 isUnrefVarShow: false,
                 isRefVarLoading: true,
@@ -111,10 +111,11 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .task-param-wrapper {
+    max-width: 620px;
     margin: 0 20px 20px 20px;
 }
 .parameter-info-wrap {
-    min-height: 180px;
+    min-height: 324px;
 }
 .variable-wrap {
     background: #f0f1f5;
@@ -144,6 +145,10 @@
         .desc-tooltip {
             float: right;
             margin: 20px;
+        }
+        /deep/.bk-tooltip-inner {
+            background: #333;
+            border: 0px;
         }
         .icon-info-circle {
             position: relative;

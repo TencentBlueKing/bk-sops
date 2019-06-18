@@ -677,6 +677,7 @@
 .template-fieldset {
     width: 100%;
     margin: 0;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: $whiteDefault;
     margin-bottom: 15px;
@@ -790,6 +791,7 @@
     margin: 20px 0;
     .create-template {
         height: 32px;
+        min-width: 120px;
         line-height: 29px;
         font-size: 14px;
     }
@@ -826,7 +828,7 @@
             background: $whiteNodeBg;
         }
         th, td {
-            padding: 13px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
         }

@@ -544,6 +544,7 @@ $bgBlue: #3a84ff;
         .rule-btn {
             width: 50%;
             border: 1px solid $commonBorderColor;
+            border-radius: 0;
         }
         .manual-input-btn {
             margin-left: -5px;
@@ -649,8 +650,6 @@ $bgBlue: #3a84ff;
         font-size: 14px;
         z-index: 4;
         .ui-img {
-            width: 500px;
-            background: #000;
         }
         &:hover {
             color: #f4aa1a;
@@ -659,7 +658,7 @@ $bgBlue: #3a84ff;
             display: none;
         }
         /deep/ .bk-tooltip-inner {
-            max-width: auto !important;
+            max-width: 590px;
         }
     }
 }

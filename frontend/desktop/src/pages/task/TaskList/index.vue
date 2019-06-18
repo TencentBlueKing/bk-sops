@@ -623,6 +623,7 @@
 .task-fieldset {
     width: 100%;
     margin-bottom: 15px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .task-query-content {
@@ -732,6 +733,9 @@
     font-size: 12px;
 }
 .task-table-content {
+    .bk-button {
+        min-width: 120px;
+    }
     table {
         width: 100%;
         border: 1px solid $commonBorderColor;
@@ -743,7 +747,7 @@
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 13px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
         }
@@ -789,7 +793,7 @@
             width: 110px;
         }
         .task-method {
-            width: 110px;
+            width: 120px;
         }
         .task-status {
             width: 105px;
