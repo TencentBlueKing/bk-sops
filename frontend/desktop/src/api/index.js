@@ -1337,7 +1337,7 @@ const api = {
 
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}id`
+            url: `${prefixUrl}${id}`
         }
         return request(opts)
     },

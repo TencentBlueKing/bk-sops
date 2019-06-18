@@ -4,8 +4,8 @@
             <h3>{{permissionTitle}}</h3>
             <p>{{permissionContent}}</p>
             <div class="operation-btns">
-                <bk-button type="primary">{{i18n.apply}}</bk-button>
-                <bk-button type="default">{{i18n.create}}</bk-button>
+                <bk-button type="primary" @click="goToAuthCenter">{{i18n.apply}}</bk-button>
+                <bk-button type="default" v-if="type === 'project'">{{i18n.create}}</bk-button>
             </div>
         </div>
     </div>
@@ -13,6 +13,12 @@
 <script>
     export default {
         name: 'PermissionApply',
+        props: {
+            type: { // 权限申请类型
+                type: String,
+                default: 'project'
+            }
+        },
         data () {
             return {
                 i18n: {
@@ -27,10 +33,14 @@
         },
         computed: {
             permissionTitle () {
-                return this.i18n.resourceTitle
+                return this.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
             },
             permissionContent () {
-                return this.i18n.resourceContent
+                return this.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
+            }
+        },
+        methods: {
+            goToAuthCenter () {
             }
         }
     }

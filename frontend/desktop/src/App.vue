@@ -46,7 +46,8 @@
         data () {
             return {
                 permissinApplyShow: false,
-                isRouterAlive: true,
+                permissionType: 'project', // 无权限类型: project、other
+                isRouterAlive: false,
                 appmakerDataLoading: false // 轻应用加载 app 详情
             }
         },
@@ -56,8 +57,16 @@
                 'viewMode': state => state.view_mode,
                 'appId': state => state.app_id
             }),
+            ...mapState({
+                'project_id': state => state.project_id
+            }),
             isRouterViewShow () {
                 return !this.permissinApplyShow && this.isRouterAlive
+            }
+        },
+        watch: {
+            project_id () {
+                this.getProjectDetail()
             }
         },
         created () {
@@ -71,16 +80,18 @@
                 })
             }
 
-            if (this.viewMode === 'appmaker') {
-                this.getAppmakerDetail()
-            }
+            this.initData()
         },
         mounted () {
-            bus.$on('showLoginModal', (src) => {
+            bus.$on('showLoginModal', src => {
                 this.$refs.userLogin.show(src)
             })
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
+            })
+            bus.$on('showPermissionPage', type => {
+                this.permissinApplyShow = true
+                this.permissionType = type
             })
             bus.$on('showMessage', (info) => {
                 this.$bkMessage({
@@ -93,9 +104,30 @@
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
             ]),
+            ...mapActions('project', [
+                'loadProjectDetail'
+            ]),
             ...mapMutations([
                 'setTemplateId'
             ]),
+            ...mapMutations('project', [
+                'setCurProjectDetail'
+            ]),
+            initData () {
+                if (this.project_id !== undefined) {
+                    this.getProjectDetail()
+                } else {
+                    this.isRouterAlive = true
+                }
+                if (this.viewMode === 'appmaker') {
+                    this.getAppmakerDetail()
+                }
+            },
+            async getProjectDetail () {
+                const projectDetail = await this.loadProjectDetail(this.project_id)
+                this.setCurProjectDetail(projectDetail)
+                this.isRouterAlive = true
+            },
             async getAppmakerDetail () {
                 this.appmakerDataLoading = true
                 try {
