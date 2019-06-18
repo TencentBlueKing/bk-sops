@@ -19,7 +19,6 @@
             :list="stepList"
             :common="common"
             :task-status="'TaskCreate'"
-            :create-environment="'template'"
             :current-step="currentStep">
         </TaskStep>
         <component
