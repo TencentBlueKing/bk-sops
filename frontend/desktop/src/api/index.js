@@ -78,8 +78,8 @@ const api = {
     /**
      * 获取项目基础配置信息
      */
-    getBusinessBaseInfo () {
-        const prefixUrl = this.getPrefix('businessBaseInfo')
+    getProjectBaseInfo () {
+        const prefixUrl = this.getPrefix('projectBaseInfo')
         const opts = {
             method: 'GET',
             url: `${prefixUrl}`
@@ -420,21 +420,21 @@ const api = {
      * @param {Object} data 模板完整数据
      */
     saveTemplate (data) {
-        const { ccId, name, templateId, pipelineTree, category, notifyReceivers, notifyType, timeout, common } = data
+        const { projectId, name, templateId, pipelineTree, category, notifyReceivers, notifyType, timeout, common } = data
         let prefixUrl = ''
         if (common) {
             prefixUrl = this.getPrefix('commonTemplate')
         } else {
             prefixUrl = this.getPrefix('template')
         }
-        const business = this.getPrefix('business') + ccId + '/'
+        const project = this.getPrefix('project') + projectId + '/'
         const opts = {
             method: 'POST',
             url: prefixUrl,
             data: {
                 name,
                 pipeline_tree: pipelineTree,
-                business: business,
+                project: project,
                 category,
                 notify_receivers: notifyReceivers,
                 notify_type: notifyType,
@@ -597,7 +597,7 @@ const api = {
         const { templateId, name, description, execData, flowType, common } = data
         const prefixUrl = this.getPrefix('instance')
         const requestData = {
-            'business': `api/v3/business/${project_id}/`,
+            'project': `api/v3/project/${project_id}/`,
             'template_id': templateId,
             'creator': username,
             'name': name,
@@ -1140,7 +1140,7 @@ const api = {
             method: 'POST',
             url: prefixUrl,
             data: {
-                business: `api/v3/business/${project_id}/`,
+                project: `api/v3/project/${project_id}/`,
                 cron: cron,
                 name: name,
                 template_id: templateId,
