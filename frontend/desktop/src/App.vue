@@ -16,8 +16,9 @@
             :appmaker-data-loading="appmakerDataLoading" />
         <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
-        <permission-apply ref="permissionApply" v-if="permissinApplyShow"></permission-apply>
-        <router-view v-if="isRouterViewShow"></router-view>
+        <PermissionModal ref="permissionModal"></PermissionModal>
+        <permissionApply ref="permissionApply" v-if="permissinApplyShow"></permissionApply>
+        <router-view v-if="isRouterAlive"></router-view>
     </div>
 </template>
 <script>
@@ -27,6 +28,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
+    import PermissionModal from '@/components/common/modal/PermissionModal.vue'
     import Navigator from '@/components/layout/Navigator.vue'
     import permissionApply from '@/components/layout/permissionApply.vue'
 
@@ -36,7 +38,8 @@
             Navigator,
             UserLoginModal,
             ErrorCodeModal,
-            permissionApply
+            permissionApply,
+            PermissionModal
         },
         provide () {
             return {
@@ -93,7 +96,10 @@
                 this.permissinApplyShow = true
                 this.permissionType = type
             })
-            bus.$on('showMessage', (info) => {
+            bus.$on('showPermisionModal', data => {
+                this.$refs.PermissionModal.show(data)
+            })
+            bus.$on('showMessage', info => {
                 this.$bkMessage({
                     message: info.message,
                     theme: info.theme || 'error'
@@ -111,7 +117,7 @@
                 'setTemplateId'
             ]),
             ...mapMutations('project', [
-                'setCurProjectDetail'
+                'setCurProjectPermision'
             ]),
             initData () {
                 if (this.project_id !== undefined) {
@@ -124,9 +130,14 @@
                 }
             },
             async getProjectDetail () {
-                const projectDetail = await this.loadProjectDetail(this.project_id)
-                this.setCurProjectDetail(projectDetail)
-                this.isRouterAlive = true
+                try {
+                    const projectDetail = await this.loadProjectDetail(this.project_id)
+                    this.setCurProjectPermision(projectDetail)
+                    this.permissinApplyShow = false
+                    this.isRouterAlive = true
+                } catch (err) {
+                    this.isRouterAlive = false
+                }
             },
             async getAppmakerDetail () {
                 this.appmakerDataLoading = true

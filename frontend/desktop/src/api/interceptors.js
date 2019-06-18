@@ -48,16 +48,16 @@ axios.interceptors.response.use(
                 let viewType = ''
                 const isViewApply = permissions.some(perm => {
                     if (perm.action_id === 'view') {
-                        return permissions.resources.some(resource => {
+                        perm.resources.some(resource => {
                             viewType = 'other'
                             if (resource.resource_type === 'project') {
                                 viewType = 'project'
                                 return true
                             }
                         })
+                        return true
                     }
                 })
-                
                 if (isViewApply) {
                     bus.$emit('showPermissionPage', viewType)
                 } else {
