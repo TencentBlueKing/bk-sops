@@ -19,7 +19,6 @@ from auth_backend.resources.django import DjangoModelResource
 from auth_backend.resources.inspect import FixedCreatorFieldInspect
 
 from gcloud.tasktmpl3.models import TaskTemplate
-
 from gcloud.core.permissions import project_resource
 
 task_template_resource = DjangoModelResource(

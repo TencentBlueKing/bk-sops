@@ -19,7 +19,6 @@ from auth_backend.resources.django import DjangoModelResource
 from auth_backend.resources.inspect import FixedCreatorFieldInspect
 
 from gcloud.periodictask.models import PeriodicTask
-
 from gcloud.core.permissions import project_resource
 
 periodic_task_resource = DjangoModelResource(
