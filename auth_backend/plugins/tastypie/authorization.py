@@ -17,6 +17,7 @@ from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import ImmediateHttpResponse
 
 from ..http import HttpResponseAuthFailed
+from ..utils import build_need_permission
 
 logger = logging.getLogger('root')
 
@@ -33,13 +34,21 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
         self.delete_action_id = delete_action_id
         self.create_delegation = create_delegation
 
-    def build_auth_failed_response(self, resource_name, action_id, auth_resource=None):
+    def build_auth_failed_response(self, action_ids, instance, auth_resource=None):
         auth_resource = auth_resource or self.auth_resource
-        return ImmediateHttpResponse(HttpResponseAuthFailed(
-            resource_type_name=auth_resource.name,
-            resource_name=resource_name,
-            action_name=auth_resource.actions_map[action_id].name
-        ))
+        if isinstance(action_ids, list):
+            permissions = [build_need_permission(
+                auth_resource=auth_resource,
+                action_id=action_id,
+                instance=instance
+            ) for action_id in action_ids]
+        else:
+            permissions = [build_need_permission(
+                auth_resource=auth_resource,
+                action_id=action_ids,
+                instance=instance
+            )]
+        return ImmediateHttpResponse(HttpResponseAuthFailed(permissions))
 
     def authorized_list(self, username, action_id):
         authorized_result = self.auth_resource.backend.search_authorized_resources(resource=self.auth_resource,
@@ -69,7 +78,7 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
 
     def read_detail(self, object_list, bundle):
         if bundle.obj not in self.read_list(object_list, bundle):
-            raise self.build_auth_failed_response(self.auth_resource.resource_name(bundle.obj), self.read_action_id)
+            raise self.build_auth_failed_response(self.read_action_id, bundle.obj)
         return True
 
 
@@ -97,7 +106,7 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
                     resource=auth_resource.name,
                     error=authorized_result['message']
                 ))
-            raise self.build_auth_failed_response('', 'create', auth_resource=auth_resource)  # TODO 需支持传入多个操作 ID
+            raise self.build_auth_failed_response(action_ids, instance, auth_resource=auth_resource)
         return True
 
     def update_list(self, object_list, bundle):
@@ -107,7 +116,7 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
 
     def update_detail(self, object_list, bundle):
         if not self.update_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
-            raise self.build_auth_failed_response(self.auth_resource.resource_name(bundle.obj), self.update_action_id)
+            raise self.build_auth_failed_response(self.update_action_id, bundle.obj)
         return True
 
     def delete_list(self, object_list, bundle):
@@ -117,7 +126,7 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
 
     def delete_detail(self, object_list, bundle):
         if not self.delete_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
-            raise self.build_auth_failed_response(self.auth_resource.resource_name(bundle.obj), self.delete_action_id)
+            raise self.build_auth_failed_response(self.delete_action_id, bundle.obj)
         return True
 
 
@@ -127,7 +136,7 @@ class BkSaaSLooseReadOnlyAuthorization(BkSaaSReadOnlyAuthorization):
 
     def read_detail(self, object_list, bundle):
         if bundle.obj not in super(BkSaaSLooseReadOnlyAuthorization, self).read_list(object_list, bundle):
-            raise self.build_auth_failed_response(self.auth_resource.resource_name(bundle.obj), self.read_action_id)
+            raise self.build_auth_failed_response(self.read_action_id, bundle.obj)
         return True
 
 
