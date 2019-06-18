@@ -462,8 +462,8 @@
                 timeTypeEndTime: undefined,
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
-                businessSelected: 0,
-                timeBusinessSelected: 0,
+                businessSelected: 'all',
+                timeBusinessSelected: 'all',
                 categorySelected: 'all',
                 timeCategorySelected: 'all',
                 choiceDate: 'day'
@@ -480,7 +480,7 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: 0, cc_name: i18n.choiceAllBusiness })
+                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
