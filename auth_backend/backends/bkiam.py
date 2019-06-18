@@ -124,6 +124,26 @@ class BkIAMBackend(AuthBackend):
                                                         scope_id=resource.scope_id,
                                                         resources_actions=actions)
 
+    def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples):
+        actions = []
+        scope_type = None
+        scope_id = None
+        for perms_tuple in perms_tuples:
+            resource = perms_tuple[0]
+            instance = perms_tuple[2]
+            scope_type = resource.scope_type
+            scope_id = resource.scope_id
+            for action_id in perms_tuple[1]:
+                actions.append({'action_id': action_id,
+                                'resource_type': resource.rtype,
+                                'resource_id': self._resource_id_for(resource, instance)})
+
+        return self.client.batch_verify_resources_perms(principal_type=principal_type,
+                                                        principal_id=principal_id,
+                                                        scope_type=scope_type,
+                                                        scope_id=scope_id,
+                                                        resources_actions=actions)
+
     def search_authorized_resources(self, resource, principal_type, principal_id, action_ids):
         actions = [{'action_id': action_id, 'resource_type': resource.rtype} for action_id in action_ids]
         return self.client.search_authorized_resources(principal_type=principal_type,
