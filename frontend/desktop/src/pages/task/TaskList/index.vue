@@ -303,7 +303,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapActions('task/', [
                 'getInstanceStatus',
@@ -315,7 +315,7 @@
                 'cloneTask'
             ]),
             ...mapMutations('template/', [
-                'setBusinessBaseInfo'
+                'setProjectBaseInfo'
             ]),
             ...mapMutations('taskList/', [
                 'setTaskListData'
@@ -432,9 +432,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
+                    const bizBasicInfo = await this.loadProjectBaseInfo()
                     this.taskCategory = bizBasicInfo.task_categories
-                    this.setBusinessBaseInfo(bizBasicInfo)
+                    this.setProjectBaseInfo(bizBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)

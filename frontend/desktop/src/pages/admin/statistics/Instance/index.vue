@@ -19,7 +19,7 @@
                         <div class="content-date-business">
                             <bk-selector
                                 :list="allProjectList"
-                                :selected.sync="businessSelected"
+                                :selected.sync="taskProjectSelected"
                                 :searchable="true"
                                 :allow-clear="true"
                                 @item-selected="onInstanceCategory">
@@ -51,11 +51,11 @@
                                 :setting-name="'value'"
                                 :search-key="'name'"
                                 :setting-key="'value'"
-                                :selected.sync="categorySelected"
+                                :selected.sync="taskCategorySelected"
                                 :placeholder="i18n.choice"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onInstanceBizCcId">
+                                @item-selected="onSelectCategory">
                             </bk-selector>
                         </div>
                         <div class="content-business-picker" @click="onInstanceClick">
@@ -98,7 +98,7 @@
                         <!--项目选择-->
                         <bk-selector
                             :list="allProjectList"
-                            :selected.sync="businessSelected"
+                            :selected.sync="timeProjectSelected"
                             :searchable="true"
                             :allow-clear="true"
                             @item-selected="onChangeTimeTypeBusiness">
@@ -112,7 +112,7 @@
                             :setting-name="'value'"
                             :search-key="'name'"
                             :setting-key="'value'"
-                            :selected.sync="categorySelected"
+                            :selected.sync="timeCategorySelected"
                             :placeholder="i18n.choice"
                             :searchable="true"
                             :allow-clear="true"
@@ -153,13 +153,13 @@
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onInstanceNode"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -210,13 +210,13 @@
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-selector
                                     :list="projectList"
-                                    :selected.sync="selectedCcId"
+                                    :selected.sync="selectedProject"
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
                                     @change="onInstanceDetailsData"
-                                    @clear="onClearBizCcId"
-                                    @item-selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @item-selected="onSelectProject">
                                 </bk-selector>
                             </div>
                             <div class="content-wrap-select">
@@ -423,7 +423,7 @@
                     }
                 ],
                 instanceType: 'day',
-                selectedCcId: -1,
+                selectedProject: -1,
                 selectedCategory: -1,
                 categoryStartTime: undefined,
                 categoryEndTime: undefined,
@@ -444,8 +444,10 @@
                 timeTypeEndTime: undefined,
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
-                businessSelected: 'all',
-                categorySelected: 'all',
+                taskProjectSelected: 'all',
+                timeProjectSelected: 'all',
+                taskCategorySelected: 'all',
+                timeCategorySelected: 'all',
                 choiceDate: 'day'
             }
         },
@@ -526,7 +528,7 @@
                 }
                 this.statisticsCategory(data)
             },
-            onInstanceBizCcId (category, name) {
+            onSelectCategory (category, name) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -548,7 +550,7 @@
                         category: this.choiceCategory === 'all' ? '' : this.choiceCategory
                     })
                 }
-                this.statisticsBizCcId(data)
+                this.statisticsProjectData(data)
             },
             onInstanceNode (oldValue = null, newValue = null) {
                 if (this.tabName !== 'taskDetails') {
@@ -620,7 +622,7 @@
                     errorHandler(e, this)
                 }
             },
-            async statisticsBizCcId (data) {
+            async statisticsProjectData (data) {
                 this.isBuinsessLoading = true
                 try {
                     const templateData = await this.queryInstanceData(data)
@@ -740,7 +742,7 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onSelectedBizCcId (id) {
+            onSelectProject (id) {
                 if (this.projectId === id) {
                     return
                 }
@@ -748,8 +750,8 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onClearBizCcId () {
-                this.selectedCcId = -1
+            onClearProject () {
+                this.selectedProject = -1
                 this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
@@ -774,7 +776,7 @@
                     this.businessStartTime = dateArray[0]
                     this.businessEndTime = dateArray[1]
                 }
-                this.onInstanceBizCcId(null)
+                this.onSelectCategory(null)
             },
             resetPageIndex () {
                 switch (this.tabName) {

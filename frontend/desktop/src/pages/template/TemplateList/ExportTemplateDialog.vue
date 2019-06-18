@@ -23,7 +23,7 @@
         <div slot="content" class="export-container">
             <div class="template-wrapper">
                 <div class="search-wrapper">
-                    <div class="business-selector">
+                    <div class="project-selector">
                         <bk-selector
                             setting-key="value"
                             :list="taskCategories"
@@ -111,7 +111,7 @@
         components: {
             NoData
         },
-        props: ['isExportDialogShow', 'businessInfoLoading', 'common'],
+        props: ['isExportDialogShow', 'projectInfoLoading', 'common'],
         data () {
             return {
                 exportPending: false,
@@ -144,13 +144,13 @@
         },
         computed: {
             ...mapState({
-                'businessBaseInfo': state => state.template.businessBaseInfo
+                'projectBaseInfo': state => state.template.projectBaseInfo
             }),
             taskCategories () {
-                if (this.businessBaseInfo.task_categories.length === 0) {
+                if (this.projectBaseInfo.task_categories.length === 0) {
                     this.getCategorys()
                 }
-                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
+                const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories)
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
             }
@@ -187,7 +187,7 @@
             getGroupedList (list) {
                 const groups = []
                 const atomGrouped = []
-                this.businessBaseInfo.task_categories.forEach(item => {
+                this.projectBaseInfo.task_categories.forEach(item => {
                     groups.push(item.value)
                     atomGrouped.push({
                         name: item.name,
@@ -316,7 +316,7 @@
     .search-wrapper {
         padding: 0 18px 0 20px;
     }
-    .business-selector {
+    .project-selector {
         position: absolute;
         top: 20px;
         width: 255px;
