@@ -62,27 +62,26 @@ class Resource(object):
 
         resource_type_lib[rtype] = self
 
+    def clean_instances(self, instances):
+        return instances
+
     def resource_id(self, instance):
-        return self.inspect.resource_id(instance)
+        return self.inspect.resource_id(self.clean_instances(instance))
 
     def resource_name(self, instance):
-        return self.inspect.resource_name(instance)
+        return self.inspect.resource_name(self.clean_instances(instance))
 
     def creator_type(self, instance):
-        return self.inspect.creator_type(instance)
+        return self.inspect.creator_type(self.clean_instances(instance))
 
     def creator_id(self, instance):
-        return self.inspect.creator_id(instance)
+        return self.inspect.creator_id(self.clean_instances(instance))
 
     def parent_instance(self, child):
         return self.inspect.parent(child)
 
     def is_instance_related_action(self, action_id):
         return self.actions_map[action_id].is_instance_related
-
-    # api
-    def clean_instances(self, instances):
-        return instances
 
     def register_instance(self, instance):
         return self.backend.register_instance(resource=self, instance=self.clean_instances(instance))

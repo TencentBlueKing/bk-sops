@@ -14,9 +14,9 @@ specific language governing permissions and limitations under the License.
 from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.resources.base import Action
-from auth_backend.backends.bkiam import BkIAMBackend
 from auth_backend.resources.django import DjangoModelResource
 from auth_backend.resources.inspect import FixedCreatorFieldInspect
+from auth_backend.backends import get_backend_from_config
 
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.core.permissions import project_resource
@@ -48,7 +48,7 @@ periodic_task_resource = DjangoModelResource(
     ],
     parent=project_resource,
     resource_cls=PeriodicTask,
-    backend=BkIAMBackend(),
+    backend=get_backend_from_config(),
     inspect=FixedCreatorFieldInspect(creator_type='user',
                                      creator_id_f='creator',
                                      resource_id_f='id',

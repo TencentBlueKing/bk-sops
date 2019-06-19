@@ -103,6 +103,7 @@ MIDDLEWARE += (
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
+    'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
 )
 
 # 所有环境的日志级别可以在这里配置
@@ -218,6 +219,8 @@ DEFAULT_BK_API_VER = 'v2'
 BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
 BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
 BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', ugettext_lazy(u"标准运维"))
+BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
+AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BkIAMBackend')
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
 
 # tastypie 配置
