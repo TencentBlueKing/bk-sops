@@ -31,9 +31,9 @@ def verify_perms(auth_resource, resource_get, actions):
             username = request.user.username
 
             try:
-                if resource_get['from'] == 'arg':
+                if resource_get['from'] == 'args':
                     instance_id = args[resource_get['key']]
-                elif resource_get['from'] == 'kwarg':
+                elif resource_get['from'] == 'kwargs':
                     instance_id = kwargs[resource_get['key']]
                 else:
                     request_params = getattr(request, request.method)
