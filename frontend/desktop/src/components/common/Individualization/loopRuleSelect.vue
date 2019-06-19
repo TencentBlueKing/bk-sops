@@ -163,7 +163,6 @@
     import '@/utils/i18n.js'
     import { PERIODIC_REG } from '@/constants/index.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
-    // const cron = require('@/plugins/node-cron-valid/node-cron-vaild.js')
     const autoRuleList = [
         {
             key: 'min',
@@ -453,7 +452,10 @@
                     this.currentWay = 'manualInput'
                     flag = false
                 }
-                return flag ? (this.currentWay === 'manualInput' ? this.periodicCron : this.expressionShowText) : false
+                return {
+                    check: flag,
+                    rule: this.currentWay === 'manualInput' ? this.periodicCron : this.expressionShowText
+                }
             },
             /**
              * 根据表达式设置选中状态

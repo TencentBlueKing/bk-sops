@@ -269,9 +269,9 @@
                 }
             },
             onCreateTask () {
-                const loopRule = this.$refs.loopRuleSelect.validationExpression()
+                const loopRule = !this.isStartNow ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
+                if (!loopRule.check) return
                 if (this.isSubmit) return
-                if (typeof loopRule !== 'string') return
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then(async (result) => {
                     let formValid = true
@@ -329,7 +329,7 @@
                         }
                     } else {
                         // 创建周期任务
-                        const cronArray = loopRule.split(' ')
+                        const cronArray = loopRule.rule.split(' ')
                         const cron = JSON.stringify({
                             'minute': cronArray[0],
                             'hour': cronArray[1],
