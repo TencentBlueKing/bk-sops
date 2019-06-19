@@ -47,7 +47,7 @@ axios.interceptors.response.use(
                 bus.$emit('showErrorModal', response.status, response.data.responseText)
                 break
             case 499:
-                const permissions = response.data.permissions
+                const permissions = response.data.permission
                 let viewType = ''
                 const isViewApply = permissions.some(perm => {
                     if (perm.action_id === 'view') {

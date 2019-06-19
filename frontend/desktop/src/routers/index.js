@@ -27,8 +27,6 @@ const TaskList = () => import('@/pages/task/TaskList/index.vue')
 const TaskCreate = () => import('@/pages/task/TaskCreate/index.vue')
 const TaskExecute = () => import('@/pages/task/TaskExecute/index.vue')
 
-const ConfigPage = () => import('@/pages/config/index.vue')
-
 const AppMaker = () => import('@/pages/appmaker/index.vue')
 const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
 
@@ -163,13 +161,6 @@ const routers = new VueRouter({
                         instance_id: route.query.instance_id
                     })
                 }]
-        },
-        {
-            path: '/config/home/:project_id/',
-            component: ConfigPage,
-            props: (route) => ({
-                project_id: route.params.project_id
-            })
         },
         {
             path: '/appmaker/home/:project_id/',
