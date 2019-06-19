@@ -103,7 +103,9 @@
                         fixedrange: true
                     },
                     xaxis: {
-                        fixedrange: true
+                        type: 'date',
+                        tickformat: '%Y-%m-%d',
+                        tickmode: 'auto'
                     }
                 }
                 this.chart = Plotly.newPlot('chart-statistics-div', data, layout, { displayModeBar: false })
