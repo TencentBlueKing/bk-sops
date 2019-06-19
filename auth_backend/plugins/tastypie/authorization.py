@@ -37,18 +37,18 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
     def build_auth_failed_response(self, action_ids, instance, auth_resource=None):
         auth_resource = auth_resource or self.auth_resource
         if isinstance(action_ids, list):
-            permissions = [build_need_permission(
+            permission = [build_need_permission(
                 auth_resource=auth_resource,
                 action_id=action_id,
                 instance=instance
             ) for action_id in action_ids]
         else:
-            permissions = [build_need_permission(
+            permission = [build_need_permission(
                 auth_resource=auth_resource,
                 action_id=action_ids,
                 instance=instance
             )]
-        return ImmediateHttpResponse(HttpResponseAuthFailed(permissions))
+        return ImmediateHttpResponse(HttpResponseAuthFailed(permission))
 
     def authorized_list(self, username, action_id):
         authorized_result = self.auth_resource.backend.search_authorized_resources(resource=self.auth_resource,
