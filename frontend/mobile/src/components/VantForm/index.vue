@@ -108,13 +108,39 @@
                                 defaultVal: item.attrs.multiple ? item.attrs.value : [item.attrs.items.findIndex(o => o.text === this.value)],
                                 tagCode: this.customType ? this.customType : this.sourceCode
                             }
+                        } else if (item.type === 'radio') {
+                            // radio用picker代替
+                            const radioDefaultVal = this.value ? this.value : item.attrs.default
+                            const defaultIndex = item.attrs.items.findIndex((value) => {
+                                if (typeof value === 'object') {
+                                    return value.value === radioDefaultVal
+                                } else {
+                                    return value === item.attrs.default
+                                }
+                            })
+                            this.domAttr.select = {
+                                multiple: false,
+                                columns: item.attrs.items,
+                                defaultIndex: defaultIndex,
+                                tagCode: this.customType ? this.customType : this.sourceCode
+                            }
                         } else if (item.type === 'checkbox') {
-                            const checkboxData = item.attrs.items
-                            const checkedList = checkboxData.filter(o => item.attrs['default'].includes(o.value)).map(({ name }) => name)
-                            this.data.value = checkedList.join(',')
-                            this.domAttr.checkbox = {
-                                checkedList: item.attrs['default'],
-                                list: checkboxData.map(({ value }) => value)
+                            const checkboxData = []
+                            const checkValueList = this.data.value
+                            const checkedNameList = []
+                            item.attrs.items.forEach(i => {
+                                const selected = this.data.value.includes(i.value)
+                                if (selected) {
+                                    checkedNameList.push(i.name)
+                                }
+                                checkboxData.push(Object.assign({}, { selected: selected, text: i.name }, i))
+                            })
+                            this.value = checkedNameList.join(',')
+                            this.domAttr.select = {
+                                multiple: true,
+                                columns: checkboxData,
+                                defaultVal: checkValueList,
+                                tagCode: this.customType ? this.customType : this.sourceCode
                             }
                         } else if (item.type === 'int') {
                             this.value = this.value ? Number.parseInt(this.value) : 0
@@ -140,7 +166,11 @@
             },
 
             fillDomConfig () {
-                this.domName = 'vant-' + this.componentTag
+                if (this.componentTag === 'radio' || this.componentTag === 'checkbox') {
+                    this.domName = 'vant-select'
+                } else {
+                    this.domName = 'vant-' + this.componentTag
+                }
                 this.domAttr.label = this.label
                 this.domAttr.placeholder = this.placeholder
                 this.domAttr.value = this.value
@@ -157,7 +187,7 @@
             return h(this.domName, {
                 nativeOn: {
                     change: function (event) {
-                        if (self.customType !== 'password') {
+                        if (self.componentTag !== 'password') {
                             self.$emit('dataChange', event.target.value, self.data.key)
                         } else {
                             const crypt = new JSEncrypt()
@@ -166,14 +196,20 @@
                         }
                     },
                     click: function (event) {
-                        if (self.customType === 'datetime') {
-                            self.$emit('dataChange', event.target.value, self.data.key, self.customType)
-                        } else if (self.customType === 'select') {
+                        if (self.componentTag === 'datetime') {
+                            self.$emit('dataChange', event.target.value, self.data.key, self.componentTag)
+                        } else if (self.componentTag === 'select' || self.componentTag === 'checkbox') {
                             let val = self.$refs[self.data.key].value
+                            if (self.componentTag === 'checkbox') {
+                                val = self.$refs[self.data.key].checkedValue
+                            }
                             if (val !== self.data.value) {
                                 val = val ? val.split(',') : []
-                                self.$emit('dataChange', val, self.data.key, self.customType)
+                                self.$emit('dataChange', val, self.data.key, self.componentTag)
                             }
+                        } else if (self.componentTag === 'radio') {
+                            const radioVal = self.$refs[self.data.key].choseKey
+                            self.$emit('dataChange', radioVal, self.data.key, self.componentTag)
                         }
                     }
                 },
