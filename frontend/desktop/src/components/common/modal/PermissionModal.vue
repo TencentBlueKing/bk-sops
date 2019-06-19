@@ -11,7 +11,7 @@
 */
 <template>
     <bk-dialog
-        ext-cls="error-content-dialog"
+        ext-cls="permission-dialog"
         :is-show="isModalShow"
         :title="' '"
         :width="'600'"
@@ -29,34 +29,17 @@
             <table class="permission-table table-header">
                 <thead>
                     <tr>
-                        <th width="30%">{{i18n.system}}</th>
-                        <th width="35%">{{i18n.resource}}</th>
-                        <th width="35%">{{i18n.requiredPermissions}}</th>
+                        <th width="60%">{{i18n.resource}}</th>
+                        <th width="40%">{{i18n.requiredPermissions}}</th>
                     </tr>
                 </thead>
             </table>
             <div class="table-content">
                 <table class="permission-table">
                     <tbody>
-                        <tr>
-                            <td width="30%">作业平台</td>
-                            <td width="35%">作业：gse初始化作业作业：gse初始化作业作业：gse初始化作业</td>
-                            <td width="35%">查看，执行</td>
-                        </tr>
-                        <tr>
-                            <td>作业平台</td>
-                            <td>快速脚本执行作业：gse初始化作业</td>
-                            <td>执行</td>
-                        </tr>
-                        <tr>
-                            <td>作业平台</td>
-                            <td>快速脚本执行作业：gse初始化作业</td>
-                            <td>执行</td>
-                        </tr>
-                        <tr>
-                            <td>作业平台</td>
-                            <td>快速脚本执行作业：gse初始化作业</td>
-                            <td>执行</td>
+                        <tr v-for="(permission, index) in list" :key="index">
+                            <td width="60%">{{permission.resource}}</td>
+                            <td width="40%">{{permission.actions.map(item => item.name).join(',')}}</td>
                         </tr>
                         <tr v-if="false">
                             <td class="no-data" colspan="3">{{i18n.noData}}</td>
@@ -105,6 +88,9 @@
     }
 </script>
 <style lang="scss" scoped>
+    .permission-dialog {
+        z-index: 1501;
+    }
     /deep/ .permission-content {
         margin-top: -26px;
         .permission-header {
@@ -121,7 +107,6 @@
         }
         .permission-table {
             width: 100%;
-            height: 100px;
             color: #63656e;
             border: 1px solid #dcdee5;
             border-collapse: collapse;

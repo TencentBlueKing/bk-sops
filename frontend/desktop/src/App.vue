@@ -17,8 +17,12 @@
         <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
-        <permissionApply ref="permissionApply" v-if="permissinApplyShow"></permissionApply>
-        <router-view v-if="isRouterAlive"></router-view>
+        <permissionApply
+            v-if="permissinApplyShow"
+            ref="permissionApply"
+            :type="permissionType">
+        </permissionApply>
+        <router-view v-if="isRouterViewShow"></router-view>
     </div>
 </template>
 <script>
@@ -96,8 +100,8 @@
                 this.permissinApplyShow = true
                 this.permissionType = type
             })
-            bus.$on('showPermisionModal', data => {
-                this.$refs.PermissionModal.show(data)
+            bus.$on('showPermissionModal', data => {
+                this.$refs.permissionModal.show(data)
             })
             bus.$on('showMessage', info => {
                 this.$bkMessage({
@@ -117,7 +121,7 @@
                 'setTemplateId'
             ]),
             ...mapMutations('project', [
-                'setCurProjectPermision'
+                'setCurProjectDetail'
             ]),
             initData () {
                 if (this.project_id !== undefined) {
@@ -132,10 +136,11 @@
             async getProjectDetail () {
                 try {
                     const projectDetail = await this.loadProjectDetail(this.project_id)
-                    this.setCurProjectPermision(projectDetail)
+                    this.setCurProjectDetail(projectDetail)
                     this.permissinApplyShow = false
                     this.isRouterAlive = true
                 } catch (err) {
+                    errorHandler(err, this)
                     this.isRouterAlive = false
                 }
             },
@@ -163,6 +168,9 @@
     @import './scss/app.scss';
     html,body {
         height:100%;
+    }
+    body.bk-dialog-shown {
+        overflow: hidden;
     }
     #app {
         height: 100%;

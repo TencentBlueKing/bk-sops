@@ -49,7 +49,8 @@
                 projectList: state => state.projectList
             }),
             projects () {
-                const projects = [
+                const projects = []
+                const projectsGroup = [
                     {
                         name: this.i18n.biz,
                         children: []
@@ -61,11 +62,18 @@
                 ]
                 this.projectList.forEach(item => {
                     if (item.from_cmdb) {
-                        projects[0].children.push(item)
+                        projectsGroup[0].children.push(item)
                     } else {
-                        projects[1].children.push(item)
+                        projectsGroup[1].children.push(item)
                     }
                 })
+                
+                projectsGroup.forEach(group => {
+                    if (group.children.length) {
+                        projects.push(group)
+                    }
+                })
+
                 return projects
             },
             currentProject: {
