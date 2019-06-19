@@ -163,7 +163,7 @@ class ProjectResource(GCloudModelResource):
     ALLOW_UPDATE_FIELD = {'desc', 'is_disable'}
 
     class Meta:
-        queryset = Project.objects.all()
+        queryset = Project.objects.all().order_by('-id')
         resource_name = 'project'
         authorization = BkSaaSLooseAuthorization(auth_resource=project_resource,
                                                  read_action_id='view',
