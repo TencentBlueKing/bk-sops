@@ -61,6 +61,9 @@
                 default: 1
             }
         },
+        mounted () {
+            console.log(this.data, 'sssssss')
+        },
         methods: {
             getNodeActivedState (id) {
                 const len = this.selectedFlowPath.length

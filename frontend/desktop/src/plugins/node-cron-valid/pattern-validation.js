@@ -82,8 +82,6 @@ module.exports = ( () => {
 
   function validateFields(patterns, executablePatterns, common_config, ErrorException){
     var errorKey = common_config.language === 'en' ? 'error_en' : 'error_ch'
-    console.log('errorKey', errorKey)
-    console.log(patterns, 'patterns')
     if (isIncludeDecimals(patterns).valid) {
         var currIndex = isIncludeDecimals(patterns).index
         throw new ErrorException(patterns[currIndex] + KEYSMAP[currIndex][errorKey]);

@@ -500,14 +500,6 @@
                     this.renderRule()
                 })
             }
-            // onInputBlur () {
-            //     const ss = cron.validate(this.periodicCron, { language: 'ch' })
-            //     console.log(ss)
-            // },
-            // onInputName () {
-            //     const ss = cron.validate(this.periodicCron, { language: 'ch' })
-            //     console.log(ss)
-            // }
         }
     }
 </script>
