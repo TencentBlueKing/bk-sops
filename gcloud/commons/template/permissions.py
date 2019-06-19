@@ -53,6 +53,14 @@ common_template_resource = DjangoModelResource(
         {
             'operate_id': 'create_task',
             'actions_id': ['view', 'create_task']
+        },
+        {
+            'operate_id': 'clone',
+            'actions_id': ['view']
+        },
+        {
+            'operate_id': 'export',
+            'actions_id': ['view']
         }
     ],
     resource_cls=CommonTemplate,
