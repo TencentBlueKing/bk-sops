@@ -30,7 +30,7 @@ def verify_perms(auth_resource, resource_get, actions):
         def _wrapped_view(request, *args, **kwargs):
             username = request.user.username
             instance_id = None
-            
+
             if resource_get:
                 try:
                     if resource_get['from'] == 'args':
