@@ -25,6 +25,7 @@ urlpatterns = [
 
     url(r'^core/api/get_basic_info/$', api.get_basic_info),
     url(r'^core/api/query_apply_permission_url/$', api.query_apply_permission_url),
+    url(r'^core/api/query_resource_verify_perms/$', api.query_resource_verify_perms),
     url(r'^core/get_cache_key/(?P<key>\w+)/$', command.get_cache_key),
     url(r'^core/delete_cache_key/(?P<key>\w+)/$', command.delete_cache_key),
 
