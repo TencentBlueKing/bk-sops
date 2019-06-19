@@ -1,1 +1,0 @@
-{"version":3,"sources":["webpack:///./src/components/layout/NotFoundComponent.vue"],"names":[],"mappings":"AAAA;AACA;AACA;AACA;AACA;AACA;AACA;AACA","file":"dev/dist/css/25.css","sourcesContent":[".exception-box {\n  margin: 150px auto 0;\n  width: 300px;\n  text-align: center;\n}\n.exception-box img {\n    width: 100%;\n}\n"],"sourceRoot":""}
