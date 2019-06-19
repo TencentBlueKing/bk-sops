@@ -22,7 +22,7 @@ from .constants import AUTH_FORBIDDEN_CODE
 class HttpResponseAuthFailed(HttpResponse):
     status_code = 499
 
-    def __init__(self, permissions, *args, **kwargs):
+    def __init__(self, permission, *args, **kwargs):
         kwargs.setdefault('content_type', 'application/json')
         super(HttpResponse, self).__init__(*args, **kwargs)
         # Content is a bytestring. See the `content` property methods.
@@ -31,6 +31,6 @@ class HttpResponseAuthFailed(HttpResponse):
             'code': AUTH_FORBIDDEN_CODE,
             'message': 'you have no permission to operate',
             'data': {},
-            'permissions': permissions
+            'permission': permission
         }
         self.content = json.dumps(result, cls=DjangoJSONEncoder)

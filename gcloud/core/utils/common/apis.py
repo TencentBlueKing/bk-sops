@@ -11,13 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from pipeline.utils.http import http_post_request
 
-from gcloud.core.models import Business
+from gcloud.conf import settings
 
 
-@receiver(post_save, sender=Business)
-def business_post_save_handler(sender, instance, created, **kwargs):
-    if created:
-        pass
+BK_IAM_APPLY_URL_QUERY_URL = '%s/o/%s/api/v1/apply-permission/url/' % (settings.BK_PAAS_HOST, settings.BK_IAM_APP_CODE)
+
+
+def apply_permission_url(permission):
+    """
+    @summary: 获取到权限申请URL，在很短时间内（可能1分钟）将失效
+    @param permission:
+    @return:
+    """
+    result = http_post_request(BK_IAM_APPLY_URL_QUERY_URL, json=permission, verify=False)
+    return result
