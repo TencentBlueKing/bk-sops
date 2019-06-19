@@ -19,7 +19,9 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
+
 from gcloud.conf import settings
+from pipeline_plugins.components.utils.common import supplier_account_for_business
 
 logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -144,13 +146,16 @@ class CCTransferHostModuleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        cc_modules = data.get_one_of_inputs('cc_modules')
+
+        biz_cc_id = cc_modules['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
@@ -159,7 +164,7 @@ class CCTransferHostModuleService(Service):
             data.set_outputs('ex_data', host_result['message'])
             return False
 
-        cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_module_select'))
+        cc_module_select = cc_format_tree_mode_id(cc_modules['cc_module_select'])
         cc_is_increment = data.get_one_of_inputs('cc_is_increment')
 
         cc_kwargs = {
@@ -192,13 +197,16 @@ class CCUpdateHostService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_host_property = data.get_one_of_inputs('cc_biz_host_property')
+
+        biz_cc_id = biz_host_property['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
@@ -208,7 +216,7 @@ class CCUpdateHostService(Service):
             return False
 
         # 更新主机属性
-        cc_host_property = data.get_one_of_inputs('cc_host_property')
+        cc_host_property = biz_host_property['cc_host_property']
         if cc_host_property == "bk_isp_name":
             bk_isp_name = cc_format_prop_data(executor,
                                               'host',
@@ -284,14 +292,14 @@ class CCReplaceFaultMachineService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_hosts = data.get_one_of_inputs('cc_host_replace_detail')
 
         # 查询主机可编辑属性
@@ -456,15 +464,18 @@ class CCEmptySetHostsService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
+        cc_sets = data.get_one_of_inputs('cc_sets')
+
+        biz_cc_id = cc_sets['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
+
+        cc_set_select = cc_format_tree_mode_id(cc_sets['cc_set_select'])
         for set_id in cc_set_select:
             cc_kwargs = {
                 "bk_biz_id": biz_cc_id,
@@ -495,15 +506,17 @@ class CCBatchDeleteSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
+        cc_sets = data.get_one_of_inputs('cc_sets')
+        biz_cc_id = cc_sets['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
+
+        cc_set_select = cc_format_tree_mode_id(cc_sets['cc_set_select'])
 
         cc_kwargs = {
             "bk_biz_id": biz_cc_id,
@@ -536,15 +549,17 @@ class CCUpdateSetServiceStatusService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
+        cc_sets = data.get_one_of_inputs('cc_sets')
+
+        biz_cc_id = cc_sets['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
+        cc_set_select = cc_format_tree_mode_id(cc_sets['cc_set_select'])
 
         for set_id in cc_set_select:
             cc_kwargs = {
@@ -579,16 +594,18 @@ class CCCreateSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_parent_select'))
-        cc_set_info = data.get_one_of_inputs('cc_set_info')
+        cc_sets = data.get_one_of_inputs('cc_sets')
+
+        biz_cc_id = cc_sets['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
+        cc_set_parent_select = cc_format_tree_mode_id(cc_sets['cc_set_parent_select'])
+        cc_set_info = cc_sets['cc_set_info']
         cc_kwargs = {
             'bk_biz_id': biz_cc_id,
             'bk_supplier_account': supplier_account,
@@ -656,17 +673,19 @@ class CCUpdateSetService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
+        biz_set_property = data.get_one_of_inputs('cc_biz_set_property')
 
-        cc_set_property = data.get_one_of_inputs('cc_set_property')
+        biz_cc_id = biz_set_property['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
+        cc_set_select = cc_format_tree_mode_id(biz_set_property['cc_set_select'])
+
+        cc_set_property = biz_set_property['cc_set_property']
         if cc_set_property == "bk_service_status":
             bk_service_status = cc_format_prop_data(executor,
                                                     'set',
@@ -733,14 +752,16 @@ class CCUpdateModuleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_module_property = data.get_one_of_inputs('cc_biz_module_property')
+
+        biz_cc_id = biz_module_property['biz_cc_id']
+        supplier_account = supplier_account_for_business(biz_cc_id)
         kwargs = {
             "bk_biz_id": biz_cc_id,
             "bk_supplier_account": supplier_account
@@ -753,8 +774,8 @@ class CCUpdateModuleService(Service):
             data.set_outputs('ex_data', message)
             return False
 
-        cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_module_select'))
-        cc_module_property = data.get_one_of_inputs('cc_module_property')
+        cc_module_select = cc_format_tree_mode_id(biz_module_property['cc_module_select'])
+        cc_module_property = biz_module_property['cc_module_property']
         if cc_module_property == "bk_module_type":
             bk_module_type = cc_format_prop_data(executor,
                                                  'module',
@@ -806,13 +827,14 @@ class CCTransferHostToIdleService(Service):
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
