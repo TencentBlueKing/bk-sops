@@ -11,13 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.utils.deprecation import MiddlewareMixin
+
 from ..exceptions import AuthFailedException
 from .http import HttpResponseAuthFailed
 
 
-class AuthFailedExceptionMiddleware(object):
-    def __init__(self, get_response):
-        self.get_response = get_response
+class AuthFailedExceptionMiddleware(MiddlewareMixin):
 
     def __call__(self, request):
         # Code to be executed for each request before

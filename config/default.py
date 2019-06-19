@@ -219,7 +219,7 @@ DEFAULT_BK_API_VER = 'v2'
 BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
 BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', ugettext_lazy(u"标准运维"))
 BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
-AUTH_BACKEND_CLS = 'auth_backend.backends.bkiam.BkIAMBackend'
+AUTH_BACKEND_CLS = os.getenv('BKAPP_ AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BkIAMBackend')
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']
