@@ -21,7 +21,6 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.analysis.permissions import statistics_resource
 from gcloud.core.constant import AE
 from gcloud.core.constant import TASK_CATEGORY
-from gcloud.core.decorators import check_is_superuser
 from gcloud.core.utils import check_and_rename_params
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
