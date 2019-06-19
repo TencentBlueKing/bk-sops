@@ -156,7 +156,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -230,6 +230,10 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'authActions': state => state.authActions,
+                'authPermissions': state => state.authPermissions
+            }),
             projectDialogTitle () {
                 return this.dialogType === 'create' ? this.i18n.createProject : this.i18n.editProject
             },

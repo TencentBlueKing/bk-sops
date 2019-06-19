@@ -15,6 +15,7 @@ const project = {
     namespaced: true,
     state: {
         project_id: window.DEFAULT_PROJECT_ID,
+        projectName: '',
         projectList: [],
         timeZone: window.TIMEZONE,
         authActions: [],
@@ -30,9 +31,10 @@ const project = {
         setTimeZone (state, data) {
             state.timeZone = data
         },
-        setCurProjectPermision (state, data) {
+        setCurProjectDetail (state, data) {
             state.authActions = data.auth_actions
             state.authOperations = data.auth_operations
+            state.projectName = data.name
         }
     },
     actions: {
@@ -44,8 +46,10 @@ const project = {
         loadProjectList ({ commit }, data) {
             return api.loadProjectList(data).then(response => {
                 if (data && data.limit === 0) {
-                    commit('setProjectList', response.data.objects)
+                    const authedList = response.data.objects.filter(item => item.auth_actions.indexOf('view') > -1)
+                    commit('setProjectList', authedList)
                 }
+                
                 return response.data
             })
         },

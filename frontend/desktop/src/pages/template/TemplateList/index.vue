@@ -14,12 +14,15 @@
         <div class="list-wrapper">
             <BaseTitle :title="common ? i18n.commonFlow : i18n.projectFlow"></BaseTitle>
             <div class="operation-area clearfix">
-                <router-link
-                    class="bk-button bk-primary create-template"
+                <bk-button
                     v-show="showOperationBtn"
-                    :to="getNewTemplateUrl()">
+                    type="primary"
+                    :class="['create-template', {
+                        'btn-permission-disable': !hasPermission(['create_template'], authActions, authOperations)
+                    }]"
+                    @click="checkCreatePermission">
                     {{i18n.new}}
-                </router-link>
+                </bk-button>
                 <bk-button
                     type="default"
                     class="template-btn"
@@ -114,12 +117,16 @@
                         <tr v-for="item in listData" :key="item.id">
                             <td class="template-id">{{item.id}}</td>
                             <td class="template-name">
-                                <router-link
+                                <a
                                     v-if="!common || !common_template"
                                     :title="item.name"
-                                    :to="getEditTemplateUrl(item.id)">
+                                    :href="getEditTemplateUrl(item.id)"
+                                    :class="['template-operate-btn', {
+                                        'text-permisson-disable': !hasPermission(['view'], item.auth_actions, item.auth_operations)
+                                    }]"
+                                    @click="onTemplatePermissonCheck(['view'], item, $event)">
                                     {{item.name}}
-                                </router-link>
+                                </a>
                                 <p v-else>{{item.name}}</p>
                             </td>
                             <td class="template-type">{{item.category_name}}</td>
@@ -130,30 +137,47 @@
                             <td class="template-creator">{{item.creator_name}}</td>
                             <td class="template-operation" v-if="!common && !common_template">
                                 <!-- 项目流程按钮 -->
-                                <router-link
-                                    class="create-template-btn"
-                                    :to="getNewTaskUrl(item.id)">
+                                <a
+                                    :class="['template-operate-btn', {
+                                        'text-permisson-disable': !hasPermission(['create_task'], item.auth_actions, item.auth_operations)
+                                    }]"
+                                    :href="getNewTaskUrl(item.id)"
+                                    @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{ i18n.newTemplate }}
-                                </router-link>
-                                <router-link
-                                    class="create-template-btn"
-                                    :to="getEditTemplateUrl(item.id)">
+                                </a>
+                                <a
+                                    :class="['template-operate-btn', {
+                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                    }]"
+                                    :href="getEditTemplateUrl(item.id)"
+                                    @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{ i18n.edit }}
-                                </router-link>
+                                </a>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
-                                            <router-link :to="getCloneUrl(item.id)">{{ i18n.clone }}</router-link>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:void(0);" @click="onManageAuthority(item.id)">{{ i18n.authority }}</a>
+                                            <a
+                                                :class="{
+                                                    'text-permisson-disable': !hasPermission(['clone'], item.auth_actions, item.auth_operations)
+                                                }"
+                                                :href="getCloneUrl(item.id)"
+                                                @click="onTemplatePermissonCheck(['clone'], item, $event)">
+                                                {{ i18n.clone }}
+                                            </a>
                                         </li>
                                         <li>
                                             <router-link :to="getExecuteHistoryUrl(item.id)">{{ i18n.executeHistory }}</router-link>
                                         </li>
                                         <li>
-                                            <a href="javascript:void(0);" @click="onDeleteTemplate(item.id, item.name)">{{ i18n.delete }}</a>
+                                            <a
+                                                href="javascript:void(0);"
+                                                :class="{
+                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
+                                                }"
+                                                @click="onDeleteTemplate(item, $event)">
+                                                {{ i18n.delete }}
+                                            </a>
                                         </li>
                                     </ul>
                                 </bk-dropdown-menu>
@@ -161,16 +185,13 @@
                             <td class="template-operation" v-else-if="common_template || !common">
                                 <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                 <router-link
-                                    class="create-template-btn"
+                                    class="template-operate-btn"
                                     :to="getNewTaskUrl(item.id)">
                                     {{ i18n.newTemplate }}
                                 </router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
-                                        <li>
-                                            <a href="javascript:void(0);" @click="onManageAuthority(item.id)">{{ i18n.authority }}</a>
-                                        </li>
                                         <li>
                                             <router-link :to="getExecuteHistoryUrl(item.id)">{{ i18n.executeHistory }}</router-link>
                                         </li>
@@ -179,7 +200,7 @@
                             </td>
                             <td class="template-operation" v-else-if="common">
                                 <!-- 公共流程首页 -->
-                                <router-link class="create-template-btn" :to="getEditTemplateUrl(item.id)">{{ i18n.edit}}</router-link>
+                                <router-link class="template-operate-btn" :to="getEditTemplateUrl(item.id)">{{ i18n.edit}}</router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -243,15 +264,6 @@
                 {{i18n.deleleTip + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
-        <AuthorityManageDialog
-            v-if="isAuthorityDialogShow"
-            :is-authority-dialog-show="isAuthorityDialogShow"
-            :template-id="theAuthorityManageId"
-            :pending="pending.authority"
-            :common="common_template"
-            @onAuthorityConfirm="onAuthorityConfirm"
-            @onAuthorityCancel="onAuthorityCancel">
-        </AuthorityManageDialog>
     </div>
 </template>
 <script>
@@ -262,23 +274,24 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
-    import AuthorityManageDialog from './AuthorityManageDialog.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
+
     export default {
         name: 'TemplateList',
         components: {
             CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
-            AuthorityManageDialog,
             BaseTitle,
             BaseSearch,
             NoData
         },
+        mixins: [permission],
         props: ['project_id', 'common', 'common_template'],
         data () {
             return {
@@ -296,7 +309,6 @@
                     newTemplate: gettext('新建任务'),
                     edit: gettext('编辑'),
                     clone: gettext('克隆'),
-                    authority: gettext('使用权限'),
                     delete: gettext('删除'),
                     executeHistory: gettext('执行历史'),
                     deleleTip: gettext('确认删除'),
@@ -340,8 +352,7 @@
                 isAdvancedSerachShow: false,
                 pending: {
                     export: false, // 导出
-                    delete: false, // 删除
-                    authority: false // 使用权限
+                    delete: false // 删除
                 },
                 flowName: undefined,
                 templateCategorySync: -1,
@@ -375,7 +386,10 @@
                 'v1_import_flag': state => state.v1_import_flag
             }),
             ...mapState('project', {
-                'timeZone': state => state.timezone
+                'timeZone': state => state.timezone,
+                'authActions': state => state.authActions,
+                'authOperations': state => state.authOperations,
+                'projectName': state => state.projectName
             }),
             listData () {
                 return this.common === 1 ? this.commonTemplateData : this.templateList
@@ -466,6 +480,18 @@
                     this.categoryLoading = false
                 }
             },
+            checkCreatePermission () {
+                if (!this.hasPermission(['create_template'], this.authActions, this.authOperations)) {
+                    const permissions = []
+                    const actions = this.authOperations.find(item => item.operate_id === 'create_template').actions
+                    const resource = this.projectName
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                } else {
+                    const url = this.getNewTemplateUrl()
+                    this.$router.push(url)
+                }
+            },
             searchInputhandler () {
                 this.currentPage = 1
                 this.getTemplateList()
@@ -506,18 +532,39 @@
             onExportCancel () {
                 this.isExportDialogShow = false
             },
-            onDeleteTemplate (id, name) {
-                this.theDeleteTemplateId = id
-                this.deleteTemplateName = name
+            onDeleteTemplate (template, event) {
+                if (!this.hasPermission(['delete'], template.auth_actions, template.auth_operations)) {
+                    this.onTemplatePermissonCheck(['delete'], template, event)
+                    return
+                }
+                this.theDeleteTemplateId = template.id
+                this.deleteTemplateName = template.name
                 this.isDeleteDialogShow = true
             },
             onPageChange (page) {
                 this.currentPage = page
                 this.getTemplateList()
             },
-            onManageAuthority (id) {
-                this.isAuthorityDialogShow = true
-                this.theAuthorityManageId = id
+            /**
+             * 单个模板操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} template 模板数据对象
+             * @params {Object} event 事件对象
+             */
+            onTemplatePermissonCheck (required, template, event) {
+                if (!this.hasPermission(required, template.auth_actions, template.auth_operations)) {
+                    const permissions = []
+                    let actions = []
+                    template.auth_operations.filter(item => {
+                        return required.includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    const resource = template.name
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                    event.preventDefault()
+                }
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return
@@ -548,23 +595,6 @@
             onDeleteCancel () {
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
-            },
-            async onAuthorityConfirm (data) {
-                if (this.pending.authority) return
-                this.pending.authority = true
-                try {
-                    await this.saveTemplatePersons(data)
-                    this.isAuthorityDialogShow = false
-                    this.theAuthorityManageId = undefined
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.pending.authority = false
-                }
-            },
-            onAuthorityCancel () {
-                this.isAuthorityDialogShow = false
-                this.theAuthorityManageId = undefined
             },
             // 获取编辑按钮的跳转链接
             getEditTemplateUrl (id) {
@@ -661,7 +691,6 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
-@import '@/scss/mixins/cursor.scss';
 .template-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
@@ -869,6 +898,9 @@
         .template-creator {
             width: 110px;
         }
+        .template-operate-btn {
+            color: $blueDefault;
+        }
         .template-operation {
             width: 260px;
         }
@@ -878,11 +910,6 @@
         line-height: 22px;
         padding: 0 11px;
         font-size: 12px;
-    }
-    .create-template-btn {
-        padding: 5px;
-        color: #3c96ff;
-        @include cursor;
     }
     .drop-icon-ellipsis {
         position: absolute;
