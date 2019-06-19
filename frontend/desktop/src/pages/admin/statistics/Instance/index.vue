@@ -36,9 +36,10 @@
                                 :start-date="categoryStartTime"
                                 :end-date="categoryEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeCategoryTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': choiceDownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showClassifyDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -70,9 +71,10 @@
                                 :start-date="businessStartTime"
                                 :end-date="businessEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeBusinessTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': choiceDownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showBusinessDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -112,13 +114,15 @@
                             @item-selected="onChangeTimeTypeCategory">
                         </bk-selector>
                     </div>
-                    <div class="content-date-picker">
+                    <div class="content-date-picker" @click="onTimePickerClick">
                         <bk-date-range
+                            ref="timePickerRef"
                             position="bottom-left"
                             :quick-select="true"
                             :start-date="timeTypeStartTime"
                             :end-date="timeTypeEndTime"
                             :end-date-max="endDateMax"
+                            @close="onShutTimeSelector"
                             @change="onInstanceTime">
                         </bk-date-range>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': choiceDownShow }]"></i>
@@ -463,7 +467,9 @@
                 instanceTypeTotal: 0,
                 businessSelected: 'all',
                 categorySelected: 'all',
-                choiceDate: 'day'
+                choiceDate: 'day',
+                showClassifyDatePanel: '',
+                showBusinessDatePanel: ''
             }
         },
         computed: {
@@ -737,13 +743,19 @@
                 this.businessStartTime = startTime
                 this.timeTypeStartTime = startTime
             },
+            onShutTimeSelector () {
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
+                this.choiceDownShow = this.$refs.timePickerRef.showDatePanel
+            },
             onDatePickerClick () {
-                this.datePickerRefShow = !this.datePickerRefShow
-                this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
             },
             onInstanceClick () {
-                this.businessPickerRefShow = !this.businessPickerRefShow
-                this.$refs.businessPickerRef.pickerVisible = this.businessPickerRefShow
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
+            },
+            onTimePickerClick () {
+                this.choiceDownShow = this.$refs.timePickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
