@@ -106,7 +106,7 @@ def get_job_instance_log(request, biz_cc_id):
 @require_POST
 @verify_perms(auth_resource=taskflow_resource,
               resource_get={'from': 'request', 'key': 'instance_id'},
-              actions=[{'id': taskflow_resource.actions.operate.id, 'parent_resource': False}])
+              actions=[taskflow_resource.actions.view, taskflow_resource.actions.operate])
 def task_action(request, action, project_id):
     task_id = request.POST.get('instance_id')
     username = request.user.username
@@ -118,7 +118,7 @@ def task_action(request, action, project_id):
 @require_POST
 @verify_perms(auth_resource=taskflow_resource,
               resource_get={'from': 'request', 'key': 'instance_id'},
-              actions=[{'id': taskflow_resource.actions.operate.id, 'parent_resource': False}])
+              actions=[taskflow_resource.actions.view, taskflow_resource.actions.operate])
 def nodes_action(request, action, project_id):
     task_id = request.POST.get('instance_id')
     node_id = request.POST.get('node_id')
@@ -136,7 +136,7 @@ def nodes_action(request, action, project_id):
 @require_POST
 @verify_perms(auth_resource=taskflow_resource,
               resource_get={'from': 'request', 'key': 'instance_id'},
-              actions=[{'id': taskflow_resource.actions.operate.id, 'parent_resource': False}])
+              actions=[taskflow_resource.actions.view, taskflow_resource.actions.operate])
 def spec_nodes_timer_reset(request, project_id):
     task_id = request.POST.get('instance_id')
     node_id = request.POST.get('node_id')
@@ -150,7 +150,7 @@ def spec_nodes_timer_reset(request, project_id):
 @require_POST
 @verify_perms(auth_resource=taskflow_resource,
               resource_get={'from': 'request', 'key': 'instance_id'},
-              actions=[{'id': taskflow_resource.actions.clone.id, 'parent_resource': False}])
+              actions=[taskflow_resource.actions.view, taskflow_resource.actions.clone])
 def task_clone(request, project_id):
     task_id = request.POST.get('instance_id')
     username = request.user.username
@@ -172,7 +172,7 @@ def task_clone(request, project_id):
 @require_POST
 @verify_perms(auth_resource=taskflow_resource,
               resource_get={'from': 'request', 'key': 'instance_id'},
-              actions=[{'id': taskflow_resource.actions.edit.id, 'parent_resource': False}])
+              actions=[taskflow_resource.actions.view, taskflow_resource.actions.edit])
 def task_modify_inputs(request, project_id):
     task_id = request.POST.get('instance_id')
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
@@ -205,7 +205,7 @@ def task_modify_inputs(request, project_id):
 @require_POST
 @verify_perms(auth_resource=taskflow_resource,
               resource_get={'from': 'request', 'key': 'instance_id'},
-              actions=[{'id': taskflow_resource.actions.claim.id, 'parent_resource': False}])
+              actions=[taskflow_resource.actions.view, taskflow_resource.actions.claim])
 def task_func_claim(request, project_id):
     task_id = request.POST.get('instance_id')
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)

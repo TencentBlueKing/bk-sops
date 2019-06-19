@@ -16,7 +16,7 @@ from django.utils.module_loading import import_string
 
 
 def get_backend_from_config():
-    backend_path = getattr(settings, 'AUTH_BACKEND_CLS', None)
+    backend_path = getattr(settings, 'AUTH_BACKEND_CLS')
     if not backend_path:
         return None
 

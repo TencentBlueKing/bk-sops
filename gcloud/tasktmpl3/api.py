@@ -39,7 +39,7 @@ VAR_ID_MAP = 'var_id_map'
 @require_GET
 @verify_perms(auth_resource=task_template_resource,
               resource_get={'from': 'request', 'key': 'template_id'},
-              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
+              actions=[task_template_resource.actions.view])
 def form(request, project_id):
     template_id = request.GET.get('template_id')
     version = request.GET.get('version')
@@ -66,7 +66,7 @@ def form(request, project_id):
 @require_POST
 @verify_perms(auth_resource=task_template_resource,
               resource_get={'from': 'request', 'key': 'template_id'},
-              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
+              actions=[task_template_resource.actions.view])
 def collect(request, project_id):
     template_id = request.POST.get('template_id')
     template_list = json.loads(request.POST.get('template_list', '[]'))
@@ -117,7 +117,7 @@ def collect(request, project_id):
 @require_GET
 @verify_perms(auth_resource=task_template_resource,
               resource_get={'from': 'request', 'key': 'template_id'},
-              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
+              actions=[task_template_resource.actions.view])
 def export_templates(request, project_id):
     try:
         template_id_list = json.loads(request.GET.get('template_id_list'))
