@@ -25,7 +25,7 @@
                             name: gettext("业务"),
                             hookable: false,
                             remote: true,
-                            remote_url: $.context.site_url + 'pipeline/get_business_list/',
+                            remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
                             remote_data_init: function (resp) {
                                 return resp.data;
                             },

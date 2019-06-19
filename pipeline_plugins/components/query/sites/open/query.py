@@ -409,7 +409,7 @@ def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
     return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
 
 
-def get_business(request):
+def cc_get_business(request):
     try:
         business = get_user_business_list(request)
     except Exception:
@@ -444,5 +444,5 @@ urlpatterns = [
     url(r'^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$', cc_search_topo_tree),
     url(r'^cc_search_host/(?P<biz_cc_id>\d+)/$', cc_search_host),
     url(r'^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$', cc_get_mainline_object_topo),
-    url(r'^get_business_list/$', get_business),
+    url(r'^cc_get_business_list/$', cc_get_business),
 ]
