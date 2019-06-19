@@ -197,7 +197,7 @@ class ProjectResource(GCloudModelResource):
         raise BadRequest("can not delete project")
 
 
-class ComponentModelResource(ModelResource):
+class ComponentModelResource(GCloudModelResource):
     group_icon = fields.CharField(
         attribute='group_icon',
         readonly=True,
@@ -239,7 +239,7 @@ class ComponentModelResource(ModelResource):
         return data
 
 
-class VariableModelResource(ModelResource):
+class VariableModelResource(GCloudModelResource):
     name = fields.CharField(
         attribute='name',
         readonly=True,
