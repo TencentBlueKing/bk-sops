@@ -38,6 +38,7 @@ from django.utils.translation import ugettext_lazy as _
 from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
+
 from gcloud.conf import settings
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
@@ -114,13 +115,13 @@ class JobService(Service):
 class JobExecuteTaskService(JobService):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         client = get_client_by_user(executor)
         client.set_bk_api_ver('v2')
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
         original_global_var = data.get_one_of_inputs('job_global_var')
         global_vars = []
         for _value in original_global_var:
@@ -183,13 +184,13 @@ class JobExecuteTaskComponent(Component):
 class JobFastPushFileService(JobService):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         client = get_client_by_user(executor)
         client.set_bk_api_ver('v2')
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
         original_source_files = data.get_one_of_inputs('job_source_files', [])
         file_source = []
         for item in original_source_files:
@@ -245,18 +246,20 @@ class JobFastPushFileComponent(Component):
     name = _(u'快速分发文件')
     code = 'job_fast_push_file'
     bound_service = JobFastPushFileService
-    form = '%scomponents/atoms/job/job_fast_push_file.js' % settings.STATIC_URL
+    form = '%scomponents/atoms/sites/%s/job/job_fast_push_file.js' % (settings.STATIC_URL, settings.RUN_VER)
 
 
 class JobFastExecuteScriptService(JobService):
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        job_script = data.get_one_of_inputs('job_script')
+
+        biz_cc_id = job_script['biz_cc_id']
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(
             username=executor,
@@ -280,15 +283,15 @@ class JobFastExecuteScriptService(JobService):
                 'script_param': base64.b64encode(script_param.encode('utf-8'))
             })
 
-        script_source = data.get_one_of_inputs('job_script_source')
+        script_source = job_script['job_script_source']
         if script_source in ["general", "public"]:
             job_kwargs.update({
-                "script_id": data.get_one_of_inputs('job_script_list_%s' % script_source)
+                "script_id": job_script['job_script_list_%s' % script_source]
             })
         else:
             job_kwargs.update({
-                'script_type': data.get_one_of_inputs('job_script_type'),
-                'script_content': base64.b64encode(data.get_one_of_inputs('job_content').encode('utf-8')),
+                'script_type': job_script['job_script_type'],
+                'script_content': base64.b64encode(job_script['job_content'].encode('utf-8')),
             })
 
         job_result = client.job.fast_execute_script(job_kwargs)
