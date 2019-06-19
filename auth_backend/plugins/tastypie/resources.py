@@ -52,7 +52,7 @@ def search_all_resources_authorized_actions(username, resource_type, auth_resour
         principal_id=username,
         action_ids=auth_resource.actions_map.keys())
     if not authorized_result['result']:
-        logger.error('Search authorized resources of Resource[{resource}] return error: {error}'.format(
+        logger.error(u"Search authorized resources of Resource[{resource}] return error: {error}".format(
             resource=auth_resource.name,
             error=authorized_result['message']
         ))
