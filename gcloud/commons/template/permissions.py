@@ -56,6 +56,7 @@ common_template_resource = DjangoModelResource(
         }
     ],
     resource_cls=CommonTemplate,
+    tomb_field='is_deleted',
     backend=BkIAMBackend(),
     inspect=FixedCreatorFieldInspect(creator_type='user',
                                      creator_id_f='creator_name',
