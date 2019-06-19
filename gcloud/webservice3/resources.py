@@ -156,14 +156,9 @@ class BusinessResource(GCloudModelResource):
 
 
 class ProjectResource(GCloudModelResource):
-    name = fields.CharField(attribute='name')
-    time_zone = fields.CharField(attribute='time_zone')
-    creator = fields.CharField(attribute='creator')
-    desc = fields.CharField(attribute='desc')
     create_at = fields.DateTimeField(attribute='create_at', readonly=True)
     from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
     bk_biz_id = fields.IntegerField(attribute='bk_biz_id', readonly=True)
-    is_disable = fields.BooleanField(attribute='is_disable')
 
     ALLOW_UPDATE_FIELD = {'desc', 'is_disable'}
 
@@ -176,7 +171,11 @@ class ProjectResource(GCloudModelResource):
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
+            "id": ALL,
             "name": ALL,
+            "creator": ALL,
+            "from_cmdb": ALL,
+            "bk_biz_id": ALL,
             "is_disable": ALL,
         }
 
