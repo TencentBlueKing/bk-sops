@@ -47,7 +47,7 @@ def verify_perms(auth_resource, resource_get, actions):
                 }
                 return JsonResponse(result)
 
-            permissions = []
+            permission = []
             actions_id = [act.id for act in actions]
             self_verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER,
                                                             username,
@@ -70,12 +70,12 @@ def verify_perms(auth_resource, resource_get, actions):
             self_verify_data = self_verify_result['data']
             for action_resource in self_verify_data:
                 if not action_resource['is_pass']:
-                    permissions.append(build_need_permission(auth_resource,
-                                                             action_resource['action_id'],
-                                                             instance_id))
+                    permission.append(build_need_permission(auth_resource,
+                                                            action_resource['action_id'],
+                                                            instance_id))
 
-            if permissions:
-                return HttpResponseAuthFailed(permissions)
+            if permission:
+                return HttpResponseAuthFailed(permission)
 
             return view_func(request, *args, **kwargs)
 
