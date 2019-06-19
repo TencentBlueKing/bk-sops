@@ -117,7 +117,6 @@ class TaskTemplateResource(GCloudModelResource):
                                                  update_action_id='edit',
                                                  create_delegation=create_delegation)
         serializer = AppSerializer()
-
         filtering = {
             "id": ALL,
             "project": ALL_WITH_RELATIONS,

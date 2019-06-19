@@ -29,51 +29,52 @@ def verify_perms(auth_resource, resource_get, actions):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
             username = request.user.username
+            instance_id = None
 
-            try:
-                if resource_get['from'] == 'arg':
-                    instance_id = args[resource_get['key']]
-                elif resource_get['from'] == 'kwarg':
-                    instance_id = kwargs[resource_get['key']]
-                else:
-                    request_params = getattr(request, request.method)
-                    instance_id = request_params[resource_get['key']]
-            except Exception as e:
-                message = "verify_perms resolve resource error: %s" % e
-                result = {
-                    'result': False,
-                    'message': message,
-                    'data': {}
-                }
-                return JsonResponse(result)
-
-            permission = []
-            self_actions = [action['id'] for action in actions if not action['parent_resource']]
-            if self_actions:
-                self_verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER,
-                                                                username,
-                                                                self_actions,
-                                                                instance_id)
-                if not self_verify_result['result']:
-                    message = ('verify perms of Resource[{resource}] by backend[{beckend_cls}] '
-                               'return error: {error}').format(
-                        resource=auth_resource.name,
-                        backend_cls=auth_resource.backend,
-                        error=self_verify_result['message']
-                    )
-                    logger.error(message)
+            if resource_get:
+                try:
+                    if resource_get['from'] == 'args':
+                        instance_id = args[resource_get['key']]
+                    elif resource_get['from'] == 'kwargs':
+                        instance_id = kwargs[resource_get['key']]
+                    else:
+                        request_params = getattr(request, request.method)
+                        instance_id = request_params[resource_get['key']]
+                except Exception as e:
+                    message = "verify_perms resolve resource error: %s" % e
                     result = {
                         'result': False,
                         'message': message,
                         'data': {}
                     }
                     return JsonResponse(result)
-                self_verify_data = self_verify_result['data']
-                for action_resource in self_verify_data:
-                    if not action_resource['is_pass']:
-                        permission.append(build_need_permission(auth_resource,
-                                                                action_resource['action_id'],
-                                                                instance_id))
+
+            permission = []
+            actions_id = [act.id for act in actions]
+            self_verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER,
+                                                            username,
+                                                            actions_id,
+                                                            instance_id)
+            if not self_verify_result['result']:
+                message = ('verify perms of Resource[{resource}] by backend[{beckend_cls}] '
+                           'return error: {error}').format(
+                    resource=auth_resource.name,
+                    backend_cls=auth_resource.backend,
+                    error=self_verify_result['message']
+                )
+                logger.error(message)
+                result = {
+                    'result': False,
+                    'message': message,
+                    'data': {}
+                }
+                return JsonResponse(result)
+            self_verify_data = self_verify_result['data']
+            for action_resource in self_verify_data:
+                if not action_resource['is_pass']:
+                    permission.append(build_need_permission(auth_resource,
+                                                            action_resource['action_id'],
+                                                            instance_id))
 
             if permission:
                 return HttpResponseAuthFailed(permission)

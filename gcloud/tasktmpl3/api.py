@@ -22,14 +22,20 @@ from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 
 from auth_backend.plugins.decorators import verify_perms
+from auth_backend.plugins.shortcuts import (
+    verify_or_raise_auth_failed,
+    batch_verify_or_raise_auth_failed,
+    verify_or_return_insufficient_perms
+)
 
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
+from gcloud.core.models import Project
 from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.permissions import task_template_resource
+from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
 
@@ -39,7 +45,7 @@ VAR_ID_MAP = 'var_id_map'
 @require_GET
 @verify_perms(auth_resource=task_template_resource,
               resource_get={'from': 'request', 'key': 'template_id'},
-              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
+              actions=[task_template_resource.actions.view])
 def form(request, project_id):
     template_id = request.GET.get('template_id')
     version = request.GET.get('version')
@@ -64,9 +70,6 @@ def form(request, project_id):
 
 
 @require_POST
-@verify_perms(auth_resource=task_template_resource,
-              resource_get={'from': 'request', 'key': 'template_id'},
-              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
 def collect(request, project_id):
     template_id = request.POST.get('template_id')
     template_list = json.loads(request.POST.get('template_list', '[]'))
@@ -78,7 +81,16 @@ def collect(request, project_id):
                                                 project_id=project_id,
                                                 is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            return HttpResponseForbidden()
+            return JsonResponse({
+                'result': False,
+                'message': 'flow[id=%s] does not exist' % template_id
+            })
+
+        verify_or_raise_auth_failed(principal_type='user',
+                                    principal_id=request.user.username,
+                                    resource=task_template_resource,
+                                    action_ids=[task_template_resource.actions.view.id],
+                                    instance=template)
         ctx = template.user_collect(request.user.username, method)
         return JsonResponse(ctx)
 
@@ -88,12 +100,17 @@ def collect(request, project_id):
         user_model = get_user_model()
         user = user_model.objects.get(username=request.user.username)
         try:
-            template = TaskTemplate.objects.filter(pk__in=template_list,
-                                                   project_id=project_id,
-                                                   is_deleted=False)
+            templates = TaskTemplate.objects.filter(pk__in=template_list,
+                                                    project_id=project_id,
+                                                    is_deleted=False)
+            perms_tuples = [(task_template_resource, [task_template_resource.actions.view.id], t) for t in templates]
+            batch_verify_or_raise_auth_failed(principal_type='user',
+                                              principal_id=request.user.username,
+                                              perms_tuples=perms_tuples)
+
             collected_template = user.tasktemplate_set.filter(project_id=project_id)
             user.tasktemplate_set.remove(*collected_template)
-            user.tasktemplate_set.add(*template)
+            user.tasktemplate_set.add(*templates)
         except Exception as e:
             message = u"collect template error: %s" % e
             ctx = {'result': False, 'message': message}
@@ -115,9 +132,6 @@ def collect(request, project_id):
 
 
 @require_GET
-@verify_perms(auth_resource=task_template_resource,
-              resource_get={'from': 'request', 'key': 'template_id'},
-              actions=[{'id': task_template_resource.actions.view.id, 'parent_resource': False}])
 def export_templates(request, project_id):
     try:
         template_id_list = json.loads(request.GET.get('template_id_list'))
@@ -126,6 +140,12 @@ def export_templates(request, project_id):
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+
+    templates = TaskTemplate.objects.filter(id__in=template_id_list, project_id=project_id, is_deleted=False)
+    perms_tuples = [(task_template_resource, [task_template_resource.actions.view.id], t) for t in templates]
+    batch_verify_or_raise_auth_failed(principal_type='user',
+                                      principal_id=request.user.username,
+                                      perms_tuples=perms_tuples)
 
     # wash
     try:
@@ -175,6 +195,14 @@ def import_templates(request, project_id):
 
     templates_data = r['data']['template_data']
 
+    # check again and authenticate
+    check_info = TaskTemplate.objects.import_operation_check(templates_data, project_id)
+    perms_tuples = get_perms_tuples_from_import_check_info(check_info, project_id)
+
+    batch_verify_or_raise_auth_failed(principal_type='user',
+                                      principal_id=request.user.username,
+                                      perms_tuples=perms_tuples)
+
     try:
         result = TaskTemplate.objects.import_templates(templates_data, override, project_id)
     except Exception as e:
@@ -195,10 +223,39 @@ def check_before_import(request, project_id):
         return JsonResponse(r)
 
     check_info = TaskTemplate.objects.import_operation_check(r['data']['template_data'], project_id)
+
+    perms_tuples = get_perms_tuples_from_import_check_info(check_info, project_id)
+    permissions = verify_or_return_insufficient_perms(principal_type='user',
+                                                      principal_id=request.user.usernmae,
+                                                      perms_tuples=perms_tuples)
+
     return JsonResponse({
         'result': True,
-        'data': check_info
+        'data': check_info,
+        'permissions': permissions
     })
+
+
+def get_perms_tuples_from_import_check_info(check_info, project_id):
+    perms_tuples = []
+    if check_info['new_template']:
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return JsonResponse({
+                'result': False,
+                'message': 'project[id=%s] does not exist.' % project_id
+            })
+
+        perms_tuples.append((project_resource, [project_resource.actions.create_template.id], project))
+
+    if check_info['override_template']:
+        templates_id = [template_info['id'] for template_info in check_info['override_template']]
+        templates = TaskTemplate.objects.filter(id__in=templates_id, project_id=project_id, is_deleted=False)
+        for template in templates:
+            perms_tuples.append((task_template_resource, [task_template_resource.actions.view.id], template))
+
+    return perms_tuples
 
 
 @require_POST

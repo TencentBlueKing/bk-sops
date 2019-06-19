@@ -26,3 +26,9 @@ class AuthInvalidOperationError(AuthBaseException):
 
 class AuthInterfaceEmptyError(AuthBaseException):
     pass
+
+
+class AuthFailedException(AuthBaseException):
+    def __init__(self, permissions, *args, **kwargs):
+        super(AuthFailedException, self).__init__(*args, **kwargs)
+        self.permissions = permissions

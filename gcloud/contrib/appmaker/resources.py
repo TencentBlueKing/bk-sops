@@ -14,7 +14,8 @@ specific language governing permissions and limitations under the License.
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
-from tastypie.authorization import Authorization
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 
 from gcloud.conf import settings
 from gcloud.tasktmpl3.resources import TaskTemplateResource
@@ -24,6 +25,15 @@ from gcloud.webservice3.resources import (
 )
 from gcloud.webservice3.serializers import AppSerializer
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.appmaker.permissions import mini_app_resource
+
+
+class OnlyDeleteDetailAuthorization(BkSaaSLooseAuthorization):
+    def create_detail(self, object_list, bundle):
+        return False
+
+    def update_detail(self, object_list, bundle):
+        return False
 
 
 class AppMakerResource(GCloudModelResource):
@@ -71,7 +81,9 @@ class AppMakerResource(GCloudModelResource):
         queryset = AppMaker.objects.filter(is_deleted=False)
         resource_name = 'appmaker'
         excludes = []
-        authorization = Authorization()
+        authorization = OnlyDeleteDetailAuthorization(auth_resource=mini_app_resource,
+                                                      read_action_id='view',
+                                                      update_action_id='edit')
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
