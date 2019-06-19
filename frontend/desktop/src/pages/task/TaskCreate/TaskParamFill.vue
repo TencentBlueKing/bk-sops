@@ -122,7 +122,6 @@
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
-    const cron = require('@/plugins/node-cron-valid/node-cron-vaild.js')
     export default {
         name: 'TaskParamFill',
         components: {
@@ -191,8 +190,6 @@
         mounted () {
             this.loadData()
             this.period()
-            const rese = cron.validate('1 12 2 12 12', { language: 'ch' })
-            console.log(rese, 'ssssssss')
         },
         methods: {
             ...mapActions('template/', [

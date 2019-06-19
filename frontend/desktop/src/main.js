@@ -26,7 +26,7 @@ import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
-
+const cron = require('@/plugins/node-cron-valid/node-cron-vaild.js')
 Vue.use(VeeValidate)
 
 Vue.use(bkMagic)
@@ -64,7 +64,13 @@ if (store.state.lang === 'en') {
 $.atoms = {} // hack atom config load
 
 const InvalidNameChar = '\'‘"”$&<>'
-
+Validator.extend('cronRlue', {
+    getMessage: (field, args) => {
+        console.log(field, args, 'dsad')
+        return args + gettext('输入定时表达式非法，请校验')
+    },
+    validate: value => cron.validate(value).status
+})
 Validator.localize({
     en: {
         messages: {
@@ -157,6 +163,10 @@ Validator.localize({
             monthRule: {
                 required: gettext('开始月数不能为空'),
                 regex: gettext('请输入 1 - 12 之间的数')
+            },
+            testName: {
+                required: gettext('test不能为空'),
+                regex: gettext('请输入 test 之间的数')
             }
         }
     }

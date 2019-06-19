@@ -6,32 +6,32 @@ var KEYSMAP = [
     {
         key: 'second',
         error_en: 'is a invalid expression for second',
-        error_ch: '在 “秒” 里是一个非法表达式，请校验'
+        error_ch: '在 “秒” '
     },
     {
         key: 'minute',
         error_en: 'is a invalid expression for minute',
-        error_ch: '在 “分” 里是一个非法表达式，请校验'
+        error_ch: '在 “分” '
     },
     {
         key: 'hour',
         error_en: 'is a invalid expression for hour',
-        error_ch: '在 “小时” 里是一个非法表达式，请校验'
+        error_ch: '在 “小时” '
     },
     {
         key: 'day',
         error_en: 'is a invalid expression for day of month',
-        error_ch: '在 “天” 里是一个非法表达式，请校验'
+        error_ch: '在 “天” '
     },
     {
         key: 'month',
         error_en: 'is a invalid expression for month',
-        error_ch: '在 “月” 里是一个非法表达式，请校验'
+        error_ch: '在 “月” '
     },
     {
         key: 'week',
         error_en: 'is a invalid expression for second',
-        error_ch: '在 “周” 里是一个非法表达式，请校验'
+        error_ch: '在 “周” '
     }
 ]
 
@@ -80,37 +80,37 @@ module.exports = ( () => {
     return !isValidExpression(expression, 0, 6);
   }
 
-  function validateFields(patterns, executablePatterns, common_config){
+  function validateFields(patterns, executablePatterns, common_config, ErrorException){
     var errorKey = common_config.language === 'en' ? 'error_en' : 'error_ch'
     console.log('errorKey', errorKey)
     console.log(patterns, 'patterns')
     if (isIncludeDecimals(patterns).valid) {
         var currIndex = isIncludeDecimals(patterns).index
-        throw patterns[currIndex] + KEYSMAP[currIndex][errorKey];
+        throw new ErrorException(patterns[currIndex] + KEYSMAP[currIndex][errorKey]);
     }
     if (isInvalidSecond(executablePatterns[0])) {
-      throw patterns[0] + KEYSMAP[0][errorKey];
+      throw new ErrorException(patterns[0] + KEYSMAP[0][errorKey]);
     }
 
     if (isInvalidMinute(executablePatterns[1])) {
-      throw patterns[1] + KEYSMAP[1][errorKey];
+      throw new ErrorException(patterns[1] + KEYSMAP[1][errorKey]);
     }
 
     if (isInvalidHour(executablePatterns[2])) {
-      throw patterns[2] + KEYSMAP[2][errorKey];
+      throw new ErrorException(patterns[2] + KEYSMAP[2][errorKey]);
     }
 
     if (isInvalidDayOfMonth(executablePatterns[3])) {
       
-      throw patterns[3] + KEYSMAP[3][errorKey];
+      throw new ErrorException(patterns[3] + KEYSMAP[3][errorKey]);
     }
 
     if (isInvalidMonth(executablePatterns[4])) {
-      throw patterns[4] + KEYSMAP[4][errorKey];
+      throw new ErrorException(patterns[4] + KEYSMAP[4][errorKey]);
     }
 
     if (isInvalidWeekDay(executablePatterns[5])) {
-      throw patterns[5] + KEYSMAP[5][errorKey];
+      throw new ErrorException(patterns[5] + KEYSMAP[5][errorKey]);
     }
   }
   function WeekExchangeDay (pattern) {
@@ -123,12 +123,9 @@ module.exports = ( () => {
     patterns[4] = week
     return patterns.join(' ')
   }
-  function validate(pattern, config){
-    var common_config = Object.assign({
-        language: 'en'
-    }, config || {})
+  function validate(pattern, common_config, ErrorException){
     if (typeof pattern !== 'string'){
-      throw 'pattern must be a string!';
+      throw new ErrorException('pattern must be a string!');
     }
     if (pattern.split(' ').length > 6 || pattern.split(' ').length < 5) {
       throw common_config.language === 'en' ? 'pattern is a invalid expression' : '表达式非法，请校验' 
@@ -140,7 +137,7 @@ module.exports = ( () => {
     if(patterns.length === 5){
       patterns = ['0'].concat(patterns);
     }
-    validateFields(patterns, executablePatterns, common_config);
+    validateFields(patterns, executablePatterns, common_config, ErrorException);
   }
 
   return validate;

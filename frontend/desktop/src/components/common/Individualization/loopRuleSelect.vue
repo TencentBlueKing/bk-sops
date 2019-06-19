@@ -132,12 +132,13 @@
                 </bk-tabpanel>
             </bk-tab>
             <!-- 手动输入 -->
+            <!-- @input="onInputName" @blur="onInputBlur" @enter="onInputBlur"-->
             <div
                 v-show="currentWay === 'manualInput'"
                 class="hand-input">
                 <BaseInput
                     v-model="periodicCron"
-                    v-validate="periodicRule"
+                    v-validate="{ required: true, cronRlue: true }"
                     name="periodicCron"
                     class="step-form-content-size"
                     :placeholder="i18n.placeholder" />
@@ -162,6 +163,7 @@
     import '@/utils/i18n.js'
     import { PERIODIC_REG } from '@/constants/index.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
+    // const cron = require('@/plugins/node-cron-valid/node-cron-vaild.js')
     const autoRuleList = [
         {
             key: 'min',
@@ -498,6 +500,14 @@
                     this.renderRule()
                 })
             }
+            // onInputBlur () {
+            //     const ss = cron.validate(this.periodicCron, { language: 'ch' })
+            //     console.log(ss)
+            // },
+            // onInputName () {
+            //     const ss = cron.validate(this.periodicCron, { language: 'ch' })
+            //     console.log(ss)
+            // }
         }
     }
 </script>
