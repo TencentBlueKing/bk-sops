@@ -163,7 +163,7 @@ class ProjectResource(GCloudModelResource):
     ALLOW_UPDATE_FIELD = {'desc', 'is_disable'}
 
     class Meta:
-        queryset = Project.objects.all()
+        queryset = Project.objects.all().order_by('-id')
         resource_name = 'project'
         authorization = BkSaaSLooseAuthorization(auth_resource=project_resource,
                                                  read_action_id='view',
@@ -196,7 +196,7 @@ class ProjectResource(GCloudModelResource):
         raise BadRequest("can not delete project")
 
 
-class ComponentModelResource(ModelResource):
+class ComponentModelResource(GCloudModelResource):
     group_icon = fields.CharField(
         attribute='group_icon',
         readonly=True,
@@ -238,7 +238,7 @@ class ComponentModelResource(ModelResource):
         return data
 
 
-class VariableModelResource(ModelResource):
+class VariableModelResource(GCloudModelResource):
     name = fields.CharField(
         attribute='name',
         readonly=True,
