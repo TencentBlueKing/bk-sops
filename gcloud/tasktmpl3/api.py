@@ -22,13 +22,15 @@ from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 
 from auth_backend.plugins.decorators import verify_perms
-from auth_backend.plugins.shortcuts import (verify_or_raise_auth_failed,
-                                            batch_verify_or_raise_auth_failed,
-                                            verify_or_return_insufficient_perms)
+from auth_backend.plugins.shortcuts import (
+    verify_or_raise_auth_failed,
+    batch_verify_or_raise_auth_failed,
+    verify_or_return_insufficient_perms
+)
 
-from gcloud.core.models import Project
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
+from gcloud.core.models import Project
 from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
@@ -81,7 +83,7 @@ def collect(request, project_id):
         except TaskTemplate.DoesNotExist:
             return JsonResponse({
                 'result': False,
-                'message': 'task template(%s) does not exits.' % template_id
+                'message': 'flow[id=%s] does not exist' % template_id
             })
 
         verify_or_raise_auth_failed(principal_type='user',
@@ -242,7 +244,7 @@ def get_perms_tuples_from_import_check_info(check_info, project_id):
         except Project.DoesNotExist:
             return JsonResponse({
                 'result': False,
-                'message': 'project(%s) does not exitst.' % project_id
+                'message': 'project[id=%s] does not exist.' % project_id
             })
 
         perms_tuples.append((project_resource, [project_resource.actions.create_template.id], project))
