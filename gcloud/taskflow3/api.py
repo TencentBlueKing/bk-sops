@@ -40,6 +40,9 @@ get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 
 
 @require_GET
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[taskflow_resource.actions.view])
 def status(request, project_id):
     instance_id = request.GET.get('instance_id')
     try:
@@ -70,6 +73,9 @@ def status(request, project_id):
 
 
 @require_GET
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[taskflow_resource.actions.view])
 def data(request, project_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
@@ -81,6 +87,9 @@ def data(request, project_id):
 
 
 @require_GET
+@verify_perms(auth_resource=taskflow_resource,
+              resource_get={'from': 'request', 'key': 'instance_id'},
+              actions=[taskflow_resource.actions.view])
 def detail(request, project_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
