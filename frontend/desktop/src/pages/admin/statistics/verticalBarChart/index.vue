@@ -103,6 +103,7 @@
                         fixedrange: true
                     },
                     xaxis: {
+                        fixedrange: true,
                         type: 'date',
                         tickformat: '%Y-%m-%d',
                         tickmode: 'auto'
