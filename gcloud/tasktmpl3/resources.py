@@ -20,7 +20,6 @@ from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
-from tastypie.resources import ModelResource
 
 from auth_backend.plugins.delegation import RelateAuthDelegation
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
@@ -230,7 +229,7 @@ class TaskTemplateResource(GCloudModelResource):
         return filters
 
 
-class TemplateSchemeResource(ModelResource):
+class TemplateSchemeResource(GCloudModelResource):
     data = fields.CharField(
         attribute='data',
         use_in='detail',
