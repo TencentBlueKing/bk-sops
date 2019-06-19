@@ -29,23 +29,25 @@ def verify_perms(auth_resource, resource_get, actions):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
             username = request.user.username
-
-            try:
-                if resource_get['from'] == 'args':
-                    instance_id = args[resource_get['key']]
-                elif resource_get['from'] == 'kwargs':
-                    instance_id = kwargs[resource_get['key']]
-                else:
-                    request_params = getattr(request, request.method)
-                    instance_id = request_params[resource_get['key']]
-            except Exception as e:
-                message = "verify_perms resolve resource error: %s" % e
-                result = {
-                    'result': False,
-                    'message': message,
-                    'data': {}
-                }
-                return JsonResponse(result)
+            instance_id = None
+            
+            if resource_get:
+                try:
+                    if resource_get['from'] == 'args':
+                        instance_id = args[resource_get['key']]
+                    elif resource_get['from'] == 'kwargs':
+                        instance_id = kwargs[resource_get['key']]
+                    else:
+                        request_params = getattr(request, request.method)
+                        instance_id = request_params[resource_get['key']]
+                except Exception as e:
+                    message = "verify_perms resolve resource error: %s" % e
+                    result = {
+                        'result': False,
+                        'message': message,
+                        'data': {}
+                    }
+                    return JsonResponse(result)
 
             permission = []
             actions_id = [act.id for act in actions]
