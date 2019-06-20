@@ -18,10 +18,16 @@
                     v-for="item in quickTaskList"
                     :key="item.id"
                     class="task-item">
-                    <router-link
+                    <a
+                        v-if="!hasPermission(['create_task'], item.auth_actions, item.auth_operations)"
                         class="task-name"
-                        :title="item.name"
-                        :to="`/template/newtask/${project_id}/selectnode/?template_id=${item.id}`">
+                        @click="onTemplatePermissonCheck(['create_task'], item, $event)">
+                        {{item.name}}
+                    </a>
+                    <router-link
+                        v-else
+                        class="task-name"
+                        :to="`/template/newtask/${project_id}/selectnode/?template_id=${template.id}`">
                         {{item.name}}
                     </router-link>
                     <i
@@ -62,12 +68,15 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import SelectTemplateDialog from './SelectTemplateDialog.vue'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'QuickCreateTask',
         components: {
             NoData,
             SelectTemplateDialog
         },
+        mixins: [permission],
         props: ['quickTaskList', 'project_id', 'templateClassify', 'totalTemplate'],
         data () {
             return {
@@ -185,6 +194,29 @@
                     groupData[index].list.push(item)
                 })
                 return groupData
+            },
+            /**
+             * 单个模板操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} template 模板数据对象
+             * @params {Object} event 事件对象
+            */
+            onTemplatePermissonCheck (required, template, event) {
+                if (!this.hasPermission(required, template.auth_actions, template.auth_operations)) {
+                    const permissions = []
+                    let actions = []
+                    template.auth_operations.filter(item => {
+                        return required.includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    const resource = template.name
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                    event.preventDefault()
+                } else {
+                    this.$router.push(`/template/newtask/${this.project_id}/selectnode/?template_id=${template.id}`)
+                }
             }
         }
     }

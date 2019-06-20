@@ -46,6 +46,38 @@ axios.interceptors.response.use(
             case 500:
                 bus.$emit('showErrorModal', response.status, response.data.responseText)
                 break
+            case 499:
+                const permissions = response.data.permission
+                let viewType = ''
+                const isViewApply = permissions.some(perm => {
+                    if (perm.action_id === 'view') {
+                        perm.resources.some(resource => {
+                            viewType = 'other'
+                            if (resource.find(item => item.resource_type === 'project')) {
+                                viewType = 'project'
+                                return true
+                            }
+                        })
+                        return true
+                    }
+                })
+                if (isViewApply) {
+                    bus.$emit('togglePermissionApplyPage', true, viewType, permissions)
+                } else {
+                    const permissionsNeeded = []
+                    permissions.forEach(perm => {
+                        const resource = perm.resources.map(res => {
+                            return res.map(item => item.resource_name || item.resource_type_name).join(',')
+                        }).join(',')
+                        const actions = [{
+                            id: perm.action_id,
+                            name: perm.action_name
+                        }]
+                        permissionsNeeded.push({ resource, actions })
+                    })
+                    bus.$emit('showPermissionModal', permissionsNeeded)
+                }
+                break
         }
         if (!response.data) {
             const msg = gettext('接口数据返回为空')

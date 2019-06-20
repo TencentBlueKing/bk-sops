@@ -150,3 +150,15 @@
         }
     }
 }
+// 无权限按钮统一样式
+.btn-permission-disable {
+    background-color: #fafafa !important;
+    border-color: #e6e6e6 !important;
+    color: #cccccc !important;
+    cursor: not-allowed !important;
+}
+// 无权限文本统一样式
+.text-permisson-disable {
+    color: #cccccc !important;
+    cursor: not-allowed !important;
+}

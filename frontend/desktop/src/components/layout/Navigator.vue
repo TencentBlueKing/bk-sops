@@ -121,11 +121,6 @@
                 name: gettext('任务记录')
             },
             {
-                key: 'config',
-                path: '/config/home/',
-                name: gettext('业务配置')
-            },
-            {
                 key: 'appmaker',
                 path: '/appmaker/home/',
                 name: gettext('轻应用')
@@ -171,7 +166,7 @@
                 },
                 homeRoute: {
                     key: 'home',
-                    path: '/project/home/'
+                    path: '/home/'
                 }
             }
         },
