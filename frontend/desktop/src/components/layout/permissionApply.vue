@@ -80,7 +80,7 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const res = await this.getPermissionUrl(this.permission)
+                    const res = await this.getPermissionUrl(JSON.stringify(this.permission))
                     this.url = res.data.url
                 } catch (err) {
                     errorHandler(err, this)

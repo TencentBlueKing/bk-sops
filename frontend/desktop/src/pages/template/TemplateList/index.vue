@@ -443,6 +443,7 @@
                 'timeZone': state => state.timezone,
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
+                'project_id': state => state.project_id,
                 'projectName': state => state.projectName
             }),
             listData () {
@@ -538,10 +539,36 @@
             },
             checkCreatePermission () {
                 if (!this.hasPermission(['create_template'], this.authActions, this.authOperations)) {
+                    let actions = []
+                    this.authOperations.filter(item => {
+                        return ['create_template'].includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
                     const permissions = []
-                    const actions = this.authOperations.find(item => item.operate_id === 'create_template').actions
-                    const resource = this.projectName
-                    permissions.push({ resource, actions })
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: this.project_id,
+                            resource_name: this.projectName,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
+
                     this.triggerPermisionModal(permissions)
                 } else {
                     const url = this.getNewTemplateUrl()
@@ -608,15 +635,36 @@
              * @params {Object} event 事件对象
              */
             onTemplatePermissonCheck (required, template, event) {
-                const permissions = []
                 let actions = []
                 this.tplOperations.filter(item => {
                     return required.includes(item.operate_id)
                 }).forEach(perm => {
                     actions = actions.concat(perm.actions)
                 })
-                const resource = template.name
-                permissions.push({ resource, actions })
+                
+                const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
+                const permissions = []
+                
+                actions.forEach(item => {
+                    const res = []
+                    res.push([{
+                        resource_id: template.id,
+                        resource_name: template.name,
+                        resource_type: resource.resource_type,
+                        resource_type_name: resource.resource_type_name
+                    }])
+                    permissions.push({
+                        scope_id,
+                        scope_name,
+                        scope_type,
+                        system_id,
+                        system_name,
+                        resource: res,
+                        action_id: item.id,
+                        action_name: item.name
+                    })
+                })
+
                 this.triggerPermisionModal(permissions)
                 event.preventDefault()
             },
