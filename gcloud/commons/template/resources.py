@@ -17,7 +17,6 @@ from django.db import transaction
 from django.contrib.auth import get_user_model
 from django.http.response import HttpResponseForbidden
 from tastypie import fields
-from tastypie.resources import ModelResource
 from tastypie.authorization import Authorization, ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
@@ -37,7 +36,7 @@ from gcloud.webservice3.resources import (
 )
 
 
-class PipelineTemplateResource(ModelResource):
+class PipelineTemplateResource(GCloudModelResource):
     class Meta:
         queryset = PipelineTemplate.objects.filter(is_deleted=False)
         resource_name = 'pipeline_template'
