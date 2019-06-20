@@ -234,7 +234,7 @@
         created () {
             if (this.common) {
                 this.defaultProjectId = this.project_id
-                setAtomConfigApiUrls(this.site_url, 0)
+                setAtomConfigApiUrls(this.site_url)
             }
             this.initTemplateData()
             if (this.type === 'edit' || this.type === 'clone') {
