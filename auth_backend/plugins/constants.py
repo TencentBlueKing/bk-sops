@@ -12,4 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 PRINCIPAL_TYPE_USER = 'user'
+
 AUTH_FORBIDDEN_CODE = 9900403
+
+HTTP_AUTH_FAILED_CODE = 499
