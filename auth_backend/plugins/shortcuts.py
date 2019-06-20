@@ -16,7 +16,7 @@ import logging
 from ..resources.base import resource_type_lib
 from ..backends import get_backend_from_config
 from ..exceptions import AuthFailedException
-from ..constants import HTTP_AUTH_FAILED_CODE
+from .constants import HTTP_AUTH_FAILED_CODE
 from .utils import build_need_permission
 
 logger = logging.getLogger('root')
