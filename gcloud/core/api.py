@@ -135,16 +135,16 @@ def query_apply_permission_url(request):
     return JsonResponse(apply_permission_url(permission))
 
 
-@require_GET
+@require_POST
 def query_resource_verify_perms(request):
     """
     @summary: 查询用户是否有某个资源的某些权限
     @param request:
     @return:
     """
-    resource_type = request.GET.get('resource_type')
-    action_ids = json.loads(request.GET.get('action_ids'))
-    instance_id = request.GET.get('instance_id') or None
+    resource_type = request.POST.get('resource_type')
+    action_ids = json.loads(request.POST.get('action_ids'))
+    instance_id = request.POST.get('instance_id') or None
     if resource_type not in resource_type_lib:
         ctx = {
             'result': False,
