@@ -14,17 +14,23 @@ specific language governing permissions and limitations under the License.
 import json
 
 from django.http import HttpResponse
+from django.core.serializers.json import DjangoJSONEncoder
+
+from .constants import AUTH_FORBIDDEN_CODE, HTTP_AUTH_FAILED_CODE
 
 
 class HttpResponseAuthFailed(HttpResponse):
-    status_code = 499
+    status_code = HTTP_AUTH_FAILED_CODE
 
-    def __init__(self, resource_type_name, resource_name, action_name, *args, **kwargs):
+    def __init__(self, permission, *args, **kwargs):
+        kwargs.setdefault('content_type', 'application/json')
         super(HttpResponse, self).__init__(*args, **kwargs)
         # Content is a bytestring. See the `content` property methods.
         result = {
-            'resource_type_name': resource_type_name,
-            'resource_name': resource_name,
-            'action_name': action_name,
+            'result': False,
+            'code': AUTH_FORBIDDEN_CODE,
+            'message': 'you have no permission to operate',
+            'data': {},
+            'permission': permission
         }
-        self.content = json.dumps(result)
+        self.content = json.dumps(result, cls=DjangoJSONEncoder)

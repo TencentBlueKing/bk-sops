@@ -21,4 +21,5 @@ class Taskflow3Config(AppConfig):
     def ready(self):
         from gcloud.taskflow3.signals.handlers import pipeline_post_save_handler  # noqa
         from gcloud.taskflow3.signals.dispatch import dispatch_activity_failed
+        from gcloud.taskflow3.permissions import taskflow_resource  # noqa
         dispatch_activity_failed()
