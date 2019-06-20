@@ -20,7 +20,9 @@ from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
-from tastypie.resources import ModelResource
+
+from auth_backend.plugins.delegation import RelateAuthDelegation
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
@@ -31,12 +33,12 @@ from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.webservice3.resources import (
-    pipeline_node_name_handle,
-    AppSerializer,
     GCloudModelResource,
     ProjectResource,
-    TemplateFilterPaginator
 )
+from gcloud.webservice3.paginator import TemplateFilterPaginator
+from gcloud.core.utils import pipeline_node_name_handle
+from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
 
@@ -101,13 +103,17 @@ class TaskTemplateResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
-        always_return_data = True
-        authorization = Authorization()
-        serializer = AppSerializer()
-
+        create_delegation = RelateAuthDelegation(delegate_resource=project_resource,
+                                                 action_ids=['create_template'],
+                                                 delegate_instance_f='project')
+        auth_resource = task_template_resource
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit',
+                                                 create_delegation=create_delegation)
         filtering = {
             "id": ALL,
             "project": ALL_WITH_RELATIONS,
@@ -118,7 +124,6 @@ class TaskTemplateResource(GCloudModelResource):
             "has_subprocess": ALL
         }
         q_fields = ["id", "pipeline_template__name"]
-        limit = 0
         paginator_class = TemplateFilterPaginator
 
     @staticmethod
@@ -131,6 +136,7 @@ class TaskTemplateResource(GCloudModelResource):
         return json.dumps(bundle.data['pipeline_tree'])
 
     def alter_list_data_to_serialize(self, request, data):
+        data = super(TaskTemplateResource, self).alter_list_data_to_serialize(request, data)
         user_model = get_user_model()
         user = request.user
         collected_templates = user_model.objects.get(username=user.username) \
@@ -221,23 +227,19 @@ class TaskTemplateResource(GCloudModelResource):
         return filters
 
 
-class TemplateSchemeResource(ModelResource):
+class TemplateSchemeResource(GCloudModelResource):
     data = fields.CharField(
         attribute='data',
         use_in='detail',
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = TemplateScheme.objects.all()
         resource_name = 'schemes'
         authorization = Authorization()
-        always_return_data = True
-        serializer = AppSerializer()
-
         filtering = {
             'template': ALL,
         }
-        limit = 0
 
     def build_filters(self, filters=None, **kwargs):
         orm_filters = super(TemplateSchemeResource, self).build_filters(filters, **kwargs)

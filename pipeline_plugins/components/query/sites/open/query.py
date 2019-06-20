@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import re
 import os
 import logging
+import traceback
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
@@ -32,6 +33,7 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_get_mainline_object_topo
 )
 from gcloud.conf import settings
+from gcloud.core.utils import get_user_business_list
 
 logger = logging.getLogger('root')
 get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
@@ -407,6 +409,29 @@ def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
     return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
 
 
+def cc_get_business(request):
+    try:
+        business = get_user_business_list(request)
+    except Exception:
+        logger.error('an error occurred when fetch user business: %s' % traceback.format_exc())
+        return JsonResponse({
+            'result': False,
+            'message': 'fetch business list failed, please contact administrator'
+        })
+
+    data = []
+    for biz in business:
+        data.append({
+            'text': biz['bk_biz_name'],
+            'value': str(biz['bk_biz_id'])
+        })
+
+    return JsonResponse({
+        'result': True,
+        'data': data
+    })
+
+
 urlpatterns = [
     url(r'^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_object_attribute),
     url(r'^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_create_object_attribute),
@@ -419,4 +444,5 @@ urlpatterns = [
     url(r'^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$', cc_search_topo_tree),
     url(r'^cc_search_host/(?P<biz_cc_id>\d+)/$', cc_search_host),
     url(r'^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$', cc_get_mainline_object_topo),
+    url(r'^cc_get_business_list/$', cc_get_business),
 ]

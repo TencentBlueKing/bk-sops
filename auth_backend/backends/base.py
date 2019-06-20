@@ -76,12 +76,33 @@ class AuthBackend(object):
 
     def batch_verify_perms(self, principal_type, principal_id, resource, action_ids, instances=None):
         """
-        校验主体是否拥有某个资源下的某些操作权限
+        批量校验主体是否拥有某个资源下的某些操作权限
         :param principal_type: 主体类型
         :param principal_id: 主体 ID
         :param resource: 资源对象
         :param action_ids: 资源对象中的操作 ID
         :param instances: 关联实例的操作中所关联的实例
+        :return:
+        """
+        raise NotImplementedError()
+
+    def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples):
+        """
+        批量校验主体是否有某几个同作用域下的资源的某些操作权限
+        :param principal_type: 主体类型
+        :param principal_id: 主体 ID
+        :param perms_tuples: 待校验权限元组 (资源对象, [操作 ID 列表], 资源实例)
+        :return:
+        """
+        raise NotImplementedError()
+
+    def search_authorized_resources(self, resource, principal_type, principal_id, action_ids):
+        """
+        批量查询有权限的资源
+        :param resource: 资源对象
+        :param principal_type: 主题类型
+        :param principal_id: 主题 ID
+        :param action_ids: 资源对象中的操作 ID
         :return:
         """
         raise NotImplementedError()

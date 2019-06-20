@@ -17,6 +17,7 @@ try:
     APP_CODE = settings.APP_CODE
     SECRET_KEY = settings.SECRET_KEY
     SYSTEM_ID = getattr(settings, 'BK_IAM_SYSTEM_ID', APP_CODE)
+    SYSTEM_NAME = getattr(settings, 'BK_IAM_SYSTEM_NAME', APP_CODE)
     BK_IAM_HOST = getattr(settings, 'BK_IAM_HOST', '')
     BK_IAM_API_VERSION = getattr(settings, 'BK_IAM_API_VERSION', 'v1')
 

@@ -15,7 +15,6 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
 from gcloud.core.api_adapter import is_user_auditor
-from gcloud.core.utils import prepare_view_all_business
 
 
 def home(request):
@@ -23,5 +22,5 @@ def home(request):
     is_auditor = is_user_auditor(request)
     if not is_auditor:
         return HttpResponseForbidden()
-    prepare_view_all_business(request)
+    
     return render(request, 'core/base_vue.html', {})

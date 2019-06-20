@@ -13,30 +13,76 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
+import logging
+import traceback
+
 from .base import ObjectResource
 
 from django.db.models.signals import post_save, post_delete
 
+logger = logging.getLogger('root')
+
 
 class DjangoModelResource(ObjectResource):
 
-    def __init__(self, auto_register=True, *args, **kwargs):
+    def __init__(self, auto_register=True, tomb_field=None, *args, **kwargs):
         super(DjangoModelResource, self).__init__(*args, **kwargs)
         self.auto_register = auto_register
+        self.tomb_field = tomb_field
 
         if auto_register:
             # register django model action handlers
             self._dispatch_handlers()
 
     def post_save_handler(self, sender, instance, created, **kwargs):
-        if created:
-            self.register_instance(instance)
-        else:
+        try:
+            if created:
+                self.register_instance(instance)
+                return
+
+            if self.tomb_field and getattr(instance, self.tomb_field):
+                self.delete_instance(instance)
+                return
+
             self.update_instance(instance)
+        except Exception:
+            logger.error('{name} resource post save handler raise error: {exc}'.format(
+                name=self.name,
+                exc=traceback.format_exc()
+            ))
 
     def post_delete_handler(self, sender, instance, **kwargs):
-        self.delete_instance(instance)
+        try:
+            self.delete_instance(instance)
+        except Exception:
+            logger.error('{name} resource post delete handler raise error: {exc}'.format(
+                name=self.name,
+                exc=traceback.format_exc()
+            ))
 
     def _dispatch_handlers(self):
         post_save.connect(receiver=self.post_save_handler, sender=self.resource_cls)
         post_delete.connect(receiver=self.post_delete_handler, sender=self.resource_cls)
+
+    def clean_instances(self, instances):
+        if instances is None:
+            return None
+
+        if isinstance(instances, list):
+            cleaned = []
+            for inst in instances:
+                if isinstance(inst, self.resource_cls):
+                    cleaned.append(inst)
+                else:
+                    id_filter = {
+                        self.inspect.resource_unique_key: inst
+                    }
+                    cleaned.append(self.resource_cls.objects.get(**id_filter))
+            return cleaned
+        elif isinstance(instances, self.resource_cls):
+            return instances
+        else:
+            id_filter = {
+                self.inspect.resource_unique_key: instances
+            }
+            return self.resource_cls.objects.get(**id_filter)
