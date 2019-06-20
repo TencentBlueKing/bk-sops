@@ -66,7 +66,7 @@
                             <td class="periodic-name" :title="item.name">{{item.name}}</td>
                             <td class="periodic-name" :title="item.name">
                                 <a
-                                    v-if="!hasPermission(['view'], item.auth_actions, item.auth_operations)"
+                                    v-if="!hasPermission(['view'], item.auth_actions, periodicOperations)"
                                     class="text-permisson-disable"
                                     @click="onPeriodicPermissonCheck(['view'], item, $event)">
                                     {{item.task_template_name}}
@@ -92,7 +92,7 @@
                                     href="javascript:void(0);"
                                     :class="['periodic-pause-btn', {
                                         'periodic-start-btn': !item.enabled,
-                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
                                     }]"
                                     @click="onSetEnable(item, $event)">
                                     {{!item.enabled ? i18n.start : i18n.pause}}
@@ -101,7 +101,7 @@
                                     href="javascript:void(0);"
                                     :class="['periodic-bk-btn', {
                                         'periodic-bk-disable': item.enabled,
-                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
                                     }]"
                                     :title="item.enabled ? i18n.editTitle : ''"
                                     @click="onModifyCronPeriodic(item, $event)">
@@ -114,7 +114,7 @@
                                             <a
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
+                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, periodicOperations)
                                                 }"
                                                 @click="onDeletePeriodic(item, $event)">
                                                 {{ i18n.delete }}
@@ -248,7 +248,9 @@
                 modifyDialogLoading: false,
                 selectedTemplateName: undefined,
                 periodicName: undefined,
-                enabledSync: -1
+                enabledSync: -1,
+                periodicOperations: [],
+                periodicResource: {}
             }
         },
         created () {
@@ -276,6 +278,8 @@
                     const list = periodicListData.objects
                     this.periodicList = list
                     this.totalCount = periodicListData.meta.total_count
+                    this.periodicOperations = periodicListData.meta.auth_operations
+                    this.periodicResource = periodicListData.meta.auth_resource
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -299,10 +303,10 @@
              * @params {Object} event 事件对象
              */
             onPeriodicPermissonCheck (required, periodic, event) {
-                if (!this.hasPermission(required, periodic.auth_actions, periodic.auth_operations)) {
+                if (!this.hasPermission(required, periodic.auth_actions, this.periodicOperations)) {
                     const permissions = []
                     let actions = []
-                    periodic.auth_operations.filter(item => {
+                    this.periodicOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
@@ -314,7 +318,7 @@
                 }
             },
             onDeletePeriodic (periodic, event) {
-                if (!this.hasPermission(['delete'], periodic.auth_actions, periodic.auth_operations)) {
+                if (!this.hasPermission(['delete'], periodic.auth_actions, this.periodicOperations)) {
                     this.onPeriodicPermissonCheck(['delete'], periodic, event)
                     return
                 }
@@ -330,7 +334,7 @@
                 this.enabled = enabled
             },
             async onSetEnable (item, event) {
-                if (!this.hasPermission(['edit'], item.auth_actions, item.auth_operations)) {
+                if (!this.hasPermission(['edit'], item.auth_actions, this.periodicOperations)) {
                     this.onPeriodicPermissonCheck(['edit'], item, event)
                     return
                 }
@@ -350,7 +354,7 @@
             },
             onModifyCronPeriodic (item) {
                 const { enabled, id: taskId, cron } = item
-                if (!this.hasPermission(['edit'], item.auth_actions, item.auth_operations)) {
+                if (!this.hasPermission(['edit'], item.auth_actions, this.periodicOperations)) {
                     this.onPeriodicPermissonCheck(['edit'], item, event)
                     return
                 }

@@ -100,7 +100,7 @@
             <bk-button
                 type="primary"
                 :class="{
-                    'btn-permission-disable': !hasPermission(['create_mini_app'], appData.appActions, appData.appOperations)
+                    'btn-permission-disable': !hasPermission(['create_mini_app'], appData.appActions, tplOperations)
                 }"
                 @click="onConfirm">
                 {{i18n.confirm}}
@@ -137,7 +137,6 @@
                     appScheme: this.currentAppData ? Number(this.currentAppData.template_scheme_id) : '',
                     appDesc: this.currentAppData ? this.currentAppData.desc : '',
                     appActions: this.currentAppData ? this.currentAppData.auth_actions : [],
-                    appOperations: this.currentAppData ? this.currentAppData.auth_operations : [],
                     appLogo: undefined
                 },
                 logoUrl: this.currentAppData ? this.currentAppData.logo_url : '',
@@ -154,6 +153,8 @@
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
+                tplOperations: [],
+                tplResource: {},
                 i18n: {
                     title: this.isCreateNewApp ? gettext('新建轻应用') : gettext('修改轻应用'),
                     template: gettext('流程模板'),
@@ -191,6 +192,8 @@
                 try {
                     const templateListData = await this.loadTemplateList()
                     this.templateList = templateListData.objects
+                    this.tplOperations = templateListData.meta.auth_operations
+                    this.tplResource = templateListData.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -213,7 +216,6 @@
             onSelectTemplate (id, data) {
                 this.appData.appName = data.name
                 this.appData.appActions = data.auth_actions
-                this.appData.appOperations = data.auth_operations
                 this.appTemplateEmpty = false
             },
             onOpenScheme (value) {
@@ -247,9 +249,9 @@
                     this.appTemplateEmpty = true
                     return
                 }
-                if (!this.hasPermission(['create_mini_app'], this.appData.appActions, this.appData.appOperations)) {
+                if (!this.hasPermission(['create_mini_app'], this.appData.appActions, this.tplOperations)) {
                     const permissions = []
-                    const actions = this.appData.appOperations.find(item => item.operate_id === 'create_mini_app').actions
+                    const actions = this.tplOperations.find(item => item.operate_id === 'create_mini_app').actions
                     const resource = this.appData.appName
                     permissions.push({ resource, actions })
                     this.triggerPermisionModal(permissions)
