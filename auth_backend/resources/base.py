@@ -62,6 +62,19 @@ class Resource(object):
 
         resource_type_lib[rtype] = self
 
+    def base_info(self):
+        return {
+            'system_id': self.backend.client.system_id,
+            'system_name': self.backend.client.system_name,
+            'scope_type': self.scope_type,
+            'scope_id': self.scope_id,
+            'scope_name': self.scope_name,
+            'resource': {
+                'resource_type': self.rtype,
+                'resource_type_name': self.name,
+            }
+        }
+
     def clean_instances(self, instances):
         return instances
 

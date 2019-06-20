@@ -44,7 +44,6 @@ from gcloud.webservice3.resources import (
     GCloudModelResource,
     ProjectResource,
 )
-from gcloud.webservice3.serializers import AppSerializer
 from gcloud.core.utils import pipeline_node_name_handle
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.permissions import mini_app_resource
@@ -53,11 +52,10 @@ logger = logging.getLogger('root')
 
 
 class PipelineInstanceResource(GCloudModelResource):
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = PipelineInstance.objects.filter(is_deleted=False)
         resource_name = 'pipeline_instance'
         authorization = ReadOnlyAuthorization()
-        serializer = AppSerializer()
         filtering = {
             'name': ALL,
             'is_finished': ALL,
@@ -69,7 +67,6 @@ class PipelineInstanceResource(GCloudModelResource):
             'is_started': ALL,
             'start_time': ['gte', 'lte']
         }
-        limit = 0
 
 
 class CustomCreateDetailAuthorization(BkSaaSLooseAuthorization):
@@ -137,14 +134,13 @@ class TaskFlowInstanceResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
         resource_name = 'taskflow'
-        always_return_data = True
-        authorization = CustomCreateDetailAuthorization(auth_resource=taskflow_resource,
+        auth_resource = taskflow_resource
+        authorization = CustomCreateDetailAuthorization(auth_resource=auth_resource,
                                                         read_action_id='view',
                                                         update_action_id='edit')
-        serializer = AppSerializer()
         filtering = {
             'id': ALL,
             'project': ALL_WITH_RELATIONS,
@@ -157,7 +153,6 @@ class TaskFlowInstanceResource(GCloudModelResource):
             'pipeline_instance': ALL_WITH_RELATIONS,
         }
         q_fields = ['id', 'pipeline_instance__name']
-        limit = 0
 
     @staticmethod
     def handle_task_name_attr(data):
