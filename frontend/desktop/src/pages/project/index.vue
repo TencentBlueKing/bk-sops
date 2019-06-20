@@ -58,7 +58,7 @@
                             <td>
                                 <bk-button
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
                                     type="default"
                                     @click="onEditProject(item, $event)">
@@ -67,7 +67,7 @@
                                 <bk-button
                                     v-if="item.is_disable"
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
                                     type="default"
                                     @click="onChangeProjectStatus(item, 'start', $event)">
@@ -76,7 +76,7 @@
                                 <bk-button
                                     v-else
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
                                     type="default"
                                     @click="onChangeProjectStatus(item, 'stop', $event)">
@@ -215,6 +215,8 @@
                     max: STRING_LENGTH.PROJECT_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
+                projectOperations: [],
+                projectResource: {},
                 i18n: {
                     projectManage: gettext('项目管理'),
                     createProject: gettext('新建项目'),
@@ -282,6 +284,8 @@
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
                     this.totalCount = projectList.meta.total_count
+                    this.projectOperations = projectList.meta.auth_operations
+                    this.projectResource = projectList.meta.auth_resource
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -366,10 +370,10 @@
              * @params {Object} event 事件对象
              */
             onProjectPermissonCheck (required, project, event) {
-                if (!this.hasPermission(required, project.auth_actions, project.auth_operations)) {
+                if (!this.hasPermission(required, project.auth_actions, this.projectOperations)) {
                     const permissions = []
                     let actions = []
-                    project.auth_operations.filter(item => {
+                    this.projectOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
@@ -405,7 +409,7 @@
                 }
             },
             onEditProject (project, event) {
-                if (!this.hasPermission(['edit'], project.auth_actions, project.auth_operations)) {
+                if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
                     this.onProjectPermissonCheck(['edit'], project, event)
                     return
                 }
@@ -438,7 +442,7 @@
                 this.projectDetail.timeZone = value
             },
             onChangeProjectStatus (project, type, event) {
-                if (!this.hasPermission(['edit'], project.auth_actions, project.auth_operations)) {
+                if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
                     this.onProjectPermissonCheck(['edit'], project, event)
                     return
                 }

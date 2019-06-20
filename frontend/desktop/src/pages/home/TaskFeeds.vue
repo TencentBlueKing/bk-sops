@@ -32,7 +32,7 @@
                         [{{item.finish_time || item.create_time}}]{{item.name}}, {{i18n.time}} {{getLastTime(item)}}
                     </div>
                     <a
-                        v-if="!hasPermission(['view'], item.auth_actions, item.auth_operations)"
+                        v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
                         class="text-permisson-disable"
                         @click="onTaskPermissonCheck(['view'], item, $event)">
                         {{i18n.detail}}
@@ -70,7 +70,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['topThreeTaskFeeds', 'project_id'],
+        props: ['topThreeTaskFeeds', 'project_id', 'taskOperations', 'taskResource'],
         data () {
             return {
                 feedsStatus: this.getTaskStatus(),
@@ -181,7 +181,7 @@
             onTaskPermissonCheck (required, task, event) {
                 const permissions = []
                 let actions = []
-                task.auth_operations.filter(item => {
+                this.taskOperations.filter(item => {
                     return required.includes(item.operate_id)
                 }).forEach(perm => {
                     actions = actions.concat(perm.actions)

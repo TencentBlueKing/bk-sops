@@ -43,7 +43,7 @@
                                     <ul>
                                         <li
                                             :class="['template-item', {
-                                                'text-permisson-disable': !hasPermission(['view'], item.auth_actions, item.auth_operations)
+                                                'text-permisson-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
                                             }]"
                                             v-for="item in group.list"
                                             :key="item.id"
@@ -61,7 +61,7 @@
                                     v-for="item in searchList"
                                     :key="item.id"
                                     :class="['template-item', {
-                                        'text-permisson-disable': !hasPermission(['view'], item.auth_actions, item.auth_operations)
+                                        'text-permisson-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
                                     }]"
                                     @click="onSelectTemplate(item)">
                                     <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
@@ -121,7 +121,11 @@
             NoData
         },
         mixins: [permission],
-        props: ['project_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading'],
+        props: [
+            'project_id', 'submitting', 'isSelectTemplateDialogShow',
+            'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading',
+            'tplOperations', 'tplResource'
+        ],
         data () {
             const selectedTemplate = this.quickTaskList.slice(0)
             return {
@@ -177,7 +181,7 @@
                 }
             },
             onSelectTemplate (template) {
-                if (this.hasPermission(['view'], template.auth_actions, template.auth_operations)) {
+                if (this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
                     let index
                     const isSelected = this.selectedTemplate.some((item, i) => {
                         if (item.id === template.id) {
@@ -199,7 +203,7 @@
                     }
                 } else {
                     const permissions = []
-                    const actions = template.auth_operations.find(item => item.operate_id === 'export').actions
+                    const actions = this.tplOperations.find(item => item.operate_id === 'export').actions
                     const resource = template.name
                     permissions.push({ resource, actions })
                     this.triggerPermisionModal(permissions)
