@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from .constants import HTTP_AUTH_FAILED_CODE
+
 
 class AuthBaseException(Exception):
     pass
@@ -29,6 +31,7 @@ class AuthInterfaceEmptyError(AuthBaseException):
 
 
 class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, *args, **kwargs):
+    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
         super(AuthFailedException, self).__init__(*args, **kwargs)
         self.permissions = permissions
+        self.status = status

@@ -21,4 +21,4 @@ class AuthFailedExceptionMiddleware(MiddlewareMixin):
 
     def process_exception(self, request, exception):
         if isinstance(exception, AuthFailedException):
-            return HttpResponseAuthFailed(permission=exception.permissions)
+            return HttpResponseAuthFailed(permission=exception.permissions, status=exception.status)

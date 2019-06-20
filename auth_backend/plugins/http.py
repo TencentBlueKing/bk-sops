@@ -16,11 +16,11 @@ import json
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 
-from .constants import AUTH_FORBIDDEN_CODE
+from .constants import AUTH_FORBIDDEN_CODE, HTTP_AUTH_FAILED_CODE
 
 
 class HttpResponseAuthFailed(HttpResponse):
-    status_code = 499
+    status_code = HTTP_AUTH_FAILED_CODE
 
     def __init__(self, permission, *args, **kwargs):
         kwargs.setdefault('content_type', 'application/json')

@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-PRINCIPAL_TYPE_USER = 'user'
+from gcloud.exceptions import BkSopsError
 
-AUTH_FORBIDDEN_CODE = 9900403
 
-HTTP_AUTH_FAILED_CODE = 499
+class UserNotExistError(BkSopsError):
+    pass
