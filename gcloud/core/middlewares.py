@@ -11,14 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
 import logging
+import traceback
+import ujson as json
 
 import pytz
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
+from django.db.models import ObjectDoesNotExist
 
 from gcloud.core.models import Project
 
@@ -82,3 +84,14 @@ class TimezoneMiddleware(MiddlewareMixin):
             timezone.activate(pytz.timezone(tzname))
         else:
             timezone.deactivate()
+
+
+class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
+
+    def process_exception(self, request, exception):
+        if isinstance(exception, ObjectDoesNotExist):
+            logger.error(traceback.format_exc())
+            return JsonResponse({
+                'result': False,
+                'message': 'Object not found: %s' % exception.message
+            })
