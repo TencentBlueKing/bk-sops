@@ -294,14 +294,16 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        const tplIndex = this.getTplIndexInSelected(template)
-                        if (this.isTplInPanelAllSelected) {
-                            if (tplIndex > -1) {
-                                this.selectedTemplates.splice(tplIndex, 1)
-                            }
-                        } else {
-                            if (tplIndex === -1) {
-                                this.selectedTemplates.push(template)
+                        if (template.auth_actions.includes('export')) {
+                            const tplIndex = this.getTplIndexInSelected(template)
+                            if (this.isTplInPanelAllSelected) {
+                                if (tplIndex > -1) {
+                                    this.selectedTemplates.splice(tplIndex, 1)
+                                }
+                            } else {
+                                if (tplIndex === -1) {
+                                    this.selectedTemplates.push(template)
+                                }
                             }
                         }
                     })
