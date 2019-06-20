@@ -23,7 +23,6 @@ from gcloud.webservice3.resources import (
     GCloudModelResource,
     ProjectResource,
 )
-from gcloud.webservice3.serializers import AppSerializer
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.permissions import mini_app_resource
 
@@ -77,15 +76,13 @@ class AppMakerResource(GCloudModelResource):
         null=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = AppMaker.objects.filter(is_deleted=False)
         resource_name = 'appmaker'
-        excludes = []
-        authorization = OnlyDeleteDetailAuthorization(auth_resource=mini_app_resource,
+        auth_resource = mini_app_resource
+        authorization = OnlyDeleteDetailAuthorization(auth_resource=auth_resource,
                                                       read_action_id='view',
                                                       update_action_id='edit')
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             "project": ALL_WITH_RELATIONS,
             "template": ALL_WITH_RELATIONS,
@@ -95,7 +92,6 @@ class AppMakerResource(GCloudModelResource):
             'create_time': ['gte', 'lte'],
             'edit_time': ['gte', 'lte'],
         }
-        limit = 0
 
     def obj_delete(self, bundle, **kwargs):
         try:
