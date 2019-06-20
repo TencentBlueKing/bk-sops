@@ -156,6 +156,9 @@ class BusinessResource(GCloudModelResource):
 
 
 class ProjectResource(GCloudModelResource):
+    name = fields.CharField(attribute='time_zone', readonly=True)
+    time_zone = fields.CharField(attribute='time_zone', readonly=True)
+    creator = fields.CharField(attribute='creator', readonly=True)
     create_at = fields.DateTimeField(attribute='create_at', readonly=True)
     from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
     bk_biz_id = fields.IntegerField(attribute='bk_biz_id', readonly=True)
