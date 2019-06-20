@@ -65,13 +65,13 @@
                 if (this.urlLoading || !this.url) {
                     return
                 }
-                this.$router.push(this.url)
+                window.open(this.url, '__blank')
             },
             async queryProjectCreatePerm () {
                 try {
                     await this.queryUserPermission({
                         resource_type: 'project',
-                        action_ids: ['create']
+                        action_ids: JSON.stringify(['create'])
                     })
                 } catch (err) {
                     errorHandler(err, this)
