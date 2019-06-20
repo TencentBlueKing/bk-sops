@@ -207,6 +207,7 @@ class ComponentModelResource(GCloudModelResource):
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
+        data = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
         bundle = data
         component = ComponentLibrary.get_component_class(bundle.data['code'])
         bundle.data['output'] = component.outputs_format()

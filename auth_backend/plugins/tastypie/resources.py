@@ -41,6 +41,14 @@ class BkSaaSLabeledDataResourceMixin(object):
         data['meta']['auth_resource'] = auth_resource.base_info()
         return data
 
+    def alter_detail_data_to_serialize(self, request, data):
+        auth_resource = getattr(self._meta, 'auth_resource', None)
+        if auth_resource is None:
+            return data
+        data.data['auth_operations'] = auth_resource.operations
+        data.data['auth_resource'] = auth_resource.base_info()
+        return data
+
 
 @with_cache(seconds=10, prefix=CACHE_PREFIX, ex=[0, 1])
 def search_all_resources_authorized_actions(username, resource_type, auth_resource):
