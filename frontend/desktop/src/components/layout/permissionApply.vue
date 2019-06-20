@@ -38,7 +38,7 @@
                     resourceContent: gettext('你没有相应资源的访问权限，请申请权限或联系管理员授权'),
                     projectContent: gettext('你可以申请已有项目的权限，或新建项目'),
                     apply: gettext('去申请'),
-                    create: gettext('创建项目')
+                    create: gettext('新建项目')
                 }
             }
         },
