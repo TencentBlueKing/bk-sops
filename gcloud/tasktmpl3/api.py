@@ -232,7 +232,7 @@ def check_before_import(request, project_id):
     return JsonResponse({
         'result': True,
         'data': check_info,
-        'permissions': permissions
+        'permission': permissions
     })
 
 
