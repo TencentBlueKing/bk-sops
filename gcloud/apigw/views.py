@@ -28,7 +28,7 @@ from pipeline.engine import api as pipeline_api
 
 from gcloud.constants import PROJECT
 from gcloud.conf import settings
-from gcloud.apigw.decorators import check_white_apps, mark_request_whether_is_trust, project_existence_check
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_existence_check
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
 from gcloud.core.models import Project
 from gcloud.core.utils import format_datetime
@@ -112,7 +112,7 @@ def get_template_info(request, template_id, project_id):
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'template[id={template_id}] of business[project_id={project_id}] does not exist'.format(
+                'message': 'template[id={template_id}] of project[project_id={project_id}] does not exist'.format(
                     template_id=template_id,
                     project_id=project_id)
             }
@@ -174,8 +174,9 @@ def create_task(request, template_id, project_id):
         project_id=project_id,
         params=params))
     project = Project.objects.get(id=project_id)
-    template_source = params.get('template_source', 'business')
-    if template_source == 'business':
+    template_source = params.get('template_source', PROJECT)
+    # 兼容老版本的接口调用
+    if template_source == 'business' or template_source == PROJECT:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project_id,
@@ -190,7 +191,7 @@ def create_task(request, template_id, project_id):
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'template[id={template_id}] of business[project_id={project_id}] does not exist'.format(
+                'message': 'template[id={template_id}] of project[project_id={project_id}] does not exist'.format(
                     template_id=template_id,
                     project_id=project_id)
             }
@@ -698,7 +699,7 @@ def get_task_detail(request, task_id, project_id):
                                         action_ids=[taskflow_resource.actions.view.id],
                                         instance=task)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[project_id={project_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
             task_id=task_id,
             project_id=project_id)
         logger.exception(message)
@@ -729,7 +730,7 @@ def get_task_node_detail(request, task_id, project_id):
                                         action_ids=[taskflow_resource.actions.view.id],
                                         instance=task)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[project_id={project_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
             task_id=task_id,
             project_id=project_id)
         logger.exception(message)
@@ -771,7 +772,7 @@ def node_callback(request, task_id, project_id):
                                         action_ids=[taskflow_resource.actions.operate.id],
                                         instance=task)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[project_id={project_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
             task_id=task_id,
             project_id=project_id)
         logger.exception(message)

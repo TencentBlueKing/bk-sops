@@ -99,24 +99,23 @@ class APITest(TestCase):
         self.dummy_user.username = ''
         self.user_cls = MagicMock()
         self.user_cls.objects = MagicMock()
-        self.user_cls.objects.get_or_create = MagicMock(return_value=(self.dummy_user, False))
+        self.user_cls.objects.get = MagicMock(return_value=self.dummy_user)
 
         self.get_user_model_patcher = mock.patch(APIGW_DECORATOR_GET_USER_MODEL, MagicMock(return_value=self.user_cls))
-        self.prepare_user_business_patcher = mock.patch(APIGW_DECORATOR_PREPARE_USER_BUSINESS, MagicMock())
-        self.business_exist_patcher = mock.patch(APIGW_DECORATOR_BUSINESS_EXIST, MagicMock(return_value=True))
+        exist_return_true_qs = MagicMock()
+        exist_return_true_qs.exist = MagicMock(return_value=True)
+        self.project_filter_patcher = mock.patch(PROJECT_FILTER, MagicMock(return_value=exist_return_true_qs))
 
         self.white_list_patcher.start()
         self.get_user_model_patcher.start()
-        self.prepare_user_business_patcher.start()
-        self.business_exist_patcher.start()
+        self.project_filter_patcher.start()
 
         self.client = Client()
 
     def tearDown(self):
         self.white_list_patcher.stop()
         self.get_user_model_patcher.stop()
-        self.prepare_user_business_patcher.stop()
-        self.business_exist_patcher.stop()
+        self.project_filter_patcher.stop()
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
@@ -1138,7 +1137,7 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-    @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=False))
+    @mock.patch(APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=False))
     @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock())
     def test_import_common_template__app_has_no_permission(self):
         response = self.client.post(path=self.IMPORT_COMMON_FLOW)
@@ -1151,7 +1150,7 @@ class APITest(TestCase):
         from gcloud.apigw.views import read_template_data_file
         read_template_data_file.assert_not_called()
 
-    @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
+    @mock.patch(APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=True))
     @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': False, 'message': 'token'}))
     def test_import_common_template__read_template_data_file_error(self):
         response = self.client.post(path=self.IMPORT_COMMON_FLOW)
@@ -1161,7 +1160,7 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertEqual(data['message'], 'token')
 
-    @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
+    @mock.patch(APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=True))
     @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': True,
                                                                        'data': {'template_data': 'token'}}))
     @mock.patch(COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(side_effect=Exception()))
@@ -1173,7 +1172,7 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-    @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
+    @mock.patch(APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=True))
     @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': True,
                                                                        'data': {'template_data': 'token'}}))
     @mock.patch(COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={'result': False, 'message': 'token'}))
@@ -1185,7 +1184,7 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertEqual(data['message'], 'token')
 
-    @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
+    @mock.patch(APIGW_DECORATOR_CHECK_WHITE_LIST, MagicMock(return_value=True))
     @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': True,
                                                                        'data': {'template_data': 'token'}}))
     @mock.patch(COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={'result': True, 'message': 'token'}))
