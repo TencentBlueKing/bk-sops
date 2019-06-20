@@ -246,7 +246,7 @@ def check_before_import(request, project_id):
         for template in templates:
             perms_tuples.append((task_template_resource, [task_template_resource.actions.view.id], template))
     permissions = verify_or_return_insufficient_perms(principal_type='user',
-                                                      principal_id=request.user.usernmae,
+                                                      principal_id=request.user.username,
                                                       perms_tuples=perms_tuples)
 
     return JsonResponse({
@@ -254,22 +254,6 @@ def check_before_import(request, project_id):
         'data': check_info,
         'permission': permissions
     })
-
-
-def q(check_info, project_id, override=False):
-    perms_tuples = []
-    if check_info['new_template'] or override:
-        project = Project.objects.get(id=project_id)
-
-        perms_tuples.append((project_resource, [project_resource.actions.create_template.id], project))
-
-    if check_info['override_template']:
-        templates_id = [template_info['id'] for template_info in check_info['override_template']]
-        templates = TaskTemplate.objects.filter(id__in=templates_id, project_id=project_id, is_deleted=False)
-        for template in templates:
-            perms_tuples.append((task_template_resource, [task_template_resource.actions.view.id], template))
-
-    return perms_tuples
 
 
 @require_POST
