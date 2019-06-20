@@ -19,7 +19,6 @@ from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
-from tastypie.resources import ModelResource
 
 from auth_backend.plugins.tastypie.shortcuts import (batch_verify_or_raise_immediate_response,
                                                      verify_or_raise_immediate_response)
@@ -53,7 +52,7 @@ from gcloud.contrib.appmaker.permissions import mini_app_resource
 logger = logging.getLogger('root')
 
 
-class PipelineInstanceResource(ModelResource):
+class PipelineInstanceResource(GCloudModelResource):
     class Meta:
         queryset = PipelineInstance.objects.filter(is_deleted=False)
         resource_name = 'pipeline_instance'

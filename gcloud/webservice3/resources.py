@@ -156,14 +156,16 @@ class BusinessResource(GCloudModelResource):
 
 
 class ProjectResource(GCloudModelResource):
+    name = fields.CharField(attribute='name', readonly=True)
+    time_zone = fields.CharField(attribute='time_zone', readonly=True)
+    creator = fields.CharField(attribute='creator', readonly=True)
     create_at = fields.DateTimeField(attribute='create_at', readonly=True)
     from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
     bk_biz_id = fields.IntegerField(attribute='bk_biz_id', readonly=True)
 
-    ALLOW_UPDATE_FIELD = {'desc', 'is_disable'}
 
     class Meta:
-        queryset = Project.objects.all()
+        queryset = Project.objects.all().order_by('-id')
         resource_name = 'project'
         authorization = BkSaaSLooseAuthorization(auth_resource=project_resource,
                                                  read_action_id='view',
@@ -178,25 +180,17 @@ class ProjectResource(GCloudModelResource):
             "bk_biz_id": ALL,
             "is_disable": ALL,
         }
+        q_fields = ['id', 'name', 'desc', 'creator']
 
     def obj_create(self, bundle, **kwargs):
         bundle.data['creator'] = bundle.request.user.username
         return super(ProjectResource, self).obj_create(bundle, **kwargs)
 
-    def obj_update(self, bundle, skip_errors=False, **kwargs):
-        update_data = {}
-        for field in self.ALLOW_UPDATE_FIELD:
-            update_data[field] = bundle.data.get(field, getattr(bundle.obj, field))
-
-        bundle.data = update_data
-
-        return super(ProjectResource, self).obj_update(bundle, skip_errors, **kwargs)
-
     def obj_delete(self, bundle, **kwargs):
         raise BadRequest("can not delete project")
 
 
-class ComponentModelResource(ModelResource):
+class ComponentModelResource(GCloudModelResource):
     group_icon = fields.CharField(
         attribute='group_icon',
         readonly=True,
@@ -238,7 +232,7 @@ class ComponentModelResource(ModelResource):
         return data
 
 
-class VariableModelResource(ModelResource):
+class VariableModelResource(GCloudModelResource):
     name = fields.CharField(
         attribute='name',
         readonly=True,

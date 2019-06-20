@@ -103,6 +103,7 @@ MIDDLEWARE += (
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
+    'gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware',
     'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
 )
 

@@ -163,7 +163,7 @@ class PeriodicTaskResource(GCloudModelResource):
         filtering = {
             'id': ALL,
             'template_id': ALL,
-            'projects': ALL_WITH_RELATIONS,
+            'project': ALL_WITH_RELATIONS,
             'name': ALL,
             'enabled': ALL,
             'creator': ALL,
