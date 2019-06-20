@@ -156,7 +156,7 @@ class BusinessResource(GCloudModelResource):
 
 
 class ProjectResource(GCloudModelResource):
-    name = fields.CharField(attribute='time_zone', readonly=True)
+    name = fields.CharField(attribute='name', readonly=True)
     time_zone = fields.CharField(attribute='time_zone', readonly=True)
     creator = fields.CharField(attribute='creator', readonly=True)
     create_at = fields.DateTimeField(attribute='create_at', readonly=True)
@@ -181,6 +181,7 @@ class ProjectResource(GCloudModelResource):
             "bk_biz_id": ALL,
             "is_disable": ALL,
         }
+        q_fields = ['id', 'name', 'desc', 'creator']
 
     def obj_create(self, bundle, **kwargs):
         bundle.data['creator'] = bundle.request.user.username
