@@ -1367,7 +1367,7 @@ const api = {
      */
     getPermissionUrl (data) {
         const prefixUrl = this.getPrefix('permission')
-        const dataBody = qs.stringify(data)
+        const dataBody = qs.stringify({ permission: data })
 
         const opts = {
             method: 'POST',
@@ -1381,7 +1381,7 @@ const api = {
      * @param {Object} data 查询参数 {resource_type: 'xxx', instance_id: 0, action_ids: "['aaa', 'bbb']"}
      */
     queryUserPermission (data) {
-        const prefixUrl = this.getPrefix('permission')
+        const prefixUrl = this.getPrefix('permissionQuery')
         const { resource_type, instance_id, action_ids } = data
         const ids = JSON.stringify(action_ids)
         const opts = {

@@ -20,7 +20,8 @@
         <permissionApply
             v-if="permissinApplyShow"
             ref="permissionApply"
-            :type="permissionType">
+            :type="permissionType"
+            :permission="permission">
         </permissionApply>
         <router-view v-if="isRouterViewShow"></router-view>
     </div>
@@ -54,8 +55,9 @@
             return {
                 permissinApplyShow: false,
                 permissionType: 'project', // 无权限类型: project、other
-                isRouterAlive: true,
-                appmakerDataLoading: false // 轻应用加载 app 详情
+                permission: [],
+                isRouterAlive: false,
+                appmakerDataLoading: false // 轻应用加载 app 详情,
             }
         },
         computed: {
@@ -96,9 +98,13 @@
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
             })
-            bus.$on('togglePermissionApplyPage', (isShow, type) => {
+            bus.$on('togglePermissionApplyPage', (isShow, type, permission) => {
                 this.permissinApplyShow = isShow
                 this.permissionType = type
+                this.permission = permission
+                if (!isShow) {
+                    this.isRouterAlive = true
+                }
             })
             bus.$on('showPermissionModal', data => {
                 this.$refs.permissionModal.show(data)
@@ -126,6 +132,8 @@
             initData () {
                 if (this.project_id !== undefined) {
                     this.getProjectDetail()
+                } else {
+                    this.isRouterAlive = true
                 }
                 if (this.viewMode === 'appmaker') {
                     this.getAppmakerDetail()

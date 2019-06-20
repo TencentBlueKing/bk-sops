@@ -21,10 +21,17 @@
             type: { // 权限申请类型
                 type: String,
                 default: 'project'
+            },
+            permission: {
+                type: Array,
+                default () {
+                    return []
+                }
             }
         },
         data () {
             return {
+                url: '',
                 i18n: {
                     resourceTitle: gettext('无权限访问'),
                     projectTitle: gettext('无权限访问项目'),
@@ -47,12 +54,18 @@
             if (this.type === 'project') {
                 this.queryProjectCreatePerm()
             }
+            this.loadPermissionUrl()
         },
         methods: {
             ...mapActions([
-                'queryUserPermission'
+                'queryUserPermission',
+                'getPermissionUrl'
             ]),
             goToAuthCenter () {
+                if (this.urlLoading || !this.url) {
+                    return
+                }
+                this.$router.push(this.url)
             },
             async queryProjectCreatePerm () {
                 try {
@@ -62,6 +75,17 @@
                     })
                 } catch (err) {
                     errorHandler(err, this)
+                }
+            },
+            async loadPermissionUrl () {
+                try {
+                    this.loading = true
+                    const res = await this.getPermissionUrl(this.permission)
+                    this.url = res.data.url
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.loading = false
                 }
             }
         }
