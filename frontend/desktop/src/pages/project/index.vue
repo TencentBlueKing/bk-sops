@@ -31,7 +31,7 @@
                         <BaseInput
                             v-model="searchStr"
                             class="search-input"
-                            :placeholader="i18n.placeholder"
+                            :placeholder="i18n.placeholder"
                             @input="onSearchInput">
                         </BaseInput>
                         <i class="common-icon-search"></i>
@@ -42,21 +42,23 @@
                 <table class="project-table" v-bkloading="{ isLoading: loading, opacity: 1 }">
                     <thead>
                         <tr>
+                            <th width="10%">ID</th>
                             <th width="30%">{{ i18n.projectName}}</th>
                             <th width="40%">{{ i18n.projectDesc}}</th>
                             <th width="10%">{{ i18n.creator }}</th>
-                            <th width="20%">{{ i18n.operation }}</th>
+                            <th width="10%">{{ i18n.operation }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="item in projectList" :key="item.id">
+                            <td>{{item.id}}</td>
                             <td><div class="project-name" :title="item.name">{{item.name}}</div></td>
                             <td><div class="project-desc" :title="item.desc">{{item.desc || '--' }}</div></td>
                             <td>{{item.creator}}</td>
                             <td>
                                 <bk-button
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], authActions, authOperations)
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
                                     }]"
                                     type="default"
                                     @click="onEditProject(item, $event)">
@@ -65,7 +67,7 @@
                                 <bk-button
                                     v-if="item.is_disable"
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], authActions, authOperations)
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
                                     }]"
                                     type="default"
                                     @click="onChangeProjectStatus(item, 'start', $event)">
@@ -74,7 +76,7 @@
                                 <bk-button
                                     v-else
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], authActions, authOperations)
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
                                     }]"
                                     type="default"
                                     @click="onChangeProjectStatus(item, 'stop', $event)">
@@ -110,7 +112,7 @@
             :title="projectDialogTitle"
             :is-show.sync="isProjectDialogShow"
             width="600"
-            padding="30px"
+            padding="30px 20px"
             @confirm="onProjectConfirm"
             @cancel="onEditProjectCancel">
             <div slot="content" class="dialog-content">
@@ -131,6 +133,7 @@
                     <label class="required">{{ i18n.timeZone }}</label>
                     <div class="common-form-content">
                         <bk-selector
+                            :disabled="dialogType === 'edit'"
                             :list="timeZoneList"
                             :selected="projectDetail.timeZone"
                             @item-selected="onChangeTimeZone">
@@ -217,10 +220,10 @@
                     createProject: gettext('新建项目'),
                     editProject: gettext('编辑项目'),
                     showClosedProject: gettext('显示已停用项目'),
-                    placeholder: gettext('请输入项目名称'),
+                    placeholder: gettext('请输入ID、名称、描述、创建人'),
                     projectName: gettext('项目名称'),
                     projectDesc: gettext('项目描述'),
-                    creator: gettext('创建者'),
+                    creator: gettext('创建人'),
                     operation: gettext('操作'),
                     total: gettext('共'),
                     item: gettext('条记录'),
@@ -273,7 +276,7 @@
                     }
                     
                     if (this.searchStr !== '') {
-                        data.name = this.searchStr
+                        data.q = this.searchStr
                     }
 
                     const projectList = await this.loadProjectList(data)

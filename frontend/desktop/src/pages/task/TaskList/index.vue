@@ -144,7 +144,7 @@
                                     {{ i18n.clone }}
                                 </a>
                                 <a
-                                    :class="['task-operation-delte', {
+                                    :class="['task-operation-delete', {
                                         'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
                                     }]"
                                     href="javascript:void(0);"

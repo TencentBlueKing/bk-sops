@@ -11,6 +11,10 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+
     export default {
         name: 'PermissionApply',
         props: {
@@ -39,8 +43,26 @@
                 return this.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
             }
         },
+        created () {
+            if (this.type === 'project') {
+                this.queryProjectCreatePerm()
+            }
+        },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             goToAuthCenter () {
+            },
+            async queryProjectCreatePerm () {
+                try {
+                    await this.queryUserPermission({
+                        resource_type: 'project',
+                        action_ids: ['create']
+                    })
+                } catch (err) {
+                    errorHandler(err, this)
+                }
             }
         }
     }
