@@ -17,7 +17,6 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
 from gcloud.core.api_adapter import is_user_functor
 from gcloud.webservice3.resources import GCloudModelResource
-from gcloud.webservice3.serializers import AppSerializer
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
 
@@ -44,14 +43,10 @@ class FunctionTaskResource(GCloudModelResource):
         null=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = FunctionTask.objects.filter(task__is_deleted=False)
         resource_name = 'function_task'
-        excludes = []
-        q_fields = ['task__pipeline_instance__name']
         authorization = ReadOnlyAuthorization()
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             'task': ALL_WITH_RELATIONS,
             'creator': ALL,
@@ -60,7 +55,7 @@ class FunctionTaskResource(GCloudModelResource):
             'create_time': ['gte', 'lte'],
             'claim_time': ['gte', 'lte']
         }
-        limit = 0
+        q_fields = ['task__pipeline_instance__name']
 
     def get_object_list(self, request):
         if is_user_functor(request) or request.user.is_superuser:

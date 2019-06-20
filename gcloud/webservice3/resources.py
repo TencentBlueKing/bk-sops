@@ -14,9 +14,11 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.db.models import Q
+from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
 from haystack.query import SearchQuerySet
 from tastypie import fields
+from tastypie.authentication import SessionAuthentication
 
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
@@ -50,7 +52,9 @@ class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
         return view
 
     def determine_format(self, request):
-        u"""强制指定返回数据格式为json"""
+        """
+        @summary: 强制指定返回数据格式为json
+        """
         return "application/json"
 
     def unauthorized_result(self, exception):
@@ -119,25 +123,25 @@ class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
         else:
             bundle.obj.delete()
 
+    class Meta:
+        serializer = AppSerializer()
+        always_return_data = True
+        limit = 0
+
 
 class BusinessResource(GCloudModelResource):
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = Business.objects.exclude(status='disabled') \
                                    .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
-        list_allowed_methods = ['get']
-        detail_allowed_methods = ['get']
         authorization = ReadOnlyAuthorization()
         resource_name = 'business'
         detail_uri_name = 'cc_id'
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             "cc_id": ALL,
             "cc_name": ALL,
             "cc_owner": ALL,
             "cc_company": ALL,
         }
-        limit = 0
 
     def get_object_list(self, request):
         if is_user_functor(request) or is_user_auditor(request):
@@ -163,15 +167,13 @@ class ProjectResource(GCloudModelResource):
     from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
     bk_biz_id = fields.IntegerField(attribute='bk_biz_id', readonly=True)
 
-
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = Project.objects.all().order_by('-id')
         resource_name = 'project'
-        authorization = BkSaaSLooseAuthorization(auth_resource=project_resource,
+        auth_resource = project_resource
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
                                                  read_action_id='view',
                                                  update_action_id='edit')
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             "id": ALL,
             "name": ALL,
@@ -196,14 +198,12 @@ class ComponentModelResource(GCloudModelResource):
         readonly=True,
         null=True)
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = ComponentModel.objects.filter(status=True).order_by('name')
         resource_name = 'component'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
-        ordering = ['name']
         authorization = ReadOnlyAuthorization()
-        limit = 0
 
     def alter_list_data_to_serialize(self, request, data):
         for bundle in data['objects']:
@@ -254,11 +254,9 @@ class VariableModelResource(GCloudModelResource):
         readonly=True,
         null=True)
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = VariableModel.objects.filter(status=True)
         resource_name = 'variable'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
-        ordering = ['id']
         authorization = ReadOnlyAuthorization()
-        limit = 0

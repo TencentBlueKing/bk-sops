@@ -31,17 +31,15 @@ from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
 from gcloud.webservice3.resources import GCloudModelResource
-from gcloud.webservice3.serializers import AppSerializer
 from gcloud.webservice3.paginator import TemplateFilterPaginator
 from gcloud.core.utils import pipeline_node_name_handle
 
 
 class PipelineTemplateResource(GCloudModelResource):
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = PipelineTemplate.objects.filter(is_deleted=False)
         resource_name = 'pipeline_template'
         authorization = ReadOnlyAuthorization()
-        serializer = AppSerializer()
         filtering = {
             'name': ALL,
             'creator': ALL,
@@ -49,7 +47,6 @@ class PipelineTemplateResource(GCloudModelResource):
             'subprocess_has_update': ALL,
             'edit_time': ['gte', 'lte']
         }
-        limit = 0
 
 
 class CommonTemplateResource(GCloudModelResource):
@@ -108,14 +105,13 @@ class CommonTemplateResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'common_template'
-        authorization = BkSaaSLooseAuthorization(auth_resource=common_template_resource,
+        auth_resource = common_template_resource
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
                                                  read_action_id='view',
                                                  update_action_id='edit')
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             "id": ALL,
             "name": ALL,
@@ -125,7 +121,6 @@ class CommonTemplateResource(GCloudModelResource):
             "has_subprocess": ALL
         }
         q_fields = ["id", "pipeline_template__name"]
-        limit = 0
         paginator_class = TemplateFilterPaginator
 
     @staticmethod
@@ -138,6 +133,7 @@ class CommonTemplateResource(GCloudModelResource):
         return json.dumps(bundle.data['pipeline_tree'])
 
     def alter_list_data_to_serialize(self, request, data):
+        data = super(CommonTemplateResource, self).alter_list_data_to_serialize(request, data)
         user_model = get_user_model()
         user = request.user
         collected_templates = user_model.objects.get(username=user.username) \
