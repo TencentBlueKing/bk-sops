@@ -103,7 +103,7 @@ const api = {
         } else {
             prefixUrl = this.getPrefix('template')
         }
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -165,7 +165,7 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                project_id
+                'project__id': project_id
             }
         }
         return request(opts)
@@ -235,7 +235,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersons')
-            params['project_id'] = project_id
+            params['project__id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersons')
         }
@@ -262,7 +262,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersonsSave')
-            bodyData['project_id'] = project_id
+            bodyData['project__id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersonsSave')
         }
@@ -454,7 +454,7 @@ const api = {
     getTaskList (data) {
         const { project_id } = store.state.project
         const { common, template_id } = data
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'peroject__id': project_id })
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
             querystring['template_source'] = 'business'
@@ -514,7 +514,7 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                project_id,
+                'project__id': project_id,
                 'template__template_id': template_id
             }
         }
@@ -531,7 +531,7 @@ const api = {
             method: 'POST',
             url: prefixUrl,
             data: {
-                project_id,
+                'project__id': project_id,
                 template_id,
                 data,
                 name
@@ -979,7 +979,7 @@ const api = {
     loadAppmaker (data) {
         const { project_id } = store.state.project
         const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -1155,7 +1155,7 @@ const api = {
      */
     getPeriodicList (data) {
         const { project_id } = store.state.project
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
@@ -1219,7 +1219,7 @@ const api = {
     getPeriodic (data) {
         const { project_id } = store.state.project
         const { taskId } = data
-        const querystring = Object.assign({}, { project_id })
+        const querystring = Object.assign({}, { 'project_id': project_id })
         const prefixUrl = this.getPrefix('periodic') + taskId + '/'
         const opts = {
             method: 'GET',
@@ -1294,7 +1294,7 @@ const api = {
      * 加载项目列表
      */
     loadProjectList (data = {}) {
-        const { limit, offset, is_disable, name } = data
+        const { limit, offset, is_disable, q } = data
         const prefixUrl = this.getPrefix('project')
 
         const opts = {
@@ -1304,7 +1304,7 @@ const api = {
                 limit,
                 offset,
                 is_disable,
-                name
+                q
             }
         }
         return request(opts)
@@ -1337,7 +1337,7 @@ const api = {
 
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}id`
+            url: `${prefixUrl}${id}`
         }
         return request(opts)
     },
@@ -1357,6 +1357,40 @@ const api = {
                 time_zone,
                 desc,
                 is_disable
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 获取申请权限 url
+     * @param {String} data 权限数据
+     */
+    getPermissionUrl (data) {
+        const prefixUrl = this.getPrefix('permission')
+        const dataBody = qs.stringify({ permission: data })
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 查询用户是否具有某权限
+     * @param {Object} data 查询参数 {resource_type: 'xxx', instance_id: 0, action_ids: "['aaa', 'bbb']"}
+     */
+    queryUserPermission (data) {
+        const prefixUrl = this.getPrefix('permissionQuery')
+        const { resource_type, instance_id, action_ids } = data
+        const ids = JSON.stringify(action_ids)
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                resource_type,
+                instance_id,
+                action_ids: ids
             }
         }
         return request(opts)

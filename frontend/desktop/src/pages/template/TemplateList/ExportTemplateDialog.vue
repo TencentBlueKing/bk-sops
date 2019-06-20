@@ -59,11 +59,17 @@
                                         :title="template.name"
                                         :class="[
                                             'template-item',
-                                            { 'template-item-selected': getTplIndexInSelected(template) > -1 }
+                                            {
+                                                'template-item-selected': getTplIndexInSelected(template) > -1,
+                                                'permission-disable': !hasPermission(['export'], template.auth_actions, template.auth_operations)
+                                            }
                                         ]"
                                         @click="onSelectTemplate(template)">
                                         <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
                                         <div class="template-item-name">{{template.name}}</div>
+                                        <div class="apply-permission-mask">
+                                            <bk-button type="primary" size="mini">{{i18n.applyPermission}}</bk-button>
+                                        </div>
                                     </li>
                                 </ul>
                             </li>
@@ -106,11 +112,14 @@
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'ExportTemplateDialog',
         components: {
             NoData
         },
+        mixins: [permission],
         props: ['isExportDialogShow', 'projectInfoLoading', 'common'],
         data () {
             return {
@@ -131,7 +140,8 @@
                     num: gettext('项'),
                     selectAll: gettext('全选'),
                     delete: gettext('删除'),
-                    allCategories: gettext('全部分类')
+                    allCategories: gettext('全部分类'),
+                    applyPermission: gettext('申请权限')
                 },
                 templateEmpty: false,
                 selectedTaskCategory: '',
@@ -199,10 +209,7 @@
                     const type = item.category
                     const index = groups.indexOf(type)
                     if (index > -1) {
-                        atomGrouped[index].children.push({
-                            id: item.id,
-                            name: item.name
-                        })
+                        atomGrouped[index].children.push(item)
                     }
                 })
                 const listGroup = atomGrouped.filter(item => item.children.length)
@@ -258,13 +265,21 @@
                 })
             },
             onSelectTemplate (template) {
-                const tplIndex = this.getTplIndexInSelected(template)
-                if (tplIndex > -1) {
-                    this.selectedTemplates.splice(tplIndex, 1)
-                    this.isTplInPanelAllSelected = false
+                if (this.hasPermission(['export'], template.auth_actions, template.auth_operations)) {
+                    const tplIndex = this.getTplIndexInSelected(template)
+                    if (tplIndex > -1) {
+                        this.selectedTemplates.splice(tplIndex, 1)
+                        this.isTplInPanelAllSelected = false
+                    } else {
+                        this.selectedTemplates.push(template)
+                        this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+                    }
                 } else {
-                    this.selectedTemplates.push(template)
-                    this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+                    const permissions = []
+                    const actions = template.auth_operations.find(item => item.operate_id === 'export').actions
+                    const resource = template.name
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
                 }
             },
             deleteTemplate (template) {
@@ -279,14 +294,16 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        const tplIndex = this.getTplIndexInSelected(template)
-                        if (this.isTplInPanelAllSelected) {
-                            if (tplIndex > -1) {
-                                this.selectedTemplates.splice(tplIndex, 1)
-                            }
-                        } else {
-                            if (tplIndex === -1) {
-                                this.selectedTemplates.push(template)
+                        if (this.hasPermission(['export'], template.auth_actions, template.auth_operations)) {
+                            const tplIndex = this.getTplIndexInSelected(template)
+                            if (this.isTplInPanelAllSelected) {
+                                if (tplIndex > -1) {
+                                    this.selectedTemplates.splice(tplIndex, 1)
+                                }
+                            } else {
+                                if (tplIndex === -1) {
+                                    this.selectedTemplates.push(template)
+                                }
                             }
                         }
                     })
@@ -379,6 +396,7 @@
         }
     }
     .template-item {
+        position: relative;
         display: inline-block;
         margin: 0 0 7px 10px;
         width: 252px;
@@ -408,8 +426,41 @@
             text-overflow: ellipsis;
             color: #313238;
         }
+        .apply-permission-mask {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
         &:nth-child(2n) {
             margin-right: 0;
+        }
+        &.permission-disable {
+            background: #ffffff;
+            border: 1px solid #dcdee5;
+            .template-item-icon {
+                color: #dcdee5;
+                background: #ffffff;
+                border-right: 1px solid #dcdee5;
+            }
+            .template-item-name {
+                color: #c4c6cc;
+            }
+            .apply-permission-mask {
+                padding: 12px 0;
+                background: rgba(255, 255, 255, 0.8);
+                text-align: center;
+            }
+            .bk-button {
+                width: 80px;
+                height: 32px;
+                line-height: 30px;
+            }
+            &:hover .apply-permission-mask {
+                display: block;
+            }
         }
     }
     .template-item-selected {

@@ -29,29 +29,22 @@
                 </a>
             </div>
             <div class="card-operation">
-                <span class="common-icon-box-pen operate-btn"
+                <span
+                    :class="['common-icon-pen', 'operate-btn', {
+                        'permission-disable': !hasPermission(['edit'], appData.auth_actions, appData.auth_operations)
+                    }]"
                     :title="i18n.modifier"
                     @click.stop="onCardEdit">
                 </span>
-                <span class="common-icon-black-figure operate-btn"
-                    :title="i18n.jurisdiction"
-                    @click.stop="onOpenPermissions">
+                <span class="common-icon-clock-reload operate-btn" :title="i18n.executive">
+                    <router-link :to="getExecuteHistoryUrl(appData.template_id)"></router-link>
                 </span>
-                <span class="common-icon-gray-edit operate-btn"
-                    @mouseenter="onShowOperation"
-                    @mouseleave="onHideOperation">
+                <span
+                    :class="['common-icon-pen', 'operate-btn', {
+                        'permission-disable': !hasPermission(['delete'], appData.auth_actions, appData.auth_operations)
+                    }]"
+                    @click="onCardDelete">
                 </span>
-            </div>
-            <div class="edit-box-background"
-                v-if="isShowEdit"
-                @mouseenter="onShowOperation"
-                @mouseleave="onHideOperation">
-                <ul class="edit-box">
-                    <li class="executive-record edit-operation">
-                        <router-link :to="getExecuteHistoryUrl(appData.template_id)">{{i18n.executive}}</router-link>
-                    </li>
-                    <li class="edit-delete edit-operation" @click.stop="onCardDelete">{{i18n.delete}}</li>
-                </ul>
             </div>
         </div>
         <div class="card-particular">
@@ -74,9 +67,11 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'AppCard',
+        mixins: [permission],
         props: ['appData', 'project_id'],
         data () {
             return {
@@ -100,6 +95,27 @@
             useDefaultLogo () {
                 this.isShowDefaultLogo = true
             },
+            /**
+             * 单个轻应用操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} app 模板数据对象
+             * @params {Object} event 事件对象
+             */
+            onAppMakerPermissonCheck (required, app, event) {
+                if (!this.hasPermission(required, app.auth_actions, app.auth_operations)) {
+                    const permissions = []
+                    let actions = []
+                    app.auth_operations.filter(item => {
+                        return required.includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    const resource = app.name
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                    event.preventDefault()
+                }
+            },
             onShowOperation () {
                 this.isShowEdit = true
             },
@@ -107,15 +123,27 @@
                 this.isShowEdit = false
             },
             onCardEdit () {
+                if (!this.hasPermission(['edit'], this.appData.auth_actions, this.appData.auth_operations)) {
+                    this.onAppMakerPermissonCheck(['edit'], this.appData, event)
+                    return
+                }
                 this.$emit('onCardEdit', this.appData)
             },
             onOpenPermissions (id) {
                 this.$emit('onOpenPermissions', this.appData)
             },
             onCardDelete () {
+                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appData.auth_operations)) {
+                    this.onAppMakerPermissonCheck(['delete'], this.appData, event)
+                    return
+                }
                 this.$emit('onCardDelete', this.appData)
             },
             onGotoAppMaker () {
+                if (!this.hasPermission(['view'], this.appData.auth_actions, this.appData.auth_operations)) {
+                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+                    return
+                }
                 if (self === top) {
                     this.$bkMessage({
                         'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
@@ -149,23 +177,19 @@
     font-size: 24px;
     color: #979ba5;
     text-align: center;
-    transform: translateY(130%);
+    transform: translateY(120%);
     transition-duration: 0.25s;
     .operate-btn {
+        padding: 5px;
+        font-size: 14px;
+        color: #ffffff;
+        background: #dcdee4;
+        border-radius: 2px;
         cursor: pointer;
-        &:hover {
-            color: #63656e;
+        &:not(.permission-disable):hover {
+            background: #979ba5;
         }
     }
-}
-.edit-box-background {
-    position: absolute;
-    left: 111px;
-    top: 142px;
-    z-index: 10;
-    padding-left: 6px;
-    width: 102px;
-    cursor: pointer;
 }
 .card-basic {
     float: left;
@@ -224,28 +248,28 @@
     }
 }
 .edit-box {
+    width: 96px;
+    height: 84px;
+    background: #fff;
+    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.2);
+    border-radius: 2px;
+    &:hover {
+        z-index: 10;
+    }
+    .edit-operation {
         width: 96px;
-        height: 84px;
+        height: 42px;
+        color: #63656e;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 42px;
+        text-align: center;
         background: #fff;
-        box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.2);
-        border-radius: 2px;
         &:hover {
-            z-index: 10;
+            color: #3a84ff;
+            background: #ebf4ff;
         }
-        .edit-operation {
-            width: 96px;
-            height: 42px;
-            color: #63656e;
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 42px;
-            text-align: center;
-            background: #fff;
-            &:hover {
-                color: #3a84ff;
-                background: #ebf4ff;
-            }
-        }
+    }
 }
 .edit-box>li>a {
     display: block;
