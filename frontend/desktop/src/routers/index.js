@@ -12,6 +12,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
+import bus from '@/utils/bus.js'
 import { setAtomConfigApiUrls } from '@/config/setting.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
@@ -200,57 +201,9 @@ const routers = new VueRouter({
         {
             path: '/project/home/',
             name: 'projectHome',
-            component: ProjectHome
+            component: ProjectHome,
+            meta: { withoutProject: true }
         },
-        {
-            path: '/error/:code(401|403|405|406|500)/',
-            component: ErrorPage,
-            name: 'errorPage',
-            props: (route) => ({
-                code: route.params.code
-            })
-        },
-        {
-            path: '/admin',
-            component: Admin,
-            children: [
-                {
-                    path: 'statistics/',
-                    component: Statistics,
-                    children: [
-                        {
-                            path: '',
-                            component: NotFoundComponent
-                        },
-                        {
-                            path: 'template/',
-                            name: 'statisticsTemplate',
-                            component: StatisticsTemplate
-                        },
-                        {
-                            path: 'instance/',
-                            name: 'statisticsInstance',
-                            component: StatisticsInstance
-                        },
-                        {
-                            path: 'atom/',
-                            name: 'statisticsAtom',
-                            component: StatisticsAtom
-                        },
-                        {
-                            path: 'appmaker/',
-                            name: 'statisticsAppmaker',
-                            component: StatisticsAppmaker
-                        }
-                    ]
-                },
-                {
-                    path: 'common/template',
-                    component: CommonTemplate
-                }
-            ]
-        },
-        
         {
             path: '/function/home/',
             name: 'functionHome',
@@ -274,6 +227,60 @@ const routers = new VueRouter({
             }]
         },
         {
+            path: '/admin',
+            component: Admin,
+            children: [
+                {
+                    path: 'statistics/',
+                    component: Statistics,
+                    children: [
+                        {
+                            path: '',
+                            component: NotFoundComponent
+                        },
+                        {
+                            path: 'template/',
+                            name: 'statisticsTemplate',
+                            component: StatisticsTemplate,
+                            meta: { withoutProject: true }
+                        },
+                        {
+                            path: 'instance/',
+                            name: 'statisticsInstance',
+                            component: StatisticsInstance,
+                            meta: { withoutProject: true }
+                        },
+                        {
+                            path: 'atom/',
+                            name: 'statisticsAtom',
+                            component: StatisticsAtom,
+                            meta: { withoutProject: true }
+                        },
+                        {
+                            path: 'appmaker/',
+                            name: 'statisticsAppmaker',
+                            component: StatisticsAppmaker,
+                            meta: { withoutProject: true }
+                        }
+                    ]
+                },
+                {
+                    path: 'common/template',
+                    name: 'commonTemplateHome',
+                    component: CommonTemplate,
+                    meta: { withoutProject: true }
+                }
+            ]
+        },
+        {
+            path: '/error/:code(401|403|405|406|500)/',
+            component: ErrorPage,
+            name: 'errorPage',
+            props: (route) => ({
+                code: route.params.code
+            })
+        },
+        {
             path: '*',
             name: 'notFoundPage',
             component: NotFoundComponent
@@ -288,10 +295,18 @@ routers.beforeEach((to, from, next) => {
     } else {
         store.commit('setNotFoundPage', false)
     }
+    // 设置全局 project_id
     if (to.params.project_id) {
         store.commit('setProjectId', to.params.project_id)
         setAtomConfigApiUrls(store.state.site_url, to.params.project_id)
     }
+
+    // 没有项目权限时，项目详情相关页面与项目详情无关页面切换
+    if (!store.state.project.authActions.includes('view')) {
+        const showApplyPage = !to.meta.withoutProject
+        bus.$emit('togglePermissionApplyPage', showApplyPage)
+    }
+    
     next()
 })
 

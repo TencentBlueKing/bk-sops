@@ -40,7 +40,7 @@
                     <router-link
                         v-else
                         class="goto-task-detail"
-                        :to="`/taskflow/execute/${project_id}/?instance_id=${task.id}`">
+                        :to="`/taskflow/execute/${project_id}/?instance_id=${item.id}`">
                         {{i18n.detail}}
                     </router-link>
                 </li>

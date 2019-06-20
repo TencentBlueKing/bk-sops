@@ -53,7 +53,7 @@ axios.interceptors.response.use(
                     if (perm.action_id === 'view') {
                         perm.resources.some(resource => {
                             viewType = 'other'
-                            if (resource.resource_type === 'project') {
+                            if (resource.find(item => item.resource_type === 'project')) {
                                 viewType = 'project'
                                 return true
                             }
@@ -62,7 +62,7 @@ axios.interceptors.response.use(
                     }
                 })
                 if (isViewApply) {
-                    bus.$emit('showPermissionPage', viewType)
+                    bus.$emit('togglePermissionApplyPage', true, viewType)
                 } else {
                     const permissionsNeeded = []
                     permissions.forEach(perm => {

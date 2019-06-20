@@ -97,6 +97,9 @@ const store = new Vuex.Store({
         },
         getPermissionUrl ({ commit }, data) {
             return api.getPermissionUrl(data).then(response => response.data)
+        },
+        queryUserPermission ({ commit }, data) {
+            return api.queryUserPermission(data).then(response => response.data)
         }
     },
     getters: {},

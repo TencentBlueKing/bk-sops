@@ -1294,7 +1294,7 @@ const api = {
      * 加载项目列表
      */
     loadProjectList (data = {}) {
-        const { limit, offset, is_disable, name } = data
+        const { limit, offset, is_disable, q } = data
         const prefixUrl = this.getPrefix('project')
 
         const opts = {
@@ -1304,7 +1304,7 @@ const api = {
                 limit,
                 offset,
                 is_disable,
-                name
+                q
             }
         }
         return request(opts)
@@ -1373,6 +1373,25 @@ const api = {
             method: 'POST',
             url: prefixUrl,
             data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 查询用户是否具有某权限
+     * @param {Object} data 查询参数 {resource_type: 'xxx', instance_id: 0, action_ids: "['aaa', 'bbb']"}
+     */
+    queryUserPermission (data) {
+        const prefixUrl = this.getPrefix('permission')
+        const { resource_type, instance_id, action_ids } = data
+        const ids = JSON.stringify(action_ids)
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                resource_type,
+                instance_id,
+                action_ids: ids
+            }
         }
         return request(opts)
     }

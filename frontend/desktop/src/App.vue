@@ -54,7 +54,7 @@
             return {
                 permissinApplyShow: false,
                 permissionType: 'project', // 无权限类型: project、other
-                isRouterAlive: false,
+                isRouterAlive: true,
                 appmakerDataLoading: false // 轻应用加载 app 详情
             }
         },
@@ -96,8 +96,8 @@
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
             })
-            bus.$on('showPermissionPage', type => {
-                this.permissinApplyShow = true
+            bus.$on('togglePermissionApplyPage', (isShow, type) => {
+                this.permissinApplyShow = isShow
                 this.permissionType = type
             })
             bus.$on('showPermissionModal', data => {
@@ -126,8 +126,6 @@
             initData () {
                 if (this.project_id !== undefined) {
                     this.getProjectDetail()
-                } else {
-                    this.isRouterAlive = true
                 }
                 if (this.viewMode === 'appmaker') {
                     this.getAppmakerDetail()
@@ -141,7 +139,6 @@
                     this.isRouterAlive = true
                 } catch (err) {
                     errorHandler(err, this)
-                    this.isRouterAlive = false
                 }
             },
             async getAppmakerDetail () {
