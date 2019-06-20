@@ -15,10 +15,13 @@ import logging
 
 from django.core.cache import cache
 
+from auth_backend.plugins.utils import search_all_resources_authorized_actions
+
 from gcloud.conf import settings
 from gcloud.core import roles
 from gcloud.core.utils import get_user_business_list
 from gcloud.core.models import Business, Project, UserDefaultProject
+from gcloud.core.permissions import project_resource
 
 logger = logging.getLogger("root")
 
@@ -78,14 +81,12 @@ def prepare_projects(request, use_cache=True):
 
 
 def get_default_project_for_user(username):
-    # TODO change this implementation after introduce auth backend, and add cache
     project = None
-
     try:
         project = UserDefaultProject.objects.get(username=username).default_project
     except UserDefaultProject.DoesNotExist:
-        all_projects = Project.objects.all()
-        if all_projects:
-            project = all_projects[0]
-
+        resources_perms = search_all_resources_authorized_actions(username, project_resource.rtype, project_resource,
+                                                                  [project_resource.actions.view.id])
+        if resources_perms:
+            project = Project.objects.filter(id__in=resources_perms.items()).first()
     return project
