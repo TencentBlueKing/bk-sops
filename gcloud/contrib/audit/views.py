@@ -22,5 +22,5 @@ def home(request):
     is_auditor = is_user_auditor(request)
     if not is_auditor:
         return HttpResponseForbidden()
-    
+
     return render(request, 'core/base_vue.html', {})
