@@ -111,7 +111,7 @@
                             <td class="task-id">{{item.id}}</td>
                             <td class="task-name">
                                 <a
-                                    v-if="!hasPermission(['view'], item.auth_actions, item.auth_operations)"
+                                    v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
                                     class="text-permisson-disable"
                                     @click="onTaskPermissonCheck(['view'], item, $event)">
                                     {{item.name}}
@@ -137,7 +137,7 @@
                             <td class="task-operation">
                                 <a
                                     :class="['task-operation-clone', {
-                                        'text-permisson-disable': !hasPermission(['clone'], item.auth_actions, item.auth_operations)
+                                        'text-permisson-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onCloneTaskClick(item, $event)">
@@ -145,7 +145,7 @@
                                 </a>
                                 <a
                                     :class="['task-operation-delete', {
-                                        'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
+                                        'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onDeleteTask(item, $event)">
@@ -258,6 +258,8 @@
                     delete: false,
                     clone: false
                 },
+                taskOperations: [],
+                taskResource: {},
                 i18n: {
                     allCategory: gettext('全部'),
                     placeholder: gettext('请输入ID或任务名称'),
@@ -384,6 +386,8 @@
                     const taskListData = await this.loadTaskList(data)
                     const list = taskListData.objects
                     this.totalCount = taskListData.meta.total_count
+                    this.taskOperations = taskListData.meta.auth_operations
+                    this.taskResource = taskListData.meta.auth_resource
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -486,10 +490,10 @@
              * @params {Object} event 事件对象
              */
             onTaskPermissonCheck (required, task, event) {
-                if (!this.hasPermission(required, task.auth_actions, task.auth_operations)) {
+                if (!this.hasPermission(required, task.auth_actions, this.taskOperations)) {
                     const permissions = []
                     let actions = []
-                    task.auth_operations.filter(item => {
+                    this.taskOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
@@ -501,7 +505,7 @@
                 }
             },
             onDeleteTask (task) {
-                if (!this.hasPermission(['delete'], task.auth_actions, task.auth_operations)) {
+                if (!this.hasPermission(['delete'], task.auth_actions, this.taskOperations)) {
                     this.onTaskPermissonCheck(['delete'], task, event)
                     return
                 }
@@ -538,7 +542,7 @@
                 this.isDeleteDialogShow = false
             },
             onCloneTaskClick (task) {
-                if (!this.hasPermission(['clone'], task.auth_actions, task.auth_operations)) {
+                if (!this.hasPermission(['clone'], task.auth_actions, this.taskOperations)) {
                     this.onTaskPermissonCheck(['clone'], task, event)
                     return
                 }

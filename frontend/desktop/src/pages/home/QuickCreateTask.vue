@@ -19,7 +19,7 @@
                     :key="item.id"
                     class="task-item">
                     <a
-                        v-if="!hasPermission(['create_task'], item.auth_actions, item.auth_operations)"
+                        v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
                         class="task-name"
                         @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                         {{item.name}}
@@ -54,6 +54,8 @@
             :submitting="submitting"
             :is-select-template-dialog-show="isSelectTemplateDialogShow"
             :template-list="templateList"
+            :tpl-operations="tplOperations"
+            :tpl-resource="tplResource"
             :quick-task-list="quickTaskList"
             :template-grouped="templateGrouped"
             :select-template-loading="selectTemplateLoading"
@@ -91,7 +93,9 @@
                 },
                 selectTemplateLoading: false,
                 templateList: [],
-                templateGrouped: []
+                templateGrouped: [],
+                tplOperations: [],
+                tplResource: {}
             }
         },
         methods: {
@@ -166,6 +170,8 @@
                 try {
                     const templateData = await this.loadTemplateList()
                     this.templateList = templateData.objects
+                    this.tplOperations = templateData.meta.auth_operations
+                    this.tplResource = templateData.meta.auth_resource
                     // 如果没有数据跳转至新建页面
                     this.templateGrouped = this.getGroupData(this.templateList, this.templateClassify)
                 } catch (e) {
@@ -202,10 +208,10 @@
              * @params {Object} event 事件对象
             */
             onTemplatePermissonCheck (required, template, event) {
-                if (!this.hasPermission(required, template.auth_actions, template.auth_operations)) {
+                if (!this.hasPermission(required, template.auth_actions, this.tplOperations)) {
                     const permissions = []
                     let actions = []
-                    template.auth_operations.filter(item => {
+                    this.tplOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)

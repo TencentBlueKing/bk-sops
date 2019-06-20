@@ -13,7 +13,6 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
 import bus from '@/utils/bus.js'
-import { setAtomConfigApiUrls } from '@/config/setting.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
 
@@ -298,7 +297,6 @@ routers.beforeEach((to, from, next) => {
     // 设置全局 project_id
     if (to.params.project_id) {
         store.commit('setProjectId', to.params.project_id)
-        setAtomConfigApiUrls(store.state.site_url, to.params.project_id)
     }
 
     // 没有项目权限时，项目详情相关页面与项目详情无关页面切换

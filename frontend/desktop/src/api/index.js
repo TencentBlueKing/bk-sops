@@ -457,7 +457,7 @@ const api = {
         const querystring = Object.assign({}, data, { 'peroject__id': project_id })
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
-            querystring['template_source'] = 'business'
+            querystring['template_source'] = 'project'
         }
         if (common) {
             querystring['template_source'] = 'common'
@@ -573,7 +573,7 @@ const api = {
         const dataJson = {
             template_id: templateId,
             exclude_task_nodes_id: excludeTaskNodesId,
-            template_source: 'business'
+            template_source: 'project'
         }
         if (common) {
             dataJson['template_source'] = 'common'
@@ -606,7 +606,7 @@ const api = {
             'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
             'create_info': app_id,
             'flow_type': flowType,
-            'template_source': 'business'
+            'template_source': 'project'
         }
         if (common) {
             requestData['template_source'] = 'common'
@@ -1372,6 +1372,7 @@ const api = {
         const opts = {
             method: 'POST',
             url: prefixUrl,
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data: dataBody
         }
         return request(opts)
@@ -1387,6 +1388,7 @@ const api = {
         const opts = {
             method: 'POST',
             url: prefixUrl,
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data: {
                 resource_type,
                 instance_id,

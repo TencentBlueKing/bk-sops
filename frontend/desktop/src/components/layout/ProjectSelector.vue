@@ -24,7 +24,6 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { setAtomConfigApiUrls } from '@/config/setting.js'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
@@ -99,7 +98,6 @@
                     await this.changeDefaultProject(id)
                     const timeZone = project.time_zone || 'Asia/Shanghai'
                     this.setTimeZone(timeZone)
-                    setAtomConfigApiUrls(this.site_url, id)
                     
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
 

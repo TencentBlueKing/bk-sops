@@ -31,6 +31,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import { setAtomConfigApiUrls } from '@/config/setting.js'
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
@@ -64,7 +65,8 @@
             ...mapState({
                 'hideHeader': state => state.hideHeader,
                 'viewMode': state => state.view_mode,
-                'appId': state => state.app_id
+                'appId': state => state.app_id,
+                'site_url': state => state.site_url
             }),
             ...mapState({
                 'project_id': state => state.project_id
@@ -143,6 +145,7 @@
                 try {
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setCurProjectDetail(projectDetail)
+                    setAtomConfigApiUrls(this.site_url, projectDetail)
                     this.permissinApplyShow = false
                     this.isRouterAlive = true
                 } catch (err) {
