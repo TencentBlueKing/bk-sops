@@ -119,7 +119,7 @@
                             <td class="template-name">
                                 <template v-if="!common || !common_template">
                                     <a
-                                        v-if="!hasPermission(['view'], item.auth_actions, item.auth_operations)"
+                                        v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
                                         class="text-permisson-disable"
                                         @click="onTemplatePermissonCheck(['view'], item, $event)">
                                         {{item.name}}
@@ -143,7 +143,7 @@
                             <td class="template-operation" v-if="!common && !common_template">
                                 <!-- 项目流程按钮 -->
                                 <a
-                                    v-if="!hasPermission(['create_task'], item.auth_actions, item.auth_operations)"
+                                    v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
                                     class="text-permisson-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
@@ -155,7 +155,7 @@
                                     {{i18n.newTemplate}}
                                 </router-link>
                                 <a
-                                    v-if="!hasPermission(['edit'], item.auth_actions, item.auth_operations)"
+                                    v-if="!hasPermission(['edit'], item.auth_actions, tplOperations)"
                                     class="text-permisson-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
@@ -171,14 +171,13 @@
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
                                             <a
-                                                v-if="!hasPermission(['clone'], item.auth_actions, item.auth_operations)"
+                                                v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
                                                 class="text-permisson-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
                                             </a>
                                             <router-link
                                                 v-else
-                                                class="template-operate-btn"
                                                 :to="getCloneUrl(item.id)">
                                                 {{i18n.clone}}
                                             </router-link>
@@ -190,7 +189,7 @@
                                             <a
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
+                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
                                                 }"
                                                 @click="onDeleteTemplate(item, $event)">
                                                 {{ i18n.delete }}
@@ -202,7 +201,7 @@
                             <td class="template-operation" v-else-if="common_template || !common">
                                 <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                 <a
-                                    v-if="!hasPermission(['create_task'], item.auth_actions, item.auth_operations)"
+                                    v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
                                     class="text-permisson-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
@@ -225,7 +224,7 @@
                             <td class="template-operation" v-else-if="common">
                                 <!-- 公共流程首页 -->
                                 <a
-                                    v-if="!hasPermission(['edit'], item.auth_actions, item.auth_operations)"
+                                    v-if="!hasPermission(['edit'], item.auth_actions, item.tplOperations)"
                                     class="text-permisson-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
@@ -241,7 +240,7 @@
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
                                             <a
-                                                v-if="!hasPermission(['clone'], item.auth_actions, item.auth_operations)"
+                                                v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
                                                 class="text-permisson-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
@@ -257,7 +256,7 @@
                                             <a
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
+                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
                                                 }"
                                                 @click="onDeleteTemplate(item, $event)">
                                                 {{i18n.delete}}
@@ -427,7 +426,9 @@
                 isHasSubprocess: undefined,
                 creator: undefined,
                 templateType: this.common_template,
-                deleteTemplateName: ''
+                deleteTemplateName: '',
+                tplOperations: [], // 模板权限字典
+                tplResource: {} // 模板资源信息
             }
         },
         computed: {
@@ -507,6 +508,8 @@
                     const list = templateListData.objects
                     this.setTemplateListData({ list, isCommon })
                     this.totalCount = templateListData.meta.total_count
+                    this.tplOperations = templateListData.meta.auth_operations
+                    this.tplResource = templateListData.meta.auth_resource
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -586,7 +589,7 @@
                 this.isExportDialogShow = false
             },
             onDeleteTemplate (template, event) {
-                if (!this.hasPermission(['delete'], template.auth_actions, template.auth_operations)) {
+                if (!this.hasPermission(['delete'], template.auth_actions, this.tplOperations)) {
                     this.onTemplatePermissonCheck(['delete'], template, event)
                     return
                 }
@@ -607,7 +610,7 @@
             onTemplatePermissonCheck (required, template, event) {
                 const permissions = []
                 let actions = []
-                template.auth_operations.filter(item => {
+                this.tplOperations.filter(item => {
                     return required.includes(item.operate_id)
                 }).forEach(perm => {
                     actions = actions.concat(perm.actions)
