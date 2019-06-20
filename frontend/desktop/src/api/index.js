@@ -454,7 +454,7 @@ const api = {
     getTaskList (data) {
         const { project_id } = store.state.project
         const { common, template_id } = data
-        const querystring = Object.assign({}, data, { 'peroject__id': project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
             querystring['template_source'] = 'project'
