@@ -32,7 +32,6 @@ def supplier_account_for_business(biz_cc_id):
     try:
         supplier_account = Business.objects.supplier_account_for_business(biz_cc_id)
     except Business.DoesNotExist:
-        logger.warning('get supplier account for business(biz_cc_id: %s) failed, use 0' % biz_cc_id)
         supplier_account = 0
 
     return supplier_account

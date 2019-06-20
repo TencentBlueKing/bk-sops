@@ -236,15 +236,9 @@ def preview_task_tree(request, project_id):
     template_id = request.POST.get('template_id')
     version = request.POST.get('version')
     if template_source == PROJECT:
-        try:
-            template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
-        except TaskTemplate.DoesNotExist:
-            return HttpResponseForbidden()
+        template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
     else:
-        try:
-            template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
-        except CommonTemplate.DoesNotExist:
-            return HttpResponseForbidden()
+        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
     exclude_task_nodes_id = json.loads(request.POST.get('exclude_task_nodes_id', '[]'))
     pipeline_tree = template.get_pipeline_tree_by_version(version)
     template_constants = copy.deepcopy(pipeline_tree['constants'])
