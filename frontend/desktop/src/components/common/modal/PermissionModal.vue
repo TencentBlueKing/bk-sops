@@ -91,7 +91,6 @@
             ]),
             async loadPermissionUrl () {
                 try {
-                    debugger
                     this.loading = true
                     const res = await this.getPermissionUrl()
                     this.url = res.data.url
