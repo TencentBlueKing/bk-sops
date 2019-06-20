@@ -32,15 +32,9 @@ for func in common_exports:
 
 ver_utils = importlib.import_module('gcloud.core.utils.sites.%s.utils' % settings.RUN_VER)
 ver_exports = [
-    'prepare_user_business',
-    'prepare_business',
     'convert_group_name',
-    'get_biz_maintainer_info',
     'convert_readable_username',
-    'get_business_obj',
     'check_and_rename_params',
-    'get_client_by_user_and_biz_id',
-    'prepare_view_all_business',
     'get_user_business_list'
 ]
 for func in ver_exports:

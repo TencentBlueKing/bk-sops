@@ -35,7 +35,6 @@ from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
 from gcloud import exceptions
 from gcloud.core.models import Business, Project
-from gcloud.core.utils import prepare_user_business
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.webservice3.serializers import AppSerializer
 from gcloud.core.permissions import project_resource
@@ -142,21 +141,6 @@ class BusinessResource(GCloudModelResource):
             "cc_owner": ALL,
             "cc_company": ALL,
         }
-
-    def get_object_list(self, request):
-        if is_user_functor(request) or is_user_auditor(request):
-            return super(BusinessResource, self).get_object_list(request)
-        all_flag = request.GET.get('all', '0')
-        if request.user.is_superuser and str(all_flag) == '1':
-            return super(BusinessResource, self).get_object_list(request)
-        try:
-            # fetch business from CMDB
-            biz_list = prepare_user_business(request)
-        except (exceptions.Unauthorized, exceptions.Forbidden, exceptions.APIError) as e:
-            logger.error(u'get business list[username=%s] from CMDB raise error: %s' % (request.user.username, e))
-            return super(BusinessResource, self).get_object_list(request)
-        cc_id_list = [biz.cc_id for biz in biz_list]
-        return super(BusinessResource, self).get_object_list(request).filter(cc_id__in=cc_id_list)
 
 
 class ProjectResource(GCloudModelResource):
