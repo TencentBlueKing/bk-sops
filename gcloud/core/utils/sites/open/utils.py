@@ -65,7 +65,7 @@ def get_user_business_list(request, use_cache=True):
             raise exceptions.APIError(
                 'cc',
                 'search_business',
-                result.get('detail_message', result['message'])
+                result
             )
 
     return data
