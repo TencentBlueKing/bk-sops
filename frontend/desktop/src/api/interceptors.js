@@ -62,7 +62,7 @@ axios.interceptors.response.use(
                     }
                 })
                 if (isViewApply) {
-                    bus.$emit('togglePermissionApplyPage', true, viewType)
+                    bus.$emit('togglePermissionApplyPage', true, viewType, permissions)
                 } else {
                     const permissionsNeeded = []
                     permissions.forEach(perm => {
