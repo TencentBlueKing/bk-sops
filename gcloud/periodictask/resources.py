@@ -39,7 +39,6 @@ from gcloud.webservice3.resources import (
     ProjectResource,
     GCloudModelResource,
 )
-from gcloud.webservice3.serializers import AppSerializer
 from gcloud.commons.template.models import replace_template_id
 
 logger = logging.getLogger('root')
@@ -51,16 +50,13 @@ class CeleryTaskResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = CeleryTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = 'celery_task'
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             'enabled': ALL,
         }
-        limit = 0
 
 
 class PipelinePeriodicTaskResource(GCloudModelResource):
@@ -78,18 +74,15 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = PipelinePeriodicTask.objects.all()
         authorization = ReadOnlyAuthorization()
         resource_name = 'pipeline_periodic_task'
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             'name': ALL,
             'creator': ALL,
             'celery_task': ALL_WITH_RELATIONS,
         }
-        limit = 0
 
 
 class CustomCreateDetailAuthorization(BkSaaSLooseAuthorization):
@@ -152,14 +145,13 @@ class PeriodicTaskResource(GCloudModelResource):
         full=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = PeriodicTask.objects.all()
         resource_name = 'periodic_task'
-        authorization = CustomCreateDetailAuthorization(auth_resource=periodic_task_resource,
+        auth_resource = periodic_task_resource
+        authorization = CustomCreateDetailAuthorization(auth_resource=auth_resource,
                                                         read_action_id='view',
                                                         update_action_id='edit')
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             'id': ALL,
             'template_id': ALL,
@@ -169,7 +161,6 @@ class PeriodicTaskResource(GCloudModelResource):
             'creator': ALL,
             'task': ALL_WITH_RELATIONS
         }
-        limit = 0
 
     def obj_create(self, bundle, **kwargs):
         try:

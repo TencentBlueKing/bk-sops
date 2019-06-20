@@ -16,7 +16,6 @@ import logging
 from blueapps.utils.cache import with_cache
 
 from ..constants import PRINCIPAL_TYPE_USER
-from .authorization import BkSaaSLooseReadOnlyAuthorization, BkSaaSLooseAuthorization
 
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')
@@ -25,16 +24,22 @@ CACHE_PREFIX = __name__.replace('.', '_')
 class BkSaaSLabeledDataResourceMixin(object):
     def dehydrate(self, bundle):
         username = bundle.request.user.username
-        authorization = getattr(self._meta, 'authorization', None)
-        if not isinstance(authorization, (BkSaaSLooseReadOnlyAuthorization, BkSaaSLooseAuthorization)):
+        auth_resource = getattr(self._meta, 'auth_resource', None)
+        if auth_resource is None:
             return bundle
 
-        auth_resource = authorization.auth_resource
         resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource)
         auth_actions = resources_perms.get(str(bundle.obj.pk), [])
         bundle.data['auth_actions'] = auth_actions
-        bundle.data['auth_operations'] = auth_resource.operations
         return bundle
+
+    def alter_list_data_to_serialize(self, request, data):
+        auth_resource = getattr(self._meta, 'auth_resource', None)
+        if auth_resource is None:
+            return data
+        data['meta']['auth_operations'] = auth_resource.operations
+        data['meta']['auth_resource'] = auth_resource.base_info()
+        return data
 
 
 @with_cache(seconds=10, prefix=CACHE_PREFIX, ex=[0, 1])
