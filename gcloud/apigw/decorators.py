@@ -18,6 +18,8 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
+from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
+
 from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.apigw.exceptions import UserNotExistError
@@ -94,3 +96,28 @@ def project_existence_check(view_func):
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+
+def api_verify_perms(auth_resource, actions, get_kwargs):
+    def decorator(view_func):
+        @wraps(view_func, assigned=available_attrs(view_func))
+        def wrapper(request, *args, **kwargs):
+            if not getattr(request, 'is_trust', False):
+                get_filters = {}
+                for kwarg, filter_arg in get_kwargs.items():
+                    get_filters[filter_arg] = kwargs.get(kwarg)
+
+                instance = auth_resource.resource_cls.objects.get(**get_filters)
+
+                verify_or_raise_auth_failed(principal_type='user',
+                                            principal_id=request.user.username,
+                                            resource=auth_resource,
+                                            action_ids=[act.id for act in actions],
+                                            instance=instance,
+                                            status=200)
+
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
