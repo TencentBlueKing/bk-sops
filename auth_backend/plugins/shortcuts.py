@@ -49,13 +49,14 @@ def verify_or_return_insufficient_perms(principal_type, principal_id, perms_tupl
     return permissions
 
 
-def batch_verify_or_raise_auth_failed(principal_type, principal_id, perms_tuples):
+def batch_verify_or_raise_auth_failed(principal_type, principal_id, perms_tuples, status=499):
     permissions = verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples)
     if permissions:
-        raise AuthFailedException(permissions=permissions)
+        raise AuthFailedException(permissions=permissions, status=status)
 
 
-def verify_or_raise_auth_failed(principal_type, principal_id, resource, action_ids, instance):
+def verify_or_raise_auth_failed(principal_type, principal_id, resource, action_ids, instance, status=499):
     batch_verify_or_raise_auth_failed(principal_type,
                                       principal_id,
-                                      [(resource, action_ids, instance)])
+                                      [(resource, action_ids, instance)],
+                                      status)
