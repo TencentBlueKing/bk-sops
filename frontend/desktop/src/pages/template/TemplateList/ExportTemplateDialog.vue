@@ -294,7 +294,7 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        if (template.auth_actions.includes('export')) {
+                        if (this.hasPermission(['export'], template.auth_actions, template.auth_operations)) {
                             const tplIndex = this.getTplIndexInSelected(template)
                             if (this.isTplInPanelAllSelected) {
                                 if (tplIndex > -1) {
