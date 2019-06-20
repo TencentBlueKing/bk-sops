@@ -14,11 +14,9 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.db.models import Q
-from django.http import HttpResponse
 from django.utils.translation import ugettext_lazy as _
 from haystack.query import SearchQuerySet
 from tastypie import fields
-from tastypie.authentication import SessionAuthentication
 
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
@@ -33,9 +31,7 @@ from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMix
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
-from gcloud import exceptions
 from gcloud.core.models import Business, Project
-from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.webservice3.serializers import AppSerializer
 from gcloud.core.permissions import project_resource
 
