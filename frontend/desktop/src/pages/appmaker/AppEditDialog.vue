@@ -17,7 +17,6 @@
         :title="i18n.title"
         width="800"
         :is-show.sync="isEditDialogShow"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content" class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
             <div class="common-form-item">
@@ -97,6 +96,17 @@
                 </div>
             </div>
         </div>
+        <div slot="footer" class="dialog-footer">
+            <bk-button
+                type="primary"
+                :class="{
+                    'btn-permission-disable': !hasPermission(['create_mini_app'], appData.appActions, appData.appOperations)
+                }"
+                @click="onConfirm">
+                {{i18n.confirm}}
+            </bk-button>
+            <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+        </div>
     </bk-dialog>
 </template>
 <script>
@@ -105,11 +115,14 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'AppEditDialog',
         components: {
             BaseInput
         },
+        mixins: [permission],
         props: ['project_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
         data () {
             return {
@@ -123,6 +136,8 @@
                     appName: this.currentAppData ? this.currentAppData.name : '',
                     appScheme: this.currentAppData ? Number(this.currentAppData.template_scheme_id) : '',
                     appDesc: this.currentAppData ? this.currentAppData.desc : '',
+                    appActions: this.currentAppData ? this.currentAppData.auth_actions : [],
+                    appOperations: this.currentAppData ? this.currentAppData.auth_operations : [],
                     appLogo: undefined
                 },
                 logoUrl: this.currentAppData ? this.currentAppData.logo_url : '',
@@ -149,7 +164,9 @@
                     appDesc: gettext('应用简介'),
                     appLogo: gettext('应用LOGO'),
                     change: gettext('点击更换'),
-                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')
+                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
                 }
             }
         },
@@ -195,6 +212,8 @@
             },
             onSelectTemplate (id, data) {
                 this.appData.appName = data.name
+                this.appData.appActions = data.auth_actions
+                this.appData.appOperations = data.auth_operations
                 this.appTemplateEmpty = false
             },
             onOpenScheme (value) {
@@ -228,6 +247,15 @@
                     this.appTemplateEmpty = true
                     return
                 }
+                if (!this.hasPermission(['create_mini_app'], this.appData.appActions, this.appData.appOperations)) {
+                    const permissions = []
+                    const actions = this.appData.appOperations.find(item => item.operate_id === 'create_mini_app').actions
+                    const resource = this.appData.appName
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                    return
+                }
+                
                 this.appData.appName = this.appData.appName.trim()
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
@@ -339,6 +367,16 @@
     }
     #app-logo {
         visibility: hidden;
+    }
+}
+.dialog-footer {
+    padding: 0 10px;
+    text-align: right;
+    .bk-button {
+        margin-left: 10px;
+        width: 90px;
+        height: 32px;
+        line-height: 30px;
     }
 }
 </style>

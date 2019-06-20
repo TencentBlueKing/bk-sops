@@ -117,16 +117,21 @@
                         <tr v-for="item in listData" :key="item.id">
                             <td class="template-id">{{item.id}}</td>
                             <td class="template-name">
-                                <a
-                                    v-if="!common || !common_template"
-                                    :title="item.name"
-                                    :href="getEditTemplateUrl(item.id)"
-                                    :class="['template-operate-btn', {
-                                        'text-permisson-disable': !hasPermission(['view'], item.auth_actions, item.auth_operations)
-                                    }]"
-                                    @click="onTemplatePermissonCheck(['view'], item, $event)">
-                                    {{item.name}}
-                                </a>
+                                <template v-if="!common || !common_template">
+                                    <a
+                                        v-if="!hasPermission(['view'], item.auth_actions, item.auth_operations)"
+                                        class="text-permisson-disable"
+                                        @click="onTemplatePermissonCheck(['view'], item, $event)">
+                                        {{item.name}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="template-operate-btn"
+                                        :title="item.name"
+                                        :to="getEditTemplateUrl(item.id)">
+                                        {{item.name}}
+                                    </router-link>
+                                </template>
                                 <p v-else>{{item.name}}</p>
                             </td>
                             <td class="template-type">{{item.category_name}}</td>
@@ -138,33 +143,45 @@
                             <td class="template-operation" v-if="!common && !common_template">
                                 <!-- 项目流程按钮 -->
                                 <a
-                                    :class="['template-operate-btn', {
-                                        'text-permisson-disable': !hasPermission(['create_task'], item.auth_actions, item.auth_operations)
-                                    }]"
-                                    :href="getNewTaskUrl(item.id)"
+                                    v-if="!hasPermission(['create_task'], item.auth_actions, item.auth_operations)"
+                                    class="text-permisson-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
-                                    {{ i18n.newTemplate }}
+                                    {{i18n.newTemplate}}
                                 </a>
+                                <router-link
+                                    v-else
+                                    class="template-operate-btn"
+                                    :to="getNewTaskUrl(item.id)">
+                                    {{i18n.newTemplate}}
+                                </router-link>
                                 <a
-                                    :class="['template-operate-btn', {
-                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
-                                    }]"
-                                    :href="getEditTemplateUrl(item.id)"
+                                    v-if="!hasPermission(['edit'], item.auth_actions, item.auth_operations)"
+                                    class="text-permisson-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
-                                    {{ i18n.edit }}
+                                    {{i18n.edit}}
                                 </a>
+                                <router-link
+                                    v-else
+                                    class="template-operate-btn"
+                                    :to="getEditTemplateUrl(item.id)">
+                                    {{i18n.edit}}
+                                </router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
                                             <a
-                                                :class="{
-                                                    'text-permisson-disable': !hasPermission(['clone'], item.auth_actions, item.auth_operations)
-                                                }"
-                                                :href="getCloneUrl(item.id)"
+                                                v-if="!hasPermission(['clone'], item.auth_actions, item.auth_operations)"
+                                                class="text-permisson-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
-                                                {{ i18n.clone }}
+                                                {{i18n.clone}}
                                             </a>
+                                            <router-link
+                                                v-else
+                                                class="template-operate-btn"
+                                                :to="getCloneUrl(item.id)">
+                                                {{i18n.clone}}
+                                            </router-link>
                                         </li>
                                         <li>
                                             <router-link :to="getExecuteHistoryUrl(item.id)">{{ i18n.executeHistory }}</router-link>
@@ -184,10 +201,17 @@
                             </td>
                             <td class="template-operation" v-else-if="common_template || !common">
                                 <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
+                                <a
+                                    v-if="!hasPermission(['create_task'], item.auth_actions, item.auth_operations)"
+                                    class="text-permisson-disable"
+                                    @click="onTemplatePermissonCheck(['create_task'], item, $event)">
+                                    {{i18n.newTemplate}}
+                                </a>
                                 <router-link
+                                    v-else
                                     class="template-operate-btn"
                                     :to="getNewTaskUrl(item.id)">
-                                    {{ i18n.newTemplate }}
+                                    {{i18n.newTemplate}}
                                 </router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
@@ -200,15 +224,44 @@
                             </td>
                             <td class="template-operation" v-else-if="common">
                                 <!-- 公共流程首页 -->
-                                <router-link class="template-operate-btn" :to="getEditTemplateUrl(item.id)">{{ i18n.edit}}</router-link>
+                                <a
+                                    v-if="!hasPermission(['edit'], item.auth_actions, item.auth_operations)"
+                                    class="text-permisson-disable"
+                                    @click="onTemplatePermissonCheck(['edit'], item, $event)">
+                                    {{i18n.edit}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="template-operate-btn"
+                                    :to="getEditTemplateUrl(item.id)">
+                                    {{i18n.edit}}
+                                </router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
-                                            <router-link :to="getCloneUrl(item.id)">{{ i18n.clone }}</router-link>
+                                            <a
+                                                v-if="!hasPermission(['clone'], item.auth_actions, item.auth_operations)"
+                                                class="text-permisson-disable"
+                                                @click="onTemplatePermissonCheck(['clone'], item, $event)">
+                                                {{i18n.clone}}
+                                            </a>
+                                            <router-link
+                                                v-else
+                                                class="template-operate-btn"
+                                                :to="getCloneUrl(item.id)">
+                                                {{i18n.clone}}
+                                            </router-link>
                                         </li>
                                         <li>
-                                            <a href="javascript:void(0);" @click="onDeleteTemplate(item.id, item.name)">{{i18n.delete}}</a>
+                                            <a
+                                                href="javascript:void(0);"
+                                                :class="{
+                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
+                                                }"
+                                                @click="onDeleteTemplate(item, $event)">
+                                                {{i18n.delete}}
+                                            </a>
                                         </li>
                                     </ul>
                                 </bk-dropdown-menu>
@@ -552,19 +605,17 @@
              * @params {Object} event 事件对象
              */
             onTemplatePermissonCheck (required, template, event) {
-                if (!this.hasPermission(required, template.auth_actions, template.auth_operations)) {
-                    const permissions = []
-                    let actions = []
-                    template.auth_operations.filter(item => {
-                        return required.includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    const resource = template.name
-                    permissions.push({ resource, actions })
-                    this.triggerPermisionModal(permissions)
-                    event.preventDefault()
-                }
+                const permissions = []
+                let actions = []
+                template.auth_operations.filter(item => {
+                    return required.includes(item.operate_id)
+                }).forEach(perm => {
+                    actions = actions.concat(perm.actions)
+                })
+                const resource = template.name
+                permissions.push({ resource, actions })
+                this.triggerPermisionModal(permissions)
+                event.preventDefault()
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return
@@ -900,6 +951,7 @@
         }
         .template-operate-btn {
             color: $blueDefault;
+            cursor: pointer;
         }
         .template-operation {
             width: 260px;

@@ -49,12 +49,16 @@
             </div>
         </div>
         <div class="permission-footer" slot="footer">
-            <bk-button type="primary" @click="goToApply">{{ i18n.apply }}</bk-button>
+            <bk-button type="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
             <bk-button type="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
         </div>
     </bk-dialog>
 </template>
 <script>
+    import '@/utils/i18n.js'
+    import { mapActions } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
+
     export default {
         name: 'permissionModal',
         props: {},
@@ -62,6 +66,7 @@
             return {
                 isModalShow: false,
                 list: [],
+                loading: false,
                 i18n: {
                     permissionTitle: gettext('没有权限访问或操作此资源'),
                     system: gettext('系统'),
@@ -73,13 +78,38 @@
                 }
             }
         },
+        watch: {
+            isModalShow (val) {
+                if (val) {
+                    this.loadPermissionUrl()
+                }
+            }
+        },
         methods: {
+            ...mapActions([
+                'getPermissionUrl'
+            ]),
+            async loadPermissionUrl () {
+                try {
+                    debugger
+                    this.loading = true
+                    const res = await this.getPermissionUrl()
+                    this.url = res.data.url
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.loading = false
+                }
+            },
             show (data) {
                 this.isModalShow = true
                 this.list = data
             },
             goToApply () {
-
+                if (this.loading) {
+                    return
+                }
+                window.open(this.url, '__blank')
             },
             onCloseDialog () {
                 this.isModalShow = false

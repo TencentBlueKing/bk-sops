@@ -94,6 +94,9 @@ const store = new Vuex.Store({
         },
         getTopoModelInCC ({ commit }) {
             return api.loadTopoModelInCC().then(response => response.data)
+        },
+        getPermissionUrl ({ commit }, data) {
+            return api.getPermissionUrl(data).then(response => response.data)
         }
     },
     getters: {},

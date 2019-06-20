@@ -16,7 +16,9 @@
             <div class="list-header">
                 <bk-button
                     type="primary"
-                    class="create-project-btn"
+                    :class="['create-project-btn', {
+                        'btn-permission-disable': !hasPermission(['create'], authActions, authOperations)
+                    }]"
                     @click="onCreateProject">
                     {{i18n.createProject}}
                 </bk-button>
@@ -53,23 +55,29 @@
                             <td>{{item.creator}}</td>
                             <td>
                                 <bk-button
-                                    class="operate-btn"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['edit'], authActions, authOperations)
+                                    }]"
                                     type="default"
-                                    @click="onEditProject(item)">
+                                    @click="onEditProject(item, $event)">
                                     {{i18n.edit}}
                                 </bk-button>
                                 <bk-button
                                     v-if="item.is_disable"
-                                    class="operate-btn"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['edit'], authActions, authOperations)
+                                    }]"
                                     type="default"
-                                    @click="onChangeProjectStatus(item, 'start')">
+                                    @click="onChangeProjectStatus(item, 'start', $event)">
                                     {{i18n.start}}
                                 </bk-button>
                                 <bk-button
                                     v-else
-                                    class="operate-btn"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['edit'], authActions, authOperations)
+                                    }]"
                                     type="default"
-                                    @click="onChangeProjectStatus(item, 'stop')">
+                                    @click="onChangeProjectStatus(item, 'stop', $event)">
                                     {{i18n.stop}}
                                 </bk-button>
                             </td>
@@ -165,6 +173,7 @@
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ProjectHome',
@@ -174,6 +183,7 @@
             BaseInput,
             CopyrightFooter
         },
+        mixins: [permission],
         data () {
             return {
                 searchStr: '',
@@ -232,7 +242,7 @@
         computed: {
             ...mapState('project', {
                 'authActions': state => state.authActions,
-                'authPermissions': state => state.authPermissions
+                'authOperations': state => state.authOperations
             }),
             projectDialogTitle () {
                 return this.dialogType === 'create' ? this.i18n.createProject : this.i18n.editProject
@@ -346,6 +356,27 @@
                 this.currentPage = 1
                 this.getProjectList()
             },
+            /**
+             * 单个模板操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} project 项目数据对象
+             * @params {Object} event 事件对象
+             */
+            onProjectPermissonCheck (required, project, event) {
+                if (!this.hasPermission(required, project.auth_actions, project.auth_operations)) {
+                    const permissions = []
+                    let actions = []
+                    project.auth_operations.filter(item => {
+                        return required.includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    const resource = project.name
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                    event.preventDefault()
+                }
+            },
             clearProjectDetail () {
                 this.projectDetail = {
                     name: '',
@@ -359,10 +390,22 @@
                 this.getProjectList()
             },
             onCreateProject () {
-                this.dialogType = 'create'
-                this.isProjectDialogShow = true
+                if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
+                    const permissions = []
+                    const actions = this.authOperations.find(item => item.operate_id === 'create').actions
+                    const resource = gettext('项目')
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                } else {
+                    this.dialogType = 'create'
+                    this.isProjectDialogShow = true
+                }
             },
-            onEditProject (project) {
+            onEditProject (project, event) {
+                if (!this.hasPermission(['edit'], project.auth_actions, project.auth_operations)) {
+                    this.onProjectPermissonCheck(['edit'], project, event)
+                    return
+                }
                 this.isProjectDialogShow = true
                 this.dialogType = 'edit'
                 this.projectDetail = {
@@ -391,7 +434,11 @@
             onChangeTimeZone (value) {
                 this.projectDetail.timeZone = value
             },
-            onChangeProjectStatus (project, type) {
+            onChangeProjectStatus (project, type, event) {
+                if (!this.hasPermission(['edit'], project.auth_actions, project.auth_operations)) {
+                    this.onProjectPermissonCheck(['edit'], project, event)
+                    return
+                }
                 this.operationType = type
                 this.projectDetail = {
                     id: project.id,
@@ -428,7 +475,7 @@
         .create-project-btn {
             width: 120px;
             height: 32px;
-            line-height: 32px;
+            line-height: 30px;
         }
         .filter-area {
             float: right;

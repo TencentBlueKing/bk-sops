@@ -15,7 +15,11 @@
             <div class="appmaker-table-content">
                 <BaseTitle :title="i18n.title"></BaseTitle>
                 <div class="operation-wrapper">
-                    <bk-button type="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
+                    <bk-button
+                        type="primary"
+                        @click="onCreateApp">
+                        {{i18n.addApp}}
+                    </bk-button>
                     <BaseSearch
                         v-model="searchStr"
                         :input-placeholader="i18n.placeholder"

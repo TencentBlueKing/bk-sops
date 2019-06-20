@@ -1360,6 +1360,21 @@ const api = {
             }
         }
         return request(opts)
+    },
+    /**
+     * 获取申请权限 url
+     * @param {String} data 权限数据
+     */
+    getPermissionUrl (data) {
+        const prefixUrl = this.getPrefix('permission')
+        const dataBody = qs.stringify(data)
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: dataBody
+        }
+        return request(opts)
     }
 }
 
