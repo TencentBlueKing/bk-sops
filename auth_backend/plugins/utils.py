@@ -11,6 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
+from blueapps.utils.cache import with_cache
+
+from .constants import PRINCIPAL_TYPE_USER
+
+logger = logging.getLogger('root')
+CACHE_PREFIX = __name__.replace('.', '_')
+
 
 def build_need_permission(auth_resource, action_id, instance=None):
     base_info = auth_resource.base_info()
@@ -32,3 +41,37 @@ def build_need_permission(auth_resource, action_id, instance=None):
         ]
     })
     return base_info
+
+
+@with_cache(seconds=10, prefix=CACHE_PREFIX, ex=[0, 1, 3])
+def search_all_resources_authorized_actions(username, resource_type, auth_resource, action_ids=None):
+    """
+    @summary: 获取所有用户对某个资源类型的所有资源实例的权限
+    @param username:
+    @param resource_type: 资源类型，这里仅用作缓存with_cache关键字
+    @param auth_resource:
+    @param action_ids:
+    @return:
+    """
+    if action_ids is None:
+        action_ids = auth_resource.actions_map.keys()
+    authorized_result = auth_resource.backend.search_authorized_resources(
+        resource=auth_resource,
+        principal_type=PRINCIPAL_TYPE_USER,
+        principal_id=username,
+        action_ids=action_ids)
+    if not authorized_result['result']:
+        logger.error(u"Search authorized resources of Resource[{resource}] return error: {error}".format(
+            resource=auth_resource.name,
+            error=authorized_result['message']
+        ))
+        return {}
+    authorized_resources = authorized_result['data']
+    resources_perms = {}
+    for action_resource in authorized_resources:
+        for absolute_resource in action_resource['resource_ids']:
+            for relative_resource in absolute_resource:
+                if relative_resource['resource_type'] == auth_resource.rtype:
+                    resource_id = str(relative_resource['resource_id'])
+                    resources_perms.setdefault(resource_id, []).append(action_resource['action_id'])
+    return resources_perms
