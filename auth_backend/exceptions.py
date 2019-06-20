@@ -29,6 +29,7 @@ class AuthInterfaceEmptyError(AuthBaseException):
 
 
 class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, *args, **kwargs):
+    def __init__(self, permissions, status=499, *args, **kwargs):
         super(AuthFailedException, self).__init__(*args, **kwargs)
         self.permissions = permissions
+        self.status = status

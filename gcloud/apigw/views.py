@@ -70,7 +70,8 @@ def get_template_list(request, project_id):
                                     principal_id=request.user.username,
                                     resource=project_resource,
                                     action_ids=[project_resource.actions.view.id],
-                                    instance=project)
+                                    instance=project,
+                                    status=200)
 
     if template_source == PROJECT:
         templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project_id,
@@ -133,7 +134,8 @@ def get_template_info(request, template_id, project_id):
                                     principal_id=request.user.username,
                                     resource=auth_resource,
                                     action_ids=[auth_resource.actions.view.id],
-                                    instance=tmpl)
+                                    instance=tmpl,
+                                    status=200)
 
     pipeline_tree = tmpl.pipeline_tree
     pipeline_tree.pop('line')
@@ -187,7 +189,8 @@ def create_task(request, template_id, project_id):
                                             principal_id=request.user.username,
                                             resource=task_template_resource,
                                             action_ids=[task_template_resource.actions.create_task.id],
-                                            instance=tmpl)
+                                            instance=tmpl,
+                                            status=200)
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
@@ -206,7 +209,8 @@ def create_task(request, template_id, project_id):
                                 (common_template_resource, [common_template_resource.actions.create_task.id], tmpl)]
                 batch_verify_or_raise_auth_failed(principal_type='user',
                                                   principal_id=request.user.username,
-                                                  perms_tuples=perms_tuples)
+                                                  perms_tuples=perms_tuples,
+                                                  status=200)
 
         except CommonTemplate.DoesNotExist:
             result = {
@@ -277,7 +281,8 @@ def start_task(request, task_id, project_id):
                                     principal_id=request.user.username,
                                     resource=taskflow_resource,
                                     action_ids=[taskflow_resource.actions.operate.id],
-                                    instance=task)
+                                    instance=task,
+                                    status=200)
     ctx = task.task_action('start', username)
     return JsonResponse(ctx)
 
@@ -304,7 +309,8 @@ def operate_task(request, task_id, project_id):
                                     principal_id=request.user.username,
                                     resource=taskflow_resource,
                                     action_ids=[taskflow_resource.actions.operate.id],
-                                    instance=task)
+                                    instance=task,
+                                    status=200)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
 
@@ -322,7 +328,8 @@ def get_task_status(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=taskflow_resource,
                                         action_ids=[taskflow_resource.actions.view.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
         task_status = task.get_status()
         result = {
             'result': True,
@@ -372,7 +379,8 @@ def query_task_count(request, project_id):
                                     principal_id=request.user.username,
                                     resource=project_resource,
                                     action_ids=[project_resource.actions.view.id],
-                                    instance=project)
+                                    instance=project,
+                                    status=200)
 
     try:
         params = json.loads(request.body)
@@ -430,7 +438,8 @@ def get_periodic_task_list(request, project_id):
                                     principal_id=request.user.username,
                                     resource=project_resource,
                                     action_ids=[project_resource.actions.view.id],
-                                    instance=project)
+                                    instance=project,
+                                    status=200)
 
     task_list = PeriodicTask.objects.filter(project_id=project_id)
     data = []
@@ -452,7 +461,8 @@ def get_periodic_task_info(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=periodic_task_resource,
                                         action_ids=[periodic_task_resource.actions.edit.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -476,7 +486,8 @@ def create_periodic_task(request, template_id, project_id):
                                         principal_id=request.user.username,
                                         resource=task_template_resource,
                                         action_ids=[task_template_resource.actions.create_periodic_task.id],
-                                        instance=template)
+                                        instance=template,
+                                        status=200)
     except TaskTemplate.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -571,7 +582,8 @@ def set_periodic_task_enabled(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=periodic_task_resource,
                                         action_ids=[periodic_task_resource.actions.edit.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -611,7 +623,8 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=periodic_task_resource,
                                         action_ids=[periodic_task_resource.actions.edit.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -657,7 +670,8 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=periodic_task_resource,
                                         action_ids=[periodic_task_resource.actions.edit.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -697,7 +711,8 @@ def get_task_detail(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=taskflow_resource,
                                         action_ids=[taskflow_resource.actions.view.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
     except TaskFlowInstance.DoesNotExist:
         message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
             task_id=task_id,
@@ -728,7 +743,8 @@ def get_task_node_detail(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=taskflow_resource,
                                         action_ids=[taskflow_resource.actions.view.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
     except TaskFlowInstance.DoesNotExist:
         message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
             task_id=task_id,
@@ -770,7 +786,8 @@ def node_callback(request, task_id, project_id):
                                         principal_id=request.user.username,
                                         resource=taskflow_resource,
                                         action_ids=[taskflow_resource.actions.operate.id],
-                                        instance=task)
+                                        instance=task,
+                                        status=200)
     except TaskFlowInstance.DoesNotExist:
         message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
             task_id=task_id,
