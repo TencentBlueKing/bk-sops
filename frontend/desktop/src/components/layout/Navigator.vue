@@ -166,7 +166,7 @@
                 },
                 homeRoute: {
                     key: 'home',
-                    path: '/project/home/'
+                    path: '/home/'
                 }
             }
         },

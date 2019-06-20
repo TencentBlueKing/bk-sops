@@ -58,11 +58,11 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: to => {
-                return `/project/home/${store.state.project.project_id}/`
+                return `/home/${store.state.project.project_id}/`
             }
         },
         {
-            path: '/project/home/:project_id',
+            path: '/home/:project_id',
             component: Home,
             props: (route) => ({
                 project_id: route.params.project_id

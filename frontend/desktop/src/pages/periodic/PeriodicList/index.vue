@@ -65,7 +65,15 @@
                             <td class="periodic-id">{{item.id}}</td>
                             <td class="periodic-name" :title="item.name">{{item.name}}</td>
                             <td class="periodic-name" :title="item.name">
+                                <a
+                                    v-if="!hasPermission(['view'], item.auth_actions, item.auth_operations)"
+                                    class="text-permisson-disable"
+                                    @click="onPeriodicPermissonCheck(['view'], item, $event)">
+                                    {{item.task_template_name}}
+                                </a>
                                 <router-link
+                                    v-else
+                                    class="template-operate-btn"
                                     :title="item.task_template_name"
                                     :to="`/template/edit/${project_id}/?template_id=${item.template_id}`">
                                     {{item.task_template_name}}
@@ -82,22 +90,35 @@
                             <td class="periodic-operation">
                                 <a
                                     href="javascript:void(0);"
-                                    :class="['periodic-pause-btn', { 'periodic-start-btn': !item.enabled }]"
-                                    @click="onSetEnable(item)">
+                                    :class="['periodic-pause-btn', {
+                                        'periodic-start-btn': !item.enabled,
+                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                    }]"
+                                    @click="onSetEnable(item, $event)">
                                     {{!item.enabled ? i18n.start : i18n.pause}}
                                 </a>
                                 <a
                                     href="javascript:void(0);"
-                                    :class="['periodic-bk-btn', { 'periodic-bk-disable': item.enabled }]"
+                                    :class="['periodic-bk-btn', {
+                                        'periodic-bk-disable': item.enabled,
+                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, item.auth_operations)
+                                    }]"
                                     :title="item.enabled ? i18n.editTitle : ''"
-                                    @click="onModifyCronPeriodic(item)">
+                                    @click="onModifyCronPeriodic(item, $event)">
                                     {{ i18n.edit }}
                                 </a>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
-                                            <a href="javascript:void(0);" @click="onDeletePeriodic(item.id, item.name)">{{ i18n.delete }}</a>
+                                            <a
+                                                href="javascript:void(0);"
+                                                :class="{
+                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, item.auth_operations)
+                                                }"
+                                                @click="onDeletePeriodic(item, $event)">
+                                                {{ i18n.delete }}
+                                            </a>
                                         </li>
                                         <li>
                                             <router-link :to="`/taskflow/home/${project_id}/?template_id=${item.template_id}&create_method=periodic`">
@@ -154,12 +175,14 @@
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
     import DeletePeriodicDialog from './DeletePeriodicDialog.vue'
+
     export default {
         name: 'PeriodicList',
         components: {
@@ -170,6 +193,7 @@
             ModifyPeriodicDialog,
             DeletePeriodicDialog
         },
+        mixins: [permission],
         props: ['project_id'],
         data () {
             return {
@@ -268,10 +292,35 @@
                 this.currentPage = 1
                 this.getPeriodicList()
             },
-            onDeletePeriodic (id, name) {
+            /**
+             * 单个周期任务操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} periodic 模板数据对象
+             * @params {Object} event 事件对象
+             */
+            onPeriodicPermissonCheck (required, periodic, event) {
+                if (!this.hasPermission(required, periodic.auth_actions, periodic.auth_operations)) {
+                    const permissions = []
+                    let actions = []
+                    periodic.auth_operations.filter(item => {
+                        return required.includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    const resource = periodic.name
+                    permissions.push({ resource, actions })
+                    this.triggerPermisionModal(permissions)
+                    event.preventDefault()
+                }
+            },
+            onDeletePeriodic (periodic, event) {
+                if (!this.hasPermission(['delete'], periodic.auth_actions, periodic.auth_operations)) {
+                    this.onPeriodicPermissonCheck(['delete'], periodic, event)
+                    return
+                }
                 this.isDeleteDialogShow = true
-                this.selectedDeleteTaskId = id
-                this.selectedTemplateName = name
+                this.selectedDeleteTaskId = periodic.id
+                this.selectedTemplateName = periodic.name
             },
             onPageChange (page) {
                 this.currentPage = page
@@ -280,7 +329,11 @@
             onSelectEnabled (enabled) {
                 this.enabled = enabled
             },
-            async onSetEnable (item) {
+            async onSetEnable (item, event) {
+                if (!this.hasPermission(['edit'], item.auth_actions, item.auth_operations)) {
+                    this.onPeriodicPermissonCheck(['edit'], item, event)
+                    return
+                }
                 try {
                     const data = {
                         'taskId': item.id,
@@ -297,6 +350,10 @@
             },
             onModifyCronPeriodic (item) {
                 const { enabled, id: taskId, cron } = item
+                if (!this.hasPermission(['edit'], item.auth_actions, item.auth_operations)) {
+                    this.onPeriodicPermissonCheck(['edit'], item, event)
+                    return
+                }
                 if (enabled) {
                     return
                 }

@@ -13,6 +13,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
     return {
         // 业务人员列表
         bizPerson: SITE_URL + 'core/api/get_roles_and_personnel/' + PROJECT_ID + '/',
+        permission: SITE_URL + 'core/api/query_apply_permission_url/',
         // 更改默认项目
         projectDefaultChange: SITE_URL + 'core/api/change_default_project/',
         projectBaseInfo: SITE_URL + 'core/api/get_basic_info/',

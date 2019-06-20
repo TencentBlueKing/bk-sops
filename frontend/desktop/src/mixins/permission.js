@@ -11,9 +11,14 @@ const permission = {
             return reqPermission.every(item => {
                 if (curPermission.includes(item)) {
                     return true
-                } else {
+                } else if (permissionMap.length > 0) {
                     const perm = permissionMap.find(op => op.operate_id === item)
+                    if (!perm) {
+                        return false
+                    }
                     return perm.actions_id.every(p => curPermission.includes(p))
+                } else {
+                    return false
                 }
             })
         },
