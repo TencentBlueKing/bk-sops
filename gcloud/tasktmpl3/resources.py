@@ -21,7 +21,6 @@ from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse
-from tastypie.resources import ModelResource
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
@@ -264,7 +263,7 @@ class TaskTemplateResource(GCloudModelResource):
         return filters
 
 
-class TemplateSchemeResource(ModelResource):
+class TemplateSchemeResource(GCloudModelResource):
     class Meta:
         queryset = TemplateScheme.objects.all()
         resource_name = 'schemes'
