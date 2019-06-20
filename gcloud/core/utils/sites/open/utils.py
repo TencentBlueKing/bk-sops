@@ -15,24 +15,11 @@ import json
 import logging
 
 from django.core.cache import cache
-from django.contrib.auth.models import Group
-from django.contrib.auth import get_user_model
-from django.db import transaction
-from guardian.shortcuts import assign_perm
 
 from gcloud.conf import settings
 from gcloud import exceptions
-from gcloud.core import roles
 from gcloud.core.constant import AE
-from gcloud.core.models import Business, BusinessGroupMembership
-from gcloud.core.api_adapter import (
-    is_user_functor,
-    get_operate_user_list,
-    is_user_auditor,
-    get_auditor_user_list,
-    get_user_info,
-    adapt_get_user_data
-)
+from gcloud.core.api_adapter import get_user_info
 
 logger = logging.getLogger("root")
 get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
