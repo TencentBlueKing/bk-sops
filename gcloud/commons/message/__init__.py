@@ -42,7 +42,8 @@ def send_task_flow_message(taskflow, msg_type, atom_node_name=''):
     else:
         return False
 
-    _message_module.send_message(taskflow.business.cc_id, executor, notify_type, receivers, title, content)
+    # TODO 弱化业务后发送通知功能改造
+    # _message_module.send_message(taskflow.business.cc_id, executor, notify_type, receivers, title, content)
 
     return True
 
@@ -54,6 +55,7 @@ def send_periodic_task_message(template, periodic_task, history):
 
     title, content = title_and_content_for_periodic_task_start_fail(template, periodic_task, history)
 
-    _message_module.send_message(template.business.cc_id, periodic_task.creator, notify_type, receivers, title, content)
+    # TODO 弱化业务后发送通知功能改造
+    # _message_module.send_message(template.business.cc_id, periodic_task.creator, notify_type, receivers, title, content)
 
     return True
