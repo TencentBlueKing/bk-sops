@@ -44,6 +44,7 @@
     "amfe-flexible": "^2.2.1",
     "axios": "^0.18.0",
     "jquery": "^3.4.1",
+    "jsencrypt": "^3.0.0-rc.1",
     "jsonp": "^0.2.1",
     "jsplumb": "^2.8.4",
     "less": "^3.9.0",
