@@ -18,8 +18,9 @@ const project = {
         projectName: '',
         projectList: [],
         timeZone: window.TIMEZONE,
-        authActions: [],
-        authOperations: []
+        authResource: {},
+        authOperations: [],
+        authActions: []
     },
     mutations: {
         setProjectList (state, data) {
@@ -31,10 +32,15 @@ const project = {
         setTimeZone (state, data) {
             state.timeZone = data
         },
-        setCurProjectDetail (state, data) {
-            state.authActions = data.auth_actions
-            state.authOperations = data.auth_operations
+        setProjectName (state, data) {
             state.projectName = data.name
+        },
+        setProjectActions (state, data) {
+            state.authActions = data
+        },
+        setProjectPerm (state, data) {
+            state.authResource = data.auth_resource
+            state.authOperations = data.auth_operations
         }
     },
     actions: {

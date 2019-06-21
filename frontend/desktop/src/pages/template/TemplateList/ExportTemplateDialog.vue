@@ -61,7 +61,7 @@
                                             'template-item',
                                             {
                                                 'template-item-selected': getTplIndexInSelected(template) > -1,
-                                                'permission-disable': !hasPermission(['export'], template.auth_actions, template.auth_operations)
+                                                'permission-disable': !hasPermission(['export'], template.auth_actions, tplOperations)
                                             }
                                         ]"
                                         @click="onSelectTemplate(template)">
@@ -130,6 +130,8 @@
                 templateInPanel: [],
                 searchList: [],
                 selectedTemplates: [],
+                tplOperations: [],
+                tplResource: {},
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -185,6 +187,8 @@
                     }
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects
+                    this.tplOperations = respData.meta.auth_operations
+                    this.tplResource = respData.meta.auth_resource
                     this.templateList = this.getGroupedList(list)
                     this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
@@ -265,7 +269,7 @@
                 })
             },
             onSelectTemplate (template) {
-                if (this.hasPermission(['export'], template.auth_actions, template.auth_operations)) {
+                if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
                     const tplIndex = this.getTplIndexInSelected(template)
                     if (tplIndex > -1) {
                         this.selectedTemplates.splice(tplIndex, 1)
@@ -275,10 +279,35 @@
                         this.isTplInPanelAllSelected = this.getTplIsAllSelected()
                     }
                 } else {
+                    let actions = []
+                    this.tplOperations.filter(item => {
+                        return ['export'].includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
                     const permissions = []
-                    const actions = template.auth_operations.find(item => item.operate_id === 'export').actions
-                    const resource = template.name
-                    permissions.push({ resource, actions })
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: template.id,
+                            resource_name: template.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
                     this.triggerPermisionModal(permissions)
                 }
             },
@@ -294,7 +323,7 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        if (this.hasPermission(['export'], template.auth_actions, template.auth_operations)) {
+                        if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
                             const tplIndex = this.getTplIndexInSelected(template)
                             if (this.isTplInPanelAllSelected) {
                                 if (tplIndex > -1) {

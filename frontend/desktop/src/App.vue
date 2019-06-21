@@ -129,7 +129,8 @@
                 'setTemplateId'
             ]),
             ...mapMutations('project', [
-                'setCurProjectDetail'
+                'setProjectName',
+                'setProjectActions'
             ]),
             initData () {
                 if (this.project_id !== undefined) {
@@ -144,7 +145,8 @@
             async getProjectDetail () {
                 try {
                     const projectDetail = await this.loadProjectDetail(this.project_id)
-                    this.setCurProjectDetail(projectDetail)
+                    this.setProjectName(projectDetail.name)
+                    this.setProjectActions(projectDetail.auth_actions)
                     setAtomConfigApiUrls(this.site_url, projectDetail)
                     this.permissinApplyShow = false
                     this.isRouterAlive = true
