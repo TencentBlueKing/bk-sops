@@ -1367,7 +1367,7 @@ const api = {
      */
     getPermissionUrl (data) {
         const prefixUrl = this.getPrefix('permission')
-        const dataBody = qs.stringify({ permission: JSON.stringify(data) })
+        const dataBody = qs.stringify({ permission: data })
 
         const opts = {
             method: 'POST',
@@ -1384,11 +1384,10 @@ const api = {
     queryUserPermission (data) {
         const prefixUrl = this.getPrefix('permissionQuery')
         const { resource_type, instance_id, action_ids } = data
-        const ids = JSON.stringify(action_ids)
         const dataBody = qs.stringify({
             resource_type,
             instance_id,
-            action_ids: ids
+            action_ids
         })
         const opts = {
             method: 'POST',

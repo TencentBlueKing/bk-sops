@@ -31,7 +31,7 @@
             <div class="card-operation">
                 <span
                     :class="['common-icon-pen', 'operate-btn', {
-                        'permission-disable': !hasPermission(['edit'], appData.auth_actions, appData.auth_operations)
+                        'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
                     }]"
                     :title="i18n.modifier"
                     @click.stop="onCardEdit">
@@ -41,7 +41,7 @@
                 </span>
                 <span
                     :class="['common-icon-pen', 'operate-btn', {
-                        'permission-disable': !hasPermission(['delete'], appData.auth_actions, appData.auth_operations)
+                        'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
                     @click="onCardDelete">
                 </span>
@@ -72,7 +72,7 @@
     export default {
         name: 'AppCard',
         mixins: [permission],
-        props: ['appData', 'project_id'],
+        props: ['appData', 'project_id', 'appResource', 'appOperations'],
         data () {
             return {
                 isShowDefaultLogo: false,
@@ -102,16 +102,37 @@
              * @params {Object} event 事件对象
              */
             onAppMakerPermissonCheck (required, app, event) {
-                if (!this.hasPermission(required, app.auth_actions, app.auth_operations)) {
-                    const permissions = []
+                if (!this.hasPermission(required, app.auth_actions, this.appOperations)) {
                     let actions = []
-                    app.auth_operations.filter(item => {
+                    this.appOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
                     })
-                    const resource = app.name
-                    permissions.push({ resource, actions })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.appResource
+                    const permissions = []
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: app.id,
+                            resource_name: app.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
+
                     this.triggerPermisionModal(permissions)
                     event.preventDefault()
                 }
@@ -123,7 +144,7 @@
                 this.isShowEdit = false
             },
             onCardEdit () {
-                if (!this.hasPermission(['edit'], this.appData.auth_actions, this.appData.auth_operations)) {
+                if (!this.hasPermission(['edit'], this.appData.auth_actions, this.appOperations)) {
                     this.onAppMakerPermissonCheck(['edit'], this.appData, event)
                     return
                 }
@@ -133,14 +154,14 @@
                 this.$emit('onOpenPermissions', this.appData)
             },
             onCardDelete () {
-                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appData.auth_operations)) {
+                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
                     this.onAppMakerPermissonCheck(['delete'], this.appData, event)
                     return
                 }
                 this.$emit('onCardDelete', this.appData)
             },
             onGotoAppMaker () {
-                if (!this.hasPermission(['view'], this.appData.auth_actions, this.appData.auth_operations)) {
+                if (!this.hasPermission(['view'], this.appData.auth_actions, this.appOperations)) {
                     this.onAppMakerPermissonCheck(['view'], this.appData, event)
                     return
                 }

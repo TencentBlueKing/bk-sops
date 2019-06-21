@@ -10,6 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import Vue from 'vue'
+import './cursor.js'
 
 Vue.directive('clickout', {
     bind (el, binding) {
