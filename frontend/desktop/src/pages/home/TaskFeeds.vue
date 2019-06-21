@@ -33,7 +33,8 @@
                     </div>
                     <a
                         v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
-                        class="text-permisson-disable"
+                        v-cursor
+                        class="text-permission-disable"
                         @click="onTaskPermissonCheck(['view'], item, $event)">
                         {{i18n.detail}}
                     </a>

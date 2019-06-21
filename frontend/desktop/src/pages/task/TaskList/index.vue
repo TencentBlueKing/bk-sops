@@ -112,7 +112,8 @@
                             <td class="task-name">
                                 <a
                                     v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onTaskPermissonCheck(['view'], item, $event)">
                                     {{item.name}}
                                 </a>
@@ -136,16 +137,18 @@
                             </td>
                             <td class="task-operation">
                                 <a
+                                    v-cursor
                                     :class="['task-operation-clone', {
-                                        'text-permisson-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
+                                        'text-permission-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onCloneTaskClick(item, $event)">
                                     {{ i18n.clone }}
                                 </a>
                                 <a
+                                    v-cursor
                                     :class="['task-operation-delete', {
-                                        'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
+                                        'text-permission-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onDeleteTask(item, $event)">
