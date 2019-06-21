@@ -38,8 +38,8 @@
                 <table class="permission-table">
                     <tbody>
                         <tr v-for="(permission, index) in list" :key="index">
-                            <td width="60%">{{permission.resource}}</td>
-                            <td width="40%">{{permission.actions.map(item => item.name).join(',')}}</td>
+                            <td width="60%">{{getResource(permission)}}</td>
+                            <td width="40%">{{permission.action_name}}</td>
                         </tr>
                         <tr v-if="false">
                             <td class="no-data" colspan="3">{{i18n.noData}}</td>
@@ -92,7 +92,8 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const res = await this.getPermissionUrl()
+                    const permission = this.list
+                    const res = await this.getPermissionUrl(JSON.stringify(permission))
                     this.url = res.data.url
                 } catch (err) {
                     errorHandler(err, this)
@@ -103,6 +104,11 @@
             show (data) {
                 this.isModalShow = true
                 this.list = data
+            },
+            getResource (permission) {
+                return permission.resource.map(res => {
+                    return res.map(item => item.resource_name).join(',')
+                }).join(',')
             },
             goToApply () {
                 if (this.loading) {

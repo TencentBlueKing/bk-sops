@@ -112,7 +112,8 @@
                             <td class="task-name">
                                 <a
                                     v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onTaskPermissonCheck(['view'], item, $event)">
                                     {{item.name}}
                                 </a>
@@ -136,16 +137,18 @@
                             </td>
                             <td class="task-operation">
                                 <a
+                                    v-cursor
                                     :class="['task-operation-clone', {
-                                        'text-permisson-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
+                                        'text-permission-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onCloneTaskClick(item, $event)">
                                     {{ i18n.clone }}
                                 </a>
                                 <a
+                                    v-cursor
                                     :class="['task-operation-delete', {
-                                        'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
+                                        'text-permission-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
                                     }]"
                                     href="javascript:void(0);"
                                     @click="onDeleteTask(item, $event)">
@@ -491,15 +494,36 @@
              */
             onTaskPermissonCheck (required, task, event) {
                 if (!this.hasPermission(required, task.auth_actions, this.taskOperations)) {
-                    const permissions = []
                     let actions = []
                     this.taskOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
                     })
-                    const resource = task.name
-                    permissions.push({ resource, actions })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.taskResource
+                    const permissions = []
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: task.id,
+                            resource_name: task.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
+
                     this.triggerPermisionModal(permissions)
                     event.preventDefault()
                 }

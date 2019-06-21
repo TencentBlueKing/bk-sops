@@ -67,7 +67,8 @@
                             <td class="periodic-name" :title="item.name">
                                 <a
                                     v-if="!hasPermission(['view'], item.auth_actions, periodicOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onPeriodicPermissonCheck(['view'], item, $event)">
                                     {{item.task_template_name}}
                                 </a>
@@ -89,19 +90,21 @@
                             </td>
                             <td class="periodic-operation">
                                 <a
+                                    v-cursor
                                     href="javascript:void(0);"
                                     :class="['periodic-pause-btn', {
                                         'periodic-start-btn': !item.enabled,
-                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
+                                        'text-permission-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
                                     }]"
                                     @click="onSetEnable(item, $event)">
                                     {{!item.enabled ? i18n.start : i18n.pause}}
                                 </a>
                                 <a
+                                    v-cursor
                                     href="javascript:void(0);"
                                     :class="['periodic-bk-btn', {
                                         'periodic-bk-disable': item.enabled,
-                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
+                                        'text-permission-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
                                     }]"
                                     :title="item.enabled ? i18n.editTitle : ''"
                                     @click="onModifyCronPeriodic(item, $event)">
@@ -112,9 +115,10 @@
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
                                             <a
+                                                v-cursor
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, periodicOperations)
+                                                    'text-permission-disable': !hasPermission(['delete'], item.auth_actions, periodicOperations)
                                                 }"
                                                 @click="onDeletePeriodic(item, $event)">
                                                 {{ i18n.delete }}
@@ -304,15 +308,36 @@
              */
             onPeriodicPermissonCheck (required, periodic, event) {
                 if (!this.hasPermission(required, periodic.auth_actions, this.periodicOperations)) {
-                    const permissions = []
                     let actions = []
                     this.periodicOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
                     })
-                    const resource = periodic.name
-                    permissions.push({ resource, actions })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.periodicResource
+                    const permissions = []
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: periodic.id,
+                            resource_name: periodic.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
+                    
                     this.triggerPermisionModal(permissions)
                     event.preventDefault()
                 }

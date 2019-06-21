@@ -33,7 +33,8 @@
                     </div>
                     <a
                         v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
-                        class="text-permisson-disable"
+                        v-cursor
+                        class="text-permission-disable"
                         @click="onTaskPermissonCheck(['view'], item, $event)">
                         {{i18n.detail}}
                     </a>
@@ -179,15 +180,35 @@
              * @params {Object} event 事件对象
              */
             onTaskPermissonCheck (required, task, event) {
-                const permissions = []
                 let actions = []
                 this.taskOperations.filter(item => {
                     return required.includes(item.operate_id)
                 }).forEach(perm => {
                     actions = actions.concat(perm.actions)
                 })
-                const resource = task.name
-                permissions.push({ resource, actions })
+                
+                const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.taskResource
+                const permissions = []
+                
+                actions.forEach(item => {
+                    const res = []
+                    res.push([{
+                        resource_id: task.id,
+                        resource_name: task.name,
+                        resource_type: resource.resource_type,
+                        resource_type_name: resource.resource_type_name
+                    }])
+                    permissions.push({
+                        scope_id,
+                        scope_name,
+                        scope_type,
+                        system_id,
+                        system_name,
+                        resource: res,
+                        action_id: item.id,
+                        action_name: item.name
+                    })
+                })
                 this.triggerPermisionModal(permissions)
                 event.preventDefault()
             }

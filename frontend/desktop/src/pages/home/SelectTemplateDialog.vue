@@ -43,9 +43,10 @@
                                     <ul>
                                         <li
                                             :class="['template-item', {
-                                                'text-permisson-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
+                                                'text-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
                                             }]"
                                             v-for="item in group.list"
+                                            v-cursor
                                             :key="item.id"
                                             @click="onSelectTemplate(item)">
                                             <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
@@ -59,9 +60,10 @@
                             <ul v-if="searchList.length">
                                 <li
                                     v-for="item in searchList"
+                                    v-cursor
                                     :key="item.id"
                                     :class="['template-item', {
-                                        'text-permisson-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
+                                        'text-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
                                     }]"
                                     @click="onSelectTemplate(item)">
                                     <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
@@ -202,10 +204,35 @@
                         this.selectedTemplate.push(template)
                     }
                 } else {
+                    let actions = []
+                    this.tplOperations.filter(item => {
+                        return ['export'].includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
                     const permissions = []
-                    const actions = this.tplOperations.find(item => item.operate_id === 'export').actions
-                    const resource = template.name
-                    permissions.push({ resource, actions })
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: template.id,
+                            resource_name: template.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
                     this.triggerPermisionModal(permissions)
                 }
             },
