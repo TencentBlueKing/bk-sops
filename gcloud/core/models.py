@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from os import environ
 
+from auth_backend.resources.base import resource_type_lib
+
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models, transaction
@@ -127,7 +129,7 @@ class ProjectManager(models.Manager):
     def sync_project_from_cmdb_business(self, businesses):
         with transaction.atomic():
             if not businesses:
-                return []
+                return
 
             exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('bk_biz_id', flat=True))
             to_be_sync_cc_id = set(businesses.keys()) - exist_sync_cc_id
@@ -153,7 +155,12 @@ class ProjectManager(models.Manager):
                                         from_cmdb=True,
                                         bk_biz_id=cc_id))
 
-            return self.bulk_create(projects, batch_size=5000)
+            self.bulk_create(projects, batch_size=5000)
+
+            projects = Project.objects.filter(from_cmdb=True, bk_biz_id__in=to_be_sync_cc_id)
+
+            project_resource = resource_type_lib['project']
+            project_resource.batch_register_instance(list(projects))
 
 
 class Project(models.Model):

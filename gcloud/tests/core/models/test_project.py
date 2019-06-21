@@ -34,8 +34,7 @@ class ProjectTestCase(TestCase):
             } for i in range(1, 10)
         }
 
-        projs = Project.objects.sync_project_from_cmdb_business(businesses)
-        self.assertEqual(len(projs), len(businesses))
+        Project.objects.sync_project_from_cmdb_business(businesses)
 
         for i in range(1, 10):
             proj = Project.objects.get(bk_biz_id=i)
@@ -63,8 +62,7 @@ class ProjectTestCase(TestCase):
             } for i in range(1, 10)
         }
 
-        projs = Project.objects.sync_project_from_cmdb_business(businesses)
-        self.assertEqual(len(projs), 7)
+        Project.objects.sync_project_from_cmdb_business(businesses)
 
         for i in range(1, 10):
             proj = Project.objects.get(bk_biz_id=i)
@@ -76,6 +74,5 @@ class ProjectTestCase(TestCase):
 
     @factory.django.mute_signals(signals.post_save, signals.post_delete)
     def test_sync_project_from_cmdb_business__no_business(self):
-        projs = Project.objects.sync_project_from_cmdb_business({})
-        self.assertEqual(len(projs), 0)
+        Project.objects.sync_project_from_cmdb_business({})
         self.assertEqual(Project.objects.all().count(), 0)
