@@ -77,7 +77,3 @@ if 'DISABLED_APPS' in locals():
     for _app, _key in itertools.product(DISABLED_APPS, _keys):
         locals()[_key] = tuple([_item for _item in locals()[_key]
                                 if not _item.startswith(_app + '.')])
-
-TEST = {
-    'test1': 1
-}
