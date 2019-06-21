@@ -247,6 +247,7 @@
         computed: {
             ...mapState('project', {
                 'authActions': state => state.authActions,
+                'authResource': state => state.authResource,
                 'authOperations': state => state.authOperations
             }),
             projectDialogTitle () {
@@ -371,15 +372,35 @@
              */
             onProjectPermissonCheck (required, project, event) {
                 if (!this.hasPermission(required, project.auth_actions, this.projectOperations)) {
-                    const permissions = []
                     let actions = []
                     this.projectOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
                     })
-                    const resource = project.name
-                    permissions.push({ resource, actions })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.projectResource
+                    const permissions = []
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: project.id,
+                            resource_name: project.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
                     this.triggerPermisionModal(permissions)
                     event.preventDefault()
                 }
@@ -398,10 +419,35 @@
             },
             onCreateProject () {
                 if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
+                    let actions = []
+                    this.authOperations.filter(item => {
+                        return ['create'].includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.authResource
                     const permissions = []
-                    const actions = this.authOperations.find(item => item.operate_id === 'create').actions
-                    const resource = gettext('项目')
-                    permissions.push({ resource, actions })
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_name: gettext('项目'),
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
+
                     this.triggerPermisionModal(permissions)
                 } else {
                     this.dialogType = 'create'

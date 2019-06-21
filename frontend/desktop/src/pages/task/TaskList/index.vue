@@ -491,15 +491,36 @@
              */
             onTaskPermissonCheck (required, task, event) {
                 if (!this.hasPermission(required, task.auth_actions, this.taskOperations)) {
-                    const permissions = []
                     let actions = []
                     this.taskOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
                     })
-                    const resource = task.name
-                    permissions.push({ resource, actions })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.taskResource
+                    const permissions = []
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: task.id,
+                            resource_name: task.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
+
                     this.triggerPermisionModal(permissions)
                     event.preventDefault()
                 }

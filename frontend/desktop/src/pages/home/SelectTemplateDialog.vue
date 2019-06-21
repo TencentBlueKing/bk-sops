@@ -202,10 +202,35 @@
                         this.selectedTemplate.push(template)
                     }
                 } else {
+                    let actions = []
+                    this.tplOperations.filter(item => {
+                        return ['export'].includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
                     const permissions = []
-                    const actions = this.tplOperations.find(item => item.operate_id === 'export').actions
-                    const resource = template.name
-                    permissions.push({ resource, actions })
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: template.id,
+                            resource_name: template.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
                     this.triggerPermisionModal(permissions)
                 }
             },

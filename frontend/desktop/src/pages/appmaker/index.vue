@@ -60,6 +60,8 @@
                         v-for="item in appList"
                         :key="item.id"
                         :app-data="item"
+                        :app-resource="appResource"
+                        :app-operations="appOperations"
                         :project_id="project_id"
                         @onCardEdit="onCardEdit"
                         @onCardDelete="onCardDelete"
@@ -174,6 +176,8 @@
                     edit: false,
                     delete: false
                 },
+                appOperations: [],
+                appResource: {},
                 i18n: {
                     title: gettext('轻应用'),
                     addApp: gettext('新建'),
@@ -233,6 +237,8 @@
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
+                    this.appOperations = resp.meta.operations
+                    this.appResource = resp.meta.resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

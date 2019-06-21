@@ -250,10 +250,34 @@
                     return
                 }
                 if (!this.hasPermission(['create_mini_app'], this.appData.appActions, this.tplOperations)) {
+                    let actions = []
+                    this.tplOperations.filter(item => {
+                        return ['create_mini_app'].includes(item.operate_id)
+                    }).forEach(perm => {
+                        actions = actions.concat(perm.actions)
+                    })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
                     const permissions = []
-                    const actions = this.tplOperations.find(item => item.operate_id === 'create_mini_app').actions
-                    const resource = this.appData.appName
-                    permissions.push({ resource, actions })
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: this.appData.appTemplate,
+                            resource_name: this.appData.appName,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
                     this.triggerPermisionModal(permissions)
                     return
                 }

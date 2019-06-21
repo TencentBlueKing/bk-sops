@@ -304,15 +304,36 @@
              */
             onPeriodicPermissonCheck (required, periodic, event) {
                 if (!this.hasPermission(required, periodic.auth_actions, this.periodicOperations)) {
-                    const permissions = []
                     let actions = []
                     this.periodicOperations.filter(item => {
                         return required.includes(item.operate_id)
                     }).forEach(perm => {
                         actions = actions.concat(perm.actions)
                     })
-                    const resource = periodic.name
-                    permissions.push({ resource, actions })
+                    
+                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.periodicResource
+                    const permissions = []
+                    
+                    actions.forEach(item => {
+                        const res = []
+                        res.push([{
+                            resource_id: periodic.id,
+                            resource_name: periodic.name,
+                            resource_type: resource.resource_type,
+                            resource_type_name: resource.resource_type_name
+                        }])
+                        permissions.push({
+                            scope_id,
+                            scope_name,
+                            scope_type,
+                            system_id,
+                            system_name,
+                            resource: res,
+                            action_id: item.id,
+                            action_name: item.name
+                        })
+                    })
+                    
                     this.triggerPermisionModal(permissions)
                     event.preventDefault()
                 }

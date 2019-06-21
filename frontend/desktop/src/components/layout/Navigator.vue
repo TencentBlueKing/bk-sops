@@ -237,9 +237,13 @@
             ...mapMutations([
                 'setBizId'
             ]),
-            initHome () {
+            ...mapMutations('project', [
+                'setProjectPerm'
+            ]),
+            async initHome () {
                 if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.loadProjectList({ limit: 0 })
+                    const res = await this.loadProjectList({ limit: 0 })
+                    this.setProjectPerm(res.meta)
                 }
             },
             isNavActived (route) {
