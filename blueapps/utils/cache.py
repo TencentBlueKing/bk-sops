@@ -124,7 +124,7 @@ def generate_cache_key(prefix, ex, args, kwargs):
             if isinstance(item, int):
                 ex_item = args[item]
             elif isinstance(item, basestring):
-                ex_item = kwargs[item]
+                ex_item = kwargs.get(item)
             else:
                 raise Exception("unexpected ex type")
             ex_item = to_sorted_str(ex_item)
