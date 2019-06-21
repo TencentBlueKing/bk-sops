@@ -15,6 +15,7 @@
             <BaseTitle :title="i18n.projectManage"></BaseTitle>
             <div class="list-header">
                 <bk-button
+                    v-cursor
                     type="primary"
                     :class="['create-project-btn', {
                         'btn-permission-disable': !hasPermission(['create'], authActions, authOperations)
@@ -57,6 +58,7 @@
                             <td>{{item.creator}}</td>
                             <td>
                                 <bk-button
+                                    v-cursor
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
@@ -66,6 +68,7 @@
                                 </bk-button>
                                 <bk-button
                                     v-if="item.is_disable"
+                                    v-cursor
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
@@ -75,6 +78,7 @@
                                 </bk-button>
                                 <bk-button
                                     v-else
+                                    v-cursor
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
