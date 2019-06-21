@@ -16,6 +16,7 @@
             <div class="operation-area clearfix">
                 <bk-button
                     v-show="showOperationBtn"
+                    v-cursor
                     type="primary"
                     :class="['create-template', {
                         'btn-permission-disable': !hasPermission(['create_template'], authActions, authOperations)
@@ -120,7 +121,8 @@
                                 <template v-if="!common || !common_template">
                                     <a
                                         v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
-                                        class="text-permisson-disable"
+                                        v-cursor
+                                        class="text-permission-disable"
                                         @click="onTemplatePermissonCheck(['view'], item, $event)">
                                         {{item.name}}
                                     </a>
@@ -144,7 +146,8 @@
                                 <!-- 项目流程按钮 -->
                                 <a
                                     v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
                                 </a>
@@ -156,7 +159,8 @@
                                 </router-link>
                                 <a
                                     v-if="!hasPermission(['edit'], item.auth_actions, tplOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
                                 </a>
@@ -172,7 +176,8 @@
                                         <li>
                                             <a
                                                 v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
-                                                class="text-permisson-disable"
+                                                v-cursor
+                                                class="text-permission-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
                                             </a>
@@ -187,9 +192,10 @@
                                         </li>
                                         <li>
                                             <a
+                                                v-cursor
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
+                                                    'text-permission-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
                                                 }"
                                                 @click="onDeleteTemplate(item, $event)">
                                                 {{ i18n.delete }}
@@ -202,7 +208,8 @@
                                 <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                 <a
                                     v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
                                 </a>
@@ -225,7 +232,8 @@
                                 <!-- 公共流程首页 -->
                                 <a
                                     v-if="!hasPermission(['edit'], item.auth_actions, item.tplOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
                                 </a>
@@ -241,7 +249,8 @@
                                         <li>
                                             <a
                                                 v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
-                                                class="text-permisson-disable"
+                                                v-cursor
+                                                class="text-permission-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
                                             </a>
@@ -254,9 +263,10 @@
                                         </li>
                                         <li>
                                             <a
+                                                v-cursor
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
+                                                    'text-permission-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
                                                 }"
                                                 @click="onDeleteTemplate(item, $event)">
                                                 {{i18n.delete}}
@@ -402,6 +412,7 @@
                 theDeleteTemplateId: undefined,
                 theAuthorityManageId: undefined,
                 isAdvancedSerachShow: false,
+                active: true,
                 pending: {
                     export: false, // 导出
                     delete: false // 删除
@@ -443,7 +454,6 @@
                 'timeZone': state => state.timezone,
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
-                'project_id': state => state.project_id,
                 'projectName': state => state.projectName
             }),
             listData () {

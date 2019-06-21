@@ -99,6 +99,7 @@
         <div slot="footer" class="dialog-footer">
             <bk-button
                 type="primary"
+                v-cursor
                 :class="{
                     'btn-permission-disable': !hasPermission(['create_mini_app'], appData.appActions, tplOperations)
                 }"
