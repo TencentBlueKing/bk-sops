@@ -88,5 +88,5 @@ def get_default_project_for_user(username):
         resources_perms = search_all_resources_authorized_actions(username, project_resource.rtype, project_resource,
                                                                   [project_resource.actions.view.id])
         if resources_perms:
-            project = Project.objects.filter(id__in=resources_perms.items()).first()
+            project = Project.objects.filter(id__in=resources_perms.keys()).first()
     return project
