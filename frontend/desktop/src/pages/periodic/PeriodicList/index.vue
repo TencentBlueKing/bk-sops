@@ -67,7 +67,8 @@
                             <td class="periodic-name" :title="item.name">
                                 <a
                                     v-if="!hasPermission(['view'], item.auth_actions, periodicOperations)"
-                                    class="text-permisson-disable"
+                                    v-cursor
+                                    class="text-permission-disable"
                                     @click="onPeriodicPermissonCheck(['view'], item, $event)">
                                     {{item.task_template_name}}
                                 </a>
@@ -89,19 +90,21 @@
                             </td>
                             <td class="periodic-operation">
                                 <a
+                                    v-cursor
                                     href="javascript:void(0);"
                                     :class="['periodic-pause-btn', {
                                         'periodic-start-btn': !item.enabled,
-                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
+                                        'text-permission-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
                                     }]"
                                     @click="onSetEnable(item, $event)">
                                     {{!item.enabled ? i18n.start : i18n.pause}}
                                 </a>
                                 <a
+                                    v-cursor
                                     href="javascript:void(0);"
                                     :class="['periodic-bk-btn', {
                                         'periodic-bk-disable': item.enabled,
-                                        'text-permisson-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
+                                        'text-permission-disable': !hasPermission(['edit'], item.auth_actions, periodicOperations)
                                     }]"
                                     :title="item.enabled ? i18n.editTitle : ''"
                                     @click="onModifyCronPeriodic(item, $event)">
@@ -112,9 +115,10 @@
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
                                             <a
+                                                v-cursor
                                                 href="javascript:void(0);"
                                                 :class="{
-                                                    'text-permisson-disable': !hasPermission(['delete'], item.auth_actions, periodicOperations)
+                                                    'text-permission-disable': !hasPermission(['delete'], item.auth_actions, periodicOperations)
                                                 }"
                                                 @click="onDeletePeriodic(item, $event)">
                                                 {{ i18n.delete }}
