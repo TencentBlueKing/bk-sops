@@ -36,6 +36,7 @@ class APIError(BkSopsError):
         self.system = system
         self.api = api
         self.message = message
+        super(APIError, self).__init__(message)
 
     @property
     def error(self):

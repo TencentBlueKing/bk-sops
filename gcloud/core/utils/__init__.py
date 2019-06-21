@@ -35,7 +35,8 @@ ver_exports = [
     'convert_group_name',
     'convert_readable_username',
     'check_and_rename_params',
-    'get_user_business_list'
+    'get_user_business_list',
+    'get_all_business_list'
 ]
 for func in ver_exports:
     locals()[func] = getattr(ver_utils, func)

@@ -250,6 +250,8 @@ PIPELINE_RERUN_MAX_TIMES = 50
 
 from pipeline.celery.settings import *  # noqa
 
+SYSTEM_USE_API_ACCOUNT = 'admin'
+
 # VER settings
 ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER)
 for _setting in dir(ver_settings):
