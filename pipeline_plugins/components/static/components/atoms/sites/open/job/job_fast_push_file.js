@@ -23,7 +23,7 @@
                     return resp.data;
                 },
                 disabled: $.context.project.from_cmdb,
-                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
                 validation: [
                     {
                         type: "required"

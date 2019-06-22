@@ -30,7 +30,7 @@
                                 return resp.data;
                             },
                             disabled: $.context.project.from_cmdb,
-                            value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                            value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
                             validation: [
                                 {
                                     type: "required"
@@ -46,7 +46,7 @@
                             hookable: true,
                             remote: true,
                             remote_url: function () {
-                                url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/module/normal/' + $.context.project.cmdb_biz_id + '/' : '';
+                                url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/module/normal/' + $.context.project.bk_biz_id + '/' : '';
                                 return url
                             },
                             remote_data_init: function (resp) {

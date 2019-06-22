@@ -77,7 +77,7 @@ class JobService(Service):
 
             # 全局变量重载
             global_var_result = client.job.get_job_instance_global_var_value({
-                "bk_biz_id": parent_data.get_one_of_inputs('biz_cc_id'),
+                "bk_biz_id": data.get_one_of_inputs('biz_cc_id'),
                 "job_instance_id": job_instance_id
             })
 
