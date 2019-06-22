@@ -709,12 +709,12 @@ class PipelineInstance(models.Model):
             except ImportError:
                 return ActionResult(result=False, message='invalid parser class: %s' % settings.PIPELINE_PARSER_CLASS)
 
-            parser = parser_cls(pipeline_data)
-            pipeline = parser.parse(get_pipeline_context(instance, 'instance'))
-
             instance.start_time = timezone.now()
             instance.is_started = True
             instance.executor = executor
+
+            parser = parser_cls(pipeline_data)
+            pipeline = parser.parse(get_pipeline_context(instance, 'instance'))
 
             # calculate tree info
             instance.calculate_tree_info()
