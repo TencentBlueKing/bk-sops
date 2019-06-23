@@ -38,7 +38,7 @@ function init (el, binding) {
         el.element.style.top = elTop + 'px'
     }
     el.mouseLeaveHandler = function (event) {
-        el.element.remove()
+        el.element && el.element.remove()
         el.element = null
         el.style.position = ''
         el.removeEventListener('mousemove', el.mouseMoveHandler)

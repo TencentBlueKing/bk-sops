@@ -40,15 +40,23 @@
         <div class="canvas-operation-wrapper">
             <bk-button
                 type="primary"
-                class="save-canvas"
+                :class="['save-canvas', {
+                    'btn-permission-disable': !perm.edit.isPass
+                }]"
                 :loading="templateSaving"
+                :disabled="perm.edit.pending"
+                v-cursor="{ action: !perm.edit.isPass }"
                 @click="onSaveTemplate(false)">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
                 type="primary"
-                class="task-btn"
+                :class="['task-btn', {
+                    'btn-permission-disable': !createTaskBtnIsPass
+                }]"
                 :loading="createTaskSaving"
+                :disabled="perm.create_task.pending"
+                v-cursor="{ action: !createTaskBtnIsPass }"
                 @click="onSaveTemplate(true)">
                 {{ createTaskBtnText }}
             </bk-button>
@@ -58,18 +66,20 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapMutations } from 'vuex'
+    import { mapActions, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ConfigBar',
         components: {
             BaseInput
         },
+        mixins: [permission],
         props: [
             'name', 'project_id', 'template_id', 'type', 'common', 'templateSaving',
-            'createTaskSaving', 'isTemplateDataChanged'
+            'createTaskSaving', 'isTemplateDataChanged', 'tplResource', 'tplActions', 'tplOperations'
         ],
         data () {
             return {
@@ -88,7 +98,17 @@
                     max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                isShowMode: true
+                isShowMode: true,
+                perm: {
+                    'create_task': {
+                        pending: true,
+                        isPass: true
+                    },
+                    'edit': {
+                        pending: true,
+                        isPass: true
+                    }
+                }
             }
         },
         computed: {
@@ -97,6 +117,16 @@
             },
             createTaskBtnText () {
                 return (this.isTemplateDataChanged || this.type === 'new') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+            },
+            createTaskBtnIsPass () {
+                if (this.isTemplateDataChanged || this.type === 'new') {
+                    return this.perm.create_task.isPass && this.perm.edit.isPass
+                } else {
+                    return this.perm.create_task.isPass
+                }
+            },
+            saveAndCreateBtnPerm () {
+                return (this.isTemplateDataChanged || this.type === 'new') ? ['create_task', 'edit'] : ['create_task']
             }
         },
         watch: {
@@ -104,14 +134,85 @@
                 this.tName = val
             }
         },
+        created () {
+            this.getUserTplPerm()
+        },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapMutations('template/', [
                 'setTemplateName'
             ]),
             onInputName (val) {
                 this.$emit('onChangeName', val)
             },
+            async getUserTplPerm () {
+                const permissions = ['edit', 'create_task']
+                const res = await this.queryUserPermission({
+                    resource_type: 'flow-template',
+                    action_ids: JSON.stringify(permissions)
+                })
+                permissions.forEach(p => {
+                    const detail = res.data.details.find(d => d.action_id === p)
+                    const perm = {
+                        pending: false,
+                        isPass: detail.is_pass
+                    }
+                    this.$set(this.perm, p, perm)
+                })
+            },
+            /**
+             * 单个模板操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} template 模板数据对象
+             */
+            onTemplatePermissonCheck (required, template) {
+                const actions = []
+                this.tplOperations.filter(item => {
+                    return required.includes(item.operate_id)
+                }).forEach(perm => {
+                    perm.actions.forEach(action => {
+                        if (!actions.find(item => action.id === item.id)) {
+                            actions.push(action)
+                        }
+                    })
+                })
+                const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
+                const permissions = []
+                actions.forEach(item => {
+                    const res = []
+                    res.push([{
+                        resource_id: template.id,
+                        resource_name: template.name,
+                        resource_type: resource.resource_type,
+                        resource_type_name: resource.resource_type_name
+                    }])
+                    permissions.push({
+                        scope_id,
+                        scope_name,
+                        scope_type,
+                        system_id,
+                        system_name,
+                        resources: res,
+                        action_id: item.id,
+                        action_name: item.name
+                    })
+                })
+
+                this.triggerPermisionModal(permissions)
+            },
             onSaveTemplate (saveAndCreate = false) {
+                const required = saveAndCreate ? this.saveAndCreateBtnPerm : ['edit']
+                if (!this.hasPermission(required, this.tplActions, this.tplOperations)) {
+                    const template = {
+                        id: this.template_id,
+                        name: this.name
+                    }
+                    this.onTemplatePermissonCheck(required, template)
+                    return
+                }
+
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
                     this.tName = this.tName.trim()

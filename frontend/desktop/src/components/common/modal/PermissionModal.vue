@@ -106,7 +106,7 @@
                 this.list = data
             },
             getResource (permission) {
-                return permission.resource.map(res => {
+                return permission.resources.map(res => {
                     return res.map(item => item.resource_name).join(',')
                 }).join(',')
             },
