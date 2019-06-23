@@ -24,6 +24,9 @@
             :is-template-data-changed="isTemplateDataChanged"
             :template-saving="templateSaving"
             :create-task-saving="createTaskSaving"
+            :tpl-resource="tplResource"
+            :tpl-actions="tplActions"
+            :tpl-operations="tplOperations"
             @onChangeName="onChangeName"
             @onSaveTemplate="onSaveTemplate">
         </ConfigBar>
@@ -197,6 +200,24 @@
             isSelectAllNode: {
                 type: Boolean,
                 default: false
+            },
+            tplOperations: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplActions: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplResource: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {

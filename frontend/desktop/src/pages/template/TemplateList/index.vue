@@ -563,8 +563,8 @@
                         const res = []
                         res.push([{
                             resource_id: this.project_id,
-                            resource_name: this.projectName,
-                            resource_type: resource.resource_type,
+                            resource_name: gettext('流程模板'),
+                            resource_type: 'flow-template',
                             resource_type_name: resource.resource_type_name
                         }])
                         permissions.push({
@@ -573,7 +573,7 @@
                             scope_type,
                             system_id,
                             system_name,
-                            resource: res,
+                            resources: res,
                             action_id: item.id,
                             action_name: item.name
                         })
@@ -669,7 +669,7 @@
                         scope_type,
                         system_id,
                         system_name,
-                        resource: res,
+                        resources: res,
                         action_id: item.id,
                         action_name: item.name
                     })

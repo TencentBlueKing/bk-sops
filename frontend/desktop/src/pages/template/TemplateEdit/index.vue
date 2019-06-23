@@ -27,6 +27,9 @@
                 :template_id="template_id"
                 :atom-type-list="atomTypeList"
                 :search-atom-result="searchAtomResult"
+                :tpl-resource="tplResource"
+                :tpl-actions="tplActions"
+                :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
                 @onSaveTemplate="onSaveTemplate"
                 @onSearchAtom="onSearchAtom"
@@ -150,7 +153,10 @@
                 intervalGetDraftArray: null,
                 templateUUID: uuid(),
                 localTemplateData: null,
-                isClickDraft: false
+                isClickDraft: false,
+                tplOperations: [],
+                tplActions: [],
+                tplResource: {}
             }
         },
         computed: {
@@ -392,6 +398,9 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
+                    this.tplOperations = templateData.auth_operations
+                    this.tplActions = templateData.auth_actions
+                    this.tplResource = templateData.auth_resource
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
