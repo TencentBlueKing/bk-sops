@@ -101,9 +101,12 @@
                 {{ i18n.previous }}
             </bk-button>
             <bk-button
-                class="next-step-button"
+                :class="['next-step-button', {
+                    'btn-permission-disable': !hasPermission(nextStepPerm, tplActions, tplOperations)
+                }]"
                 type="success"
                 :loading="isSubmit"
+                v-cursor="{ active: !hasPermission(nextStepPerm, tplActions, tplOperations) }"
                 @click="onCreateTask">
                 {{i18n.new}}
             </bk-button>
@@ -118,6 +121,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
 
@@ -127,6 +131,7 @@
             BaseInput,
             TaskParamEdit
         },
+        mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'previewData'],
         data () {
             return {
@@ -166,7 +171,10 @@
                 node: {},
                 templateData: {},
                 configLoading: true,
-                taskParamEditLoading: true
+                taskParamEditLoading: true,
+                tplActions: [],
+                tplOperations: [],
+                tplResource: {}
             }
         },
         computed: {
@@ -190,6 +198,9 @@
             },
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && this.userType !== 'functor'
+            },
+            nextStepPerm () {
+                return this.isStartNow ? ['create_task'] : ['create_periodic_task']
             }
         },
         watch: {
@@ -225,6 +236,9 @@
                     }
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
+                    this.tplActions = templateData.auth_actions
+                    this.tplResource = templateData.auth_resource
+                    this.tplOperations = templateData.auth_operations
                     this.setTemplateData(templateData)
                     // 用户直接刷新当前页面 可选数据丢失，可直接获取pipelineTree
                     if (this.previewData.length === 0) {
@@ -275,7 +289,19 @@
                 }
             },
             onCreateTask () {
-                if (this.isSubmit) return
+                if (this.isSubmit) {
+                    return
+                }
+
+                if (!this.hasPermission(this.nextStepPerm, this.tplActions, this.tplOperations)) {
+                    const resourceData = {
+                        name: this.templateName,
+                        id: this.template_id
+                    }
+                    this.applyForPermission(this.nextStepPerm, resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
+
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then(async (result) => {
                     let formValid = true
@@ -308,13 +334,13 @@
                             const taskData = await this.createTask(data)
 
                             if (this.viewMode === 'appmaker') {
-                                if (this.isSelectFunctionalType) {
+                                if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
                                     this.$router.push({ path: `/appmaker/${this.app_id}/task_home/${this.project_id}/` })
                                 } else {
                                     this.$router.push({ path: `/appmaker/${this.app_id}/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id } })
                                 }
                             } else if (this.isSelectFunctionalType) {
-                                if (this.common) {
+                                if (this.common) { // 公共流程创建职能化任务
                                     this.$router.push({ path: `/taskflow/home/${this.project_id}/`, query: { common: this.common } })
                                 } else {
                                     this.$router.push({ path: `/taskflow/home/${this.project_id}/` })

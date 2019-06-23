@@ -15,7 +15,7 @@
             <BaseTitle :title="i18n.projectManage"></BaseTitle>
             <div class="list-header">
                 <bk-button
-                    v-cursor
+                    v-cursor="{ active: !hasPermission(['create'], authActions, authOperations) }"
                     type="primary"
                     :class="['create-project-btn', {
                         'btn-permission-disable': !hasPermission(['create'], authActions, authOperations)
@@ -58,7 +58,7 @@
                             <td>{{item.creator}}</td>
                             <td>
                                 <bk-button
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
@@ -68,7 +68,7 @@
                                 </bk-button>
                                 <bk-button
                                     v-if="item.is_disable"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
@@ -78,7 +78,7 @@
                                 </bk-button>
                                 <bk-button
                                     v-else
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"

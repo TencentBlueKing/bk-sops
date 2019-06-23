@@ -67,7 +67,7 @@
                             <td class="periodic-name" :title="item.name">
                                 <a
                                     v-if="!hasPermission(['view'], item.auth_actions, periodicOperations)"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, periodicOperations) }"
                                     class="text-permission-disable"
                                     @click="onPeriodicPermissonCheck(['view'], item, $event)">
                                     {{item.task_template_name}}
@@ -90,7 +90,7 @@
                             </td>
                             <td class="periodic-operation">
                                 <a
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, periodicOperations) }"
                                     href="javascript:void(0);"
                                     :class="['periodic-pause-btn', {
                                         'periodic-start-btn': !item.enabled,
@@ -100,7 +100,7 @@
                                     {{!item.enabled ? i18n.start : i18n.pause}}
                                 </a>
                                 <a
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, periodicOperations) }"
                                     href="javascript:void(0);"
                                     :class="['periodic-bk-btn', {
                                         'periodic-bk-disable': item.enabled,
@@ -115,7 +115,7 @@
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
                                             <a
-                                                v-cursor
+                                                v-cursor="{ active: !hasPermission(['delete'], item.auth_actions, periodicOperations) }"
                                                 href="javascript:void(0);"
                                                 :class="{
                                                     'text-permission-disable': !hasPermission(['delete'], item.auth_actions, periodicOperations)

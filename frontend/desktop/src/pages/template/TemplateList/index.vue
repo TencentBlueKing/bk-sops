@@ -16,7 +16,7 @@
             <div class="operation-area clearfix">
                 <bk-button
                     v-show="showOperationBtn"
-                    v-cursor
+                    v-cursor="{ active: !hasPermission(['create_template'], authActions, authOperations) }"
                     type="primary"
                     :class="['create-template', {
                         'btn-permission-disable': !hasPermission(['create_template'], authActions, authOperations)
@@ -121,7 +121,7 @@
                                 <template v-if="!common || !common_template">
                                     <a
                                         v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
-                                        v-cursor
+                                        v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
                                         class="text-permission-disable"
                                         @click="onTemplatePermissonCheck(['view'], item, $event)">
                                         {{item.name}}
@@ -146,7 +146,7 @@
                                 <!-- 项目流程按钮 -->
                                 <a
                                     v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['create_task'], item.auth_actions, tplOperations) }"
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
@@ -159,7 +159,7 @@
                                 </router-link>
                                 <a
                                     v-if="!hasPermission(['edit'], item.auth_actions, tplOperations)"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, tplOperations) }"
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
@@ -176,7 +176,7 @@
                                         <li>
                                             <a
                                                 v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
-                                                v-cursor
+                                                v-cursor="{ active: !hasPermission(['clone'], item.auth_actions, tplOperations) }"
                                                 class="text-permission-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
@@ -192,7 +192,7 @@
                                         </li>
                                         <li>
                                             <a
-                                                v-cursor
+                                                v-cursor="{ active: !hasPermission(['delete'], item.auth_actions, tplOperations) }"
                                                 href="javascript:void(0);"
                                                 :class="{
                                                     'text-permission-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
@@ -208,7 +208,7 @@
                                 <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                 <a
                                     v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['create_task'], item.auth_actions, tplOperations) }"
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
@@ -232,7 +232,7 @@
                                 <!-- 公共流程首页 -->
                                 <a
                                     v-if="!hasPermission(['edit'], item.auth_actions, item.tplOperations)"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, tplOperations) }"
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
@@ -249,7 +249,7 @@
                                         <li>
                                             <a
                                                 v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
-                                                v-cursor
+                                                v-cursor="{ active: !hasPermission(['clone'], item.auth_actions, tplOperations) }"
                                                 class="text-permission-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
@@ -263,7 +263,7 @@
                                         </li>
                                         <li>
                                             <a
-                                                v-cursor
+                                                v-cursor="{ active: !hasPermission(['delete'], item.auth_actions, tplOperations) }"
                                                 href="javascript:void(0);"
                                                 :class="{
                                                     'text-permission-disable': !hasPermission(['delete'], item.auth_actions, tplOperations)
