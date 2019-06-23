@@ -48,9 +48,12 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
-                class="task-claim-button"
+                :class="['task-claim-button', {
+                    'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
+                }]"
                 type="success"
                 :loading="isSubmit"
+                v-cursor="{ 'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations) }"
                 @click="onTaskClaim">
                 {{ i18n.claim }}
             </bk-button>
@@ -85,6 +88,7 @@
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
@@ -99,7 +103,11 @@
             TaskParamEdit,
             NodePreview
         },
-        props: ['project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        mixins: [permission],
+        props: [
+            'project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName',
+            'instanceActions', 'instanceOperations', 'instanceResource'
+        ],
         data () {
             return {
                 i18n: {
@@ -162,6 +170,16 @@
             },
             onTaskClaim () {
                 if (this.isSubmit) return
+
+                if (!this.hasPermission(['claim'], this.instanceActions, this.instanceOperations)) {
+                    const resourceData = {
+                        name: this.instanceName,
+                        id: this.instance_id
+                    }
+                    this.applyForPermission(['claim'], resourceData, this.instanceOperations, this.instanceResource)
+                    return
+                }
+
                 this.isSubmit = true
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) return

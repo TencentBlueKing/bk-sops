@@ -46,7 +46,7 @@
                                                 'text-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
                                             }]"
                                             v-for="item in group.list"
-                                            v-cursor
+                                            v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
                                             :key="item.id"
                                             @click="onSelectTemplate(item)">
                                             <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
@@ -60,7 +60,7 @@
                             <ul v-if="searchList.length">
                                 <li
                                     v-for="item in searchList"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
                                     :key="item.id"
                                     :class="['template-item', {
                                         'text-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)

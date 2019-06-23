@@ -135,7 +135,9 @@
             }
         },
         created () {
-            this.getUserTplPerm()
+            if (this.type !== 'edit') {
+                this.getUserTplPerm()
+            }
         },
         methods: {
             ...mapActions([

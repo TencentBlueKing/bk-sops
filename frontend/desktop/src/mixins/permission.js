@@ -22,6 +22,47 @@ const permission = {
                 }
             })
         },
+        /**
+         * 申请权限
+         * @param {Array} required 需要的申请的权限
+         * @param {*} resourceData 资源数据
+         * @param {*} authOperations 权限字典
+         * @param {*} authResource 资源信息
+         */
+        applyForPermission (required, resourceData, authOperations, authResource) {
+            console.log(authOperations)
+            let actions = []
+            authOperations.filter(item => {
+                return required.includes(item.operate_id)
+            }).forEach(perm => {
+                actions = actions.concat(perm.actions)
+            })
+            
+            const { scope_id, scope_name, scope_type, system_id, system_name, resource } = authResource
+            const permissions = []
+            console.log(actions)
+            actions.forEach(item => {
+                const res = []
+                res.push([{
+                    resource_id: resourceData.id,
+                    resource_name: resourceData.name,
+                    resource_type: resource.resource_type,
+                    resource_type_name: resource.resource_type_name
+                }])
+                permissions.push({
+                    scope_id,
+                    scope_name,
+                    scope_type,
+                    system_id,
+                    system_name,
+                    resources: res,
+                    action_id: item.id,
+                    action_name: item.name
+                })
+            })
+
+            this.triggerPermisionModal(permissions)
+        },
         triggerPermisionModal (permissions) {
             bus.$emit('showPermissionModal', permissions)
         }

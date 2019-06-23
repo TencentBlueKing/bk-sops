@@ -137,7 +137,7 @@
                             </td>
                             <td class="task-operation">
                                 <a
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['clone'], item.auth_actions, taskOperations) }"
                                     :class="['task-operation-clone', {
                                         'text-permission-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
                                     }]"
@@ -146,7 +146,7 @@
                                     {{ i18n.clone }}
                                 </a>
                                 <a
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['delete'], item.auth_actions, taskOperations) }"
                                     :class="['task-operation-delete', {
                                         'text-permission-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
                                     }]"

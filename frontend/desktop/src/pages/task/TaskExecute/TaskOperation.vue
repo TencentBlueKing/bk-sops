@@ -37,7 +37,11 @@
                 <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
                     <template v-for="operation in taskOperationBtns">
                         <bk-button
-                            :class="['operation-btn', operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn']"
+                            :class="[
+                                'operation-btn',
+                                operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn',
+                                { 'btn-permission-disable': !hasPermission(['operate'], instanceActions, instanceOperations) }
+                            ]"
                             type="default"
                             size="mini"
                             hide-text="true"
@@ -46,6 +50,7 @@
                             :loading="operation.loading"
                             :disabled="operation.disabled"
                             v-bktooltips.bottom="operation.text"
+                            v-cursor="{ active: !hasPermission(['operate'], instanceActions, instanceOperations) }"
                             @click="onOperationClick(operation.action)">
                         </bk-button>
                     </template>
@@ -160,6 +165,7 @@
     import ModifyTime from './ModifyTime.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
+    import permission from '@/mixins/permission.js'
 
     const TASK_OPERATIONS = {
         execute: {
@@ -202,7 +208,11 @@
             gatewaySelectDialog,
             revokeDialog
         },
-        props: ['project_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        mixins: [permission],
+        props: [
+            'project_id', 'instance_id', 'instanceFlow', 'instanceName',
+            'instanceActions', 'instanceOperations', 'instanceResource'
+        ],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -914,6 +924,16 @@
                 if (this.pending.task || !this.getOptBtnIsClickable(action)) {
                     return
                 }
+
+                if (!this.hasPermission(['operate'], this.instanceActions, this.instanceOperations)) {
+                    const resourceData = {
+                        name: this.instanceName,
+                        id: this.instance_id
+                    }
+                    this.applyForPermission(['operate'], resourceData, this.instanceOperations, this.instanceResource)
+                    return
+                }
+
                 if (action === 'revoke') {
                     this.isRevokeDialogShow = true
                     return
@@ -1249,18 +1269,18 @@
             .execute-btn {
                 width: 140px;
                 color: #ffffff;
-                background: #2dcb56 !important; // 覆盖 bk-button important 规则
+                background: #2dcb56; // 覆盖 bk-button important 规则
                 &:hover {
-                    background: #1f9c40 !important; // 覆盖 bk-button important 规则
+                    background: #1f9c40; // 覆盖 bk-button important 规则
                 }
                 &.is-disabled {
-                    color: #ffffff !important; // 覆盖 bk-button important 规则
+                    color: #ffffff; // 覆盖 bk-button important 规则
                     opacity: 0.4;
                 }
             }
             .revoke-btn {
                 padding: 0;
-                background: transparent !important; // 覆盖 bk-button important 规则
+                background: transparent; // 覆盖 bk-button important 规则
                 color: #ea3636;
                 &:hover {
                     color: #c32929;
