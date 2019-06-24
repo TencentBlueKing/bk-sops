@@ -6,20 +6,15 @@ const permission = {
          * 判断当前权限是否满足需要的权限
          * @param {Array} reqPermission 需要的权限
          * @param {Array} curPermission 当前拥有的权限
+         * @param {Array} authOperations 权限字典
          */
-        hasPermission (reqPermission = [], curPermission = [], permissionMap = []) {
+        hasPermission (reqPermission = [], curPermission = [], authOperations = []) {
             return reqPermission.every(item => {
-                if (curPermission.includes(item)) {
-                    return true
-                } else if (permissionMap.length > 0) {
-                    const perm = permissionMap.find(op => op.operate_id === item)
-                    if (!perm) {
-                        return false
-                    }
-                    return perm.actions_id.every(p => curPermission.includes(p))
-                } else {
+                const perm = authOperations.find(op => op.operate_id === item)
+                if (!perm) {
                     return false
                 }
+                return perm.actions_id.every(p => curPermission.includes(p))
             })
         },
         /**
@@ -30,11 +25,21 @@ const permission = {
          * @param {Object} authResource 资源信息
          */
         applyForPermission (required, resourceData, authOperations, authResource) {
-            let actions = []
+            const actions = []
+            console.log(required)
+            console.log(resourceData)
+            console.log(authOperations)
+            console.log(authResource)
             authOperations.filter(item => {
                 return required.includes(item.operate_id)
             }).forEach(perm => {
-                actions = actions.concat(perm.actions)
+                perm.actions.forEach(action => {
+                    if (!resourceData.auth_actions.includes(action.id)
+                        && !actions.find(item => action.id === item.id)
+                    ) {
+                        actions.push(action)
+                    }
+                })
             })
             
             const { scope_id, scope_name, scope_type, system_id, system_name, resource } = authResource

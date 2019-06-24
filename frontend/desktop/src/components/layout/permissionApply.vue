@@ -4,7 +4,7 @@
             <h3>{{permissionTitle}}</h3>
             <p>{{permissionContent}}</p>
             <div class="operation-btns">
-                <bk-button type="primary" @click="goToAuthCenter">{{i18n.apply}}</bk-button>
+                <bk-button type="primary" @click="applyBtnClick">{{i18n.apply}}</bk-button>
                 <bk-button type="default" v-if="type === 'project'" @click="goToCreateProject">{{i18n.create}}</bk-button>
             </div>
         </div>
@@ -24,10 +24,14 @@
                 type: String,
                 default: 'project'
             },
-            permission: {
-                type: Array,
+            permissionData: {
+                type: Object,
                 default () {
-                    return []
+                    return {
+                        type: 'project', // 无权限类型: project、other
+                        permission: [],
+                        toProject: false
+                    }
                 }
             }
         },
@@ -51,17 +55,19 @@
                 'authOperations': state => state.authOperations
             }),
             permissionTitle () {
-                return this.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
+                return this.permissionData.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
             },
             permissionContent () {
-                return this.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
+                return this.permissionData.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
             }
         },
         created () {
-            if (this.type === 'project') {
+            if (this.permissionData.type === 'project') {
                 this.queryProjectCreatePerm()
             }
-            this.loadPermissionUrl()
+            if (!this.toProject) {
+                this.loadPermissionUrl()
+            }
         },
         methods: {
             ...mapActions([
@@ -71,6 +77,13 @@
             ...mapMutations('project', [
                 'setProjectActions'
             ]),
+            applyBtnClick () {
+                if (this.permissionData.toProject) {
+                    this.$router.push('/project/home/')
+                } else {
+                    this.goToAuthCenter()
+                }
+            },
             goToAuthCenter () {
                 if (this.urlLoading || !this.url) {
                     return
@@ -130,7 +143,7 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const res = await this.getPermissionUrl(JSON.stringify(this.permission))
+                    const res = await this.getPermissionUrl(JSON.stringify(this.permissionData.permission))
                     this.url = res.data.url
                 } catch (err) {
                     errorHandler(err, this)

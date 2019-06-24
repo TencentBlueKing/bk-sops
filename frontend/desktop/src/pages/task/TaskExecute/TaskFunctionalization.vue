@@ -48,10 +48,10 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
+                type="success"
                 :class="['task-claim-button', {
                     'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
                 }]"
-                type="success"
                 :loading="isSubmit"
                 v-cursor="{ 'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations) }"
                 @click="onTaskClaim">

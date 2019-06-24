@@ -38,7 +38,16 @@
                         <bk-button size="small" @click="onCancelScheme">{{i18n.actionCancel}}</bk-button>
                         <span v-if="errors.has('schemeName')" class="common-error-tip error-msg">{{ errors.first('schemeName') }}</span>
                     </div>
-                    <bk-button type="primary" v-else :class="['save-scheme-btn', { 'disabled-btn': isPreviewMode }]" @click="onShowSchemeDialog">{{ i18n.newSchema }}</bk-button>
+                    <bk-button
+                        v-else
+                        type="primary"
+                        :class="['save-scheme-btn', {
+                            'disabled-btn': isPreviewMode,
+                            'btn-permission-disable': !hasPermission(['create_scheme'], authActions, authOperations)
+                        }]"
+                        @click="onShowSchemeDialog">
+                        {{ i18n.newSchema }}
+                    </bk-button>
                 </div>
                 <div class="scheme-content">
                     <ul class="schemeList">
@@ -113,6 +122,8 @@
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
     import formatPositionUtils from '@/utils/formatPosition.js'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'TaskSelectNode',
         components: {
@@ -120,6 +131,7 @@
             BaseInput,
             NodePreview
         },
+        mixins: [permission],
         props: ['project_id', 'template_id', 'common', 'excludeNode'],
         data () {
             return {
@@ -165,7 +177,10 @@
                 lastSelectSchema: '',
                 allSelectedNode: [],
                 isSelectAllNode: true,
-                taskActionShow: false
+                taskActionShow: false,
+                tplActions: [],
+                tplOperations: [],
+                tplResource: []
             }
         },
         computed: {
@@ -240,6 +255,9 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
+                    this.tplActions = templateData.objects.auth_actions
+                    this.tplOperations = templateData.meta.auth_operations
+                    this.tplResource = templateData.meta.auth_resource
                     this.version = templateData.version
                     this.taskName = templateData.name
                     const schemeData = await this.loadTaskScheme({ 'project_id': this.project_id, 'template_id': this.template_id })
@@ -270,6 +288,15 @@
              * 显示任务方案面板
              */
             onShowSchemeDialog () {
+                if (!this.hasPermission(['create_scheme'], this.tplActions, this.tplOperations)) {
+                    const resourceData = {
+                        name: this.taskName,
+                        id: this.template_id,
+                        auth_actions: this.tplActions
+                    }
+                    this.applyForPermission(['create_scheme'], resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
                 if (!this.isPreviewMode) {
                     this.taskActionShow = true
                 }
@@ -403,6 +430,16 @@
              * 删除方案
              */
             async onDeleteScheme (id) {
+                if (!this.hasPermission(['delete_scheme'], this.tplActions, this.tplOperations)) {
+                    const resourceData = {
+                        name: this.taskName,
+                        id: this.template_id,
+                        auth_actions: this.tplActions
+                    }
+                    this.applyForPermission(['delete_scheme'], resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
+
                 if (this.isDelete) return
                 this.isDelete = true
                 try {

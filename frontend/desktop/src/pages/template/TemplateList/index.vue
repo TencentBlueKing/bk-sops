@@ -121,7 +121,7 @@
                                 <template v-if="!common || !common_template">
                                     <a
                                         v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
-                                        v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
+                                        v-cursor
                                         class="text-permission-disable"
                                         @click="onTemplatePermissonCheck(['view'], item, $event)">
                                         {{item.name}}
@@ -146,7 +146,7 @@
                                 <!-- 项目流程按钮 -->
                                 <a
                                     v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
-                                    v-cursor="{ active: !hasPermission(['create_task'], item.auth_actions, tplOperations) }"
+                                    v-cursor
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
@@ -159,7 +159,7 @@
                                 </router-link>
                                 <a
                                     v-if="!hasPermission(['edit'], item.auth_actions, tplOperations)"
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, tplOperations) }"
+                                    v-cursor
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
@@ -176,7 +176,7 @@
                                         <li>
                                             <a
                                                 v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
-                                                v-cursor="{ active: !hasPermission(['clone'], item.auth_actions, tplOperations) }"
+                                                v-cursor
                                                 class="text-permission-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
@@ -208,7 +208,7 @@
                                 <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
                                 <a
                                     v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
-                                    v-cursor="{ active: !hasPermission(['create_task'], item.auth_actions, tplOperations) }"
+                                    v-cursor
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['create_task'], item, $event)">
                                     {{i18n.newTemplate}}
@@ -232,7 +232,7 @@
                                 <!-- 公共流程首页 -->
                                 <a
                                     v-if="!hasPermission(['edit'], item.auth_actions, item.tplOperations)"
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, tplOperations) }"
+                                    v-cursor
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
                                     {{i18n.edit}}
@@ -249,7 +249,7 @@
                                         <li>
                                             <a
                                                 v-if="!hasPermission(['clone'], item.auth_actions, tplOperations)"
-                                                v-cursor="{ active: !hasPermission(['clone'], item.auth_actions, tplOperations) }"
+                                                v-cursor
                                                 class="text-permission-disable"
                                                 @click="onTemplatePermissonCheck(['clone'], item, $event)">
                                                 {{i18n.clone}}
@@ -454,6 +454,7 @@
                 'timeZone': state => state.timezone,
                 'authActions': state => state.authActions,
                 'authOperations': state => state.authOperations,
+                'authResource': state => state.authResource,
                 'projectName': state => state.projectName
             }),
             listData () {
@@ -549,37 +550,12 @@
             },
             checkCreatePermission () {
                 if (!this.hasPermission(['create_template'], this.authActions, this.authOperations)) {
-                    let actions = []
-                    this.authOperations.filter(item => {
-                        return ['create_template'].includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: this.project_id,
-                            resource_name: gettext('流程模板'),
-                            resource_type: 'flow-template',
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resources: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-
-                    this.triggerPermisionModal(permissions)
+                    const resourceData = {
+                        name: gettext('项目'),
+                        id: this.project_id,
+                        auth_actions: this.authActions
+                    }
+                    this.applyForPermission(['create_template'], resourceData, this.authOperations, this.authResource)
                 } else {
                     const url = this.getNewTemplateUrl()
                     this.$router.push(url)
@@ -645,37 +621,7 @@
              * @params {Object} event 事件对象
              */
             onTemplatePermissonCheck (required, template, event) {
-                let actions = []
-                this.tplOperations.filter(item => {
-                    return required.includes(item.operate_id)
-                }).forEach(perm => {
-                    actions = actions.concat(perm.actions)
-                })
-                
-                const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
-                const permissions = []
-                
-                actions.forEach(item => {
-                    const res = []
-                    res.push([{
-                        resource_id: template.id,
-                        resource_name: template.name,
-                        resource_type: resource.resource_type,
-                        resource_type_name: resource.resource_type_name
-                    }])
-                    permissions.push({
-                        scope_id,
-                        scope_name,
-                        scope_type,
-                        system_id,
-                        system_name,
-                        resources: res,
-                        action_id: item.id,
-                        action_name: item.name
-                    })
-                })
-
-                this.triggerPermisionModal(permissions)
+                this.applyForPermission(required, template, this.tplOperations, this.tplResource)
                 event.preventDefault()
             },
             async onDeleteConfirm () {
