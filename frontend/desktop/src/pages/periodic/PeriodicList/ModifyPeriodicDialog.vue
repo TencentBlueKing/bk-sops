@@ -94,7 +94,7 @@
             },
             onModifyPeriodicConfirm () {
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
-                if (typeof loopRule !== 'string') return
+                if (!loopRule.check) return
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then((result) => {
                     let formValid = true
@@ -104,7 +104,7 @@
                         periodicConstants = formData
                         formValid = paramEditComp.validate()
                     }
-                    const cronArray = loopRule.split(' ')
+                    const cronArray = loopRule.rule.split(' ')
                     if (cronArray.length !== 5) {
                         this.$bkMessage({
                             'message': gettext('输入周期表达式非法，请校验'),
