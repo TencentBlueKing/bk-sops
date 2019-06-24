@@ -64,7 +64,7 @@ project_resource = DjangoModelResource(
                                      parent_f=None))
 
 admin_operate_resource = NeverInitiateResource(
-    rtype='admin-operate',
+    rtype='admin_operate',
     name=_(u"后台管理"),
     scope_type='system',
     scope_id='bk_sops',
