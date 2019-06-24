@@ -575,7 +575,7 @@ $bgBlue: #3a84ff;
             border-radius: 0;
         }
         .manual-input-btn {
-            margin-left: -5px;
+            margin-left: -4px;
         }
         .active-btn {
             background-color: $blueBtnBg;
