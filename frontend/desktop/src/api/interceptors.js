@@ -64,17 +64,6 @@ axios.interceptors.response.use(
                 if (isViewApply) {
                     bus.$emit('togglePermissionApplyPage', true, viewType, permissions)
                 } else {
-                    // const permissionsNeeded = []
-                    // permissions.forEach(perm => {
-                    //     const resource = perm.resources.map(res => {
-                    //         return res.map(item => item.resource_name || item.resource_type_name).join(',')
-                    //     }).join(',')
-                    //     const actions = [{
-                    //         id: perm.action_id,
-                    //         name: perm.action_name
-                    //     }]
-                    //     permissionsNeeded.push({ resource, actions })
-                    // })
                     bus.$emit('showPermissionModal', permissions)
                 }
                 break

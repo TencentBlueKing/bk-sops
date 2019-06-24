@@ -67,7 +67,7 @@
                             <td class="periodic-name" :title="item.name">
                                 <a
                                     v-if="!hasPermission(['view'], item.auth_actions, periodicOperations)"
-                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, periodicOperations) }"
+                                    v-cursor
                                     class="text-permission-disable"
                                     @click="onPeriodicPermissonCheck(['view'], item, $event)">
                                     {{item.task_template_name}}

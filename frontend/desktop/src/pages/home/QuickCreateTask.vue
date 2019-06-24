@@ -20,7 +20,7 @@
                     class="task-item">
                     <a
                         v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
-                        v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
+                        v-cursor
                         :class="['task-name', {
                             'btn-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
                         }]"

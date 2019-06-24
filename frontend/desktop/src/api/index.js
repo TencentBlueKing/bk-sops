@@ -514,8 +514,8 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                'project__id': project_id,
-                'template__template_id': template_id
+                template_id,
+                'project__id': project_id
             }
         }
         return request(opts)
