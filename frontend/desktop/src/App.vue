@@ -31,6 +31,7 @@
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { setAtomConfigApiUrls } from '@/config/setting.js'
+    import permission from '@/mixins/permission.js'
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
@@ -46,6 +47,7 @@
             permissionApply,
             PermissionModal
         },
+        mixins: [permission],
         provide () {
             return {
                 reload: this.reload
@@ -149,6 +151,7 @@
             },
             async getProjectDetail () {
                 try {
+                    this.isRouterAlive = false
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
@@ -179,6 +182,7 @@
                         this.getProjectDetail()
                     } else {
                         this.permissinApplyShow = true
+                        bus.$emit('togglePermissionApplyPage', true, 'project', [], true)
                     }
                 }
             },
