@@ -51,16 +51,16 @@ def verify_perms(auth_resource, resource_get, actions):
 
             permission = []
             actions_id = [act.id for act in actions]
-            self_verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER,
-                                                            username,
-                                                            actions_id,
-                                                            instance_id)
-            if not self_verify_result['result']:
+            verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER,
+                                                       username,
+                                                       actions_id,
+                                                       instance_id)
+            if not verify_result['result']:
                 message = ('verify perms of Resource[{resource}] by backend[{beckend_cls}] '
                            'return error: {error}').format(
                     resource=auth_resource.name,
                     backend_cls=auth_resource.backend,
-                    error=self_verify_result['message']
+                    error=verify_result['message']
                 )
                 logger.error(message)
                 result = {
@@ -69,8 +69,8 @@ def verify_perms(auth_resource, resource_get, actions):
                     'data': {}
                 }
                 return JsonResponse(result)
-            self_verify_data = self_verify_result['data']
-            for action_resource in self_verify_data:
+            verify_data = verify_result['data']
+            for action_resource in verify_data:
                 if not action_resource['is_pass']:
                     permission.append(build_need_permission(auth_resource,
                                                             action_resource['action_id'],

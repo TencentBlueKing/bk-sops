@@ -22,7 +22,7 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.permissions import project_resource
 
 mini_app_resource = DjangoModelResource(
-    rtype='mini-app',
+    rtype='mini_app',
     name=_(u"轻应用"),
     scope_type='system',
     scope_id='bk_sops',

@@ -21,7 +21,7 @@ from auth_backend.backends import get_backend_from_config
 from gcloud.commons.template.models import CommonTemplate
 
 common_template_resource = DjangoModelResource(
-    rtype='common-template',
+    rtype='common_flow',
     name=_(u"公共流程"),
     scope_type='system',
     scope_id='bk_sops',

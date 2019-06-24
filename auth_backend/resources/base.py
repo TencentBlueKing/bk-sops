@@ -125,6 +125,11 @@ class Resource(object):
                                                instances=self.clean_instances(instances),
                                                action_ids=action_ids)
 
+    def search_resources_perms_principals(self, resources_actions):
+        return self.backend.search_resources_perms_principals(principal_type=self.scope_type,
+                                                              scope_id=self.scope_id,
+                                                              resources_actions=resources_actions)
+
 
 class NeverInitiateResource(Resource):
     def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, backend):
