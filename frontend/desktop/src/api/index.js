@@ -1396,6 +1396,22 @@ const api = {
             data: dataBody
         }
         return request(opts)
+    },
+    /**
+     * 获取收藏模板详情
+     * @param {String} ids 模板id字符串, eg: 123,33
+     */
+    getCollectedTemplateDetail (ids) {
+        const prefixUrl = this.getPrefix('template')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                id__in: ids
+            }
+        }
+        return request(opts)
     }
 }
 

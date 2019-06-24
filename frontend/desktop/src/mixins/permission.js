@@ -25,12 +25,11 @@ const permission = {
         /**
          * 申请权限
          * @param {Array} required 需要的申请的权限
-         * @param {*} resourceData 资源数据
-         * @param {*} authOperations 权限字典
-         * @param {*} authResource 资源信息
+         * @param {Object} resourceData 资源数据
+         * @param {Array} authOperations 权限字典
+         * @param {Object} authResource 资源信息
          */
         applyForPermission (required, resourceData, authOperations, authResource) {
-            console.log(authOperations)
             let actions = []
             authOperations.filter(item => {
                 return required.includes(item.operate_id)
@@ -40,7 +39,6 @@ const permission = {
             
             const { scope_id, scope_name, scope_type, system_id, system_name, resource } = authResource
             const permissions = []
-            console.log(actions)
             actions.forEach(item => {
                 const res = []
                 res.push([{
