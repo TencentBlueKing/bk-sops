@@ -12,3 +12,5 @@ specific language governing permissions and limitations under the License.
 """
 
 HTTP_AUTH_FAILED_CODE = 499
+
+AUTH_FORBIDDEN_CODE = 9900403
