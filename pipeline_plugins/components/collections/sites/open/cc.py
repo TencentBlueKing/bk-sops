@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
@@ -29,10 +30,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 __group_name__ = _(u"配置平台(CMDB)")
 __group_icon__ = '%scomponents/atoms/sites/%s/cc/cc.png' % (settings.STATIC_URL, settings.RUN_VER)
 
-
-def cc_handle_api_error(api_name, params, error):
-    message = handle_api_error(__group_name__, api_name, params, error)
-    return message
+cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
@@ -63,7 +61,7 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     cc_result = client.cc.search_host(cc_kwargs)
 
     if not cc_result['result']:
-        message = cc_handle_api_error('cc.search_host', cc_kwargs, cc_result['message'])
+        message = cc_handle_api_error('cc.search_host', cc_kwargs, cc_result)
         return {'result': False, 'message': message}
 
     # change bk_host_id to str to use str.join() function
@@ -122,7 +120,7 @@ def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account):
 
     cc_result = client.cc.search_object_attribute(cc_kwargs)
     if not cc_result['result']:
-        message = cc_handle_api_error('cc.search_object_attribute', cc_kwargs, cc_result['message'])
+        message = cc_handle_api_error('cc.search_object_attribute', cc_kwargs, cc_result)
         ret['result'] = False
         ret['message'] = message
         return ret
@@ -178,7 +176,7 @@ class CCTransferHostModuleService(Service):
         if cc_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_module', cc_kwargs, cc_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_module', cc_kwargs, cc_result)
             data.set_outputs('ex_data', message)
             return False
 
@@ -273,7 +271,7 @@ class CCUpdateHostService(Service):
         if cc_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.update_host', cc_kwargs, cc_result['message'])
+            message = cc_handle_api_error('cc.update_host', cc_kwargs, cc_result)
             data.set_outputs('ex_data', message)
             return False
 
@@ -309,10 +307,9 @@ class CCReplaceFaultMachineService(Service):
         }
         search_attr_result = client.cc.search_object_attribute(search_attr_kwargs)
         if not search_attr_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.search_object_attribute',
-                                       search_attr_kwargs,
-                                       search_attr_result['message'])
+            message = cc_handle_api_error('cc.search_object_attribute',
+                                          search_attr_kwargs,
+                                          search_attr_result)
             logger.error(message)
             data.outputs.ex_data = message
             return False
@@ -349,10 +346,9 @@ class CCReplaceFaultMachineService(Service):
         hosts_result = client.cc.search_host(search_kwargs)
 
         if not hosts_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.search_host',
-                                       search_attr_kwargs,
-                                       hosts_result['message'])
+            message = cc_handle_api_error('cc.search_host',
+                                          search_attr_kwargs,
+                                          hosts_result)
             logger.error(message)
             data.outputs.ex_data = message
             return False
@@ -396,10 +392,9 @@ class CCReplaceFaultMachineService(Service):
         update_result = client.cc.batch_update_inst(batch_update_kwargs)
 
         if not update_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.batch_update_inst',
-                                       batch_update_kwargs,
-                                       update_result['message'])
+            message = cc_handle_api_error('cc.batch_update_inst',
+                                          batch_update_kwargs,
+                                          update_result)
             logger.error(message)
             data.outputs.ex_data = message
             return False
@@ -412,10 +407,9 @@ class CCReplaceFaultMachineService(Service):
         }
         fault_transfer_result = client.cc.transfer_host_to_faultmodule(fault_transfer_kwargs)
         if not fault_transfer_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.transfer_host_to_faultmodule',
-                                       fault_transfer_kwargs,
-                                       fault_transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_faultmodule',
+                                          fault_transfer_kwargs,
+                                          fault_transfer_result)
             data.set_outputs('ex_data', message)
             return False
 
@@ -437,10 +431,9 @@ class CCReplaceFaultMachineService(Service):
         for kwargs in transfer_kwargs_list:
             transfer_result = client.cc.transfer_host_module(kwargs)
             if not transfer_result['result']:
-                message = handle_api_error(__group_name__,
-                                           'cc.transfer_host_module',
-                                           kwargs,
-                                           transfer_result['message'])
+                message = cc_handle_api_error('cc.transfer_host_module',
+                                              kwargs,
+                                              transfer_result)
                 logger.error(message)
                 data.outputs.ex_data = u"{msg}\n{success}".format(
                     msg=message,
@@ -486,7 +479,7 @@ class CCEmptySetHostsService(Service):
             if not cc_result['result']:
                 message = cc_handle_api_error('cc.transfer_sethost_to_idle_module',
                                               cc_kwargs,
-                                              cc_result['message'])
+                                              cc_result)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -529,7 +522,7 @@ class CCBatchDeleteSetService(Service):
         if not cc_result['result']:
             message = cc_handle_api_error('cc.batch_delete_set',
                                           cc_kwargs,
-                                          cc_result['message'])
+                                          cc_result)
             data.set_outputs('ex_data', message)
             return False
         return True
@@ -574,7 +567,7 @@ class CCUpdateSetServiceStatusService(Service):
             if not cc_result['result']:
                 message = cc_handle_api_error('cc.update_set',
                                               cc_kwargs,
-                                              cc_result['message'])
+                                              cc_result)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -653,7 +646,7 @@ class CCCreateSetService(Service):
                 if not cc_result['result']:
                     message = cc_handle_api_error('cc.create_set',
                                                   cc_kwargs,
-                                                  cc_result['message'])
+                                                  cc_result)
                     data.set_outputs('ex_data', message)
                     return False
         return True
@@ -732,7 +725,7 @@ class CCUpdateSetService(Service):
             if not cc_result['result']:
                 message = cc_handle_api_error('cc.update_set',
                                               cc_kwargs,
-                                              cc_result['message'])
+                                              cc_result)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -770,7 +763,7 @@ class CCUpdateModuleService(Service):
         if not tree_data['result']:
             message = cc_handle_api_error('cc.search_biz_inst_topo',
                                           kwargs,
-                                          tree_data['message'])
+                                          tree_data)
             data.set_outputs('ex_data', message)
             return False
 
@@ -807,7 +800,7 @@ class CCUpdateModuleService(Service):
             if not cc_result['result']:
                 message = cc_handle_api_error('cc.update_module',
                                               cc_kwargs,
-                                              cc_result['message'])
+                                              cc_result)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -854,7 +847,7 @@ class CCTransferHostToIdleService(Service):
         if transfer_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_to_idlemodule', transfer_kwargs, transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_idlemodule', transfer_kwargs, transfer_result)
             data.set_outputs('ex_data', message)
             return False
 

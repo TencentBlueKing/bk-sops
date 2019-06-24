@@ -423,7 +423,7 @@ def cc_get_business(request):
     for biz in business:
         data.append({
             'text': biz['bk_biz_name'],
-            'value': str(biz['bk_biz_id'])
+            'value': int(biz['bk_biz_id'])
         })
 
     return JsonResponse({
