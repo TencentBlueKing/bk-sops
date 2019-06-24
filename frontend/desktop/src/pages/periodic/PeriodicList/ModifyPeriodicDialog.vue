@@ -23,7 +23,7 @@
             <div class="periodic-info">
                 <h3 class="common-section-title">{{ i18n.periodicInfo }}</h3>
                 <div class="common-form-item">
-                    <LoopRulueSelect
+                    <LoopRuleSelect
                         ref="loopRuleSelect"
                         :manual-input-value="periodicCron" />
                 </div>
@@ -49,7 +49,7 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { PERIODIC_REG } from '@/constants/index.js'
-    import LoopRulueSelect from '@/components/common/Individualization/loopRuleSelect.vue'
+    import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -59,7 +59,7 @@
         components: {
             TaskParamEdit,
             NoData,
-            LoopRulueSelect
+            LoopRuleSelect
         },
         props: ['isModifyDialogShow', 'taskId', 'cron', 'constants', 'loading'],
         data () {

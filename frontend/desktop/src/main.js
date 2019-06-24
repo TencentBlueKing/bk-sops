@@ -66,7 +66,6 @@ $.atoms = {} // hack atom config load
 const InvalidNameChar = '\'‘"”$&<>'
 Validator.extend('cronRlue', {
     getMessage: (field, args) => {
-        console.log(field, args, 'dsad')
         return args + gettext('输入定时表达式非法，请校验')
     },
     validate: value => cron.validate(value).status
