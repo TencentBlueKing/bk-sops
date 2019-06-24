@@ -28,6 +28,32 @@ CACHE_PREFIX = __name__.replace('.', '_')
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 
 
+def get_all_business_list(use_cache=True):
+    username = settings.SYSTEM_USE_API_ACCOUNT
+    cache_key = "%s_get_all_business_list_%s" % (CACHE_PREFIX, username)
+    data = cache.get(cache_key)
+
+    if not (use_cache and data):
+        client = get_client_by_user(username)
+
+        result = client.cc.search_business({
+            'bk_supplier_account': 0,
+            'condition': {}
+        })
+
+        if result['result']:
+            data = result['data']['info']
+            cache.set(cache_key, data, DEFAULT_CACHE_TIME_FOR_CC)
+        else:
+            raise exceptions.APIError(
+                system='cc',
+                api='search_business',
+                message=result['message']
+            )
+
+    return data
+
+
 # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是非法值
 def get_user_business_list(request, use_cache=True):
     """Get authorized business list for a exact username.
