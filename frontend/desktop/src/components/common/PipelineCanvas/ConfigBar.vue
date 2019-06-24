@@ -41,11 +41,11 @@
             <bk-button
                 type="primary"
                 :class="['save-canvas', {
-                    'btn-permission-disable': !perm.edit.isPass
+                    'btn-permission-disable': !isSaveBtnEnable
                 }]"
                 :loading="templateSaving"
                 :disabled="perm.edit.pending"
-                v-cursor="{ action: !perm.edit.isPass }"
+                v-cursor="{ active: !isSaveBtnEnable }"
                 @click="onSaveTemplate(false)">
                 {{ i18n.save }}
             </bk-button>
@@ -56,7 +56,7 @@
                 }]"
                 :loading="createTaskSaving"
                 :disabled="perm.create_task.pending"
-                v-cursor="{ action: !createTaskBtnIsPass }"
+                v-cursor="{ active: !createTaskBtnIsPass }"
                 @click="onSaveTemplate(true)">
                 {{ createTaskBtnText }}
             </bk-button>
@@ -101,11 +101,11 @@
                 isShowMode: true,
                 perm: {
                     'create_task': {
-                        pending: true,
+                        pending: false,
                         isPass: true
                     },
                     'edit': {
-                        pending: true,
+                        pending: false,
                         isPass: true
                     }
                 }
@@ -119,14 +119,21 @@
                 return (this.isTemplateDataChanged || this.type === 'new') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
             },
             createTaskBtnIsPass () {
-                if (this.isTemplateDataChanged || this.type === 'new') {
+                if (this.type === 'new') {
                     return this.perm.create_task.isPass && this.perm.edit.isPass
                 } else {
-                    return this.perm.create_task.isPass
+                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
                 }
             },
-            saveAndCreateBtnPerm () {
+            saveAndCreateRequiredPerm () {
                 return (this.isTemplateDataChanged || this.type === 'new') ? ['create_task', 'edit'] : ['create_task']
+            },
+            isSaveBtnEnable () {
+                if (this.type === 'new') {
+                    return this.perm.edit.isPass
+                } else {
+                    return this.hasPermission(['edit'], this.tplActions, this.tplOperations)
+                }
             }
         },
         watch: {
@@ -135,7 +142,7 @@
             }
         },
         created () {
-            if (this.type !== 'edit') {
+            if (this.type === 'new') {
                 this.getUserTplPerm()
             }
         },
@@ -151,6 +158,10 @@
             },
             async getUserTplPerm () {
                 const permissions = ['edit', 'create_task']
+                permissions.forEach(p => {
+                    this.$set(this.perm, p, { pending: true, isPass: true })
+                })
+
                 const res = await this.queryUserPermission({
                     resource_type: 'flow-template',
                     action_ids: JSON.stringify(permissions)
@@ -205,7 +216,7 @@
                 this.triggerPermisionModal(permissions)
             },
             onSaveTemplate (saveAndCreate = false) {
-                const required = saveAndCreate ? this.saveAndCreateBtnPerm : ['edit']
+                const required = saveAndCreate ? this.saveAndCreateRequiredPerm : ['edit']
                 if (!this.hasPermission(required, this.tplActions, this.tplOperations)) {
                     const template = {
                         id: this.template_id,

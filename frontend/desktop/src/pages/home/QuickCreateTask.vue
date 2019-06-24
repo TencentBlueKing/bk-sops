@@ -12,22 +12,25 @@
 <template>
     <div class="quick-create-task-content">
         <h3 class="title">{{i18n.myTasks}}</h3>
-        <div v-if="quickTaskList.length" class="clearfix">
+        <div v-if="listData.length" class="clearfix">
             <ul class="task-list">
                 <li
-                    v-for="item in quickTaskList"
+                    v-for="item in listData"
                     :key="item.id"
                     class="task-item">
                     <a
-                        v-if="!hasPermission(['create_task'], item.auth_actions, tplOperations)"
-                        class="task-name"
-                        @click="onTemplatePermissonCheck(['create_task'], item, $event)">
+                        v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
+                        v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
+                        :class="['task-name', {
+                            'btn-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
+                        }]"
+                        @click="goToTemplate(item)">
                         {{item.name}}
                     </a>
                     <router-link
                         v-else
                         class="task-name"
-                        :to="`/template/newtask/${project_id}/selectnode/?template_id=${template.id}`">
+                        :to="`/template/newtask/${project_id}/selectnode/?template_id=${item.id}`">
                         {{item.name}}
                     </router-link>
                     <i
@@ -56,7 +59,7 @@
             :template-list="templateList"
             :tpl-operations="tplOperations"
             :tpl-resource="tplResource"
-            :quick-task-list="quickTaskList"
+            :quick-task-list="listData"
             :template-grouped="templateGrouped"
             :select-template-loading="selectTemplateLoading"
             @confirm="onConfirm"
@@ -68,9 +71,9 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import SelectTemplateDialog from './SelectTemplateDialog.vue'
-    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'QuickCreateTask',
@@ -92,11 +95,23 @@
                     addTips2: gettext('立即添加')
                 },
                 selectTemplateLoading: false,
+                listData: [], // 收藏模板详情
                 templateList: [],
                 templateGrouped: [],
                 tplOperations: [],
                 tplResource: {}
             }
+        },
+        watch: {
+            quickTaskList: {
+                handler () {
+                    this.getTemplateDetail()
+                },
+                deep: true
+            }
+        },
+        created () {
+            this.getTemplateDetail()
         },
         methods: {
             ...mapActions('template/', [
@@ -106,6 +121,23 @@
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
+            ...mapActions('project/', [
+                'getCollectedTemplateDetail'
+            ]),
+            async getTemplateDetail () {
+                try {
+                    this.templateDetailLoading = true
+                    const ids = this.quickTaskList.map(item => item.id).join(',')
+                    const res = await this.getCollectedTemplateDetail(ids)
+                    this.tplOperations = res.meta.auth_operations
+                    this.tplResource = res.meta.auth_resource
+                    this.listData = res.objects
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.templateDetailLoading = false
+                }
+            },
             async onDeleteTemplate (id) {
                 const list = this.getDeletedList(id)
                 try {
@@ -147,7 +179,7 @@
             },
             getDeletedList (id) {
                 let index
-                const list = this.quickTaskList.slice(0)
+                const list = this.listData.slice(0)
                 list.some((item, i) => {
                     if (item.id === id) {
                         index = i
@@ -201,45 +233,13 @@
                 })
                 return groupData
             },
-            /**
-             * 单个模板操作项点击时校验
-             * @params {Array} required 需要的权限
-             * @params {Object} template 模板数据对象
-             * @params {Object} event 事件对象
-            */
-            onTemplatePermissonCheck (required, template, event) {
-                if (!this.hasPermission(required, template.auth_actions, this.tplOperations)) {
-                    let actions = []
-                    this.tplOperations.filter(item => {
-                        return required.includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: template.id,
-                            resource_name: template.name,
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resources: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-                    this.triggerPermisionModal(permissions)
-                    event.preventDefault()
+            goToTemplate (template) {
+                if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
+                    const resourceData = {
+                        name: template.name,
+                        id: template.id
+                    }
+                    this.applyForPermission(['view'], resourceData, this.tplOperations, this.tplResource)
                 } else {
                     this.$router.push(`/template/newtask/${this.project_id}/selectnode/?template_id=${template.id}`)
                 }
