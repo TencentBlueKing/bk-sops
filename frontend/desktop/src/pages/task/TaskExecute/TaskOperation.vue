@@ -864,13 +864,10 @@
                     nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
                 } else {
                     const gatewayNode = gateways[curNode]
-                    if (gatewayNode && this.retrievedCovergeGateways.indexOf(gatewayNode.id) === -1) {
-                        this.retrievedCovergeGateways.push(gatewayNode.id)
-                        const outgoing = gatewayNode.outgoing
-                        const gatewayOutLine = Array.isArray(outgoing) ? outgoing : [outgoing]
-                        if (Array.isArray(gatewayOutLine)) {
+                    if (gatewayNode) {
+                        if (gatewayNode.type === 'ParallelGateway' || gatewayNode.type === 'ExclusiveGateway') {
                             const gatewayLinkedNodes = []
-                            gatewayOutLine.forEach(line => {
+                            gatewayNode.outgoing.forEach(line => {
                                 const linkedNode = activities[flows[line].target]
                                 if (linkedNode) {
                                     if (linkedNode.pipeline) {
@@ -885,6 +882,17 @@
                             gatewayLinkedNodes.forEach(node => {
                                 nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
                             })
+                        } else if (gatewayNode.type === 'ConvergeGateway') {
+                            if (gatewayNode.hasRun) {
+                                gatewayNode.hasRun.push(gatewayNode.id)
+                            } else {
+                                gatewayNode.hasRun = [gatewayNode.id]
+                            }
+                            if (gatewayNode.hasRun.length === gatewayNode.incoming.length) {
+                                nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
+                            }
+                        } else {
+                            nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
                         }
                     }
                 }
