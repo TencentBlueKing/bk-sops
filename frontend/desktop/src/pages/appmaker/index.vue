@@ -534,7 +534,7 @@
         }
         /deep/.bk-button {
             height: 32px;
-            line-height: 30px;
+            line-height: 32px;
         }
     }
     .card-wrapper {
@@ -561,7 +561,7 @@
         .bk-button {
             width: 100px;
             height: 32px;
-            line-height: 30px;
+            line-height: 32px;
             margin-right: 24px;
             margin-bottom: 4px;
         }

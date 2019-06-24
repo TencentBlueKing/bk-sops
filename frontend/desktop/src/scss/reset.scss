@@ -28,5 +28,7 @@ a {
 }
 
 button {
-	outline: none;
+    outline: none;
+    box-sizing: content-box;
+    padding: 0;
 }
