@@ -26,10 +26,6 @@ const permission = {
          */
         applyForPermission (required, resourceData, authOperations, authResource) {
             const actions = []
-            console.log(required)
-            console.log(resourceData)
-            console.log(authOperations)
-            console.log(authResource)
             authOperations.filter(item => {
                 return required.includes(item.operate_id)
             }).forEach(perm => {
