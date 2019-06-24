@@ -15,7 +15,7 @@
         :has-header="true"
         :ext-cls="'common-dialog'"
         :title="i18n.modifyTask"
-        width="600"
+        width="610"
         :is-show.sync="isModifyDialogShow"
         @confirm="onModifyPeriodicConfirm"
         @cancel="onModifyPeriodicCancel">
@@ -196,7 +196,7 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 /deep/ .bk-dialog-body {
-    height: 420px;
+    height: 432px;
     overflow-y: auto;
 }
 .periodic-info {
