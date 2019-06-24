@@ -241,10 +241,10 @@ class BkIAMClient(object):
                 {
                     'action_id': '操作',
                     'resource_type': '资源类型',
-                    'resource_id': {
+                    'resource_id': [{
                             'resource_type': '资源类型',
                             'resource_id': '资源实例 ID'
-                    }, ...
+                    }], ...
                 }, ...
             ]
 

@@ -22,7 +22,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.core.permissions import project_resource
 
 task_template_resource = DjangoModelResource(
-    rtype='flow-template',
+    rtype='flow',
     name=_(u"流程模板"),
     scope_type='system',
     scope_id='bk_sops',

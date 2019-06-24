@@ -22,7 +22,7 @@ from gcloud.periodictask.models import PeriodicTask
 from gcloud.core.permissions import project_resource
 
 periodic_task_resource = DjangoModelResource(
-    rtype='periodic-task',
+    rtype='periodic_task',
     name=_(u"周期任务"),
     scope_type='system',
     scope_id='bk_sops',

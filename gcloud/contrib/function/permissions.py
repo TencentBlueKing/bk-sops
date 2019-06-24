@@ -16,9 +16,9 @@ from django.utils.translation import ugettext_lazy as _
 from auth_backend.resources.base import Action, NeverInitiateResource
 from auth_backend.backends.bkiam import BkIAMBackend
 
-audit_center_resource = NeverInitiateResource(
-    rtype='audit_center',
-    name=_(u"审计中心"),
+function_center_resource = NeverInitiateResource(
+    rtype='function_center',
+    name=_(u"职能化中心"),
     scope_type='system',
     scope_id='bk_sops',
     scope_name=_(u"标准运维"),
