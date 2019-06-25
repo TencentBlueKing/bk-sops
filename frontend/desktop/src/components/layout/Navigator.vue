@@ -177,13 +177,15 @@
                 userType: state => state.userType,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
-                templateId: state => state.templateId,
                 notFoundPage: state => state.notFoundPage,
                 isSuperUser: state => state.isSuperUser
             }),
             ...mapState('project', {
                 projectList: state => state.projectList,
                 project_id: state => state.project_id
+            }),
+            ...mapState('appmaker', {
+                appmakerTemplateId: state => state.appmakerTemplateId
             }),
             showHeaderRight () {
                 return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
@@ -194,7 +196,7 @@
                         {
                             key: 'appmakerTaskCreate',
                             path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode`,
-                            query: { template_id: this.template_id },
+                            query: { template_id: this.appmakerTemplateId },
                             name: gettext('新建任务')
                         },
                         {
@@ -282,7 +284,7 @@
 
                 let path
                 if (route.key === 'appmakerTaskCreate') {
-                    path = `${route.path}?template_id=${this.templateId}`
+                    path = `${route.path}?template_id=${this.appmakerTemplateId}`
                 } else if (this.userType !== 'maintainer' || route.key === 'project' || route.parent === 'admin') {
                     path = `${route.path}`
                 } else {

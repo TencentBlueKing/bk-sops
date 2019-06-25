@@ -132,8 +132,9 @@
             ...mapActions('project', [
                 'loadProjectDetail'
             ]),
-            ...mapMutations([
-                'setTemplateId'
+            ...mapMutations('appmaker/', [
+                'setAppmakerTemplateId',
+                'setAppmakerDetail'
             ]),
             ...mapMutations('project', [
                 'setProjectName',
@@ -142,8 +143,6 @@
             initData () {
                 if (this.project_id !== undefined) {
                     this.getProjectDetail()
-                } else {
-                    this.isRouterAlive = true
                 }
                 if (this.viewMode === 'appmaker') {
                     this.getAppmakerDetail()
@@ -151,13 +150,10 @@
             },
             async getProjectDetail () {
                 try {
-                    this.isRouterAlive = false
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
                     setAtomConfigApiUrls(this.site_url, projectDetail)
-                    this.permissinApplyShow = false
-                    this.isRouterAlive = true
                 } catch (err) {
                     errorHandler(err, this)
                 }
@@ -165,8 +161,8 @@
             async getAppmakerDetail () {
                 this.appmakerDataLoading = true
                 try {
-                    const data = await this.loadAppmakerDetail(this.appId)
-                    this.setTemplateId(data.template_id)
+                    const res = await this.loadAppmakerDetail(this.appId)
+                    this.setAppmakerDetail(res)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -179,11 +175,15 @@
                     this.permissinApplyShow = false
                 } else {
                     if (this.project_id !== undefined) {
+                        this.permissinApplyShow = false
                         this.getProjectDetail()
-                    } else {
+                    } else { // 需要项目id页面，id为空是显示无权限页面，申请按钮跳转到项目管理页面
                         this.permissinApplyShow = true
                         bus.$emit('togglePermissionApplyPage', true, 'project', [], true)
                     }
+                }
+                if (this.$route.query.template_id !== undefined) {
+                    this.setAppmakerTemplateId(this.$route.query.template_id)
                 }
             },
             reload () {

@@ -40,7 +40,7 @@
                     <router-link :to="getExecuteHistoryUrl(appData.template_id)"></router-link>
                 </span>
                 <span
-                    :class="['common-icon-pen', 'operate-btn', {
+                    :class="['common-icon-dustbin', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
                     @click="onCardDelete">
