@@ -800,7 +800,6 @@
             text-align: left;
            .common-icon-dark-circle-shape {
                 display: inline-block;
-                transform: scale(0.9);
                 font-size: 14px;
                 color: #979BA5;
                 vertical-align: middle;

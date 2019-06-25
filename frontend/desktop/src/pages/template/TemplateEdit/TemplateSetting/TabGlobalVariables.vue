@@ -507,7 +507,7 @@
         .col-item-delete {
             display: none;
             position: absolute;
-            top: 13px;
+            top: 15px;
             right: 20px;
             font-size: 14px;
             color: #979ba5;
