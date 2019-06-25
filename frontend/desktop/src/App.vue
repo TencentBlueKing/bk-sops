@@ -175,7 +175,7 @@
             },
             handleRouteChange () {
                 this.isRouterAlive = true
-                if (this.$route.meta.withoutProject) {
+                if (!this.$route.meta.project) {
                     this.permissinApplyShow = false
                 } else {
                     if (this.project_id !== undefined) {

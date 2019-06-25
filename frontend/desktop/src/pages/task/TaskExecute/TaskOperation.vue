@@ -113,6 +113,10 @@
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
+                    :instance-actions="instanceActions"
+                    :instance-resource="instanceResource"
+                    :instance-operations="instanceOperations"
+                    :instance-name="instanceName"
                     :instance_id="instance_id">
                 </ModifyParams>
                 <ExecuteInfo
@@ -928,7 +932,8 @@
                 if (!this.hasPermission(['operate'], this.instanceActions, this.instanceOperations)) {
                     const resourceData = {
                         name: this.instanceName,
-                        id: this.instance_id
+                        id: this.instance_id,
+                        auth_actions: this.instanceActions
                     }
                     this.applyForPermission(['operate'], resourceData, this.instanceOperations, this.instanceResource)
                     return
@@ -1265,6 +1270,9 @@
                 height: 32px;
                 line-height: 32px;
                 font-size: 14px;
+                &.btn-permission-disable {
+                    background: transparent !important;
+                }
             }
             .execute-btn {
                 width: 140px;
@@ -1276,6 +1284,9 @@
                 &.is-disabled {
                     color: #ffffff; // 覆盖 bk-button important 规则
                     opacity: 0.4;
+                }
+                &.btn-permission-disable {
+                    border: 1px solid #e6e6e6;
                 }
             }
             .revoke-btn {

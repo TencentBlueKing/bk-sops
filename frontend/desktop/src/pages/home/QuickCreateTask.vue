@@ -104,7 +104,7 @@
         },
         watch: {
             quickTaskList: {
-                handler () {
+                handler (val) {
                     this.getTemplateDetail()
                 },
                 deep: true
@@ -116,15 +116,16 @@
         methods: {
             ...mapActions('template/', [
                 'templateCollectSelect',
-                'templateCollectDelete'
+                'templateCollectDelete',
+                'getCollectedTemplateDetail'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
-            ...mapActions('project/', [
-                'getCollectedTemplateDetail'
-            ]),
             async getTemplateDetail () {
+                if (this.quickTaskList.length === 0) {
+                    return
+                }
                 try {
                     this.templateDetailLoading = true
                     const ids = this.quickTaskList.map(item => item.id).join(',')
