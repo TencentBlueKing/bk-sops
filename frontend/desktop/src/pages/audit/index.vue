@@ -106,7 +106,16 @@
                             <td class="audit-id">{{item.id}}</td>
                             <td class="audit-business">{{item.project.name}}</td>
                             <td class="audit-name">
+                                <a
+                                    v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="item.name"
+                                    @click="onTemplatePermissonCheck(item)">
+                                    {{item.name}}
+                                </a>
                                 <router-link
+                                    v-else
                                     :title="item.name"
                                     :to="`/taskflow/execute/${item.project.id}/?instance_id=${item.id}`">
                                     {{item.name}}
@@ -122,10 +131,18 @@
                                 <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
                             </td>
                             <td class="audit-operation">
+                                <a
+                                    v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTemplatePermissonCheck(item)">
+                                    {{i18n.view}}
+                                </a>
                                 <router-link
+                                    v-else
                                     class="audit-operation-btn"
                                     :to="`/taskflow/execute/${item.project.id}/?instance_id=${item.id}`">
-                                    {{ i18n.view }}
+                                    {{i18n.view}}
                                 </router-link>
                             </td>
                         </tr>
@@ -155,6 +172,7 @@
     import '@/utils/i18n.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
@@ -170,6 +188,7 @@
             BaseSearch,
             NoData
         },
+        mixins: [permission],
         data () {
             return {
                 i18n: {
@@ -233,7 +252,9 @@
                     { 'id': 'runing', 'name': gettext('未完成') },
                     { 'id': 'finished', 'name': gettext('完成') }
                 ],
-                executeStatus: [] // 任务执行态
+                executeStatus: [], // 任务执行态
+                tplOperations: [],
+                tplResource: {}
             }
         },
         computed: {
@@ -286,7 +307,10 @@
                     const auditListData = await this.loadAuditTaskList(data)
                     const list = auditListData.objects
                     this.auditList = list
+                    this.tplOperations = auditListData.meta.auth_operations
+                    this.tplResource = auditListData.meta.auth_resource
                     this.totalCount = auditListData.meta.total_count
+
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -426,6 +450,11 @@
                     return
                 }
                 this.projectId = name
+            },
+            onTemplatePermissonCheck (template) {
+                if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
+                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
+                }
             }
         }
     }
