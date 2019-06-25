@@ -30,9 +30,9 @@ function init (el, binding) {
         el.addEventListener('mousemove', el.mouseMoveHandler)
     }
     el.mouseMoveHandler = function (event) {
-        const { clientX, clientY } = event
-        const elLeft = clientX + DEFAULT_OPTIONS.offset[0]
-        const elTop = clientY + DEFAULT_OPTIONS.offset[1]
+        const { pageX, pageY } = event
+        const elLeft = pageX + DEFAULT_OPTIONS.offset[0]
+        const elTop = pageY + DEFAULT_OPTIONS.offset[1]
         el.element.style.left = elLeft + 'px'
         el.element.style.top = elTop + 'px'
     }
