@@ -1294,7 +1294,7 @@ const api = {
      * 加载项目列表
      */
     loadProjectList (data = {}) {
-        const { limit, offset, is_disable, q } = data
+        const { limit, offset, is_disable = false, q } = data
         const prefixUrl = this.getPrefix('project')
 
         const opts = {
