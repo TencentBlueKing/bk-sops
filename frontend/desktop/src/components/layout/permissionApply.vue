@@ -10,7 +10,7 @@
                         active: permissionData.toProject && !hasProjectPermission
                     }"
                     :class="{
-                        'btn-permission-disable': !hasProjectPermission
+                        'btn-permission-disable': permissionData.toProject && !hasProjectPermission
                     }"
                     @click="applyBtnClick">
                     {{i18n.apply}}

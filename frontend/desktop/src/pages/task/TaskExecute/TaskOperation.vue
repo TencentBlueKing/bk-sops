@@ -113,6 +113,10 @@
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
+                    :instance-actions="instanceActions"
+                    :instance-resource="instanceResource"
+                    :instance-operations="instanceOperations"
+                    :instance-name="instanceName">
                     :instance_id="instance_id">
                 </ModifyParams>
                 <ExecuteInfo
