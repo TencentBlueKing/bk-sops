@@ -43,7 +43,7 @@
                         type="primary"
                         :class="['save-scheme-btn', {
                             'disabled-btn': isPreviewMode,
-                            'btn-permission-disable': !hasPermission(['create_scheme'], authActions, authOperations)
+                            'btn-permission-disable': !hasPermission(['create_scheme'], tplActions, tplOperations)
                         }]"
                         @click="onShowSchemeDialog">
                         {{ i18n.newSchema }}
