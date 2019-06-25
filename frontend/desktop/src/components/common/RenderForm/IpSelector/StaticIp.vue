@@ -54,7 +54,7 @@
                     <tbody>
                         <template v-if="listInPage.length">
                             <tr v-for="item in listInPage" :key="item.bk_host_d">
-                                <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}}</td>
+                                <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}</td>
                                 <td>{{item.bk_host_innerip}}</td>
                                 <td :class="item.agent ? 'agent-normal' : 'agent-failed'">{{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}</td>
                                 <td>
