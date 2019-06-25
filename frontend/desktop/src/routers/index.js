@@ -51,14 +51,30 @@ const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.v
 
 Vue.use(VueRouter)
 
+const PAGE_MAP = {
+    functor: {
+        index: '/function/home/',
+        routes: ['functionHome', 'templateStep', 'taskExecute']
+    },
+    auditor: {
+        index: '/audit/home/',
+        routes: ['auditHome', 'taskExecute']
+    }
+}
+
 const routers = new VueRouter({
     base: SITE_URL,
     mode: 'history',
     routes: [
         {
             path: '/',
-            redirect: () => {
-                return `/home/${store.state.project.project_id}`
+            redirect: function () {
+                const { userType, project } = store.state
+                if (PAGE_MAP[userType]) {
+                    return PAGE_MAP[userType].index
+                } else {
+                    return `/home/${project.project_id}`
+                }
             }
         },
         {
@@ -67,7 +83,8 @@ const routers = new VueRouter({
             component: Home,
             props: (route) => ({
                 project_id: route.params.project_id
-            })
+            }),
+            meta: { project: true }
         },
         {
             path: '/template',
@@ -84,7 +101,8 @@ const routers = new VueRouter({
                         project_id: route.params.project_id,
                         common: route.query.common,
                         common_template: route.query.common_template
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
                     path: 'common/:project_id/',
@@ -93,7 +111,8 @@ const routers = new VueRouter({
                         project_id: route.params.project_id,
                         common: 1,
                         common_template: 'common'
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
                     path: 'edit/:project_id?/',
@@ -103,7 +122,8 @@ const routers = new VueRouter({
                         template_id: route.query.template_id,
                         type: 'edit',
                         common: route.query.common
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
                     path: 'new/:project_id/',
@@ -112,7 +132,8 @@ const routers = new VueRouter({
                         project_id: route.params.project_id,
                         type: 'new',
                         common: route.query.common
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
                     path: 'clone/:project_id/',
@@ -122,7 +143,8 @@ const routers = new VueRouter({
                         template_id: route.query.template_id,
                         type: 'clone',
                         common: route.query.common
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
                     path: 'newtask/:project_id/:step/',
@@ -133,8 +155,10 @@ const routers = new VueRouter({
                         step: route.params.step,
                         template_id: route.query.template_id,
                         common: route.query.common
-                    })
-                }]
+                    }),
+                    meta: { project: true }
+                }
+            ]
         },
         {
             path: '/taskflow',
@@ -152,15 +176,18 @@ const routers = new VueRouter({
                         project_id: route.params.project_id,
                         common: route.query.common,
                         create_method: route.query.create_method
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
                     path: 'execute/:project_id/',
                     component: TaskExecute,
+                    name: 'taskExecute',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         instance_id: route.query.instance_id
-                    })
+                    }),
+                    meta: { project: true }
                 }]
         },
         {
@@ -168,7 +195,8 @@ const routers = new VueRouter({
             component: AppMaker,
             props: (route) => ({
                 project_id: route.params.project_id
-            })
+            }),
+            meta: { project: true }
         },
         {
             path: '/appmaker/:app_id/newtask/:project_id/:step',
@@ -178,7 +206,8 @@ const routers = new VueRouter({
                 project_id: route.params.project_id,
                 step: route.params.step,
                 template_id: route.query.template_id
-            })
+            }),
+            meta: { project: true }
         },
         {
             path: '/appmaker/:app_id/execute/:project_id/',
@@ -187,7 +216,8 @@ const routers = new VueRouter({
             props: (route) => ({
                 project_id: route.params.project_id,
                 instance_id: route.query.instance_id
-            })
+            }),
+            meta: { project: true }
         },
         {
             path: '/appmaker/:app_id/task_home/:project_id/',
@@ -196,13 +226,13 @@ const routers = new VueRouter({
             props: (route) => ({
                 project_id: route.params.project_id,
                 app_id: route.params.app_id
-            })
+            }),
+            meta: { project: true }
         },
         {
             path: '/project/home/',
             name: 'projectHome',
-            component: ProjectHome,
-            meta: { withoutProject: true }
+            component: ProjectHome
         },
         {
             path: '/function/home/',
@@ -223,7 +253,8 @@ const routers = new VueRouter({
                 name: 'periodicTemplate',
                 props: (route) => ({
                     project_id: route.params.project_id
-                })
+                }),
+                meta: { project: true }
             }]
         },
         {
@@ -241,34 +272,29 @@ const routers = new VueRouter({
                         {
                             path: 'template/',
                             name: 'statisticsTemplate',
-                            component: StatisticsTemplate,
-                            meta: { withoutProject: true }
+                            component: StatisticsTemplate
                         },
                         {
                             path: 'instance/',
                             name: 'statisticsInstance',
-                            component: StatisticsInstance,
-                            meta: { withoutProject: true }
+                            component: StatisticsInstance
                         },
                         {
                             path: 'atom/',
                             name: 'statisticsAtom',
-                            component: StatisticsAtom,
-                            meta: { withoutProject: true }
+                            component: StatisticsAtom
                         },
                         {
                             path: 'appmaker/',
                             name: 'statisticsAppmaker',
-                            component: StatisticsAppmaker,
-                            meta: { withoutProject: true }
+                            component: StatisticsAppmaker
                         }
                     ]
                 },
                 {
                     path: 'common/template',
                     name: 'commonTemplateHome',
-                    component: CommonTemplate,
-                    meta: { withoutProject: true }
+                    component: CommonTemplate
                 }
             ]
         },
@@ -299,13 +325,14 @@ routers.beforeEach((to, from, next) => {
     if (to.params.project_id) {
         store.commit('setProjectId', to.params.project_id)
     }
-    // 没有项目权限时，项目详情相关页面与项目详情无关页面切换
-    // if (!store.state.project.authActions.includes('view')) {
-    //     const showApplyPage = !to.meta.withoutProject
-    //     bus.$emit('togglePermissionApplyPage', showApplyPage)
-    // }
-    
-    next()
+
+    const userType = store.state.userType
+    const page = PAGE_MAP[userType]
+    if (page && !page.routes.includes(to.name)) {
+        next(page.index)
+    } else {
+        next()
+    }
 })
 
 export default routers

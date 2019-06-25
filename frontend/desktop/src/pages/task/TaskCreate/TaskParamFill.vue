@@ -296,7 +296,8 @@
                 if (!this.hasPermission(this.nextStepPerm, this.tplActions, this.tplOperations)) {
                     const resourceData = {
                         name: this.templateName,
-                        id: this.template_id
+                        id: this.template_id,
+                        auth_actions: this.tplActions
                     }
                     this.applyForPermission(this.nextStepPerm, resourceData, this.tplOperations, this.tplResource)
                     return

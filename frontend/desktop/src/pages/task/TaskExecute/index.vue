@@ -81,7 +81,10 @@
                 isFunctional: false,
                 isAllStepsFinished: false,
                 instanceName: '',
-                instanceFlow: ''
+                instanceFlow: '',
+                instanceActions: [],
+                instanceOperations: [],
+                instanceResource: {}
             }
         },
         computed: {

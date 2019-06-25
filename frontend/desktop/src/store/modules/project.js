@@ -73,11 +73,6 @@ const project = {
             return api.updateProject(data).then(
                 response => response.data
             )
-        },
-        getCollectedTemplateDetail ({ commit }, ids) {
-            return api.getCollectedTemplateDetail(ids).then(
-                response => response.data
-            )
         }
     }
 }
