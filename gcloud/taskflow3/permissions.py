@@ -23,7 +23,7 @@ from gcloud.core.permissions import project_resource
 
 taskflow_resource = DjangoModelResource(
     rtype='task',
-    name=_(u"流程实例"),
+    name=_(u"任务实例"),
     scope_type='system',
     scope_id='bk_sops',
     scope_name=_(u"标准运维"),
