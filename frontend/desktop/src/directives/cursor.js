@@ -13,7 +13,7 @@ import Vue from 'vue'
 
 const DEFAULT_OPTIONS = {
     active: true,
-    offset: [10, 0],
+    offset: [12, 0],
     cls: 'cursor-element'
 }
 
@@ -22,25 +22,23 @@ function init (el, binding) {
         const element = document.createElement('div')
         element.id = 'directive-ele'
         element.style.position = 'absolute'
+        element.style.zIndex = '1000'
         el.element = element
-        el.style.position = 'relative'
-        el.appendChild(element)
+        document.body.appendChild(element)
         
         element.classList.add(binding.value.cls || DEFAULT_OPTIONS.cls)
         el.addEventListener('mousemove', el.mouseMoveHandler)
     }
     el.mouseMoveHandler = function (event) {
         const { clientX, clientY } = event
-        const { left, top } = el.getBoundingClientRect()
-        const elLeft = clientX - left + DEFAULT_OPTIONS.offset[0]
-        const elTop = clientY - top + DEFAULT_OPTIONS.offset[1]
+        const elLeft = clientX + DEFAULT_OPTIONS.offset[0]
+        const elTop = clientY + DEFAULT_OPTIONS.offset[1]
         el.element.style.left = elLeft + 'px'
         el.element.style.top = elTop + 'px'
     }
     el.mouseLeaveHandler = function (event) {
         el.element && el.element.remove()
         el.element = null
-        el.style.position = ''
         el.removeEventListener('mousemove', el.mouseMoveHandler)
     }
 
