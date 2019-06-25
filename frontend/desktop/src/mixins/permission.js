@@ -25,10 +25,6 @@ const permission = {
          * @param {Object} authResource 资源信息
          */
         applyForPermission (required, resourceData, authOperations, authResource) {
-            console.log(required)
-            console.log(resourceData)
-            console.log(authOperations)
-            console.log(authResource)
             const actions = []
             authOperations.filter(item => {
                 return required.includes(item.operate_id)

@@ -255,9 +255,9 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
-                    this.tplActions = templateData.objects.auth_actions
-                    this.tplOperations = templateData.meta.auth_operations
-                    this.tplResource = templateData.meta.auth_resource
+                    this.tplActions = templateData.auth_actions
+                    this.tplOperations = templateData.auth_operations
+                    this.tplResource = templateData.auth_resource
                     this.version = templateData.version
                     this.taskName = templateData.name
                     const schemeData = await this.loadTaskScheme({ 'project_id': this.project_id, 'template_id': this.template_id })
