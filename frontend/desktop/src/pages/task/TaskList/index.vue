@@ -137,7 +137,7 @@
                             </td>
                             <td class="task-operation">
                                 <a
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['clone'], item.auth_actions, taskOperations) }"
                                     :class="['task-operation-clone', {
                                         'text-permission-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
                                     }]"
@@ -146,7 +146,7 @@
                                     {{ i18n.clone }}
                                 </a>
                                 <a
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['delete'], item.auth_actions, taskOperations) }"
                                     :class="['task-operation-delete', {
                                         'text-permission-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
                                     }]"
@@ -493,42 +493,10 @@
              * @params {Object} event 事件对象
              */
             onTaskPermissonCheck (required, task, event) {
-                if (!this.hasPermission(required, task.auth_actions, this.taskOperations)) {
-                    let actions = []
-                    this.taskOperations.filter(item => {
-                        return required.includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.taskResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: task.id,
-                            resource_name: task.name,
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resource: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-
-                    this.triggerPermisionModal(permissions)
-                    event.preventDefault()
-                }
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
+                event.preventDefault()
             },
-            onDeleteTask (task) {
+            onDeleteTask (task, event) {
                 if (!this.hasPermission(['delete'], task.auth_actions, this.taskOperations)) {
                     this.onTaskPermissonCheck(['delete'], task, event)
                     return
@@ -565,7 +533,7 @@
                 this.theDeleteTaskName = ''
                 this.isDeleteDialogShow = false
             },
-            onCloneTaskClick (task) {
+            onCloneTaskClick (task, event) {
                 if (!this.hasPermission(['clone'], task.auth_actions, this.taskOperations)) {
                     this.onTaskPermissonCheck(['clone'], task, event)
                     return

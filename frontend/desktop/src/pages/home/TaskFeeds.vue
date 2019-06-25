@@ -204,7 +204,7 @@
                         scope_type,
                         system_id,
                         system_name,
-                        resource: res,
+                        resources: res,
                         action_id: item.id,
                         action_name: item.name
                     })

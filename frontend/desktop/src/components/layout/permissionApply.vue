@@ -4,8 +4,27 @@
             <h3>{{permissionTitle}}</h3>
             <p>{{permissionContent}}</p>
             <div class="operation-btns">
-                <bk-button type="primary" @click="goToAuthCenter">{{i18n.apply}}</bk-button>
-                <bk-button type="default" v-if="type === 'project'" @click="goToCreateProject">{{i18n.create}}</bk-button>
+                <bk-button
+                    type="primary"
+                    v-cursor="{
+                        active: permissionData.toProject && !hasProjectPermission
+                    }"
+                    :class="{
+                        'btn-permission-disable': !hasProjectPermission
+                    }"
+                    @click="applyBtnClick">
+                    {{i18n.apply}}
+                </bk-button>
+                <bk-button
+                    type="default"
+                    v-if="type === 'project'"
+                    v-cursor="{ active: !hasProjectPermission }"
+                    :class="{
+                        'btn-permission-disable': !hasProjectPermission
+                    }"
+                    @click="goToCreateProject">
+                    {{i18n.create}}
+                </bk-button>
             </div>
         </div>
     </div>
@@ -24,16 +43,21 @@
                 type: String,
                 default: 'project'
             },
-            permission: {
-                type: Array,
+            permissionData: {
+                type: Object,
                 default () {
-                    return []
+                    return {
+                        type: 'project', // 无权限类型: project、other
+                        permission: [],
+                        toProject: false
+                    }
                 }
             }
         },
         data () {
             return {
                 url: '',
+                authActions: [],
                 i18n: {
                     resourceTitle: gettext('无权限访问'),
                     projectTitle: gettext('无权限访问项目'),
@@ -46,22 +70,26 @@
         },
         computed: {
             ...mapState('project', {
-                'authActions': state => state.authActions,
                 'authResource': state => state.authResource,
                 'authOperations': state => state.authOperations
             }),
             permissionTitle () {
-                return this.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
+                return this.permissionData.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
             },
             permissionContent () {
-                return this.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
+                return this.permissionData.type === 'project' ? this.i18n.projectContent : this.i18n.resourceContent
+            },
+            hasProjectPermission () {
+                return this.hasPermission(['create'], this.authActions, this.authOperations)
             }
         },
         created () {
-            if (this.type === 'project') {
+            if (this.permissionData.type === 'project') {
                 this.queryProjectCreatePerm()
             }
-            this.loadPermissionUrl()
+            if (!this.toProject) {
+                this.loadPermissionUrl()
+            }
         },
         methods: {
             ...mapActions([
@@ -71,6 +99,17 @@
             ...mapMutations('project', [
                 'setProjectActions'
             ]),
+            applyBtnClick () {
+                if (this.permissionData.toProject) {
+                    if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
+                        this.goToApply()
+                    } else {
+                        this.$router.push('/project/home/')
+                    }
+                } else {
+                    this.goToAuthCenter()
+                }
+            },
             goToAuthCenter () {
                 if (this.urlLoading || !this.url) {
                     return
@@ -79,39 +118,17 @@
             },
             goToCreateProject () {
                 if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
-                    let actions = []
-                    this.authOperations.filter(item => {
-                        return ['create'].includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.authResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_name: gettext('项目'),
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resource: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-
-                    this.triggerPermisionModal(permissions)
+                    this.goToApply()
                 } else {
                     this.$router.push('/project/home/')
                 }
+            },
+            goToApply () {
+                const resourceData = {
+                    name: gettext('项目'),
+                    auth_actions: this.authActions
+                }
+                this.applyForPermission(['create'], resourceData, this.authOperations, this.authResource)
             },
             async queryProjectCreatePerm () {
                 try {
@@ -119,9 +136,12 @@
                         resource_type: 'project',
                         action_ids: JSON.stringify(['create'])
                     })
-                    if (res.data.is_pass) {
-                        const actions = this.authActions.slice(0).push('create')
-                        this.setProjectActions(actions)
+    
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.authActions.push('create')
                     }
                 } catch (err) {
                     errorHandler(err, this)
@@ -130,7 +150,7 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    const res = await this.getPermissionUrl(JSON.stringify(this.permission))
+                    const res = await this.getPermissionUrl(JSON.stringify(this.permissionData.permission))
                     this.url = res.data.url
                 } catch (err) {
                     errorHandler(err, this)
