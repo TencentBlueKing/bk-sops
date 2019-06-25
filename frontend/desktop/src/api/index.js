@@ -514,8 +514,8 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                'project__id': project_id,
-                'template__template_id': template_id
+                template_id,
+                'project__id': project_id
             }
         }
         return request(opts)
@@ -1394,6 +1394,22 @@ const api = {
             url: prefixUrl,
             headers: { 'content-type': 'application/x-www-form-urlencoded' },
             data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 获取收藏模板详情
+     * @param {String} ids 模板id字符串, eg: 123,33
+     */
+    getCollectedTemplateDetail (ids) {
+        const prefixUrl = this.getPrefix('template')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                id__in: ids
+            }
         }
         return request(opts)
     }

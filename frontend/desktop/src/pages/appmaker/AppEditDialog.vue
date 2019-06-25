@@ -99,10 +99,10 @@
         <div slot="footer" class="dialog-footer">
             <bk-button
                 type="primary"
-                v-cursor
                 :class="{
                     'btn-permission-disable': !hasPermission(['create_mini_app'], appData.appActions, tplOperations)
                 }"
+                v-cursor="{ active: !hasPermission(['create_mini_app'], appData.appActions, tplOperations) }"
                 @click="onConfirm">
                 {{i18n.confirm}}
             </bk-button>
@@ -274,7 +274,7 @@
                             scope_type,
                             system_id,
                             system_name,
-                            resource: res,
+                            resources: res,
                             action_id: item.id,
                             action_name: item.name
                         })

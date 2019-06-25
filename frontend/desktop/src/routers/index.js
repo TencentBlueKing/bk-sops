@@ -12,7 +12,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
-import bus from '@/utils/bus.js'
+// import bus from '@/utils/bus.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
 
@@ -57,12 +57,13 @@ const routers = new VueRouter({
     routes: [
         {
             path: '/',
-            redirect: to => {
-                return `/home/${store.state.project.project_id}/`
+            redirect: () => {
+                return `/home/${store.state.project.project_id}`
             }
         },
         {
-            path: '/home/:project_id',
+            path: '/home/:project_id?/',
+            name: 'home',
             component: Home,
             props: (route) => ({
                 project_id: route.params.project_id
@@ -298,12 +299,11 @@ routers.beforeEach((to, from, next) => {
     if (to.params.project_id) {
         store.commit('setProjectId', to.params.project_id)
     }
-
     // 没有项目权限时，项目详情相关页面与项目详情无关页面切换
-    if (!store.state.project.authActions.includes('view')) {
-        const showApplyPage = !to.meta.withoutProject
-        bus.$emit('togglePermissionApplyPage', showApplyPage)
-    }
+    // if (!store.state.project.authActions.includes('view')) {
+    //     const showApplyPage = !to.meta.withoutProject
+    //     bus.$emit('togglePermissionApplyPage', showApplyPage)
+    // }
     
     next()
 })

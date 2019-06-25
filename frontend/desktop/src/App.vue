@@ -20,8 +20,7 @@
         <permissionApply
             v-if="permissinApplyShow"
             ref="permissionApply"
-            :type="permissionType"
-            :permission="permission">
+            :permission-data="permissionData">
         </permissionApply>
         <router-view v-if="isRouterViewShow"></router-view>
     </div>
@@ -32,6 +31,7 @@
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { setAtomConfigApiUrls } from '@/config/setting.js'
+    import permission from '@/mixins/permission.js'
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
     import PermissionModal from '@/components/common/modal/PermissionModal.vue'
@@ -47,6 +47,7 @@
             permissionApply,
             PermissionModal
         },
+        mixins: [permission],
         provide () {
             return {
                 reload: this.reload
@@ -55,8 +56,11 @@
         data () {
             return {
                 permissinApplyShow: false,
-                permissionType: 'project', // 无权限类型: project、other
-                permission: [],
+                permissionData: {
+                    type: 'project', // 无权限类型: project、other
+                    permission: [],
+                    toProject: false
+                },
                 isRouterAlive: false,
                 appmakerDataLoading: false // 轻应用加载 app 详情,
             }
@@ -76,35 +80,25 @@
             }
         },
         watch: {
-            project_id () {
-                this.getProjectDetail()
+            '$route' (val) {
+                this.handleRouteChange()
             }
         },
         created () {
-            /**
-             * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
-             */
-            window.show_msg = (message, type) => {
-                this.$bkMessage({
-                    message,
-                    theme: type
-                })
-            }
-
-            this.initData()
-        },
-        mounted () {
             bus.$on('showLoginModal', src => {
                 this.$refs.userLogin.show(src)
             })
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
             })
-            bus.$on('togglePermissionApplyPage', (isShow, type, permission) => {
-                this.permissinApplyShow = isShow
-                this.permissionType = type
-                this.permission = permission
-                if (!isShow) {
+            bus.$on('togglePermissionApplyPage', (show, type, permission, toProject) => {
+                this.permissinApplyShow = show
+                this.permissionData = {
+                    type,
+                    permission,
+                    toProject
+                }
+                if (!show) {
                     this.isRouterAlive = true
                 }
             })
@@ -117,6 +111,19 @@
                     theme: info.theme || 'error'
                 })
             })
+
+            /**
+             * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
+             */
+            window.show_msg = (message, type) => {
+                this.$bkMessage({
+                    message,
+                    theme: type
+                })
+            }
+        },
+        mounted () {
+            this.initData()
         },
         methods: {
             ...mapActions('appmaker/', [
@@ -144,6 +151,7 @@
             },
             async getProjectDetail () {
                 try {
+                    this.isRouterAlive = false
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
@@ -163,6 +171,19 @@
                     errorHandler(e, this)
                 } finally {
                     this.appmakerDataLoading = false
+                }
+            },
+            handleRouteChange () {
+                this.isRouterAlive = true
+                if (this.$route.meta.withoutProject) {
+                    this.permissinApplyShow = false
+                } else {
+                    if (this.project_id !== undefined) {
+                        this.getProjectDetail()
+                    } else {
+                        this.permissinApplyShow = true
+                        bus.$emit('togglePermissionApplyPage', true, 'project', [], true)
+                    }
                 }
             },
             reload () {

@@ -15,10 +15,10 @@
             <BaseTitle :title="i18n.projectManage"></BaseTitle>
             <div class="list-header">
                 <bk-button
-                    v-cursor
+                    v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"
                     type="primary"
                     :class="['create-project-btn', {
-                        'btn-permission-disable': !hasPermission(['create'], authActions, authOperations)
+                        'btn-permission-disable': !hasPermission(['create'], projectActions, authOperations)
                     }]"
                     @click="onCreateProject">
                     {{i18n.createProject}}
@@ -58,32 +58,32 @@
                             <td>{{item.creator}}</td>
                             <td>
                                 <bk-button
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
                                     type="default"
-                                    @click="onEditProject(item, $event)">
+                                    @click="onEditProject(item)">
                                     {{i18n.edit}}
                                 </bk-button>
                                 <bk-button
                                     v-if="item.is_disable"
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
                                     type="default"
-                                    @click="onChangeProjectStatus(item, 'start', $event)">
+                                    @click="onChangeProjectStatus(item, 'start')">
                                     {{i18n.start}}
                                 </bk-button>
                                 <bk-button
                                     v-else
-                                    v-cursor
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
                                     type="default"
-                                    @click="onChangeProjectStatus(item, 'stop', $event)">
+                                    @click="onChangeProjectStatus(item, 'stop')">
                                     {{i18n.stop}}
                                 </bk-button>
                             </td>
@@ -219,6 +219,7 @@
                     max: STRING_LENGTH.PROJECT_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
+                projectActions: [],
                 projectOperations: [],
                 projectResource: {},
                 i18n: {
@@ -250,7 +251,6 @@
         },
         computed: {
             ...mapState('project', {
-                'authActions': state => state.authActions,
                 'authResource': state => state.authResource,
                 'authOperations': state => state.authOperations
             }),
@@ -262,16 +262,36 @@
             }
         },
         created () {
+            this.queryProjectCreatePerm()
             this.getProjectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('project', [
                 'loadProjectList',
                 'createProject',
                 'loadProjectDetail',
                 'updateProject'
             ]),
+            async queryProjectCreatePerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'project',
+                        action_ids: JSON.stringify(['create'])
+                    })
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.projectActions = ['create']
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
             async getProjectList () {
                 this.loading = true
 
@@ -368,44 +388,9 @@
                 this.currentPage = 1
                 this.getProjectList()
             },
-            /**
-             * 单个模板操作项点击时校验
-             * @params {Array} required 需要的权限
-             * @params {Object} project 项目数据对象
-             * @params {Object} event 事件对象
-             */
             onProjectPermissonCheck (required, project, event) {
                 if (!this.hasPermission(required, project.auth_actions, this.projectOperations)) {
-                    let actions = []
-                    this.projectOperations.filter(item => {
-                        return required.includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.projectResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: project.id,
-                            resource_name: project.name,
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resource: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-                    this.triggerPermisionModal(permissions)
+                    this.applyForPermission(['create'], project, this.projectOperations, this.projectResource)
                     event.preventDefault()
                 }
             },
@@ -422,45 +407,20 @@
                 this.getProjectList()
             },
             onCreateProject () {
-                if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
-                    let actions = []
-                    this.authOperations.filter(item => {
-                        return ['create'].includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.authResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_name: gettext('项目'),
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resource: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-
-                    this.triggerPermisionModal(permissions)
+                if (!this.hasPermission(['create'], this.projectActions, this.authOperations)) {
+                    const resourceData = {
+                        name: gettext('项目'),
+                        auth_actions: this.projectActions
+                    }
+                    this.applyForPermission(['create'], resourceData, this.projectOperations, this.projectResource)
                 } else {
                     this.dialogType = 'create'
                     this.isProjectDialogShow = true
                 }
             },
-            onEditProject (project, event) {
+            onEditProject (project) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
-                    this.onProjectPermissonCheck(['edit'], project, event)
+                    this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
                     return
                 }
                 this.isProjectDialogShow = true
@@ -491,9 +451,9 @@
             onChangeTimeZone (value) {
                 this.projectDetail.timeZone = value
             },
-            onChangeProjectStatus (project, type, event) {
+            onChangeProjectStatus (project, type) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
-                    this.onProjectPermissonCheck(['edit'], project, event)
+                    this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
                     return
                 }
                 this.operationType = type
