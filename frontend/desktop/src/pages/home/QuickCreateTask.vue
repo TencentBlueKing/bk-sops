@@ -235,11 +235,7 @@
             },
             goToTemplate (template) {
                 if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
-                    const resourceData = {
-                        name: template.name,
-                        id: template.id
-                    }
-                    this.applyForPermission(['view'], resourceData, this.tplOperations, this.tplResource)
+                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
                 } else {
                     this.$router.push(`/template/newtask/${this.project_id}/selectnode/?template_id=${template.id}`)
                 }
