@@ -107,7 +107,7 @@
                             <td class="audit-business">{{item.project.name}}</td>
                             <td class="audit-name">
                                 <a
-                                    v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
+                                    v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
                                     v-cursor
                                     class="text-permission-disable"
                                     :title="item.name"
@@ -132,7 +132,7 @@
                             </td>
                             <td class="audit-operation">
                                 <a
-                                    v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
+                                    v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
                                     v-cursor
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(item)">
@@ -253,8 +253,8 @@
                     { 'id': 'finished', 'name': gettext('完成') }
                 ],
                 executeStatus: [], // 任务执行态
-                tplOperations: [],
-                tplResource: {}
+                taskOperations: [],
+                taskResource: {}
             }
         },
         computed: {
@@ -263,7 +263,7 @@
             })
         },
         created () {
-            this.loadFunctionTask()
+            this.loadAuditTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
             this.getProjectBaseInfo()
@@ -281,7 +281,7 @@
             ...mapActions('project/', [
                 'loadProjectList'
             ]),
-            async loadFunctionTask () {
+            async loadAuditTask () {
                 this.listLoading = true
                 try {
                     const data = {
@@ -307,8 +307,8 @@
                     const auditListData = await this.loadAuditTaskList(data)
                     const list = auditListData.objects
                     this.auditList = list
-                    this.tplOperations = auditListData.meta.auth_operations
-                    this.tplResource = auditListData.meta.auth_resource
+                    this.taskOperations = auditListData.meta.auth_operations
+                    this.taskResource = auditListData.meta.auth_resource
                     this.totalCount = auditListData.meta.total_count
 
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
@@ -339,11 +339,11 @@
             },
             onPageChange (page) {
                 this.currentPage = page
-                this.loadFunctionTask()
+                this.loadAuditTask()
             },
             searchInputhandler () {
                 this.currentPage = 1
-                this.loadFunctionTask()
+                this.loadAuditTask()
             },
             async getExecuteDetail (task, index) {
                 const data = {
@@ -451,9 +451,9 @@
                 }
                 this.projectId = name
             },
-            onTemplatePermissonCheck (template) {
-                if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
-                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
+            onTemplatePermissonCheck (task) {
+                if (!this.hasPermission(['view'], task.auth_actions, this.taskOperations)) {
+                    this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
                 }
             }
         }
