@@ -102,11 +102,11 @@
             </bk-button>
             <bk-button
                 :class="['next-step-button', {
-                    'btn-permission-disable': !hasPermission(nextStepPerm, tplActions, tplOperations)
+                    'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
                 }]"
                 type="success"
                 :loading="isSubmit"
-                v-cursor="{ active: !hasPermission(nextStepPerm, tplActions, tplOperations) }"
+                v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
                 {{i18n.new}}
             </bk-button>
@@ -187,6 +187,9 @@
             ...mapState('project', {
                 'timeZone': state => state.timezone
             }),
+            ...mapState('appmaker', {
+                'appmakerDetail': state => state.appmakerDetail
+            }),
             isSchemeShow () {
                 return this.pipelineData.location.some(item => item.optional)
             },
@@ -201,6 +204,15 @@
             },
             nextStepPerm () {
                 return this.isStartNow ? ['create_task'] : ['create_periodic_task']
+            },
+            actions () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_actions : this.tplActions
+            },
+            resource () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_resource : this.tplResource
+            },
+            operations () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_operations : this.tplOperations
             }
         },
         watch: {
@@ -289,17 +301,17 @@
                 }
             },
             onCreateTask () {
-                if (this.isSubmit) {
-                    return
-                }
-
-                if (!this.hasPermission(this.nextStepPerm, this.tplActions, this.tplOperations)) {
+                if (!this.hasPermission(this.nextStepPerm, this.actions, this.operations)) {
                     const resourceData = {
                         name: this.templateName,
                         id: this.template_id,
-                        auth_actions: this.tplActions
+                        auth_actions: this.actions
                     }
-                    this.applyForPermission(this.nextStepPerm, resourceData, this.tplOperations, this.tplResource)
+                    this.applyForPermission(this.nextStepPerm, resourceData, this.operations, this.resource)
+                    return
+                }
+
+                if (this.isSubmit) {
                     return
                 }
 
