@@ -138,7 +138,7 @@
             font-size: 16px;
             font-weight: bold;
             .common-icon-node-subflow,.common-icon-node-tasknode{
-                font-weight: bold !important;
+                font-weight: bold;
             }
         }
         .name {

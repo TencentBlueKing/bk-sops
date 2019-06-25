@@ -330,7 +330,7 @@ header {
         .header-title{
             margin-left: 6px;
             font-size: 18px;
-            color: #979BA5;
+            color: #979ba5;
         }
     }
     nav {
@@ -344,7 +344,7 @@ header {
         min-width: 90px;
         height: 50px;
         line-height: 50px;
-        color: #979BA5;
+        color: #979ba5;;
         text-align: center;
         border-radius: 2px;
         cursor: pointer;
