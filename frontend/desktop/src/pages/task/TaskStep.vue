@@ -45,7 +45,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'taskStatus'],
         data () {
             return {
                 i18n: {
@@ -57,7 +57,8 @@
         },
         computed: {
             ...mapState({
-                'lang': state => state.lang
+                'lang': state => state.lang,
+                userType: state => state.userType
             }),
             currentStepIndex () {
                 return this.getCurrentStepIndex()
@@ -104,9 +105,20 @@
                 return style
             },
             getHomeUrl () {
-                let url = `/template/home/${this.cc_id}/`
-                if (this.common) {
-                    url += '?common=1&common_template=common'
+                let url = ''
+                if (this.userType === 'maintainer') {
+                    if (this.taskStatus === 'TaskCreate') {
+                        url = `/template/home/${this.cc_id}/`
+                    } else if (this.taskStatus === 'TaskExecute') {
+                        url = `/taskflow/home/${this.cc_id}/`
+                    }
+                    if (this.common) {
+                        url += '?common=1&common_template=common'
+                    }
+                } else if (this.userType === 'functor') {
+                    url = `/function/home/`
+                } else if (this.userType === 'auditor') {
+                    url = `/audit/home/`
                 }
                 return url
             }

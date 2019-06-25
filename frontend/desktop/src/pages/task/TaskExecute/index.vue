@@ -16,7 +16,9 @@
         <TaskStep
             :list="stepList"
             :current-step="currentStep"
+            :task-status="'TaskExecute'"
             :common="common"
+            :cc_id="cc_id"
             :instance-name="instanceName"
             :all-finished="isAllStepsFinished">
         </TaskStep>
