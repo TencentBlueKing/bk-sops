@@ -23,6 +23,7 @@ from tastypie.exceptions import BadRequest, InvalidFilterError
 
 from auth_backend.plugins.delegation import RelateAuthDelegation
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
@@ -272,9 +273,34 @@ class TemplateSchemeResource(GCloudModelResource):
                 template_id=template_id, project_id=project_id)
             logger.error(message)
             raise BadRequest(message)
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=task_template_resource,
+                                           action_ids=[task_template_resource.actions.edit.id],
+                                           instance=template)
+
         bundle.data['name'] = name_handler(bundle.data['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
         kwargs['unique_id'] = '%s-%s' % (template_id, bundle.data['name'])
         if TemplateScheme.objects.filter(unique_id=kwargs['unique_id']).exists():
             raise BadRequest('template scheme name has existed, please change the name')
         kwargs['template'] = template.pipeline_template
         return super(TemplateSchemeResource, self).obj_create(bundle, **kwargs)
+
+    def obj_delete(self, bundle, **kwargs):
+        try:
+            obj = TemplateScheme.objects.get(id=kwargs['pk'])
+        except TemplateScheme.DoesNotExist:
+            raise BadRequest('scheme does not exist')
+
+        try:
+            template = TaskTemplate.objects.get(pipeline_template=obj.template)
+        except TaskTemplate.DoesNotExist:
+            raise BadRequest('flow template the deleted scheme belongs to does not exist')
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=task_template_resource,
+                                           action_ids=[task_template_resource.actions.edit.id],
+                                           instance=template)
+        return super(TemplateSchemeResource, self).obj_delete(bundle, **kwargs)
