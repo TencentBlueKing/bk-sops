@@ -54,11 +54,11 @@ Vue.use(VueRouter)
 const PAGE_MAP = {
     functor: {
         index: '/function/home/',
-        routes: ['functionHome']
+        routes: ['functionHome', 'templateStep', 'taskExecute']
     },
     auditor: {
         index: '/audit/home/',
-        routes: ['auditHome']
+        routes: ['auditHome', 'taskExecute']
     }
 }
 
@@ -182,6 +182,7 @@ const routers = new VueRouter({
                 {
                     path: 'execute/:project_id/',
                     component: TaskExecute,
+                    name: 'taskExecute',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         instance_id: route.query.instance_id
