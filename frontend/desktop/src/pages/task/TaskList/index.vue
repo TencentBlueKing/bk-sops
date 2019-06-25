@@ -114,6 +114,7 @@
                                     v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
                                     v-cursor
                                     class="text-permission-disable"
+                                    :title="item.name"
                                     @click="onTaskPermissonCheck(['view'], item, $event)">
                                     {{item.name}}
                                 </a>
