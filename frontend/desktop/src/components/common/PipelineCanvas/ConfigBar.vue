@@ -44,7 +44,6 @@
                     'btn-permission-disable': !isSaveBtnEnable
                 }]"
                 :loading="templateSaving"
-                :disabled="perm.edit.pending"
                 v-cursor="{ active: !isSaveBtnEnable }"
                 @click="onSaveTemplate(false)">
                 {{ i18n.save }}
@@ -52,11 +51,10 @@
             <bk-button
                 type="primary"
                 :class="['task-btn', {
-                    'btn-permission-disable': !createTaskBtnIsPass
+                    'btn-permission-disable': !isSaveAndCreateBtnEnable
                 }]"
                 :loading="createTaskSaving"
-                :disabled="perm.create_task.pending"
-                v-cursor="{ active: !createTaskBtnIsPass }"
+                v-cursor="{ active: !isSaveAndCreateBtnEnable }"
                 @click="onSaveTemplate(true)">
                 {{ createTaskBtnText }}
             </bk-button>
@@ -66,7 +64,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions, mapMutations } from 'vuex'
+    import { mapState, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import permission from '@/mixins/permission.js'
@@ -98,20 +96,15 @@
                     max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                isShowMode: true,
-                perm: {
-                    'create_task': {
-                        pending: false,
-                        isPass: true
-                    },
-                    'edit': {
-                        pending: false,
-                        isPass: true
-                    }
-                }
+                isShowMode: true
             }
         },
         computed: {
+            ...mapState('project', {
+                'authActions': state => state.authActions,
+                'authOperations': state => state.authOperations,
+                'authResource': state => state.authResource
+            }),
             templateTitle () {
                 return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
             },
@@ -125,14 +118,28 @@
                     return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
                 }
             },
+            saveRequiredPerm () {
+                return this.type === 'new' ? ['create_template'] : ['edit']
+            },
             saveAndCreateRequiredPerm () {
-                return (this.isTemplateDataChanged || this.type === 'new') ? ['create_task', 'edit'] : ['create_task']
+                if (this.type === 'new') {
+                    return ['create_template']
+                } else {
+                    return this.isTemplateDataChanged ? ['create_task', 'edit'] : ['create_task']
+                }
             },
             isSaveBtnEnable () {
                 if (this.type === 'new') {
-                    return this.perm.edit.isPass
+                    return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
                 } else {
-                    return this.hasPermission(['edit'], this.tplActions, this.tplOperations)
+                    return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                }
+            },
+            isSaveAndCreateBtnEnable () {
+                if (this.type === 'new') {
+                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
+                } else {
+                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
                 }
             }
         },
@@ -141,88 +148,18 @@
                 this.tName = val
             }
         },
-        created () {
-            if (this.type === 'new') {
-                this.getUserTplPerm()
-            }
-        },
         methods: {
-            ...mapActions([
-                'queryUserPermission'
-            ]),
             ...mapMutations('template/', [
                 'setTemplateName'
             ]),
             onInputName (val) {
                 this.$emit('onChangeName', val)
             },
-            async getUserTplPerm () {
-                const permissions = ['edit', 'create_task']
-                permissions.forEach(p => {
-                    this.$set(this.perm, p, { pending: true, isPass: true })
-                })
-
-                const res = await this.queryUserPermission({
-                    resource_type: 'flow-template',
-                    action_ids: JSON.stringify(permissions)
-                })
-                permissions.forEach(p => {
-                    const detail = res.data.details.find(d => d.action_id === p)
-                    const perm = {
-                        pending: false,
-                        isPass: detail.is_pass
-                    }
-                    this.$set(this.perm, p, perm)
-                })
-            },
-            /**
-             * 单个模板操作项点击时校验
-             * @params {Array} required 需要的权限
-             * @params {Object} template 模板数据对象
-             */
-            onTemplatePermissonCheck (required, template) {
-                const actions = []
-                this.tplOperations.filter(item => {
-                    return required.includes(item.operate_id)
-                }).forEach(perm => {
-                    perm.actions.forEach(action => {
-                        if (!actions.find(item => action.id === item.id)) {
-                            actions.push(action)
-                        }
-                    })
-                })
-                const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
-                const permissions = []
-                actions.forEach(item => {
-                    const res = []
-                    res.push([{
-                        resource_id: template.id,
-                        resource_name: template.name,
-                        resource_type: resource.resource_type,
-                        resource_type_name: resource.resource_type_name
-                    }])
-                    permissions.push({
-                        scope_id,
-                        scope_name,
-                        scope_type,
-                        system_id,
-                        system_name,
-                        resources: res,
-                        action_id: item.id,
-                        action_name: item.name
-                    })
-                })
-
-                this.triggerPermisionModal(permissions)
-            },
             onSaveTemplate (saveAndCreate = false) {
-                const required = saveAndCreate ? this.saveAndCreateRequiredPerm : ['edit']
-                if (!this.hasPermission(required, this.tplActions, this.tplOperations)) {
-                    const template = {
-                        id: this.template_id,
-                        name: this.name
-                    }
-                    this.onTemplatePermissonCheck(required, template)
+                const { resourceData, operations, actions, resource } = this.getPermissionData()
+                const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
+                if (!this.hasPermission(required, actions, operations)) {
+                    this.applyForPermission(required, resourceData, operations, resource)
                     return
                 }
 
@@ -237,6 +174,29 @@
                         this.$emit('onSaveTemplate', saveAndCreate)
                     }
                 })
+            },
+            getPermissionData () {
+                let resourceData, operations, actions, resource
+                if (this.type === 'new') {
+                    resourceData = {
+                        id: this.project_id,
+                        name: gettext('项目'),
+                        auth_actions: this.authActions
+                    }
+                    operations = this.authOperations
+                    actions = this.authActions
+                    resource = this.authResource
+                } else {
+                    resourceData = {
+                        id: this.template_id,
+                        name: this.name,
+                        auth_actions: this.tplActions
+                    }
+                    operations = this.tplOperations
+                    actions = this.tplActions
+                    resource = this.tplResource
+                }
+                return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
                 let url = `/template/home/${this.project_id}/`

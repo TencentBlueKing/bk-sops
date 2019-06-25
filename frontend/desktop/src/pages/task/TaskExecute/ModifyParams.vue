@@ -111,7 +111,8 @@
                 if (!this.hasSavePermission) {
                     const resourceData = {
                         id: this.instance_id,
-                        name: this.instanceName
+                        name: this.instanceName,
+                        auth_actions: this.instanceActions
                     }
                     this.applyForPermission(['edit'], resourceData, this.instanceOperations, this.instanceResource)
                 }

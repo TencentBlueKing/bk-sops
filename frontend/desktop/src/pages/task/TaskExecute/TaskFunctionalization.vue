@@ -174,7 +174,8 @@
                 if (!this.hasPermission(['claim'], this.instanceActions, this.instanceOperations)) {
                     const resourceData = {
                         name: this.instanceName,
-                        id: this.instance_id
+                        id: this.instance_id,
+                        auth_actions: this.instanceActions
                     }
                     this.applyForPermission(['claim'], resourceData, this.instanceOperations, this.instanceResource)
                     return
