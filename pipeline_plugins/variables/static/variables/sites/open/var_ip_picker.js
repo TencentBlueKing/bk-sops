@@ -161,7 +161,7 @@
                                     });
                                     if (select_module_list.length > 0) {
                                         $.ajax({
-                                            url: $.context.site_url + 'pipeline/cc_get_host_by_module_id/' + $.context.biz_cc_id + '/',
+                                            url: $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_get_host_by_module_id/' + $.context.project.bk_biz_id + '/' : '',
                                             type: 'GET',
                                             traditional: true,
                                             data: {
@@ -171,6 +171,8 @@
                                             success: function (resp) {
                                                 if (resp.result) {
                                                     self.items = cc_format_ip_topo_data(resp.data, self.items);
+                                                } else {
+                                                    show_msg(resp.message, 'error');
                                                 }
                                             },
                                             error: function (resp) {
@@ -188,7 +190,7 @@
                                     if (value === 'tree') {
                                         self.show();
                                         $.ajax({
-                                            url: $.context.site_url + 'pipeline/cc_search_topo/module/picker/' + $.context.biz_cc_id + '/',
+                                            url: $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/module/picker/' + $.context.project.bk_biz_id + '/' : '',
                                             type: 'GET',
                                             dataType: 'json',
                                             success: function (resp) {
@@ -212,7 +214,7 @@
                                                         });
 
                                                         $.ajax({
-                                                            url: $.context.site_url + 'pipeline/cc_get_host_by_module_id/' + $.context.biz_cc_id + '/',
+                                                            url: $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_get_host_by_module_id/' + $.context.project.bk_biz_id + '/' : '',
                                                             type: 'GET',
                                                             traditional: true,
                                                             data: {
@@ -222,6 +224,8 @@
                                                             success: function (resp) {
                                                                 if (resp.result) {
                                                                     self.items = cc_format_ip_topo_data(resp.data, self.items);
+                                                                } else {
+                                                                    show_msg(resp.message, 'error');
                                                                 }
                                                             },
                                                             error: function (resp) {

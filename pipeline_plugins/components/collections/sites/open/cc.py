@@ -19,10 +19,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
+from pipeline_plugins.components.utils import (
+    get_ip_by_regex,
+    handle_api_error,
+    supplier_account_for_business
+)
 
 from gcloud.conf import settings
-from pipeline_plugins.components.utils.common import supplier_account_for_business
 
 logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
