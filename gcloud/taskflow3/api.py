@@ -82,7 +82,7 @@ def data(request, project_id):
     component_code = request.GET.get('component_code')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_data(node_id, component_code, subprocess_stack)
+    ctx = task.get_node_data(node_id, request.user.username, component_code, subprocess_stack)
     return JsonResponse(ctx)
 
 
@@ -96,7 +96,7 @@ def detail(request, project_id):
     component_code = request.GET.get('component_code')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
-    ctx = task.get_node_detail(node_id, component_code, subprocess_stack)
+    ctx = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
     return JsonResponse(ctx)
 
 
