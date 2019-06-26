@@ -44,7 +44,6 @@ const store = new Vuex.Store({
         view_mode: window.VIEW_MODE,
         project_id: window.PROJECT_ID,
         lang: getAppLang(),
-        templateId: '', // 轻应用页面全局 template_id
         notFoundPage: false,
         categorys: [],
         components: [],
@@ -61,9 +60,6 @@ const store = new Vuex.Store({
         },
         setProjectId (state, id) {
             state.project_id = id
-        },
-        setTemplateId (state, id) {
-            state.templateId = id
         },
         setNotFoundPage (state, val) {
             state.notFoundPage = val

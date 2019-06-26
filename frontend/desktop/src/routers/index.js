@@ -53,12 +53,22 @@ Vue.use(VueRouter)
 
 const PAGE_MAP = {
     functor: {
-        index: '/function/home/',
+        getIndex () {
+            return '/function/home/'
+        },
         routes: ['functionHome', 'templateStep', 'taskExecute']
     },
     auditor: {
-        index: '/audit/home/',
+        getIndex () {
+            return '/audit/home/'
+        },
         routes: ['auditHome', 'taskExecute']
+    },
+    appmaker: {
+        getIndex () {
+            return `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
+        },
+        routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
     }
 }
 
@@ -69,9 +79,11 @@ const routers = new VueRouter({
         {
             path: '/',
             redirect: function () {
-                const { userType, project } = store.state
-                if (PAGE_MAP[userType]) {
-                    return PAGE_MAP[userType].index
+                const { userType, viewMode, project } = store.state
+                const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
+                
+                if (PAGE_MAP[pageType]) {
+                    return PAGE_MAP[pageType].getIndex()
                 } else {
                     return `/home/${project.project_id}`
                 }
@@ -326,10 +338,11 @@ routers.beforeEach((to, from, next) => {
         store.commit('setProjectId', to.params.project_id)
     }
 
-    const userType = store.state.userType
-    const page = PAGE_MAP[userType]
+    const { userType, viewMode } = store.state
+    const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
+    const page = PAGE_MAP[pageType]
     if (page && !page.routes.includes(to.name)) {
-        next(page.index)
+        next(page.getIndex())
     } else {
         next()
     }

@@ -100,9 +100,9 @@
             <bk-button
                 type="primary"
                 :class="{
-                    'btn-permission-disable': !hasPermission(['create_mini_app'], appData.appActions, tplOperations)
+                    'btn-permission-disable': !confirmBtnPerm
                 }"
-                v-cursor="{ active: !hasPermission(['create_mini_app'], appData.appActions, tplOperations) }"
+                v-cursor="{ active: !confirmBtnPerm }"
                 @click="onConfirm">
                 {{i18n.confirm}}
             </bk-button>
@@ -170,6 +170,11 @@
                     confirm: gettext('确认'),
                     cancel: gettext('取消')
                 }
+            }
+        },
+        computed: {
+            confirmBtnPerm () {
+                return this.hasPermission(['create_mini_app'], this.appData.appActions, this.tplOperations)
             }
         },
         created () {
@@ -250,36 +255,13 @@
                     this.appTemplateEmpty = true
                     return
                 }
-                if (!this.hasPermission(['create_mini_app'], this.appData.appActions, this.tplOperations)) {
-                    let actions = []
-                    this.tplOperations.filter(item => {
-                        return ['create_mini_app'].includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
-                    const permissions = []
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: this.appData.appTemplate,
-                            resource_name: this.appData.appName,
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resources: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-                    this.triggerPermisionModal(permissions)
+                if (!this.confirmBtnPerm) {
+                    const resourceData = {
+                        name: this.appData.appName,
+                        id: this.appData.appTemplate,
+                        auth_actions: this.appData.appActions
+                    }
+                    this.applyForPermission(['create_mini_app'], resourceData, this.tplOperations, this.tplResource)
                     return
                 }
                 

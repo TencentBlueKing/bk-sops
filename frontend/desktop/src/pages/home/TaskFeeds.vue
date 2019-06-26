@@ -180,36 +180,7 @@
              * @params {Object} event 事件对象
              */
             onTaskPermissonCheck (required, task, event) {
-                let actions = []
-                this.taskOperations.filter(item => {
-                    return required.includes(item.operate_id)
-                }).forEach(perm => {
-                    actions = actions.concat(perm.actions)
-                })
-                
-                const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.taskResource
-                const permissions = []
-                
-                actions.forEach(item => {
-                    const res = []
-                    res.push([{
-                        resource_id: task.id,
-                        resource_name: task.name,
-                        resource_type: resource.resource_type,
-                        resource_type_name: resource.resource_type_name
-                    }])
-                    permissions.push({
-                        scope_id,
-                        scope_name,
-                        scope_type,
-                        system_id,
-                        system_name,
-                        resources: res,
-                        action_id: item.id,
-                        action_name: item.name
-                    })
-                })
-                this.triggerPermisionModal(permissions)
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
                 event.preventDefault()
             }
         }
