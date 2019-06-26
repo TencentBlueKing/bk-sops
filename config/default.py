@@ -100,6 +100,7 @@ INSTALLED_APPS += (
 # 自定义中间件
 MIDDLEWARE += (
     'django.middleware.locale.LocaleMiddleware',
+    'gcloud.core.middlewares.ProjectSyncMiddleware',
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',

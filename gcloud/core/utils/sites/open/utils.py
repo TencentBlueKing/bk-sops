@@ -37,8 +37,7 @@ def get_all_business_list(use_cache=True):
         client = get_client_by_user(username)
 
         result = client.cc.search_business({
-            'bk_supplier_account': 0,
-            'condition': {}
+            'bk_supplier_account': 0
         })
 
         if result['result']:
@@ -55,70 +54,51 @@ def get_all_business_list(use_cache=True):
 
 
 # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是非法值
-def get_user_business_list(request, use_cache=True):
+def get_user_business_list(username, use_cache=True):
     """Get authorized business list for a exact username.
 
     :param object request: django request object.
     :param bool use_cache: (Optional)
     """
-    user = request.user
-    cache_key = "%s_get_user_business_list_%s" % (CACHE_PREFIX, user.username)
+    cache_key = "%s_get_user_business_list_%s" % (CACHE_PREFIX, username)
     data = cache.get(cache_key)
 
     if not (use_cache and data):
-        user_info = _get_user_info(request)
-        client = get_client_by_request(request)
+        user_info = _get_user_info(username)
+        client = get_client_by_user(username)
         result = client.cc.search_business({
-            'bk_supplier_account': user_info['bk_supplier_account'],
-            'condition': {
-                'bk_data_status': {'$in': ['enable', 'disabled', None]},
-                '$or': [{'bk_biz_developer': {"$regex": user.username}},
-                        {'bk_biz_productor': {"$regex": user.username}},
-                        {'bk_biz_maintainer': {"$regex": user.username}},
-                        {'bk_biz_tester': {"$regex": user.username}}]
-            }
+            'bk_supplier_account': user_info['bk_supplier_account']
         })
 
         if result['result']:
             data = result['data']['info']
             cache.set(cache_key, data, DEFAULT_CACHE_TIME_FOR_CC)
-        elif result.get('code') in ('20101', 20101):
-            raise exceptions.Unauthorized(result['message'])
-        elif result.get('code') in ('20103', 20103, '20201', 20201,
-                                    '20202', 20202):
-            raise exceptions.Forbidden(result['message'])
         else:
             raise exceptions.APIError(
-                'cc',
-                'search_business',
-                result
+                system='cc',
+                api='search_business',
+                message=result['message']
             )
 
     return data
 
 
-def _get_user_info(request, use_cache=True):
+def _get_user_info(username, use_cache=True):
     """
     获取用户基本信息
-    @param request:
+    @param username:
     @param use_cache:
     @return:
     """
-    user = request.user
-    cache_key = "%s_get_user_info_%s" % (CACHE_PREFIX, user.username)
+    cache_key = "%s_get_user_info_%s" % (CACHE_PREFIX, username)
     data = cache.get(cache_key)
     if not (use_cache and data):
-        userinfo = get_user_info(request)
+        userinfo = get_user_info(username)
         userinfo.setdefault('code', -1)
         if userinfo['result']:
             data = userinfo['data']
             if data:
                 cache.set(cache_key, data, DEFAULT_CACHE_TIME_FOR_CC)
-        elif userinfo.get('code') in ('20101', 20101):
-            raise exceptions.Unauthorized(userinfo['message'])
-        elif userinfo.get('code') in ('20103', 20103, '20201', 20201,
-                                      '20202', 20202):
-            raise exceptions.Forbidden(userinfo['message'])
         else:
             raise exceptions.APIError(
                 'bk_api',
