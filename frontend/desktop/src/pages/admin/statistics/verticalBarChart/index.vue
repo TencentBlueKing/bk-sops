@@ -81,9 +81,7 @@
                 const data = [{
                     x,
                     y,
-                    text: y.map(String),
                     textposition: 'auto',
-                    hoverinfo: 'none',
                     marker: {
                         color: '#3a84ff'
                     },
@@ -97,15 +95,14 @@
                     },
                     margin: {
                         t: 10,
-                        b: 50
+                        b: 80
                     },
                     yaxis: {
                         fixedrange: true
                     },
                     xaxis: {
                         fixedrange: true,
-                        type: 'date',
-                        tickformat: '%Y-%m-%d',
+                        type: 'category',
                         tickmode: 'auto'
                     }
                 }
