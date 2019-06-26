@@ -106,11 +106,14 @@
             },
             getHomeUrl () {
                 let url = '/'
+                const entrance = this.$route.query.entrance
                 if (this.userType === 'maintainer') {
-                    if (this.taskStatus === 'TaskCreate') {
-                        url = `/template/home/${this.cc_id}/`
-                    } else if (this.taskStatus === 'TaskExecute') {
+                    if (entrance && entrance === '0') {
+                        url = `/periodic/home/${this.cc_id}/`
+                    } else if (entrance && entrance === '1') {
                         url = `/taskflow/home/${this.cc_id}/`
+                    } else {
+                        url = `/template/home/${this.cc_id}/`
                     }
                     if (this.common) {
                         url += `?common=1&common_template=${this.common}`
