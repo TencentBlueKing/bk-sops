@@ -40,7 +40,7 @@
                     <router-link :to="getExecuteHistoryUrl(appData.template_id)"></router-link>
                 </span>
                 <span
-                    :class="['common-icon-pen', 'operate-btn', {
+                    :class="['common-icon-dustbin', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
                     @click="onCardDelete">
@@ -102,40 +102,8 @@
              * @params {Object} event 事件对象
              */
             onAppMakerPermissonCheck (required, app, event) {
-                if (!this.hasPermission(required, app.auth_actions, this.appOperations)) {
-                    let actions = []
-                    this.appOperations.filter(item => {
-                        return required.includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.appResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: app.id,
-                            resource_name: app.name,
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resources: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-
-                    this.triggerPermisionModal(permissions)
-                    event.preventDefault()
-                }
+                this.applyForPermission(required, app, this.appOperations, this.appResource)
+                event.preventDefault()
             },
             onShowOperation () {
                 this.isShowEdit = true

@@ -17,7 +17,7 @@
                 </bk-button>
                 <bk-button
                     type="default"
-                    v-if="type === 'project'"
+                    v-if="permissionData.type === 'project'"
                     v-cursor="{ active: !hasProjectPermission }"
                     :class="{
                         'btn-permission-disable': !hasProjectPermission
@@ -39,10 +39,6 @@
         name: 'PermissionApply',
         mixins: [permission],
         props: {
-            type: { // 权限申请类型
-                type: String,
-                default: 'project'
-            },
             permissionData: {
                 type: Object,
                 default () {

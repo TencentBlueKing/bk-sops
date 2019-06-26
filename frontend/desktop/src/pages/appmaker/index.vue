@@ -237,8 +237,8 @@
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
-                    this.appOperations = resp.meta.operations
-                    this.appResource = resp.meta.resource
+                    this.appOperations = resp.meta.auth_operations
+                    this.appResource = resp.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

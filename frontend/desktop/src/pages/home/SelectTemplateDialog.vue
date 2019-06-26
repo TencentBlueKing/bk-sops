@@ -43,10 +43,10 @@
                                     <ul>
                                         <li
                                             :class="['template-item', {
-                                                'text-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
+                                                'text-permission-disable': !getTemplateViewPerm(item)
                                             }]"
                                             v-for="item in group.list"
-                                            v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
+                                            v-cursor="{ active: !getTemplateViewPerm(item) }"
                                             :key="item.id"
                                             @click="onSelectTemplate(item)">
                                             <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
@@ -60,10 +60,10 @@
                             <ul v-if="searchList.length">
                                 <li
                                     v-for="item in searchList"
-                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, tplOperations) }"
+                                    v-cursor="{ active: !getTemplateViewPerm(item) }"
                                     :key="item.id"
                                     :class="['template-item', {
-                                        'text-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
+                                        'text-permission-disable': !getTemplateViewPerm(item)
                                     }]"
                                     @click="onSelectTemplate(item)">
                                     <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
@@ -182,8 +182,11 @@
                     this.searchList = []
                 }
             },
+            getTemplateViewPerm (template) {
+                return this.hasPermission(['view'], template.auth_actions, this.tplOperations)
+            },
             onSelectTemplate (template) {
-                if (this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
+                if (this.getTemplateViewPerm(template)) {
                     let index
                     const isSelected = this.selectedTemplate.some((item, i) => {
                         if (item.id === template.id) {
@@ -204,36 +207,7 @@
                         this.selectedTemplate.push(template)
                     }
                 } else {
-                    let actions = []
-                    this.tplOperations.filter(item => {
-                        return ['export'].includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: template.id,
-                            resource_name: template.name,
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resources: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-                    this.triggerPermisionModal(permissions)
+                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
                 }
             },
             onConfirm () {
