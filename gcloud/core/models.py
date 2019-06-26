@@ -159,8 +159,9 @@ class ProjectManager(models.Manager):
 
             projects = Project.objects.filter(from_cmdb=True, bk_biz_id__in=to_be_sync_cc_id)
 
-            project_resource = resource_type_lib['project']
-            project_resource.batch_register_instance(list(projects))
+            if projects:
+                project_resource = resource_type_lib['project']
+                project_resource.batch_register_instance(list(projects))
 
 
 class Project(models.Model):

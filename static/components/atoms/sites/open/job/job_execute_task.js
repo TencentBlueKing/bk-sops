@@ -43,6 +43,9 @@
                     return url;
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 validation: [
