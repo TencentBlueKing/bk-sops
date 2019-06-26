@@ -48,21 +48,17 @@
     }
 }
 
-.common-dialog {
+.common-dialog .bk-dialog {
     .bk-dialog-header {
-        padding: 20px 30px;
+        padding: 0 30px 20px;
         border-bottom: 1px solid #ebebeb;
-        .bk-dialog-title {
-            text-align: left;
+        .bk-dialog-header-inner {
+            font-size: 22px;
             line-height: 1;
         }
     }
-    .bk-dialog-tool {
-        min-height: 0px;
-        .bk-dialog-close {
-            margin-top: 16px;
-            margin-right: 20px;
-        }
+    .bk-dialog-body {
+        padding: 0;
     }
 }
 
