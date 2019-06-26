@@ -12,7 +12,6 @@
 <template>
     <div class="cache-edit">
         <div class="cache-content">
-            <h3 class="edit-title">step2.{{ i18n.setting + i18n.cache }}</h3>
             <cache-form
                 v-for="(item, index) in list"
                 :key="index"
@@ -61,8 +60,6 @@
             return {
                 list: tools.deepClone(this.cacheList),
                 i18n: {
-                    setting: gettext('配置'),
-                    cache: gettext('本地缓存'),
                     prevStep: gettext('上一步'),
                     save: gettext('完成'),
                     cancel: gettext('取消'),
@@ -126,10 +123,6 @@
     .cache-content {
         min-height: 100%;
         padding: 30px 60px 60px;
-    }
-    .edit-title {
-        margin: 0 0 30px;
-        font-size: 20px;
     }
     .add-cache {
         margin-bottom: 60px;

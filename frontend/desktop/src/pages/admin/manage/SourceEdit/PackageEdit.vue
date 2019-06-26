@@ -12,7 +12,6 @@
 <template>
     <div class="package-edit">
         <div class="source-centent">
-            <h3 class="edit-title">step1.{{ i18n.setting + i18n.package }}</h3>
             <template v-for="(item, index) in list">
                 <package-form
                     :key="index"
@@ -57,8 +56,6 @@
             return {
                 list: tools.deepClone(this.originList),
                 i18n: {
-                    setting: gettext('配置'),
-                    package: gettext('主包源'),
                     nextStep: gettext('下一步'),
                     cancel: gettext('取消'),
                     addPackage: gettext('添加主源包')
@@ -118,10 +115,6 @@
     .source-centent {
         padding: 30px 60px 60px;
         min-height: 100%;
-    }
-    .edit-title {
-        margin: 0 0 30px;
-        font-size: 20px;
     }
     .add-package {
         margin-bottom: 60px;
