@@ -13,7 +13,7 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
+                <span class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
                 <span class="task-title">{{ taskTemplateTitle }}</span>
                 <span class="task-name">{{ instanceName }}</span>
             </div>
@@ -105,7 +105,7 @@
                 return style
             },
             getHomeUrl () {
-                let url = ''
+                let url = '/'
                 if (this.userType === 'maintainer') {
                     if (this.taskStatus === 'TaskCreate') {
                         url = `/template/home/${this.cc_id}/`
@@ -113,14 +113,13 @@
                         url = `/taskflow/home/${this.cc_id}/`
                     }
                     if (this.common) {
-                        url += '?common=1&common_template=common'
+                        url += `?common=1&common_template=${this.common}`
                     }
-                } else if (this.userType === 'functor') {
-                    url = `/function/home/`
-                } else if (this.userType === 'auditor') {
-                    url = `/audit/home/`
+                } else if (this.userType === 'functor' || this.userType === 'auditor') {
+                    this.$router.go(-1)
+                    return
                 }
-                return url
+                this.$router.push(url)
             }
         }
     }
