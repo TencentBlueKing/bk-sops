@@ -19,10 +19,10 @@
                     :key="item.id"
                     class="task-item">
                     <a
-                        v-if="!hasPermission(['view'], item.auth_actions, tplOperations)"
+                        v-if="!getTemplateCreateTaskPerm(item)"
                         v-cursor
                         :class="['task-name', {
-                            'btn-permission-disable': !hasPermission(['view'], item.auth_actions, tplOperations)
+                            'btn-permission-disable': !getTemplateCreateTaskPerm(item)
                         }]"
                         @click="goToTemplate(item)">
                         {{item.name}}
@@ -234,9 +234,12 @@
                 })
                 return groupData
             },
+            getTemplateCreateTaskPerm (template) {
+                return this.hasPermission(['create_task'], template.auth_actions, this.tplOperations)
+            },
             goToTemplate (template) {
-                if (!this.hasPermission(['view'], template.auth_actions, this.tplOperations)) {
-                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
+                if (!this.getTemplateCreateTaskPerm(template)) {
+                    this.applyForPermission(['create_task'], template, this.tplOperations, this.tplResource)
                 } else {
                     this.$router.push(`/template/newtask/${this.project_id}/selectnode/?template_id=${template.id}`)
                 }
