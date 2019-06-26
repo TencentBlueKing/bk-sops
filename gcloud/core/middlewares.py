@@ -23,6 +23,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
 
 from gcloud.core.models import Project
+from gcloud.core.project import sync_projects_from_cmdb
 
 logger = logging.getLogger("root")
 
@@ -31,20 +32,9 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def _get_biz_cc_id_in_rest_request(self, request):
-        biz_cc_id = None
-        try:
-            body = json.loads(request.body)
-            biz_cc_id = int(body.get('business').split('/')[-2])
-        except Exception:
-            pass
-
-        return biz_cc_id
-
     def process_view(self, request, view_func, view_args, view_kwargs):
         """
-        If a request path contains biz_cc_id parameter, check if current
-        user has perm view_business or return http 403.
+        If a request path contains project_id parameter, check whether project exist
         """
         if getattr(view_func, 'login_exempt', False):
             return None
@@ -57,6 +47,30 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
 
             # set time_zone of business
             request.session['blueking_timezone'] = project.time_zone
+
+    def _get_biz_cc_id_in_rest_request(self, request):
+        biz_cc_id = None
+        try:
+            body = json.loads(request.body)
+            biz_cc_id = int(body.get('business').split('/')[-2])
+        except Exception:
+            pass
+
+        return biz_cc_id
+
+
+class ProjectSyncMiddleware(MiddlewareMixin):
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        try:
+            sync_projects_from_cmdb(username=request.user.username)
+        except Exception:
+            logger.error('An error occurred when sync business for user: {user}, details: {details}'.format(
+                user=request.user.username,
+                details=traceback.format_exc()
+            ))
 
 
 class UnauthorizedMiddleware(MiddlewareMixin):

@@ -411,7 +411,7 @@ def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
 
 def cc_get_business(request):
     try:
-        business = get_user_business_list(request)
+        business = get_user_business_list(username=request.user.username)
     except Exception:
         logger.error('an error occurred when fetch user business: %s' % traceback.format_exc())
         return JsonResponse({

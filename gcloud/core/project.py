@@ -16,7 +16,7 @@ import logging
 from auth_backend.plugins.utils import search_all_resources_authorized_actions
 
 from gcloud.conf import settings
-from gcloud.core.utils import get_all_business_list
+from gcloud.core.utils import get_user_business_list
 from gcloud.core.models import Business, Project, UserDefaultProject
 from gcloud.core.permissions import project_resource
 
@@ -27,8 +27,8 @@ DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def sync_projects_from_cmdb(use_cache=True):
-    biz_list = get_all_business_list(use_cache=use_cache)
+def sync_projects_from_cmdb(username, use_cache=True):
+    biz_list = get_user_business_list(username=username, use_cache=use_cache)
     business_dict = {}
 
     for biz in biz_list:
@@ -52,7 +52,7 @@ def sync_projects_from_cmdb(use_cache=True):
         business_dict[biz['bk_biz_id']] = {
             'cc_name': defaults['cc_name'],
             'time_zone': defaults['time_zone'],
-            'creator': settings.SYSTEM_USE_API_ACCOUNT
+            'creator': username
         }
 
     # sync projects from business
