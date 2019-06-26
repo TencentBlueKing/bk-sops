@@ -279,36 +279,7 @@
                         this.isTplInPanelAllSelected = this.getTplIsAllSelected()
                     }
                 } else {
-                    let actions = []
-                    this.tplOperations.filter(item => {
-                        return ['export'].includes(item.operate_id)
-                    }).forEach(perm => {
-                        actions = actions.concat(perm.actions)
-                    })
-                    
-                    const { scope_id, scope_name, scope_type, system_id, system_name, resource } = this.tplResource
-                    const permissions = []
-                    
-                    actions.forEach(item => {
-                        const res = []
-                        res.push([{
-                            resource_id: template.id,
-                            resource_name: template.name,
-                            resource_type: resource.resource_type,
-                            resource_type_name: resource.resource_type_name
-                        }])
-                        permissions.push({
-                            scope_id,
-                            scope_name,
-                            scope_type,
-                            system_id,
-                            system_name,
-                            resources: res,
-                            action_id: item.id,
-                            action_name: item.name
-                        })
-                    })
-                    this.triggerPermisionModal(permissions)
+                    this.applyForPermission(['export'], template, this.tplOperations, this.tplResource)
                 }
             },
             deleteTemplate (template) {
