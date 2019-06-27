@@ -11,4 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'gcloud.contrib.analysis.apps.AnalysisConfig'
+from django.core.management.base import BaseCommand
+
+
+class Command(BaseCommand):
+    help = "Creates new migration for perms model"
+
+    def handle(self, *args, **options):
+        pass

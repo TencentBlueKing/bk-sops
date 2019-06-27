@@ -11,4 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'gcloud.contrib.analysis.apps.AnalysisConfig'
+from django.apps import AppConfig
+
+
+class AnalysisConfig(AppConfig):
+    name = 'gcloud.contrib.analysis'
+    verbose_name = 'GcloudContribAnalysis'
+
+    def ready(self):
+        from gcloud.contrib.analysis.permissions import statistics_resource  # noqa
