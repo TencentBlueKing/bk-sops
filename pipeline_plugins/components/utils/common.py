@@ -21,7 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 
-from gcloud.core.models import Business
+from gcloud.core.models import Business, Project
 from gcloud.core.utils import apply_permission_url
 
 logger = logging.getLogger('root')
@@ -29,6 +29,18 @@ logger = logging.getLogger('root')
 ip_re = r'(([12][0-9][0-9]|[1-9][0-9]|[0-9])\.){3,3}' \
         r'([12][0-9][0-9]|[1-9][0-9]|[0-9])'
 ip_pattern = re.compile(ip_re)
+
+
+def supplier_account_for_project(project_id):
+    try:
+        proj = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return 0
+
+    if not proj.from_cmdb:
+        return 0
+
+    return supplier_account_for_business(proj.bk_biz_id)
 
 
 def supplier_account_for_business(biz_cc_id):
@@ -42,7 +54,9 @@ def supplier_account_for_business(biz_cc_id):
 
 def supplier_account_inject(func):
     def wrapper(*args, **kwargs):
-        if 'biz_cc_id' in kwargs:
+        if 'project_id' in kwargs:
+            kwargs['supplier_account'] = supplier_account_for_project(kwargs['project_id'])
+        elif 'biz_cc_id' in kwargs:
             kwargs['supplier_account'] = supplier_account_for_business(kwargs['biz_cc_id'])
 
         return func(*args, **kwargs)
@@ -52,8 +66,10 @@ def supplier_account_inject(func):
 
 def supplier_id_inject(func):
     def wrapper(*args, **kwargs):
-        if 'biz_cc_id' in kwargs:
-            kwargs['supplier_account'] = supplier_account_for_business(kwargs['biz_cc_id'])
+        if 'project_id' in kwargs:
+            kwargs['supplier_id'] = supplier_account_for_project(kwargs['project_id'])
+        elif 'biz_cc_id' in kwargs:
+            kwargs['supplier_id'] = supplier_account_for_business(kwargs['biz_cc_id'])
 
         return func(*args, **kwargs)
 

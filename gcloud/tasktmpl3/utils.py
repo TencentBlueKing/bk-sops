@@ -11,24 +11,22 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from importlib import import_module
+import logging
 
-from pipeline.conf import settings
+from gcloud.tasktmpl3.models import TaskTemplate
+
+logger = logging.getLogger("root")
 
 
-def get_pipeline_context(obj, obj_type, username=''):
-    context = {}
-    if obj_type == 'template':
-        context_path = settings.PIPELINE_TEMPLATE_CONTEXT
-    elif obj_type == 'instance':
-        context_path = settings.PIPELINE_INSTANCE_CONTEXT
-    else:
-        return context
-    if context_path:
-        mod, func = context_path.rsplit('.', 1)
-        mod = import_module(mod)
-        func = getattr(mod, func)
-        context = func(obj, username)
-    if not isinstance(context, dict):
-        context = {'data': context}
+def get_template_context(obj, username=''):
+    try:
+        template = TaskTemplate.objects.get(pipeline_template=obj)
+    except TaskTemplate.DoesNotExist:
+        logger.warning('TaskTemplate Does not exist: pipeline_template.id=%s' % obj.pk)
+        return {}
+    context = {
+        'project_id': template.project.id,
+        'project_name': template.project.name,
+        'operator': template.pipeline_template.editor or username
+    }
     return context
