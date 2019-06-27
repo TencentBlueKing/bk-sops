@@ -52,7 +52,7 @@ APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
 APIGW_READ_TEMPLATE_DATA_FILE = 'gcloud.apigw.views.read_template_data_file'
 APIGW_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.replace_template_id'
 
-CORE_PROJECT_GET_ALL_BUSINESS_LIST = 'gcloud.core.project.get_all_business_list'
+CORE_PROJECT_GET_USER_BUSINESS_LIST = 'gcloud.core.project.get_user_business_list'
 
 CORE_MODEL_BUSINESS_UPDATE_OR_CREATE = 'gcloud.core.models.Business.objects.update_or_create'
 
