@@ -432,18 +432,6 @@ class TaskTemplateManager(BaseTemplateManager):
             })
         return True, collected_templates_list
 
-    def get_template_context(self, obj):
-        try:
-            template = self.get(pipeline_template=obj)
-        except TaskTemplate.DoesNotExist:
-            logger.warning('TaskTemplate Does not exist: pipeline_template.id=%s' % obj.pk)
-            return {}
-        context = {
-            'project_id': template.project.id,
-            'project_name': template.project.name
-        }
-        return context
-
 
 class TaskTemplate(BaseTemplate):
     project = models.ForeignKey(Project,

@@ -19,22 +19,23 @@ from gcloud.taskflow3.models import TaskFlowInstance
 logger = logging.getLogger("root")
 
 
-def get_instance_context(obj):
+def get_instance_context(obj, username=''):
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance=obj)
     except TaskFlowInstance.DoesNotExist:
         logger.warning('TaskFlowInstance Does not exist: pipeline_template.id=%s' % obj.pk)
         return {}
-    project_id = taskflow.project_id
+    project = taskflow.project
+    operator = obj.executor or username
     # TODO 上下文中的信息需要再完善一些
     context = {
         'language': translation.get_language(),
-        'project_id': project_id,
-        'project_name': taskflow.project.name,
+        'project_id': project.id,
+        'project_name': project.name,
         # 执行任务的操作员
-        'operator': obj.executor,
-        # 调用ESB接口的执行者
-        'executor': obj.executor,
+        'operator': operator,
+        # 接入权限中心后，调用ESB接口的执行者和操作员一致，如无权限请前往对应系统申请
+        'executor': operator,
         'task_id': taskflow.id,
         'task_name': taskflow.pipeline_instance.name
     }
