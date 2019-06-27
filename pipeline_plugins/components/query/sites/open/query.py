@@ -61,7 +61,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     }
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result['result']:
-        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result['message'])
+        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result)
         logger.error(message)
         result = {
             'result': False,
@@ -90,7 +90,7 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
     }
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result['result']:
-        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result['message'])
+        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result)
         logger.error(message)
         result = {
             'result': False,
@@ -182,7 +182,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     }
     cc_result = client.cc.search_biz_inst_topo(kwargs)
     if not cc_result['result']:
-        message = handle_api_error('cc', 'cc.search_biz_inst_topo', kwargs, cc_result['message'])
+        message = handle_api_error('cc', 'cc.search_biz_inst_topo', kwargs, cc_result)
         logger.error(message)
         result = {
             'result': False,
@@ -235,7 +235,7 @@ def job_get_script_list(request, biz_cc_id):
     script_result = client.job.get_script_list(kwargs)
 
     if not script_result['result']:
-        message = handle_api_error('cc', 'job.get_script_list', kwargs, script_result['message'])
+        message = handle_api_error('cc', 'job.get_script_list', kwargs, script_result)
         logger.error(message)
         result = {
             'result': False,
