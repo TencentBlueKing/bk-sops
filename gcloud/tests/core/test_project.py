@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from django.conf import settings
 
 from gcloud.core import project
 from gcloud.core.models import Business, Project
