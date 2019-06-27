@@ -229,7 +229,6 @@ AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bk
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
 
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
-AUTH_BACKEND_RESOURCE_MIGRATION_CLASS = 'auth_backend.resources.migrations.migration.BKIAMResourceMigration'
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']

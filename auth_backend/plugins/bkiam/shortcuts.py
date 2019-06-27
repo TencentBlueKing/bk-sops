@@ -26,6 +26,9 @@ def upsert_perm_templates():
     if not perm_templates_path:
         return
 
+    if not getattr(settings, 'BK_IAM_SYNC_TEMPLATES', None):
+        return
+
     perm_templates = import_string(perm_templates_path)
     raw_templates = []
 
