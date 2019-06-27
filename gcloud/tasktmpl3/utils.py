@@ -12,24 +12,21 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import traceback
 
-from celery.decorators import periodic_task
+from gcloud.tasktmpl3.models import TaskTemplate
 
-from gcloud import exceptions
-from gcloud.core.project import sync_projects_from_cmdb
-
-from pipeline.contrib.periodic_task.djcelery.tzcrontab import TzAwareCrontab
-
-loggger = logging.getLogger('celery')
+logger = logging.getLogger("root")
 
 
-@periodic_task(run_every=TzAwareCrontab(minute='*/2'))
-def cmdb_business_sync_task(task_id):
-    loggger.info('Start sync business from cmdb...')
+def get_template_context(obj, username=''):
     try:
-        sync_projects_from_cmdb(use_cache=False)
-    except exceptions.APIError as e:
-        loggger.error('An error occurred when sync cmdb business, message: {msg}, trace: {trace}'.format(
-            msg=e.message,
-            trace=traceback.format_exc()))
+        template = TaskTemplate.objects.get(pipeline_template=obj)
+    except TaskTemplate.DoesNotExist:
+        logger.warning('TaskTemplate Does not exist: pipeline_template.id=%s' % obj.pk)
+        return {}
+    context = {
+        'project_id': template.project.id,
+        'project_name': template.project.name,
+        'operator': template.pipeline_template.editor or username
+    }
+    return context

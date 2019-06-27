@@ -66,6 +66,7 @@ TEST_NODE_ID = 'node_id'
 TEST_CALLBACK_DATA = 'callback_data'
 TEST_COMPONENT_CODE = 'component_code'
 TEST_SUBPROCESS_STACK = '[1, 2, 3]'
+TEST_USERNAME = ''
 
 
 class APITest(TestCase):
@@ -1080,6 +1081,7 @@ class APITest(TestCase):
             self.assertTrue(data['result'])
             self.assertEqual(data['data'], assert_data)
             mock_taskflow.get_node_detail.assert_called_once_with(TEST_NODE_ID,
+                                                                  TEST_USERNAME,
                                                                   TEST_COMPONENT_CODE,
                                                                   json.loads(TEST_SUBPROCESS_STACK))
 

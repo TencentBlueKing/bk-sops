@@ -702,7 +702,7 @@ def get_task_node_detail(request, task_id, project_id):
             'result': False,
             'message': 'subprocess_stack is not a valid array json'
         })
-    result = task.get_node_detail(node_id, component_code, subprocess_stack)
+    result = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
     return JsonResponse(result)
 
 

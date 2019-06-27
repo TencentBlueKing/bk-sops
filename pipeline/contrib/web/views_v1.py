@@ -376,7 +376,7 @@ def get_template_context(request):
             return action_result(False, 'PipelineTemplate object of template_id:%s does not exist' % template_id)
     else:
         template = None
-    context = get_pipeline_context(template, 'template')
+    context = get_pipeline_context(template, 'template', request.user.username)
     return JsonResponse(context)
 
 
@@ -390,7 +390,7 @@ def get_instance_context(request):
             return action_result(False, 'PipelineInstance object of instance_id:%s does not exist' % instance_id)
     else:
         instance = None
-    context = get_pipeline_context(instance, 'instance')
+    context = get_pipeline_context(instance, 'instance', request.user.username)
     return JsonResponse(context)
 
 
