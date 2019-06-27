@@ -170,7 +170,7 @@ class JobExecuteTaskService(JobService):
         LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_result, kwargs=job_kwargs))
         if job_result['result']:
             job_instance_id = job_result['data']['job_instance_id']
-            data.outputs.job_inst_url = get_job_instance_url(parent_data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
             data.outputs.client = client
@@ -240,7 +240,7 @@ class JobFastPushFileService(JobService):
             job_instance_id = job_result['data']['job_instance_id']
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
-            data.outputs.job_inst_url = get_job_instance_url(parent_data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
             data.outputs.client = client
             return True
         else:
@@ -314,7 +314,7 @@ class JobFastExecuteScriptService(JobService):
             job_instance_id = job_result['data']['job_instance_id']
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
-            data.outputs.job_inst_url = get_job_instance_url(parent_data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
             data.outputs.client = client
             return True
         else:

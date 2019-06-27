@@ -370,7 +370,8 @@ class BkIAMClient(object):
                                    'resource_id': resource_id,
                                    'resource_name': resource_name})
 
-    def register_system(self, system_name, desc, query_interface, related_scope_types, managers, creator):
+    def register_system(self, system_name, desc, query_interface, related_scope_types, managers, creator,
+                        system_id=None):
         """注册系统
 
         Arguments:
@@ -379,11 +380,11 @@ class BkIAMClient(object):
             query_interface {str} -- 资源获取 api
             related_scope_types {str} -- 关联的资源所属，有业务、全局、项目等
             managers {str} -- 管理者
-            updater {str} -- 创建人
+            creator {str} -- 创建人
         """
         return self._request(method='post',
                              url=self._request_url(path='perm-model/systems'),
-                             data={'system_id': self.system_id,
+                             data={'system_id': system_id or self.system_id,
                                    'system_name': system_name,
                                    'desc': desc,
                                    'query_interface': query_interface,
@@ -456,3 +457,26 @@ class BkIAMClient(object):
 
         """
         return self._request(method='get', url=self._perm_model_api_url(''), params={'is_detail': int(is_detail)})
+
+    def upsert_perm_template(self, perm_template_name, template_id, desc, resource_types_actions):
+        """添加或更新权限模板
+
+        Arguments:
+            perm_template_name {str} -- [权限模板名]
+            template_id {str} -- [模板 ID]
+            desc {str} --- [模板描述]
+            resource_types_actions {list} - 权限模板操作 [
+                {
+                    'scope_type_id: '作用域 ID',
+                    'resource_type_id': '资源类型 ID',
+                    'action_id': '动作 ID'
+                }, ...
+            ]
+
+        """
+        return self._request(method='post',
+                             url=self._perm_model_api_url(path='perm-templates'),
+                             data={'perm_template_name': perm_template_name,
+                                   'template_id': template_id,
+                                   'desc': desc,
+                                   'resource_types_actions': resource_types_actions})

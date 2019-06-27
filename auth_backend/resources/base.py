@@ -32,6 +32,10 @@ class ActionCollection(object):
     def __init__(self, actions):
         for action in actions:
             setattr(self, action.id, action)
+        self._actions = actions
+
+    def __iter__(self):
+        return iter(self._actions)
 
 
 class Resource(object):
@@ -73,6 +77,18 @@ class Resource(object):
                 'resource_type': self.rtype,
                 'resource_type_name': self.name,
             }
+        }
+
+    def snapshot(self):
+        return {
+            'resource_type': self.rtype,
+            'resource_type_name': self.name,
+            'parent_resource_type': self.parent.rtype if self.parent else '',
+            'actions': [{
+                'action_id': action.id,
+                'action_name': action.name,
+                'is_related_resource': action.is_instance_related
+            } for action in self.actions]
         }
 
     def clean_instances(self, instances):

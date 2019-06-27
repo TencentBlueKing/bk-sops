@@ -11,4 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'gcloud.contrib.analysis.apps.AnalysisConfig'
+from auth_backend.resources.base import resource_type_lib
+
+
+class ResourceStateSnapper(object):
+    def take_snapshot(self):
+        snapshot = {}
+        for resource in resource_type_lib.values():
+            resource_snapshot = resource.snapshot()
+            snapshot.setdefault(resource.scope_type, []).append(resource_snapshot)
+
+        return snapshot

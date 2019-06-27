@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy
-
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
 
@@ -218,12 +216,18 @@ BK_JOB_HOST = os.environ.get('BK_JOB_HOST')
 DEFAULT_BK_API_VER = 'v2'
 
 # IAM权限中心配置
-BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
 BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
-BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', ugettext_lazy(u"标准运维"))
+BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', u"标准运维")
+BK_IAM_SYSTEM_DESC = ''
+BK_IAM_QUERY_INTERFACE = ''
+BK_IAM_RELATED_SCOPE_TYPES = 'system'
+BK_IAM_SYSTEM_MANAGERS = 'admin'
+BK_IAM_SYSTEM_CREATOR = 'admin'
 BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
 AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BkIAMBackend')
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
+
+BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']

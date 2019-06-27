@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from django.conf import settings
 
 from gcloud.core import project
 from gcloud.core.models import Business, Project
@@ -62,22 +61,22 @@ class ProjectModelTestCase(TestCase):
     def tearDown(self):
         Business.objects.all().delete()
 
-    @patch(CORE_PROJECT_GET_ALL_BUSINESS_LIST, MagicMock(return_value=[]))
+    @patch(CORE_PROJECT_GET_USER_BUSINESS_LIST, MagicMock(return_value=[]))
     @patch(CORE_MODEL_PROJECT_SYNC_PROJECT, MagicMock(return_value=[]))
     @patch(CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT, MagicMock())
     def test_sync_projects_from_cmdb__empty_business_list(self):
-        project.sync_projects_from_cmdb()
+        project.sync_projects_from_cmdb('user')
 
         Project.objects.sync_project_from_cmdb_business.assert_called_once_with({})
 
-    @patch(CORE_PROJECT_GET_ALL_BUSINESS_LIST,
+    @patch(CORE_PROJECT_GET_USER_BUSINESS_LIST,
            MagicMock(return_value=CaseData.sync_projects_from_cmdb_business_data()['biz_list']))
     @patch(CORE_MODEL_BUSINESS_UPDATE_OR_CREATE, MagicMock())
     @patch(CORE_MODEL_PROJECT_SYNC_PROJECT, MagicMock(return_value=['token_0', 'token_1']))
     @patch(CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT, MagicMock())
     def test_sync_projects_from_cmdb(self):
         Business.objects.create(cc_id=5, cc_name='name_5', cc_owner='owner', cc_company='company')
-        project.sync_projects_from_cmdb()
+        project.sync_projects_from_cmdb('user')
 
         Business.objects.update_or_create.assert_has_calls([
             mock.call(cc_id=1, defaults={
@@ -110,16 +109,16 @@ class ProjectModelTestCase(TestCase):
             1: {
                 'cc_name': 'name_1',
                 'time_zone': 'time_zone',
-                'creator': settings.SYSTEM_USE_API_ACCOUNT
+                'creator': 'user'
             },
             4: {
                 'cc_name': 'name_4',
                 'time_zone': 'time_zone',
-                'creator': settings.SYSTEM_USE_API_ACCOUNT
+                'creator': 'user'
             },
             5: {
                 'cc_name': 'name_5',
                 'time_zone': 'time_zone',
-                'creator': settings.SYSTEM_USE_API_ACCOUNT
+                'creator': 'user'
             }
         })

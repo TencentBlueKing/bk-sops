@@ -23,7 +23,8 @@ try:
 
 except Exception:
     APP_CODE = ''
-    APP_SECRET_KEY = ''
+    SECRET_KEY = ''
     SYSTEM_ID = ''
+    SYSTEM_NAME = ''
     BK_IAM_HOST = ''
     BK_IAM_API_VERSION = 'v1'
