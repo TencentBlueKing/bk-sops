@@ -62,3 +62,5 @@ CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT = \
     'gcloud.core.models.UserDefaultProject.objects.init_user_default_project'
 
 PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS = 'pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess'
+
+PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE = 'gcloud.core.permissions.project_resource.batch_register_instance'

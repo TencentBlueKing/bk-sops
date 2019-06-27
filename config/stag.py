@@ -16,7 +16,7 @@ from config import RUN_VER
 if RUN_VER == 'open':
     from blueapps.patch.settings_open_saas import *  # noqa
 else:
-    from blueapps.patch.settings_paas_services import *  # noqa
+    from blueapps.patch.settings_paas_services import *  # noqaJobExecuteTaskComponent
 
 # 预发布环境
 RUN_MODE = 'STAGING'

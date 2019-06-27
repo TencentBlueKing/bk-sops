@@ -71,7 +71,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
     }
     host_result = client.cc.search_host(kwargs)
     if not host_result['result']:
-        message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.search_host', kwargs, host_result['message'])
+        message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.search_host', kwargs, host_result)
         result = {'result': False, 'code': ERROR_CODES.API_CMDB_ERROR, 'message': message}
         return JsonResponse(result)
 
@@ -100,7 +100,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
             message = handle_api_error(_(u"管控平台(GSE)"),
                                        'gse.get_agent_status',
                                        agent_kwargs,
-                                       agent_result['message'])
+                                       agent_result)
             result = {'result': False, 'code': ERROR_CODES.API_GSE_ERROR, 'message': message}
             return JsonResponse(result)
 
@@ -132,7 +132,7 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=''):
         message = handle_api_error(_(u"配置平台(CMDB)"),
                                    'cc.get_mainline_object_topo',
                                    kwargs,
-                                   cc_result['message'])
+                                   cc_result)
         return {'result': cc_result['result'], 'code': cc_result['code'], 'message': message}
     data = cc_result['data']
     for bk_obj in data:
