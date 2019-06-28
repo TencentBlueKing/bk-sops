@@ -17,7 +17,7 @@
                 </bk-button>
                 <bk-button
                     type="default"
-                    v-if="permissionData.type === 'project'"
+                    v-if="permissionData.type === 'project' && viewMode !== 'appmaker'"
                     v-cursor="{ active: !hasProjectPermission }"
                     :class="{
                         'btn-permission-disable': !hasProjectPermission
@@ -65,6 +65,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'viewMode': state => state.view_mode
+            }),
             ...mapState('project', {
                 'authResource': state => state.authResource,
                 'authOperations': state => state.authOperations
@@ -80,7 +83,7 @@
             }
         },
         created () {
-            if (this.permissionData.type === 'project') {
+            if (this.permissionData.type === 'project' && this.viewMode !== 'appmaker') {
                 this.queryProjectCreatePerm()
             }
             if (!this.toProject) {
