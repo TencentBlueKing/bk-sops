@@ -11,31 +11,14 @@
 */
 <template>
     <div class="chart-box">
-        <div class="percentage">
-            <div>{{maxPercent + '%'}}</div>
-            <div>{{maxPercent - maxPercent / 4 + '%'}}</div>
-            <div>{{maxPercent - maxPercent / 2 + '%'}}</div>
-            <div>{{maxPercent / 4 + '%'}}</div>
-            <div>{{leastPercent}}</div>
-        </div>
-        <div class="chart-statistics-warp">
-            <NoData v-if="!totalValue"></NoData>
-            <div class="chart-statistics-box" v-for="(dimension, index) in sortDimensionList" :key="index" v-else>
-                <div
-                    :title="getPercentage(dimension.value) + '%'"
-                    :class="[dimension.value ? 'chart-statistics-pillar' : 'chart-statistics-normal']"
-                    :style="{ height: `${dimension.value ? dealProcess(dimension.value, totalValue, maxPercent) : 0.3}%` }">
-                </div>
-                <div :class="['chart-statistics-time', { incline: isIncline }]">
-                    <p class="tool-time" :title="dimension.name || dimension.time">{{dimension.name || dimension.time}} </p>
-                </div>
-            </div>
-        </div>
+        <NoData v-if="!totalValue"></NoData>
+        <div id="chart-statistics-div" v-else></div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
+    import Plotly from 'plotly.js/dist/plotly-basic.min.js'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'VerticalBarChart',
@@ -64,14 +47,9 @@
         },
         data () {
             return {
+                chart: null,
                 sortDimensionList: [],
-                maxPercent: '',
-                leastPercent: '0%'
-            }
-        },
-        computed: {
-            isIncline () {
-                return this.sortDimensionList.length > 22
+                isUpdated: false
             }
         },
         watch: {
@@ -81,25 +59,54 @@
             },
             timeTypeList (val) {
                 this.sortDimensionList = tools.deepClone(val)
-            },
-            sortDimensionList () {
-                const list = []
-                for (let i = 0; i < this.sortDimensionList.length; i++) {
-                    list.push(this.sortDimensionList[i].value)
+                if (this.isUpdated === true) {
+                    this.initChart()
                 }
-                this.maxPercent = Math.ceil(Math.max.apply(null, list) / this.totalValue * 10) * 10
+            }
+        },
+        updated () {
+            if (this.totalValue) {
+                this.isUpdated = true
+                this.initChart()
             }
         },
         methods: {
-            getPercentage (value) {
-                return (value / this.totalValue * 100).toFixed(2)
-            },
-            dealProcess (value, totalValue, maxPercent) {
-                let result = ((value / totalValue * 100) / maxPercent) * 100 * 0.85
-                if (result > 0 && result < 0.06) {
-                    result = 0.6
+            initChart () {
+                const x = []
+                const y = []
+                this.sortDimensionList.forEach(item => {
+                    x.push(item.time)
+                    y.push(item.value)
+                })
+                const data = [{
+                    x,
+                    y,
+                    textposition: 'auto',
+                    marker: {
+                        color: '#3a84ff'
+                    },
+                    type: 'bar'
+                }]
+                const layout = {
+                    height: 365,
+                    font: {
+                        size: 12,
+                        color: '#63656e'
+                    },
+                    margin: {
+                        t: 10,
+                        b: 80
+                    },
+                    yaxis: {
+                        fixedrange: true
+                    },
+                    xaxis: {
+                        fixedrange: true,
+                        type: 'category',
+                        tickmode: 'auto'
+                    }
                 }
-                return result
+                this.chart = Plotly.newPlot('chart-statistics-div', data, layout, { displayModeBar: false })
             }
         }
     }
@@ -107,52 +114,9 @@
 <style lang="scss">
     .chart-box {
         min-width: 1320px;
-    }
-    .percentage {
-        position: absolute;
-        top: 64px;
-        display: flex;
-        width: 54px;
-        height: 320px;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 12px;
-    }
-    .chart-statistics-warp {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        margin: 0px 20px 0px 54px;
-        background: linear-gradient(to bottom, #ccc 0, #ccc 1px, transparent 1px);
-        background-size: 10% 76px;
-        .chart-statistics-box {
-            display: flex;
-            height: 365px;
-            width: 56px;
-            margin: auto;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            .chart-statistics-pillar {
-                width: 12px;
-                height: 85%;
-                background: #3a84ff;
-            }
-            .chart-statistics-time {
-                height: 60px;
-                font-size: 12px;
-                line-height: 60px;
-                white-space: nowrap;
-            }
-            .chart-statistic {
-                font-size: 12px;
-            }
-            .incline {
-                transform: rotate(-40deg);
-            }
+        min-height: 365px;
+        .no-data-wrapper {
+            padding-top: 130px;
         }
     }
 </style>
