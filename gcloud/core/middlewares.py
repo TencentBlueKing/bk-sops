@@ -23,7 +23,6 @@ from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
 
 from gcloud.core.models import Project
-from gcloud.core.project import sync_projects_from_cmdb
 
 logger = logging.getLogger("root")
 
