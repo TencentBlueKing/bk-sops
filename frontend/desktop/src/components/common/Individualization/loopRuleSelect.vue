@@ -691,6 +691,8 @@ $bgBlue: #3a84ff;
         /deep/ .bk-tooltip-inner {
             max-width: 520px;
             padding: 0px;
+            border: none;
+            background-color: transparent;
         }
     }
 }
