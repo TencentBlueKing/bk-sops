@@ -390,20 +390,23 @@
             renderRule () {
                 this.autoRuleList.map((m, i) => {
                     const { radio, loop, checkboxList, max } = m
-                    let loopStr = ''
+                    let loopRule = ''
                     if (loop.start === (loopStarZeroList.includes(m.key) ? 0 : 1)) {
-                        loopStr = `*/${loop.inter}`
+                        loopRule = `*/${loop.inter}`
                         if (loop.inter === 1) {
-                            loopStr = '*'
+                            loopRule = '*'
                         }
                     } else {
-                        loopStr = `${loop.start}-${max}/${loop.inter}`
+                        loopRule = `${loop.start}-${max}/${loop.inter}`
                     }
-                    const pointStr = checkboxList.filter(res => res.checked).map(res => {
-                        // satrt 1 时 显示 i + 1
-                        return loopStarOneList.includes(m.key) ? res.v + 1 : res.v
-                    }).join(',') || '*'
-                    const data = radio === 0 ? loopStr : pointStr
+                    const pointRule = checkboxList
+                        .filter(res => res.checked)
+                        .map(res => {
+                            // satrt 1 时 显示 i + 1
+                            return loopStarOneList.includes(m.key) ? res.v + 1 : res.v
+                        })
+                        .join(',') || '*'
+                    const data = radio === 0 ? loopRule : pointRule
                     this.$set(this.expressionList, i, data)
                 })
             },
@@ -431,7 +434,7 @@
                         exportList.push(mergeItem)
                         hasMergeList = [...hasMergeList, ...mergeItem]
                     }
-                    return exportList.map(m => m.length > 1 ? `${m[0]}-${m[m.length - 1]}` : `${m[0]}`)
+                    return exportList.map(m => m.length > 1 ? `${m[0]}-${m[m.length - 1]}/1` : `${m[0]}`)
                 } else {
                     return arr
                 }
@@ -672,7 +675,7 @@ $bgBlue: #3a84ff;
     }
     .periodic-img-tooltip {
         position: absolute;
-        right: -20px;
+        right: -18px;
         top: 10px;
         color: #c4c6cc;
         font-size: 14px;
@@ -686,7 +689,8 @@ $bgBlue: #3a84ff;
             display: none;
         }
         /deep/ .bk-tooltip-inner {
-            max-width: 590px;
+            max-width: 520px;
+            padding: 0px;
         }
     }
 }

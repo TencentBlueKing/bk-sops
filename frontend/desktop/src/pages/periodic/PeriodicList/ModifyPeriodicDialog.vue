@@ -196,7 +196,7 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 /deep/ .bk-dialog-body {
-    height: 432px;
+    height: 420px;
     overflow-y: auto;
 }
 .periodic-info {
