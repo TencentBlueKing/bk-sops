@@ -118,9 +118,10 @@
                     if (this.common) {
                         url += `?common=1&common_template=${this.common}`
                     }
-                } else if (this.userType === 'functor' || this.userType === 'auditor') {
-                    this.$router.go(-1)
-                    return
+                } else if (this.userType === 'functor' || this.userType === 'maintainer') {
+                    url = `/function/home/`
+                } else if (this.userType === 'auditor') {
+                    url = `/audit/home/`
                 }
                 this.$router.push(url)
             }
