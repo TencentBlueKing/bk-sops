@@ -118,7 +118,7 @@
                     if (this.common) {
                         url += `?common=1&common_template=${this.common}`
                     }
-                } else if (this.userType === 'functor' || this.userType === 'maintainer') {
+                } else if (this.userType === 'functor') {
                     url = `/function/home/`
                 } else if (this.userType === 'auditor') {
                     url = `/audit/home/`
