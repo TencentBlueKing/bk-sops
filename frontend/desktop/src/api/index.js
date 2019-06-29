@@ -593,7 +593,7 @@ const api = {
      */
     createTask (data) {
         const { app_id, view_mode, username } = store.state
-        const { project_id } = store.state
+        const { project_id } = store.state.project
         const { templateId, name, description, execData, flowType, common } = data
         const prefixUrl = this.getPrefix('instance')
         const requestData = {
