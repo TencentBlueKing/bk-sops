@@ -261,7 +261,7 @@ class TemplateSchemeResource(GCloudModelResource):
         try:
             template_id = bundle.data.pop('template_id')
             project_id = bundle.data.pop('project_id')
-            _ = json.loads(bundle.data['data'])
+            _ = json.loads(bundle.data['data'])  # noqa
         except Exception as e:
             message = 'create scheme params error: %s' % e
             logger.error(message)
