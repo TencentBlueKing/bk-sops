@@ -83,19 +83,19 @@ class BkIAMClient(object):
             }
 
         try:
-            data = response.json()
-            logger.debug(u'bk_iam request({url}) return: {data}'.format(url=response.request.url, data=data))
-            if not data['result']:
+            resp_data = response.json()
+            logger.debug(u'bk_iam request({url}) return: {data}'.format(url=response.request.url, data=resp_data))
+            if not resp_data['result']:
                 logger.error(u'bk_iam return error, message {message}, request_id={request_id}, '
                              u'url={url}, headers={headers}, params={params}, data={data}, '
-                             u'response={response}'.format(message=data['message'],
-                                                           request_id=data.get('request_id'),
+                             u'response={response}'.format(message=resp_data['message'],
+                                                           request_id=resp_data.get('request_id'),
                                                            url=url,
                                                            headers=_headers,
                                                            params=params,
                                                            data=data,
                                                            response=response.text))
-            return data
+            return resp_data
         except Exception as e:
             message = u'bk_iam request({url}) error, response json convert failed: {e}, response: {response}'.format(
                 url=response.request.url, e=e, response=response.content)

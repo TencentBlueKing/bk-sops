@@ -274,6 +274,7 @@ class JobFastExecuteScriptService(JobService):
         job_script = data.get_one_of_inputs('job_script')
 
         biz_cc_id = job_script['biz_cc_id']
+        data.inputs.biz_cc_id = biz_cc_id
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(
             username=executor,
@@ -314,16 +315,13 @@ class JobFastExecuteScriptService(JobService):
             job_instance_id = job_result['data']['job_instance_id']
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
-            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             data.outputs.client = client
             return True
         else:
             data.outputs.ex_data = job_handle_api_error('job.fast_execute_script',
                                                         job_kwargs,
                                                         job_result)
-            if ip_info['invalid_ip']:
-                data.outputs.ex_data = '{origin}, invalid ip: {ips}'.format(origin=data.outputs.ex_data,
-                                                                            ips=','.join(ip_info['invalid_ip']))
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
