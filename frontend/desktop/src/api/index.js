@@ -650,13 +650,14 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, project_id } = data
+        const { instance_id, project_id, subprocess_id } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
             url: `${prefixUrl}${project_id}/`,
             params: {
-                instance_id
+                instance_id,
+                subprocess_id
             }
         }
 
