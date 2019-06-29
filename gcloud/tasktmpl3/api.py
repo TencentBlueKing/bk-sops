@@ -59,12 +59,9 @@ def form(request, project_id):
             'message': 'there is no template with id(%s)' % template_id
         })
     ctx = {
-        'result': True,
-        'data': {
-            'form': template.get_form(version),
-            'outputs': template.get_outputs(version),
-            'version': version or template.version
-        }
+        'form': template.get_form(version),
+        'outputs': template.get_outputs(version),
+        'version': version or template.version
     }
     return JsonResponse(ctx)
 
