@@ -44,7 +44,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         instanceRevoke: SITE_URL + 'taskflow/api/action/revoke/' + PROJECT_ID + '/',
         instanceResume: SITE_URL + 'taskflow/api/action/resume/' + PROJECT_ID + '/',
         instanceModify: SITE_URL + 'taskflow/api/inputs/modify/' + PROJECT_ID + '/',
-        instanceClaim: SITE_URL + 'taskflow/api/flow/claim/' + PROJECT_ID + '/',
+        instanceClaim: SITE_URL + 'taskflow/api/flow/claim/',
         instanceDetail: SITE_URL + 'taskflow/detail/' + PROJECT_ID + '/',
         instanceStatus: SITE_URL + 'taskflow/api/status/',
         nodeActInfo: SITE_URL + 'taskflow/api/nodes/data/' + PROJECT_ID + '/',
