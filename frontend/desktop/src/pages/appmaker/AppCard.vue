@@ -36,9 +36,11 @@
                     :title="i18n.modifier"
                     @click.stop="onCardEdit">
                 </span>
-                <span class="common-icon-clock-reload operate-btn" :title="i18n.executive">
-                    <router-link :to="getExecuteHistoryUrl(appData.template_id)"></router-link>
-                </span>
+                <router-link
+                    class="common-icon-clock-reload operate-btn"
+                    :title="i18n.executive"
+                    :to="getExecuteHistoryUrl(appData.template_id)">
+                </router-link>
                 <span
                     :class="['common-icon-dustbin', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
