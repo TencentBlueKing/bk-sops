@@ -321,9 +321,6 @@ class JobFastExecuteScriptService(JobService):
             data.outputs.ex_data = job_handle_api_error('job.fast_execute_script',
                                                         job_kwargs,
                                                         job_result)
-            if ip_info['invalid_ip']:
-                data.outputs.ex_data = '{origin}, invalid ip: {ips}'.format(origin=data.outputs.ex_data,
-                                                                            ips=u','.join(ip_info['invalid_ip']))
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
