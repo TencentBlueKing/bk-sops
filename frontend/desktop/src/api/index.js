@@ -636,10 +636,15 @@ const api = {
      */
     claimFuncTask (data) {
         const prefixUrl = this.getPrefix('instanceClaim')
-        const requestData = qs.stringify(data)
+        const { name, instance_id, constants, project_id } = data
+        const requestData = qs.stringify({
+            name,
+            instance_id,
+            constants
+        })
         const opts = {
             method: 'POST',
-            url: prefixUrl,
+            url: `${prefixUrl}${project_id}/`,
             data: requestData
         }
 
