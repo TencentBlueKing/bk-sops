@@ -323,7 +323,7 @@ class JobFastExecuteScriptService(JobService):
                                                         job_result)
             if ip_info['invalid_ip']:
                 data.outputs.ex_data = '{origin}, invalid ip: {ips}'.format(origin=data.outputs.ex_data,
-                                                                            ips=','.join(ip_info['invalid_ip']))
+                                                                            ips=u','.join(ip_info['invalid_ip']))
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
