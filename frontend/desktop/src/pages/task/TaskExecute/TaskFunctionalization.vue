@@ -194,6 +194,7 @@
                     const data = {
                         name: this.name,
                         instance_id: this.instance_id,
+                        project_id: this.project_id,
                         constants: JSON.stringify(formData)
                     }
                     try {
