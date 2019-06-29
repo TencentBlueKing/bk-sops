@@ -72,7 +72,7 @@
                 'appId': state => state.app_id,
                 'site_url': state => state.site_url
             }),
-            ...mapState({
+            ...mapState('project', {
                 'project_id': state => state.project_id
             }),
             isRouterViewShow () {
