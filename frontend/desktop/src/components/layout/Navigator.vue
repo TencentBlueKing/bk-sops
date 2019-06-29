@@ -74,6 +74,7 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -164,6 +165,7 @@
                 i18n: {
                     help: gettext('帮助文档')
                 },
+                hasAdminPerm: false, // 是否拥有管理员入口查看权限
                 homeRoute: {
                     key: 'home',
                     path: '/home/'
@@ -209,7 +211,7 @@
                     let routes = ROUTE_LIST[`${this.userType}_router_list`]
 
                     // 非管理员用户去掉管理员入口
-                    if (!this.isSuperUser) {
+                    if (!this.hasAdminPerm) {
                         routes = routes.filter(item => item.key !== 'admin')
                     }
                     return routes
@@ -233,6 +235,9 @@
             this.initHome()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('project', [
                 'loadProjectList'
             ]),
@@ -244,8 +249,26 @@
             ]),
             async initHome () {
                 if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
+                    this.getAdminPerm()
                     const res = await this.loadProjectList({ limit: 0 })
                     this.setProjectPerm(res.meta)
+                }
+            },
+            async getAdminPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'admin_operate',
+                        action_ids: JSON.stringify(['view'])
+                    })
+    
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'view' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.hasAdminPerm = true
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
                 }
             },
             isNavActived (route) {
