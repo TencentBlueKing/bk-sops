@@ -274,6 +274,7 @@ class JobFastExecuteScriptService(JobService):
         job_script = data.get_one_of_inputs('job_script')
 
         biz_cc_id = job_script['biz_cc_id']
+        data.inputs.biz_cc_id = biz_cc_id
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(
             username=executor,
