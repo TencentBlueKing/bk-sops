@@ -45,21 +45,23 @@ get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
               actions=[taskflow_resource.actions.view])
 def status(request, project_id):
     instance_id = request.GET.get('instance_id')
-    try:
-        task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
-        task_status = task.get_status()
-        ctx = {'result': True, 'data': task_status}
-        return JsonResponse(ctx)
+    subprocess_id = request.GET.get('subprocess_id')
+
+    if not subprocess_id:
+        try:
+            task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id)
+            task_status = task.get_status()
+            ctx = {'result': True, 'data': task_status}
+            return JsonResponse(ctx)
+        except Exception as e:
+            message = 'taskflow[id=%s] get status error: %s' % (instance_id, e)
+            logger.error(message)
+            ctx = {'result': False, 'message': message}
+            return JsonResponse(ctx)
+
     # 请求子流程的状态，直接通过pipeline api查询
-    except (ValueError, TaskFlowInstance.DoesNotExist):
-        logger.info('taskflow[id=%s] does not exist' % instance_id)
-    except Exception as e:
-        message = 'taskflow[id=%s] get status error: %s' % (instance_id, e)
-        logger.error(message)
-        ctx = {'result': False, 'message': message}
-        return JsonResponse(ctx)
     try:
-        task_status = pipeline_api.get_status_tree(instance_id, max_depth=99)
+        task_status = pipeline_api.get_status_tree(subprocess_id, max_depth=99)
         TaskFlowInstance.format_pipeline_status(task_status)
         ctx = {'result': True, 'data': task_status}
     # subprocess pipeline has not executed
