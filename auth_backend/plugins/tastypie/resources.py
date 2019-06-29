@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from auth_backend.plugins.utils import search_all_resources_authorized_actions
 
+from ..constants import ALL_INSTANCE_PLACEHOLDER
+
 
 class BkSaaSLabeledDataResourceMixin(object):
     def dehydrate(self, bundle):
@@ -23,6 +25,9 @@ class BkSaaSLabeledDataResourceMixin(object):
 
         resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource)
         auth_actions = resources_perms.get(str(bundle.obj.pk), [])
+        if ALL_INSTANCE_PLACEHOLDER in resources_perms:
+            auth_actions.extend(resources_perms['*'])
+            auth_actions = list(set(auth_actions))
         bundle.data['auth_actions'] = auth_actions
         return bundle
 
