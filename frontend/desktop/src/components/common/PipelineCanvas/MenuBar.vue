@@ -30,7 +30,9 @@
                     <div
                         v-if="item.type === 'startpoint' || item.type === 'endpoint'"
                         class="node-circle">
-                        {{i18n[item.type]}}
+                        <div class="node-content">
+                            {{i18n[item.type]}}
+                        </div>
                     </div>
                 </li>
             </ul>
@@ -295,11 +297,14 @@
     margin: 0 auto;
     width: 32px;
     height: 32px;
-    line-height: 32px;
+    line-height: 30px;
     font-size: 12px;
     border-radius: 50%;
     background-color: #ffffff;
     border: 1px solid #546a9e;
+    .node-content {
+        transform: scale(0.8);
+    }
 }
 .startpoint-unavailable,
 .endpoint-unavailable {
