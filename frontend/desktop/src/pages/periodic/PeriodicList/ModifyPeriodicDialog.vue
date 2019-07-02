@@ -43,6 +43,12 @@
                 </div>
             </div>
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :dialog-footer-data="dialogFooterData"
+            @onConfirm="onModifyPeriodicConfirm"
+            @onCancel="onModifyPeriodicCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -52,6 +58,7 @@
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
@@ -59,7 +66,8 @@
         components: {
             TaskParamEdit,
             NoData,
-            LoopRuleSelect
+            LoopRuleSelect,
+            DialogLoadingBtn
         },
         props: ['isModifyDialogShow', 'taskId', 'cron', 'constants', 'loading'],
         data () {
@@ -76,7 +84,18 @@
                     regex: PERIODIC_REG
                 },
                 periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
-                periodicCron: this.cron
+                periodicCron: this.cron,
+                dialogFooterData: [
+                    {
+                        type: 'primary',
+                        loading: false,
+                        btnText: gettext('确认'),
+                        click: 'onConfirm'
+                    }, {
+                        btnText: gettext('取消'),
+                        click: 'onCancel'
+                    }
+                ]
             }
         },
         computed: {
@@ -95,6 +114,7 @@
             onModifyPeriodicConfirm () {
                 const loopRule = this.$refs.loopRuleSelect.validationExpression()
                 if (!loopRule.check) return
+                this.dialogFooterData[0].loading = true
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then((result) => {
                     let formValid = true
@@ -168,6 +188,7 @@
                                 'theme': 'error'
                             })
                         }
+                        this.dialogFooterData[0].loading = false
                         this.$emit('onModifyPeriodicConfirm')
                     })
                 } catch (e) {
@@ -187,6 +208,7 @@
                         'theme': 'error'
                     })
                 }
+                this.dialogFooterData.confirmBtnPending = false
                 this.$emit('onModifyPeriodicConfirm')
             }
         }

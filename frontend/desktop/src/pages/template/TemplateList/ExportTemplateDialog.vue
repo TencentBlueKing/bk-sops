@@ -18,7 +18,6 @@
         width="850"
         padding="0"
         :is-show.sync="isExportDialogShow"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content" class="export-container">
             <div class="template-wrapper">
@@ -103,6 +102,12 @@
                 <span class="error-info">{{i18n.errorInfo}}</span>
             </div>
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :dialog-footer-data="dialogFooterData"
+            @onConfirm="onConfirm"
+            @onCancel="onCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -110,13 +115,15 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
+            DialogLoadingBtn,
             NoData
         },
-        props: ['isExportDialogShow', 'businessInfoLoading', 'common'],
+        props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
         data () {
             return {
                 exportPending: false,
@@ -146,7 +153,18 @@
                 filterCondition: {
                     classifyId: 'all',
                     keywords: ''
-                }
+                },
+                dialogFooterData: [
+                    {
+                        type: 'primary',
+                        loading: false,
+                        btnText: gettext('确认'),
+                        click: 'onConfirm'
+                    }, {
+                        btnText: gettext('取消'),
+                        click: 'onCancel'
+                    }
+                ]
             }
         },
         computed: {
@@ -160,6 +178,11 @@
                 const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
+            }
+        },
+        watch: {
+            pending () {
+                this.dialogFooterData[0].loading = this.pending
             }
         },
         created () {

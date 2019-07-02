@@ -21,7 +21,8 @@
                     <div
                         v-if="route.children && route.children.length"
                         :key="route.key"
-                        :class="['nav-item', { 'active': isNavActived(route) }]">
+                        :class="['nav-item', { 'active': isNavActived(route) }]"
+                        @click="jumpToFirstPath(route)">
                         <span>{{route.name}}</span>
                         <div class="sub-nav">
                             <router-link
@@ -30,7 +31,7 @@
                                 :key="subRoute.key"
                                 :class="['sub-nav-item', { 'selected': isSubNavActived(subRoute) }]"
                                 :to="getPath(subRoute)"
-                                @click.native="onGoToPath(subRoute)">
+                                @click.native.stop="onGoToPath(subRoute)">
                                 {{subRoute.name}}
                             </router-link>
                         </div>
@@ -301,6 +302,14 @@
             },
             refreshCurrentPage () {
                 this.reload()
+            },
+            /**
+             * 默认跳转到第一个子级
+             * @param {Object} route -路由对象
+             */
+            jumpToFirstPath (route) {
+                const firstPath = this.getPath(route.children[0])
+                this.$router.push(firstPath)
             }
         }
     }
@@ -308,11 +317,16 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 header {
+    position: fixed;
+    top: 0px;
+    left: 0px;
     min-width: 1320px;
+    width: 100%;
     padding: 0 25px;
     height: 50px;
     font-size: 14px;
     background: #182131;
+    z-index: 10;
     .logo {
         float: left;
         margin-top: 11px;

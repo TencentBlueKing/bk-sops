@@ -348,6 +348,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+$localBorderColor: #d8e2e7;
 .global-variable-panel {
     height: 100%;
     .global-title {
@@ -385,7 +386,8 @@
                 color:#f4aa1a;
             }
         }
-        .bk-tooltip-popper {
+        /deep/.bk-tooltip-popper {
+            transform: translate3d(-7px, 104px, 0px) !important;
             .tips-item {
                 margin-bottom: 20px;
                 &:last-child {
@@ -424,7 +426,7 @@
     }
     .global-variable-content {
         height: calc(100% - 120px);
-        border-top: 1px solid $commonBorderColor;
+        border-top: 1px solid $localBorderColor;
     }
     .variable-header, .variable-list {
         position: relative;
@@ -445,7 +447,7 @@
     .variable-header {
         padding: 0 20px 0 45px;
         background: #ecf0f4;
-        border-bottom: 1px solid $commonBorderColor;
+        border-bottom: 1px solid $localBorderColor;
         .t-head {
             float: left;
             height: 40px;

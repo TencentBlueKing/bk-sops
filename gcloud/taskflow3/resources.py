@@ -15,12 +15,10 @@ import logging
 import ujson as json
 
 from django.utils.translation import ugettext_lazy as _
-from django.http.response import HttpResponseForbidden
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse
-from tastypie.resources import ModelResource
+from tastypie.exceptions import BadRequest
 
 from pipeline.engine import states
 from pipeline.exceptions import PipelineException
@@ -60,7 +58,7 @@ class TaskflowAuthorization(GCloudGenericAuthorization):
             except TaskTemplate.DoesNotExist:
                 raise BadRequest('template[pk=%s] does not exist' % template_id)
             if not bundle.request.user.has_perm(PermNm.CREATE_TASK_PERM_NAME, template):
-                raise ImmediateHttpResponse(HttpResponseForbidden('You have no permission to create task'))
+                return False
 
             if bundle.data['create_method'] == 'app_maker':
                 try:
@@ -76,16 +74,13 @@ class TaskflowAuthorization(GCloudGenericAuthorization):
                                      )
         # 公共流程
         else:
-            try:
-                template = CommonTemplate.objects.get(pk=str(template_id),
-                                                      is_deleted=False)
-            except CommonTemplate.DoesNotExist:
+            if not CommonTemplate.objects.filter(pk=str(template_id), is_deleted=False).exists():
                 raise BadRequest('common template[pk=%s] does not exist' % template_id)
             template_perm, _ = CommonTmplPerm.objects.get_or_create(common_template_id=template_id,
                                                                     biz_cc_id=business.cc_id)
             perm = 'common_%s' % PermNm.CREATE_TASK_PERM_NAME
             if not bundle.request.user.has_perm(perm, template_perm):
-                raise ImmediateHttpResponse(HttpResponseForbidden('You have no permission to create task'))
+                return False
 
         return self._get_business_for_user(
             bundle.request.user,
@@ -93,7 +88,7 @@ class TaskflowAuthorization(GCloudGenericAuthorization):
         ).filter(pk=business.pk).exists()
 
 
-class PipelineInstanceResource(ModelResource):
+class PipelineInstanceResource(GCloudModelResource):
     class Meta:
         queryset = PipelineInstance.objects.filter(is_deleted=False)
         resource_name = 'pipeline_instance'

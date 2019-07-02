@@ -866,6 +866,7 @@
                     this.$nextTick(() => {
                         this.isClickDraft = type === 'replace'
                         this.$refs.templateSetting.onTemplateSettingShow('localDraftTab')
+                        this.upDataAllNodeInfo()
                     })
                 })
             },
@@ -900,6 +901,21 @@
             },
             updateLocalTemplateData () {
                 this.localTemplateData = this.getLocalTemplateData()
+            },
+            // 重新获得缓存后，更新 dom data[raw]上绑定的数据
+            upDataAllNodeInfo () {
+                const nodes = this.draftArray[0].data.template.activities
+                Object.keys(nodes).forEach((node, index) => {
+                    this.onUpdateNodeInfo(node, {
+                        status: '',
+                        name: nodes[node].name,
+                        stage_name: nodes[node].stage_name,
+                        optional: nodes[node].optional,
+                        error_ignorable: nodes[node].error_ignorable,
+                        can_retry: nodes[node].can_retry,
+                        isSkipped: nodes[node].isSkipped
+                    })
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -928,6 +944,7 @@
     @import '@/scss/config.scss';
     .template-page {
         position: relative;
+        top: 50px;
         min-width: 1320px;
         min-height: 600px;
         height: calc(100% - 50px);
