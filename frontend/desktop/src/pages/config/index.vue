@@ -136,7 +136,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .config-page {
-    padding: 0 60px;
+    padding: 50px 60px 0 60px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #f4f7fa;
