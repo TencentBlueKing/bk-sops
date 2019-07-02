@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import abc
-import sys
 
 from django.conf import settings
 from django.utils.module_loading import import_string

@@ -18,6 +18,9 @@ import codecs
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.template.loader import render_to_string
+
+from auth_backend.constants import MIGRATION_TEMPLATE_NAME
 
 
 class ResourceSnapshotFinder(object):
@@ -64,3 +67,40 @@ class ResourceSnapshotReader(ResourceSnapshotFinder):
             snapshot = json.load(fp=fp)
 
         return snapshot
+
+
+class MigrationWriter(object):
+    def __init__(self, migration_name, snapshot_name, last_migration, app_label):
+        self.migration_name = migration_name
+        self.snapshot_name = snapshot_name
+        self.last_migration = last_migration
+        self.app_label = app_label
+
+    @property
+    def filename(self):
+        return '%s.py' % self.migration_name
+
+    @property
+    def migration_dir(self):
+        return 'auth_backend/migrations'
+
+    @property
+    def basedir(self):
+        return os.path.join(settings.BASE_DIR, self.migration_dir)
+
+    @property
+    def path(self):
+        return os.path.join(self.basedir, self.filename)
+
+    def write(self):
+        migration_dir = os.path.dirname(self.path)
+        if not os.path.isdir(migration_dir):
+            os.mkdir(migration_dir)
+
+        with codecs.open(self.path, mode='w', encoding='utf-8') as fp:
+            fp.write(render_to_string(MIGRATION_TEMPLATE_NAME, {
+                'snapshot_name': self.snapshot_name,
+                'app_label': self.app_label,
+                'initial': self.last_migration is None,
+                'last_migration_name': self.last_migration.name if self.last_migration else None
+            }))
