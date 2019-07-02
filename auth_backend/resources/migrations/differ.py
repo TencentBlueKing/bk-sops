@@ -35,7 +35,7 @@ class SnapshotDiffer(object):
                         'scope_type': scope,
                         'resource_type': resource['resource_type']
                     }
-                }] for resource in last_resources)
+                } for resource in last_resources])
 
                 continue
 
@@ -71,6 +71,8 @@ class SnapshotDiffer(object):
                         'resource_types': upsert_resources
                     }
                 })
+
+        return operations
 
     def init_diff_operations(self):
         operations = [{

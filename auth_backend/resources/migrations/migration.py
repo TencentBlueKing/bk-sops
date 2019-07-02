@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import abc
+import sys
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -55,7 +56,10 @@ class BKIAMResourceMigration(ResourceMigration):
 
     def apply(self):
         for operation in self.diff:
-            getattr(self, operation['operation'])(operation['data'])
+            operation = operation['operation']
+            data = operation['data']
+            sys.stdout.write('Perform [%s] with data: %s' % (operation, data))
+            getattr(self, operation)(data)
 
     def register_system(self, data):
         result = self.client.register_system(**data)
