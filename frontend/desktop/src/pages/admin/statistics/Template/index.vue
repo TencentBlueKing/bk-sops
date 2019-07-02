@@ -36,9 +36,10 @@
                                 :start-date="categoryStartTime"
                                 :end-date="categoryEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeCategoryTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': isDropdownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showClassifyDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -70,9 +71,10 @@
                                 :start-date="businessStartTime"
                                 :end-date="businessEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeBusinessTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': choiceDownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showBusinessDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -241,7 +243,6 @@
                 isBussLoading: true,
                 isReferLoading: true,
                 isDetailLoading: true,
-                choiceDownShow: false,
                 datePickerRefShow: false,
                 businessPickerRefShow: false,
                 choiceBusinessName: '',
@@ -380,7 +381,9 @@
                 businessStartTime: undefined,
                 businessEndTime: undefined,
                 choiceCategory: undefined,
-                endDateMax: ''
+                endDateMax: '',
+                showClassifyDatePanel: '',
+                showBusinessDatePanel: ''
             }
         },
         computed: {
@@ -620,13 +623,15 @@
             onInstanceHandleView (index, row) {
                 window.open(this.site_url + 'taskflow/home/' + row.businessId + '/?template_id=' + row.templateId)
             },
+            onShutTimeSelector () {
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
+            },
             onDatePickerClick () {
-                this.datePickerRefShow = !this.datePickerRefShow
-                this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
             },
             onTemplatePickerClick () {
-                this.businessPickerRefShow = !this.businessPickerRefShow
-                this.$refs.businessPickerRef.pickerVisible = this.businessPickerRefShow
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
@@ -687,3 +692,17 @@
         }
     }
 </script>
+<style lang="scss">
+.bk-date-range {
+    position: relative;
+    left: 20px;
+    border-right: 35px solid rgba(0,0,0,0);
+}
+.icon-angle-down {
+    transition: all linear 0.2s;
+}
+.icon-flip {
+    display: inline-block;
+    transform: rotate(180deg);
+}
+</style>
