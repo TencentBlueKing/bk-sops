@@ -23,7 +23,7 @@ class ResourceMigrationLoader(object):
 
     def is_first_make(self):
         migration_app_labels = {migration_tuple[0] for migration_tuple in self._loader.disk_migrations}
-        return APP_LABEL in migration_app_labels
+        return APP_LABEL not in migration_app_labels
 
     def last_migration(self):
         leaf_migrations = self._loader.graph.leaf_nodes(APP_LABEL)
