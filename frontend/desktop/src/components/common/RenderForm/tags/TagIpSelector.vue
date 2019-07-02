@@ -63,6 +63,7 @@
         data () {
             return {
                 loading: true,
+                isvalidate: false,
                 staticIpList: [],
                 dynamicIpList: [],
                 topoModelList: []
@@ -74,7 +75,9 @@
                     return this.value
                 },
                 set (val) {
-                    this.updateForm(val)
+                    if (this.isvalidate === true) {
+                        this.updateForm(val)
+                    }
                 }
             },
             viewValue () {
@@ -123,6 +126,7 @@
                 })
             },
             customValidate () {
+                this.isvalidate = true
                 return this.$refs.ipSelector.validate()
             }
         }
@@ -131,6 +135,5 @@
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
     padding: 0 10px 10px;
-    background: #fafbfd;
 }
 </style>

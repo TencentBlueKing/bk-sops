@@ -90,6 +90,7 @@
                     value: this.data.value
                 }
                 this.$emit('changeCondition', condition, this.index)
+                this.filedError = !this.condition.field
             },
             onConditionTextChange () {
                 const condition = {
@@ -97,6 +98,7 @@
                     value: this.condition.value.split('\n')
                 }
                 this.$emit('changeCondition', condition, this.index)
+                this.valueError = !this.condition.value
             },
             onAddCondition () {
                 if (!this.editable) {
