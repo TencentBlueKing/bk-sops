@@ -141,7 +141,7 @@
                 'setProjectActions'
             ]),
             initData () {
-                if (this.project_id !== undefined) {
+                if (this.project_id !== '' && !isNaN(this.project_id)) {
                     this.getProjectDetail()
                 }
                 if (this.viewMode === 'appmaker') {
@@ -174,7 +174,7 @@
                 if (!this.$route.meta.project) {
                     this.permissinApplyShow = false
                 } else {
-                    if (this.project_id !== undefined) {
+                    if (this.project_id !== '' && !isNaN(this.project_id)) {
                         this.permissinApplyShow = false
                         this.getProjectDetail()
                     } else { // 需要项目id页面，id为空是显示无权限页面，申请按钮跳转到项目管理页面
