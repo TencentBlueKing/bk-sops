@@ -31,9 +31,9 @@ def forward_func(apps, schema_editor):
         last_snapshot = last_reader.read()
 
     differ = SnapshotDiffer(last_snapshot, snapshot)
-    diff = differ.diff()
+    operations = differ.diff_operations()
 
-    migration = ResourceMigration.get_migration(diff)
+    migration = ResourceMigration.get_migration(operations)
 
     migration.apply()
 
