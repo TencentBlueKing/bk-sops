@@ -62,6 +62,9 @@
     border: 1px solid #c4c6cc;
     border-radius: 2px;
     outline: none;
+    &::-webkit-input-placeholder {
+        color: #c4c6cc;
+    }
     &:focus {
         border: 1px solid #3486ff;
         & + .search-icon {

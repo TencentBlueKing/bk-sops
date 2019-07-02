@@ -181,7 +181,6 @@
                 if (!key) {
                     return
                 }
-
                 if (Array.isArray(key) && Array.isArray(val)) {
                     key.forEach((k, i) => {
                         this.value[k] = val[i]
