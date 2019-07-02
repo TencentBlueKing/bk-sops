@@ -34,6 +34,6 @@ class ResourceMigrationLoader(object):
         if len(leaf_migrations) > 1:
             raise LookupError('Found multiple leaf migrations: %s' % leaf_migrations)
 
-        last_migraion_info = leaf_migrations[0]
+        last_migration_info = leaf_migrations[0]
 
-        return self._loader.get_migration(*last_migraion_info)
+        return self._loader.get_migration(*last_migration_info)
