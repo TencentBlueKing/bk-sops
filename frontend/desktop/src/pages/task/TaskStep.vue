@@ -13,7 +13,7 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
+                <span class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
                 <span class="task-title">{{ taskTemplateTitle }}</span>
                 <span class="task-name">{{ instanceName }}</span>
             </div>
@@ -45,7 +45,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'taskStatus'],
         data () {
             return {
                 i18n: {
@@ -57,7 +57,8 @@
         },
         computed: {
             ...mapState({
-                'lang': state => state.lang
+                'lang': state => state.lang,
+                userType: state => state.userType
             }),
             currentStepIndex () {
                 return this.getCurrentStepIndex()
@@ -104,11 +105,25 @@
                 return style
             },
             getHomeUrl () {
-                let url = `/template/home/${this.cc_id}/`
-                if (this.common) {
-                    url += '?common=1&common_template=common'
+                let url = '/'
+                const entrance = this.$route.query.entrance
+                if (this.userType === 'maintainer') {
+                    if (entrance && entrance === '0') {
+                        url = `/periodic/home/${this.cc_id}/`
+                    } else if (entrance && entrance === '1') {
+                        url = `/taskflow/home/${this.cc_id}/`
+                    } else {
+                        url = `/template/home/${this.cc_id}/`
+                    }
+                    if (this.common) {
+                        url += `?common=1&common_template=${this.common}`
+                    }
+                } else if (this.userType === 'functor') {
+                    url = `/function/home/`
+                } else if (this.userType === 'auditor') {
+                    url = `/audit/home/`
                 }
-                return url
+                this.$router.push(url)
             }
         }
     }
