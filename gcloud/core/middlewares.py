@@ -23,7 +23,6 @@ from django.utils.deprecation import MiddlewareMixin
 from django.db.models import ObjectDoesNotExist
 
 from gcloud.core.models import Project
-from gcloud.core.project import sync_projects_from_cmdb
 
 logger = logging.getLogger("root")
 
@@ -57,20 +56,6 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
             pass
 
         return biz_cc_id
-
-
-class ProjectSyncMiddleware(MiddlewareMixin):
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        try:
-            sync_projects_from_cmdb(username=request.user.username)
-        except Exception:
-            logger.error('An error occurred when sync business for user: {user}, details: {details}'.format(
-                user=request.user.username,
-                details=traceback.format_exc()
-            ))
 
 
 class UnauthorizedMiddleware(MiddlewareMixin):

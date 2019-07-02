@@ -335,7 +335,7 @@ routers.beforeEach((to, from, next) => {
     }
     // 设置全局 project_id
     if (to.params.project_id) {
-        store.commit('setProjectId', to.params.project_id)
+        store.commit('project/setProjectId', to.params.project_id)
     }
 
     const { userType, viewMode } = store.state

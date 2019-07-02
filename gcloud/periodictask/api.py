@@ -52,7 +52,7 @@ def set_enabled_for_periodic_task(request, project_id, task_id):
     'project_id': 'project_id'
 })
 @model_instance_inject(model_cls=Project, inject_attr='project', field_maps={
-    'project_id': 'project_id'
+    'id': 'project_id'
 })
 @verify_perms(auth_resource=periodic_task_resource,
               resource_get={'from': 'kwargs', 'key': 'task_id'},

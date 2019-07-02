@@ -53,7 +53,7 @@
                     'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
                 }]"
                 :loading="isSubmit"
-                v-cursor="{ 'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations) }"
+                v-cursor="{ active: !hasPermission(['claim'], instanceActions, instanceOperations) }"
                 @click="onTaskClaim">
                 {{ i18n.claim }}
             </bk-button>
@@ -194,6 +194,7 @@
                     const data = {
                         name: this.name,
                         instance_id: this.instance_id,
+                        project_id: this.project_id,
                         constants: JSON.stringify(formData)
                     }
                     try {

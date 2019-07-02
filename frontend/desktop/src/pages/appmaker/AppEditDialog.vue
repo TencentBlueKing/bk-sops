@@ -100,9 +100,9 @@
             <bk-button
                 type="primary"
                 :class="{
-                    'btn-permission-disable': !confirmBtnPerm
+                    'btn-permission-disable': !hasConfirmPerm
                 }"
-                v-cursor="{ active: !confirmBtnPerm }"
+                v-cursor="{ active: !hasConfirmPerm }"
                 @click="onConfirm">
                 {{i18n.confirm}}
             </bk-button>
@@ -173,8 +173,12 @@
             }
         },
         computed: {
-            confirmBtnPerm () {
-                return this.hasPermission(['create_mini_app'], this.appData.appActions, this.tplOperations)
+
+            btnPermission () {
+                return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
+            },
+            hasConfirmPerm () {
+                return this.hasPermission(this.btnPermission, this.appData.appActions, this.tplOperations)
             }
         },
         created () {
@@ -255,7 +259,7 @@
                     this.appTemplateEmpty = true
                     return
                 }
-                if (!this.confirmBtnPerm) {
+                if (!this.hasConfirmPerm) {
                     const resourceData = {
                         name: this.appData.appName,
                         id: this.appData.appTemplate,

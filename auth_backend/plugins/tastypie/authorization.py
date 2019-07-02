@@ -18,6 +18,7 @@ from tastypie.exceptions import ImmediateHttpResponse
 
 from ..http import HttpResponseAuthFailed
 from ..utils import build_need_permission
+from ..constants import ALL_INSTANCE_PLACEHOLDER
 
 logger = logging.getLogger('root')
 
@@ -74,6 +75,8 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
     def read_list(self, object_list, bundle):
         username = bundle.request.user.username
         authorized_pks = self.authorized_list(username, self.read_action_id)
+        if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
+            return object_list
         return object_list.filter(pk__in=authorized_pks)
 
     def read_detail(self, object_list, bundle):
@@ -112,6 +115,8 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
     def update_list(self, object_list, bundle):
         username = bundle.request.user.username
         authorized_pks = self.authorized_list(username, self.update_action_id)
+        if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
+            return object_list
         return object_list.filter(pk__in=authorized_pks)
 
     def update_detail(self, object_list, bundle):
@@ -122,6 +127,8 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
     def delete_list(self, object_list, bundle):
         username = bundle.request.user.username
         authorized_pks = self.authorized_list(username, self.delete_action_id)
+        if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
+            return object_list
         return object_list.filter(pk__in=authorized_pks)
 
     def delete_detail(self, object_list, bundle):

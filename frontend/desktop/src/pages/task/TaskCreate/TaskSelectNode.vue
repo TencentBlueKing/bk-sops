@@ -795,6 +795,9 @@
         background: #e1e4e8;
         border-top: 1px solid #dcdee5;
     }
+    .node-preview-wrapper {
+        height: 100%;
+    }
 }
 .node-select-scheme {
     position: absolute;

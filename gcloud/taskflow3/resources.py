@@ -18,7 +18,7 @@ from django.utils.translation import ugettext_lazy as _
 from tastypie import fields
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest
+from tastypie.exceptions import BadRequest, NotFound
 
 from auth_backend.plugins.tastypie.shortcuts import (batch_verify_or_raise_immediate_response,
                                                      verify_or_raise_immediate_response)
@@ -223,7 +223,11 @@ class TaskFlowInstanceResource(GCloudModelResource):
             except CommonTemplate.DoesNotExist:
                 raise BadRequest('common template[pk=%s] does not exist' % template_id)
 
-            project = bundle.data.project
+            try:
+                project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
+            except NotFound:
+                raise BadRequest('project with uri(%s) does not exist' % bundle.data.get('project'))
+
             perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
                             (common_template_resource, [common_template_resource.actions.create_task.id], template)]
             batch_verify_or_raise_immediate_response(principal_type='user',

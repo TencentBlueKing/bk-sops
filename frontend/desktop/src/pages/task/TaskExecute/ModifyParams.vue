@@ -31,9 +31,9 @@
             <bk-button
                 type="success"
                 :class="{
-                    'btn-permission-disable': hasSavePermission
+                    'btn-permission-disable': !hasSavePermission
                 }"
-                v-cursor="{ active: hasSavePermission }"
+                v-cursor="{ active: !hasSavePermission }"
                 @click="onModifyParams">
                 {{ i18n.save }}
             </bk-button>

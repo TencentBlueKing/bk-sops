@@ -42,7 +42,6 @@ const store = new Vuex.Store({
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id
         view_mode: window.VIEW_MODE,
-        project_id: window.PROJECT_ID,
         lang: getAppLang(),
         notFoundPage: false,
         categorys: [],
@@ -57,9 +56,6 @@ const store = new Vuex.Store({
         },
         setViewMode (state, mode) {
             state.view_mode = mode
-        },
-        setProjectId (state, id) {
-            state.project_id = id
         },
         setNotFoundPage (state, val) {
             state.notFoundPage = val
