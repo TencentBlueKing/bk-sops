@@ -346,3 +346,128 @@ class SnapshotDifferTestCase(TestCase):
         expect = []
         operations = differ.diff_operations()
         self.assertEqual(expect, operations)
+
+    def test_diff_operations__new_resource(self):
+        new_snapshot = {
+            'system': [
+                {
+                    "resource_type_name": "资源A",
+                    "actions": [
+                        {
+                            "action_name": "查看",
+                            "is_related_resource": True,
+                            "action_id": "view"
+                        },
+                        {
+                            "action_name": "编辑",
+                            "is_related_resource": True,
+                            "action_id": "edit"
+                        },
+                        {
+                            "action_name": "删除",
+                            "is_related_resource": True,
+                            "action_id": "delete"
+                        }
+                    ],
+                    "parent_resource_type": "project",
+                    "resource_type": "resource_a"
+                },
+                {
+                    "resource_type_name": "资源B",
+                    "actions": [
+                        {
+                            "action_name": "查看",
+                            "is_related_resource": True,
+                            "action_id": "view"
+                        },
+                        {
+                            "action_name": "删除",
+                            "is_related_resource": True,
+                            "action_id": "delete"
+                        }
+                    ],
+                    "parent_resource_type": "project",
+                    "resource_type": "resource_b"
+                },
+                {
+                    "resource_type_name": "资源D",
+                    "actions": [
+                        {
+                            "action_name": "查看",
+                            "is_related_resource": True,
+                            "action_id": "view"
+                        },
+                        {
+                            "action_name": "删除",
+                            "is_related_resource": True,
+                            "action_id": "delete"
+                        }
+                    ],
+                    "parent_resource_type": "project",
+                    "resource_type": "resource_d"
+                },
+            ],
+            'business': [
+                {
+                    "resource_type_name": "资源C",
+                    "actions": [
+                        {
+                            "action_name": "查看",
+                            "is_related_resource": True,
+                            "action_id": "view"
+                        },
+                        {
+                            "action_name": "删除",
+                            "is_related_resource": True,
+                            "action_id": "delete"
+                        }
+                    ],
+                    "parent_resource_type": "",
+                    "resource_type": "resource_c"
+                },
+                {
+                    "resource_type_name": "资源E",
+                    "actions": [
+                        {
+                            "action_name": "查看",
+                            "is_related_resource": True,
+                            "action_id": "view"
+                        },
+                        {
+                            "action_name": "删除",
+                            "is_related_resource": True,
+                            "action_id": "delete"
+                        }
+                    ],
+                    "parent_resource_type": "",
+                    "resource_type": "resource_e"
+                },
+            ]
+        }
+        expect = [{'data': {'resource_types': [{'actions': [{'action_id': 'view',
+                                                             'action_name': '查看',
+                                                             'is_related_resource': True},
+                                                            {'action_id': 'delete',
+                                                             'action_name': '删除',
+                                                             'is_related_resource': True}],
+                                                'parent_resource_type': 'project',
+                                                'resource_type': 'resource_d',
+                                                'resource_type_name': '资源D'}],
+                            'scope_type': 'system'},
+                   'operation': 'batch_upsert_resource_types'},
+                  {'data': {'resource_types': [{'actions': [{'action_id': 'view',
+                                                             'action_name': '查看',
+                                                             'is_related_resource': True},
+                                                            {'action_id': 'delete',
+                                                             'action_name': '删除',
+                                                             'is_related_resource': True}],
+                                                'parent_resource_type': '',
+                                                'resource_type': 'resource_e',
+                                                'resource_type_name': '资源E'}],
+                            'scope_type': 'business'},
+                   'operation': 'batch_upsert_resource_types'}]
+
+        differ = SnapshotDiffer(last_snapshot=self.snapshot, snapshot=new_snapshot)
+        operations = differ.diff_operations()
+
+        self.assertEqual(expect, operations)
