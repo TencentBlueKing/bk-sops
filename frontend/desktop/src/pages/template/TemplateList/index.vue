@@ -225,7 +225,7 @@
             :common="common"
             :is-export-dialog-show="isExportDialogShow"
             :business-info-loading="businessInfoLoading"
-            :export-pending="pending.export"
+            :pending="pending.export"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
