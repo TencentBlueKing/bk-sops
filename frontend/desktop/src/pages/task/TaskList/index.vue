@@ -801,20 +801,24 @@
             text-align: left;
            .common-icon-dark-circle-shape {
                 display: inline-block;
-                transform: scale(0.9);
-                font-size: 12px;
+                font-size: 14px;
                 color: #979BA5;
+                vertical-align: middle;
             }
             .common-icon-dark-circle-ellipsis {
                 color: #3c96ff;
-                font-size: 12px;
+                font-size: 14px;
+                vertical-align: middle;
             }
             .icon-check-circle-shape {
+                font-size: 14px;
                 color: $greenDefault;
+                vertical-align: middle;
             }
             .common-icon-dark-circle-close {
                 color: $redDefault;
                 font-size: 14px;
+                vertical-align: middle;
             }
             &.revoke {
                 color: $blueDisable;
