@@ -11,8 +11,9 @@
 */
 <template>
     <header>
-        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(businessHomeRoute)">
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" class="header-logo" @click.native="onGoToPath(businessHomeRoute)">
             <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
         </router-link>
         <img v-else :src="logo" class="logo" />
         <nav>
@@ -161,9 +162,10 @@
         props: ['appmakerDataLoading'],
         data () {
             return {
-                logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
+                logo: require('../../assets/images/logo/logo_icon.svg'),
                 i18n: {
-                    help: gettext('帮助文档')
+                    help: gettext('帮助文档'),
+                    title: gettext('标准运维')
                 },
                 businessHomeRoute: {
                     key: 'business',
@@ -326,11 +328,23 @@ header {
     height: 50px;
     font-size: 14px;
     background: #182131;
-    z-index: 10;
-    .logo {
+    .header-logo{
         float: left;
-        margin-top: 11px;
-        width: 110px;
+        height: 100%;
+        line-height: 50px;
+        .logo,.header-title{
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .logo {
+            width: 28px;
+            height: 28px;
+        }
+        .header-title{
+            margin-left: 6px;
+            font-size: 18px;
+            color: #979ba5;
+        }
     }
     nav {
         float: left;
@@ -343,7 +357,7 @@ header {
         min-width: 90px;
         height: 50px;
         line-height: 50px;
-        color: #979BA5;
+        color: #979ba5;;
         text-align: center;
         border-radius: 2px;
         cursor: pointer;

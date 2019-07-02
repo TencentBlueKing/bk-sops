@@ -67,8 +67,11 @@
                                 </a>
                             </span>
                             <span class="col-item col-attributes">
-                                <span>
-                                    {{constant.source_type !== 'component_outputs' ? i18n.inputs : i18n.outputs}}/{{ constant.show_type === 'show' ? i18n.show : i18n.hide}}
+                                <span class="icon-wrap">
+                                    <i v-if="constant.source_type !== 'component_outputs'" class="common-icon-show-left" />
+                                    <i v-else class="common-icon-hide-right color-org" />
+                                    <i v-if="constant.show_type === 'show'" class="common-icon-eye-show" />
+                                    <i v-else class="common-icon-eye-hide color-org" />
                                 </span>
                             </span>
                             <span class="col-item col-output">
@@ -438,7 +441,32 @@ $localBorderColor: #d8e2e7;
             width: 128px;
         }
         .col-attributes {
+            padding-left: 4px;
             width: 70px;
+            .icon-wrap {
+                vertical-align: middle;
+                line-height: 1;
+                display: inline-block;
+                .common-icon-show-left {
+                    color: #219f42;
+                    font-size: 14px;
+                }
+                .common-icon-hide-right {
+                    font-size: 14px;
+                }
+                .common-icon-eye-show {
+                    margin-left: 8px;
+                    color: #219f42;
+                    font-size: 15px;
+                }
+                .common-icon-eye-hide {
+                    margin-left: 8px;
+                    font-size: 15px;
+                }
+                .color-org{
+                    color: #de9524;
+                }
+            }
         }
         .col-output {
             width: 50px;
@@ -508,7 +536,7 @@ $localBorderColor: #d8e2e7;
         .col-item-delete {
             display: none;
             position: absolute;
-            top: 13px;
+            top: 15px;
             right: 20px;
             font-size: 14px;
             color: #979ba5;
