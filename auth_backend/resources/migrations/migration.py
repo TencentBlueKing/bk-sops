@@ -47,6 +47,7 @@ class DummyResourceMigration(ResourceMigration):
 
 class BKIAMResourceMigration(ResourceMigration):
     SYSTEM_EXIST_CODE = 1901409
+    RESOURCE_NOT_EXIST_CODE = 1901002
 
     def __init__(self, diff):
         self.client = BkIAMClient()
@@ -66,4 +67,10 @@ class BKIAMResourceMigration(ResourceMigration):
         result = self.client.batch_upsert_resource_types(**data)
 
         if not result['result']:
+            raise exceptions.MigrationOperationFailedError(result['message'])
+
+    def delete_resource_type(self, data):
+        result = self.client.delete_resource_type(**data)
+
+        if not result['result'] and result.get('code') != self.RESOURCE_NOT_EXIST_CODE:
             raise exceptions.MigrationOperationFailedError(result['message'])

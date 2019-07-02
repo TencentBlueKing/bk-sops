@@ -63,13 +63,14 @@ class SnapshotDiffer(object):
                 if current_state != old_resource:
                     upsert_resources.append(current_state)
 
-            operations.append({
-                'operation': 'batch_upsert_resource_types',
-                'data': {
-                    'scope_type': scope,
-                    'resource_types': upsert_resources
-                }
-            })
+            if upsert_resources:
+                operations.append({
+                    'operation': 'batch_upsert_resource_types',
+                    'data': {
+                        'scope_type': scope,
+                        'resource_types': upsert_resources
+                    }
+                })
 
     def init_diff_operations(self):
         operations = [{
