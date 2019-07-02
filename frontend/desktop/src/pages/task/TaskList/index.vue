@@ -594,7 +594,8 @@
 @import '@/scss/config.scss';
 .task-container {
     min-width: 1320px;
-    min-height: calc(100% - 50px);
+    min-height: calc(100% - 100px);
+    padding-top: 50px;
     background: #f4f7fa;
     .dialog-content {
         word-break: break-all;

@@ -90,7 +90,7 @@
         },
         props: ['staticIpList', 'staticIps'],
         data () {
-            const listCountPerPage = 10
+            const listCountPerPage = 5
             const listInPage = this.staticIpList.slice(0, listCountPerPage)
             const totalPage = Math.ceil(this.staticIpList.length / listCountPerPage)
 

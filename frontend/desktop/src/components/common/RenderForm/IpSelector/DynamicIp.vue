@@ -77,6 +77,9 @@
                 this.selectedList = val.slice(0)
                 this.selectedIps = val.map(item => `${item.bk_inst_id}_${item.bk_obj_id}`)
                 this.topoList = this.transPrimaryToTree(this.dynamicIpList)
+                if (val.length !== 0) {
+                    this.dataError = false
+                }
             }
         },
         methods: {
