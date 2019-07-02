@@ -96,6 +96,9 @@ class MigrationWriter(object):
         migration_dir = os.path.dirname(self.path)
         if not os.path.isdir(migration_dir):
             os.mkdir(migration_dir)
+            init_path = os.path.join(migration_dir, "__init__.py")
+            if not os.path.isfile(init_path):
+                open(init_path, "w").close()
 
         with codecs.open(self.path, mode='w', encoding='utf-8') as fp:
             fp.write(render_to_string(MIGRATION_TEMPLATE_NAME, {
