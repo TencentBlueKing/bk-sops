@@ -19,13 +19,60 @@ class SnapshotDiffer(object):
         self.last_snapshot = last_snapshot
         self.snapshot = snapshot
 
-    # TODO
-    def diff(self):
+    def diff_operations(self):
         if self.last_snapshot is None:
-            return self.init_diff()
+            return self.init_diff_operations()
 
-    def init_diff(self):
-        diff = [{
+        operations = []
+
+        for scope, last_resources in self.last_snapshot.items():
+
+            # scope not exist anymore
+            if scope not in self.snapshot:
+                operations.extend([{
+                    'operation': 'delete_resource_type',
+                    'data': {
+                        'scope_type': scope,
+                        'resource_type': resource['resource_type']
+                    }
+                }] for resource in last_resources)
+
+                continue
+
+            upsert_resources = []
+
+            current_resources = {resource['resource_type']: resource for resource in self.snapshot[scope]}
+
+            # check resource state 1 by 1
+            for old_resource in last_resources:
+                resource_type = old_resource['resource_type']
+
+                # resource had been deleted
+                if resource_type not in current_resources:
+                    operations.append({
+                        'operation': 'delete_resource_type',
+                        'data': {
+                            'scope_type': scope,
+                            'resource_type': resource_type
+                        }
+                    })
+                    continue
+
+                current_state = current_resources[resource_type]
+                # resource snapshot had changed
+                if current_state != old_resource:
+                    upsert_resources.append(current_state)
+
+            operations.append({
+                'operation': 'batch_upsert_resource_types',
+                'data': {
+                    'scope_type': scope,
+                    'resource_types': upsert_resources
+                }
+            })
+
+    def init_diff_operations(self):
+        operations = [{
             'operation': 'register_system',
             'data': {
                 'system_id': settings.BK_IAM_SYSTEM_ID,
@@ -39,7 +86,7 @@ class SnapshotDiffer(object):
         }]
 
         for scope, resources in self.snapshot.items():
-            diff.append({
+            operations.append({
                 'operation': 'batch_upsert_resource_types',
                 'data': {
                     'scope_type': scope,
@@ -47,7 +94,7 @@ class SnapshotDiffer(object):
                 }
             })
 
-        return diff
+        return operations
 
     def has_change(self):
         return self.last_snapshot != self.snapshot
