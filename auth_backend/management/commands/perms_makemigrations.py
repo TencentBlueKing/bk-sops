@@ -61,11 +61,15 @@ class Command(BaseCommand):
 
         snapshot_writer = ResourceSnapshotWriter(snapshot_name=snapshot_name, snapshot=snapshot)
         migration_writer = MigrationWriter(migration_name=migration_name,
+                                           snapshot_name=snapshot_name,
                                            last_migration=last_migration,
                                            app_label=APP_LABEL)
 
         snapshot_writer.write()
         migration_writer.write()
+        self.stdout.write('Perms migrations:')
+        self.stdout.write('  %s' % snapshot_writer.path)
+        self.stdout.write('  %s' % migration_writer.path)
 
     def operation_names(self, last_migration):
         system_id = getattr(settings, 'BK_IAM_SYSTEM_ID', None)
