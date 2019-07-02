@@ -19,6 +19,7 @@ class SnapshotDiffer(object):
         self.last_snapshot = last_snapshot
         self.snapshot = snapshot
 
+    # TODO
     def diff(self):
         if self.last_snapshot is None:
             return self.init_diff()
@@ -47,3 +48,6 @@ class SnapshotDiffer(object):
             })
 
         return diff
+
+    def has_change(self):
+        return self.last_snapshot != self.snapshot
