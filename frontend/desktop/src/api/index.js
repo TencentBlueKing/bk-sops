@@ -593,7 +593,7 @@ const api = {
      */
     createTask (data) {
         const { app_id, view_mode, username } = store.state
-        const { project_id } = store.state
+        const { project_id } = store.state.project
         const { templateId, name, description, execData, flowType, common } = data
         const prefixUrl = this.getPrefix('instance')
         const requestData = {
@@ -636,10 +636,15 @@ const api = {
      */
     claimFuncTask (data) {
         const prefixUrl = this.getPrefix('instanceClaim')
-        const requestData = qs.stringify(data)
+        const { name, instance_id, constants, project_id } = data
+        const requestData = qs.stringify({
+            name,
+            instance_id,
+            constants
+        })
         const opts = {
             method: 'POST',
-            url: prefixUrl,
+            url: `${prefixUrl}${project_id}/`,
             data: requestData
         }
 
@@ -650,13 +655,14 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, project_id } = data
+        const { instance_id, project_id, subprocess_id } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
             url: `${prefixUrl}${project_id}/`,
             params: {
-                instance_id
+                instance_id,
+                subprocess_id
             }
         }
 

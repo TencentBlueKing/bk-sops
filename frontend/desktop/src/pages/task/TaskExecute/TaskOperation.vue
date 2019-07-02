@@ -366,6 +366,10 @@
                     instance_id: this.taskId,
                     project_id: this.project_id
                 }
+                if (this.selectedFlowPath.length > 1) {
+                    data.instance_id = this.instance_id
+                    data.subprocess_id = this.taskId
+                }
                 try {
                     this.$emit('taskStatusLoadChange', true)
                     const instanceStatus = await this.getInstanceStatus(data)
