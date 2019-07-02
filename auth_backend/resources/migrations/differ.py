@@ -42,25 +42,30 @@ class SnapshotDiffer(object):
             upsert_resources = []
 
             current_resources = {resource['resource_type']: resource for resource in self.snapshot[scope]}
+            last_resources = {resource['resource_type']: resource for resource in self.last_snapshot[scope]}
+            last_resource_types = set(last_resources.keys())
+            current_resource_types = set(current_resources.keys())
+            deleted_resource_types = last_resource_types - current_resource_types
+
+            for resource_type in deleted_resource_types:
+                operations.append({
+                    'operation': 'delete_resource_type',
+                    'data': {
+                        'scope_type': scope,
+                        'resource_type': resource_type
+                    }
+                })
 
             # check resource state 1 by 1
-            for old_resource in last_resources:
-                resource_type = old_resource['resource_type']
-
-                # resource had been deleted
-                if resource_type not in current_resources:
-                    operations.append({
-                        'operation': 'delete_resource_type',
-                        'data': {
-                            'scope_type': scope,
-                            'resource_type': resource_type
-                        }
-                    })
+            for resource_type in current_resource_types:
+                if resource_type not in last_resource_types:
+                    upsert_resources.append(current_resources[resource_type])
                     continue
 
                 current_state = current_resources[resource_type]
+                last_state = last_resources[resource_type]
                 # resource snapshot had changed
-                if current_state != old_resource:
+                if current_state != last_state:
                     upsert_resources.append(current_state)
 
             if upsert_resources:

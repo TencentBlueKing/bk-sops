@@ -25,20 +25,20 @@ from auth_backend.resources.migrations import exceptions
 class ResourceMigration(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, diff):
-        self.diff = diff
+    def __init__(self, diff_operations):
+        self.diff_operations = diff_operations
 
     @abc.abstractmethod
     def apply(self):
         pass
 
     @staticmethod
-    def get_migration(diff):
+    def get_migration(diff_operations):
         path = getattr(settings, 'AUTH_BACKEND_RESOURCE_MIGRATION_CLASS', None)
         if not path:
-            return DummyResourceMigration(diff)
+            return DummyResourceMigration(diff_operations)
 
-        return import_string(path)(diff)
+        return import_string(path)(diff_operations)
 
 
 class DummyResourceMigration(ResourceMigration):
@@ -50,16 +50,16 @@ class BKIAMResourceMigration(ResourceMigration):
     SYSTEM_EXIST_CODE = 1901409
     RESOURCE_NOT_EXIST_CODE = 1901002
 
-    def __init__(self, diff):
+    def __init__(self, diff_operations):
         self.client = BkIAMClient()
-        super(BKIAMResourceMigration, self).__init__(diff)
+        super(BKIAMResourceMigration, self).__init__(diff_operations)
 
     def apply(self):
-        for operation in self.diff:
-            operation = operation['operation']
+        for operation in self.diff_operations:
+            op = operation['operation']
             data = operation['data']
-            sys.stdout.write('Perform [%s] with data: %s' % (operation, data))
-            getattr(self, operation)(data)
+            sys.stdout.write('\nPerform [%s] with data: %s' % (op, data))
+            getattr(self, op)(data)
 
     def register_system(self, data):
         result = self.client.register_system(**data)
