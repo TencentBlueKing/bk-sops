@@ -42,7 +42,7 @@
                             <td width="40%">{{permission.action_name}}</td>
                         </tr>
                         <tr v-if="false">
-                            <td class="no-data" colspan="3">{{i18n.noData}}</td>
+                            <td class="no-data" colspan="2">{{i18n.noData}}</td>
                         </tr>
                     </tbody>
                 </table>
