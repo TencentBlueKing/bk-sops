@@ -928,6 +928,7 @@
     @import '@/scss/config.scss';
     .template-page {
         position: relative;
+        top: 50px;
         min-width: 1320px;
         min-height: 600px;
         height: calc(100% - 50px);
