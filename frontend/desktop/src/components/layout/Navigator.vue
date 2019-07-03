@@ -322,6 +322,7 @@ header {
     position: fixed;
     top: 0px;
     left: 0px;
+    z-index: 1000;
     min-width: 1320px;
     width: 100%;
     padding: 0 25px;
