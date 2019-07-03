@@ -261,9 +261,9 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .home-page {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteMainBg;
+    // min-width: 1320px;
+    // min-height: calc(100% - 50px);
+    // background: $whiteMainBg;
 }
 .summary-info {
     background: #2b74c6;

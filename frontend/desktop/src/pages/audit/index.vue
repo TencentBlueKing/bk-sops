@@ -438,7 +438,6 @@
 }
 .list-wrapper {
     padding: 0 60px;
-    padding-top: 50px;
     min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 20px 0px;
