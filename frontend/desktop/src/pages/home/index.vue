@@ -11,7 +11,7 @@
 */
 <template>
     <div class="home-page">
-        <div v-if="!loading" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="summary-info">
                 <HomeSummary
                     :cc_id="cc_id"
