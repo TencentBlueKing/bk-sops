@@ -62,6 +62,7 @@ if (store.state.lang === 'en') {
 }
 
 $.atoms = {} // hack atom config load
+$.context = {}
 
 const InvalidNameChar = '\'‘"”$&<>'
 

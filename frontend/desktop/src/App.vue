@@ -154,6 +154,9 @@
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
                     setAtomConfigApiUrls(this.site_url, projectDetail)
+                    if (this.$route.name === 'templateEdit' && this.$route.query.common) {
+                        $.context.biz_binding = false
+                    }
                 } catch (err) {
                     errorHandler(err, this)
                 }
@@ -184,6 +187,9 @@
                 }
                 if (this.$route.query.template_id !== undefined) {
                     this.setAppmakerTemplateId(this.$route.query.template_id)
+                }
+                if (!this.$route.meta.project) {
+                    $.context.biz_binding = false
                 }
             },
             reload () {
