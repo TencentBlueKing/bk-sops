@@ -119,6 +119,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
+
 # CELERY 开关，使用时请改为 True，修改项目目录下的 Procfile 文件，添加以下两行命令：
 # python manage.py celery worker -l info
 # python manage.py celery beat -l info
@@ -131,6 +132,18 @@ CELERYD_CONCURRENCY = os.getenv('BK_CELERYD_CONCURRENCY', 2)
 # CELERY 配置，申明任务的文件路径，即包含有 @task 装饰器的函数文件
 CELERY_IMPORTS = (
 )
+
+# celery settings
+if IS_USE_CELERY:
+    INSTALLED_APPS = locals().get('INSTALLED_APPS', [])
+    import djcelery
+    INSTALLED_APPS += (
+        'djcelery',
+    )
+    djcelery.setup_loader()
+    CELERY_ENABLE_UTC = True
+    CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+
 
 # 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
 # 注意：请在首次提测和上线前修改，之后的修改将不会生效
@@ -171,6 +184,32 @@ HAYSTACK_CONNECTIONS = {
 
 # 通知公告域名
 PUSH_URL = os.environ.get('BK_PUSH_URL', '')
+
+
+# remove disabled apps
+if locals().get('DISABLED_APPS'):
+    INSTALLED_APPS = locals().get('INSTALLED_APPS', [])
+    DISABLED_APPS = locals().get('DISABLED_APPS', [])
+
+    INSTALLED_APPS = [_app for _app in INSTALLED_APPS
+                      if _app not in DISABLED_APPS]
+
+    _keys = ('AUTHENTICATION_BACKENDS',
+             'DATABASE_ROUTERS',
+             'FILE_UPLOAD_HANDLERS',
+             'MIDDLEWARE',
+             'PASSWORD_HASHERS',
+             'TEMPLATE_LOADERS',
+             'STATICFILES_FINDERS',
+             'TEMPLATE_CONTEXT_PROCESSORS')
+
+    import itertools
+
+    for _app, _key in itertools.product(DISABLED_APPS, _keys):
+        if locals().get(_key) is None:
+            continue
+        locals()[_key] = tuple([_item for _item in locals()[_key]
+                                if not _item.startswith(_app + '.')])
 
 # db cache
 # create cache table by execute:
