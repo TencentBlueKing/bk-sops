@@ -16,10 +16,10 @@
             <div class="operation-area clearfix">
                 <bk-button
                     v-show="showOperationBtn"
-                    v-cursor="{ active: !hasPermission(['create_template'], authActions, authOperations) }"
+                    v-cursor="{ active: !hasPermission(createTplRequired, createTplActions, createTplOperations) }"
                     type="primary"
                     :class="['create-template', {
-                        'btn-permission-disable': !hasPermission(['create_template'], authActions, authOperations)
+                        'btn-permission-disable': !hasPermission(createTplRequired, createTplActions, createTplOperations)
                     }]"
                     @click="checkCreatePermission">
                     {{i18n.new}}
@@ -231,7 +231,7 @@
                             <td class="template-operation" v-else-if="common">
                                 <!-- 公共流程首页 -->
                                 <a
-                                    v-if="!hasPermission(['edit'], item.auth_actions, item.tplOperations)"
+                                    v-if="!hasPermission(['edit'], item.auth_actions, tplOperations)"
                                     v-cursor
                                     class="text-permission-disable"
                                     @click="onTemplatePermissonCheck(['edit'], item, $event)">
@@ -439,7 +439,8 @@
                 templateType: this.common_template,
                 deleteTemplateName: '',
                 tplOperations: [], // 模板权限字典
-                tplResource: {} // 模板资源信息
+                tplResource: {}, // 模板资源信息
+                createCommonTplAction: [] // 创建公共流程权限
             }
         },
         computed: {
@@ -462,14 +463,32 @@
             },
             showOperationBtn () {
                 return this.common === 1 ? this.common_template === undefined : true
+            },
+            createTplRequired () {
+                return this.common === 1 ? ['create'] : ['create_template']
+            },
+            createTplActions () {
+                return this.common === 1 ? this.createCommonTplAction : this.authActions
+            },
+            createTplResource () {
+                return this.common === 1 ? this.tplResource : this.authResource
+            },
+            createTplOperations () {
+                return this.common === 1 ? this.tplOperations : this.authOperations
             }
         },
         created () {
             this.getTemplateList()
             this.getProjectBaseInfo()
+            if (this.common) {
+                this.queryCreateCommonTplPerm()
+            }
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
@@ -486,6 +505,22 @@
             ...mapMutations('templateList/', [
                 'setTemplateListData'
             ]),
+            async queryCreateCommonTplPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'common_flow',
+                        action_ids: JSON.stringify(['create'])
+                    })
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.createCommonTplAction = ['create']
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
             async getTemplateList () {
                 if (this.editStartTime === '') {
                     this.editStartTime = undefined
@@ -549,13 +584,13 @@
                 }
             },
             checkCreatePermission () {
-                if (!this.hasPermission(['create_template'], this.authActions, this.authOperations)) {
+                if (!this.hasPermission(this.createTplRequired, this.createTplActions, this.createTplOperations)) {
                     const resourceData = {
-                        name: gettext('项目'),
-                        id: this.project_id,
-                        auth_actions: this.authActions
+                        name: this.common === 1 ? gettext('公共流程') : gettext('项目'),
+                        id: this.common === 1 ? '' : this.project_id,
+                        auth_actions: this.createTplActions
                     }
-                    this.applyForPermission(['create_template'], resourceData, this.authOperations, this.authResource)
+                    this.applyForPermission(this.createTplRequired, resourceData, this.createTplOperations, this.createTplResource)
                 } else {
                     const url = this.getNewTemplateUrl()
                     this.$router.push(url)

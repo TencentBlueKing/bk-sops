@@ -129,6 +129,7 @@ const routers = new VueRouter({
                 {
                     path: 'edit/:project_id?/',
                     component: TemplateEdit,
+                    name: 'templateEdit',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
@@ -140,6 +141,7 @@ const routers = new VueRouter({
                 {
                     path: 'new/:project_id/',
                     component: TemplateEdit,
+                    name: 'templateEdit',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         type: 'new',
@@ -150,6 +152,7 @@ const routers = new VueRouter({
                 {
                     path: 'clone/:project_id/',
                     component: TemplateEdit,
+                    name: 'templateEdit',
                     props: (route) => ({
                         project_id: route.params.project_id,
                         template_id: route.query.template_id,
