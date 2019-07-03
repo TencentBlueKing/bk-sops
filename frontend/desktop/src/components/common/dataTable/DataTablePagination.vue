@@ -16,7 +16,6 @@
             id="DataTablePagination"
             ref="mutipleTable"
             :data="data"
-            :max-height="height"
             :stripe="options.stripe"
             :border="options.border"
             :empty-text="i18n.emptyNoData"
@@ -166,11 +165,6 @@
                 // pageArray: 每页展示条数的控制集合，默认 _page_array 即[15, 25]
                 type: Object,
                 default: null
-            },
-            otherHeight: {
-                // 计算表格的高度
-                type: Number,
-                default: 160
             },
             options: {
                 // 表格的控制参数

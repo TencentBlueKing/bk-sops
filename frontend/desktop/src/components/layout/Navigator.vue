@@ -11,8 +11,9 @@
 */
 <template>
     <header>
-        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(businessHomeRoute)">
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" class="header-logo" @click.native="onGoToPath(businessHomeRoute)">
             <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
         </router-link>
         <img v-else :src="logo" class="logo" />
         <nav>
@@ -21,7 +22,8 @@
                     <div
                         v-if="route.children && route.children.length"
                         :key="route.key"
-                        :class="['nav-item', { 'active': isNavActived(route) }]">
+                        :class="['nav-item', { 'active': isNavActived(route) }]"
+                        @click="jumpToFirstPath(route)">
                         <span>{{route.name}}</span>
                         <div class="sub-nav">
                             <router-link
@@ -30,7 +32,7 @@
                                 :key="subRoute.key"
                                 :class="['sub-nav-item', { 'selected': isSubNavActived(subRoute) }]"
                                 :to="getPath(subRoute)"
-                                @click.native="onGoToPath(subRoute)">
+                                @click.native.stop="onGoToPath(subRoute)">
                                 {{subRoute.name}}
                             </router-link>
                         </div>
@@ -59,9 +61,9 @@
             <div class="user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
-                    v-bk-tooltips="{
+                    v-bktooltips="{
                         content: username,
-                        placement: 'bottom-end',
+                        placement: 'bottom-left',
                         theme: 'light',
                         zIndex: 1001
                     }">
@@ -160,9 +162,10 @@
         props: ['appmakerDataLoading'],
         data () {
             return {
-                logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
+                logo: require('../../assets/images/logo/logo_icon.svg'),
                 i18n: {
-                    help: gettext('帮助文档')
+                    help: gettext('帮助文档'),
+                    title: gettext('标准运维')
                 },
                 businessHomeRoute: {
                     key: 'business',
@@ -301,6 +304,14 @@
             },
             refreshCurrentPage () {
                 this.reload()
+            },
+            /**
+             * 默认跳转到第一个子级
+             * @param {Object} route -路由对象
+             */
+            jumpToFirstPath (route) {
+                const firstPath = this.getPath(route.children[0])
+                this.$router.push(firstPath)
             }
         }
     }
@@ -308,15 +319,32 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 header {
+    position: fixed;
+    top: 0px;
+    left: 0px;
     min-width: 1320px;
+    width: 100%;
     padding: 0 25px;
     height: 50px;
     font-size: 14px;
     background: #182131;
-    .logo {
+    .header-logo{
         float: left;
-        margin-top: 11px;
-        width: 110px;
+        height: 100%;
+        line-height: 50px;
+        .logo,.header-title{
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .logo {
+            width: 28px;
+            height: 28px;
+        }
+        .header-title{
+            margin-left: 6px;
+            font-size: 18px;
+            color: #979ba5;
+        }
     }
     nav {
         float: left;
@@ -329,7 +357,7 @@ header {
         min-width: 90px;
         height: 50px;
         line-height: 50px;
-        color: #979BA5;
+        color: #979ba5;;
         text-align: center;
         border-radius: 2px;
         cursor: pointer;

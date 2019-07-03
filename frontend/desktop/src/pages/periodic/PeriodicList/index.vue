@@ -23,19 +23,19 @@
                     {{i18n.createPeriodTask}}
                 </bk-button>
                 <BaseSearch
-                    class="base-search"
                     v-model="periodicName"
+                    class="base-search"
                     :input-placeholader="i18n.periodicNamePlaceholder"
                     @onShow="onAdvanceShow"
                     @input="onSearchInput">
                 </BaseSearch>
             </div>
-            <div class="periodic-search" v-show="isAdvancedSerachShow">
+            <div v-show="isAdvancedSerachShow" class="periodic-search">
                 <fieldset class="periodic-fieldset">
                     <div class="periodic-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
+                            <input v-model="creator" class="search-input" :placeholder="i18n.creatorPlaceholder" />
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.enabled}}</span>
@@ -105,7 +105,9 @@
                                 </a>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                    <ul class="bk-dropdown-list" slot="dropdown-content">
+                                    <ul
+                                        slot="dropdown-content"
+                                        class="bk-dropdown-list">
                                         <li>
                                             <a href="javascript:void(0);" @click="onDeletePeriodic(item.id, item.name)">{{ i18n.delete }}</a>
                                         </li>
@@ -125,7 +127,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <div class="panagation" v-if="totalPage > 1">
+                <div v-if="totalPage > 1" class="panagation">
                     <div class="page-info">
                         <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
                     </div>
@@ -418,6 +420,7 @@
 @import '@/scss/config.scss';
 .periodic-container {
     min-width: 1320px;
+    padding-top: 50px;
     min-height: calc(100% - 50px);
     background: #f4f7fa;
 }

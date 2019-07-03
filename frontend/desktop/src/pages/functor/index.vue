@@ -566,7 +566,7 @@ label.required:after {
     background: #f4f7fa;
 }
 .list-wrapper {
-    padding: 0 60px;
+    padding: 50px 60px 0 60px;
     min-height: calc(100vh - 240px);
 }
 .template-tooltip {

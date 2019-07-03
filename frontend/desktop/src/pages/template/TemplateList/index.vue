@@ -225,7 +225,7 @@
             :common="common"
             :is-export-dialog-show="isExportDialogShow"
             :business-info-loading="businessInfoLoading"
-            :export-pending="pending.export"
+            :pending="pending.export"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
@@ -661,7 +661,8 @@
 @import '@/scss/config.scss';
 .template-container {
     min-width: 1320px;
-    min-height: calc(100% - 50px);
+    padding-top: 50px;
+    min-height: calc(100% - 100px);
     background: #f4f7fa;
     .dialog-content {
         word-break: break-all;
