@@ -36,9 +36,10 @@
                                 :start-date="categoryStartTime"
                                 :end-date="categoryEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeCategoryTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': isDropdownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showClassifyDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -69,9 +70,10 @@
                                 :start-date="businessStartTime"
                                 :end-date="businessEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeBusinessTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': isDropdownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showBusinessDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -188,7 +190,6 @@
                 choiceBusinessName: '',
                 choiceCategoryName: '',
                 isDropdownShow: false,
-                choiceDownShow: false,
                 datePickerRefShow: false,
                 businessPickerRefShow: false,
                 isAppLicationLoading: true,
@@ -286,7 +287,9 @@
                 endDateMax: '',
                 appmakerOrderBy: '-templateId',
                 businessSelected: 'all',
-                categorySelected: 'all'
+                categorySelected: 'all',
+                showClassifyDatePanel: '',
+                showBusinessDatePanel: ''
             }
         },
         computed: {
@@ -300,7 +303,7 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: i18n.choiceAllBusiness })
+                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
@@ -468,13 +471,15 @@
                 this.categoryStartTime = startTime
                 this.businessStartTime = startTime
             },
+            onShutTimeSelector () {
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
+            },
             onDatePickerClick () {
-                this.datePickerRefShow = !this.datePickerRefShow
-                this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
             },
             onInstanceClick () {
-                this.businessPickerRefShow = !this.businessPickerRefShow
-                this.$refs.businessPickerRef.pickerVisible = this.businessPickerRefShow
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
