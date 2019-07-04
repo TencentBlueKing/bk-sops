@@ -1765,3 +1765,6 @@ msgstr "汇聚网关没有汇聚其对应的并行网关的所有分支"
 #~ msgid "API异常"
 #~ msgstr "API异常"
 
+#: custom_atoms/components/collections/test.py: 43
+msgid "disk_usaged"
+msgstr "磁盘使用率"

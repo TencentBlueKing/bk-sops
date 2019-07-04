@@ -18,11 +18,11 @@ import os
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USERNAME'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
+        'NAME': os.environ.get('BKAPP_DB_NAME'),
+        'USER': os.environ.get('BKAPP_DB_USERNAME'),
+        'PASSWORD': os.environ.get('BKAPP_DB_PASSWD'),
+        'HOST': os.environ.get('BKAPP_DB_HOST'),
+        'PORT': os.environ.get('BKAPP_DB_PORT'),
     },
 }
 
