@@ -1,6 +1,9 @@
 <template>
     <div class="permisson-apply">
         <div class="apply-content">
+            <div class="lock-img">
+                <img :src="lock" alt="permission-lock" />
+            </div>
             <h3>{{permissionTitle}}</h3>
             <p>{{permissionContent}}</p>
             <div class="operation-btns">
@@ -54,6 +57,7 @@
             return {
                 url: '',
                 authActions: [],
+                lock: require('../../assets/images/lock-radius.svg'),
                 i18n: {
                     resourceTitle: gettext('无权限访问'),
                     projectTitle: gettext('无权限访问项目'),
@@ -162,8 +166,14 @@
 </script>
 <style lang="scss" scoped>
     .apply-content {
-        margin-top: 240px;
+        padding-top: 240px;
         text-align: center;
+        .lock-img {
+            margin: 0 auto 20px;
+            width: 56px;
+            height: 58px;
+            box-shadow: 0 9px 5px -5px rgba(100, 100, 100, 0.7);
+        }
         & > h3 {
             margin: 0 0 30px;
             color: #313238;
