@@ -41,46 +41,73 @@
         <div :class="['tool-wrapper',{ 'tool-wrapper-telescopic ': showNodeList }]">
             <transition name="wrapperLeft">
                 <div class="tool-position">
-                    <bk-tooltip :content="i18n.zoomIn" :delay="1000">
-                        <div class="tool-icon" @click="onZoomIn">
-                            <i class="common-icon-zoom-in"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.zoomOut" :delay="1000">
-                        <div class="tool-icon" @click="onZoomOut">
-                            <i class="common-icon-zoom-out"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.resetZoom" :delay="1000">
-                        <div class="tool-icon" @click="onResetPosition">
-                            <i class="common-icon-reduction"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.nodeSelection" :delay="1000" v-if="isEdit">
-                        <div
-                            :class="['tool-icon', { 'actived': isSelectionOpen }]"
-                            @click="onOpenDragSelection">
-                            <i class="common-icon-marquee"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.formatPosition" :delay="1000" v-if="isEdit">
-                        <div
-                            class="tool-icon"
-                            @click="onFormatPosition">
-                            <i class="common-icon-four-square"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="selectNodeName" :delay="1000" v-if="isSelectNode">
-                        <div
-                            class="tool-icon"
-                            @click="onSelectNode">
-                            <i :class="[{
-                                'common-icon-black-box': !isSelectAll,
-                                'common-icon-black-hook': isSelectAll,
-                                'tool-disable': isPreviewMode
-                            }]"></i>
-                        </div>
-                    </bk-tooltip>
+                    <div
+                        class="tool-icon"
+                        v-bk-tooltips="{
+                            content: i18n.zoomIn,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onZoomIn">
+                        <i class="common-icon-zoom-in"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-bk-tooltips="{
+                            content: i18n.zoomOut,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onZoomOut">
+                        <i class="common-icon-zoom-out"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-bk-tooltips="{
+                            content: i18n.resetZoom,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onResetPosition">
+                        <i class="common-icon-zoom-in"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-if="isEdit"
+                        v-bk-tooltips="{
+                            content: i18n.nodeSelection,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onOpenDragSelection">
+                        <i class="common-icon-marquee"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-if="isEdit"
+                        v-bk-tooltips="{
+                            content: i18n.formatPosition,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onFormatPosition">
+                        <i class="common-icon-four-square"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-if="isSelectNode"
+                        v-bk-tooltips="{
+                            content: selectNodeName,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onSelectNode">
+                        <i :class="[{
+                            'common-icon-black-box': !isSelectAll,
+                            'common-icon-black-hook': isSelectAll,
+                            'tool-disable': isPreviewMode
+                        }]"></i>
+                    </div>
                 </div>
             </transition>
         </div>

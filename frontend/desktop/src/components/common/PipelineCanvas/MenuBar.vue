@@ -25,7 +25,7 @@
                         { 'endpoint-unavailable': item.type === 'endpoint' ? isDisableEndPoint : false }
                     ]"
                     :data-type="item.type"
-                    v-bktooltips.right="item.name"
+                    v-bk-tooltips.right="item.name"
                     @click.stop="onSelectNode(item.type)">
                     <div
                         v-if="item.type === 'startpoint' || item.type === 'endpoint'"
