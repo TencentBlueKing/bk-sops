@@ -16,7 +16,7 @@ from __future__ import absolute_import
 import logging
 import traceback
 
-from .base import ObjectResource
+from auth_backend.resources.base import ObjectResource
 
 from django.db.models.signals import post_save, post_delete
 

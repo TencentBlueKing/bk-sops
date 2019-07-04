@@ -15,7 +15,7 @@ import logging
 
 from blueapps.utils.cache import with_cache
 
-from .constants import PRINCIPAL_TYPE_USER
+from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
 
 logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')

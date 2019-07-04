@@ -16,7 +16,7 @@ import json
 from django.http import HttpResponse
 from django.core.serializers.json import DjangoJSONEncoder
 
-from .constants import AUTH_FORBIDDEN_CODE, HTTP_AUTH_FAILED_CODE
+from auth_backend.plugins.constants import AUTH_FORBIDDEN_CODE, HTTP_AUTH_FAILED_CODE
 
 
 class HttpResponseAuthFailed(HttpResponse):

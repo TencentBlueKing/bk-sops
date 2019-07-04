@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from auth_backend.plugins.utils import search_all_resources_authorized_actions
 
-from ..constants import ALL_INSTANCE_PLACEHOLDER
+from auth_backend.constants import ALL_INSTANCE_PLACEHOLDER
 
 
 class BkSaaSLabeledDataResourceMixin(object):

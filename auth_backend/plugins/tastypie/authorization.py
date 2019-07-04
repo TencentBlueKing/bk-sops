@@ -16,9 +16,9 @@ import logging
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.exceptions import ImmediateHttpResponse
 
-from ..http import HttpResponseAuthFailed
-from ..utils import build_need_permission
-from ..constants import ALL_INSTANCE_PLACEHOLDER
+from auth_backend.plugins.http import HttpResponseAuthFailed
+from auth_backend.plugins.utils import build_need_permission
+from auth_backend.plugins.constants import ALL_INSTANCE_PLACEHOLDER
 
 logger = logging.getLogger('root')
 

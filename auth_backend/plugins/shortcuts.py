@@ -13,11 +13,11 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from ..resources.base import resource_type_lib
-from ..backends import get_backend_from_config
-from ..exceptions import AuthFailedException
-from .constants import HTTP_AUTH_FAILED_CODE
-from .utils import build_need_permission
+from auth_backend.resources.base import resource_type_lib
+from auth_backend.backends import get_backend_from_config
+from auth_backend.exceptions import AuthFailedException
+from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+from auth_backend.plugins.utils import build_need_permission
 
 logger = logging.getLogger('root')
 
