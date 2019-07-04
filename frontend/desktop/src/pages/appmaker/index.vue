@@ -351,10 +351,6 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .appmaker-page {
-    min-width: 1320px;
-    min-height: calc(100% - 100px);
-    background: #f4f7fa;
-    padding-top: 50px;
     .page-content {
         padding: 0 60px 40px 60px;
     }

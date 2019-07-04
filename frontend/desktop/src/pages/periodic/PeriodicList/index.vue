@@ -419,10 +419,6 @@
 <style lang='scss'>
 @import '@/scss/config.scss';
 .periodic-container {
-    min-width: 1320px;
-    padding-top: 50px;
-    min-height: calc(100% - 50px);
-    background: #f4f7fa;
 }
 .list-wrapper {
     padding: 0 60px;
