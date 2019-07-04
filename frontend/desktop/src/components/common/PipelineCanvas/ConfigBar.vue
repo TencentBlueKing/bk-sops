@@ -39,20 +39,20 @@
         </div>
         <div class="canvas-operation-wrapper">
             <bk-button
-                type="primary"
-                class="save-canvas"
+                theme="primary"
+                class="canvas-btn"
                 :loading="templateSaving"
                 @click="onSaveTemplate(false)">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
-                type="primary"
-                class="task-btn"
+                theme="default"
+                class="canvas-btn"
                 :loading="createTaskSaving"
                 @click="onSaveTemplate(true)">
                 {{ createTaskBtnText }}
             </bk-button>
-            <router-link class="bk-button bk-button-default" :to="getHomeUrl()">{{ i18n.return }}</router-link>
+            <router-link class="bk-button bk-default canvas-btn" :to="getHomeUrl()">{{ i18n.return }}</router-link>
         </div>
     </div>
 </template>
@@ -233,22 +233,11 @@
         position: absolute;
         top: 14px;
         right: 20px;
-        .save-canvas {
-            width: 90px;
-            height: 32px;
-            line-height: 32px;
-            margin-left: 36px;
-        }
-        .bk-button-default {
-            width: 90px;
-            height: 32px;
-            line-height: 32px;
-            margin-left: 10px;
-        }
-        .bk-button.bk-primary {
-            height: 32px;
-            line-height: 32px;
-            margin-left: 10px;
+        .canvas-btn {
+            min-width: 90px;
+            &:not(:last-child) {
+                margin-right: 10px;
+            }
         }
     }
 }
