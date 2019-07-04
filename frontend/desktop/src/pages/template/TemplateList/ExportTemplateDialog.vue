@@ -11,33 +11,39 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
+        width="850"
         :ext-cls="'common-dialog'"
         :title="i18n.title"
-        width="850"
-        padding="0"
-        :is-show.sync="isExportDialogShow"
+        :mask-close="false"
+        :value="isExportDialogShow"
+        :header-position="'left'"
+        @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content" class="export-container">
+        <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
             <div class="template-wrapper">
                 <div class="search-wrapper">
                     <div class="business-selector">
-                        <bk-selector
-                            setting-key="value"
-                            :list="taskCategories"
-                            :selected="filterCondition.classifyId"
+                        <bk-select
+                            v-model="filterCondition.classifyId"
                             :disabled="exportPending"
-                            @item-selected="onSelectClassify">
-                        </bk-selector>
+                            :clearable="false"
+                            @change="onSelectClassify">
+                            <bk-option
+                                v-for="(item, index) in taskCategories"
+                                :key="index"
+                                :id="item.value"
+                                :name="item.name">
+                            </bk-option>
+                        </bk-select>
                     </div>
                     <div class="template-search">
-                        <input
+                        <bk-input
                             class="search-input"
-                            :placeholder="i18n.placeholder"
                             v-model="filterCondition.keywords"
-                            @input="onSearchInput" />
-                        <i class="common-icon-search"></i>
+                            :placeholder="i18n.placeholder"
+                            :right-icon="'icon-search'"
+                            @input="onSearchInput">
+                        </bk-input>
                     </div>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
@@ -172,10 +178,10 @@
                 'businessBaseInfo': state => state.template.businessBaseInfo
             }),
             taskCategories () {
-                if (this.businessBaseInfo.task_categories.length === 0) {
+                if (this.businessBaseInfo.task_categories && this.businessBaseInfo.task_categories.length === 0) {
                     this.getCategorys()
                 }
-                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
+                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories || [])
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
             }
@@ -333,11 +339,22 @@
                         idList.push(item.id)
                     })
                     this.$emit('onExportConfirm', idList)
+                    this.resetData()
                 }
             },
             onCancel () {
                 this.templateEmpty = false
+                this.resetData()
                 this.$emit('onExportCancel')
+            },
+            resetData () {
+                this.selectedTemplates = []
+                this.filterCondition = {
+                    classifyId: 'all',
+                    keywords: ''
+                }
+                this.isTplInPanelAllSelected = false
+                this.templateInPanel = this.templateList.slice(0)
             }
         }
     }
@@ -359,38 +376,8 @@
         height: 32px;
     }
     .template-search {
-        position: relative;
         margin-left: 265px;
         margin-bottom: 20px;
-        .search-input {
-            padding: 0 40px 0 10px;
-            width: 255px;
-            height: 32px;
-            line-height: 32px;
-            font-size: 14px;
-            background: $whiteDefault;
-            border: 1px solid #c3cdd7;
-            border-radius: 4px;
-            outline: none;
-            &:hover {
-                border-color: #c0c4cc;
-            }
-            &:focus {
-                border-color: $blueDefault;
-                & + i {
-                    color: $blueDefault;
-                }
-            }
-        }
-        .common-icon-search {
-            position: absolute;
-            right: 15px;
-            top: 9px;
-            color: $commonBorderColor;
-        }
-        .bk-selector {
-            width: 255px;
-        }
     }
     .template-wrapper {
         float: left;
@@ -419,7 +406,7 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border-radius: 4px;
+        border-radius: 2px;
         cursor: pointer;
         &:nth-child(2n + 1) {
             margin-left: 0;
@@ -456,7 +443,7 @@
         height: 56px;
         width: 195px;
         font-size: 12px;
-        border-radius: 0 4px 4px 0;
+        border-radius: 0 2px 2px 0;
     }
     .template-item-selected {
         .template-item-icon {
@@ -501,6 +488,7 @@
             width: 254px;
             height: 56px;
             background: #838799;
+            border-radius: 2px;
             &:hover .selected-delete {
                 display: inline-block;
             }

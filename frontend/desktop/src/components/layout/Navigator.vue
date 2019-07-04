@@ -61,7 +61,7 @@
             <div class="user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: username,
                         placement: 'bottom-left',
                         theme: 'light',
