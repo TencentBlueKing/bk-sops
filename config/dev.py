@@ -21,6 +21,10 @@ else:
 # 本地开发环境Å
 RUN_MODE = 'DEVELOP'
 
+# 配置平台和作业平台域名
+BK_CC_HOST = 'cmdb.class.o.qcloud.com'
+BK_JOB_HOST = 'job.class.o.qcloud.com'
+
 # APP本地静态资源目录
 STATIC_URL = '/static/'
 
@@ -51,6 +55,11 @@ DATABASES = {
             'COLLATION': 'utf8_general_ci',
         }
     },
+}
+
+REDIS = {
+    'host': 'localhost',
+    'port': 6379,
 }
 
 LOG_PERSISTENT_DAYS = 1
