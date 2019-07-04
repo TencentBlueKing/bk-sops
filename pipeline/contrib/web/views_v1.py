@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
-
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+""" # noqa
 import ujson as json
 import traceback
 import logging
@@ -117,13 +112,13 @@ def handle_instance_action(request, action):
     except Exception as e:
         logger.exception(traceback.format_exc(e))
         return action_result(False, 'An error occurred, please contact developer.', status=500)
-    return action_result(result.result, result.message)
+    return action_result(result, '')
 
 
 def start_pipeline(instance_id, username):  # get pipeline obj from parser
     instance = PipelineInstance.objects.get(instance_id=instance_id)
     try:
-        result = instance.start(username)
+        result, data = instance.start(username)
     except PipelineException as e:
         logger.exception(traceback.format_exc(e))
         return action_result(False, 'Invalid pipeline data.', status=400)
@@ -131,10 +126,10 @@ def start_pipeline(instance_id, username):  # get pipeline obj from parser
         logger.exception(traceback.format_exc(e))
         return action_result(False, 'An error occurred, please contact developer.', status=500)
 
-    if not result.result:
-        return action_result(result.result, result.message, status=400)
+    if not result:
+        return action_result(result, data, status=400)
 
-    return action_result(result.result, result.message)
+    return action_result(True, 'success')
 
 
 @csrf_exempt
@@ -153,7 +148,7 @@ def handle_node_action(request, action):
     flow_id = request.POST.get('flow_id', '')
     try:
         inputs = json.loads(inputs)
-    except Exception:
+    except:
         return action_result(False, 'Invalid inputs format.', status=400)
 
     kwargs = {}
@@ -165,7 +160,7 @@ def handle_node_action(request, action):
     except Exception as e:
         logger.exception(traceback.format_exc(e))
         return action_result(False, 'An error occurred, please contact developer.', status=500)
-    return action_result(result.result, result.message)
+    return action_result(result, '')
 
 
 def activity_callback(request):
@@ -174,15 +169,15 @@ def activity_callback(request):
     data = request.POST.get('data')
     try:
         data = json.loads(data)
-    except Exception:
+    except:
         return action_result(False, 'Invalid data format.', status=400)
 
     try:
-        result = task_service.callback(node_id, data)
+        task_service.call_back(node_id, data)
     except Exception as e:
         logger.exception(traceback.format_exc(e))
         return action_result(False, 'An error occurred, please contact developer.', status=500)
-    return action_result(result.result, result.message)
+    return action_result(True, 'success')
 
 
 @csrf_exempt
@@ -248,7 +243,7 @@ def get_constants_for_subproc(request, template_id):
         outputs[key] = data['constants'][key]
 
     return JsonResponse({
-        'constants': {k: c for k, c in constants.items() if constants[k]['show_type'] == 'show'},
+        'constants': {k: c for k, c in constants.iteritems() if constants[k]['show_type'] == 'show'},
         'outputs': outputs
     })
 
@@ -257,7 +252,7 @@ def form_for_activity(form):
     try:
         inputs = task_service.get_inputs(form['act_id'])
         outputs = task_service.get_outputs(form['act_id'])
-    except Exception:
+    except:
         subprocess_stack = form['subprocess_stack']
         act_id = form['act_id']
         instance_data = PipelineInstance.objects.get(instance_id=form['instance_id']).execution_data
@@ -315,7 +310,7 @@ def modify_instance_constants(request):
         return action_result(False, 'pipeline already started.', status=400)
 
     exec_data = instance.execution_data
-    for key, value in form['constants'].items():
+    for key, value in form['constants'].iteritems():
         if key in exec_data['constants']:
             exec_data['constants'][key]['value'] = value
     instance.set_execution_data(exec_data)
@@ -355,12 +350,12 @@ def reset_timer(request):
     node_id = form['node_id']
 
     result = task_service.forced_fail(node_id)
-    if not result.result:
+    if not result:
         return action_result(False, _(u"计时器不存在或已完成，或 pipeline 当前状态不允许重置计时器"))
 
     inputs = form['inputs']
     result = task_service.retry_activity(node_id, inputs)
-    if not result.result:
+    if not result:
         return action_result(False, _(u"重试计时器失败，请稍后再次尝试"))
 
     return action_result(True, 'success')

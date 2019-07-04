@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+{% load staticfiles %}
+<head>
+    <title>MagicBox - 页面样例</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://magicbox.bk.tencent.com/static_api/v3/assets/fontawesome/css/font-awesome.css" rel="stylesheet">
+    <!-- 去掉bootstrap响应式的样式文件 -->
+    <link href="https://magicbox.bk.tencent.com/static_api/v3/assets/bootstrap-3.3.4/css/bootstrap_noresponsive.css" rel="stylesheet">
+    <!--蓝鲸平台APP 公用的样式文件 -->
+    <link href="https://magicbox.bk.tencent.com/static_api/v3/bk/css/bk.css" rel="stylesheet">
+    <!-- Bootstrap Admin Theme -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap-admin-theme.css' %}">
+    <!-- 以下两个插件用于在IE8以及以下版本浏览器支持HTML5元素和媒体查询，如果不需要用可以移除 -->
+    <!--[if lt IE 9]>
+    <script src="https://magicbox.bk.tencent.com/static_api/v3/assets/js/html5shiv.min.js"></script>
+    <script src="https://magicbox.bk.tencent.com/static_api/v3/assets/js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body class="bootstrap-admin-with-small-navbar">
+    <!-- main / large navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top bootstrap-admin-navbar bootstrap-admin-navbar-under-small" role="navigation">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".main-navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="javascript:;">后台管理系统</a>
+                    </div>
+                    <div class="collapse navbar-collapse main-navbar-collapse">
+                        <ul class="nav navbar-nav">
+                            <li class="active"><a href="{% url 'index' %}">首页</a></li>
+                            <li><a href="{% url 'forms' %}">表单</a></li>
+                        </ul>
+                        <ul class="nav navbar-nav pull-right">
+                            <li class="dropdown">
+                                <a href="javascript:;" class="dropdown-toggle" data-hover="dropdown">下拉菜单 <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="javascript:;">选项一</a></li>
+                                    <li><a href="javascript:;">选项二</a></li>
+                                    <li><a href="javascript:;">选项三</a></li>
+                                    <li><a href="javascript:;">选项四</a></li>
+                                    <li><a href="javascript:;">选项五</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- /.navbar-collapse -->
+                </div>
+            </div>
+        </div>
+        <!-- /.container -->
+    </nav>
+
+
+    <div class="container">
+        <!-- left, vertical navbar & content -->
+        <div class="row">
+            <!-- left, vertical navbar -->
+            <div class="col-md-2">
+                <div class="list-group">
+                    <a href="{% url 'index' %}" class="list-group-item"><i class="fa fa-home mr10"></i>首页</a>
+                    <a href="{% url 'forms' %}" class="list-group-item"><i class="fa fa-bars mr10"></i>表单</a>
+                    <a href="{% url 'tables' %}" class="list-group-item active"><i class="fa fa-server mr10"></i>表格</a>
+                    <a href="img-store.html" class="list-group-item"><i class="fa fa-image mr10"></i>图库</a>
+                    <a href="panel.html" class="list-group-item"><i class="fa fa-edit mr10"></i>面板</a>
+                    <a href="Bootstrap-datatable.html" class="list-group-item"><i class="fa fa-tasks mr10"></i>表格插件</a>
+                    <a href="error-pages.html" class="list-group-item"><i class="fa fa-exclamation-triangle mr10"></i>错误页面</a>
+                </div>
+            </div>
+
+            <!-- content -->
+            <div class="col-md-10">
+
+                {% block content %}
+                {% endblock %}
+
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://magicbox.bk.tencent.com/static_api/v3/assets/js/jquery-1.10.2.min.js"></script>
+    <script src="https://magicbox.bk.tencent.com/static_api/v3/assets/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="{% static 'js/twitter-bootstrap-hover-dropdown.min.js' %}"></script>
+    <script src="https://magicbox.bk.tencent.com/static_api/v3/assets/kendoui-2015.2.624/js/kendo.all.min.js"></script>
+    {% block javascripts  %}
+    {% endblock %}
+</body>
+
+</html>

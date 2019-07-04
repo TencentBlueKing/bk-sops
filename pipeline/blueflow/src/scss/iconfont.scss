@@ -1,0 +1,143 @@
+@font-face {
+    font-family: 'commonicon';
+    src:  url('./assets/fonts/commonicon.eot?7pwykp');
+    src:  url('./assets/fonts/commonicon.eot?7pwykp#iefix') format('embedded-opentype'),
+        url('./assets/fonts/commonicon.ttf?7pwykp') format('truetype'),
+        url('./assets/fonts/commonicon.woff?7pwykp') format('woff'),
+        url('./assets/fonts/commonicon.svg?7pwykp#commonicon') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+  
+[class^="common-icon-"], [class*="common-icon-"] {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'commonicon' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.common-icon-add:before {
+  content: "\e900";
+}
+.common-icon-adjust-position:before {
+  content: "\e901";
+}
+.common-icon-appmaker:before {
+  content: "\e902";
+}
+.common-icon-arrow-down:before {
+  content: "\e903";
+}
+.common-icon-arrow-left:before {
+  content: "\e904";
+}
+.common-icon-blueking:before {
+  content: "\e905";
+}
+.common-icon-clock:before {
+  content: "\e906";
+}
+.common-icon-close:before {
+  content: "\e907";
+}
+.common-icon-close-circle:before {
+  content: "\e908";
+}
+.common-icon-done-bold:before {
+  content: "\e909";
+}
+.common-icon-done-thin:before {
+  content: "\e90a";
+}
+.common-icon-double-arrow:before {
+  content: "\e90b";
+}
+.common-icon-drag:before {
+  content: "\e90c";
+}
+.common-icon-edit:before {
+  content: "\e90d";
+}
+.common-icon-execute:before {
+  content: "\e90e";
+}
+.common-icon-eye-close:before {
+  content: "\e90f";
+}
+.common-icon-eye-open:before {
+  content: "\e910";
+}
+.common-icon-loading:before {
+  content: "\e911";
+}
+.common-icon-menu-view:before {
+  content: "\e912";
+}
+.common-icon-no-data:before {
+  content: "\e913";
+}
+.common-icon-node-branchgateway:before {
+  content: "\e914";
+}
+.common-icon-node-convergegateway:before {
+  content: "\e915";
+}
+.common-icon-node-endpoint:before {
+  content: "\e916";
+}
+.common-icon-node-parallelgateway:before {
+  content: "\e917";
+}
+.common-icon-node-startpoint:before {
+  content: "\e918";
+}
+.common-icon-node-subflow:before {
+  content: "\e919";
+}
+.common-icon-node-tasknode:before {
+  content: "\e91a";
+}
+.common-icon-pause:before {
+  content: "\e91b";
+}
+.common-icon-pin:before {
+  content: "\e91c";
+}
+.common-icon-resume:before {
+  content: "\e91d";
+}
+.common-icon-revoke:before {
+  content: "\e91e";
+}
+.common-icon-search:before {
+  content: "\e91f";
+}
+.common-icon-skip:before {
+  content: "\e920";
+}
+.common-icon-source-in:before {
+  content: "\e921";
+}
+.common-icon-source-out:before {
+  content: "\e922";
+}
+.common-icon-suspended:before {
+  content: "\e923";
+}
+.common-icon-task:before {
+  content: "\e924";
+}
+.common-icon-template:before {
+  content: "\e925";
+}
+.common-icon-warning:before {
+  content: "\e926";
+}

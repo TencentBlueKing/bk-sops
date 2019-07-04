@@ -1,25 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+""" # noqa
 
 from django.test import TestCase
-from pipeline.core.flow.base import FlowNode, SequenceFlow
+from pipeline.core.data.base import DataObject
+from pipeline.core.flow.base import FlowNode, SequenceFlowCollection, SequenceFlow
 from pipeline.core.flow.gateway import Gateway, ExclusiveGateway, Condition, ParallelGateway
-from pipeline.exceptions import ConditionExhaustedException, EvaluationException
+from pipeline.exceptions import (ConditionExhaustedException, SourceKeyException, EvaluationException)
 
 
 class TestExclusiveGateway(TestCase):
     def setUp(self):
-        ex_gateway1 = ExclusiveGateway(id='1')
+        ex_gateway1 = ExclusiveGateway(id='1', converge_gateway_id='cvg')
         next_node1 = ParallelGateway(id='1', converge_gateway_id='cvg')
         next_node2 = ParallelGateway(id='2', converge_gateway_id='cvg')
         flow1 = SequenceFlow('flow1', ex_gateway1, next_node1)
@@ -35,7 +32,7 @@ class TestExclusiveGateway(TestCase):
 
         self.gateway_for_test_determine = ex_gateway1
 
-        ex_gateway2 = ExclusiveGateway(id='2')
+        ex_gateway2 = ExclusiveGateway(id='2', converge_gateway_id='cvg')
         next_node3 = ParallelGateway(id='3', converge_gateway_id='cvg')
         next_node4 = ParallelGateway(id='4', converge_gateway_id='cvg')
         next_node5 = ParallelGateway(id='5', converge_gateway_id='cvg')
@@ -58,13 +55,13 @@ class TestExclusiveGateway(TestCase):
     def test_exclusive_gateway(self):
         gw_id = '1'
         conditions = [Condition(None, None), Condition(None, None)]
-        ex_gateway = ExclusiveGateway(id=gw_id, conditions=conditions)
+        ex_gateway = ExclusiveGateway(id=gw_id, converge_gateway_id='cvg', conditions=conditions)
         self.assertTrue(isinstance(ex_gateway, FlowNode))
         self.assertTrue(isinstance(ex_gateway, Gateway))
         self.assertEqual(conditions, ex_gateway.conditions)
 
     def test_add_condition(self):
-        ex_gateway = ExclusiveGateway(id='1')
+        ex_gateway = ExclusiveGateway(id='1', converge_gateway_id='cvg')
         flow1 = SequenceFlow('flow1', ex_gateway, None)
         self.assertEqual([], ex_gateway.conditions)
         ex_gateway.add_condition(flow1)
@@ -92,6 +89,12 @@ class TestExclusiveGateway(TestCase):
         node = self.gateway_for_test_next.outgoing.flows[1].target
         data = {'a': 2}
         self.assertEqual(node, self.gateway_for_test_next.next(data))
+
+    def test_next_none_data(self):
+        node = self.gateway_for_test_next.outgoing.flows[2].target
+        self.assertEqual(node, self.gateway_for_test_next.next())
+        self.gateway_for_test_next.outgoing.flows[2].is_default = False
+        self.assertRaises(ConditionExhaustedException, self.gateway_for_test_next.next)
 
     def test_next_exhausted(self):
         node = self.gateway_for_test_next.outgoing.flows[2].target

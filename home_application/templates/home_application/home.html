@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block head %}
+	<title>蓝鲸开发框架</title>
+	{{ block.super }}
+{% endblock %}
+
+{% block navigation %}
+	<li class="king-navbar-active"><a href="{{ SITE_URL }}"><span>首页</span></a></li>
+{% endblock %}
+
+{% block content %}
+	<div>
+		<h3>蓝鲸开发框架<small>助力你的自动化</small></h3>
+
+
+	</div>
+    <div>
+        <form action="{% url 'helloworld' %}" method="post">
+            {% csrf_token %}
+            <input type="text" name="text_input">
+            <input type="submit" class="king-btn king-success mr10" value="提交" />
+        </form>
+    </div>
+{% endblock %}
+

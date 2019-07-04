@@ -2,9 +2,7 @@
 ![](docs/resource/img/bk_sops.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.3.15-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
-[![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
-[![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
+[![Release](https://img.shields.io/badge/release-3.1.32-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
 
 Standard OPS is a product in the Tencent Blueking product system, designed to arrange task process and execution through a visual graphical interface.

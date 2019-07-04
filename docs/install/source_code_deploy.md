@@ -4,29 +4,8 @@
 通过 Fork 源代码到自己的仓库，可以进行二次开发和定制。建议公共特性开发和 bug 修复通过 Pull requests 及时提交到官方仓库。如果不需要进行二次开发，请直接在 releases 中获取打包好的版本，上传部署升级官方标准运维 SaaS。
 
 
-## 打包并收集前端静态资源
-1）安装依赖包  
-进入 frontend/desktop/，执行以下命令安装
-```bash
-npm install
-```
-
-2）本地打包
-在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
-```bash
-npm run build -- --STATIC_ENV=dev
-```
-
-3）收集静态资源
-回到项目根目录，执行以下命令收集前端静态资源到 static 目录下
-```bash
-python manage.py collectstatic --noinput
-```
-
-
 ## 创建应用  
 前往你部署的蓝鲸社区版平台，在"开发者中心"点击"应用创建"，填写需要的参数，注意代码仓库填写你的 Github 仓库地址，账号和密码。注意，由于官方已经存在一个名为"标准运维"的应用，你只能填写不一样的应用名称和应用 ID，如"标准运维定制版"、bk-sops-ce。
-后续文档中bk-sops-ce都代表你创建的应用的应用ID，如和文档示例不一致，请以你的应用ID为准。
 
 
 ## 修改配置  
@@ -34,7 +13,7 @@ python manage.py collectstatic --noinput
 
 
 ## 开通 API 白名单
-手动在你部署的蓝鲸社区版的中控机执行如下命令，开通标准运维访问蓝鲸PaaS平台API网关的白名单，以便标准插件可以正常调用 API。
+手动在你部署的蓝鲸社区版的中控机执行如下命令，开通标准运维访问蓝鲸PaaS平台API网关的白名单，以便标准运维原子可以正常调用 API。
 ```bash
 source /data/install/utils.fc
 add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "标准运维定制版"
@@ -51,7 +30,8 @@ add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "标准运维定制版"
 
 
 ## 修改标准运维环境变量配置
-在浏览器输入网址 http://{BK_PAAS_HOST}/o/bk-sops-ce/admin/，打开标准运维管理后台页面。
+打开蓝鲸桌面 http://{BK_PAAS_HOST}/console/，在应用市场找到名字为“标准运维” (APP_CODE: bk_sops) 的应用，添加到桌面并打开。
+修改浏览器链接为 http://{BK_PAAS_HOST}/o/bk-sops-ce/admin/，打开标准运维管理后台页面。
 
 ![](../resource/img/admin_home.png)
 
@@ -72,7 +52,7 @@ add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "标准运维定制版"
 按照前面的步骤操作后，你已经在蓝鲸社区版 PaaS 上创建了一个标准运维的定制版本，如果功能测试正常（请主要测试流程模板创建、任务执行、任务操作等核心功能），那么你可以选择下架官方标准运维应用，并用定制版本替换。  
 
 1) 如果需要保留官方标准运维应用的所有数据，你需要修改数据库配置  
-获取你部署的蓝鲸社区版平台的数据库账号密码，以及官方标准运维应用的数据库名，默认测试环境是 bk_sops_bkt，正式环境是 bk_sops。修改代码的 config/stag.py 和 config/prod.py，分别修改为上面获取的官方标准运维应用的数据库信息。
+获取你部署的蓝鲸社区版平台的数据库账号密码，以及官方标准运维应用的数据库名，默认测试环境是 bk_sops_bkt，正式环境是 bk_sops。修改代码的 conf/settings_testing.py 和 conf/settings_production.py，分别修改为上面获取的官方标准运维应用的数据库信息。
 ```python
 DATABASES = {
     'default': {
@@ -88,4 +68,4 @@ DATABASES = {
 ```
 
 2) 由于标准运维接入了蓝鲸PaaS平台API网关，你需要修改标准运维网关配置
-请参考[API网关替换方式](https://docs.bk.tencent.com/bk_osed/guide.html#SaaS)文档，把标准运维 API 转发到你的定制版本的接口。
+请参考[API网关替换方式](https://github.com/Tencent/bk-PaaS/blob/master/docs/install/replace_ce_with_opensource.md#open_paas)文档，把标准运维 API 转发到你的定制版本的接口。

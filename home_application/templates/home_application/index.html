@@ -1,0 +1,243 @@
+{% extends "home_application/base.html" %}
+{% block content %}
+
+    <div class="container">
+        <!-- left, vertical navbar & content -->
+        <div class="row">
+            <!-- content -->
+            <div class="col-md-10">
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="alert alert-success bootstrap-admin-alert">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <h4>欢迎使用 后台管理系统</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="navbar navbar-default bootstrap-admin-navbar-thin">
+                            <ol class="breadcrumb bootstrap-admin-breadcrumb">
+                                <li>
+                                    <a href="javascript:;">首页</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:;">栏目</a>
+                                </li>
+                                <li class="active">当前内容</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="text-muted bootstrap-admin-box-title">项目一</div>
+                                <div class="pull-right"></div>
+                            </div>
+                            <div class="bootstrap-admin-panel-content">
+                                <div id="hight-main" style="height:350px;padding:10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="text-muted bootstrap-admin-box-title">项目二</div>
+                                <div class="pull-right"></div>
+                            </div>
+                            <div class="bootstrap-admin-panel-content">
+                                <div id="chart" style="height:350px;padding:10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="text-muted bootstrap-admin-box-title">客户信息</div>
+                                <div class="pull-right"><span class="badge">17</span></div>
+                            </div>
+                            <div class="bootstrap-admin-panel-content">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>姓名</th>
+                                            <th>邮箱</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>Mark</td>
+                                            <td>asd@mdo.com</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>Jacob</td>
+                                            <td>jkl@fat.com</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>Vincent</td>
+                                            <td>1234@elva.com</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>Jacob</td>
+                                            <td>jkl@fat.com</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>Vincent</td>
+                                            <td>1234@elva.com</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="text-muted bootstrap-admin-box-title">发货单</div>
+                                <div class="pull-right"><span class="badge">812</span></div>
+                            </div>
+                            <div class="bootstrap-admin-panel-content">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>序号</th>
+                                            <th>日期</th>
+                                            <th>金额</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>02/02/2013</td>
+                                            <td>$25.12</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>01/02/2013</td>
+                                            <td>$335.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>01/02/2013</td>
+                                            <td>$29.99</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>01/02/2013</td>
+                                            <td>$335.00</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>01/02/2013</td>
+                                            <td>$29.99</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block javascripts %}
+    <script type="text/javascript">
+        $("#hight-main").kendoChart({
+            legend: {
+                position: "top"
+            },
+            theme: 'bootstrap',
+            categoryAxis: {
+                majorGridLines: {
+                    visible: false
+                },
+                categories: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+            },
+            seriesDefaults: {
+                type: "column" //or bar
+            },
+            series: [{
+                name: '蒸发量',
+                data: [9.0, 12.9, 21.0, 23.2, 25.6, 45.7, 62.6, 75.2, 32.6, 20.0, 9.4, 5.3]
+            }, {
+                name: '降水量',
+                data: [8.6, 16.9, 19.0, 26.4, 28.7, 38.7, 69.6, 73.2, 48.7, 18.8, 10.0, 4.3]
+            }],
+            valueAxis: {
+                max: 100,
+                line: {
+                    visible: false
+                },
+                minorGridLines: {
+                    visible: false
+                },
+                labels: {
+                    rotation: "auto"
+                }
+            },
+            tooltip: {
+                visible: true,
+                template: "#= series.name # #= value #"
+            }
+        });
+
+        $("#chart").kendoChart({
+            title: {
+                text: "某站点用户访问来源"
+            },
+            legend: {
+                position: "top"
+            },
+            theme: 'bootstrap',
+            seriesDefaults: {
+                labels: {
+                    template: "#= category # - #= kendo.format('{0:P}', percentage)#",
+                    position: "outsideEnd",
+                    visible: true,
+                    background: "transparent"
+                }
+            },
+            series: [{
+                type: "pie",
+                data: [{
+                    category: "直接访问",
+                    value: 35
+                }, {
+                    category: "邮件营销",
+                    value: 25
+                }, {
+                    category: "联盟广告",
+                    value: 20
+                }, {
+                    category: "视频广告",
+                    value: 10
+                }, {
+                    category: "搜索引擎",
+                    value: 10
+                }]
+            }],
+            tooltip: {
+                visible: true,
+                template: "#= category # - #= kendo.format('{0:P}', percentage) #"
+            }
+        });
+    </script>
+
+{% endblock %}

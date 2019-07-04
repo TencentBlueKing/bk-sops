@@ -1,20 +1,23 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load url from future %}
+{% load i18n %}
 
 {% block content %}
 <div id="content-main">
-    <p>{% trans '您暂时不能访问该站点的后台管理，这是以下原因造成的：' %}</p>
+    <p>您暂时不能访问该站点的后台管理，这是以下原因造成的：</p>
     <ul>
     {% if user.is_anonymous %}
-        <li>{% trans '你还没登录，请重新刷新页面！' %}</li>
+        <script>
+        	window.location.href="{{ LOGIN_URL }}?is_admin=1";
+        </script>
     {% else %}
-        {% if not user.is_active %}
-            <li>{% trans '用户' %}（<strong>{{ user.username }}</strong>）{% trans '未激活！' %}</li>
-        {% else %}{% if not user.is_staff %}
-            <li>{% trans '用户' %}（<strong>{{ user.username }}</strong>）{% trans '没有管理员权限，请联系管理员！' %}</li>
-        {% endif %}{% endif %}
+	    {% if not user.is_active %}
+	    	<li>用户（<strong>{{ user.username }}</strong>）未激活！</li>
+	    {% else %}{% if not user.is_staff %}
+	        <li>用户（<strong>{{ user.username }}</strong>）没有管理员权限，请联系管理员！</li>
+	    {% endif %}{% endif %}
     {% endif %}
     </ul>
-    <p>{% trans '如有需要，请联系管理员或开发者为您解决上述问题。' %}</p>
+    <p>如有需要，请联系管理员或开发者为您解决上述问题。</p>
 </div>
 {% endblock %}

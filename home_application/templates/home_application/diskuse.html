@@ -1,0 +1,147 @@
+{% extends 'home_application/base.html' %}
+{% block content %}
+<div class="row">
+<!--HTML-->
+<div class="king-block king-block-bordered">
+    <div class="king-block-header king-gray-light">
+        <ul class="king-block-options">
+            <li>
+                <button type="button"><i class="fa fa-cog"></i></button>
+            </li>
+        </ul>
+        <h3 class="king-block-title">填写主机信息</h3>
+    </div>
+    <div class="king-block-content">
+        <form>
+            <div class="form-group">
+                <label for="inputCount3">IP：</label>
+                <input type="text" class="form-control" id="inputCount3" placeholder="昵称/QQ号码/手机号码">
+            </div>
+            <div class="form-group">
+                <label for="inputPassword3">操作系统：</label>
+                    <input type="password" class="form-control" id="inputPassword3" placeholder="">
+                    <p class="text-primary">6位以上，仅可由数字、字母、下划线组成</p>
+            </div>
+            <div class="form-group">
+                <label for="inputCount3">磁盘：</label>
+                <input type="text" class="form-control" id="inputCount3" placeholder="昵称/QQ号码/手机号码">
+            </div>
+            <div class="form-group">
+                <input type="button" class="king-btn king-success mr10" value="提交" />
+                <input type="reset" class="king-btn king-default" value="取消" />
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!--Step:1 为ECharts准备一个具备大小（宽高）的Dom-->
+<div id="chart3_demo" style="height:500px;border:1px solid #ccc;padding:10px;"></div>
+
+
+{% endblock %}
+{% block javascripts %}
+    <!--Step:2 引入echarts.js-->
+<script src="https://magicbox.bk.tencent.com/static_api/v3/assets/js/jquery-1.10.2.min.js"></script>
+<script src="https://magicbox.bk.tencent.com/static_api/v3/assets/echarts-2.0/echarts-all.js"></script>
+<script type="text/javascript">
+//chart3_demo_js_start
+// Step:3 为模块加载器配置echarts的路径，从当前页面链接到echarts.js，定义所需图表路径
+
+// Step:4 动态加载echarts然后在回调函数中开始使用，注意保持按需加载结构定义图表路径
+// standard line chart
+function createEStandLineChart(conf){
+    var myChart = echarts.init(document.getElementById(conf.selector));
+    var legendData = []
+    for(var i=0; i < conf.data.series.length;i++){
+        legendData.push(conf.data.series[i].name)
+    }
+    myChart.setOption({
+        tooltip : {
+            trigger: 'axis'
+        },
+        legend: {
+            y: 'bottom',
+            data:legendData
+        },
+        toolbox: {
+            show : true,
+            feature : {
+                mark : {show: true},
+                dataView : {show: true, readOnly: false},
+                magicType : {show: true, type: ['bar','line']},
+                restore : {show: true},
+                saveAsImage : {show: true}
+            }
+        },
+        calculable : true,
+        xAxis : [
+            {
+                type : 'category',
+                data : conf.data.xAxis
+            }
+        ],
+        yAxis : [
+            {
+                type : 'value',
+                splitArea : {show : true}
+            }
+        ],
+        series : conf.data.series
+    });
+ }
+function initEStandLineChart(conf){
+    $.ajax({
+        url: conf.url,
+        type: 'GET',
+        dataType: conf.dataType,
+        success: function(res){
+            //获取数据成功
+            if (res.result){
+                createEStandLineChart({
+                    selector: conf.containerId, // 图表容器
+                    data: res.data, // 图表数据
+                });
+            }
+        }
+    })
+}
+{#$(function(){#}
+{#    initEStandLineChart({#}
+{#        url: 'http://appdev.class.o.qcloud.com:8000/api_disk_usage',#}
+{#        dataType: 'json',#}
+{#        containerId: 'chart3_demo'#}
+{#    });#}
+{#});#}
+//chart3_demo_js_end
+
+$("#submit-button").addEventListener('click', function () {
+        var ip = $('#host_ip').val();
+        var system = $('#host_system').val();
+        var disk = $('#host_disk').val();
+        console.log(ip, system, disk);
+        let data = {
+            'ip': ip,
+            'system': system,
+            'disk': disk
+        };
+        $.ajax({
+            url: '{{ SITE_URL }}get_capacity/get_usage_data/',
+            data: JSON.stringify(data),
+            type: 'POST',
+            dataType: 'json',
+            success: function (data) {
+                console.log(data);
+                if (data['result']) {
+                    result_data = data['data'][0];
+                    initEStandLineChart({
+                        url: 'http://appdev.class.o.qcloud.com:8000/api_disk_usage',
+                        dataType: 'json',
+                        containerId: 'chart3_demo'
+                    });
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

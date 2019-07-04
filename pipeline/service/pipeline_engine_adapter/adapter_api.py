@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+""" # noqa
 
 from pipeline.engine import api
 
@@ -25,8 +21,8 @@ STATE_MAP = {
 }
 
 
-def run_pipeline(pipeline_instance, instance_id=None, check_workers=True):
-    return api.start_pipeline(pipeline_instance, check_workers=check_workers)
+def run_pipeline(pipeline_instance, instance_id=None):
+    return api.start_pipeline(pipeline_instance)
 
 
 def pause_pipeline(pipeline_id):
@@ -86,7 +82,7 @@ def get_activity_histories(act_id):
 
 
 def callback(act_id, data=None):
-    return api.activity_callback(act_id, data)
+    api.activity_callback(act_id, data)
 
 
 def get_state(node_id):
@@ -115,7 +111,7 @@ def _get_node_state(tree):
         return STATE_MAP[tree['state']]
 
     # iterate children and get child state recursively
-    for identifier_code, child_tree in tree['children'].items():
+    for identifier_code, child_tree in tree['children'].iteritems():
         status.append(_get_node_state(child_tree))
 
     # summary parent state
@@ -139,7 +135,7 @@ def _get_parent_state_from_children_state(parent_state, children_state_list):
 
 def _collect_descendants(tree, descendants):
     # iterate children for tree
-    for identifier_code, child_tree in tree['children'].items():
+    for identifier_code, child_tree in tree['children'].iteritems():
         child_status = _map(child_tree)
         descendants[identifier_code] = child_status
 
@@ -159,7 +155,6 @@ def _map(tree):
         'state': _get_node_state(tree),
         'start_time': _better_time_or_none(tree['started_time']),
         'finish_time': _better_time_or_none(tree['archived_time']),
-        'loop': tree['loop'],
         'retry': tree['retry'],
         'skip': tree['skip']
     }

@@ -1,57 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
+Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community Edition) available.
 Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
-Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 http://opensource.org/licenses/MIT
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-"""
-
-from os import environ
-
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+""" # noqa
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
 from django.db import models
 from django.utils import timezone
 
 
-class BusinessManager(models.Manager):
-    def supplier_account_for_business(self, cc_id):
-        return self.get(cc_id=cc_id).cc_owner
-
-    def supplier_id_for_business(self, cc_id):
-        return self.get(cc_id=cc_id).cc_company or 0
-
-
 class Business(models.Model):
+
     cc_id = models.IntegerField(unique=True)
-    cc_name = models.CharField(max_length=256)
-    # 开发商账号 bk_supplier_account
+    cc_name = models.CharField(max_length=100)
     cc_owner = models.CharField(max_length=100)
-    # 开发商ID bk_supplier_id
     cc_company = models.CharField(max_length=100)
     time_zone = models.CharField(max_length=100, blank=True)
+    # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是非法值
     life_cycle = models.CharField(_(u"生命周期"), max_length=100, blank=True)
     executor = models.CharField(_(u"任务执行者"), max_length=100, blank=True)
-    # null 表未归档，disabled 表示已归档
-    status = models.CharField(_(u"业务状态"), max_length=32, null=True)
-    always_use_executor = models.BooleanField(_(u"是否始终使用任务执行者"), default=False)
-
     groups = models.ManyToManyField(
         Group,
         through='BusinessGroupMembership'
     )
-
-    objects = BusinessManager()
-
-    # LifeCycle：'1'：测试中， '2'：已上线， '3'： 停运， 其他如'0'、''是历史遗留非法值，暂时认为是已上线状态
-    LIFE_CYCLE_TESTING = '1'  # 测试中
-    LIFE_CYCLE_ONLINE = '2'  # 已上线
-    LIFE_CYCLE_CLOSE_DOWN = '3'  # 停运
 
     class Meta:
         verbose_name = _(u"业务 Business")
@@ -63,9 +37,6 @@ class Business(models.Model):
 
     def __unicode__(self):
         return u"%s_%s" % (self.cc_id, self.cc_name)
-
-    def available(self):
-        return self.status != 'disabled' and self.life_cycle not in [Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")]
 
 
 class UserBusiness(models.Model):
@@ -84,6 +55,7 @@ class UserBusiness(models.Model):
 
 
 class BusinessGroupMembership(models.Model):
+
     business = models.ForeignKey(Business)
     group = models.ForeignKey(Group)
 
@@ -104,7 +76,7 @@ class EnvVarManager(models.Manager):
         objs = self.filter(key=key)
         if objs.exists():
             return objs[0].value
-        return environ.get(key, None)
+        return None
 
 
 class EnvironmentVariables(models.Model):

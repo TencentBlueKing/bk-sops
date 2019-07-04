@@ -31,7 +31,7 @@ Task actions such as start, pause, resume, revoke, etc.
 
 ### Request Parameters Example
 
-```
+```python
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
@@ -44,14 +44,14 @@ Task actions such as start, pause, resume, revoke, etc.
 
 ### Return Result Example
 
-```
+```python
 {
     "result": true,
     "data": {}
 }
 ```
 
-### Return Result Description
+### Return Result Parameters DescriptionExample
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|

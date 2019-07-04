@@ -1,0 +1,76 @@
+{% extends 'home_application/base.html' %}
+{% block content %}
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="navbar navbar-default bootstrap-admin-navbar-thin">
+                            <ol class="breadcrumb bootstrap-admin-breadcrumb">
+                                <li>
+                                    <a href="javascript:;">首页</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:;">栏目</a>
+                                </li>
+                                <li class="active">当前内容</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="text-muted bootstrap-admin-box-title">带状态表格</div>
+                            </div>
+                            <div class="bootstrap-admin-panel-content">
+                                <table class="table bootstrap-admin-table-with-actions table-bordered">
+                                    <thead>
+                                        <tr>
+                                           <th>序号</th>
+                                            <th>IP</th>
+                                            <th>系统</th>
+                                            <th>分区</th>
+                                            <th class="text-center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for host in list %}
+                                        <tr>
+                                            <td>{{ host.id }}</td>
+                                            <td>{{ host.ip }}</td>
+                                            <td>{{ host.os }}</td>
+                                            <td>{{ host.partition }}</td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-primary">
+                                                            <i class="icon-pencil icon-white"></i>
+                                                            编辑
+                                                        </button>
+                                                <button class="btn btn-sm btn-success">
+                                                            <i class="icon-ok-circle icon-white"></i>
+                                                            确认
+                                                        </button>
+                                                <button class="btn btn-sm btn-warning">
+                                                            <i class="icon-bell icon-white"></i>
+                                                            通知
+                                                        </button>
+                                                <button class="btn btn-sm btn-danger">
+                                                            <i class="icon-trash icon-white"></i>
+                                                            删除
+                                                        </button>
+                                            </td>
+
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+{% endblock %}
+{% block javascripts %}
+    <script type="text/javascript" src="vendors/datatables/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="js/DT_bootstrap.js"></script>
+{% endblock %}
