@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="home-page" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div v-if="!loading">
+    <div class="home-page">
+        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="summary-info">
                 <HomeSummary
                     :cc_id="cc_id"
@@ -261,9 +261,9 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .home-page {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteMainBg;
+    // min-width: 1320px;
+    // min-height: calc(100% - 50px);
+    // background: $whiteMainBg;
 }
 .summary-info {
     background: #2b74c6;

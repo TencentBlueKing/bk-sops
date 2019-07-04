@@ -262,7 +262,6 @@
     background: #fafafa;
 }
 .list-wrapper {
-    padding-top: 50px;
     padding: 0 60px;
     min-height: calc(100vh - 240px);
 }
