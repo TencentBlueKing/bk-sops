@@ -1767,7 +1767,7 @@ msgstr "Converge Gateway has not converge all branches"
 
 #: custom_atoms/components/collections/test.py: 12
 msgid "测试原子(TEST)"
-msgstr "TEXT ATOM(TEST)"
+msgstr "TEST ATOM(TEST)"
 
 #: custom_atoms/components/collections/test.py: 43
 msgid "磁盘使用率"
