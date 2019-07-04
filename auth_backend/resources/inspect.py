@@ -70,13 +70,13 @@ class FieldInspect(InstanceInspect):
         return self._getattr_if_field_is_not_none(instance, self.parent_f)
 
 
-class FixedCreatorFieldInspect(FieldInspect):
+class FixedCreatorTypeFieldInspect(FieldInspect):
     def __init__(self, creator_type, creator_id_f, resource_id_f, resource_name_f, parent_f):
-        super(FixedCreatorFieldInspect, self).__init__(creator_type_f='',
-                                                       creator_id_f=creator_id_f,
-                                                       resource_id_f=resource_id_f,
-                                                       resource_name_f=resource_name_f,
-                                                       parent_f=parent_f)
+        super(FixedCreatorTypeFieldInspect, self).__init__(creator_type_f='',
+                                                           creator_id_f=creator_id_f,
+                                                           resource_id_f=resource_id_f,
+                                                           resource_name_f=resource_name_f,
+                                                           parent_f=parent_f)
         self._creator_type = creator_type
 
     def creator_type(self, instance):
