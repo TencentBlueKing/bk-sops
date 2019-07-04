@@ -148,7 +148,7 @@ class Resource(object):
 
 
 class NeverInitiateResource(Resource):
-    def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, backend):
+    def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, backend=None):
         super(NeverInitiateResource, self).__init__(rtype=rtype,
                                                     name=name,
                                                     actions=actions,
