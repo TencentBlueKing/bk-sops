@@ -17,7 +17,7 @@ import sys
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from bkiam.client import BkIAMClient
+from bkiam.client import BKIAMClient
 
 from auth_backend.resources.migrations import exceptions
 
@@ -51,7 +51,7 @@ class BKIAMResourceMigration(ResourceMigration):
     RESOURCE_NOT_EXIST_CODE = 1901002
 
     def __init__(self, diff_operations):
-        self.client = BkIAMClient()
+        self.client = BKIAMClient()
         super(BKIAMResourceMigration, self).__init__(diff_operations)
 
     def apply(self):
