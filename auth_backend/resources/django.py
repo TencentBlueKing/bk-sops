@@ -75,7 +75,7 @@ class DjangoModelResource(ObjectResource):
                     cleaned.append(inst)
                 else:
                     id_filter = {
-                        self.inspect.resource_unique_key: inst
+                        self.inspect.resource_id_f: inst
                     }
                     cleaned.append(self.resource_cls.objects.get(**id_filter))
             return cleaned
@@ -83,6 +83,6 @@ class DjangoModelResource(ObjectResource):
             return instances
         else:
             id_filter = {
-                self.inspect.resource_unique_key: instances
+                self.inspect.resource_id_f: instances
             }
             return self.resource_cls.objects.get(**id_filter)
