@@ -3206,3 +3206,12 @@ msgstr "Topology"
 
 #~ msgid "立即新建流程"
 #~ msgstr "New flow now"
+
+#: custom_atoms/static/custom_atoms/test/test_custom.js: 22
+msgid "系统"
+msgstr "System"
+
+
+#: custom_atoms/static/custom_atoms/test/test_custom.js: 41
+msgid "路径"
+msgstr "Path"

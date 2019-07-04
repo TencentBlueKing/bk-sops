@@ -1765,3 +1765,18 @@ msgstr "Converge Gateway has not converge all branches"
 #~ msgid "API异常"
 #~ msgstr "API exception"
 
+#: custom_atoms/components/collections/test.py: 12
+msgid "测试原子(TEST)"
+msgstr "TEXT ATOM(TEST)"
+
+#: custom_atoms/components/collections/test.py: 43
+msgid "磁盘使用率"
+msgstr "disk_usaged"
+
+#: custom_atoms/components/collections/test.py: 46
+msgid "返回信息"
+msgstr "message"
+
+#: custom_atoms/components/collections/test.py: 52
+msgid "磁盘容量查询"
+msgstr "Disk Capacity Query"
