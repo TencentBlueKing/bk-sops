@@ -13,7 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import abc
 
-from .. import exceptions
+from auth_backend import exceptions
+from auth_backend.backends import get_backend_from_config
 
 resource_type_lib = {}
 
@@ -41,8 +42,8 @@ class ActionCollection(object):
 class Resource(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, inspect, backend,
-                 parent=None, parent_getter=None, operations=None):
+    def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, inspect,
+                 parent=None, parent_getter=None, operations=None, backend=None):
         self.rtype = rtype
         self.name = name
         self.actions = ActionCollection(actions)
@@ -50,7 +51,7 @@ class Resource(object):
         self.scope_id = scope_id
         self.scope_name = scope_name
         self.inspect = inspect
-        self.backend = backend
+        self.backend = backend or get_backend_from_config()
         self.parent = parent
         self.parent_getter = parent_getter
         self.actions_map = {act.id: act for act in actions}

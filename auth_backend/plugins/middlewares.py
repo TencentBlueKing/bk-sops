@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.deprecation import MiddlewareMixin
 
-from ..exceptions import AuthFailedException
-from .http import HttpResponseAuthFailed
+from auth_backend.exceptions import AuthFailedException
+from auth_backend.plugins.http import HttpResponseAuthFailed
 
 
 class AuthFailedExceptionMiddleware(MiddlewareMixin):

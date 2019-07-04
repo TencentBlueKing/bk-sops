@@ -15,8 +15,8 @@ import logging
 
 from tastypie.exceptions import ImmediateHttpResponse
 
-from ..http import HttpResponseAuthFailed
-from ..shortcuts import verify_or_return_insufficient_perms
+from auth_backend.plugins.http import HttpResponseAuthFailed
+from auth_backend.plugins.shortcuts import verify_or_return_insufficient_perms
 
 logger = logging.getLogger('root')
 

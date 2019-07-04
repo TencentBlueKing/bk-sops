@@ -15,7 +15,7 @@ from __future__ import absolute_import
 
 from bkiam import bkiam_client
 
-from .base import AuthBackend
+from auth_backend.backends.base import AuthBackend
 
 
 class BkIAMBackend(AuthBackend):
