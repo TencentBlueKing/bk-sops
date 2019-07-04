@@ -21,17 +21,15 @@
                     {{i18n.new}}
                 </router-link>
                 <bk-button
-                    type="default"
+                    theme="default"
                     class="template-btn"
-                    size="small"
                     v-show="showOperationBtn"
                     @click="onExportTemplate">
                     {{i18n.export}}
                 </bk-button>
                 <bk-button
-                    type="default"
+                    theme="default"
                     class="template-btn"
-                    size="small"
                     v-show="showOperationBtn"
                     @click="onImportTemplate">
                     {{ i18n.import }}
@@ -46,56 +44,61 @@
                     </BaseSearch>
                 </div>
             </div>
-            <div class="template-search" v-show="isAdvancedSerachShow">
-                <fieldset class="template-fieldset">
-                    <div class="template-query-content">
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.type}}</span>
-                            <bk-selector
-                                :placeholder="i18n.templateCategoryPlaceholder"
-                                :is-loading="categoryLoading"
-                                :list="templateCategoryList"
-                                :selected.sync="templateCategorySync"
-                                :setting-key="'value'"
-                                :display-key="'name'"
-                                :allow-clear="true"
-                                :searchable="true"
-                                @clear="onClearCategory"
-                                @item-selected="onSelectedCategory">
-                            </bk-selector>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.updateTime}}</span>
-                            <bk-date-range
-                                ref="bkRanger"
-                                :range-separator="'-'"
-                                :quick-select="false"
-                                :start-date.sync="editStartTime"
-                                :end-date.sync="editEndTime"
-                                @change="onChangeEditTime">
-                            </bk-date-range>
-                        </div>
-                        <div class="query-content" v-if="!common_template">
-                            <span class="query-span">{{i18n.subflowUpdate}}</span>
-                            <bk-selector
-                                :placeholder="i18n.select"
-                                :list="selectSubprocessUpdateList"
-                                :selected.sync="subprocessUpdateSync"
-                                :allow-clear="true"
-                                @clear="onClearSubprocessUpdate"
-                                @item-selected="onSelectedSubprocessUpdate">
-                            </bk-selector>
-                        </div>
-                        <div class="query-content">
-                            <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
-                        </div>
-                        <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
-                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
-                        </div>
-                    </div>
-                </fieldset>
+            <div class="advanced-search-form" v-if="isAdvancedSerachShow">
+                <bk-form form-type="inline">
+                    <bk-form-item :label="i18n.type">
+                        <bk-select
+                            style="width: 260px;"
+                            :placeholder="i18n.templateCategoryPlaceholder"
+                            :loading="categoryLoading"
+                            :clearable="true"
+                            :searchable="true"
+                            v-model="templateCategorySync"
+                            @clear="onClearCategory"
+                            @change="onSelectedCategory">
+                            <bk-option
+                                v-for="(option, index) in templateCategoryList"
+                                :key="index"
+                                :id="option.value"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                    <bk-form-item :label="i18n.updateTime">
+                        <bk-date-picker
+                            v-model="queryTime"
+                            :type="'daterange'"
+                            @change="onChangeEditTime">
+                        </bk-date-picker>
+                    </bk-form-item>
+                    <bk-form-item v-if="!common_template" :label="i18n.subflowUpdate">
+                        <bk-select
+                            style="width: 260px;"
+                            :placeholder="i18n.select"
+                            :clearable="true"
+                            @clear="onClearSubprocessUpdate"
+                            @change="onSelectedSubprocessUpdate">
+                            <bk-option
+                                v-for="(option, index) in selectSubprocessUpdateList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                    <bk-form-item :label="i18n.creator">
+                        <bk-input
+                            style="width: 260px;"
+                            class="search-input"
+                            v-model="creator"
+                            :placeholder="i18n.creatorPlaceholder">
+                        </bk-input>
+                    </bk-form-item>
+                    <bk-form-item>
+                        <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                        <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
+                    </bk-form-item>
+                </bk-form>
             </div>
             <div class="template-table-content" v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                 <table>
@@ -131,12 +134,12 @@
                             <td class="template-operation" v-if="!common && !common_template">
                                 <!-- 业务流程按钮 -->
                                 <router-link
-                                    class="create-template-btn"
+                                    class="template-operate-btn"
                                     :to="getNewTaskUrl(item.id)">
                                     {{ i18n.newTemplate }}
                                 </router-link>
                                 <router-link
-                                    class="create-template-btn"
+                                    class="template-operate-btn"
                                     :to="getEditTemplateUrl(item.id)">
                                     {{ i18n.edit }}
                                 </router-link>
@@ -161,7 +164,7 @@
                             <td class="template-operation" v-else-if="common_template || !common">
                                 <!-- 嵌套在业务流程页面中的公共流程，通过查询条件切换 -->
                                 <router-link
-                                    class="create-template-btn"
+                                    class="template-operate-btn"
                                     :to="getNewTaskUrl(item.id)">
                                     {{ i18n.newTemplate }}
                                 </router-link>
@@ -179,7 +182,7 @@
                             </td>
                             <td class="template-operation" v-else-if="common">
                                 <!-- 公共流程首页 -->
-                                <router-link class="create-template-btn" :to="getEditTemplateUrl(item.id)">{{ i18n.edit}}</router-link>
+                                <router-link class="template-operate-btn" :to="getEditTemplateUrl(item.id)">{{ i18n.edit}}</router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
@@ -204,24 +207,26 @@
                     <div class="page-info">
                         <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
                     </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
+                    <bk-pagination
+                        :current.sync="currentPage"
+                        :count="totalCount"
+                        :limit="countPerPage"
+                        :limit-list="[15]"
+                        :show-limit="false"
+                        :align="'right'"
+                        @change="onPageChange">
+                    </bk-pagination>
                 </div>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
-            v-if="isImportDialogShow"
             :common="common"
             :is-import-dialog-show="isImportDialogShow"
             @onImportConfirm="onImportConfirm"
             @onImportCancel="onImportCancel">
         </ImportTemplateDialog>
         <ExportTemplateDialog
-            v-if="isExportDialogShow"
             :common="common"
             :is-export-dialog-show="isExportDialogShow"
             :business-info-loading="businessInfoLoading"
@@ -230,21 +235,19 @@
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
         <bk-dialog
-            :quick-close="false"
-            :has-header="true"
+            :mask-close="false"
+            :header-position="'left'"
             :ext-cls="'common-dialog'"
             :title="i18n.delete"
             width="400"
-            padding="30px"
-            :is-show.sync="isDeleteDialogShow"
+            :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div slot="content" class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
                 {{i18n.deleleTip + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
         <AuthorityManageDialog
-            v-if="isAuthorityDialogShow"
             :is-authority-dialog-show="isAuthorityDialogShow"
             :template-id="theAuthorityManageId"
             :pending="pending.authority"
@@ -348,12 +351,12 @@
                 templateCategoryList: [],
                 subprocessUpdateSync: '',
                 category: undefined,
-                editStartTime: undefined,
+                queryTime: [],
                 editEndTime: undefined,
                 selectSubprocessUpdateList: [
-                    { 'id': 0, name: gettext('是'), value: true },
-                    { 'id': 1, name: gettext('否'), value: false },
-                    { 'id': 2, name: gettext('无子流程'), value: 'no' }
+                    { 'id': 1, name: gettext('是') },
+                    { 'id': -1, name: gettext('否') },
+                    { 'id': 0, name: gettext('无子流程') }
                 ],
                 subprocessUpdateList: [
                     { 'id': 1, 'name': gettext('是') },
@@ -405,9 +408,6 @@
                 'setTemplateListData'
             ]),
             async getTemplateList () {
-                if (this.editStartTime === '') {
-                    this.editStartTime = undefined
-                }
                 this.listLoading = true
                 const isCommon = this.common === 1
                 try {
@@ -424,16 +424,18 @@
                     if (isCommon) {
                         data['common'] = 1
                     }
-                    if (this.editEndTime) {
+
+                    if (this.queryTime[0] && this.queryTime[1]) {
                         if (isCommon) {
-                            data['pipeline_template__edit_time__gte'] = moment(this.editStartTime).format('YYYY-MM-DD')
-                            data['pipeline_template__edit_time__lte'] = moment(this.editEndTime).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__gte'] = moment(this.queryTime[0]).format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__lte'] = moment(this.queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         // 无时区的公共流程使用本地的时间
                         } else {
-                            data['pipeline_template__edit_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_template__edit_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__gte'] = moment.tz(this.queryTime[0], this.businessTimezone).format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__lte'] = moment.tz(this.queryTime[1], this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
+
                     const templateListData = await this.loadTemplateList(data)
                     const list = templateListData.objects
                     this.setTemplateListData({ list, isCommon })
@@ -615,33 +617,27 @@
                 this.isSubprocessUpdated = undefined
                 this.isHasSubprocess = undefined
             },
-            onSelectedSubprocessUpdate (id, data) {
-                if (data.value === 'no') {
+            onSelectedSubprocessUpdate (val) {
+                if (val === 0) {
                     this.isHasSubprocess = false
                     this.isSubprocessUpdated = undefined
                 } else {
                     this.isHasSubprocess = true
-                    this.isSubprocessUpdated = data.value
+                    this.isSubprocessUpdated = val > 0
                 }
             },
-            onChangeEditTime (oldValue, newValue) {
-                const dateArray = newValue.split(' - ')
-                this.editStartTime = dateArray[0]
-                this.editEndTime = dateArray[1]
+            onChangeEditTime (value) {
+                this.queryTime = value
             },
             // 重置查询表单
             onResetForm () {
-                this.$refs.bkRanger.clear()
                 this.isSubprocessUpdated = undefined
                 this.isHasSubprocess = undefined
                 this.templateCategorySync = -1
                 this.category = undefined
                 this.flowName = undefined
                 this.creator = undefined
-                this.editStartTime = undefined
-                this.editEndTime = undefined
-                this.isHasSubprocess = undefined
-                this.isSubprocessUpdated = undefined
+                this.queryTime = []
                 this.subprocessUpdateSync = ''
             },
             // 获得子流程展示内容
@@ -659,146 +655,27 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+.dialog-content {
+    padding: 30px;
+    word-break: break-all;
+}
 .template-container {
     min-width: 1320px;
     padding-top: 50px;
     min-height: calc(100% - 100px);
     background: #f4f7fa;
-    .dialog-content {
-        word-break: break-all;
-    }
-    .bk-selector-icon.clear-icon {
-        top: 6px;
-    }
 }
 .list-wrapper {
     padding: 0 60px;
     min-height: calc(100vh - 240px);
 }
-.template-fieldset {
-    width: 100%;
-    margin: 0;
-    padding: 8px;
-    border: 1px solid $commonBorderColor;
-    background: $whiteDefault;
-    margin-bottom: 15px;
-    .template-query-content {
-        display: flex;
-        flex-wrap: wrap;
-        .query-content {
-            min-width: 420px;
-            @media screen and (max-width: 1420px){
-                min-width: 380px;
-            }
-            padding: 10px;
-            .query-span {
-                float: left;
-                min-width: 130px;
-                margin-right: 12px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                @media screen and (max-width: 1420px){
-                    min-width: 100px;
-                }
-                text-align: right;
-            }
-            input {
-                max-width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
-            input::-webkit-input-placeholder{
-                color: $formBorderColor;
-            }
-            input:-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input::-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input:-ms-input-placeholder {
-                color: $formBorderColor;
-            }
-            input, .bk-selector, .bk-date-range {
-                min-width: 260px;
-            }
-            .bk-selector-search-item > input {
-                min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-date-range input {
-                height: 32px;
-                line-height: 32px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 10px 0 10px;
-                font-size: 14px;
-                color: $greyDefault;
-                border: 1px solid $formBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                }
-            }
-            .ommon-icon-search {
-                position: relative;
-                right: 15px;
-                top: 11px;
-                color:#dddddd;
-            }
-            .search-input.placeholder {
-                color: $formBorderColor;
-            }
-        }
-    }
-    .query-button {
-        padding: 10px;
-        min-width: 450px;
-        @media screen and (max-width: 1420px) {
-            min-width: 390px;
-        }
-        text-align: center;
-        .query-cancel {
-            margin-left: 5px;
-        }
-    }
-    .bk-button {
-        height: 32px;
-        line-height: 32px;
-    }
-}
-
 .operation-area {
     margin: 20px 0;
     .create-template {
-        height: 32px;
-        min-width: 120px;
-        line-height: 29px;
-        font-size: 14px;
+        width: 120px;
     }
     .template-btn {
         margin-left: 5px;
-        color:#313238;
     }
     .template-search {
         height: 156px;
@@ -817,6 +694,65 @@
         }
     }
 }
+.advanced-search-form {
+    margin-bottom: 20px;
+    padding: 0px 30px 20px;
+    background: #ffffff;
+    border: 1px solid #dde4eb;
+    border-radius: 2px;
+    /deep/.bk-form-item {
+        margin: 20px 20px 0 0 !important;
+        .bk-label {
+            min-width: 100px !important;
+        }
+    }
+}
+// .template-fieldset {
+//     width: 100%;
+//     margin: 0;
+//     padding: 8px;
+//     border: 1px solid $commonBorderColor;
+//     background: $whiteDefault;
+//     margin-bottom: 15px;
+//     .template-query-content {
+//         display: flex;
+//         flex-wrap: wrap;
+//         .query-content {
+//             min-width: 420px;
+//             @media screen and (max-width: 1420px){
+//                 min-width: 380px;
+//             }
+//             padding: 10px;
+//             .query-span {
+//                 float: left;
+//                 min-width: 130px;
+//                 margin-right: 12px;
+//                 height: 32px;
+//                 line-height: 32px;
+//                 font-size: 14px;
+//                 @media screen and (max-width: 1420px){
+//                     min-width: 100px;
+//                 }
+//                 text-align: right;
+//             }
+//         }
+//     }
+//     .query-button {
+//         padding: 10px;
+//         min-width: 450px;
+//         @media screen and (max-width: 1420px) {
+//             min-width: 390px;
+//         }
+//         text-align: center;
+//         .query-cancel {
+//             margin-left: 5px;
+//         }
+//     }
+//     .bk-button {
+//         height: 32px;
+//         line-height: 32px;
+//     }
+// }
 .template-table-content {
     table {
         width: 100%;
@@ -882,7 +818,7 @@
         padding: 0 11px;
         font-size: 12px;
     }
-    .create-template-btn {
+    .template-operate-btn {
         padding: 5px;
         color: #3c96ff;
     }
@@ -905,32 +841,7 @@
     border-radius:2px;
     border: 1px solid #dde4eb;
 }
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #ffff;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 12px;
-    }
-    .bk-page {
-        display: inline-block;
-    }
-}
 .bk-dropdown-menu .bk-dropdown-list > li > a {
     font-size: 12px;
-}
- /deep/ .bk-selector-wrapper .bk-selector-input {
-        height: 32px;
-        line-height: 32px;
-    }
-.bk-page .page-item.disabled .page-button {
-     color: #737987;
-     &:hover {
-          color: #737987;
-     }
 }
 </style>

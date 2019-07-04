@@ -259,28 +259,28 @@
             },
             onOpenPermissions (app) {
                 this.isPermissionsDialog = true
-                this.loadTemplatePersons(app.template_id)
+                // this.loadTemplatePersons(app.template_id)
             },
-            async loadTemplatePersons (id) {
-                this.loadingAuthority = true
-                try {
-                    const data = {
-                        templateId: id
-                    }
-                    const res = await this.getTemplatePersons(data)
-                    if (res.result) {
-                        this.createdTaskPerList = res.data.create_task.map(item => item.show_name).join('、')
-                        this.modifyParamsPerList = res.data.fill_params.map(item => item.show_name).join('、')
-                        this.executeTaskPerList = res.data.execute_task.map(item => item.show_name).join('、')
-                        this.loadingAuthority = false
-                    } else {
-                        errorHandler(res, this)
-                        return []
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
+            // async loadTemplatePersons (id) {
+            //     this.loadingAuthority = true
+            //     try {
+            //         const data = {
+            //             templateId: id
+            //         }
+            //         const res = await this.getTemplatePersons(data)
+            //         if (res.result) {
+            //             this.createdTaskPerList = res.data.create_task.map(item => item.show_name).join('、')
+            //             this.modifyParamsPerList = res.data.fill_params.map(item => item.show_name).join('、')
+            //             this.executeTaskPerList = res.data.execute_task.map(item => item.show_name).join('、')
+            //             this.loadingAuthority = false
+            //         } else {
+            //             errorHandler(res, this)
+            //             return []
+            //         }
+            //     } catch (e) {
+            //         errorHandler(e, this)
+            //     }
+            // },
             onCardDelete (app) {
                 this.isDeleteDialogShow = true
                 this.currentAppData = app
