@@ -14,7 +14,7 @@
         <navigator
             v-if="!hideHeader"
             :appmaker-data-loading="appmakerDataLoading" />
-        <div class="mian-container">
+        <div class="main-container">
             <router-view v-if="isRouterAlive"></router-view>
         </div>
         <UserLoginModal ref="userLogin"></UserLoginModal>
@@ -123,7 +123,7 @@
         overflow-x: hidden;
         min-width: 1320px;
     }
-    .mian-container {
+    .main-container {
         width: 100%;
         height: calc(100% - 50px);
         min-width: 1320px;
