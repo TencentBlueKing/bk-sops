@@ -23,10 +23,11 @@ APP_ID = ''
 APP_TOKEN = ''
 BK_PAAS_HOST = ''
 
-APP_ID = os.environ.get('APP_ID', APP_ID)
-APP_TOKEN = os.environ.get('APP_TOKEN', APP_TOKEN)
-BK_PAAS_HOST = os.environ.get('BK_PAAS_HOST', BK_PAAS_HOST)
+APP_ID = os.environ.get('BKAPP_APP_ID', APP_ID)
+APP_TOKEN = os.environ.get('BKAPP_APP_TOKEN', APP_TOKEN)
+BK_PAAS_HOST = os.environ.get('BKAPP_BK_PAAS_HOST', BK_PAAS_HOST)
 BK_PAAS_INNER_HOST = os.environ.get('BK_PAAS_INNER_HOST', BK_PAAS_HOST)
+BK_PAAS_INNER_HOST = BK_PAAS_HOST
 
 BK_URL = BK_PAAS_HOST
 
@@ -121,8 +122,8 @@ LOCALEURL_USE_ACCEPT_LANGUAGE = True
 # 界面可选语言
 _ = lambda s: s
 LANGUAGES = (
-    ('en', _(u'English')),
     ('zh-cn', _(u'简体中文')),
+    ('en', _(u'English')),
 )
 USE_I18N = True
 USE_L10N = True
