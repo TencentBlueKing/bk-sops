@@ -43,7 +43,7 @@ class Resource(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, inspect,
-                 parent=None, parent_getter=None, operations=None, backend=None):
+                 parent=None, operations=None, backend=None):
         self.rtype = rtype
         self.name = name
         self.actions = ActionCollection(actions)
@@ -53,7 +53,6 @@ class Resource(object):
         self.inspect = inspect
         self.backend = backend or get_backend_from_config()
         self.parent = parent
-        self.parent_getter = parent_getter
         self.actions_map = {act.id: act for act in actions}
 
         if rtype in resource_type_lib:
