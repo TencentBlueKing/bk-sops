@@ -43,6 +43,7 @@ INSTALLED_APPS_CUSTOM = (
     'pipeline.contrib.statistics',
     'django_signal_valve',
     'django_nose',
+    'custom_atoms',
 )
 
 # 静态资源文件(js,css等）在应用上线更新后, 由于浏览器有缓存, 可能会造成没更新的情况.
