@@ -31,8 +31,12 @@ class TestCustomService(Service):
         resp = client.myapi.get_dfinfo(**api_kwargs)
 
         if resp['result']:
-            disk_usaged = resp['data'][-1]['usaged']
-            message = resp['message']
+            if len(resp['data']) > 1:
+                disk_usaged = resp['data'][-1]['usaged']
+                message = resp['message']
+            else:
+                disk_usaged = 0
+                message = u"未查询到指定分区"
             data.set_outputs('usaged', disk_usaged)
             data.set_outputs('message', message)
             return True
