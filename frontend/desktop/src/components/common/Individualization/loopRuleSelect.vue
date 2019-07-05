@@ -140,8 +140,7 @@
                     v-model="periodicCron"
                     v-validate="{ required: true, cronRlue: true }"
                     name="periodicCron"
-                    class="step-form-content-size"
-                    :placeholder="i18n.placeholder" />
+                    class="step-form-content-size" />
             </div>
         </div>
         <!-- 说明 -->
@@ -578,7 +577,7 @@ $bgBlue: #3a84ff;
             border-radius: 0;
         }
         .manual-input-btn {
-            margin-left: -4px;
+            margin-left: -5px;
         }
         .active-btn {
             background-color: $blueBtnBg;
@@ -680,8 +679,6 @@ $bgBlue: #3a84ff;
         color: #c4c6cc;
         font-size: 14px;
         z-index: 4;
-        .ui-img {
-        }
         &:hover {
             color: #f4aa1a;
         }

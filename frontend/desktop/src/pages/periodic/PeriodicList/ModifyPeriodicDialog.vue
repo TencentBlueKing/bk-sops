@@ -146,7 +146,7 @@
                         'taskId': this.taskId,
                         'cron': jsonCron
                     }
-                    if (this.cron === this.periodicCron && periodicConstants === '') {
+                    if (this.cron === loopRule.rule && periodicConstants === '') {
                         // 没有改变表达式，且没有ramdomform内容
                         this.$emit('onModifyPeriodicCancel')
                     } else if (periodicConstants === '') {
