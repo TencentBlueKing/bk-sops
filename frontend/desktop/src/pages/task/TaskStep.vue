@@ -148,11 +148,9 @@
         margin: 0;
         color: #313238;
         line-height: 67px;
-        text-align: center;
+        text-align: left;
     }
     .task-title {
-        position: absolute;
-        left: 0;
         padding-left: 30px;
         font-size: 14px;
         font-weight: 600;
