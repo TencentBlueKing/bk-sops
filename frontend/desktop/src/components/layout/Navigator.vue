@@ -15,7 +15,10 @@
             <img :src="logo" class="logo" />
             <span class="header-title">{{i18n.title}}</span>
         </router-link>
-        <img v-else :src="logo" class="logo" />
+        <span v-else class="header-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
+        </span>
         <nav>
             <div class="navigator" v-if="!appmakerDataLoading">
                 <template v-for="route in routeList">
@@ -319,11 +322,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 header {
-    position: fixed;
-    top: 0px;
-    left: 0px;
     min-width: 1320px;
-    width: 100%;
     padding: 0 25px;
     height: 50px;
     font-size: 14px;

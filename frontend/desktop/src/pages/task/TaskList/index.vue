@@ -301,7 +301,7 @@
                 isFinished: undefined,
                 statusSync: 0,
                 taskCreateMethodList: [],
-                createMethod: undefined
+                createMethod: this.create_method || ''
             }
         },
         computed: {
@@ -352,7 +352,7 @@
                         pipeline_instance__name__contains: this.flowName,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
-                        create_method: this.createMethod || this.create_method
+                        create_method: this.createMethod || undefined
                     }
                     if (this.executeEndTime) {
                         if (this.common) {
@@ -525,7 +525,7 @@
                 this.isFinished = id === 'finished'
             },
             onClearCreateMethod () {
-                this.createMethod = undefined
+                this.createMethod = ''
             },
             onClearStatus () {
                 this.isStarted = undefined
@@ -539,7 +539,7 @@
                 this.$refs.bkRanger.clear()
                 this.isStarted = undefined
                 this.isFinished = undefined
-                this.createMethod = undefined
+                this.createMethod = ''
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined
@@ -557,7 +557,6 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data
-                    this.createMethod = this.create_method
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -593,10 +592,6 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .task-container {
-    min-width: 1320px;
-    min-height: calc(100% - 100px);
-    padding-top: 50px;
-    background: #f4f7fa;
     .dialog-content {
         word-break: break-all;
     }
