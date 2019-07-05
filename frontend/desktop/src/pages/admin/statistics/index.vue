@@ -90,7 +90,7 @@
 .page-statistics {
     .header-wrapper {
         margin-bottom: 20px;
-        padding: 50px 60px 0 60px;
+        padding: 0px 60px 0 60px;
         min-width: 1320px;
         box-shadow:0px 3px 6px rgba(0, 0, 0, 0.06);
     }
