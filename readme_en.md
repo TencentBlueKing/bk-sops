@@ -54,7 +54,7 @@ If you want to know more about the above features, please refer to the
 
 
 ## Version plan
-- [版本日志](docs/release.md)
+- [Release Notes](docs/release.md)
 
 
 ## Support
