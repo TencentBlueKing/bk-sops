@@ -1,5 +1,4 @@
-# BlueKing Standard OPS（Community Edition）
-![](docs/resource/img/bk_sops.png)
+![](docs/resource/img/logo_en.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
 [![Release](https://img.shields.io/badge/release-3.3.15-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
@@ -54,14 +53,17 @@ If you want to know more about the above features, please refer to the
 - [API Documents](docs/apidoc/readme.md)
 
 
+## Version plan
+- [版本日志](docs/release.md)
+
+
 ## Support
 - [Source (In Chinese)](https://github.com/Tencent/bk-sops/tree/master)
 - [Wiki (In Chinese)](https://github.com/Tencent/bk-sops/wiki) or ask for help
 - [White paper(In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [BK forum](https://bk.tencent.com/s-mart/community)
 - [BK DevOps online video tutorial](In Chinese)(https://cloud.tencent.com/developer/edu/major-100008)
-- Contact us, technical exchange QQ group  
-<img src="docs/resource/img/qq_group.jpg" width="250" hegiht="250" align=center />
+- Contact us, technical exchange QQ group：878501914
 
 
 ## Contributing

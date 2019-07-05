@@ -1,5 +1,4 @@
-# 蓝鲸智云标准运维（社区版）
-![](docs/resource/img/bk_sops.png)
+![](docs/resource/img/logo_zh.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
 [![Release](https://img.shields.io/badge/release-3.3.15-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
@@ -47,14 +46,17 @@
 - [API使用说明](docs/apidoc/readme.md)
 
 
+## Version plan
+- [版本日志](docs/release.md)
+
+
 ## Support
 - [源码](https://github.com/Tencent/bk-sops/tree/master)
 - [wiki](https://github.com/Tencent/bk-sops/wiki)
 - [白皮书](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [蓝鲸论坛](https://bk.tencent.com/s-mart/community)
 - [蓝鲸 DevOps 在线视频教程](https://cloud.tencent.com/developer/edu/major-100008)
-- 联系我们，加入腾讯蓝鲸运维开发交流群  
-<img src="docs/resource/img/qq_group.jpg" width="250" hegiht="250" align=center />
+- 联系我们，加入腾讯蓝鲸运维开发交流群：878501914
 
 
 ## Contributing
