@@ -20,6 +20,7 @@
             </div>
             <div class="main-wrapper">
                 <QuickCreateTask
+                    v-if="!loading"
                     :cc_id="cc_id"
                     :quick-task-list="quickTaskList"
                     :template-classify="templateClassify"
@@ -29,12 +30,17 @@
                 <div class="column-panel clearfix">
                     <div class="col-item">
                         <TaskFeeds
+                            v-if="!loading"
                             :top-three-task-feeds="topThreeTaskFeeds"
                             :cc_id="cc_id">
                         </TaskFeeds>
                     </div>
                     <div class="col-item">
-                        <TaskPercentChart :task-count="taskCount" :total-task="totalTask"></TaskPercentChart>
+                        <TaskPercentChart
+                            v-if="!loading"
+                            :task-count="taskCount"
+                            :total-task="totalTask">
+                        </TaskPercentChart>
                     </div>
                 </div>
             </div>

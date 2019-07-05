@@ -137,6 +137,7 @@
 </script>
 <style lang="scss" scoped>
     .task-execute-container {
+        height: 100%;
     }
     .task-function-container {
         background-color: #ffffff;
