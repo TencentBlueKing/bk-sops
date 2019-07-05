@@ -944,6 +944,7 @@
     @import '@/scss/config.scss';
     .template-page {
         position: relative;
+        height: 100%;
         overflow: hidden;
     }
     .pipeline-canvas-wrapper {
