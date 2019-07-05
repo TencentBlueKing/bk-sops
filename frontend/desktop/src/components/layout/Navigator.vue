@@ -15,7 +15,10 @@
             <img :src="logo" class="logo" />
             <span class="header-title">{{i18n.title}}</span>
         </router-link>
-        <img v-else :src="logo" class="logo" />
+        <span v-else class="header-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
+        </span>
         <nav>
             <div class="navigator" v-if="!appmakerDataLoading">
                 <template v-for="route in routeList">
