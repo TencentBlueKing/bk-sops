@@ -69,7 +69,13 @@
         },
         computed: {
             isReferencedShow () {
-                return this.taskMessageLoading ? false : (Object.keys(this.referencedVariable).length > 0)
+                if (this.taskMessageLoading) {
+                    return false
+                } else {
+                    return Object.keys(this.referencedVariable).filter(key => {
+                        return this.referencedVariable[key].show_type === 'show'
+                    }).length
+                }
             },
             isUnreferencedShow () {
                 return this.taskMessageLoading ? false : (Object.keys(this.unReferencedVariable).length > 0)
