@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-06-12 11:44+0800\n"
+"POT-Creation-Date: 2019-07-05 20:50+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -98,11 +98,11 @@ msgstr "user property"
 msgid "user properties"
 msgstr "user properties"
 
-#: config/default.py:152
+#: config/default.py:165
 msgid "English"
 msgstr "English"
 
-#: config/default.py:153
+#: config/default.py:166
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -499,7 +499,7 @@ msgid "业务 Business"
 msgstr "业务 Business"
 
 #: gcloud/core/models.py:68 gcloud/webservice3/resources.py:88
-#: gcloud/webservice3/resources.py:304
+#: gcloud/webservice3/resources.py:302
 msgid "停运"
 msgstr "停运"
 
@@ -691,7 +691,7 @@ msgstr "当前任务流程阶段"
 msgid "流程实例 TaskFlowInstance"
 msgstr "流程实例 TaskFlowInstance"
 
-#: gcloud/taskflow3/resources.py:267
+#: gcloud/taskflow3/resources.py:262
 msgid "无法删除未进入完成或撤销状态的流程"
 msgstr "无法删除未进入完成或撤销状态的流程"
 
@@ -1216,7 +1216,7 @@ msgstr "重试计时器失败，请稍后再次尝试"
 msgid "模板不存在"
 msgstr "模板不存在"
 
-#: pipeline/core/flow/activity.py:162
+#: pipeline/core/flow/activity.py:179
 msgid "执行结果"
 msgstr "执行结果"
 
