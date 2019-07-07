@@ -19,9 +19,9 @@ RUN_VER = 'community'
 # 应用基本信息配置 (请按照说明修改)
 # ==============================================================================
 # 在蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 中获取 APP_ID 和 APP_TOKEN 的值
-APP_ID = ''
-APP_TOKEN = ''
-BK_PAAS_HOST = ''
+APP_ID = 'stage03'
+APP_TOKEN = 'f0f75928-7f29-4992-a90a-01a152881ceb'
+BK_PAAS_HOST = 'http://paas.class.o.qcloud.com'
 
 APP_ID = os.environ.get('APP_ID', APP_ID)
 APP_TOKEN = os.environ.get('APP_TOKEN', APP_TOKEN)
