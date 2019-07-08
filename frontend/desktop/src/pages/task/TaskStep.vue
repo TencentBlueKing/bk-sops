@@ -58,7 +58,8 @@
         computed: {
             ...mapState({
                 'lang': state => state.lang,
-                userType: state => state.userType
+                userType: state => state.userType,
+                view_mode: state => state.view_mode
             }),
             currentStepIndex () {
                 return this.getCurrentStepIndex()
@@ -106,12 +107,34 @@
             },
             getHomeUrl () {
                 let url = '/'
-                const entrance = this.$route.query.entrance
+                const path = this.$route.fullPath
+                // 管理员
                 if (this.userType === 'maintainer') {
-                    if (entrance && entrance === '0') {
+                    if (path.indexOf('/template/edit/') !== -1) {
+                        // 编辑模板
                         url = `/periodic/home/${this.cc_id}/`
-                    } else if (entrance && entrance === '1') {
+                    } else if (path.indexOf('/taskflow/execute/') !== -1) {
+                        // 任务记录
                         url = `/taskflow/home/${this.cc_id}/`
+                    } else if (path.indexOf('/template/newtask/') !== -1) {
+                        // 新建任务
+                        const entrance = this.$route.query.entrance
+                        // 新建-周期任务
+                        if (entrance && entrance === '0') {
+                            url = `/periodic/home/${this.cc_id}/`
+                        }
+                        // 新建-任务记录
+                        if (entrance && entrance === '1') {
+                            url = `/taskflow/home/${this.cc_id}/`
+                        }
+                        // 新建-业务流程
+                        if (entrance && entrance === 'commonList') {
+                            url = `/template/common/${this.cc_id}/`
+                        }
+                        // 新建-公共流程
+                        if (entrance && entrance === 'businessList') {
+                            url = `/template/home/${this.cc_id}/`
+                        }
                     } else {
                         url = `/template/home/${this.cc_id}/`
                     }
@@ -119,9 +142,16 @@
                         url += `?common=1&common_template=${this.common}`
                     }
                 } else if (this.userType === 'functor') {
+                    // 职能化
                     url = `/function/home/`
                 } else if (this.userType === 'auditor') {
+                    // 审计员
                     url = `/audit/home/`
+                } else if (this.view_mode === 'appmaker') {
+                    // 轻应用
+                    const appId = this.$route.params.app_id
+                    const ccId = this.$route.params.cc_id
+                    if (appId && ccId) url = `/appmaker/${appId}/task_home/${ccId}/`
                 }
                 this.$router.push(url)
             }
