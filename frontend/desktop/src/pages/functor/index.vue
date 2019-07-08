@@ -468,6 +468,7 @@
                 this.getTemplateList()
                 this.business.empty = false
                 this.template.disabled = false
+                this.template.id = ''
             },
             onSelectedTemplate (id, data) {
                 if (id === undefined) {
