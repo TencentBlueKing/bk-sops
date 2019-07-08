@@ -13,7 +13,7 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <span class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
+                <span v-if="isShowBackBtn" class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
                 <span class="task-title">{{ taskTemplateTitle }}</span>
                 <span class="task-name">{{ instanceName }}</span>
             </div>
@@ -69,6 +69,9 @@
             },
             taskTemplateTitle () {
                 return this.$route.query.instance_id === undefined ? this.i18n.newTask : this.i18n.taskExecution
+            },
+            isShowBackBtn () {
+                return !(this.view_mode === 'appmark' && this.$route.path.indexOf('newtask') !== -1)
             }
         },
         methods: {
