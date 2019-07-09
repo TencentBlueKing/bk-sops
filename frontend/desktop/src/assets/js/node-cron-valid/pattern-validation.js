@@ -120,8 +120,8 @@ module.exports = ( () => {
   */
   function basicCheck (patterns) {
     var allowValue = /[^\,|\-|\*|\/|\w]|\d[a-z]|[A-Z]/
-    for (var i=0; i<patterns.length; i++) {
-        if (allowValue.test(patterns[i])) {
+    for (const pattern in patterns) {
+        if (allowValue.test(patterns[pattern])) {
             throw '表达式非法，请校验'
         }
     }
