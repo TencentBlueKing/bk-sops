@@ -97,6 +97,11 @@ const draft = {
                 draftArray.push({ 'key': key, 'data': JSON.parse(localStorage[key]) })
             }
         }
+        draftArray.sort(function (a, b) {
+            const t1 = new Date(a.data.description.time).getTime()
+            const t2 = new Date(b.data.description.time).getTime()
+            return t2 - t1
+        })
         return draftArray
     },
     // 删除没有template_id 的模板
@@ -132,12 +137,19 @@ const draft = {
         const localStorageLength = localStorage.length
         // 动态生成正则表达式
         const regex = this.getKeyRegex(username, ccId, templateId)
+        let lastTime = 0
+        let lastKey = ''
         for (let index = localStorageLength - 1; index >= 0; index--) {
             const key = localStorage.key(index)
             if (regex.test(key)) {
-                return localStorage[key]
+                const time = new Date(JSON.parse(localStorage[key]).description.time).getTime()
+                if (time > lastTime) {
+                    lastTime = time
+                    lastKey = key
+                }
             }
         }
+        return localStorage[lastKey]
     },
     // 获得正则表达式
     getKeyRegex (username, ccId, templateId) {

@@ -54,7 +54,8 @@
                     @onDeleteDraft="onDeleteDraft"
                     @onReplaceTemplate="onReplaceTemplate"
                     @onNewDraft="onNewDraft"
-                    @hideConfigPanel="hideConfigPanel">
+                    @hideConfigPanel="hideConfigPanel"
+                    @updateLocalTemplateData="updateLocalTemplateData">
                 </TabLocalDraft>
             </div>
         </div>
@@ -74,7 +75,7 @@
             TabTemplateConfig,
             TabLocalDraft
         },
-        props: ['businessInfoLoading', 'isTemplateConfigValid', 'isSettingPanelShow', 'draftArray', 'variableTypeList'],
+        props: ['businessInfoLoading', 'isTemplateConfigValid', 'isSettingPanelShow', 'draftArray', 'variableTypeList', 'isClickDraft'],
         data () {
             return {
                 i18n: {
