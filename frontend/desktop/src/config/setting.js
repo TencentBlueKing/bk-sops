@@ -14,19 +14,18 @@ import bus from '@/utils/bus.js'
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
  * @param {String} site_url
- * @param {String} project
+ * @param {Object} project
  */
 export function setAtomConfigApiUrls (site_url, project) {
-    const id = project ? project.id : 0
     $.context = {
         project,
+        biz_binding: project.from_cmdb,
+        bk_biz_id: project.bk_biz_id,
         site_url: site_url,
-        project_id: id,
-        homelist: site_url + 'template/home/' + id + '/',
+        project_id: project.id,
         component: site_url + 'api/v3/component/',
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
-        subform: site_url + 'template/api/form/' + id + '/',
         instance: site_url + 'api/v3/taskflow/'
     }
 }
