@@ -23,7 +23,9 @@
         @cancel="onCloseDialog">
         <div class="permission-content" slot="content">
             <div class="permission-header">
-                <span class="title-icon"><i class="icon common-icon-lock-closed"></i></span>
+                <span class="title-icon">
+                    <img :src="lock" alt="permission-lock" class="lock-img" />
+                </span>
                 <h3>{{i18n.permissionTitle}}</h3>
             </div>
             <table class="permission-table table-header">
@@ -42,7 +44,7 @@
                             <td width="40%">{{permission.action_name}}</td>
                         </tr>
                         <tr v-if="false">
-                            <td class="no-data" colspan="3">{{i18n.noData}}</td>
+                            <td class="no-data" colspan="2">{{i18n.noData}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -67,6 +69,7 @@
                 isModalShow: false,
                 list: [],
                 loading: false,
+                lock: require('../../../assets/images/lock-radius.svg'),
                 i18n: {
                     permissionTitle: gettext('没有权限访问或操作此资源'),
                     system: gettext('系统'),
@@ -130,14 +133,14 @@
         margin-top: -26px;
         .permission-header {
             text-align: center;
-            .icon {
-                font-size: 60px;
-                color: #cfd1d6;
+            .lock-img {
+                width: 56px;
+                box-shadow: 0 6px 5px -5px rgba(180, 180, 180, 0.9);
             }
             h3 {
                 margin: 10px 0 30px;
-                color: #979ba5;
-                font-size: 24px;
+                color: #313238;
+                font-size: 20px;
             }
         }
         .permission-table {
