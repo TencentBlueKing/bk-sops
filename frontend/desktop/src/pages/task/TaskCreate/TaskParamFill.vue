@@ -394,7 +394,7 @@
 }
 .task-info,
 .param-info {
-    margin: 0 40px 50px 40px;
+    margin: 0 40px 20px 40px;
     .task-info-title,
     .param-info-title {
         font-size: 14px;
