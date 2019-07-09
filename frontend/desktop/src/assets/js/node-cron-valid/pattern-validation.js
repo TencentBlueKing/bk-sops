@@ -81,7 +81,7 @@ module.exports = ( () => {
   }
 
   function validateFields(patterns, executablePatterns, ErrorException){
-    var errorKey = commonConfig.language === 'en' ? 'error_en' : 'error_ch'
+    var errorKey = 'error_ch'
     if (isIncludeDecimals(patterns).valid) {
         var currIndex = isIncludeDecimals(patterns).index
         throw new ErrorException(patterns[currIndex] + KEYSMAP[currIndex][errorKey]);
@@ -122,7 +122,7 @@ module.exports = ( () => {
     var allowValue = /[^\,|\-|\*|\/|\w]|\d[a-z]|[A-Z]/
     for (var i=0; i<patterns.length; i++) {
         if (allowValue.test(patterns[i])) {
-            throw commonConfig.language === 'en' ? 'pattern is a invalid expression' : '表达式非法，请校验' 
+            throw '表达式非法，请校验'
         }
     }
   }
@@ -142,7 +142,7 @@ module.exports = ( () => {
       throw new ErrorException('pattern must be a string!');
     }
     if (pattern.split(' ').length !== 5) {
-      throw commonConfig.language === 'en' ? 'pattern is a invalid expression' : '表达式非法，请校验' 
+      throw  '表达式非法，请校验'
     }
     pattern = WeekExchangeDay(pattern);
     var patterns = pattern.split(' ');
