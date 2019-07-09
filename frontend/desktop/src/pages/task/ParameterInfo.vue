@@ -111,6 +111,10 @@
             },
             onUnrefVarLoadingChange () {
                 this.isUnrefVarLoading = false
+            },
+            // 获取 TaskParamEdit
+            getTaskParamEdit () {
+                return this.$refs.TaskParamEdit
             }
         }
     }

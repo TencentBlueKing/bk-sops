@@ -75,7 +75,8 @@
                     return this.value
                 },
                 set (val) {
-                    if (this.isvalidate === true) {
+                    // 验证后更新
+                    if (this.customValidate()) {
                         this.updateForm(val)
                     }
                 }
@@ -126,7 +127,6 @@
                 })
             },
             customValidate () {
-                this.isvalidate = true
                 return this.$refs.ipSelector.validate()
             }
         }
