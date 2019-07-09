@@ -102,7 +102,6 @@
     import NodeConfig from './NodeConfig.vue'
     import draft from '@/utils/draft.js'
     import { STRING_LENGTH } from '@/constants/index.js'
-    import { setAtomConfigApiUrls } from '@/config/setting.js'
 
     const i18n = {
         templateEdit: gettext('流程编辑'),
@@ -238,10 +237,6 @@
             }
         },
         created () {
-            if (this.common) {
-                this.defaultProjectId = this.project_id
-                setAtomConfigApiUrls(this.site_url)
-            }
             this.initTemplateData()
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
@@ -923,9 +918,6 @@
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
                     draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
-                }
-                if (this.common) {
-                    to.params.project_id = this.defaultProjectId
                 }
                 this.clearAtomForm()
                 next()
