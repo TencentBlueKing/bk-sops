@@ -11,8 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .client import BkIAMClient
+from .client import BKIAMClient
 
-bkiam_client = BkIAMClient()
+VERSION = '0.9.0'
 
-__all__ = ['bkiam_client']
+__version__ = VERSION
+
+bkiam_client = BKIAMClient()
+
+__all__ = ['bkiam_client', 'VERSION', '__version__']

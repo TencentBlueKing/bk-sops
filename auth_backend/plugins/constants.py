@@ -13,4 +13,4 @@ specific language governing permissions and limitations under the License.
 
 PRINCIPAL_TYPE_USER = 'user'
 
-from ..constants import *  # noqa
+from auth_backend.constants import *  # noqa

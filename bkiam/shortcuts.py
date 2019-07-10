@@ -11,12 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from bkiam.client import BkIAMClient
+from bkiam.client import BKIAMClient
 from bkiam.exceptions import PermTemplateUpsertFailedError
 
 
 def upsert_perms_templates(perm_templates, client=None):
-    client = BkIAMClient() if not client else client
+    client = BKIAMClient() if not client else client
 
     for template in perm_templates:
         result = client.upsert_perm_template(**template)

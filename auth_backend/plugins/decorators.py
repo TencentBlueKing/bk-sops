@@ -17,9 +17,9 @@ from functools import wraps
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
-from .constants import PRINCIPAL_TYPE_USER
-from .http import HttpResponseAuthFailed
-from .utils import build_need_permission
+from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
+from auth_backend.plugins.http import HttpResponseAuthFailed
+from auth_backend.plugins.utils import build_need_permission
 
 logger = logging.getLogger('root')
 

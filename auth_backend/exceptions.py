@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .constants import HTTP_AUTH_FAILED_CODE
+from auth_backend.constants import HTTP_AUTH_FAILED_CODE
 
 
 class AuthBaseException(Exception):
