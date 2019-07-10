@@ -10,13 +10,3 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
-HTTP_AUTH_FAILED_CODE = 499
-
-AUTH_FORBIDDEN_CODE = 9900403
-
-APP_LABEL = 'auth_backend'
-
-MIGRATION_TEMPLATE_NAME = 'migration.tmpl'
-
-ALL_INSTANCE_PLACEHOLDER = '*'

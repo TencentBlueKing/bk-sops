@@ -17,9 +17,6 @@ import abc
 class InstanceInspect(object):
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, resource_unique_key):
-        self.resource_unique_key = resource_unique_key
-
     @abc.abstractmethod
     def creator_type(self, instance):
         raise NotImplementedError()
@@ -48,7 +45,6 @@ class FieldInspect(InstanceInspect):
         self.resource_id_f = resource_id_f
         self.resource_name_f = resource_name_f
         self.parent_f = parent_f
-        super(FieldInspect, self).__init__(resource_id_f)
 
     @classmethod
     def _getattr_if_field_is_not_none(cls, instance, f):
@@ -70,13 +66,13 @@ class FieldInspect(InstanceInspect):
         return self._getattr_if_field_is_not_none(instance, self.parent_f)
 
 
-class FixedCreatorFieldInspect(FieldInspect):
+class FixedCreatorTypeFieldInspect(FieldInspect):
     def __init__(self, creator_type, creator_id_f, resource_id_f, resource_name_f, parent_f):
-        super(FixedCreatorFieldInspect, self).__init__(creator_type_f='',
-                                                       creator_id_f=creator_id_f,
-                                                       resource_id_f=resource_id_f,
-                                                       resource_name_f=resource_name_f,
-                                                       parent_f=parent_f)
+        super(FixedCreatorTypeFieldInspect, self).__init__(creator_type_f='',
+                                                           creator_id_f=creator_id_f,
+                                                           resource_id_f=resource_id_f,
+                                                           resource_name_f=resource_name_f,
+                                                           parent_f=parent_f)
         self._creator_type = creator_type
 
     def creator_type(self, instance):

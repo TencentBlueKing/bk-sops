@@ -22,7 +22,7 @@ from . import conf
 logger = logging.getLogger('component')
 
 
-class BkIAMClient(object):
+class BKIAMClient(object):
 
     def __init__(self, app_code=None, app_secret=None, bk_iam_host=None, version=None,
                  system_id=None, system_name=None):
