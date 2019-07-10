@@ -4,7 +4,7 @@
         :quick-close="false"
         :has-header="true"
         :ext-cls="'common-dialog'"
-        :title="i18n.title"
+        :title="title"
         width="850"
         padding="0"
         :is-show.sync="isNewTaskDialogShow"
@@ -87,7 +87,7 @@
         components: {
             NoData
         },
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'cc_id', 'taskCategory', 'createEntrance'],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'cc_id', 'taskCategory', 'createEntrance', 'dialogTitle'],
         data () {
             return {
                 i18n: {
@@ -133,6 +133,9 @@
             },
             isNoData () {
                 return this.templateList.length === 0
+            },
+            title () {
+                return this.dialogTitle || this.i18n.title
             }
         },
         watch: {
