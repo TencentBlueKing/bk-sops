@@ -139,6 +139,9 @@
             if (this.userType === 'functor') {
                 this.setFunctionalStep(true)
             }
+            if (this.entrance === '0') {
+                this.deletePeriodicCurrentStep()
+            }
         },
         methods: {
             appendFunctionalization () {
