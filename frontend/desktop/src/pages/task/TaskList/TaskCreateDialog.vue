@@ -135,7 +135,7 @@
                 return this.templateList.length === 0
             },
             title () {
-                return this.dialogTitle || gettext('新建任务')
+                return this.dialogTitle || this.i18n.title
             }
         },
         watch: {
