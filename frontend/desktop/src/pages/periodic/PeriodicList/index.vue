@@ -77,7 +77,7 @@
                             <td class="periodic-name" :title="item.name">
                                 <router-link
                                     :title="item.task_template_name"
-                                    :to="`/template/edit/${cc_id}/?template_id=${item.template_id}`">
+                                    :to="`/template/edit/${cc_id}/?template_id=${item.template_id}&entrance=periodicTask`">
                                     {{item.task_template_name}}
                                 </router-link>
                             </td>

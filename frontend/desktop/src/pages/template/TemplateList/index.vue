@@ -566,7 +566,7 @@
             },
             // 获取编辑按钮的跳转链接
             getEditTemplateUrl (id) {
-                let url = `/template/edit/${this.cc_id}/?template_id=${id}`
+                let url = `/template/edit/${this.cc_id}/?template_id=${id}&entrance=businessList`
                 if (this.common) {
                     url += '&common=1'
                 }
@@ -584,7 +584,9 @@
             getNewTaskUrl (id) {
                 let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${id}`
                 if (this.common || this.common_template) {
-                    url += '&common=1'
+                    url += '&common=1&entrance=commonList'
+                } else {
+                    url += '&entrance=businessList'
                 }
                 return url
             },
