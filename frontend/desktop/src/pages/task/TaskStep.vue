@@ -71,7 +71,7 @@
                 return this.$route.query.instance_id === undefined ? this.i18n.newTask : this.i18n.taskExecution
             },
             isShowBackBtn () {
-                return !(this.view_mode === 'appmark' && this.$route.path.indexOf('newtask') !== -1)
+                return !(this.view_mode === 'appmaker' && this.$route.path.indexOf('newtask') !== -1)
             }
         },
         methods: {

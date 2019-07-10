@@ -26,7 +26,7 @@
                                 :selected.sync="businessSelected"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onAppMarkerCategory">
+                                @item-selected="onAppMakerCategory">
                             </bk-selector>
                         </div>
                         <div class="content-date-picker" @click="onDatePickerClick">
@@ -59,7 +59,7 @@
                                 :selected.sync="categorySelected"
                                 :searchable="true"
                                 :allow-clear="true"
-                                @item-selected="onAppMarkerBizCcid">
+                                @item-selected="onAppMakerBizCcid">
                             </bk-selector>
                         </div>
                         <div class="content-business-picker" @click="onInstanceClick">
@@ -92,7 +92,7 @@
                                     :start-date="tableStartTime"
                                     :end-date="tableEndTime"
                                     :end-date-max="endDateMax"
-                                    @change="onAppMarkerInstance">
+                                    @change="onAppMakerInstance">
                                 </bk-date-range>
                             </div>
                             <div class="content-wrap-select">
@@ -107,7 +107,7 @@
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
-                                    @change="onAppMarkerInstance"
+                                    @change="onAppMakerInstance"
                                     @clear="onClearBizCcId"
                                     @item-selected="onSelectedBizCcId">
                                 </bk-selector>
@@ -124,7 +124,7 @@
                                     :placeholder="i18n.choice"
                                     :searchable="true"
                                     :allow-clear="true"
-                                    @change="onAppMarkerInstance"
+                                    @change="onAppMakerInstance"
                                     @clear="onClearCategory"
                                     @item-selected="onSelectedCategory">
                                 </bk-selector>
@@ -337,18 +337,18 @@
             onAppmakerHandleSizeChange (limit) {
                 this.appmakerPageIndex = 1
                 this.appmakerLimit = limit
-                this.onAppMarkerInstance()
+                this.onAppMakerInstance()
             },
             onAppmakerHandleIndexChange (pageIndex) {
                 this.appmakerPageIndex = pageIndex
-                this.onAppMarkerInstance()
+                this.onAppMakerInstance()
             },
             onAppmakerHandleSort (column, prop, order) {
                 order = column[0].order === 'ascending' ? '' : '-'
                 this.appmakerOrderBy = column[0].prop ? order + column[0].prop : '-templateId'
-                this.onAppMarkerInstance()
+                this.onAppMakerInstance()
             },
-            onAppMarkerCategory (business, name) {
+            onAppMakerCategory (business, name) {
                 if (business) {
                     if (business === this.choiceBusiness) {
                         // 相同的内容不需要再次查询
@@ -372,7 +372,7 @@
                 }
                 this.appMakerData(data)
             },
-            onAppMarkerBizCcid (category, name) {
+            onAppMakerBizCcid (category, name) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -435,7 +435,7 @@
                     errorHandler(e, this)
                 }
             },
-            onAppMarkerInstance (oldValue = null, newValue = null) {
+            onAppMakerInstance (oldValue = null, newValue = null) {
                 if (newValue) {
                     const dateArray = newValue.split(' - ')
                     this.tableStartTime = dateArray[0]
@@ -487,7 +487,7 @@
                 }
                 this.category = name
                 this.resetPageIndex()
-                this.onAppMarkerInstance()
+                this.onAppMakerInstance()
             },
             onSelectedBizCcId (name, value) {
                 if (this.bizCcId === name) {
@@ -495,19 +495,19 @@
                 }
                 this.bizCcId = name
                 this.resetPageIndex()
-                this.onAppMarkerInstance()
+                this.onAppMakerInstance()
             },
             onClearBizCcId () {
                 this.selectedCcId = -1
                 this.bizCcId = undefined
                 this.resetPageIndex()
-                this.onAppMarkerInstance()
+                this.onAppMakerInstance()
             },
             onClearCategory () {
                 this.selectedCategory = -1
                 this.category = undefined
                 this.resetPageIndex()
-                this.onAppMarkerInstance()
+                this.onAppMakerInstance()
             },
             onChangeCategoryTime (oldValue, newValue) {
                 if (newValue) {
@@ -515,7 +515,7 @@
                     this.categoryStartTime = dateArray[0]
                     this.categoryEndTime = dateArray[1]
                 }
-                this.onAppMarkerCategory(null)
+                this.onAppMakerCategory(null)
             },
             onChangeBusinessTime (oldValue, newValue) {
                 if (newValue) {
@@ -523,7 +523,7 @@
                     this.businessStartTime = dateArray[0]
                     this.businessEndTime = dateArray[1]
                 }
-                this.onAppMarkerBizCcid(null)
+                this.onAppMakerBizCcid(null)
             },
             resetPageIndex () {
                 this.appmakerPageIndex = 1
