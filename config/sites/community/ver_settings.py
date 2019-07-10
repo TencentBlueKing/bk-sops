@@ -43,3 +43,13 @@ RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
               "itqI6xYBqb3WBRu9WYEd8skFy1mwOEbxOgsXoOPd9tLkt4etSMzm7kdBqmZKIeiA\\n" + \
               "OtbmirDqkuz6M64b5wIDAQAB\\n" + \
               "-----END PUBLIC KEY-----"
+
+COMPATIBLE_MODULE_MAP = {
+    'pipeline.components.collections.common': 'pipeline_plugins.components.collections.common',
+    'pipeline.components.collections.controller': 'pipeline_plugins.components.collections.controller',
+    'pipeline.components.collections.sites.community.bk': 'pipeline_plugins.components.collections.sites.open.bk',
+    'pipeline.components.collections.sites.community.cc': 'pipeline_plugins.components.collections.sites.open.cc',
+    'pipeline.components.collections.sites.community.job': 'pipeline_plugins.components.collections.sites.open.job',
+    'pipeline.variables.collections.common': 'pipeline_plugins.variables.collections.common',
+    'pipeline.variables.collections.sites.community.cc': 'pipeline_plugins.variables.collections.sites.open.cc',
+}
