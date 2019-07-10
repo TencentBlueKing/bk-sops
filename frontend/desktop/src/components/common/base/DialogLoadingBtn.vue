@@ -25,6 +25,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     export default {
         name: 'LoadingBtnDialog',
         props: {
@@ -60,5 +61,5 @@
         line-height: 30px;
     }
 }
-    
+
 </style>
