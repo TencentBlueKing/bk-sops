@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-07-10 16:17+0800\n"
+"POT-Creation-Date: 2019-07-10 20:40+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1750,7 +1750,7 @@ msgstr "Timed Job ID"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:437
 msgid "定时作业状态"
-msgstr "Timed Job status"
+msgstr "Job status"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:442
 msgid "新建定时作业"

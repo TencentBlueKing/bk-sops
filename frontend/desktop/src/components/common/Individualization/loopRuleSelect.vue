@@ -247,7 +247,7 @@
             start: gettext('从第'),
             startWeek: gettext('从星期'),
             center: gettext('开始,每隔'),
-            end: gettext('执行')
+            end: gettext('执行一次')
         },
         'appoint': {
             name: gettext('指定')
