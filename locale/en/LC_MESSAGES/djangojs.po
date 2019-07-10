@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-05 20:50+0800\n"
+"POT-Creation-Date: 2019-07-10 16:17+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgid "HTTP状态码："
 msgstr "HTTP Status:"
 
 #: frontend/desktop/src/components/common/Individualization/IpLogContent.vue:61
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:286
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:285
 msgid "错误码"
 msgstr "ErrorCode"
 
@@ -38,111 +38,111 @@ msgstr "ErrorCode"
 msgid "请输入 IP"
 msgstr "Please enter IP"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:169
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:168
 msgid "分钟"
 msgstr "Minute"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:184
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:183
 msgid "小时"
 msgstr "Hour"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:199
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:198
 msgid "星期"
 msgstr "Week"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:214
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:213
 msgid "日期"
 msgstr "Date"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:229
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:228
 msgid "月份"
 msgstr "Month"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:247
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:246
 msgid "循环"
 msgstr "Cycle"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:248
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:247
 msgid "从第"
 msgstr "From"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:249
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:248
 msgid "从星期"
 msgstr "From day"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:250
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:249
 msgid "开始,每隔"
 msgstr ",execute once"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:251
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:250
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:171
 msgid "执行"
 msgstr "Execution"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:254
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:253
 msgid "指定"
 msgstr "Specify"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:258
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:257
 msgid "星期一"
 msgstr "Monday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:259
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:258
 msgid "星期二"
 msgstr "Tuesday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:260
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:259
 msgid "星期三"
 msgstr "Wednesday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:261
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:260
 msgid "星期四"
 msgstr "Thursday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:262
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:261
 msgid "星期五"
 msgstr "Friday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:263
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:262
 msgid "星期六"
 msgstr "Saturday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:264
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:263
 msgid "星期天"
 msgstr "Sunday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:285
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:284
 #: frontend/desktop/src/pages/admin/statistics/Instance/index.vue:295
 msgid "天"
 msgstr "Day"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:287
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:286
 msgid "表达式："
 msgstr "Expression:"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:288
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:287
 msgid "手动输入"
 msgstr "Enter Manually"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:289
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:288
 msgid "清空已选"
 msgstr "Empty"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:290
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:289
 msgid "选择生成"
 msgstr "Selection"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:291
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:290
 msgid "0 12 * 10-17 */11"
 msgstr "0 12 * 10-17 */11"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:292
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:291
 msgid "0 表示星期天，6 表示星期六"
 msgstr "0 means Sunday, 6 means Saturday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:299
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:298
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:86
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:166
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:167
 msgid "task-zh"
 msgstr "task-en"
 
@@ -380,7 +380,7 @@ msgstr "Cloud Area"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:103
 #: frontend/desktop/src/pages/audit/index.vue:189
 #: frontend/desktop/src/pages/functor/index.vue:239
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:217
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:219
 #: frontend/desktop/src/pages/task/TaskList/index.vue:261
 msgid "状态"
 msgstr "Status"
@@ -395,7 +395,7 @@ msgstr "Exceptions"
 #: frontend/desktop/src/components/common/dataTable/DataTablePagination.vue:201
 #: frontend/desktop/src/pages/audit/index.vue:190
 #: frontend/desktop/src/pages/functor/index.vue:240
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:204
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:206
 #: frontend/desktop/src/pages/task/TaskList/index.vue:262
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:295
 msgid "操作"
@@ -451,7 +451,7 @@ msgstr "Exclusion condition"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:149
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:91
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:207
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:209
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:297
 msgid "编辑"
 msgstr "Edit"
@@ -459,7 +459,7 @@ msgstr "Edit"
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:151
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:92
 #: frontend/desktop/src/pages/appmaker/index.vue:182
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:206
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:208
 #: frontend/desktop/src/pages/task/TaskList/index.vue:264
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:108
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:146
@@ -495,7 +495,7 @@ msgid "点击上传"
 msgstr "Upload"
 
 #: frontend/desktop/src/components/common/base/BaseSearch.vue:34
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:202
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:204
 #: frontend/desktop/src/pages/task/TaskList/index.vue:282
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:324
 msgid "高级搜索"
@@ -616,7 +616,7 @@ msgstr "Audit"
 #: frontend/desktop/src/components/layout/Navigator.vue:104
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:93
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:144
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:221
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:223
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:232
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:341
 msgid "流程模板"
@@ -639,7 +639,7 @@ msgid "公共流程"
 msgstr "Common Flow"
 
 #: frontend/desktop/src/components/layout/Navigator.vue:121
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:201
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:203
 msgid "周期任务"
 msgstr "Periodic Tasks"
 
@@ -714,14 +714,14 @@ msgstr "Executing"
 #: frontend/desktop/src/pages/audit/index.vue:198
 #: frontend/desktop/src/pages/audit/index.vue:341
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:128
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:208
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:240
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:210
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:242
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:182
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:176
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:691
 #: frontend/desktop/src/pages/task/TaskList/index.vue:284
 #: frontend/desktop/src/pages/task/TaskList/index.vue:414
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:79
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:90
 msgid "暂停"
 msgstr "Suspend"
 
@@ -1154,7 +1154,7 @@ msgstr "Flow Name"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:99
 #: frontend/desktop/src/pages/audit/index.vue:185
 #: frontend/desktop/src/pages/functor/index.vue:234
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:137
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:138
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:107
 #: frontend/desktop/src/pages/task/TaskList/TaskCloneDialog.vue:60
 #: frontend/desktop/src/pages/task/TaskList/index.vue:255
@@ -1166,7 +1166,7 @@ msgstr "Task Name"
 #: frontend/desktop/src/pages/admin/statistics/Template/index.vue:221
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:101
 #: frontend/desktop/src/pages/audit/index.vue:187
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:203
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:205
 #: frontend/desktop/src/pages/task/TaskList/index.vue:259
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:294
 msgid "创建人"
@@ -1239,7 +1239,7 @@ msgstr "Business"
 
 #: frontend/desktop/src/pages/admin/statistics/Template/index.vue:223
 #: frontend/desktop/src/pages/appmaker/AppCard.vue:97
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:222
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:224
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:301
 msgid "执行历史"
 msgstr "History"
@@ -1352,7 +1352,7 @@ msgstr "Executor"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:104
 #: frontend/desktop/src/pages/audit/index.vue:192
 #: frontend/desktop/src/pages/functor/index.vue:247
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:210
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:212
 #: frontend/desktop/src/pages/task/TaskList/index.vue:266
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:306
 msgid "共"
@@ -1361,7 +1361,7 @@ msgstr " "
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:105
 #: frontend/desktop/src/pages/audit/index.vue:193
 #: frontend/desktop/src/pages/functor/index.vue:248
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:211
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:213
 #: frontend/desktop/src/pages/task/TaskList/index.vue:267
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:307
 msgid "条记录"
@@ -1370,7 +1370,7 @@ msgstr "records"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:106
 #: frontend/desktop/src/pages/audit/index.vue:194
 #: frontend/desktop/src/pages/functor/index.vue:249
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:212
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:214
 #: frontend/desktop/src/pages/task/TaskList/index.vue:268
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:308
 msgid "，"
@@ -1379,7 +1379,7 @@ msgstr ","
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:107
 #: frontend/desktop/src/pages/audit/index.vue:195
 #: frontend/desktop/src/pages/functor/index.vue:251
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:213
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:215
 #: frontend/desktop/src/pages/task/TaskList/index.vue:269
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:309
 msgid "当前第"
@@ -1388,7 +1388,7 @@ msgstr "current"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:108
 #: frontend/desktop/src/pages/audit/index.vue:196
 #: frontend/desktop/src/pages/functor/index.vue:252
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:214
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:216
 #: frontend/desktop/src/pages/task/TaskList/index.vue:270
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:310
 msgid "页"
@@ -1403,7 +1403,7 @@ msgstr "Unknown"
 
 #: frontend/desktop/src/pages/appmaker/index.vue:175
 #: frontend/desktop/src/pages/functor/index.vue:243
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:198
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:199
 #: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:128
 #: frontend/desktop/src/pages/task/TaskList/index.vue:285
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:157
@@ -1451,7 +1451,7 @@ msgstr "Input editor please"
 #: frontend/desktop/src/pages/appmaker/index.vue:188
 #: frontend/desktop/src/pages/audit/index.vue:200
 #: frontend/desktop/src/pages/functor/index.vue:256
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:223
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:225
 #: frontend/desktop/src/pages/task/TaskList/index.vue:276
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:321
 msgid "搜索"
@@ -1460,7 +1460,7 @@ msgstr "Search"
 #: frontend/desktop/src/pages/appmaker/index.vue:189
 #: frontend/desktop/src/pages/audit/index.vue:201
 #: frontend/desktop/src/pages/functor/index.vue:257
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:224
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:226
 #: frontend/desktop/src/pages/task/TaskList/index.vue:277
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:322
 msgid "清空"
@@ -1487,7 +1487,7 @@ msgid "请选择分类"
 msgstr "Choose category please"
 
 #: frontend/desktop/src/pages/audit/index.vue:203
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:216
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:218
 #: frontend/desktop/src/pages/task/TaskList/index.vue:273
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:317
 msgid "请输入创建人"
@@ -1499,7 +1499,7 @@ msgid "请输入执行人"
 msgstr "Input executor please"
 
 #: frontend/desktop/src/pages/audit/index.vue:205
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:220
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:222
 #: frontend/desktop/src/pages/task/TaskList/index.vue:275
 msgid "请选择状态"
 msgstr "Choose status please"
@@ -1593,7 +1593,7 @@ msgstr "Executed"
 msgid "已驳回"
 msgstr "Rejected"
 
-#: frontend/desktop/src/pages/functor/index.vue:521
+#: frontend/desktop/src/pages/functor/index.vue:522
 msgid " 无数据 "
 msgstr " No Data "
 
@@ -1719,12 +1719,12 @@ msgid "修改周期任务"
 msgstr "Modify Periodic Task"
 
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:78
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:200
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:202
 msgid "周期规则"
 msgstr "Corntab"
 
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:79
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:141
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:142
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:108
 msgid "参数信息"
 msgstr "Parameters"
@@ -1758,26 +1758,30 @@ msgstr "Modify Periodic task failed, contact admin please"
 msgid "修改周期任务表达式成功"
 msgstr "Modify crontab success"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:199
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:200
+msgid "新建周期任务"
+msgstr "New Periodic Task"
+
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:201
 msgid "上次运行时间"
 msgstr "Last run at"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:205
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:239
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:80
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:207
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:241
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:91
 msgid "启动"
 msgstr "Activate"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:209
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:211
 msgid "运行次数"
 msgstr "Number of runs"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:215
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:217
 #: frontend/desktop/src/pages/task/TaskList/index.vue:271
 msgid "请输入任务名称"
 msgstr "Please enter ID or task name"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:218
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:220
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:239
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:158
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:105
@@ -1787,11 +1791,11 @@ msgstr "Please enter ID or task name"
 msgid "名称"
 msgstr "Name"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:219
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:221
 msgid "请暂停任务后再执行编辑操作"
 msgstr "Deactivate task before edit it"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:373
+#: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:375
 msgid "删除周期任务成功"
 msgstr "Task delete success"
 
@@ -1803,45 +1807,45 @@ msgstr "Show Unreferenced Variables"
 msgid "在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑"
 msgstr "When editing a flow template, global variables can be referenced by the syntax supported by the variable engine. Unreferenced variables are not editable"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:136
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:137
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:106
 msgid "任务信息"
 msgstr "Task Info"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:138
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:139
 msgid "流程类型"
 msgstr "Flow Type"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:139
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:140
 msgid "默认任务流程"
 msgstr "Default Flow"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:140
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:141
 msgid "职能化任务流程"
 msgstr "Functional Flow"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:142
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:143
 msgid "上一步"
 msgstr "Previous"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:143
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:144
 #: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:133
 msgid "下一步"
 msgstr "Next"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:144
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:145
 msgid "立即执行"
 msgstr "Immediately"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:145
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:146
 msgid "周期执行"
 msgstr "Periodically"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:146
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:147
 msgid "周期表达式"
 msgstr "Crontab"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:147
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:148
 msgid "执行计划"
 msgstr "Execution Plan"
 
@@ -1897,7 +1901,7 @@ msgid "任务执行"
 msgstr "Task Execution"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:123
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:147
+#: frontend/desktop/src/pages/task/TaskCreate/index.vue:150
 #: frontend/desktop/src/pages/task/TaskExecute/index.vue:105
 msgid "职能化认领"
 msgstr "Functional Claiming"
@@ -2132,7 +2136,7 @@ msgstr "Choose create method please"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:231
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:66
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:82
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:83
 msgid "基础信息"
 msgstr "Basic Info"
 
@@ -2225,7 +2229,7 @@ msgid "是否复用变量"
 msgstr "Whether To Reuse Variable"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:156
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:81
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:82
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_execute_task.js:36
 msgid "全局变量"
 msgstr "Global Variable"
@@ -2290,7 +2294,7 @@ msgid "隐藏"
 msgstr "Hide"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:103
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:83
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:84
 msgid "本地缓存"
 msgstr "Local Caches"
 
@@ -2684,13 +2688,13 @@ msgstr "Account"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:78
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:48
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:283
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:157
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:168
 msgid "目标IP"
 msgstr "Target IP"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:79
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:284
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:158
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:169
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the input LAN IP are unique in the business on Configuration System"
@@ -2889,28 +2893,28 @@ msgstr "Service Status"
 msgid "开放"
 msgstr "Open"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:7
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:18
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_execute_task.js:18
 msgid "作业模板"
 msgstr "Job"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:25
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:36
 msgid "定时作业名称"
 msgstr "Timed Job Name"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:27
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:38
 msgid "请填写定时作业名称"
 msgstr "Please enter timed job name"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:62
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:73
 msgid "定时规则"
 msgstr "Timing Rules"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:64
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:75
 msgid "Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"
 msgstr "Crontab rules, the meaning of each field is: second minute hour day month week year(optional).For example: 0 0/5 * * * ? means to execute every 5 minutes, 0 0 12 * * ? 2015 means trigger every day at 12 noon in 2015"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:76
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:87
 msgid "定时作业状态"
 msgstr "Timed Job Status"
 
@@ -2931,17 +2935,17 @@ msgid "描述"
 msgstr "Desc"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:18
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:7
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:18
 msgid "脚本来源"
 msgstr "Script Source"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:21
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:10
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:21
 msgid "手工录入"
 msgstr "Manual"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:22
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:11
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:22
 msgid "业务脚本"
 msgstr "Business Script"
 
@@ -2959,7 +2963,7 @@ msgid "请选择脚本类型"
 msgstr "Choose script Type"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:100
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:34
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:45
 msgid "脚本内容"
 msgstr "Script Content"
 
@@ -2969,14 +2973,14 @@ msgstr "Please enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:117
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:121
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:50
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:54
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:61
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:65
 msgid "请输入脚本内容"
 msgstr "Please input script content"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:147
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:198
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:80
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:91
 msgid "脚本列表"
 msgstr "Script List"
 
@@ -2984,8 +2988,8 @@ msgstr "Script List"
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:172
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:219
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:223
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:102
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:106
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:113
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:117
 msgid "请选择脚本"
 msgstr "Choose script please"
 
@@ -2998,29 +3002,29 @@ msgid "可为空"
 msgstr "Empty is valid"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:258
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:132
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:143
 msgid "超时时间"
 msgstr "Timeout(s) "
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:259
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:133
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:144
 msgid "单位为秒，为空时使用 JOB 默认值"
 msgstr "The unit is second, empty is valid, defaulted as same with JOB"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:271
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:145
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:156
 msgid "请输入数字"
 msgstr "Please enter a number"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:81
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:92
 msgid "请选择作业平台上的SQL脚本"
 msgstr "Please select SQL script from JOB system"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:171
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:182
 msgid "DB账户"
 msgstr "DB Account"
 
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:172
+#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:183
 msgid "请选择蓝鲸作业平台上已注册并授权的DB账号"
 msgstr "Please select the account from JOB system"
 
