@@ -904,7 +904,7 @@
             },
             // 重新获得缓存后，更新 dom data[raw]上绑定的数据
             upDataAllNodeInfo () {
-                const nodes = this.draftArray[0].data.template.activities
+                const nodes = this.activities
                 Object.keys(nodes).forEach((node, index) => {
                     this.onUpdateNodeInfo(node, {
                         status: '',

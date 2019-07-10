@@ -87,6 +87,7 @@
             </div>
             <div>
                 <ParameterInfo
+                    ref="ParameterInfo"
                     :referenced-variable="pipelineData.constants"
                     :un-referenced-variable="unreferenced"
                     :task-message-loading="taskMessageLoading"
@@ -272,10 +273,12 @@
                 const loopRule = !this.isStartNow ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
                 if (!loopRule.check) return
                 if (this.isSubmit) return
-                const paramEditComp = this.$refs.TaskParamEdit
+                // 页面中是否有 TaskParamEdit 组件
+                const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
                 this.$validator.validateAll().then(async (result) => {
                     let formValid = true
                     const pipelineData = tools.deepClone(this.pipelineData)
+                    // 取最新参数
                     if (paramEditComp) {
                         const formData = paramEditComp.getVariableData()
                         pipelineData.constants = formData
@@ -394,7 +397,7 @@
 }
 .task-info,
 .param-info {
-    margin: 0 40px 50px 40px;
+    margin: 0 40px 20px 40px;
     .task-info-title,
     .param-info-title {
         font-size: 14px;
