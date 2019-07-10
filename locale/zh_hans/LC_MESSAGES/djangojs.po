@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-10 16:17+0800\n"
+"POT-Creation-Date: 2019-07-10 20:40+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -76,9 +76,8 @@ msgid "开始,每隔"
 msgstr "开始,每隔"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:250
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:171
-msgid "执行"
-msgstr "执行"
+msgid "执行一次"
+msgstr "执行一次"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:253
 msgid "指定"
@@ -2024,6 +2023,10 @@ msgstr "预览"
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:111
 msgid "任务流程预览"
 msgstr "任务流程预览"
+
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:171
+msgid "执行"
+msgstr "执行"
 
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:181
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:685
