@@ -108,54 +108,44 @@
                 }
                 return style
             },
+            /**
+             * 返回任务列表
+             */
             getHomeUrl () {
                 let url = '/'
+                const userType = this.userType // 用户类型
                 const path = this.$route.fullPath
-                // 管理员
-                if (this.userType === 'maintainer') {
-                    if (path.indexOf('/template/edit/') !== -1) {
-                        // 编辑模板
-                        url = `/periodic/home/${this.cc_id}/`
-                    } else if (path.indexOf('/taskflow/execute/') !== -1) {
-                        // 任务记录
-                        url = `/taskflow/home/${this.cc_id}/`
-                    } else if (path.indexOf('/template/newtask/') !== -1) {
-                        // 新建任务
-                        const entrance = this.$route.query.entrance
-                        // 新建-周期任务
-                        if (entrance && entrance === '0') {
-                            url = `/periodic/home/${this.cc_id}/`
-                        }
-                        // 新建-任务记录
-                        if (entrance && entrance === '1') {
-                            url = `/taskflow/home/${this.cc_id}/`
-                        }
-                        // 新建-业务流程
-                        if (entrance && entrance === 'commonList') {
-                            url = `/template/common/${this.cc_id}/`
-                        }
-                        // 新建-公共流程
-                        if (entrance && entrance === 'businessList') {
-                            url = `/template/home/${this.cc_id}/`
-                        }
-                    } else {
-                        url = `/template/home/${this.cc_id}/`
-                    }
-                    if (this.common) {
-                        url += `?common=1&common_template=${this.common}`
-                    }
-                } else if (this.userType === 'functor') {
+                const entrance = this.$route.query.entrance || '' // 入口参数
+                const ccId = this.$route.params.cc_id
+                const actions = [
+                    // 编辑模板
+                    { userType: 'maintainer', path: '/template/edit/', url: `/periodic/home/${this.cc_id}/` },
+                    // 任务记录
+                    { userType: 'maintainer', path: '/taskflow/execute/', url: `/taskflow/home/${this.cc_id}/` },
+                    // 新建-周期任务
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: '0', url: `/periodic/home/${this.cc_id}/` },
+                    // 新建-任务记录
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: '1', url: `/taskflow/home/${this.cc_id}/` },
+                    // 新建-业务流程
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'commonList', url: `/template/common/${this.cc_id}/` },
+                    // 新建-公共流程
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'businessList', url: `/template/home/${this.cc_id}/` },
+                    // maintainer 默认
+                    { userType: 'maintainer', path: 'default', url: `/template/home/${this.cc_id}/` },
                     // 职能化
-                    url = `/function/home/`
-                } else if (this.userType === 'auditor') {
+                    { userType: 'functor', url: `/function/home/` },
                     // 审计员
-                    url = `/audit/home/`
-                } else if (this.view_mode === 'appmaker') {
+                    { userType: 'auditor', url: `/audit/home/` },
                     // 轻应用
-                    const appId = this.$route.params.app_id
-                    const ccId = this.$route.params.cc_id
-                    if (appId && ccId) url = `/appmaker/${appId}/task_home/${ccId}/`
-                }
+                    { userType: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${ccId}/` }
+                ]
+                actions.forEach(key => {
+                    const flag_userType = key.userType === userType
+                    const flag_path = key.path ? new RegExp(key.path).test(path) : true
+                    const flag_entrance = key.entrance ? key.entrance === entrance : true
+                    if (flag_userType && flag_path && flag_entrance) url = key.url
+                })
+                if (this.common && userType === 'maintainer') url += `?common=1&common_template=${this.common}`
                 this.$router.push(url)
             }
         }
