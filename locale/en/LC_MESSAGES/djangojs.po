@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-10 16:17+0800\n"
+"POT-Creation-Date: 2019-07-10 20:40+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -40,23 +40,23 @@ msgstr "Please enter IP"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:168
 msgid "分钟"
-msgstr "Minute"
+msgstr "minute"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:183
 msgid "小时"
-msgstr "Hour"
+msgstr "hour"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:198
 msgid "星期"
-msgstr "Week"
+msgstr "week"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:213
 msgid "日期"
-msgstr "Date"
+msgstr "date"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:228
 msgid "月份"
-msgstr "Month"
+msgstr "month"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:246
 msgid "循环"
@@ -72,12 +72,11 @@ msgstr "From day"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:249
 msgid "开始,每隔"
-msgstr ",execute once"
+msgstr ", execute once every"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:250
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:171
-msgid "执行"
-msgstr "Execution"
+msgid "执行一次"
+msgstr " "
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:253
 msgid "指定"
@@ -114,7 +113,7 @@ msgstr "Sunday"
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:284
 #: frontend/desktop/src/pages/admin/statistics/Instance/index.vue:295
 msgid "天"
-msgstr "Day"
+msgstr "day"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:286
 msgid "表达式："
@@ -2024,6 +2023,10 @@ msgstr "Preview"
 msgid "任务流程预览"
 msgstr "Preview Task Flow"
 
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:171
+msgid "执行"
+msgstr "Execution"
+
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:181
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:685
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:697
@@ -2900,7 +2903,7 @@ msgstr "Job"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:36
 msgid "定时作业名称"
-msgstr "Timed Job Name"
+msgstr "Job Name"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:38
 msgid "请填写定时作业名称"
@@ -2916,7 +2919,7 @@ msgstr "Crontab rules, the meaning of each field is: second minute hour day mont
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:87
 msgid "定时作业状态"
-msgstr "Timed Job Status"
+msgstr "Timing Status"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_execute_task.js:38
 msgid "没选中作业模板或当前作业模板全局变量为空"
