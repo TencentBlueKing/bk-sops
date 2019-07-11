@@ -18,7 +18,7 @@
             {{ i18n.add_text }}
         </bk-button>
         <el-table
-            style="width: 100%"
+            style="width: 100%; font-size: 12px"
             :data="tableValue"
             :empty-text="empty_text"
             v-loading="loading"

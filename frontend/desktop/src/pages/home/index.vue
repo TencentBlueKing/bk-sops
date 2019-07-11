@@ -10,8 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="home-page" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div v-if="!loading">
+    <div class="home-page">
+        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="summary-info">
                 <HomeSummary
                     :cc_id="cc_id"
@@ -20,6 +20,7 @@
             </div>
             <div class="main-wrapper">
                 <QuickCreateTask
+                    v-if="!loading"
                     :cc_id="cc_id"
                     :quick-task-list="quickTaskList"
                     :template-classify="templateClassify"
@@ -29,12 +30,17 @@
                 <div class="column-panel clearfix">
                     <div class="col-item">
                         <TaskFeeds
+                            v-if="!loading"
                             :top-three-task-feeds="topThreeTaskFeeds"
                             :cc_id="cc_id">
                         </TaskFeeds>
                     </div>
                     <div class="col-item">
-                        <TaskPercentChart :task-count="taskCount" :total-task="totalTask"></TaskPercentChart>
+                        <TaskPercentChart
+                            v-if="!loading"
+                            :task-count="taskCount"
+                            :total-task="totalTask">
+                        </TaskPercentChart>
                     </div>
                 </div>
             </div>
@@ -260,11 +266,6 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-.home-page {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteMainBg;
-}
 .summary-info {
     background: #2b74c6;
     background: linear-gradient(to bottom, #2b74ca, #289dce);

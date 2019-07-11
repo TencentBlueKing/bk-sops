@@ -432,7 +432,6 @@
 <style lang='scss'>
 @import '@/scss/config.scss';
 .audit-container {
-    padding-top: 20px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #fafafa;
@@ -477,6 +476,7 @@
 .audit-fieldset {
     width: 100%;
     margin-bottom: 15px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .audit-query-content {
@@ -590,9 +590,12 @@
             background: #fafafa;
         }
         th,td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: #fafafa;

@@ -16,7 +16,6 @@
             id="DataTablePagination"
             ref="mutipleTable"
             :data="data"
-            :max-height="height"
             :stripe="options.stripe"
             :border="options.border"
             :empty-text="i18n.emptyNoData"
@@ -167,11 +166,6 @@
                 type: Object,
                 default: null
             },
-            otherHeight: {
-                // 计算表格的高度
-                type: Number,
-                default: 160
-            },
             options: {
                 // 表格的控制参数
                 // stripe 是否为斑马纹 table
@@ -299,6 +293,11 @@
             color: #333333;
           }
         }
+      }
+    }
+    .el-table__row{
+      td {
+        color: #63656e;
       }
     }
     .el-table-column--selection .cell {

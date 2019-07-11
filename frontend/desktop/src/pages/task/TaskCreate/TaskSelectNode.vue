@@ -120,7 +120,7 @@
             BaseInput,
             NodePreview
         },
-        props: ['cc_id', 'template_id', 'common', 'excludeNode'],
+        props: ['cc_id', 'template_id', 'common', 'excludeNode', 'entrance'],
         data () {
             return {
                 i18n: {
@@ -471,7 +471,11 @@
                         if (this.common) {
                             this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
                         } else {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                            if (this.entrance !== undefined) {
+                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
+                            } else {
+                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                            }
                         }
                     }
                 } catch (e) {
@@ -744,7 +748,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/config.scss';
 .select-node-wrapper {
-    height: calc(100% - 132px);
+    height: calc(100% - 90px);
 }
 .canvas-content {
     position: relative;
