@@ -931,4 +931,3 @@ class CmdbTransferHostResourceModuleComponent(Component):
     code = 'cmdb_transfer_host_resource'
     bound_service = CmdbTransferHostResourceModuleService
     form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_host_resource.js' % (settings.STATIC_URL, settings.RUN_VER)
-
