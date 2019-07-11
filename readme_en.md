@@ -62,7 +62,7 @@ If you want to know more about the above features, please refer to the
 - [Wiki (In Chinese)](https://github.com/Tencent/bk-sops/wiki) or ask for help
 - [White paper(In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [BK forum](https://bk.tencent.com/s-mart/community)
-- [BK DevOps online video tutorial](In Chinese)(https://cloud.tencent.com/developer/edu/major-100008)
+- [BK DevOps online video tutorial(In Chinese)](https://cloud.tencent.com/developer/edu/major-100008)
 - Contact us, technical exchange QQ group：878501914
 
 
