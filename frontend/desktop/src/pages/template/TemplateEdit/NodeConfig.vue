@@ -1246,7 +1246,7 @@
     }
 }
 /deep/.icon-edit2:before {
-    content: "\e938";
+    content: '\e908';
     font-family: 'commonicon' !important;
     font-size: 16px;
     color: #546a9e;
