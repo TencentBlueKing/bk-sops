@@ -143,6 +143,8 @@
         { id: 'hide', name: gettext('隐藏') }
     ]
 
+    const VALIDATE_SET = ['required', 'custom', 'regex']
+
     export default {
         name: 'VariableEdit',
         components: {
@@ -179,7 +181,8 @@
                     showHook: false,
                     showGroup: false,
                     showLabel: false,
-                    showVarList: true
+                    showVarList: true,
+                    validateSet: ['custom', 'regex']
                 },
                 isEditDialogShow: false,
                 // 变量名称校验规则
@@ -244,6 +247,9 @@
                 } else {
                     return custom_type
                 }
+            },
+            validateSet () {
+                return this.theEditingData.show_type ? VALIDATE_SET.slice(1) : VALIDATE_SET
             }
         },
         watch: {
@@ -383,6 +389,9 @@
 
                 this.renderConfig = [config]
             },
+            getValidateSet () {
+                return this.theEditingData.show_type === 'show' ? VALIDATE_SET.slice(1) : VALIDATE_SET
+            },
             /**
              * 切换变量类型
              */
@@ -405,8 +414,10 @@
             /**
              * 变量显示/隐藏切换
              */
-            onValShowTypeChange (id, data) {
-                this.theEditingData.show_type = id
+            onValShowTypeChange (showType, data) {
+                this.theEditingData.show_type = showType
+                const validateSet = this.getValidateSet()
+                this.$set(this.renderOption, 'validateSet', validateSet)
                 this.getRenderConfig()
             },
             onBlurValidation () {
@@ -436,11 +447,7 @@
                     
                     // 名称、key等校验，renderform表单校验
                     if (this.$refs.renderForm) {
-                        if (!this.value && this.theEditingData.show_type === 'show') {
-                            formValid = true
-                        } else {
-                            formValid = this.$refs.renderForm.validate()
-                        }
+                        formValid = this.$refs.renderForm.validate()
                     }
                     if (this.atomConfigLoading || !result || !formValid) {
                         const index = this.isNewVariable ? constantsLength : this.theEditingData.index
@@ -486,12 +493,13 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+$localBorderColor: #d8e2e7;
 .variable-edit-wrapper {
     padding: 20px;
     font-size: 14px;
     text-align: left;
     background: $whiteThinBg;
-    border-bottom: 1px solid $blueDefault;
+    border-bottom: 1px solid $localBorderColor;
     cursor: auto;
 }
 .error-msg {

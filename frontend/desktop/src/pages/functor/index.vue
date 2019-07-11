@@ -14,7 +14,7 @@
         <div class="list-wrapper">
             <BaseTitle :title="i18n.functorList"></BaseTitle>
             <div class="operation-area clearfix">
-                <bk-button type="primary" size="small" @click="onCreateTask">{{i18n.new}}</bk-button>
+                <bk-button type="primary" class="task-create-btn" size="small" @click="onCreateTask">{{i18n.new}}</bk-button>
                 <BaseSearch
                     v-model="searchStr"
                     :input-placeholader="i18n.placeholder"
@@ -240,7 +240,7 @@
                     operation: gettext('操作'),
                     claim: gettext('认领'),
                     view: gettext('查看'),
-                    new: gettext('新建任务'),
+                    new: gettext('新建'),
                     choiceBusiness: gettext('选择业务'),
                     choiceTemplate: gettext('选择模板'),
                     tips: gettext('如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
@@ -468,6 +468,7 @@
                 this.getTemplateList()
                 this.business.empty = false
                 this.template.disabled = false
+                this.template.id = ''
             },
             onSelectedTemplate (id, data) {
                 if (id === undefined) {
@@ -563,7 +564,7 @@ label.required:after {
 .functor-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
 }
 .list-wrapper {
     padding: 0 60px;
@@ -589,6 +590,9 @@ label.required:after {
 }
 .operation-area {
     margin: 20px 0;
+    .task-create-btn {
+        min-width: 120px;
+    }
 }
 .advanced-search {
     margin: 0;
@@ -596,6 +600,7 @@ label.required:after {
 .functor-fieldset {
     width: 100%;
     margin-bottom: 20px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .functor-query-content {
@@ -705,9 +710,12 @@ label.required:after {
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: $whiteNodeBg;

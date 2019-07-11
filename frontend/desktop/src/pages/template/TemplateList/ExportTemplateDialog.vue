@@ -18,7 +18,6 @@
         width="850"
         padding="0"
         :is-show.sync="isExportDialogShow"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content" class="export-container">
             <div class="template-wrapper">
@@ -63,7 +62,9 @@
                                         ]"
                                         @click="onSelectTemplate(template)">
                                         <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
-                                        <div class="template-item-name">{{template.name}}</div>
+                                        <div class="item-name-box">
+                                            <div class="template-item-name">{{template.name}}</div>
+                                        </div>
                                     </li>
                                 </ul>
                             </li>
@@ -86,8 +87,8 @@
                         <div class="selected-item-icon">
                             <span class="selected-name" :title="template.name">{{getTemplateIcon(template)}}</span>
                         </div>
-                        <div class="selected-item-name">
-                            <span class="item-name">{{template.name}}</span>
+                        <div class="item-name-box">
+                            <div class="selected-item-name">{{template.name}}</div>
                         </div>
                         <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
                     </li>
@@ -97,7 +98,16 @@
                 <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
+            <div class="task-footer" v-if="selectError">
+                <span class="error-info">{{i18n.errorInfo}}</span>
+            </div>
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :dialog-footer-data="dialogFooterData"
+            @onConfirm="onConfirm"
+            @onCancel="onCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -105,13 +115,15 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
+            DialogLoadingBtn,
             NoData
         },
-        props: ['isExportDialogShow', 'businessInfoLoading', 'common'],
+        props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
         data () {
             return {
                 exportPending: false,
@@ -121,6 +133,7 @@
                 templateInPanel: [],
                 searchList: [],
                 selectedTemplates: [],
+                selectError: false,
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -131,7 +144,8 @@
                     num: gettext('项'),
                     selectAll: gettext('全选'),
                     delete: gettext('删除'),
-                    allCategories: gettext('全部分类')
+                    allCategories: gettext('全部分类'),
+                    errorInfo: gettext('请选择流程模版')
                 },
                 templateEmpty: false,
                 selectedTaskCategory: '',
@@ -139,7 +153,18 @@
                 filterCondition: {
                     classifyId: 'all',
                     keywords: ''
-                }
+                },
+                dialogFooterData: [
+                    {
+                        type: 'primary',
+                        loading: false,
+                        btnText: gettext('确认'),
+                        click: 'onConfirm'
+                    }, {
+                        btnText: gettext('取消'),
+                        click: 'onCancel'
+                    }
+                ]
             }
         },
         computed: {
@@ -153,6 +178,11 @@
                 const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories)
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
+            }
+        },
+        watch: {
+            pending () {
+                this.dialogFooterData[0].loading = this.pending
             }
         },
         created () {
@@ -258,6 +288,7 @@
                 })
             },
             onSelectTemplate (template) {
+                this.selectError = false
                 const tplIndex = this.getTplIndexInSelected(template)
                 if (tplIndex > -1) {
                     this.selectedTemplates.splice(tplIndex, 1)
@@ -295,10 +326,14 @@
             },
             onConfirm () {
                 const idList = []
-                this.selectedTemplates.forEach(item => {
-                    idList.push(item.id)
-                })
-                this.$emit('onExportConfirm', idList)
+                if (this.selectedTemplates.length === 0) {
+                    this.selectError = true
+                } else {
+                    this.selectedTemplates.forEach(item => {
+                        idList.push(item.id)
+                    })
+                    this.$emit('onExportConfirm', idList)
+                }
             },
             onCancel () {
                 this.templateEmpty = false
@@ -309,6 +344,7 @@
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
 .export-container {
     position: relative;
@@ -383,7 +419,7 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border-radius: 2px;
+        border-radius: 4px;
         cursor: pointer;
         &:nth-child(2n + 1) {
             margin-left: 0;
@@ -397,28 +433,41 @@
             font-size: 24px;
             color: #ffffff;
             text-align: center;
+            border-radius: 4px 0 0 4px;
         }
         .template-item-name {
-            margin-left: 56px;
-            padding: 0 12px;
-            height: 56px;
-            line-height: 56px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             color: #313238;
+            word-break: break-all;
+            border-radius: 0 4px 4px 0;
+            @include multiLineEllipsis(14px, 2);
+            &:after {
+                background: #dcdee5
+            }
         }
         &:nth-child(2n) {
             margin-right: 0;
         }
     }
+    .item-name-box {
+        display: table-cell;
+        vertical-align: middle;
+        margin-left: 56px;
+        padding: 0 15px;
+        height: 56px;
+        width: 195px;
+        font-size: 12px;
+        border-radius: 0 4px 4px 0;
+    }
     .template-item-selected {
         .template-item-icon {
             background: #666a7c;
         }
-        .template-item-name {
+        .template-item-name, .item-name-box {
             background: #838799;
             color: #ffffff;
+            &:after {
+                background: #838799
+            }
         }
     }
     .empty-template {
@@ -451,7 +500,7 @@
             margin: 0 0 10px 14px;
             width: 254px;
             height: 56px;
-            border-radius: 2px;
+            background: #838799;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -462,6 +511,7 @@
             height: 56px;
             line-height: 56px;
             background: #666a7c;
+            border-radius: 4px 0 0 4px;
             .selected-name {
                 display: flex;
                 justify-content: center;
@@ -471,15 +521,13 @@
             }
         }
         .selected-item-name {
-            margin-left: 56px;
-            padding: 0 12px;
-            height: 56px;
-            line-height: 56px;
-            background: #838799;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             color: #ffffff;
+            word-break: break-all;
+            border-radius: 0 4px 4px 0;
+            @include multiLineEllipsis(14px, 2);
+            &:after {
+                background: #838799
+            }
         }
         .selected-delete {
             display: none;
@@ -542,6 +590,16 @@
             &::after {
                 background: #545454;
             }
+        }
+    }
+    .task-footer {
+        position: absolute;
+        right: 210px;
+        bottom: -40px;
+        .error-info {
+            margin-right: 20px;
+            font-size: 12px;
+            color: #ea3636;
         }
     }
 }

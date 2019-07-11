@@ -67,8 +67,11 @@
                                 </a>
                             </span>
                             <span class="col-item col-attributes">
-                                <span>
-                                    {{constant.source_type !== 'component_outputs' ? i18n.inputs : i18n.outputs}}/{{ constant.show_type === 'show' ? i18n.show : i18n.hide}}
+                                <span class="icon-wrap">
+                                    <i v-if="constant.source_type !== 'component_outputs'" class="common-icon-show-left" />
+                                    <i v-else class="common-icon-hide-right color-org" />
+                                    <i v-if="constant.show_type === 'show'" class="common-icon-eye-show" />
+                                    <i v-else class="common-icon-eye-hide color-org" />
                                 </span>
                             </span>
                             <span class="col-item col-output">
@@ -348,6 +351,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+$localBorderColor: #d8e2e7;
 .global-variable-panel {
     height: 100%;
     .global-title {
@@ -385,7 +389,8 @@
                 color:#f4aa1a;
             }
         }
-        .bk-tooltip-popper {
+        /deep/.bk-tooltip-popper {
+            transform: translate3d(-7px, 104px, 0px) !important;
             .tips-item {
                 margin-bottom: 20px;
                 &:last-child {
@@ -424,7 +429,7 @@
     }
     .global-variable-content {
         height: calc(100% - 120px);
-        border-top: 1px solid $commonBorderColor;
+        border-top: 1px solid $localBorderColor;
     }
     .variable-header, .variable-list {
         position: relative;
@@ -436,7 +441,32 @@
             width: 128px;
         }
         .col-attributes {
+            padding-left: 4px;
             width: 70px;
+            .icon-wrap {
+                vertical-align: middle;
+                line-height: 1;
+                display: inline-block;
+                .common-icon-show-left {
+                    color: #219f42;
+                    font-size: 14px;
+                }
+                .common-icon-hide-right {
+                    font-size: 14px;
+                }
+                .common-icon-eye-show {
+                    margin-left: 8px;
+                    color: #219f42;
+                    font-size: 15px;
+                }
+                .common-icon-eye-hide {
+                    margin-left: 8px;
+                    font-size: 15px;
+                }
+                .color-org{
+                    color: #de9524;
+                }
+            }
         }
         .col-output {
             width: 50px;
@@ -445,7 +475,7 @@
     .variable-header {
         padding: 0 20px 0 45px;
         background: #ecf0f4;
-        border-bottom: 1px solid $commonBorderColor;
+        border-bottom: 1px solid $localBorderColor;
         .t-head {
             float: left;
             height: 40px;
@@ -506,7 +536,7 @@
         .col-item-delete {
             display: none;
             position: absolute;
-            top: 13px;
+            top: 15px;
             right: 20px;
             font-size: 14px;
             color: #979ba5;

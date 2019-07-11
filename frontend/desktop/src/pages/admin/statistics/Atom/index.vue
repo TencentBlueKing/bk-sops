@@ -37,6 +37,7 @@
                                 :start-date="businessStartTime"
                                 :end-date="businessEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeBusinessTime">
                             </bk-date-range>
                             <i :class="['bk-icon icon-angle-down', { 'icon-flip': choiceDownShow }]"></i>
@@ -524,7 +525,7 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: i18n.choiceAllBusiness })
+                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
                 return list
             },
             componentsList () {
@@ -772,9 +773,11 @@
                         break
                 }
             },
+            onShutTimeSelector () {
+                this.choiceDownShow = this.$refs.datePickerRef.showDatePanel
+            },
             onDatePickerClick () {
-                this.datePickerRefShow = !this.datePickerRefShow
-                this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
+                this.choiceDownShow = this.$refs.datePickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {

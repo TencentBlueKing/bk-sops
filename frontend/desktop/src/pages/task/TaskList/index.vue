@@ -13,12 +13,26 @@
     <div class="task-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.task_list"></BaseTitle>
-            <BaseSearch
-                v-model="flowName"
-                :input-placeholader="i18n.taskNamePlaceholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="task-table-content">
+                <div class="operation-area clearfix">
+                    <bk-button
+                        type="primary"
+                        class="task-btn"
+                        size="small"
+                        @click="onCreateTask">
+                        {{i18n.create}}
+                    </bk-button>
+                    <div class="task-advanced-search">
+                        <BaseSearch
+                            class="base-search"
+                            v-model="flowName"
+                            :input-placeholader="i18n.taskNamePlaceholder"
+                            @onShow="onAdvanceShow"
+                            @input="onSearchInput">
+                        </BaseSearch>
+                    </div>
+                </div>
+            </div>
             <div class="task-search" v-show="isAdvancedSerachShow">
                 <fieldset class="task-fieldset">
                     <div class="task-query-content">
@@ -151,6 +165,15 @@
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
+        <TaskCreateDialog
+            :common="common"
+            :cc_id="cc_id"
+            :is-new-task-dialog-show="isNewTaskDialogShow"
+            :business-info-loading="businessInfoLoading"
+            :create-entrance="true"
+            :task-category="taskCategory"
+            @onCreateTaskCancel="onCreateTaskCancel">
+        </TaskCreateDialog>
         <TaskCloneDialog
             v-if="isTaskCloneDialogShow"
             :is-task-clone-dialog-show="isTaskCloneDialogShow"
@@ -183,6 +206,7 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
     import TaskCloneDialog from './TaskCloneDialog.vue'
@@ -194,6 +218,7 @@
             BaseTitle,
             BaseSearch,
             NoData,
+            TaskCreateDialog,
             TaskCloneDialog
         },
         props: ['cc_id', 'common', 'create_method'],
@@ -215,6 +240,8 @@
                 theDeleteTaskId: undefined,
                 theDeleteTaskName: '',
                 isTaskCloneDialogShow: false,
+                isNewTaskDialogShow: false,
+                businessInfoLoading: true, // 模板分类信息 loading
                 theCloneTaskName: '',
                 theCloneTaskId: undefined,
                 pending: {
@@ -254,7 +281,8 @@
                     createMethodPlaceholder: gettext('请选择创建方式'),
                     advanceSearch: gettext('高级搜索'),
                     executing: gettext('执行中'),
-                    pauseState: gettext('暂停')
+                    pauseState: gettext('暂停'),
+                    create: gettext('新建')
                 },
                 executeStartTime: undefined,
                 executeEndTime: undefined,
@@ -273,7 +301,7 @@
                 isFinished: undefined,
                 statusSync: 0,
                 taskCreateMethodList: [],
-                createMethod: undefined
+                createMethod: this.create_method || ''
             }
         },
         computed: {
@@ -324,7 +352,7 @@
                         pipeline_instance__name__contains: this.flowName,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
-                        create_method: this.createMethod || this.create_method
+                        create_method: this.createMethod || undefined
                     }
                     if (this.executeEndTime) {
                         if (this.common) {
@@ -497,7 +525,7 @@
                 this.isFinished = id === 'finished'
             },
             onClearCreateMethod () {
-                this.createMethod = undefined
+                this.createMethod = ''
             },
             onClearStatus () {
                 this.isStarted = undefined
@@ -511,7 +539,7 @@
                 this.$refs.bkRanger.clear()
                 this.isStarted = undefined
                 this.isFinished = undefined
-                this.createMethod = undefined
+                this.createMethod = ''
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined
@@ -529,7 +557,6 @@
                 try {
                     const createMethodData = await this.loadCreateMethod()
                     this.taskCreateMethodList = createMethodData.data
-                    this.createMethod = this.create_method
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -552,6 +579,12 @@
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onCreateTask () {
+                this.isNewTaskDialogShow = true
+            },
+            onCreateTaskCancel () {
+                this.isNewTaskDialogShow = false
             }
         }
     }
@@ -559,9 +592,6 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .task-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
     .dialog-content {
         word-break: break-all;
     }
@@ -575,10 +605,21 @@
 }
 .operation-area {
     margin: 20px 0;
+    .template-btn {
+        margin-left: 5px;
+        color: #313238;
+    }
+    .task-advanced-search {
+        float: right;
+        .base-search {
+            margin: 0px;
+        }
+    }
 }
 .task-fieldset {
     width: 100%;
     margin-bottom: 15px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .task-query-content {
@@ -688,6 +729,9 @@
     font-size: 12px;
 }
 .task-table-content {
+    .bk-button {
+        min-width: 120px;
+    }
     table {
         width: 100%;
         border: 1px solid $commonBorderColor;
@@ -699,9 +743,12 @@
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: $whiteNodeBg;
@@ -742,26 +789,31 @@
             width: 110px;
         }
         .task-method {
-            width: 110px;
+            width: 120px;
         }
         .task-status {
             width: 105px;
             text-align: left;
            .common-icon-dark-circle-shape {
                 display: inline-block;
-                transform: scale(0.9);
-                font-size: 12px;
+                font-size: 14px;
                 color: #979BA5;
+                vertical-align: middle;
             }
             .common-icon-dark-circle-ellipsis {
                 color: #3c96ff;
-                font-size: 12px;
+                font-size: 14px;
+                vertical-align: middle;
             }
             .icon-check-circle-shape {
+                font-size: 14px;
                 color: $greenDefault;
+                vertical-align: middle;
             }
             .common-icon-dark-circle-close {
                 color: $redDefault;
+                font-size: 14px;
+                vertical-align: middle;
             }
             &.revoke {
                 color: $blueDisable;

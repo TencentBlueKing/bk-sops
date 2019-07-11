@@ -225,7 +225,7 @@
             :common="common"
             :is-export-dialog-show="isExportDialogShow"
             :business-info-loading="businessInfoLoading"
-            :export-pending="pending.export"
+            :pending="pending.export"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
@@ -566,7 +566,7 @@
             },
             // 获取编辑按钮的跳转链接
             getEditTemplateUrl (id) {
-                let url = `/template/edit/${this.cc_id}/?template_id=${id}`
+                let url = `/template/edit/${this.cc_id}/?template_id=${id}&entrance=businessList`
                 if (this.common) {
                     url += '&common=1'
                 }
@@ -584,7 +584,9 @@
             getNewTaskUrl (id) {
                 let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${id}`
                 if (this.common || this.common_template) {
-                    url += '&common=1'
+                    url += '&common=1&entrance=commonList'
+                } else {
+                    url += '&entrance=businessList'
                 }
                 return url
             },
@@ -660,9 +662,6 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .template-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
     .dialog-content {
         word-break: break-all;
     }
@@ -677,6 +676,7 @@
 .template-fieldset {
     width: 100%;
     margin: 0;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: $whiteDefault;
     margin-bottom: 15px;
@@ -790,6 +790,7 @@
     margin: 20px 0;
     .create-template {
         height: 32px;
+        min-width: 120px;
         line-height: 29px;
         font-size: 14px;
     }
@@ -826,9 +827,12 @@
             background: $whiteNodeBg;
         }
         th, td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: $whiteNodeBg;

@@ -18,7 +18,6 @@ from django.utils import timezone
 from django.db.models import Q
 from django.forms.fields import BooleanField
 from django.utils.translation import ugettext_lazy as _
-from django.http.response import HttpResponseForbidden
 from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
@@ -28,6 +27,7 @@ from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.serializers import Serializer
+from tastypie.http import HttpForbidden
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
@@ -115,11 +115,7 @@ class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
         return self._generic_read_list(object_list, bundle)
 
     def read_detail(self, object_list, bundle):
-        if bundle.obj not in self.read_list(object_list, bundle):
-            raise ImmediateHttpResponse(HttpResponseForbidden(
-                'you have no permission to read %s' % bundle.obj.__class__.__name__
-            ))
-        return True
+        return bundle.obj in self.read_list(object_list, bundle)
 
 
 class GCloudGenericAuthorization(GCloudReadOnlyAuthorization):
@@ -137,26 +133,20 @@ class GCloudGenericAuthorization(GCloudReadOnlyAuthorization):
                 bundle.obj.__class__._meta.app_label,
                 bundle.obj.__class__.__name__))
 
-        return self._get_business_for_user(
-            bundle.request.user,
-            perms=['manage_business']
-        ).filter(pk=business.pk).exists()
+        return self._get_business_for_user(bundle.request.user, perms=['manage_business']
+                                           ).filter(pk=business.pk).exists()
 
     def update_list(self, object_list, bundle):
         return self._generic_write_list(object_list, bundle)
 
     def update_detail(self, object_list, bundle):
-        if not self.update_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write flows'))
-        return True
+        return self.update_list(object_list, bundle).filter(pk=bundle.obj.pk).exists()
 
     def delete_list(self, object_list, bundle):
         return self._generic_write_list(object_list, bundle)
 
     def delete_detail(self, object_list, bundle):
-        if not self.delete_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to delete flows'))
-        return True
+        return self.delete_list(object_list, bundle).filter(pk=bundle.obj.pk).exists()
 
 
 class PropertyFilterPaginator(Paginator):
@@ -296,6 +286,14 @@ class GCloudModelResource(ModelResource):
             bundle.obj.save()
         else:
             bundle.obj.delete()
+
+    def unauthorized_result(self, exception):
+        """
+        @summary：change default value 401 of tastypie to 403
+        @param exception:
+        @return:
+        """
+        raise ImmediateHttpResponse(response=HttpForbidden())
 
 
 class BusinessResource(GCloudModelResource):
