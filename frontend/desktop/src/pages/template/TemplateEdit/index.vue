@@ -42,7 +42,7 @@
             <NodeConfig
                 ref="nodeConfig"
                 :cc_id="cc_id"
-                v-if="isNodeConfigPanelShow"
+                v-show="isNodeConfigPanelShow"
                 :template_id="template_id"
                 :single-atom="singleAtom"
                 :sub-atom="subAtom"
