@@ -594,7 +594,7 @@
     }
     .task-footer {
         position: absolute;
-        right: 210px;
+        right: 290px;
         bottom: -40px;
         .error-info {
             margin-right: 20px;
