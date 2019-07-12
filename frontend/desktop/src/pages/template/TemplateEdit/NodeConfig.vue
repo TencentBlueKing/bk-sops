@@ -446,8 +446,10 @@
             ]),
             initData () {
                 this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
-                this.getNodeFormData() // get template activity information
-                this.getConfig(this.nodeConfigData.version) // load node config data
+                if (this.nodeConfigData) {
+                    this.getNodeFormData() // get template activity information
+                    this.getConfig(this.nodeConfigData.version) // load node config data
+                }
             },
             /**
              * 加载标准插件配置文件或子流程表单配置
