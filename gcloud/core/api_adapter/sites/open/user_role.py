@@ -85,7 +85,7 @@ def is_user_role(username, role):
         auth_resource = audit_center_resource
     verify_result = auth_resource.verify_perms(PRINCIPAL_TYPE_USER, username, [auth_resource.actions.view.id])
     if not verify_result['result']:
-        message = ('verify perms of Resource[{resource}] by backend[{beckend_cls}] '
+        message = ('verify perms of Resource[{resource}] by backend[{backend_cls}] '
                    'return error: {error}').format(
             resource=auth_resource.name,
             backend_cls=auth_resource.backend,
