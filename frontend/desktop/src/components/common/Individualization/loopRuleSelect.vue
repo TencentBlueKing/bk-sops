@@ -594,6 +594,7 @@ $bgBlue: #3a84ff;
         /deep/ .tab2-nav-item {
             width: 20%;
             border-bottom: 1px solid $commonBorderColor;
+            line-height: 40px !important;
             &:not(:first-child) {
                 border-left: 1px solid $commonBorderColor !important;
             }
