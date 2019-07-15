@@ -17,7 +17,7 @@ import common flow template
 
 | Field          |  Type       | Required   |  Description             |
 | ------------ | ------------ | ------ | ---------------- |
-|   data_file    |   file     |   YES   |  flow data file |
+|   template_data    |   str     |   YES   |  flow data |
 |   override        | bool     | NO         | whether to override flows which has same ID           |           |
 
 ### Request Parameters Example
@@ -27,7 +27,7 @@ import common flow template
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "data_file": file,
+    "template_data": "xxx",
     "override": true,
 }
 ```

@@ -17,7 +17,7 @@
 
 |   字段   |    参数类型  |  必须  |     参数说明     |
 | ------------ | ------------ | ------ | ---------------- |
-|   data_file    |   file     |   是   |  公共流程数据文件 |
+|   template_data    |   str     |   是   |  公共流程数据 |
 |   override        | bool     | 否         | 是否覆盖 ID 相同的流程           |           |
 
 ### 请求参数示例
@@ -27,7 +27,7 @@
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "data_file": file,
+    "template_data": "xxx",
     "override": true,
 }
 ```
