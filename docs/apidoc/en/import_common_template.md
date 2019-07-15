@@ -23,15 +23,13 @@ import common flow template
 ### Request Parameters Example
 
 ```
-import requests
-kwargs = {
-    "app_code": "app_code",
-    "app_secret": "app_secret",
-    "access_token": "access_token",
-    "data_file": data_file
+{
+    "bk_app_code": "esb_test",
+    "bk_app_secret": "xxx",
+    "bk_token": "xxx",
+    "data_file": file,
+    "override": true,
 }
-response = requests.post("http://{stageVariables.domain}/apigw/import_common_template/", kwargs)
-result = response.json()
 ```
 
 ### Return Result Example
