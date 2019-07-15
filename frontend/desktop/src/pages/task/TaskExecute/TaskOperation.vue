@@ -1320,6 +1320,9 @@
             .solid-eye {
                 font-size: 12px;
             }
+            .params-btn-icon, .params-btn {
+                font-size: 15px;
+            }
         }
     }
 }
