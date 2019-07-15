@@ -527,7 +527,7 @@ const api = {
             url: prefixUrl,
             params: {
                 'biz_cc_id': cc_id,
-                'template__template_id': template_id
+                'template_id': template_id
             }
         }
         return request(opts)
