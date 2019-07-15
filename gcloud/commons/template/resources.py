@@ -23,9 +23,10 @@ from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
 
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate, TemplateScheme
-
-from gcloud.commons.template.models import CommonTemplate
 from pipeline_web.parser.validator import validate_web_pipeline_tree
+
+from gcloud.core.models import Business
+from gcloud.commons.template.models import CommonTemplate
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
 from gcloud.webservice3.resources import (
@@ -33,7 +34,8 @@ from gcloud.webservice3.resources import (
     AppSerializer,
     pipeline_node_name_handle,
     TemplateFilterPaginator,
-    get_business_for_user)
+    get_business_for_user
+)
 
 
 class PipelineTemplateResource(GCloudModelResource):
@@ -313,10 +315,15 @@ class CommonTemplateSchemeResource(GCloudModelResource):
         try:
             scheme_id = kwargs['pk']
             scheme = TemplateScheme.objects.get(pk=scheme_id)
-            template = CommonTemplateSchemeResource.objects.get(pipeline_template=scheme.template)
+            _ = CommonTemplate.objects.get(pipeline_template=scheme.template)
         except Exception:
-            raise BadRequest('scheme or template does not exist')
+            raise BadRequest('common scheme or template does not exist')
+        try:
+            biz_cc_id = int(scheme['unique_id'].split('-')[0])
+        except Exception:
+            # maybe old unique id rule
+            biz_cc_id = None
         business = get_business_for_user(bundle.request.user, ['manage_business'])
-        if not business.filter(cc_id=template.business.cc_id).exists():
+        if Business.objects.filter(cc_id=biz_cc_id) and not business.filter(cc_id=biz_cc_id).exists():
             raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to make such operation'))
         return super(CommonTemplateSchemeResource, self).obj_delete(bundle, **kwargs)
