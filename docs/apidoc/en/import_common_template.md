@@ -17,7 +17,7 @@ import common flow template
 
 | Field          |  Type       | Required   |  Description             |
 | ------------ | ------------ | ------ | ---------------- |
-|   template_data    |   str     |   YES   |  flow data, the content of file which download from bk-sops - common templates - export |
+|   template_data    |   string     |   YES   |  flow data, the content of file which download from bk-sops - common templates - export |
 |   override        | bool     | NO         | whether to override flows which has same ID           |           |
 
 ### Request Parameters Example
