@@ -1441,5 +1441,11 @@
             border: 1px solid #ebeef5;
         }
     }
+    .bk-flow-canvas .tooltip .tooltip-inner {
+        height: 34px;
+        width: 80px;
+        line-height: 34px;
+        padding: 0;
+    }
 }
 </style>
