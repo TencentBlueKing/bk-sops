@@ -19,7 +19,10 @@ from gcloud.webservice3.resources import (
     ComponentModelResource,
     VariableModelResource
 )
-from gcloud.commons.template.resources import CommonTemplateResource
+from gcloud.commons.template.resources import (
+    CommonTemplateResource,
+    CommonTemplateSchemeResource
+)
 from gcloud.tasktmpl3.resources import (
     TaskTemplateResource,
     TemplateSchemeResource,
@@ -40,6 +43,7 @@ v3_api.register(AppMakerResource())
 v3_api.register(FunctionTaskResource())
 v3_api.register(PeriodicTaskResource())
 v3_api.register(CommonTemplateResource())
+v3_api.register(CommonTemplateSchemeResource())
 
 # Standard bits...
 urlpatterns = [
