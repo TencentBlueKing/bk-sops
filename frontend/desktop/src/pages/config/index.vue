@@ -38,7 +38,7 @@
                         :is-square="false"
                         @change="onSwitchChange">
                     </bk-switcher>
-                    <bk-tooltip placement="right" width="400" class="desc-tooltip force-tooltip">
+                    <bk-tooltip placement="right" width="280" class="desc-tooltip force-tooltip">
                         <i class="bk-icon icon-info-circle"></i>
                         <div slot="content" style="white-space: normal;">
                             <div>{{i18n.alwaysUseTips}}</div>
@@ -176,11 +176,10 @@
         color: #c4c6cc;
         position: relative;
         top: 3px;
-        left: 5px;
+        left: 6px;
     }
     .force-tooltip {
         position: relative;
-        left: 460px;
     }
     .icon-info-circle:hover {
         color: #f4aa1a
