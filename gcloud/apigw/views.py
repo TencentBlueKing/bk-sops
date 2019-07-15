@@ -34,7 +34,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.commons.template.constants import PermNm
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
-from gcloud.commons.template.utils import read_template_data_file
+from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.tasktmpl3.models import TaskTemplate
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
@@ -664,12 +664,25 @@ def import_common_template(request):
             'message': 'you have no permission to call this api.'
         })
 
-    f = request.FILES.get('data_file', None)
-    r = read_template_data_file(f)
+    try:
+        req_data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid param format'
+        })
+
+    template_data = req_data.get('template_data', None)
+    if not template_data:
+        return JsonResponse({
+            'result': False,
+            'message': 'template data can not be none'
+        })
+    r = read_encoded_template_data(template_data)
     if not r['result']:
         return JsonResponse(r)
 
-    override = BooleanField().to_python(request.POST.get('override', False))
+    override = BooleanField().to_python(req_data.get('override', False))
 
     try:
         import_result = CommonTemplate.objects.import_templates(r['data']['template_data'], override)
