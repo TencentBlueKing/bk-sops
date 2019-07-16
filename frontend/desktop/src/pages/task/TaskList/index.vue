@@ -787,6 +787,10 @@
         }
         .task-executor {
             width: 110px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            word-break: break-all;
+            overflow: hidden;
         }
         .task-method {
             width: 120px;

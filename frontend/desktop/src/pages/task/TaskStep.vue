@@ -137,13 +137,14 @@
                     // 审计员
                     { userType: 'auditor', url: `/audit/home/` },
                     // 轻应用
-                    { userType: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${ccId}/` }
+                    { view_mode: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${ccId}/` }
                 ]
                 actions.forEach(key => {
-                    const flag_userType = key.userType === userType
+                    const flag_view_mode = key.view_mode ? key.view_mode === this.view_mode : true
+                    const flag_userType = key.userType ? key.userType === userType : true
                     const flag_path = key.path ? new RegExp(key.path).test(path) : true
                     const flag_entrance = key.entrance ? key.entrance === entrance : true
-                    if (flag_userType && flag_path && flag_entrance) url = key.url
+                    if (flag_view_mode && flag_userType && flag_path && flag_entrance) url = key.url
                 })
                 if (this.common && userType === 'maintainer') url += `?common=1&common_template=${this.common}`
                 this.$router.push(url)

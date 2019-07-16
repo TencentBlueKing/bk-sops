@@ -83,6 +83,8 @@
                             {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
                             <BaseInput
                                 v-model.number="item.loop.inter"
+                                v-validate="{ required: true, integer: true }"
+                                name="interval"
                                 class="loop-time"
                                 @blur="renderRule()" />
                             {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
@@ -93,9 +95,9 @@
                                 class="common-icon-tooltips month-tips"></i>
                             <!-- startInput 错误提示 -->
                             <div
-                                v-show="errors.has(item.key + 'Rule')"
+                                v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
                                 class="local-error-tip error-msg">
-                                {{ errors.first(item.key + 'Rule') }}
+                                {{ errors.first(item.key + 'Rule') || errors.first('interval') }}
                             </div>
                         </div>
                         <!-- 指定 -->
@@ -592,6 +594,7 @@ $bgBlue: #3a84ff;
         /deep/ .tab2-nav-item {
             width: 20%;
             border-bottom: 1px solid $commonBorderColor;
+            line-height: 40px !important;
             &:not(:first-child) {
                 border-left: 1px solid $commonBorderColor !important;
             }

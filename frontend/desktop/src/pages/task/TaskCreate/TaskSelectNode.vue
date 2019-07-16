@@ -203,6 +203,9 @@
             },
             isSchemeShow () {
                 return this.viewMode !== 'appmaker' && this.locations.some(item => item.optional)
+            },
+            isCommonProcess () {
+                return Number(this.$route.query.common) === 1
             }
         },
         mounted () {
@@ -242,7 +245,7 @@
                     const templateData = await this.loadTemplateData(data)
                     this.version = templateData.version
                     this.taskName = templateData.name
-                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id })
+                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id, 'isCommon': this.isCommonProcess })
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
                         const schemeId = Number(appmakerData.template_scheme_id)
@@ -325,11 +328,12 @@
                         cc_id: this.cc_id,
                         template_id: this.template_id,
                         name: this.schemeName,
-                        data: JSON.stringify(selectedNodes)
+                        data: JSON.stringify(selectedNodes),
+                        isCommon: this.isCommonProcess
                     }
                     try {
                         const newScheme = await this.createTaskScheme(scheme)
-                        const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id })
+                        const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id, 'isCommon': this.isCommonProcess })
                         this.setTaskScheme(schemeData)
                         this.selectedScheme = newScheme.id
                         this.lastSelectSchema = newScheme.id
@@ -388,7 +392,7 @@
                 } else {
                     this.lastSelectSchema = id
                     try {
-                        const data = await this.getSchemeDetail(id)
+                        const data = await this.getSchemeDetail({ id: id, isCommon: this.isCommonProcess })
                         this.selectedNodes = tools.deepClone(data.data)
                         this.updateSelectedLocation()
                         if (this.isPreviewMode) {
@@ -406,8 +410,8 @@
                 if (this.isDelete) return
                 this.isDelete = true
                 try {
-                    await this.deleteTaskScheme(id)
-                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id })
+                    await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
+                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id, isCommon: this.isCommonProcess })
                     this.setTaskScheme(schemeData)
                     this.$bkMessage({
                         message: gettext('方案删除成功'),
