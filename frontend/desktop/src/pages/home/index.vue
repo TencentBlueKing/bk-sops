@@ -11,7 +11,7 @@
 */
 <template>
     <div class="home-page">
-        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div v-show="isShowPage" v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="summary-info">
                 <HomeSummary
                     :cc_id="cc_id"
@@ -71,6 +71,7 @@
         data () {
             return {
                 loading: true,
+                isShowPage: false,
                 summaryData: {
                     executeStatus: {},
                     templateStatus: {},
@@ -91,6 +92,11 @@
         },
         created () {
             this.getData()
+            const RENDERTIME = 200
+            const pageRenderTime = setTimeout(() => {
+                this.isShowPage = true
+                clearTimeout(pageRenderTime)
+            }, RENDERTIME)
         },
         methods: {
             ...mapActions('template/', [
