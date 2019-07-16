@@ -15,7 +15,7 @@
             <div class="task-info-title">
                 <span>{{ i18n.taskInfo }}</span>
             </div>
-            <div v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
+            <div v-show="ishowTaskMessage" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
                 <div class="common-form-item">
                     <label class="required">{{ i18n.taskName }}</label>
                     <div class="common-form-content">
@@ -170,7 +170,8 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
-                disabledButton: true
+                disabledButton: true,
+                ishowTaskMessage: false
             }
         },
         computed: {
@@ -189,6 +190,11 @@
             }
         },
         mounted () {
+            const RENDERTIME = 200
+            const pageRenderTime = setTimeout(() => {
+                this.ishowTaskMessage = true
+                clearTimeout(pageRenderTime)
+            }, RENDERTIME)
             this.loadData()
             this.period()
         },
