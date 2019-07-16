@@ -304,7 +304,7 @@
                 const excludeNode = []
                 this.canvasData.locations.forEach(item => {
                     if (
-                        (item.type === 'tasknode' || item.type === 'subflow')
+                        this.isCanSelectNode(item)
                         && item.optional
                         && data.indexOf(item.id) === -1
                     ) {
@@ -332,7 +332,7 @@
                     const excludeNode = this.getExcludeNode()
                     const selectedNodes = []
                     this.canvasData.locations.forEach(item => {
-                        if (item.type === 'tasknode' || item.type === 'subflow') {
+                        if (this.isCanSelectNode(item)) {
                             if (excludeNode.indexOf(item.id) === -1) {
                                 selectedNodes.push(item.id)
                             }
@@ -372,7 +372,7 @@
             updateSelectedLocation () {
                 const pipelineCanvas = this.$refs.pipelineCanvas
                 this.canvasData.locations.forEach((item) => {
-                    if (item.type === 'tasknode' || item.type === 'subflow') {
+                    if (this.isCanSelectNode(item)) {
                         const checkState = this.selectedNodes.indexOf(item.id) > -1
                         this.$set(item, 'checked', checkState)
                         pipelineCanvas && pipelineCanvas.onUpdateNodeInfo(item.id, item)
@@ -383,7 +383,7 @@
                 const selectedNodes = []
                 this.locations.forEach(item => {
                     if (
-                        (item.type === 'tasknode' || item.type === 'subflow')
+                        this.isCanSelectNode(item)
                         && this.excludeNode.indexOf(item.id) === -1
                     ) {
                         selectedNodes.push(item.id)
@@ -445,7 +445,7 @@
             onSelectAllNode () {
                 const list = []
                 this.canvasData.locations.forEach(item => {
-                    if (item.type === 'tasknode' || item.type === 'subflow') {
+                    if (this.isCanSelectNode(item)) {
                         item.checked = true
                         list.push(item.id)
                     }
@@ -458,7 +458,7 @@
              */
             onSelectNoneNode () {
                 this.canvasData.locations.forEach(item => {
-                    if (item.type === 'tasknode' || item.type === 'subflow') {
+                    if (this.isCanSelectNode(item)) {
                         item.checked = false
                     }
                 })
@@ -534,7 +534,6 @@
                     excludeNode = this.getExecuteNodeList()
                 }
                 excludeNode = isSubflow ? [] : (inExcludeNode || excludeNode)
-                console.log(excludeNode)
                 const templateSource = this.common ? 'common' : 'business'
                 const params = {
                     templateId: templateId,
@@ -567,7 +566,7 @@
                         this.canvasData.locations.forEach(item => {
                             // 先还原为全部选中
                             item.checked = true
-                            if ((item.type === 'tasknode' || item.type === 'subflow') && !(item.id in previewNodeData.activities)) {
+                            if (this.isCanSelectNode(item) && !(item.id in previewNodeData.activities)) {
                                 item.checked = false
                             }
                         })
@@ -763,6 +762,9 @@
             onCancelScheme () {
                 this.schemeName = ''
                 this.taskActionShow = false
+            },
+            isCanSelectNode (node) {
+                return node.type === 'tasknode' || node.type === 'subflow'
             }
         }
     }
