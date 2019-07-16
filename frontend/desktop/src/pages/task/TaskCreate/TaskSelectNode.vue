@@ -411,7 +411,7 @@
                 this.isDelete = true
                 try {
                     await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
-                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id })
+                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id, isCommon: this.isCommonProcess })
                     this.setTaskScheme(schemeData)
                     this.$bkMessage({
                         message: gettext('方案删除成功'),
