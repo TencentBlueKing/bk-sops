@@ -298,6 +298,22 @@
                 return nodeId
             },
             /**
+             * 获取排除的数组通过已选数组
+             */
+            getExcludeNodeBySelectId (data) {
+                const excludeNode = []
+                this.canvasData.locations.forEach(item => {
+                    if (
+                        (item.type === 'tasknode' || item.type === 'subflow')
+                        && item.optional
+                        && data.indexOf(item.id) === -1
+                    ) {
+                        excludeNode.push(item.id)
+                    }
+                })
+                return excludeNode
+            },
+            /**
              * 添加方案
              */
             onAddScheme () {
@@ -382,7 +398,6 @@
                 this.selectedScheme = id
                 if (this.lastSelectSchema === id) {
                     this.lastSelectSchema = ''
-                
                     if (this.isPreviewMode) {
                         await this.getPreviewNodeData(this.template_id, true)
                     } else {
@@ -394,9 +409,10 @@
                     try {
                         const data = await this.getSchemeDetail({ id: id, isCommon: this.isCommonProcess })
                         this.selectedNodes = tools.deepClone(data.data)
+                        const excludeNode = this.getExcludeNodeBySelectId(JSON.parse(this.selectedNodes))
                         this.updateSelectedLocation()
                         if (this.isPreviewMode) {
-                            await this.getPreviewNodeData(this.template_id)
+                            await this.getPreviewNodeData(this.template_id, false, excludeNode)
                         }
                     } catch (e) {
                         errorHandler(e, this)
@@ -508,7 +524,7 @@
              * @params {String} templateId  模板 ID
              * @params {Boolean} isSubflow  是否为子流程预览
              */
-            async getPreviewNodeData (templateId, isSubflow = false) {
+            async getPreviewNodeData (templateId, isSubflow = false, inExcludeNode) {
                 this.previewDataLoading = true
                 this.isPreview = true
                 let excludeNode
@@ -517,7 +533,8 @@
                 } catch (e) {
                     excludeNode = this.getExecuteNodeList()
                 }
-                excludeNode = isSubflow ? [] : excludeNode
+                excludeNode = isSubflow ? [] : (inExcludeNode || excludeNode)
+                console.log(excludeNode)
                 const templateSource = this.common ? 'common' : 'business'
                 const params = {
                     templateId: templateId,
@@ -548,6 +565,8 @@
                         this.previewData = previewNodeData
                         // 改变预览前的选择节点
                         this.canvasData.locations.forEach(item => {
+                            // 先还原为全部选中
+                            item.checked = true
                             if ((item.type === 'tasknode' || item.type === 'subflow') && !(item.id in previewNodeData.activities)) {
                                 item.checked = false
                             }

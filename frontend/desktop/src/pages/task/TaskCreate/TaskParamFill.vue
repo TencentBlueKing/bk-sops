@@ -130,7 +130,7 @@
             ParameterInfo,
             LoopRuleSelect
         },
-        props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance'],
+        props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance', 'excludeNode'],
         data () {
             return {
                 i18n: {
@@ -223,7 +223,7 @@
                     this.setTemplateData(templateData)
                     const params = {
                         templateId: this.template_id,
-                        excludeTaskNodesId: JSON.stringify([]),
+                        excludeTaskNodesId: JSON.stringify(this.excludeNode),
                         common: this.common,
                         cc_id: this.cc_id,
                         template_source: templateSource,
