@@ -13,11 +13,11 @@
     <div class="select-node-wrapper" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="canvas-content">
             <div
+                v-if="isSchemeShow"
                 :class="[
                     'scheme-right-header',
-                    { 'scheme-toggle-right-header': !showPanel
-                    }]"
-                v-if="isSchemeShow">
+                    { 'scheme-toggle-right-header': !showPanel }
+                ]">
                 <div class="scheme-combine-shape" @click="togglePanel">
                     <i class="common-icon-paper" v-bktooltips.top="i18n.schema"></i>
                 </div>
@@ -79,7 +79,7 @@
                 :is-select-node="isSchemeShow"
                 :is-select-all-node="isSelectAllNode"
                 :canvas-data="canvasData"
-                @onSelectNode="onSelectNode">
+                @onToggleAllNode="onToggleAllNode">
             </pipelineCanvas>
             <NodePreview
                 v-else
@@ -298,7 +298,7 @@
                 return nodeId
             },
             /**
-             * 获取排除的数组通过已选数组
+             * 通过已选节点数据，获取排除节点的数组
              */
             getExcludeNodeBySelectId (data) {
                 const excludeNode = []
@@ -338,7 +338,7 @@
                             }
                         }
                     })
-                    this.selectedNodes = selectedNodes
+                    this.selectedNodes = selectedNodes.slice()
                     this.schemeName = this.schemeName.trim()
                     const scheme = {
                         cc_id: this.cc_id,
@@ -349,7 +349,11 @@
                     }
                     try {
                         const newScheme = await this.createTaskScheme(scheme)
-                        const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id, 'isCommon': this.isCommonProcess })
+                        const schemeData = await this.loadTaskScheme({
+                            'cc_id': this.cc_id,
+                            'template_id': this.template_id,
+                            'isCommon': this.isCommonProcess
+                        })
                         this.setTaskScheme(schemeData)
                         this.selectedScheme = newScheme.id
                         this.lastSelectSchema = newScheme.id
@@ -470,7 +474,12 @@
              */
             async onGotoParamFill () {
                 this.loading = true
-                const excludeNode = this.getExcludeNode()
+                let excludeNode = []
+                if (this.isPreviewMode) {
+                    excludeNode = this.excludeNode
+                } else {
+                    excludeNode = this.getExcludeNode()
+                }
                 try {
                     if (!this.isPreview) {
                         await this.getPreviewNodeData(this.template_id)
@@ -508,6 +517,8 @@
              */
             onChangePreviewNode (isPreview) {
                 if (isPreview) {
+                    const excludeNode = this.getExcludeNode()
+                    this.$emit('setExcludeNode', excludeNode)
                     this.isPreviewMode = true
                     this.previewBread.push({
                         data: this.template_id,
@@ -750,7 +761,7 @@
                     return !this.selectedNodes.includes(item)
                 })
             },
-            onSelectNode (value) {
+            onToggleAllNode (value) {
                 this.isSelectAllNode = value
                 if (value) {
                     this.onSelectAllNode()

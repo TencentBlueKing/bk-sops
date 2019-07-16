@@ -73,7 +73,7 @@
                     <bk-tooltip :content="selectNodeName" :delay="1000" v-if="isSelectNode">
                         <div
                             class="tool-icon"
-                            @click="onSelectNode">
+                            @click="onToggleAllNode">
                             <i :class="[{
                                 'common-icon-black-box': !isSelectAll,
                                 'common-icon-black-hook': isSelectAll,
@@ -607,12 +607,12 @@
 
                 return { locations, lines }
             },
-            onSelectNode () {
+            onToggleAllNode () {
                 if (this.isPreviewMode) {
                     return
                 }
                 this.isSelectAll = !this.isSelectAll
-                this.$emit('onSelectNode', this.isSelectAll)
+                this.$emit('onToggleAllNode', this.isSelectAll)
             }
         }
     }
