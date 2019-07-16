@@ -414,6 +414,7 @@
                         const data = await this.getSchemeDetail({ id: id, isCommon: this.isCommonProcess })
                         this.selectedNodes = tools.deepClone(data.data)
                         const excludeNode = this.getExcludeNodeBySelectId(JSON.parse(this.selectedNodes))
+                        this.$emit('setExcludeNode', excludeNode)
                         this.updateSelectedLocation()
                         if (this.isPreviewMode) {
                             await this.getPreviewNodeData(this.template_id, false, excludeNode)
