@@ -34,7 +34,6 @@
             <TaskParamEdit
                 class="unreferenced"
                 v-show="isUnrefVarShow"
-                ref="TaskParamEdit"
                 :show-required="false"
                 :constants="unReferencedVariable"
                 :editable="false"

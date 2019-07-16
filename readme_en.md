@@ -1,7 +1,7 @@
 ![](docs/resource/img/logo_en.png)
 ---
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/Tencent/bk-sops/blob/master/LICENSE)
-[![Release](https://img.shields.io/badge/release-3.3.16-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
+[![Release](https://img.shields.io/badge/release-3.3.17-brightgreen.svg)](https://github.com/Tencent/bk-sops/releases)
 [![travis-ci](https://travis-ci.com/Tencent/bk-sops.svg?branch=master)](https://travis-ci.com/Tencent/bk-sops)
 [![Coverage Status](https://codecov.io/gh/Tencent/bk-sops/branch/master/graph/badge.svg)](https://codecov.io/gh/Tencent/bk-sops)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Tencent/bk-sops/pulls)
@@ -62,7 +62,7 @@ If you want to know more about the above features, please refer to the
 - [Wiki (In Chinese)](https://github.com/Tencent/bk-sops/wiki) or ask for help
 - [White paper(In Chinese)](http://docs.bk.tencent.com/product_white_paper/gcloud/)
 - [BK forum](https://bk.tencent.com/s-mart/community)
-- [BK DevOps online video tutorial](In Chinese)(https://cloud.tencent.com/developer/edu/major-100008)
+- [BK DevOps online video tutorial(In Chinese)](https://cloud.tencent.com/developer/edu/major-100008)
 - Contact us, technical exchange QQ group：878501914
 
 

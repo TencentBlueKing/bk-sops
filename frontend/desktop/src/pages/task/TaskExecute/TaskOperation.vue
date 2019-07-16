@@ -70,6 +70,7 @@
                         @click="onTaskParamsClick('modifyParams')">
                     </bk-button>
                     <router-link
+                        v-if="isShowViewProcess"
                         class="jump-tpl-page-btn common-icon-link params-btn-icon"
                         target="_blank"
                         v-bktooltips.bottom="i18n.checkFlow"
@@ -150,7 +151,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import Tooltip from 'tooltip.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
@@ -255,6 +256,9 @@
             }
         },
         computed: {
+            ...mapState({
+                userType: state => state.userType
+            }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
             },
@@ -321,6 +325,10 @@
             },
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
+            },
+            // 职能化/审计中心时,隐藏[查看流程]按钮
+            isShowViewProcess () {
+                return this.userType !== 'functor' && this.userType !== 'auditor'
             }
         },
         watch: {
@@ -1320,6 +1328,9 @@
             .solid-eye {
                 font-size: 12px;
             }
+            .params-btn-icon, .params-btn {
+                font-size: 15px;
+            }
         }
     }
 }
@@ -1440,6 +1451,12 @@
             text-align: left;
             border: 1px solid #ebeef5;
         }
+    }
+    .bk-flow-canvas .tooltip .tooltip-inner {
+        height: 34px;
+        width: 80px;
+        line-height: 34px;
+        padding: 0;
     }
 }
 </style>
