@@ -315,7 +315,7 @@ class CommonTemplateSchemeResource(GCloudModelResource):
         try:
             scheme_id = kwargs['pk']
             scheme = TemplateScheme.objects.get(pk=scheme_id)
-            _ = CommonTemplate.objects.get(pipeline_template=scheme.template)
+            CommonTemplate.objects.get(pipeline_template=scheme.template)
         except Exception:
             raise BadRequest('common scheme or template does not exist')
         try:
