@@ -28,7 +28,7 @@ import common flow template
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
     "template_data": "xxx",
-    "override": true,
+    "override": true
 }
 ```
 

@@ -28,7 +28,7 @@
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "2",
-    "template_source": "business",
+    "template_source": "business"
 }
 ```
 
