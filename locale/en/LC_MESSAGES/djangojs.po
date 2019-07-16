@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-10 20:40+0800\n"
+"POT-Creation-Date: 2019-07-15 14:58+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgid "HTTP状态码："
 msgstr "HTTP Status:"
 
 #: frontend/desktop/src/components/common/Individualization/IpLogContent.vue:61
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:285
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:287
 msgid "错误码"
 msgstr "ErrorCode"
 
@@ -38,108 +38,108 @@ msgstr "ErrorCode"
 msgid "请输入 IP"
 msgstr "Please enter IP"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:168
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:170
 msgid "分钟"
 msgstr "minute"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:183
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:185
 msgid "小时"
 msgstr "hour"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:198
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:200
 msgid "星期"
 msgstr "week"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:213
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:215
 msgid "日期"
 msgstr "date"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:228
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:230
 msgid "月份"
 msgstr "month"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:246
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:248
 msgid "循环"
 msgstr "Cycle"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:247
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:249
 msgid "从第"
 msgstr "From"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:248
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:250
 msgid "从星期"
 msgstr "From day"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:249
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:251
 msgid "开始,每隔"
 msgstr ", execute once every"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:250
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:252
 msgid "执行一次"
 msgstr " "
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:253
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:255
 msgid "指定"
 msgstr "Specify"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:257
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:259
 msgid "星期一"
 msgstr "Monday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:258
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:260
 msgid "星期二"
 msgstr "Tuesday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:259
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:261
 msgid "星期三"
 msgstr "Wednesday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:260
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:262
 msgid "星期四"
 msgstr "Thursday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:261
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:263
 msgid "星期五"
 msgstr "Friday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:262
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:264
 msgid "星期六"
 msgstr "Saturday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:263
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:265
 msgid "星期天"
 msgstr "Sunday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:284
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:286
 #: frontend/desktop/src/pages/admin/statistics/Instance/index.vue:295
 msgid "天"
 msgstr "day"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:286
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:288
 msgid "表达式："
 msgstr "Expression:"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:287
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:289
 msgid "手动输入"
 msgstr "Enter Manually"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:288
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:290
 msgid "清空已选"
 msgstr "Empty"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:289
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:291
 msgid "选择生成"
 msgstr "Selection"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:290
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:292
 msgid "0 12 * 10-17 */11"
 msgstr "0 12 * 10-17 */11"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:291
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:293
 msgid "0 表示星期天，6 表示星期六"
 msgstr "0 means Sunday, 6 means Saturday"
 
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:298
+#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:300
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:86
 #: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:167
 msgid "task-zh"
@@ -289,7 +289,7 @@ msgstr "Please enter the name of topology instances, multiple are separated by L
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:53
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:128
 #: frontend/desktop/src/components/common/RenderForm/formMixins.js:200
-#: frontend/desktop/src/main.js:76
+#: frontend/desktop/src/main.js:82
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:71
 msgid "必填项"
 msgstr "Required"
@@ -792,217 +792,225 @@ msgstr "Standard Plugins Node"
 msgid "子流程节点"
 msgstr "Subprocess Node"
 
-#: frontend/desktop/src/main.js:69 frontend/desktop/src/main.js:139
+#: frontend/desktop/src/main.js:69 frontend/desktop/src/main.js:145
 msgid "输入定时表达式非法，请校验"
 msgstr "Invalid crontab, check it please"
 
-#: frontend/desktop/src/main.js:80
+#: frontend/desktop/src/main.js:75 frontend/desktop/src/main.js:149
+msgid "间隔时间必须是正整数"
+msgstr "Interval must be a positive integer"
+
+#: frontend/desktop/src/main.js:86
 msgid "流程名称不能为空"
 msgstr "Flow name cannot be empty"
 
-#: frontend/desktop/src/main.js:81
+#: frontend/desktop/src/main.js:87
 msgid "流程名称不能包含"
 msgstr "Flow name cannot contain "
 
-#: frontend/desktop/src/main.js:81 frontend/desktop/src/main.js:86
-#: frontend/desktop/src/main.js:90 frontend/desktop/src/main.js:95
-#: frontend/desktop/src/main.js:113 frontend/desktop/src/main.js:118
-#: frontend/desktop/src/main.js:126 frontend/desktop/src/main.js:134
-#: frontend/desktop/src/main.js:143
+#: frontend/desktop/src/main.js:87 frontend/desktop/src/main.js:92
+#: frontend/desktop/src/main.js:96 frontend/desktop/src/main.js:101
+#: frontend/desktop/src/main.js:119 frontend/desktop/src/main.js:124
+#: frontend/desktop/src/main.js:132 frontend/desktop/src/main.js:140
+#: frontend/desktop/src/main.js:153
 msgid "非法字符"
 msgstr " "
 
-#: frontend/desktop/src/main.js:82
+#: frontend/desktop/src/main.js:88
 msgid "流程名称长度不能超过"
 msgstr "Length of flow name cannot be larger than "
 
-#: frontend/desktop/src/main.js:82 frontend/desktop/src/main.js:87
-#: frontend/desktop/src/main.js:91 frontend/desktop/src/main.js:96
-#: frontend/desktop/src/main.js:101 frontend/desktop/src/main.js:114
-#: frontend/desktop/src/main.js:119 frontend/desktop/src/main.js:127
-#: frontend/desktop/src/main.js:130 frontend/desktop/src/main.js:135
-#: frontend/desktop/src/main.js:144
+#: frontend/desktop/src/main.js:88 frontend/desktop/src/main.js:93
+#: frontend/desktop/src/main.js:97 frontend/desktop/src/main.js:102
+#: frontend/desktop/src/main.js:107 frontend/desktop/src/main.js:120
+#: frontend/desktop/src/main.js:125 frontend/desktop/src/main.js:133
+#: frontend/desktop/src/main.js:136 frontend/desktop/src/main.js:141
+#: frontend/desktop/src/main.js:154
 msgid "个字符"
 msgstr " characters"
 
-#: frontend/desktop/src/main.js:85
+#: frontend/desktop/src/main.js:91
 msgid "节点名称不能为空"
 msgstr "Node name cannot be empty"
 
-#: frontend/desktop/src/main.js:86
+#: frontend/desktop/src/main.js:92
 msgid "节点名称不能包含"
 msgstr "Node name cannot contain "
 
-#: frontend/desktop/src/main.js:87
+#: frontend/desktop/src/main.js:93
 msgid "节点名称长度不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:90
+#: frontend/desktop/src/main.js:96
 msgid "步骤名称不能包含"
 msgstr "Stage name cannot contain "
 
-#: frontend/desktop/src/main.js:91
+#: frontend/desktop/src/main.js:97
 msgid "步骤名称不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:94
+#: frontend/desktop/src/main.js:100
 msgid "变量名称不能为空"
 msgstr "Variable name cannot be empty"
 
-#: frontend/desktop/src/main.js:95
+#: frontend/desktop/src/main.js:101
 msgid "变量名称不能包含"
 msgstr "Variable name cannot contain "
 
-#: frontend/desktop/src/main.js:96
+#: frontend/desktop/src/main.js:102
 msgid "变量名称长度不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:99
+#: frontend/desktop/src/main.js:105
 msgid "变量KEY值不能为空"
 msgstr "KEY cannot be empty"
 
-#: frontend/desktop/src/main.js:100
+#: frontend/desktop/src/main.js:106
 msgid "变量KEY由英文字母、数字、下划线组成，且不能以数字开头"
 msgstr "KEY is composed of letters, numbers, underline and cannot begin with number"
 
-#: frontend/desktop/src/main.js:101
+#: frontend/desktop/src/main.js:107
 msgid "变量KEY值长度不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:102
+#: frontend/desktop/src/main.js:108
 msgid "变量KEY值已存在"
 msgstr "KEY cannot repeat"
 
-#: frontend/desktop/src/main.js:105
+#: frontend/desktop/src/main.js:111
 msgid "变量隐藏时默认值不能为空"
 msgstr "Default cannot be empty where variable is hide"
 
-#: frontend/desktop/src/main.js:106
+#: frontend/desktop/src/main.js:112
 msgid "默认值不满足正则校验"
 msgstr "Default does not match validation"
 
-#: frontend/desktop/src/main.js:109
+#: frontend/desktop/src/main.js:115
 msgid "正则校验不是合法的正则表达式"
 msgstr "Regular validation invalid"
 
-#: frontend/desktop/src/main.js:112
+#: frontend/desktop/src/main.js:118
 msgid "任务名称不能为空"
 msgstr "Task name cannot be empty"
 
-#: frontend/desktop/src/main.js:113
+#: frontend/desktop/src/main.js:119
 msgid "任务名称不能包含"
 msgstr "Task name cannot contain "
 
-#: frontend/desktop/src/main.js:114
+#: frontend/desktop/src/main.js:120
 msgid "任务名称不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:117
+#: frontend/desktop/src/main.js:123
 msgid "方案名称不能为空"
 msgstr "Scheme name cannot be empty"
 
-#: frontend/desktop/src/main.js:118
+#: frontend/desktop/src/main.js:124
 msgid "方案名称不能包含"
 msgstr "Scheme name cannot contain "
 
-#: frontend/desktop/src/main.js:119
+#: frontend/desktop/src/main.js:125
 msgid "方案名称不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:122
+#: frontend/desktop/src/main.js:128
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:145
 msgid "流程模板不能为空"
 msgstr "Flow cannot be empty"
 
-#: frontend/desktop/src/main.js:125
+#: frontend/desktop/src/main.js:131
 msgid "应用名称不能为空"
 msgstr "Name cannot be empty"
 
-#: frontend/desktop/src/main.js:126
+#: frontend/desktop/src/main.js:132
 msgid "应用名称不能包含"
 msgstr "App name cannot contain "
 
-#: frontend/desktop/src/main.js:127
+#: frontend/desktop/src/main.js:133
 msgid "应用名称不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:130
+#: frontend/desktop/src/main.js:136
 msgid "应用简介不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:133
+#: frontend/desktop/src/main.js:139
 msgid "定时流程名称不能为空"
 msgstr "Flow name cannot be empty"
 
-#: frontend/desktop/src/main.js:134
+#: frontend/desktop/src/main.js:140
 msgid "定时流程名称包含"
 msgstr "Flow name cannot contain "
 
-#: frontend/desktop/src/main.js:135
+#: frontend/desktop/src/main.js:141
 msgid "定时流程名称不能超过"
 msgstr "Length of flow name cannot be larger than"
 
-#: frontend/desktop/src/main.js:138
+#: frontend/desktop/src/main.js:144
 msgid "定时表达式不能为空"
 msgstr "Default cannot be empty where variable is hide"
 
-#: frontend/desktop/src/main.js:142
+#: frontend/desktop/src/main.js:148
+msgid "间隔时间不能为空"
+msgstr "Interval cannot be empty"
+
+#: frontend/desktop/src/main.js:152
 msgid "本地缓存名称不能为空"
 msgstr "Name cannot be empty"
 
-#: frontend/desktop/src/main.js:143
+#: frontend/desktop/src/main.js:153
 msgid "本地缓存名称包含"
 msgstr "Cache name contains "
 
-#: frontend/desktop/src/main.js:144
+#: frontend/desktop/src/main.js:154
 msgid "本地缓存名称不能超过"
 msgstr "Length cannot be larger than "
 
-#: frontend/desktop/src/main.js:147
+#: frontend/desktop/src/main.js:157
 msgid "开始分钟数不能为空"
 msgstr "Start minute cannot be empty"
 
-#: frontend/desktop/src/main.js:148
+#: frontend/desktop/src/main.js:158
 msgid "请输入 0 - 59 之间的数"
 msgstr "Please enter a number between 0-59"
 
-#: frontend/desktop/src/main.js:151
+#: frontend/desktop/src/main.js:161
 msgid "开始小时数不能为空"
 msgstr "Start Hour cannot be empty"
 
-#: frontend/desktop/src/main.js:152
+#: frontend/desktop/src/main.js:162
 msgid "请输入 0 - 23 之间的数"
 msgstr "Please enter a number between 0-23"
 
-#: frontend/desktop/src/main.js:155
+#: frontend/desktop/src/main.js:165
 msgid "开始周数不能为空"
 msgstr "Start week cannot be empty"
 
-#: frontend/desktop/src/main.js:156
+#: frontend/desktop/src/main.js:166
 msgid "请输入 0 - 6 之间的数"
 msgstr "Please enter a number between 0-6"
 
-#: frontend/desktop/src/main.js:159
+#: frontend/desktop/src/main.js:169
 msgid "开始天数不能为空"
 msgstr "Start day cannot be empty"
 
-#: frontend/desktop/src/main.js:160
+#: frontend/desktop/src/main.js:170
 msgid "请输入 1 - 31 之间的数"
 msgstr "Please enter a number between 1-31"
 
-#: frontend/desktop/src/main.js:163
+#: frontend/desktop/src/main.js:173
 msgid "开始月数不能为空"
 msgstr "Start month cannot be empty"
 
-#: frontend/desktop/src/main.js:164
+#: frontend/desktop/src/main.js:174
 msgid "请输入 1 - 12 之间的数"
 msgstr "Please enter a number between 1-12"
 
-#: frontend/desktop/src/main.js:167
+#: frontend/desktop/src/main.js:177
 msgid "test不能为空"
 msgstr "test cannot be empty"
 
-#: frontend/desktop/src/main.js:168
+#: frontend/desktop/src/main.js:178
 msgid "请输入 test 之间的数"
 msgstr "Please enter a number between test"
 
@@ -1798,11 +1806,11 @@ msgstr "Deactivate task before edit it"
 msgid "删除周期任务成功"
 msgstr "Task delete success"
 
-#: frontend/desktop/src/pages/task/ParameterInfo.vue:61
+#: frontend/desktop/src/pages/task/ParameterInfo.vue:60
 msgid "查看未引用变量"
 msgstr "Show Unreferenced Variables"
 
-#: frontend/desktop/src/pages/task/ParameterInfo.vue:62
+#: frontend/desktop/src/pages/task/ParameterInfo.vue:61
 msgid "在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑"
 msgstr "When editing a flow template, global variables can be referenced by the syntax supported by the variable engine. Unreferenced variables are not editable"
 
@@ -2203,7 +2211,7 @@ msgstr "Manual Skip: you can skip this node if it failed"
 msgid "未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续"
 msgstr "No failure process set, you won't be able to operate it if this node failed"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1038
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1040
 msgid "变量KEY已存在"
 msgstr "KEY cannot repeat"
 
@@ -2691,13 +2699,11 @@ msgstr "Account"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:78
 #: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:48
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:283
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:168
 msgid "目标IP"
 msgstr "Target IP"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:79
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:284
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:169
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the input LAN IP are unique in the business on Configuration System"
@@ -2938,17 +2944,14 @@ msgid "描述"
 msgstr "Desc"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:18
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:18
 msgid "脚本来源"
 msgstr "Script Source"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:21
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:21
 msgid "手工录入"
 msgstr "Manual"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:22
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:22
 msgid "业务脚本"
 msgstr "Business Script"
 
@@ -2966,7 +2969,6 @@ msgid "请选择脚本类型"
 msgstr "Choose script Type"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:100
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:45
 msgid "脚本内容"
 msgstr "Script Content"
 
@@ -2976,14 +2978,11 @@ msgstr "Please enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:117
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:121
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:61
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:65
 msgid "请输入脚本内容"
 msgstr "Please input script content"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:147
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:198
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:91
 msgid "脚本列表"
 msgstr "Script List"
 
@@ -2991,8 +2990,6 @@ msgstr "Script List"
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:172
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:219
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:223
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:113
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:117
 msgid "请选择脚本"
 msgstr "Choose script please"
 
@@ -3005,31 +3002,16 @@ msgid "可为空"
 msgstr "Empty is valid"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:258
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:143
 msgid "超时时间"
 msgstr "Timeout(s) "
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:259
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:144
 msgid "单位为秒，为空时使用 JOB 默认值"
 msgstr "The unit is second, empty is valid, defaulted as same with JOB"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_script.js:271
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:156
 msgid "请输入数字"
 msgstr "Please enter a number"
-
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:92
-msgid "请选择作业平台上的SQL脚本"
-msgstr "Please select SQL script from JOB system"
-
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:182
-msgid "DB账户"
-msgstr "DB Account"
-
-#: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_execute_sql.js:183
-msgid "请选择蓝鲸作业平台上已注册并授权的DB账号"
-msgstr "Please select the account from JOB system"
 
 #: pipeline_plugins/variables/static/variables/datetime.js:18
 msgid "日期时间"
@@ -3118,6 +3100,15 @@ msgstr "Server API error:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
+
+#~ msgid "请选择作业平台上的SQL脚本"
+#~ msgstr "Please select SQL script from JOB system"
+
+#~ msgid "DB账户"
+#~ msgstr "DB Account"
+
+#~ msgid "请选择蓝鲸作业平台上已注册并授权的DB账号"
+#~ msgstr "Please select the account from JOB system"
 
 #~ msgid "logo-zh"
 #~ msgstr "logo-en"

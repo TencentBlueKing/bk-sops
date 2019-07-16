@@ -72,7 +72,7 @@ Validator.extend('cronRlue', {
 })
 Validator.extend('integer', {
     getMessage: (field, args) => {
-        return args + gettext('间隔时间为大于 0 的正整数')
+        return args + gettext('间隔时间必须是正整数')
     },
     validate: value => Number(value) >= 1 && Number(value) % 1 === 0
 })
@@ -146,7 +146,7 @@ Validator.localize({
             },
             interval: {
                 required: gettext('间隔时间不能为空'),
-                regex: gettext('间隔时间为大于0的正整数')
+                regex: gettext('间隔时间必须是正整数')
             },
             draftName: {
                 required: gettext('本地缓存名称不能为空'),
