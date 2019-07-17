@@ -249,7 +249,6 @@
             ]),
             isNavActived (route) {
                 const key = route.key
-
                 // 轻应用打开
                 if (this.view_mode === 'appmaker') {
                     if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {
@@ -264,6 +263,14 @@
                     return key === 'function'
                 } else if (this.userType === 'auditor') {
                     return key === 'audit'
+                }
+                // 管理员入口
+                if (this.userType === 'maintainer' && this.$route.query.entrance === 'admin_common' && key === 'admin') {
+                    console.log(route)
+                    return true
+                }
+                if (key === 'template' && this.$route.query.entrance === 'admin_common') {
+                    return false
                 }
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
