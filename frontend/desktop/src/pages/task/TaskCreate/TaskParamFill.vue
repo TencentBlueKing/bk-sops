@@ -185,7 +185,7 @@
                 return this.userType !== 'functor' && this.isStartNow
             },
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== '0' && this.entrance !== '1'
+                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
             }
         },
         mounted () {
@@ -207,7 +207,7 @@
                 'createPeriodic'
             ]),
             period () {
-                if (this.entrance === '0') {
+                if (this.entrance === 'periodicTask') {
                     this.isStartNow = false
                 }
             },
