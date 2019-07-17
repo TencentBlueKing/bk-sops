@@ -43,7 +43,7 @@ constant value, the type of value should be same with data from API[get_template
     "name": "tasktest",
     "flow_type": "common",
     "constants": {
-        "${content}: "echo 1",
+        "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
     }
