@@ -96,7 +96,7 @@
                 return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
             },
             createTaskBtnText () {
-                return (this.isTemplateDataChanged || this.type === 'new') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+                return (this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
             }
         },
         watch: {
@@ -116,7 +116,7 @@
                     if (!result) return
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
-                    if (saveAndCreate && !this.isTemplateDataChanged && this.type !== 'new') {
+                    if (saveAndCreate && !this.isTemplateDataChanged && this.type !== 'new' && this.type !== 'clone') {
                         const taskUrl = this.getTaskUrl()
                         this.$router.push(taskUrl)
                     } else {
