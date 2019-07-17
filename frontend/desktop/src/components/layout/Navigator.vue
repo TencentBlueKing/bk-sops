@@ -266,7 +266,6 @@
                 }
                 // 管理员入口
                 if (this.userType === 'maintainer' && this.$route.query.entrance === 'admin_common' && key === 'admin') {
-                    console.log(route)
                     return true
                 }
                 if (key === 'template' && this.$route.query.entrance === 'admin_common') {
