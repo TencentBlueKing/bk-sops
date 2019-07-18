@@ -68,4 +68,4 @@ const PERIODIC_REG = /^((\*\/)?(([0-5]?\d[,-/])*([0-5]?\d))|\*)[ ]((\*\/)?(([0]?
 const URL_REG= new RegExp('^(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]$')
 /* eslint-enable */
 
-export { TASK_STATE_DICT, NODE_DICT, NAME_REG, VAR_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }
+export { TASK_STATE_DICT, NODE_DICT, NAME_REG, URL_REG, PERIODIC_REG, STRING_LENGTH }

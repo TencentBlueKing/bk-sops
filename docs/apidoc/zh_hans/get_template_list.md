@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -27,7 +28,7 @@
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "2",
-    "template_source": "business",
+    "template_source": "business"
 }
 ```
 

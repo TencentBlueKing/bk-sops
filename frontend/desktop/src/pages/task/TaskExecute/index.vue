@@ -16,6 +16,10 @@
         <TaskStep
             :list="stepList"
             :current-step="currentStep"
+            :task-status="'TaskExecute'"
+            :common="common"
+            :cc_id="cc_id"
+            :instance-name="instanceName"
             :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
@@ -31,6 +35,8 @@
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
+            :template_id="template_id"
+            :template-source="templateSource"
             @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
     </div>
@@ -63,19 +69,20 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['cc_id', 'instance_id'],
+        props: ['cc_id', 'instance_id', 'common'],
         data () {
             return {
                 taskDataLoading: true,
                 taskStatusLoading: true,
                 bkMessageInstance: null,
                 exception: {},
-                stepList: STEP_DICT,
+                stepList: STEP_DICT.slice(),
                 currentStep: 'taskexecute',
                 isFunctional: false,
                 isAllStepsFinished: false,
                 instanceName: '',
-                instanceFlow: ''
+                instanceFlow: '',
+                templateSource: ''
             }
         },
         computed: {
@@ -111,6 +118,8 @@
                     }
                     this.instanceFlow = instanceData.pipeline_tree
                     this.instanceName = instanceData.name
+                    this.template_id = instanceData.template_id
+                    this.templateSource = instanceData.template_source
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true
                     }
@@ -128,9 +137,7 @@
 </script>
 <style lang="scss" scoped>
     .task-execute-container {
-        min-width: 1320px;
-        height: calc(100% - 62px);
-        background-color: #f4f7fa;
+        height: 100%;
     }
     .task-function-container {
         background-color: #ffffff;

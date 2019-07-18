@@ -26,7 +26,7 @@ import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
-
+const cron = require('@/assets/js/node-cron-valid/node-cron-vaild.js')
 Vue.use(VeeValidate)
 
 Vue.use(bkMagic)
@@ -64,7 +64,18 @@ if (store.state.lang === 'en') {
 $.atoms = {} // hack atom config load
 
 const InvalidNameChar = '\'‘"”$&<>'
-
+Validator.extend('cronRlue', {
+    getMessage: (field, args) => {
+        return args + gettext('输入定时表达式非法，请校验')
+    },
+    validate: value => cron.validate(value).status
+})
+Validator.extend('integer', {
+    getMessage: (field, args) => {
+        return args + gettext('间隔时间必须是正整数')
+    },
+    validate: value => Number(value) >= 1 && Number(value) % 1 === 0
+})
 Validator.localize({
     en: {
         messages: {
@@ -133,6 +144,10 @@ Validator.localize({
                 required: gettext('定时表达式不能为空'),
                 regex: gettext('输入定时表达式非法，请校验')
             },
+            interval: {
+                required: gettext('间隔时间不能为空'),
+                regex: gettext('间隔时间必须是正整数')
+            },
             draftName: {
                 required: gettext('本地缓存名称不能为空'),
                 regex: gettext('本地缓存名称包含') + InvalidNameChar + gettext('非法字符'),
@@ -149,6 +164,30 @@ Validator.localize({
             cacheName: {
                 regex: gettext('名称由英文字母、数字、下划线组成，且不能以数字开头'),
                 max: gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            minRule: {
+                required: gettext('开始分钟数不能为空'),
+                regex: gettext('请输入 0 - 59 之间的数')
+            },
+            hourRule: {
+                required: gettext('开始小时数不能为空'),
+                regex: gettext('请输入 0 - 23 之间的数')
+            },
+            weekRule: {
+                required: gettext('开始周数不能为空'),
+                regex: gettext('请输入 0 - 6 之间的数')
+            },
+            dayRule: {
+                required: gettext('开始天数不能为空'),
+                regex: gettext('请输入 1 - 31 之间的数')
+            },
+            monthRule: {
+                required: gettext('开始月数不能为空'),
+                regex: gettext('请输入 1 - 12 之间的数')
+            },
+            testName: {
+                required: gettext('test不能为空'),
+                regex: gettext('请输入 test 之间的数')
             }
         }
     }

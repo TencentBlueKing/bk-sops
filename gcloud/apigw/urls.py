@@ -33,4 +33,5 @@ urlpatterns = [
     url(r'^get_task_detail/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.get_task_detail),
     url(r'^get_task_node_detail/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.get_task_node_detail),
     url(r'^node_callback/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.node_callback),
+    url(r'^import_common_template/$', views.import_common_template),
 ]

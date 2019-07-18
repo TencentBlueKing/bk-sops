@@ -12,6 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
+
+from django.db import transaction
 from django.http.response import HttpResponseForbidden
 from django.contrib.auth import get_user_model
 from guardian.shortcuts import get_objects_for_user
@@ -19,7 +21,6 @@ from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse
-from tastypie.resources import ModelResource
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
@@ -215,25 +216,26 @@ class TaskTemplateResource(GCloudModelResource):
         return super(TaskTemplateResource, self).obj_create(bundle, **kwargs)
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
-        obj = bundle.obj
-        try:
-            pipeline_template_kwargs = {
-                'name': bundle.data.pop('name'),
-                'editor': bundle.request.user.username,
-                'pipeline_tree': json.loads(bundle.data.pop('pipeline_tree')),
-            }
-            if 'description' in bundle.data:
-                pipeline_template_kwargs['description'] = bundle.data.pop('description')
-        except (KeyError, ValueError) as e:
-            raise BadRequest(e.message)
-        # XSS handle
-        self.handle_template_name_attr(pipeline_template_kwargs)
-        try:
-            obj.update_pipeline_template(**pipeline_template_kwargs)
-        except PipelineException as e:
-            raise BadRequest(e.message)
-        bundle.data['pipeline_template'] = '/api/v3/pipeline_template/%s/' % obj.pipeline_template.pk
-        return super(TaskTemplateResource, self).obj_update(bundle, **kwargs)
+        with transaction.atomic():
+            obj = bundle.obj
+            try:
+                pipeline_template_kwargs = {
+                    'name': bundle.data.pop('name'),
+                    'editor': bundle.request.user.username,
+                    'pipeline_tree': json.loads(bundle.data.pop('pipeline_tree')),
+                }
+                if 'description' in bundle.data:
+                    pipeline_template_kwargs['description'] = bundle.data.pop('description')
+            except (KeyError, ValueError) as e:
+                raise BadRequest(e.message)
+            # XSS handle
+            self.handle_template_name_attr(pipeline_template_kwargs)
+            try:
+                obj.update_pipeline_template(**pipeline_template_kwargs)
+            except PipelineException as e:
+                raise BadRequest(e.message)
+            bundle.data['pipeline_template'] = '/api/v3/pipeline_template/%s/' % obj.pipeline_template.pk
+            return super(TaskTemplateResource, self).obj_update(bundle, **kwargs)
 
     def obj_delete(self, bundle, **kwargs):
         try:
@@ -261,10 +263,10 @@ class TaskTemplateResource(GCloudModelResource):
         return filters
 
 
-class TemplateSchemeResource(ModelResource):
+class TemplateSchemeResource(GCloudModelResource):
     class Meta:
         queryset = TemplateScheme.objects.all()
-        resource_name = 'schemes'
+        resource_name = 'scheme'
         authorization = Authorization()
         always_return_data = True
         serializer = AppSerializer()
@@ -276,13 +278,17 @@ class TemplateSchemeResource(ModelResource):
 
     def build_filters(self, filters=None, **kwargs):
         orm_filters = super(TemplateSchemeResource, self).build_filters(filters, **kwargs)
-        try:
-            template_id = filters.pop('template__template_id')[0]
+        if 'biz_cc_id' in filters and 'template_id' in filters:
+            template_id = filters.pop('template_id')[0]
             biz_cc_id = filters.pop('biz_cc_id')[0]
-            template = TaskTemplate.objects.get(pk=template_id, business__cc_id=biz_cc_id)
+            try:
+                template = TaskTemplate.objects.get(pk=template_id, business__cc_id=biz_cc_id)
+            except TaskTemplate.DoesNotExist:
+                raise BadRequest('template[id=%s] in business[%s] does not exist' % (template_id, biz_cc_id))
             orm_filters.update({'template__template_id': template.pipeline_template.template_id})
-        except Exception:
-            pass
+        elif 'pk' not in filters:
+            # 不允许请求全部执行方案
+            orm_filters.update({'unique_id': ''})
         return orm_filters
 
     def alter_list_data_to_serialize(self, request, data):
@@ -292,9 +298,9 @@ class TemplateSchemeResource(ModelResource):
         return data
 
     def obj_create(self, bundle, **kwargs):
+        template_id = bundle.data.pop('template_id', None)
+        biz_cc_id = bundle.data.pop('biz_cc_id', None)
         try:
-            template_id = bundle.data.pop('template_id', '')
-            biz_cc_id = bundle.data.pop('biz_cc_id')
             template = TaskTemplate.objects.get(pk=template_id, business__cc_id=biz_cc_id)
         except Exception:
             raise BadRequest('template[id=%s] in business[%s] does not exist' % (template_id, biz_cc_id))

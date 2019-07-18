@@ -52,7 +52,7 @@
         props: [
             'nodeData',
             'selectedFlowPath',
-            'nodeDetailConfig'
+            'treeNodeConfig'
         ],
         data () {
             return {
@@ -80,7 +80,7 @@
                 return !this.renderConfig || this.renderConfig.length === 0
             },
             isSubflowNode () {
-                return !this.nodeDetailConfig.component_code
+                return !this.treeNodeConfig.component_code
             },
             noDataMessage () {
                 return this.isSubflowNode ? gettext('请点击标准插件节点查看参数') : gettext('无数据')
@@ -90,12 +90,12 @@
             }
         },
         watch: {
-            nodeDetailConfig (val) {
+            treeNodeConfig (val) {
                 this.upDataParamsData(val)
             }
         },
         mounted () {
-            this.upDataParamsData(this.nodeDetailConfig)
+            this.upDataParamsData(this.treeNodeConfig)
         },
         methods: {
             ...mapActions('task/', [
@@ -111,8 +111,8 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
-                    this.nodeInfo = await this.getNodeActInfo(this.nodeDetailConfig)
-                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                    this.nodeInfo = await this.getNodeActInfo(this.treeNodeConfig)
+                    this.renderConfig = await this.getNodeConfig(this.treeNodeConfig.component_code)
                     if (this.nodeInfo.result) {
                         for (const key in this.nodeInfo.data.inputs) {
                             this.$set(this.renderData, key, this.nodeInfo.data.inputs[key])

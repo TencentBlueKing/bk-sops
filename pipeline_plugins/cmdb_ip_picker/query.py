@@ -17,11 +17,12 @@ from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.components.utils import handle_api_error
-
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_REQUEST as get_client_by_request
+from gcloud.conf import settings
 
 from .utils import get_cmdb_topo_tree
 from .constants import NO_ERROR, ERROR_CODES
+
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def cmdb_search_topo_tree(request, bk_biz_id, bk_supplier_account=''):
@@ -48,7 +49,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
     @return:
     """
     fields = json.loads(request.GET.get('fields', '[]'))
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     condition = [{
         'bk_obj_id': 'host',
         'fields': [],
@@ -125,14 +126,17 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=''):
         'bk_biz_id': bk_biz_id,
         'bk_supplier_account': bk_supplier_account,
     }
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     cc_result = client.cc.get_mainline_object_topo(kwargs)
-    if not cc_result:
+    if not cc_result['result']:
         message = handle_api_error(_(u"配置平台(CMDB)"),
                                    'cc.get_mainline_object_topo',
                                    kwargs,
                                    cc_result['message'])
-    else:
-        message = cc_result['message']
-    result = {'result': cc_result['result'], 'code': cc_result['code'], 'data': cc_result['data'], 'message': message}
+        return {'result': cc_result['result'], 'code': cc_result['code'], 'message': message}
+    data = cc_result['data']
+    for bk_obj in data:
+        if bk_obj['bk_obj_id'] == 'host':
+            bk_obj['bk_obj_name'] = 'IP'
+    result = {'result': cc_result['result'], 'code': cc_result['code'], 'data': cc_result['data']}
     return JsonResponse(result)

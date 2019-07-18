@@ -15,13 +15,14 @@ import requests
 import json
 
 from django.http import HttpResponse
-from django.conf import settings
 from django.http.response import HttpResponseForbidden
 from django.utils.translation import ugettext_lazy as _
 
+from pipeline.utils.uniqid import node_uniqid, line_uniqid
+
+from gcloud.conf import settings
 from gcloud.core.models import Business
 from gcloud.tasktmpl3.models import TaskTemplate
-from pipeline.utils.uniqid import node_uniqid, line_uniqid
 from gcloud.tasktmpl3.sites.utils import draw_pipeline_automatic
 
 ENV_TYPE = {

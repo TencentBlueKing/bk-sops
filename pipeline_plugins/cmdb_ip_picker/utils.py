@@ -16,10 +16,11 @@ import copy
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline_plugins.components.utils import handle_api_error
-
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
+from gcloud.conf import settings
 
 from .constants import NO_ERROR, ERROR_CODES
+
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
 def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
@@ -79,11 +80,13 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             filters_dct.setdefault(ft['field'], [])
             filters_dct[ft['field']] += format_condition_value(ft['value'])
         new_topo_tree = process_topo_tree_by_condition(biz_topo_tree, filters_dct)
+        filter_host = set(filters_dct.pop('host', []))
+        # 把拓扑筛选条件转换成 modules 筛选条件
         filter_modules = get_modules_by_condition(new_topo_tree, filters_dct)
         filter_modules_id = get_modules_id(filter_modules)
         data = [host for host in data if set(host['host_modules_id']) & set(filter_modules_id)]
-        if 'ip' in filters_dct:
-            data = [host for host in data if host['bk_host_innerip'] in filters_dct['ip']]
+        if filter_host:
+            data = [host for host in data if host['bk_host_innerip'] in filter_host]
 
     # 过滤条件
     excludes = kwargs['excludes']
@@ -93,11 +96,13 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
             excludes_dct.setdefault(ex['field'], [])
             excludes_dct[ex['field']] += format_condition_value(ex['value'])
         new_topo_tree = process_topo_tree_by_condition(biz_topo_tree, excludes_dct)
-        exclude_modules = get_modules_by_condition(new_topo_tree, excludes_dct)
+        exclude_host = set(excludes_dct.pop('host', []))
+        # 把拓扑排除条件转换成 modules 排除条件
+        exclude_modules = [] if not excludes_dct else get_modules_by_condition(new_topo_tree, excludes_dct)
         exclude_modules_id = get_modules_id(exclude_modules)
-        data = [host for host in data if not set(host['host_modules_id']) & set(exclude_modules_id)]
-        if 'ip' in excludes_dct:
-            data = [host for host in data if host['bk_host_innerip'] not in excludes_dct['ip']]
+        data = [host for host in data if not (set(host['host_modules_id']) & set(exclude_modules_id))]
+        if exclude_host:
+            data = [host for host in data if host['bk_host_innerip'] not in exclude_host]
 
     result = {
         'result': True,
@@ -205,7 +210,7 @@ def get_modules_id(modules):
 
 def process_topo_tree_by_condition(topo_tree, condition):
     """
-    @summary: 根据过滤条件保留或者排除空闲机模块
+    @summary: 根据过滤条件保留或者排除空闲机池
     @param topo_tree:
     @param condition:
     @return:

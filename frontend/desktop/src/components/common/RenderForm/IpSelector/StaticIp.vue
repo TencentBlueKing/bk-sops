@@ -15,6 +15,7 @@
             <div class="operation-area">
                 <bk-button type="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
+                    v-if="isShowQuantity"
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
@@ -35,7 +36,7 @@
                 </bk-dropdown-menu>
                 <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch"></ip-search-input>
             </div>
-            <div class="selected-num">{{i18n.selected}}
+            <div v-if="isShowQuantity" class="selected-num">{{i18n.selected}}
                 <span class="total-ip">{{staticIps.length}}</span>
                 {{i18n.staticIpNum}}
                 <span class="total-not-installed">{{failedAgentLength}}</span>
@@ -54,7 +55,7 @@
                     <tbody>
                         <template v-if="listInPage.length">
                             <tr v-for="item in listInPage" :key="item.bk_host_d">
-                                <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}}</td>
+                                <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}</td>
                                 <td>{{item.bk_host_innerip}}</td>
                                 <td :class="item.agent ? 'agent-normal' : 'agent-failed'">{{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}</td>
                                 <td>
@@ -70,7 +71,7 @@
                             <td class="static-ip-empty" colspan="4">
                                 <span v-if="!isSearchMode && editable">
                                     {{i18n.noDataClick}}
-                                    <a class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</a>
+                                    <span class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</span>
                                     {{i18n.server}}
                                 </span>
                                 <span v-else>{{i18n.noData}}</span>
@@ -80,6 +81,7 @@
                 </table>
                 <div class="table-pagination" v-if="isPaginationShow">
                     <bk-paging
+                        :size="small"
                         :location="'right'"
                         :cur-page.sync="currentPage"
                         :total-page="totalPage"
@@ -134,7 +136,7 @@
         },
         props: ['editable', 'staticIpList', 'staticIps'],
         data () {
-            const listCountPerPage = 10
+            const listCountPerPage = 5
             const totalPage = Math.ceil(this.staticIps.length / listCountPerPage)
             return {
                 isDropdownShow: false,
@@ -171,11 +173,17 @@
         computed: {
             failedAgentLength () {
                 return this.staticIps.filter(item => !item.agent).length
+            },
+            isShowQuantity () {
+                return this.staticIps.length
             }
         },
         watch: {
             staticIps (val) {
                 this.setPanigation(val)
+                if (this.staticIps.length !== 0) {
+                    this.dataError = false
+                }
             }
         },
         methods: {
@@ -266,6 +274,7 @@
                     return true
                 } else {
                     this.dataError = true
+                    this.onAddIpCancel()
                     return false
                 }
             }
@@ -278,6 +287,7 @@
     margin: 20px 0;
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
+        padding: 0px;
     }
 }
 .operation-btn {
@@ -298,6 +308,9 @@
     .total-not-installed {
         color: #ea3636;
     }
+}
+/deep/.bk-button .bk-icon {
+    margin-left: 55px;
 }
 .ip-search-wrap {
     position: absolute;
@@ -341,6 +354,7 @@
         text-align: center;
         color: #c4c6cc;
         .add-ip-btn {
+            margin: 0 -2px 0 -2px;
             color: #3a84ff;
             cursor: pointer;
         }
