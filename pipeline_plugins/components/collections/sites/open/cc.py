@@ -16,17 +16,16 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.conf.default_settings import ESB_GET_CLIENT_BY_USER as get_client_by_user
-
-from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
+from gcloud.conf import settings
 
 logger = logging.getLogger('celery')
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _(u"配置平台(CMDB)")
-__group_icon__ = '%scomponents/icons/cc.png' % settings.STATIC_URL
+__group_icon__ = '%scomponents/atoms/sites/%s/cc/cc.png' % (settings.STATIC_URL, settings.RUN_VER)
 
 
 def cc_handle_api_error(api_name, params, error):
@@ -369,11 +368,11 @@ class CCReplaceFaultMachineService(Service):
             new_host = host_dict.get(new_ip)
 
             if not fault_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % fault_host)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % fault_ip)
                 return False
 
             if not new_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % new_host)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % new_ip)
                 return False
 
             update_item = {
@@ -435,7 +434,9 @@ class CCReplaceFaultMachineService(Service):
                                            kwargs,
                                            transfer_result['message'])
                 logger.error(message)
-                data.outputs.ex_data = '%s, %s'.format(_(u"成功替换的机器: %s") % success)
+                data.outputs.ex_data = u"{msg}\n{success}".format(
+                    msg=message,
+                    success=_(u"成功替换的机器: %s") % ','.join(success))
                 return False
 
             success.append(host_id_to_ip[kwargs['bk_host_id'][0]])
@@ -844,3 +845,89 @@ class CCTransferHostToIdleComponent(Component):
     code = 'cc_transfer_to_idle'
     bound_service = CCTransferHostToIdleService
     form = '%scomponents/atoms/sites/%s/cc/cc_transfer_to_idle.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+
+class CmdbTransferFaultHostService(Service):
+
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
+
+        client = get_client_by_user(executor)
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        # 查询主机id
+        ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
+        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        if not host_result['result']:
+            data.set_outputs('ex_data', host_result['message'])
+            return False
+
+        transfer_params = {
+            "bk_biz_id": biz_cc_id,
+            "bk_host_id": [int(host_id) for host_id in host_result['data']]
+        }
+        transfer_result = client.cc.transfer_host_to_faultmodule(transfer_params)
+        if transfer_result['result']:
+            return True
+        else:
+            message = cc_handle_api_error('cc.transfer_host_to_fault_module',
+                                          transfer_params, transfer_result['message'])
+            data.set_outputs('ex_data', message)
+            return False
+
+    def outputs_format(self):
+        return []
+
+
+class CmdbTransferFaultHostComponent(Component):
+    name = _(u'转移主机到业务的故障机模块')
+    code = 'cmdb_transfer_fault_host'
+    bound_service = CmdbTransferFaultHostService
+    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_fault_host.js' % (settings.STATIC_URL, settings.RUN_VER)
+
+
+class CmdbTransferHostResourceModuleService(Service):
+
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
+
+        client = get_client_by_user(executor)
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        # 查询主机id
+        ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
+        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        if not host_result['result']:
+            data.set_outputs('ex_data', host_result['message'])
+            return False
+
+        transfer_params = {
+            "bk_biz_id": biz_cc_id,
+            "bk_host_id": [int(host_id) for host_id in host_result['data']]
+        }
+        transfer_result = client.cc.transfer_host_to_resourcemodule(transfer_params)
+        if transfer_result['result']:
+            return True
+        else:
+            message = cc_handle_api_error('cc.transfer_host_to_resource_module',
+                                          transfer_params, transfer_result['message'])
+            data.set_outputs('ex_data', message)
+            return False
+
+    def outputs_format(self):
+        return []
+
+
+class CmdbTransferHostResourceModuleComponent(Component):
+    name = _(u'转移主机至资源池')
+    code = 'cmdb_transfer_host_resource'
+    bound_service = CmdbTransferHostResourceModuleService
+    form = '%scomponents/atoms/sites/%s/cc/cmdb_transfer_host_resource.js' % (settings.STATIC_URL, settings.RUN_VER)

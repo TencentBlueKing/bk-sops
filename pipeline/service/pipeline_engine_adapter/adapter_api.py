@@ -25,8 +25,8 @@ STATE_MAP = {
 }
 
 
-def run_pipeline(pipeline_instance):
-    return api.start_pipeline(pipeline_instance)
+def run_pipeline(pipeline_instance, instance_id=None, check_workers=True):
+    return api.start_pipeline(pipeline_instance, check_workers=check_workers)
 
 
 def pause_pipeline(pipeline_id):
@@ -156,7 +156,6 @@ def _map(tree):
     tree.setdefault('children', {})
     return {
         'id': tree['id'],
-        'name': tree['name'],
         'state': _get_node_state(tree),
         'start_time': _better_time_or_none(tree['started_time']),
         'finish_time': _better_time_or_none(tree['archived_time']),

@@ -18,7 +18,6 @@ setuptools_scm==1.11.1
 django-guardian==1.4.8
 django-haystack==2.4.1
 rsa==3.4.2
-djangorestframework==3.3.3
 django-nose==1.4.5
 coverage==4.5.1
 python-magic==0.4.15

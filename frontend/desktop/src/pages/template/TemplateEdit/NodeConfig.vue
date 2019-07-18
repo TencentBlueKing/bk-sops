@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="node-config">
+    <div class="node-config" @click="e => e.stopPropagation()">
         <div
             :class="['node-config-panel',{ 'position-right-side': !isSettingPanelShow }]">
             <div class="node-title">
@@ -22,10 +22,12 @@
                         <label class="required">{{ atomNameType }}</label>
                         <div class="form-content">
                             <bk-selector
+                                :tools="!isSingleAtom"
                                 :searchable="true"
                                 :list="atomList"
                                 :selected="currentAtom"
-                                @item-selected="onAtomSelect">
+                                @item-selected="onAtomSelect"
+                                @edit="onJumpToProcess">
                             </bk-selector>
                             <!-- 标准插件节点说明 -->
                             <bk-tooltip v-if="atomDesc" placement="left" width="400" class="desc-tooltip">
@@ -220,7 +222,8 @@
             'subAtom',
             'idOfNodeInConfigPanel',
             'template_id',
-            'common'
+            'common',
+            'cc_id'
         ],
         data () {
             return {
@@ -369,7 +372,8 @@
                 if (this.currentAtom === 'job_execute_task') {
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        if (constant.source_type === 'component_outputs'
+                        if ((this.nodeId in constant.source_info)
+                            && constant.source_type === 'component_outputs'
                             && outputData.findIndex(item => item.key === cKey) === -1
                         ) {
                             outputData.push({
@@ -417,13 +421,13 @@
             this.initData()
         },
         mounted () {
-            window.addEventListener('click', this.handleNodeConfigPanelShow, true)
+            document.body.addEventListener('click', this.handleNodeConfigPanelShow, false)
             if (this.errorCouldBeIgnored) {
                 this.isDisable = true
             }
         },
         beforeDestroy () {
-            window.removeEventListener('click', this.handleNodeConfigPanelShow, true)
+            document.body.removeEventListener('click', this.handleNodeConfigPanelShow, false)
         },
         methods: {
             ...mapMutations('atomForm/', [
@@ -442,8 +446,10 @@
             ]),
             initData () {
                 this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
-                this.getNodeFormData() // get template activity information
-                this.getConfig(this.nodeConfigData.version) // load node config data
+                if (this.nodeConfigData) {
+                    this.getNodeFormData() // get template activity information
+                    this.getConfig(this.nodeConfigData.version) // load node config data
+                }
             },
             /**
              * 加载标准插件配置文件或子流程表单配置
@@ -522,22 +528,15 @@
                     })
                     // 遍历加载标准插件表单配置文件
                     for (const form of variableArray) {
-                        const { key, source_tag, custom_type } = form
-                        let atomType = ''
-                        let tagCode = ''
-                        let classify = ''
-                        if (custom_type) {
-                            atomType = tagCode = form.custom_type
-                            classify = 'variable'
-                        } else {
-                            [atomType, tagCode] = source_tag.split('.')
-                            classify = 'component'
-                        }
+                        const { key } = form
+                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+
                         if (!this.atomFormConfig[atomType]) {
                             await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                         }
-                        const atomConfig = this.atomFormConfig[atomType]
+                        
+                        const atomConfig = this.atomFormConfig[atom]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
                         if (currentFormConfig) {
@@ -626,7 +625,7 @@
                         }
                     }
                 } else {
-                    this.currentAtom = formData.template_id
+                    this.currentAtom = parseInt(formData.template_id)
                     for (const key in formData.constants) {
                         const form = formData.constants[key]
                         const tagCode = key.match(varKeyReg)[1]
@@ -687,6 +686,8 @@
                     }
                 }
                 return false
+            },
+            stopClickPropagation (e) {
             },
             /**
              * 处理节点配置面板和全局变量面板之外的点击事件
@@ -827,6 +828,11 @@
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
+            },
+            onJumpToProcess (index) {
+                const item = this.atomList[index].id
+                const { href } = this.$router.resolve({ path: `/template/edit/${this.cc_id}/?template_id=${item}` })
+                window.open(href, '_blank')
             },
             /**
              * 更新子流程版本
@@ -1122,7 +1128,6 @@
     .common-icon-dark-circle-r {
         color: #a6b0c7;
     }
-
 }
 .form-item {
     margin-bottom: 20px;
@@ -1171,7 +1176,6 @@
         .common-icon-dark-circle-r {
             color: #a6b0c7;
         }
-
     }
     .desc-tooltip, .update-tooltip, .error-ingored-tootip {
         margin-left: 15px;
@@ -1226,7 +1230,7 @@
         border-collapse: collapse;
         th, td {
             padding: 10px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: normal;
             border: 1px solid $commonBorderColor;
             text-align: center;
@@ -1242,5 +1246,18 @@
             width: 20%;
         }
     }
+}
+/deep/.icon-edit2:before {
+    content: '\e908';
+    font-family: 'commonicon' !important;
+    font-size: 16px;
+    color: #546a9e;
+    margin-right: 10px;
+}
+/deep/.bk-selector-tools {
+    top: 13px !important;
+}
+/deep/.icon-close {
+    display: none;
 }
 </style>

@@ -13,12 +13,15 @@
     <div class="functor-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.functorList"></BaseTitle>
-            <BaseSearch
-                v-model="searchStr"
-                :input-placeholader="i18n.placeholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="operation-area clearfix">
+                <bk-button type="primary" class="task-create-btn" size="small" @click="onCreateTask">{{i18n.new}}</bk-button>
+                <BaseSearch
+                    v-model="searchStr"
+                    :input-placeholader="i18n.placeholder"
+                    @onShow="onAdvanceShow"
+                    @input="onSearchInput">
+                </BaseSearch>
+            </div>
             <div class="functor-search" v-show="isAdvancedSerachShow">
                 <fieldset class="functor-fieldset">
                     <div class="functor-query-content">
@@ -64,7 +67,7 @@
                             </bk-selector>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="loadFunctionTask">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -74,8 +77,8 @@
                 <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <thead>
                         <tr>
-                            <th class="functor-id">ID</th>
                             <th class="functor-business">{{i18n.business}}</th>
+                            <th class="functor-id">{{i18n.taskId}}</th>
                             <th class="functor-name">{{ i18n.name }}</th>
                             <th class="functor-time">{{ i18n.createdTime }}</th>
                             <th class="functor-time">{{ i18n.claimedTime }}</th>
@@ -87,8 +90,8 @@
                     </thead>
                     <tbody>
                         <tr v-for="item in functorList" :key="item.id">
-                            <td class="functor-id">{{item.id}}</td>
                             <td class="functor-business">{{item.task.business.cc_name}}</td>
+                            <td class="functor-id">{{item.task.id}}</td>
                             <td class="functor-name">
                                 <router-link
                                     :title="item.task.name"
@@ -155,13 +158,13 @@
                         <bk-selector
                             :allow-clear="true"
                             :list="business.list"
-                            :selected.sync="business.selected"
+                            :selected="business.id"
                             :setting-key="'cc_id'"
                             :display-key="'cc_name'"
                             :search-key="'cc_name'"
                             :is-loading="business.loading"
                             :searchable="business.searchable"
-                            @item-selected="onSelectedBizCcId"
+                            @item-selected="onSelectedBusiness"
                             @clear="onClearBusiness">
                         </bk-selector>
                         <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
@@ -171,11 +174,12 @@
                     <label>{{i18n.choiceTemplate}}</label>
                     <div class="common-form-content">
                         <bk-selector
+                            setting-key="id"
+                            display-key="name"
+                            ext-cls="template-selector"
                             :allow-clear="true"
                             :list="template.list"
-                            :selected.sync="template.selected"
-                            :setting-key="'id'"
-                            :display-key="'name'"
+                            :selected="template.id"
                             :has-children="true"
                             :is-loading="template.loading"
                             :searchable="template.searchable"
@@ -222,6 +226,7 @@
                     functorList: gettext('职能化中心'),
                     placeholder: gettext('请输入ID或流程名称'),
                     business: gettext('所属业务'),
+                    taskId: gettext('任务ID'),
                     createdTime: gettext('提单时间'),
                     claimedTime: gettext('认领时间'),
                     ownBusiness: gettext('所属业务'),
@@ -235,10 +240,10 @@
                     operation: gettext('操作'),
                     claim: gettext('认领'),
                     view: gettext('查看'),
-                    new: gettext('新建任务'),
+                    new: gettext('新建'),
                     choiceBusiness: gettext('选择业务'),
                     choiceTemplate: gettext('选择模板'),
-                    tips: gettext('如果未找到模板，请联系业务运维在流程模板的权限管理中对你或所有职能化人员授予“新建任务权限”'),
+                    tips: gettext('如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
                     total: gettext('共'),
                     item: gettext('条记录'),
                     comma: gettext('，'),
@@ -265,9 +270,8 @@
                 functorList: [],
                 business: {
                     list: [],
-                    selected: 0,
                     loading: false,
-                    id: null,
+                    id: '',
                     searchable: true,
                     empty: false
                 },
@@ -282,10 +286,9 @@
                             children: []
                         }
                     ],
-                    selected: 0,
                     loading: false,
                     searchable: true,
-                    id: null,
+                    id: '',
                     empty: false,
                     disabled: true
                 },
@@ -411,7 +414,7 @@
 
                 return cls
             },
-            onNewTask () {
+            onCreateTask () {
                 this.isShowNewTaskDialog = true
             },
             async getBusinessList () {
@@ -429,9 +432,12 @@
                 this.template.loading = true
                 try {
                     // 查询职能化数据及公共流程数据
-                    await Promise.all([this.loadFunctionTemplateList(this.business.id), this.loadTemplateList({ common: 1 })]).then(value => {
+                    await Promise.all([
+                        this.loadFunctionTemplateList(this.business.id),
+                        this.loadTemplateList({ common: 1 })
+                    ]).then(value => {
                         if (value[0].objects.length === 0) {
-                            this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据') }]
+                            this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据'), disabled: true }]
                         } else {
                             this.template.list[0].children = value[0].objects
                         }
@@ -462,6 +468,7 @@
                 this.getTemplateList()
                 this.business.empty = false
                 this.template.disabled = false
+                this.template.id = ''
             },
             onSelectedTemplate (id, data) {
                 if (id === undefined) {
@@ -476,11 +483,11 @@
                 this.template.empty = false
             },
             onConfirmlNewTask () {
-                if (this.business.id === null) {
+                if (this.business.id === '') {
                     this.business.empty = true
                     return
                 }
-                if (this.template.id === null) {
+                if (this.template.id === '') {
                     this.template.empty = true
                     return
                 }
@@ -494,25 +501,26 @@
                 this.onClearTemplate()
                 this.onClearBusiness()
                 this.isShowNewTaskDialog = false
+                this.business.empty = false
+                this.template.empty = false
             },
             onClearTemplate () {
-                this.template.id = null
-                this.template.selected = 0
+                this.template.id = ''
             },
             onClearBusiness () {
+                this.business.id = ''
+                this.template.id = ''
                 this.template.disabled = true
-                this.business.id = null
-                this.business.selected = 0
             },
             // 无数据文本修改样式
             changeNoDataTextStyle () {
-                const textList = document.querySelectorAll('.text')
-                for (const item of textList) {
-                    if (item.textContent === gettext(' 无数据 ')) {
-                        item.style['cursor'] = 'not-allowed'
-                        item.style['background-color'] = '#fafafa'
-                        item.style['color'] = '#aaaaaa'
-                        item.parentElement.style['background-color'] = '#fafafa'
+                const templateEls = document.querySelector('.template-selector').querySelectorAll('.bk-selector-node')
+                for (const item of templateEls) {
+                    if (item.classList.contains('template-empty')) {
+                        item.classList.remove('template-empty')
+                    }
+                    if (item.querySelector('.text').textContent === gettext(' 无数据 ')) {
+                        item.classList.add('template-empty')
                     }
                 }
             },
@@ -556,7 +564,7 @@ label.required:after {
 .functor-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
 }
 .list-wrapper {
     padding: 0 60px;
@@ -570,7 +578,6 @@ label.required:after {
         color: #FF9C01;
     }
 }
-
 .common-form-item {
     label {
         width: 60px;
@@ -581,9 +588,19 @@ label.required:after {
         margin-right: 30px;
     }
 }
+.operation-area {
+    margin: 20px 0;
+    .task-create-btn {
+        min-width: 120px;
+    }
+}
+.advanced-search {
+    margin: 0;
+}
 .functor-fieldset {
     width: 100%;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .functor-query-content {
@@ -693,15 +710,17 @@ label.required:after {
             background: $whiteNodeBg;
         }
         th,td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: $whiteNodeBg;
         }
         .functor-id {
-            padding-left: 20px;
             width: 80px;
         }
         .functor-name {
@@ -735,6 +754,7 @@ label.required:after {
             white-space: nowrap;
         }
         .functor-business {
+            padding-left: 20px;
             width: 130px;
             overflow:hidden;
             text-overflow:ellipsis;
@@ -790,5 +810,11 @@ label.required:after {
 .success {
     color: #2dcb56;
 }
-
+.template-selector {
+    /deep/ .template-empty {
+        background-color: #fafafa;
+        color: #aaaaaa;
+        cursor: not-allowed;
+    }
+}
 </style>

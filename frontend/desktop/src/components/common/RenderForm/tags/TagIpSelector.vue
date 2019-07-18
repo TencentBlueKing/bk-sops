@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="tag-ip-selector" v-bkloading="{ isLoading: loading, opacity: 0.8 }">
         <div v-if="formMode" class="tag-ip-selector-wrap">
             <ip-selector
                 ref="ipSelector"
@@ -19,6 +19,7 @@
                 :static-ip-list="staticIpList"
                 :dynamic-ip-list="dynamicIpList"
                 :topo-model-list="topoModelList"
+                :allow-empty="allowEmpty"
                 v-model="ipValue">
             </ip-selector>
         </div>
@@ -62,6 +63,7 @@
         data () {
             return {
                 loading: true,
+                isvalidate: false,
                 staticIpList: [],
                 dynamicIpList: [],
                 topoModelList: []
@@ -73,7 +75,10 @@
                     return this.value
                 },
                 set (val) {
-                    this.updateForm(val)
+                    // 验证后更新
+                    if (this.customValidate()) {
+                        this.updateForm(val)
+                    }
                 }
             },
             viewValue () {
@@ -87,6 +92,9 @@
                     }
                 })
                 return val || '--'
+            },
+            allowEmpty () {
+                return !this.validateSet.includes('required')
             }
         },
         created () {
@@ -127,6 +135,5 @@
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
     padding: 0 10px 10px;
-    background: #fafbfd;
 }
 </style>
