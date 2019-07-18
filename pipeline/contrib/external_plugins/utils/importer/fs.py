@@ -15,12 +15,12 @@ import os
 import logging
 import traceback
 
-from pipeline.contrib.external_plugins.utils.importer.base import NonstandardModuleImporter
+from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
 
 logger = logging.getLogger('root')
 
 
-class FSModuleImporter(NonstandardModuleImporter):
+class FSModuleImporter(AutoInstallRequirementsImporter):
     def __init__(self,
                  modules,
                  path,
@@ -78,7 +78,7 @@ class FSModuleImporter(NonstandardModuleImporter):
             with open(file_path) as f:
                 file_content = f.read()
         except IOError:
-            logger.error('Error occurred when read {file_path} content: {trace}'.format(
+            logger.info('Error occurred when read {file_path} content: {trace}'.format(
                 file_path=file_path,
                 trace=traceback.format_exc()
             ))
