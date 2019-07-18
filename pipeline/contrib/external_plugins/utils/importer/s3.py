@@ -16,12 +16,12 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-from pipeline.contrib.external_plugins.utils.importer.base import NonstandardModuleImporter
+from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
 
 logger = logging.getLogger('root')
 
 
-class S3ModuleImporter(NonstandardModuleImporter):
+class S3ModuleImporter(AutoInstallRequirementsImporter):
     def __init__(self,
                  modules,
                  service_address,
