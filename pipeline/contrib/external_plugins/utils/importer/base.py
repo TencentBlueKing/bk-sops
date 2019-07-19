@@ -19,6 +19,8 @@ import traceback
 from contextlib import contextmanager
 from abc import ABCMeta, abstractmethod
 
+from pipeline.contrib.external_plugins.utils import requirement
+
 logger = logging.getLogger('root')
 
 
@@ -172,3 +174,18 @@ class NonstandardModuleImporter(object):
 
     def import_error_hook(self, fullname):
         pass
+
+
+class AutoInstallRequirementsImporter(NonstandardModuleImporter):
+    __metaclass__ = ABCMeta
+
+    def post_load_module_hook(self, fullname, module):
+        requirements = getattr(module, '__requirements__', [])
+        if not isinstance(requirements, list) or not requirements:
+            return
+
+        sys.stdout.write('Start to install requirements({reqs}) for module({mod})\n'.format(
+            reqs=','.join(requirements),
+            mod=fullname
+        ))
+        requirement.install(requirements)
