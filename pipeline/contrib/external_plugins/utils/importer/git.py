@@ -16,12 +16,12 @@ import logging
 import urlparse
 import requests
 
-from pipeline.contrib.external_plugins.utils.importer.base import NonstandardModuleImporter
+from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
 
 logger = logging.getLogger('root')
 
 
-class GitRepoModuleImporter(NonstandardModuleImporter):
+class GitRepoModuleImporter(AutoInstallRequirementsImporter):
 
     def __init__(self,
                  modules,
