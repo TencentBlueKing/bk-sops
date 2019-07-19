@@ -15,7 +15,10 @@
         'fill-height': currentStep === 'selectnode'
     }">
         <TaskStep
+            :cc_id="cc_id"
             :list="stepList"
+            :common="common"
+            :task-status="'TaskCreate'"
             :current-step="currentStep">
         </TaskStep>
         <component
@@ -24,6 +27,7 @@
             :current-step="currentStep"
             :cc_id="cc_id"
             :common="common"
+            :entrance="entrance"
             :template_id="template_id"
             :exclude-node="excludeNode"
             :preview-data="previewData"
@@ -65,7 +69,7 @@
             TaskSelectNode,
             TaskParamFill
         },
-        props: ['template_id', 'cc_id', 'step', 'common'],
+        props: ['template_id', 'cc_id', 'step', 'common', 'entrance'],
         data () {
             return {
                 stepList: STEP_DICT.slice(),
@@ -134,6 +138,9 @@
         mounted () {
             if (this.userType === 'functor') {
                 this.setFunctionalStep(true)
+            }
+            if (this.entrance === '0') {
+                this.deletePeriodicCurrentStep()
             }
         },
         methods: {

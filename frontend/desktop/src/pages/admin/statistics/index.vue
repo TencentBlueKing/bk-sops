@@ -11,7 +11,22 @@
 */
 <template>
     <div class="page-statistics">
-        <navi-header :routers="dataDimension" :title="i18n.operationData"></navi-header>
+        <div class="header-wrapper">
+            <div class="nav-content clearfix">
+                <div class="nav-title">
+                    <h3>{{i18n.operationData}}</h3>
+                </div>
+                <div class="data-dimension">
+                    <router-link
+                        v-for="dms in dataDimension"
+                        :key="dms.name"
+                        :class="['dms-item', { 'active': $route.name === dms.name }]"
+                        :to="dms.path">
+                        {{dms.text}}
+                    </router-link>
+                </div>
+            </div>
+        </div>
         <div class="statistics-content">
             <div class="content-wrapper" v-if="reloadComponent">
                 <router-view></router-view>
@@ -21,8 +36,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import NaviHeader from '../components/NaviHeader.vue'
-
     const DATA_DIMENSION = [
         {
             text: gettext('流程统计'),
@@ -45,12 +58,8 @@
             path: '/admin/statistics/appmaker/'
         }
     ]
-
     export default {
         name: 'Statistics',
-        components: {
-            NaviHeader
-        },
         data () {
             return {
                 dataDimension: DATA_DIMENSION,
@@ -80,12 +89,51 @@
 @import "@/scss/datastatistics/datastatistics.scss";
 .page-statistics {
     .header-wrapper {
+        margin-bottom: 20px;
+        padding: 0px 60px 0 60px;
         min-width: 1320px;
-        padding: 0 60px;
+        box-shadow:0px 3px 6px rgba(0, 0, 0, 0.06);
+    }
+    .nav-content {
+        .nav-title {
+            float: left;
+            margin-right: 20px;
+            padding: 21px 0;
+            h3 {
+                margin: 0;
+                padding-right: 20px;
+                border-right: 1px solid #c4c6cc;
+                line-height: 1;
+                font-size: 18px;
+                font-weight: 400;
+                color: #313238;
+            }
+        }
+        .data-dimension {
+            float: left;
+            .dms-item {
+                display: inline-block;
+                margin-right: 34px;
+                height: 60px;
+                line-height: 60px;
+                font-size: 14px;
+                color: #63656E;
+                cursor: pointer;
+                &:hover {
+                    color: #3a84ff;
+                }
+                &.active {
+                    color: #3a84ff;
+                    border-bottom: 2px solid #3a84ff;
+                }
+            }
+        }
     }
     .statistics-content {
-        padding: 20px 10px 0;
-        min-width: 1320px;
+        padding: 0 10px;
+        .content-wrapper {
+            min-width: 1320px;
+        }
         .template-router {
             color: #3a84ff;
             white-space: nowrap;

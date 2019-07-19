@@ -36,9 +36,10 @@
                                 :start-date="categoryStartTime"
                                 :end-date="categoryEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeCategoryTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': choiceDownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showClassifyDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -70,9 +71,10 @@
                                 :start-date="businessStartTime"
                                 :end-date="businessEndTime"
                                 :end-date-max="endDateMax"
+                                @close="onShutTimeSelector"
                                 @change="onChangeBusinessTime">
                             </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': choiceDownShow }]"></i>
+                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': showBusinessDatePanel }]"></i>
                         </div>
                     </div>
                 </div>
@@ -84,21 +86,6 @@
                 <div class="content-title">{{i18n.instanceTime}}</div>
                 <div class="content-task-instance">
                     <div class="content-instance-time">
-                        <!--时间维度选择-->
-                        <bk-selector
-                            :list="taskDimensionArray"
-                            :display-key="'name'"
-                            :setting-name="'value'"
-                            :search-key="'name'"
-                            :setting-key="'value'"
-                            :selected.sync="choiceDate"
-                            :placeholder="i18n.choice"
-                            :searchable="true"
-                            :allow-clear="true"
-                            @item-selected="onChangeTimeType">
-                        </bk-selector>
-                    </div>
-                    <div class="content-instance-time">
                         <!--业务选择-->
                         <bk-selector
                             :list="businessList"
@@ -106,7 +93,8 @@
                             :setting-name="'cc_id'"
                             :search-key="'cc_name'"
                             :setting-key="'cc_id'"
-                            :selected.sync="businessSelected"
+                            :selected.sync="timeBusinessSelected"
+                            :placeholder="i18n.choice"
                             :searchable="true"
                             :allow-clear="true"
                             @item-selected="onChangeTimeTypeBusiness">
@@ -120,27 +108,43 @@
                             :setting-name="'value'"
                             :search-key="'name'"
                             :setting-key="'value'"
-                            :selected.sync="categorySelected"
+                            :selected.sync="timeCategorySelected"
                             :placeholder="i18n.choice"
                             :searchable="true"
                             :allow-clear="true"
                             @item-selected="onChangeTimeTypeCategory">
                         </bk-selector>
                     </div>
-                    <div class="content-date-picker">
+                    <div class="content-date-picker" @click="onTimePickerClick">
                         <bk-date-range
+                            ref="timePickerRef"
                             position="bottom-left"
                             :quick-select="true"
                             :start-date="timeTypeStartTime"
                             :end-date="timeTypeEndTime"
                             :end-date-max="endDateMax"
+                            @close="onShutTimeSelector"
                             @change="onInstanceTime">
                         </bk-date-range>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': choiceDownShow }]"></i>
                     </div>
+                    <div class="content-instance-time date-scope">
+                        <!--时间维度选择-->
+                        <bk-selector
+                            :list="taskDimensionArray"
+                            :display-key="'name'"
+                            :setting-name="'value'"
+                            :search-key="'name'"
+                            :setting-key="'value'"
+                            :selected.sync="choiceDate"
+                            :placeholder="i18n.choice"
+                            :allow-clear="true"
+                            @item-selected="onChangeTimeType">
+                        </bk-selector>
+                    </div>
                 </div>
             </div>
-            <data-statistics :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></data-statistics>
+            <vertical-bar-chart :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></vertical-bar-chart>
         </div>
         <div class="content-process-detail">
             <bk-tab :type="'fill'" :active-name="tabName" @tab-changed="onChangeTabPanel">
@@ -272,6 +276,7 @@
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import DataStatistics from '../dataStatistics/index.vue'
+    import VerticalBarChart from '../verticalBarChart/index.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
@@ -306,6 +311,7 @@
         name: 'StatisticsInstance',
         components: {
             DataStatistics,
+            VerticalBarChart,
             DataTablePagination
         },
         mixins: [AnalysisMixins],
@@ -461,8 +467,12 @@
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
                 businessSelected: 'all',
+                timeBusinessSelected: 'all',
                 categorySelected: 'all',
-                choiceDate: 'day'
+                choiceDate: 'day',
+                showClassifyDatePanel: '',
+                showBusinessDatePanel: '',
+                timeCategorySelected: 'all'
             }
         },
         computed: {
@@ -476,7 +486,7 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: undefined, cc_name: i18n.choiceAllBusiness })
+                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
@@ -736,13 +746,19 @@
                 this.businessStartTime = startTime
                 this.timeTypeStartTime = startTime
             },
+            onShutTimeSelector () {
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
+                this.choiceDownShow = this.$refs.timePickerRef.showDatePanel
+            },
             onDatePickerClick () {
-                this.datePickerRefShow = !this.datePickerRefShow
-                this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
             },
             onInstanceClick () {
-                this.businessPickerRefShow = !this.businessPickerRefShow
-                this.$refs.businessPickerRef.pickerVisible = this.businessPickerRefShow
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
+            },
+            onTimePickerClick () {
+                this.choiceDownShow = this.$refs.timePickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {

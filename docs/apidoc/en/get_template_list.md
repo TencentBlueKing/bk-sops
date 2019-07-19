@@ -5,6 +5,7 @@ Query flow templates list of the business
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -27,7 +28,7 @@ Query flow templates list of the business
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "2",
-    "template_source": "business",
+    "template_source": "business"
 }
 ```
 

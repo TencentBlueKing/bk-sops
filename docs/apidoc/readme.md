@@ -1,7 +1,9 @@
 # API
 
 ## 调用指引
-所有的 API 调用都要通过蓝鲸API网关调用，请按照你部署的蓝鲸PaaS平台的"开发者中心"->"API网关"->"使用指南"操作。
+所有的 API 在正式环境调用都要通过蓝鲸API网关调用，请按照你部署的蓝鲸PaaS平台的"开发者中心"->"API网关"->"使用指南"操作。
+
+点击这里查看[API 列表](sops.yaml)。
 
 
 ## 文档说明
@@ -38,3 +40,5 @@
 [(English Documents Available)](en/modify_cron_for_periodic_task.md)
 - [修改周期任务的全局参数](zh_hans/modify_constants_for_periodic_task.md)
 [(English Documents Available)](en/modify_constants_for_periodic_task.md)
+- [导入公共流程](zh_hans/import_common_template.md)
+[(English Documents Available)](en/import_common_template.md)

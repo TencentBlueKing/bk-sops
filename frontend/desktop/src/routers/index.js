@@ -137,7 +137,8 @@ const routers = new VueRouter({
                         cc_id: route.params.cc_id,
                         step: route.params.step,
                         template_id: route.query.template_id,
-                        common: route.query.common
+                        common: route.query.common,
+                        entrance: route.query.entrance
                     })
                 }]
         },
@@ -164,6 +165,7 @@ const routers = new VueRouter({
                     component: TaskExecute,
                     props: (route) => ({
                         cc_id: route.params.cc_id,
+                        common: route.query.common,
                         instance_id: route.query.instance_id
                     })
                 }]
@@ -227,6 +229,10 @@ const routers = new VueRouter({
                     component: Statistics,
                     children: [
                         {
+                            path: '',
+                            component: NotFoundComponent
+                        },
+                        {
                             path: 'template/',
                             name: 'statisticsTemplate',
                             component: StatisticsTemplate
@@ -286,6 +292,7 @@ const routers = new VueRouter({
                 }
             ]
         },
+
         {
             path: '/function/home/',
             name: 'functionHome',

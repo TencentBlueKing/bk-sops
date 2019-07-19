@@ -19,7 +19,6 @@
         width="739"
         height="578"
         :is-show.sync="isImportDialogShow"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content" class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1 }">
             <div class="import-wrapper">
@@ -108,7 +107,7 @@
             </div>
             <div class="common-wrapper-btn">
                 <bk-button type="primary button" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-                <bk-button type="default" @click="exportSubmit(false)"> {{overrideFlict}} </bk-button>
+                <bk-button type="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
                 <bk-button type="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
             </div>
         </div>
@@ -178,11 +177,15 @@
                 'cc_id': state => state.cc_id
             }),
             exportConflict () {
-                return this.exportList.length ? this.i18n.replaceSubmit : this.i18n.replaceWithoutConflict
+                return this.overrideList.length ? this.i18n.replaceSubmit : this.i18n.replaceWithoutConflict
             },
-            overrideFlict () {
+            overrideConflict () {
                 return this.overrideList.length ? this.i18n.reservedSubmit : this.i18n.reservedWithoutConflict
+            },
+            isEmpty () {
+                return !this.exportList.length || (this.isChecked && !this.overrideList.length)
             }
+
         },
         methods: {
             ...mapActions('templateList/', [
@@ -220,12 +223,11 @@
                     this.pending.upload = false
                 }
             },
-            async importTemplate () {
+            async importTemplate (isOverride) {
                 this.pending.submit = true
-                this.templateFileError = false
                 const formData = new FormData()
                 formData.append('data_file', this.file)
-                formData.append('override', this.isChecked)
+                formData.append('override', isOverride)
                 const data = {
                     formData: formData,
                     common: this.common
@@ -234,13 +236,11 @@
                     const resp = await this.templateImport(data)
                     if (resp.result) {
                         this.$emit('onImportConfirm')
-                        this.templateFileError = false
                     } else {
-                        this.templateFileError = true
+                        errorHandler(resp, this)
                     }
                 } catch (e) {
                     errorHandler(e, this)
-                    this.templateFileError = true
                 } finally {
                     this.pending.submit = false
                 }
@@ -264,7 +264,7 @@
                     this.uploadCheck()
                 }
             },
-            onConfirm () {
+            onConfirm (isOverride) {
                 if (this.pending.submit || this.pending.upload) {
                     return
                 }
@@ -276,7 +276,7 @@
                     return
                 }
                 if (!this.templateFileErrorExt && !this.templateFileEmpty && !this.templateFileError) {
-                    this.importTemplate()
+                    this.importTemplate(isOverride)
                 }
             },
             onShowConflicts () {
@@ -291,9 +291,8 @@
                 this.templateFileErrorExt = false
                 this.templateFileError = false
             },
-            exportSubmit (value) {
-                this.isChecked = value
-                this.onConfirm()
+            exportSubmit (isOverride) {
+                this.onConfirm(isOverride)
             }
         }
     }
@@ -313,68 +312,10 @@
             margin-left: 30px;
         }
         .common-form-content {
-            margin-left: 100px;
+            margin-left: 120px;
             margin-right: 20px;
             .bk-button.bk-primary {
                 width: 120px;
-                margin-left: 20px;
-            }
-        }
-        .is-override-radio {
-            margin-left: 20px;
-            height: 36px;
-            line-height: 36px;
-            font-size: 14px;
-            .radio-icon {
-                position: relative;
-                display: inline-block;
-                width: 14px;
-                height: 14px;
-                border: 1px solid $commonBorderColor;
-                border-radius: 50%;
-                cursor: pointer;
-            }
-            .radio-label {
-                padding-left: 4px;
-                line-height: 1;
-                cursor: pointer;
-            }
-            input[type="radio"] {
-                display: none;
-            }
-            input[type="radio"]:checked + label {
-                & > .radio-icon {
-                    background: $blueDefault;
-                    border: 1px solid $blueDefault;
-                    &:after {
-                        content: "";
-                        position: absolute;
-                        top: 4px;
-                        left: 4px;
-                        width: 4px;
-                        height: 4px;
-                        background: $whiteDefault;
-                        border-radius: 50%;
-                    }
-                }
-            }
-            &.is-disabled {
-                .radio-label {
-                    color: $greyDisable;
-                    cursor: not-allowed;
-                }
-                .radio-icon {
-                    border-color: $greyDisable;
-                }
-                input[type="radio"]:checked + label {
-                    & > .radio-icon {
-                        background: $whiteDefault;
-                        border-color: $greyDisable;
-                        &::after {
-                            background: $greyDisable;
-                        }
-                    }
-                }
             }
         }
     }
@@ -428,12 +369,11 @@
         display: none;
     }
     .file-name {
-        padding: 4px 0px 0px 20px;
+        padding: 4px 0px 0px 0px;
     }
     .template-head {
         height: 42px;
         line-height: 42px;
-        margin-left: 20px;
         font-size: 0;
         border-top: 1px solid #c3cdd7;
         border-right: 1px solid #c3cdd7;
@@ -447,6 +387,8 @@
             border-left: 1px solid $formBorderColor;
         }
         .template-process-name {
+            text-align: left;
+            padding-left: 16px;
             font-size: 14px;
         }
         span {
@@ -461,7 +403,6 @@
         }
     }
     .template-fileList {
-        margin-left: 20px;
         height: 252px;
         border: 1px solid #c3cdd7;
         overflow-x: hidden;
@@ -471,9 +412,6 @@
             width: 100%;
             color: #e4e5e7;
             border-collapse: collapse;
-            tr:last-child td{
-                border-bottom: none;
-            }
             th,td {
                 padding: 10px 10px;
                 height: 42px;

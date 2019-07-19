@@ -23,17 +23,17 @@ const task = {
     },
     actions: {
         loadTaskScheme ({ commit }, payload) {
-            const { cc_id, template_id } = payload
-            return api.getTaskScheme({ cc_id, template_id }).then(response => response.data.objects)
+            const { cc_id, template_id, isCommon } = payload
+            return api.getTaskScheme({ cc_id, template_id, isCommon }).then(response => response.data.objects)
         },
         createTaskScheme ({ commit }, payload) {
             return api.createTaskScheme(payload).then(response => response.data)
         },
-        deleteTaskScheme ({ commit }, schemeId) {
-            return api.deleteTaskScheme(schemeId).then(response => response.data)
+        deleteTaskScheme ({ commit }, payload) {
+            return api.deleteTaskScheme(payload).then(response => response.data)
         },
-        getSchemeDetail ({ commit }, schemeId) {
-            return api.getSchemeDetail(schemeId).then(response => response.data)
+        getSchemeDetail ({ commit }, payload) {
+            return api.getSchemeDetail(payload).then(response => response.data)
         },
         loadPreviewNodeData ({ commit }, payload) {
             return api.getPreviewNodeData(payload).then(response => response.data)

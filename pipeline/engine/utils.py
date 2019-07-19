@@ -46,13 +46,12 @@ def calculate_elapsed_time(started_time, archived_time):
     @return:
     """
     if archived_time and started_time:
-        # when status_tree['archived_time'] == status_tree['started_time'], set elapsed_time to 1s
-        elapsed_time = (archived_time - started_time).total_seconds() or 1
+        elapsed_time = (archived_time - started_time).total_seconds()
     elif started_time:
         elapsed_time = (timezone.now() - started_time).total_seconds()
     else:
         elapsed_time = 0
-    return elapsed_time
+    return int(elapsed_time)
 
 
 class ActionResult(object):
@@ -60,16 +59,3 @@ class ActionResult(object):
         self.result = result
         self.message = message
         self.extra = extra
-
-    def _as_dict(self):
-        return {
-            'result': self.result,
-            'message': self.message,
-            'extra': self.extra
-        }
-
-    def __repr__(self):
-        return self._as_dict().__repr__()
-
-    def __str__(self):
-        return self._as_dict().__str__()
