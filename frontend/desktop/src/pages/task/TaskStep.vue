@@ -130,10 +130,6 @@
                     { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_common', url: `/template/common/${this.cc_id}/` },
                     // 流程模版-业务流程
                     { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_business', url: `/template/home/${this.cc_id}/` },
-                    // // 管理员-公共流程-编辑
-                    // { userType: 'maintainer', path: '/template/edit/', entrance: 'admin_common', url: `/admin/common/template/` },
-                    // // 管理员-公共流程-新建
-                    // { userType: 'maintainer', path: '/template/new/', entrance: 'admin_common', url: `/admin/common/template/` },
                     // maintainer 默认
                     { userType: 'maintainer', path: 'default', url: `/template/home/${this.cc_id}/` },
                     // 职能化
