@@ -15,16 +15,19 @@
 npm install
 ```
 
-2）本地打包
+2）打包前端资源
 在 frontend/desktop/ 目录下，继续执行以下命令打包前端静态资源
 ```bash
-npm run build -- --STATIC_ENV=dev
+npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod"
 ```
 
 3）收集静态资源
 回到项目根目录，执行以下命令收集前端静态资源到 static 目录下
 ```bash
 python manage.py collectstatic --noinput
+rm -rf static/open static/images
+mv frontend/desktop/static/open static/
+mv frontend/desktop/static/images static/
 ```
 
 
@@ -41,4 +44,4 @@ bash scripts/publish/build.sh
 
 
 ## 上传版本并部署
-前往你部署的蓝鲸社区版平台，在"开发者中心"点击"S-mart应用"，找到官方标准运维应用并进入详情。在"上传版本"中，点击"上传文件"后选中上一步打包生成的版本包，等待上传完成。然后点击"发布部署"，你就可以在测试环境或者正式环境部署你最新的版本包了。
+前往你部署的蓝鲸PaaS平台，在"开发者中心"点击"S-mart应用"，找到官方标准运维应用并进入详情。在"上传版本"中，点击"上传文件"后选中上一步打包生成的版本包，等待上传完成。然后点击"发布部署"，你就可以在测试环境或者正式环境部署你最新的版本包了。

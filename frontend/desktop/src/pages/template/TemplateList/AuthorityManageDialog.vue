@@ -78,7 +78,7 @@
                 modifyParamsPerList: [],
                 executeTaskPerList: [],
                 i18n: {
-                    title: gettext('权限管理'),
+                    title: gettext('使用权限'),
                     createTaskAuth: gettext('新建任务权限'),
                     modifyParamsAuth: gettext('认领任务权限'),
                     executeTaskAuth: gettext('执行任务权限')

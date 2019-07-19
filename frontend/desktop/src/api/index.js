@@ -92,11 +92,10 @@ const api = {
      * 获取业务基础配置信息
      */
     getBusinessBaseInfo () {
-        const { cc_id } = store.state
         const prefixUrl = this.getPrefix('businessBaseInfo')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}${cc_id}/`
+            url: `${prefixUrl}`
         }
         return request(opts)
     },
@@ -211,7 +210,7 @@ const api = {
     $getAtomForm (type, classify, isMeta) {
         return this.getAtomFormURL(type, classify, isMeta).then(response => {
             const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
-            
+
             store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
             store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
 
@@ -529,14 +528,14 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getTaskScheme (data) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { cc_id, template_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
             params: {
                 'biz_cc_id': cc_id,
-                'template__template_id': template_id
+                'template_id': template_id
             }
         }
         return request(opts)
@@ -546,7 +545,7 @@ const api = {
      * @param {Object}} schemeData 方案配置数据
      */
     createTaskScheme (schemeData) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = schemeData.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { cc_id, template_id, data, name } = schemeData
         const opts = {
             method: 'POST',
@@ -564,11 +563,11 @@ const api = {
      * 删除任务节点选择方案
      * @param {String} schemeId 方案id
      */
-    deleteTaskScheme (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    deleteTaskScheme (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'DELETE',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },
@@ -576,11 +575,11 @@ const api = {
      * 获取任务节点选择方案详情
      * @param {String} schemeId 方案id
      */
-    getSchemeDetail (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    getSchemeDetail (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },
@@ -1393,7 +1392,7 @@ const api = {
     updatePackageSource (data) {
         const { origins, caches } = data
         const prefixUrl = this.getPrefix('packageSource')
-        
+
         const opts = {
             method: 'POST',
             url: prefixUrl,

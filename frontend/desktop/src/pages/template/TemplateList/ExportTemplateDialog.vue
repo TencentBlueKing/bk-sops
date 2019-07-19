@@ -18,98 +18,96 @@
         width="850"
         padding="0"
         :is-show.sync="isExportDialogShow"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content" class="export-container">
             <div class="template-wrapper">
                 <div class="search-wrapper">
                     <div class="business-selector">
                         <bk-selector
+                            setting-key="value"
                             :list="taskCategories"
-                            :display-key="'name'"
-                            :setting-name="'value'"
-                            :search-key="'name'"
-                            :setting-key="'name'"
-                            :selected.sync="filterCondition.type">
+                            :selected="filterCondition.classifyId"
+                            :disabled="exportPending"
+                            @item-selected="onSelectClassify">
                         </bk-selector>
                     </div>
                     <div class="template-search">
-                        <input class="search-input" :placeholder="i18n.placeholder" v-model="filterCondition.keywords" />
+                        <input
+                            class="search-input"
+                            :placeholder="i18n.placeholder"
+                            v-model="filterCondition.keywords"
+                            @input="onSearchInput" />
                         <i class="common-icon-search"></i>
                     </div>
                 </div>
                 <div class="template-list" v-bkloading="{ isLoading: exportPending, opacity: 1 }">
-                    <ul v-if="!searchMode" class="grouped-list">
-                        <template v-for="item in templates">
+                    <ul class="grouped-list">
+                        <template v-for="group in templateInPanel">
                             <li
-                                v-if="item.children.length"
-                                :key="item.id"
+                                v-if="group.children.length"
+                                :key="group.id"
                                 class="template-group">
                                 <h5 class="group-name">
-                                    {{item.name}}
-                                    (<span class="list-count">{{item.children.length}}</span>)
+                                    {{group.name}}
+                                    (<span class="list-count">{{group.children.length}}</span>)
                                 </h5>
                                 <ul>
                                     <li
-                                        v-for="group in item.children"
-                                        :key="group.id"
-                                        :title="group.name"
-                                        :class="['template-item', { 'template-item-selected': group.ischecked }]"
-                                        @click="onSelectTemplate(group)">
-                                        <div class="template-item-icon">{{group.name.substr(0,1).toUpperCase()}}</div>
-                                        <div class="template-item-name">{{group.name}}</div>
+                                        v-for="template in group.children"
+                                        :key="template.id"
+                                        :title="template.name"
+                                        :class="[
+                                            'template-item',
+                                            { 'template-item-selected': getTplIndexInSelected(template) > -1 }
+                                        ]"
+                                        @click="onSelectTemplate(template)">
+                                        <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
+                                        <div class="item-name-box">
+                                            <div class="template-item-name">{{template.name}}</div>
+                                        </div>
                                     </li>
                                 </ul>
                             </li>
                         </template>
+                        <NoData v-if="!templateInPanel.length" class="empty-template"></NoData>
                     </ul>
-                    <div v-else class="search-list">
-                        <ul v-if="searchList.length">
-                            <li
-                                v-for="item in searchList"
-                                :key="item.id"
-                                :title="item.name"
-                                :class="[{
-                                    'template-item': !item.ischecked,
-                                    'template-item-selected': item.ischecked
-                                }]"
-                                @click="onSelectTemplate(item)">
-                                <div class="template-item-icon">{{item.name.substr(0,1).toUpperCase()}}</div>
-                                <div class="template-item-name">
-                                    <span>{{item.name}}</span>
-                                </div>
-                            </li>
-                        </ul>
-                        <NoData v-else class="empty-task">{{i18n.noSearchResult}}</NoData>
-                    </div>
                 </div>
             </div>
             <div class="selected-wrapper">
                 <div class="selected-area-title">
                     {{i18n.selected}}
-                    <span class="select-count">{{selectedTemplate.length}}</span>
+                    <span class="select-count">{{selectedTemplates.length}}</span>
                     {{i18n.num}}
                 </div>
                 <ul class="selected-list">
                     <li
                         class="selected-item"
-                        v-for="item in selectedTemplate"
-                        :key="item.id">
+                        v-for="template in selectedTemplates"
+                        :key="template.id">
                         <div class="selected-item-icon">
-                            <span class="selected-name" :title="item.name">{{item.name.substr(0,1).toUpperCase()}}</span>
+                            <span class="selected-name" :title="template.name">{{getTemplateIcon(template)}}</span>
                         </div>
-                        <div class="selected-item-name">
-                            <span class="item-name">{{item.name}}</span>
+                        <div class="item-name-box">
+                            <div class="selected-item-name">{{template.name}}</div>
                         </div>
-                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(item)"></i>
+                        <i class="selected-delete bk-icon icon-close-circle-shape" @click="deleteTemplate(template)"></i>
                     </li>
                 </ul>
             </div>
-            <div class="template-checkbox" @click="onSelectAll">
-                <span :class="['checkbox', { checked: ischecked,'checkbox-disabled': isCheckedDisabled }]"></span>
+            <div class="template-checkbox" @click="onSelectAllClick">
+                <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
                 <span class="checkbox-name">{{ i18n.selectAll }}</span>
             </div>
+            <div class="task-footer" v-if="selectError">
+                <span class="error-info">{{i18n.errorInfo}}</span>
+            </div>
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :dialog-footer-data="dialogFooterData"
+            @onConfirm="onConfirm"
+            @onCancel="onCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -117,23 +115,25 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
+            DialogLoadingBtn,
             NoData
         },
-        props: ['isExportDialogShow', 'businessInfoLoading', 'common'],
+        props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
         data () {
             return {
                 exportPending: false,
-                searchMode: false,
-                ischecked: false,
+                isTplInPanelAllSelected: false,
                 isCheckedDisabled: false,
-                selectedTemplate: [],
                 templateList: [],
-                templates: [],
+                templateInPanel: [],
                 searchList: [],
+                selectedTemplates: [],
+                selectError: false,
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -144,15 +144,27 @@
                     num: gettext('项'),
                     selectAll: gettext('全选'),
                     delete: gettext('删除'),
-                    allCategories: gettext('全部分类')
+                    allCategories: gettext('全部分类'),
+                    errorInfo: gettext('请选择流程模版')
                 },
                 templateEmpty: false,
                 selectedTaskCategory: '',
                 category: '',
                 filterCondition: {
-                    type: gettext('全部分类'),
+                    classifyId: 'all',
                     keywords: ''
-                }
+                },
+                dialogFooterData: [
+                    {
+                        type: 'primary',
+                        loading: false,
+                        btnText: gettext('确认'),
+                        click: 'onConfirm'
+                    }, {
+                        btnText: gettext('取消'),
+                        click: 'onCancel'
+                    }
+                ]
             }
         },
         computed: {
@@ -169,25 +181,13 @@
             }
         },
         watch: {
-            filterCondition: {
-                deep: true,
-                handler (condition) {
-                    // 过滤出一级分类信息
-                    const sourceList = JSON.parse(JSON.stringify(this.templateList))
-                    const template = sourceList.find(item => item.name === condition.type)
-                    let filteredList = sourceList
-                    if (template) {
-                        filteredList = [template]
-                    }
-                    this.templates = filteredList.filter(item => {
-                        item.children = item.children.filter(childItem => childItem.name.includes(condition.keywords))
-                        return item.children.length
-                    })
-                }
+            pending () {
+                this.dialogFooterData[0].loading = this.pending
             }
         },
         created () {
             this.getTemplateData()
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
             ...mapActions('templateList/', [
@@ -206,12 +206,7 @@
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects
                     this.templateList = this.getGroupedList(list)
-                    this.templateList.forEach((item) => {
-                        item.children.forEach((group) => {
-                            this.$set(group, 'ischecked', false)
-                        })
-                    })
-                    this.templates = this.templateList
+                    this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -226,6 +221,7 @@
                     groups.push(item.value)
                     atomGrouped.push({
                         name: item.name,
+                        value: item.value,
                         children: []
                     })
                 })
@@ -242,49 +238,102 @@
                 const listGroup = atomGrouped.filter(item => item.children.length)
                 return listGroup
             },
-            onSelectTemplate (group, clearAll) {
-                group.ischecked = !group.ischecked
-                if (group.ischecked) {
-                    this.selectedTemplate.push(group)
+            getTemplateIcon (template) {
+                return template.name.trim().substr(0, 1).toUpperCase()
+            },
+            getTplIndexInSelected (template) {
+                return this.selectedTemplates.findIndex(item => item.id === template.id)
+            },
+            getTplIsAllSelected () {
+                if (!this.templateInPanel.length) {
+                    return false
+                }
+                return this.templateInPanel.every(group => {
+                    return group.children.every(template => {
+                        return this.selectedTemplates.findIndex(item => item.id === template.id) > -1
+                    })
+                })
+            },
+            onSelectClassify (value) {
+                let groupedList = []
+                this.filterCondition.classifyId = value
+
+                if (value === 'all') {
+                    groupedList = this.templateList.slice(0)
                 } else {
-                    this.deleteTemplate(group)
+                    groupedList = this.templateList.filter(group => group.value === value)
+                }
+
+                if (this.filterCondition.keywords !== '') {
+                    this.searchInputhandler()
+                } else {
+                    this.templateInPanel = groupedList
+                }
+
+                this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+            },
+            searchInputhandler () {
+                let searchList = []
+
+                if (this.filterCondition.classifyId !== 'all') {
+                    searchList = this.templateList.filter(group => group.value === this.filterCondition.classifyId)
+                } else {
+                    searchList = this.templateList.slice(0)
+                }
+                this.templateInPanel = toolsUtils.deepClone(searchList).filter(group => {
+                    group.children = group.children.filter(template => {
+                        return template.name.includes(this.filterCondition.keywords)
+                    })
+                    return group.children.length
+                })
+            },
+            onSelectTemplate (template) {
+                this.selectError = false
+                const tplIndex = this.getTplIndexInSelected(template)
+                if (tplIndex > -1) {
+                    this.selectedTemplates.splice(tplIndex, 1)
+                    this.isTplInPanelAllSelected = false
+                } else {
+                    this.selectedTemplates.push(template)
+                    this.isTplInPanelAllSelected = this.getTplIsAllSelected()
                 }
             },
             deleteTemplate (template) {
-                const deleteIndex = this.selectedTemplate.findIndex(item => item.id === template.id)
-                if (deleteIndex > -1) {
-                    const deleteGroup = this.selectedTemplate.splice(deleteIndex, 1)[0]
-                    deleteGroup.ischecked = false
-                    this.templateList.forEach((item) => {
-                        if (item.children.findIndex(util => !util.ischecked)) {
-                            this.ischecked = false
+                const tplIndex = this.getTplIndexInSelected(template)
+                this.selectedTemplates.splice(tplIndex, 1)
+                this.isTplInPanelAllSelected = false
+            },
+            onSelectAllClick () {
+                if (this.isCheckedDisabled) {
+                    return
+                }
+
+                this.templateInPanel.forEach(group => {
+                    group.children.forEach(template => {
+                        const tplIndex = this.getTplIndexInSelected(template)
+                        if (this.isTplInPanelAllSelected) {
+                            if (tplIndex > -1) {
+                                this.selectedTemplates.splice(tplIndex, 1)
+                            }
+                        } else {
+                            if (tplIndex === -1) {
+                                this.selectedTemplates.push(template)
+                            }
                         }
                     })
-                }
-            },
-            onSelectAll () {
-                if (this.isCheckedDisabled) {
-                    return false
-                }
-                this.selectedTemplate = []
-                this.ischecked = !this.ischecked
-                this.templates.filter(item => {
-                    item.children.filter(childItem => {
-                        childItem.ischecked = this.ischecked
-                    })
-                    if (this.ischecked) {
-                        this.selectedTemplate.push(...item.children)
-                    } else {
-                        this.selectedTemplate = []
-                    }
                 })
+                this.isTplInPanelAllSelected = !this.isTplInPanelAllSelected
             },
             onConfirm () {
                 const idList = []
-                this.selectedTemplate.forEach(item => {
-                    idList.push(item.id)
-                })
-                this.$emit('onExportConfirm', idList)
+                if (this.selectedTemplates.length === 0) {
+                    this.selectError = true
+                } else {
+                    this.selectedTemplates.forEach(item => {
+                        idList.push(item.id)
+                    })
+                    this.$emit('onExportConfirm', idList)
+                }
             },
             onCancel () {
                 this.templateEmpty = false
@@ -295,12 +344,13 @@
 </script>
 <style lang="scss">
 @import '@/scss/mixins/scrollbar.scss';
+@import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
 .export-container {
     position: relative;
     height: 340px;
     .search-wrapper {
-        padding: 0 14px 0 20px;
+        padding: 0 18px 0 20px;
     }
     .business-selector {
         position: absolute;
@@ -319,7 +369,7 @@
             line-height: 32px;
             font-size: 14px;
             background: $whiteDefault;
-            border: 1px solid $commonBorderColor;
+            border: 1px solid #c3cdd7;
             border-radius: 4px;
             outline: none;
             &:hover {
@@ -344,7 +394,7 @@
     }
     .template-wrapper {
         float: left;
-        padding: 20px 0;
+        padding: 20px 4px 20px 0;
         width: 557px;
         height: 100%;
         .template-list {
@@ -367,9 +417,9 @@
     .template-item {
         display: inline-block;
         margin: 0 0 7px 10px;
-        width: 254px;
+        width: 252px;
         background: #dcdee5;
-        border-radius: 2px;
+        border-radius: 4px;
         cursor: pointer;
         &:nth-child(2n + 1) {
             margin-left: 0;
@@ -380,37 +430,54 @@
             height: 56px;
             line-height: 56px;
             background: #c4c6cc;
-            font-size: 28px;
+            font-size: 24px;
             color: #ffffff;
             text-align: center;
+            border-radius: 4px 0 0 4px;
         }
         .template-item-name {
-            margin-left: 56px;
-            padding: 0 12px;
-            height: 56px;
-            line-height: 56px;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             color: #313238;
+            word-break: break-all;
+            border-radius: 0 4px 4px 0;
+            @include multiLineEllipsis(14px, 2);
+            &:after {
+                background: #dcdee5
+            }
         }
         &:nth-child(2n) {
             margin-right: 0;
         }
     }
+    .item-name-box {
+        display: table-cell;
+        vertical-align: middle;
+        margin-left: 56px;
+        padding: 0 15px;
+        height: 56px;
+        width: 195px;
+        font-size: 12px;
+        border-radius: 0 4px 4px 0;
+    }
     .template-item-selected {
         .template-item-icon {
             background: #666a7c;
         }
-        .template-item-name {
+        .template-item-name, .item-name-box {
             background: #838799;
             color: #ffffff;
+            &:after {
+                background: #838799
+            }
         }
+    }
+    .empty-template {
+        padding-top: 40px;
     }
     .selected-wrapper {
         width: 292px;
         height: 100%;
         margin-left: 557px;
+        padding-right: 4px;
         border-left:1px solid #dde4eb;
         .selected-area-title {
             padding: 28px 20px 22px;
@@ -433,7 +500,7 @@
             margin: 0 0 10px 14px;
             width: 254px;
             height: 56px;
-            border-radius: 2px;
+            background: #838799;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -444,30 +511,30 @@
             height: 56px;
             line-height: 56px;
             background: #666a7c;
+            border-radius: 4px 0 0 4px;
             .selected-name {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                font-size: 28px;
+                font-size: 24px;
                 color: #ffffff;
             }
         }
         .selected-item-name {
-            margin-left: 56px;
-            padding: 0 12px;
-            height: 56px;
-            line-height: 56px;
-            background: #838799;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
             color: #ffffff;
+            word-break: break-all;
+            border-radius: 0 4px 4px 0;
+            @include multiLineEllipsis(14px, 2);
+            &:after {
+                background: #838799
+            }
         }
         .selected-delete {
             display: none;
             position: absolute;
             top: -7px;
             right: -7px;
+            padding: 2px;
             color: #cecece;
             background: #ffffff;
             border-radius: 50%;
@@ -523,6 +590,16 @@
             &::after {
                 background: #545454;
             }
+        }
+    }
+    .task-footer {
+        position: absolute;
+        right: 290px;
+        bottom: -40px;
+        .error-info {
+            margin-right: 20px;
+            font-size: 12px;
+            color: #ea3636;
         }
     }
 }

@@ -18,6 +18,7 @@
             v-if="isConfigBarShow"
             :name="name"
             :cc_id="cc_id"
+            :type="type"
             :common="common"
             :template_id="template_id"
             :is-template-data-changed="isTemplateDataChanged"
@@ -72,7 +73,7 @@
                     <bk-tooltip :content="selectNodeName" :delay="1000" v-if="isSelectNode">
                         <div
                             class="tool-icon"
-                            @click="onSelectNode">
+                            @click="onToggleAllNode">
                             <i :class="[{
                                 'common-icon-black-box': !isSelectAll,
                                 'common-icon-black-hook': isSelectAll,
@@ -103,7 +104,7 @@
     import formatPositionUtils from '@/utils/formatPosition.js'
 
     const ENDPOINT_DIRECTION = ['Top', 'Left', 'Right', 'Bottom']
-    
+
     export default {
         name: 'PipelineCanvas',
         components: {
@@ -170,6 +171,9 @@
             template_id: {
                 type: String,
                 required: false
+            },
+            type: {
+                type: String
             },
             common: {
                 type: String,
@@ -603,12 +607,12 @@
 
                 return { locations, lines }
             },
-            onSelectNode () {
+            onToggleAllNode () {
                 if (this.isPreviewMode) {
                     return
                 }
                 this.isSelectAll = !this.isSelectAll
-                this.$emit('onSelectNode', this.isSelectAll)
+                this.$emit('onToggleAllNode', this.isSelectAll)
             }
         }
     }

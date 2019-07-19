@@ -139,6 +139,13 @@ class ServiceActivity(Activity):
         self.data.override_inputs(deepcopy(self._prepared_inputs))
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
+    def __setstate__(self, state):
+        for attr, obj in state.items():
+            setattr(self, attr, obj)
+
+        if 'timeout' not in state:
+            self.timeout = None
+
 
 class SubProcess(Activity):
     def __init__(self, id, pipeline, name=None):
@@ -150,6 +157,16 @@ class SubProcess(Activity):
     def prepare_rerun_data(self):
         self.data.override_inputs(deepcopy(self._prepared_inputs))
         self.data.override_outputs(deepcopy(self._prepared_outputs))
+
+    def __setstate__(self, state):
+        for attr, obj in state.items():
+            setattr(self, attr, obj)
+
+        if '_prepared_inputs' not in state:
+            self._prepared_inputs = self.pipeline.data.inputs_copy()
+
+        if '_prepared_outputs' not in state:
+            self._prepared_outputs = self.pipeline.data.outputs_copy()
 
 
 class Service(object):
@@ -223,7 +240,17 @@ class DefaultIntervalGenerator(AbstractIntervalGenerator):
         return self.count ** 2
 
 
+class SquareIntervalGenerator(AbstractIntervalGenerator):
+    def next(self):
+        super(SquareIntervalGenerator, self).next()
+        return self.count ** 2
+
+
 class NullIntervalGenerator(AbstractIntervalGenerator):
+    pass
+
+
+class LinearIntervalGenerator(AbstractIntervalGenerator):
     pass
 
 

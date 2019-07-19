@@ -154,8 +154,9 @@ class BoolRule(object):
     _tokens = None
     _query = None
 
-    def __init__(self, query, lazy=False):
+    def __init__(self, query, lazy=False, strict=True):
         self._query = query
+        self.strict = strict
         if not lazy:
             self._compile()
 
@@ -184,7 +185,7 @@ class BoolRule(object):
                 return
 
             try:
-                self._tokens = boolExpression.parseString(self._query)
+                self._tokens = boolExpression.parseString(self._query, parseAll=self.strict)
             except ParseException:
                 raise
 

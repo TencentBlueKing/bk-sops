@@ -5,6 +5,7 @@ Query individual flow template details of the business
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -14,11 +15,11 @@ Query individual flow template details of the business
 
 #### Interface Parameters
 
-| Field          |  Type       | Required   |  Description          |
-|---------------|------------|--------|---------------|
+| Field         |   Type     | Required   |  Description    |
+|---------------|------------|---------|--------------------|
 | bk_biz_id     | string     |   YES   |  the business ID   |
 | template_id   | string     |   YES   |  the task ID       |
-|   template_source | string   | NO    | source of flow，default value is business. business: from business, common: from common flow |
+| template_source | string   |   NO    | source of flow，default value is business. business: from business, common: from common flow |
 
 ### Request Parameters Example
 
@@ -29,7 +30,7 @@ Query individual flow template details of the business
     "bk_token": "xxx",
     "bk_biz_id": "1",
     "template_id": "30",
-    "template_source": "business",
+    "template_source": "business"
 }
 ```
 

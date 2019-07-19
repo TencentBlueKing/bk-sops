@@ -22,6 +22,7 @@
                 :canvas-data="canvasData"
                 :name="name"
                 :cc_id="cc_id"
+                :type="type"
                 :common="common"
                 :template_id="template_id"
                 :atom-type-list="atomTypeList"
@@ -40,7 +41,8 @@
             </PipelineCanvas>
             <NodeConfig
                 ref="nodeConfig"
-                v-if="isNodeConfigPanelShow"
+                :cc_id="cc_id"
+                v-show="isNodeConfigPanelShow"
                 :template_id="template_id"
                 :single-atom="singleAtom"
                 :sub-atom="subAtom"
@@ -423,20 +425,21 @@
                     const activities = tools.deepClone(this.activities[location.id])
                     for (const key in constants) {
                         const form = constants[key]
-                        if (form.source_tag) {
-                            const [atomType, tagCode] = form.source_tag.split('.')
-                            if (!this.atomFormConfig[atomType]) {
-                                await this.loadAtomConfig({ atomType })
-                                this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
-                            }
-                            const atomConfig = this.atomFormConfig[atomType]
-                            let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                            if (currentFormConfig) {
-                                if (form.is_meta || currentFormConfig.meta_transform) {
-                                    currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
-                                    if (!form.meta) {
-                                        form.value = currentFormConfig.attrs.value
-                                    }
+                        const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+
+                        if (!this.atomFormConfig[atomType]) {
+                            await this.loadAtomConfig({ atomType, classify })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        }
+
+                        const atomConfig = this.atomFormConfig[atom]
+                        let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
+                        
+                        if (currentFormConfig) {
+                            if (form.is_meta || currentFormConfig.meta_transform) {
+                                currentFormConfig = currentFormConfig.meta_transform(form.meta || form)
+                                if (!form.meta) {
+                                    form.value = currentFormConfig.attrs.value
                                 }
                             }
                         }
@@ -863,6 +866,7 @@
                     this.$nextTick(() => {
                         this.isClickDraft = type === 'replace'
                         this.$refs.templateSetting.onTemplateSettingShow('localDraftTab')
+                        this.upDataAllNodeInfo()
                     })
                 })
             },
@@ -897,6 +901,21 @@
             },
             updateLocalTemplateData () {
                 this.localTemplateData = this.getLocalTemplateData()
+            },
+            // 重新获得缓存后，更新 dom data[raw]上绑定的数据
+            upDataAllNodeInfo () {
+                const nodes = this.activities
+                Object.keys(nodes).forEach((node, index) => {
+                    this.onUpdateNodeInfo(node, {
+                        status: '',
+                        name: nodes[node].name,
+                        stage_name: nodes[node].stage_name,
+                        optional: nodes[node].optional,
+                        error_ignorable: nodes[node].error_ignorable,
+                        can_retry: nodes[node].can_retry,
+                        isSkipped: nodes[node].isSkipped
+                    })
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -925,9 +944,7 @@
     @import '@/scss/config.scss';
     .template-page {
         position: relative;
-        min-width: 1320px;
-        min-height: 600px;
-        height: calc(100% - 50px);
+        height: 100%;
         overflow: hidden;
     }
     .pipeline-canvas-wrapper {

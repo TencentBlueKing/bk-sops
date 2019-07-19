@@ -15,8 +15,8 @@ from django.db import transaction
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateVersion, TemplateCurrentVersion
 from pipeline.core.constants import PE
+from pipeline.models import PipelineTemplate, TemplateRelationship, TemplateVersion, TemplateCurrentVersion
 
 
 @receiver(pre_save, sender=PipelineTemplate)
