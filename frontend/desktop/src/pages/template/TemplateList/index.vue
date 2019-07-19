@@ -13,39 +13,37 @@
     <div class="template-container">
         <div class="list-wrapper">
             <BaseTitle :title="common ? i18n.commonFlow : i18n.businessFlow"></BaseTitle>
-            <div class="template-table-content">
-                <div class="operation-area clearfix">
-                    <router-link
-                        class="bk-button bk-primary create-template"
-                        v-show="!isNewTaskCommonTemplate"
-                        :to="getNewTemplateUrl()">
-                        {{i18n.new}}
-                    </router-link>
-                    <bk-button
-                        type="default"
-                        class="template-btn"
-                        size="small"
-                        v-show="!isNewTaskCommonTemplate"
-                        @click="onExportTemplate">
-                        {{i18n.export}}
-                    </bk-button>
-                    <bk-button
-                        type="default"
-                        class="template-btn"
-                        size="small"
-                        v-show="!isNewTaskCommonTemplate"
-                        @click="onImportTemplate">
-                        {{ i18n.import }}
-                    </bk-button>
-                    <div class="template-advanced-search">
-                        <BaseSearch
-                            class="base-search"
-                            v-model="flowName"
-                            :input-placeholader="i18n.templateNamePlaceholder"
-                            @onShow="onAdvanceShow"
-                            @input="onSearchInput">
-                        </BaseSearch>
-                    </div>
+            <div class="operation-area clearfix">
+                <router-link
+                    class="bk-button bk-primary create-template"
+                    v-show="showOperationBtn"
+                    :to="getNewTemplateUrl()">
+                    {{i18n.new}}
+                </router-link>
+                <bk-button
+                    type="default"
+                    class="template-btn"
+                    size="small"
+                    v-show="showOperationBtn"
+                    @click="onExportTemplate">
+                    {{i18n.export}}
+                </bk-button>
+                <bk-button
+                    type="default"
+                    class="template-btn"
+                    size="small"
+                    v-show="showOperationBtn"
+                    @click="onImportTemplate">
+                    {{ i18n.import }}
+                </bk-button>
+                <div class="template-advanced-search">
+                    <BaseSearch
+                        class="base-search"
+                        v-model="flowName"
+                        :input-placeholader="i18n.templateNamePlaceholder"
+                        @onShow="onAdvanceShow"
+                        @input="onSearchInput">
+                    </BaseSearch>
                 </div>
             </div>
             <div class="template-search" v-show="isAdvancedSerachShow">
@@ -93,7 +91,7 @@
                             <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="getTemplateList">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -227,7 +225,7 @@
             :common="common"
             :is-export-dialog-show="isExportDialogShow"
             :business-info-loading="businessInfoLoading"
-            :export-pending="pending.export"
+            :pending="pending.export"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
         </ExportTemplateDialog>
@@ -298,7 +296,7 @@
                     newTemplate: gettext('新建任务'),
                     edit: gettext('编辑'),
                     clone: gettext('克隆'),
-                    authority: gettext('权限管理'),
+                    authority: gettext('使用权限'),
                     delete: gettext('删除'),
                     executeHistory: gettext('执行历史'),
                     deleleTip: gettext('确认删除'),
@@ -343,7 +341,7 @@
                 pending: {
                     export: false, // 导出
                     delete: false, // 删除
-                    authority: false // 权限管理
+                    authority: false // 使用权限
                 },
                 flowName: undefined,
                 templateCategorySync: -1,
@@ -379,6 +377,9 @@
             }),
             listData () {
                 return this.common === 1 ? this.commonTemplateData : this.templateList
+            },
+            showOperationBtn () {
+                return this.common === 1 ? this.common_template === undefined : true
             }
         },
         created () {
@@ -421,15 +422,10 @@
                         has_subprocess: this.isHasSubprocess
                     }
                     if (isCommon) {
-                        // 公共流程
                         data['common'] = 1
-                        this.isNewTaskCommonTemplate = true
-                    } else {
-                        // 业务流程
-                        this.isNewTaskCommonTemplate = false
                     }
                     if (this.editEndTime) {
-                        if (this.isNewTaskCommonTemplate) {
+                        if (isCommon) {
                             data['pipeline_template__edit_time__gte'] = moment(this.editStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__edit_time__lte'] = moment(this.editEndTime).add('1', 'd').format('YYYY-MM-DD')
                         // 无时区的公共流程使用本地的时间
@@ -570,7 +566,7 @@
             },
             // 获取编辑按钮的跳转链接
             getEditTemplateUrl (id) {
-                let url = `/template/edit/${this.cc_id}/?template_id=${id}`
+                let url = `/template/edit/${this.cc_id}/?template_id=${id}&entrance=businessList`
                 if (this.common) {
                     url += '&common=1'
                 }
@@ -588,7 +584,9 @@
             getNewTaskUrl (id) {
                 let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${id}`
                 if (this.common || this.common_template) {
-                    url += '&common=1'
+                    url += '&common=1&entrance=commonList'
+                } else {
+                    url += '&entrance=businessList'
                 }
                 return url
             },
@@ -664,9 +662,6 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .template-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
     .dialog-content {
         word-break: break-all;
     }
@@ -681,6 +676,7 @@
 .template-fieldset {
     width: 100%;
     margin: 0;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: $whiteDefault;
     margin-bottom: 15px;
@@ -789,11 +785,11 @@
         line-height: 32px;
     }
 }
-
 .operation-area {
     margin: 20px 0;
     .create-template {
         height: 32px;
+        min-width: 120px;
         line-height: 29px;
         font-size: 14px;
     }
@@ -830,9 +826,12 @@
             background: $whiteNodeBg;
         }
         th, td {
-            padding: 10px;
+            padding: 11px;
             text-align: left;
             border-bottom: 1px solid $commonBorderColor;
+        }
+        td {
+            color: #63656e
         }
         th {
             background: $whiteNodeBg;
