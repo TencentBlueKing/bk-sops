@@ -103,14 +103,6 @@ bk_iam_perm_templates = [
                 ]
             },
             {
-                'resource': taskflow_resource,
-                'actions': [
-                    taskflow_resource.actions.view,
-                    taskflow_resource.actions.edit,
-                    taskflow_resource.actions.operate,
-                ]
-            },
-            {
                 'resource': mini_app_resource,
                 'actions': [
                     mini_app_resource.actions.view,
@@ -143,14 +135,6 @@ bk_iam_perm_templates = [
                     task_template_resource.actions.view,
                     task_template_resource.actions.edit,
                     task_template_resource.actions.create_task,
-                ]
-            },
-            {
-                'resource': taskflow_resource,
-                'actions': [
-                    taskflow_resource.actions.view,
-                    taskflow_resource.actions.edit,
-                    taskflow_resource.actions.operate,
                 ]
             },
             {
@@ -189,14 +173,6 @@ bk_iam_perm_templates = [
                 ]
             },
             {
-                'resource': taskflow_resource,
-                'actions': [
-                    taskflow_resource.actions.view,
-                    taskflow_resource.actions.edit,
-                    taskflow_resource.actions.operate,
-                ]
-            },
-            {
                 'resource': mini_app_resource,
                 'actions': [
                     mini_app_resource.actions.view,
@@ -226,15 +202,6 @@ bk_iam_perm_templates = [
                 'resource': task_template_resource,
                 'actions': [
                     task_template_resource.actions.view,
-                ]
-            },
-            {
-                'resource': taskflow_resource,
-                'actions': [
-                    taskflow_resource.actions.view,
-                    taskflow_resource.actions.edit,
-                    taskflow_resource.actions.operate,
-                    taskflow_resource.actions.claim,
                 ]
             },
         ]
