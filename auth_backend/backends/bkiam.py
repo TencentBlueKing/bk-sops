@@ -136,7 +136,10 @@ class BkIAMBackend(AuthBackend):
             for action_id in perms_tuple[1]:
                 actions.append({'action_id': action_id,
                                 'resource_type': resource.rtype,
-                                'resource_id': self._resource_id_for(resource, instance)})
+                                'resource_id': self._resource_id_for(resource, instance)}
+                               if instance else
+                               {'action_id': action_id,
+                                'resource_type': resource.rtype})
 
         return self.client.batch_verify_resources_perms(principal_type=principal_type,
                                                         principal_id=principal_id,
