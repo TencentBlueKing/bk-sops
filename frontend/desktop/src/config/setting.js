@@ -48,6 +48,7 @@ export function setJqueryAjaxConfig () {
                 bus.$emit('showMessage', info)
             },
             401: function (xhr) {
+                console.log(xhr)
                 const src = xhr.responseText
                 bus.$emit('showLoginModal', src)
             },
@@ -65,6 +66,27 @@ export function setJqueryAjaxConfig () {
             },
             406: function (xhr) {
                 bus.$emit('showErrorModal', '406')
+            },
+            499: function (xhr) {
+                const permissions = xhr.data.permission
+                let viewType = ''
+                const isViewApply = permissions.some(perm => {
+                    if (perm.action_id === 'view') {
+                        perm.resources.some(resource => {
+                            viewType = 'other'
+                            if (resource.find(item => item.resource_type === 'project')) {
+                                viewType = 'project'
+                                return true
+                            }
+                        })
+                        return true
+                    }
+                })
+                if (isViewApply) {
+                    bus.$emit('togglePermissionApplyPage', true, viewType, permissions)
+                } else {
+                    bus.$emit('showPermissionModal', permissions)
+                }
             },
             500: function (xhr, textStatus) {
                 bus.$emit('showErrorModal', '500', xhr.responseText)
