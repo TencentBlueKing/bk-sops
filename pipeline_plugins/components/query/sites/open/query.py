@@ -21,7 +21,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.conf.urls import url
 
-from gcloud.core.models import Project
 from pipeline_plugins.components.utils import (
     cc_get_inner_ip_by_module_id,
     supplier_account_inject,
@@ -33,6 +32,11 @@ from pipeline_plugins.cmdb_ip_picker.query import (
     cmdb_search_topo_tree,
     cmdb_get_mainline_object_topo
 )
+from auth_backend.constants import AUTH_FORBIDDEN_CODE
+from auth_backend.exceptions import AuthFailedException
+
+from gcloud.exceptions import APIError
+from gcloud.core.models import Project
 from gcloud.conf import settings
 from gcloud.core.utils import get_user_business_list
 
@@ -346,8 +350,14 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     job_result = client.job.get_job_detail({'bk_biz_id': biz_cc_id,
                                             'bk_job_id': task_id})
     if not job_result['result']:
+
         message = _(u"查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
             biz_cc_id, job_result['message'])
+
+        if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=job_result.get('permission', []))
+
         logger.error(message)
         result = {
             'result': False,
@@ -443,8 +453,14 @@ def cc_get_mainline_object_topo(request, project_id, supplier_account):
 def cc_get_business(request):
     try:
         business = get_user_business_list(username=request.user.username)
-    except Exception:
-        logger.error('an error occurred when fetch user business: %s' % traceback.format_exc())
+    except APIError as e:
+        message = 'an error occurred when fetch user business: %s' % traceback.format_exc()
+
+        if e.result and e.result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=e.result.get('permission', []))
+
+        logger.error(message)
         return JsonResponse({
             'result': False,
             'message': 'fetch business list failed, please contact administrator'
