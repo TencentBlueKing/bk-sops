@@ -48,7 +48,6 @@ export function setJqueryAjaxConfig () {
                 bus.$emit('showMessage', info)
             },
             401: function (xhr) {
-                console.log(xhr)
                 const src = xhr.responseText
                 bus.$emit('showLoginModal', src)
             },
