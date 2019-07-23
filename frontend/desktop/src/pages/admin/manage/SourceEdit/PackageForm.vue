@@ -42,7 +42,7 @@
                                     class="package-name"
                                     name="packageName"
                                     v-model="name"
-                                    v-validate="nameRule"
+                                    v-validate="packageNameRule"
                                     :disabled="isEditing"
                                     @blur="onPackageNameBlur">
                                 <span
@@ -142,7 +142,7 @@
                                                 name="moduleName"
                                                 :placeholder="i18n.placeholder"
                                                 v-model="item.key"
-                                                v-validate="nameRule"
+                                                v-validate="packageNameRule"
                                                 @blur="onPackageInputBlur($event, 'key', index)">
                                             <span
                                                 class="common-error-tip error-msg">
@@ -194,7 +194,7 @@
 <script>
     import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { VAR_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'PackageForm',
@@ -238,10 +238,10 @@
                 isSettingPanelShow: true,
                 showError: false,
                 // 名称校验规则
-                nameRule: {
+                packageNameRule: {
                     required: true,
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
-                    regex: VAR_REG
+                    regex: NAME_REG
                 },
                 valueRule: {
                     required: true

@@ -115,6 +115,7 @@
     .source-centent {
         padding: 30px 60px 60px;
         min-height: 100%;
+        background: #ffffff;
     }
     .add-package {
         margin-bottom: 60px;

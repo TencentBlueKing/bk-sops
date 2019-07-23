@@ -58,7 +58,7 @@
 <style lang="scss" scoped>
     .page-manage {
         min-width: 1320px;
-        height: calc(100% - 50px);
+        height: 100%;
         background: #f4f7fa;
         .header-wrapper {
             margin: 0 60px 0;

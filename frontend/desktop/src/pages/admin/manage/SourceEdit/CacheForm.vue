@@ -116,7 +116,7 @@
 <script>
     import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { VAR_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'CacheForm',
@@ -157,7 +157,7 @@
                 nameRule: {
                     required: true,
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
-                    regex: VAR_REG
+                    regex: NAME_REG
                 },
                 valueRule: {
                     required: true
