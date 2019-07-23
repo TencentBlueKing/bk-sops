@@ -133,7 +133,7 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=''):
                                    'cc.get_mainline_object_topo',
                                    kwargs,
                                    cc_result)
-        return {'result': cc_result['result'], 'code': cc_result['code'], 'message': message}
+        return JsonResponse({'result': cc_result['result'], 'code': cc_result['code'], 'message': message})
     data = cc_result['data']
     for bk_obj in data:
         if bk_obj['bk_obj_id'] == 'host':
