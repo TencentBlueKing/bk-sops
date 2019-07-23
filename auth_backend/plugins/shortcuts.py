@@ -37,11 +37,13 @@ def verify_or_return_insufficient_perms(principal_type, principal_id, perms_tupl
     permissions = []
     for verify_item in [item for item in auth_result['data'] if not item['is_pass']]:
         instance_id = None
+        resource_id = verify_item['resource_id']
 
-        for resource in verify_item['resource_id']:
-            if resource['resource_type'] == verify_item['resource_type']:
-                instance_id = resource['resource_id']
-                break
+        if resource_id:
+            for resource in resource_id:
+                if resource['resource_type'] == verify_item['resource_type']:
+                    instance_id = resource['resource_id']
+                    break
 
         permissions.append(build_need_permission(auth_resource=resource_type_lib[verify_item['resource_type']],
                                                  action_id=verify_item['action_id'],
