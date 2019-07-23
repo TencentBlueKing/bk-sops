@@ -32,10 +32,11 @@ class NotFound(BkSopsError):
 
 class APIError(BkSopsError):
 
-    def __init__(self, system, api, message):
+    def __init__(self, system, api, message, result=None):
         self.system = system
         self.api = api
         self.message = message
+        self.result = result
         super(APIError, self).__init__(message)
 
     @property
