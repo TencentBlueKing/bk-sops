@@ -103,7 +103,7 @@ const api = {
         } else {
             prefixUrl = this.getPrefix('template')
         }
-        const querystring = Object.assign({}, data, { 'project__id': project_id })
+        const querystring = Object.assign({}, { 'project__id': project_id }, data)
         const opts = {
             method: 'GET',
             url: prefixUrl,
