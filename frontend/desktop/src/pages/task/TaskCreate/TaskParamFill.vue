@@ -79,7 +79,7 @@
                 </div>
             </div>
         </div>
-        <div class="param-info">
+        <div ref="paramInfo" class="param-info" :style="{ 'min-height': minHeight }">
             <div class="param-info-title">
                 <span>
                     {{ i18n.paramsInfo }}
@@ -170,7 +170,8 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
-                disabledButton: true
+                disabledButton: true,
+                minHeight: '200px'
             }
         },
         computed: {
@@ -191,6 +192,7 @@
         mounted () {
             this.loadData()
             this.period()
+            this.initParamInfoMinHeight()
         },
         methods: {
             ...mapActions('template/', [
@@ -378,6 +380,18 @@
                 if (this.taskMessageLoading === false && val === false) {
                     this.disabledButton = false
                 }
+            },
+            /**
+             * 动态计算 ParamInfo 的最小高度
+             * @description
+             * 保证 footer 永远在视窗的最下面
+             */
+            initParamInfoMinHeight () {
+                const WindowHeight = document.documentElement.clientHeight || document.body.clientHeight
+                const oDivTop = this.$refs.paramInfo.offsetTop
+                const oDivHeight = this.$refs.paramInfo.offsetHeight
+                const minHeight = WindowHeight - oDivTop - oDivHeight - 72 - 50
+                this.minHeight = minHeight > 0 ? minHeight + oDivHeight + 'px' : '200px'
             }
         }
     }
