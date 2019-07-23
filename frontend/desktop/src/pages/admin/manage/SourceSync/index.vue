@@ -55,7 +55,7 @@
                         </td>
                     </tr>
                     <tr v-if="list.length === 0">
-                        <td colspan="6" class="empty-data">
+                        <td colspan="7" class="empty-data">
                             <no-data></no-data>
                         </td>
                     </tr>
