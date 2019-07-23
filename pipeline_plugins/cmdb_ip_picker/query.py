@@ -12,9 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import logging
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
+
+from auth_backend.constants import AUTH_FORBIDDEN_CODE
+from auth_backend.exceptions import AuthFailedException
 
 from pipeline_plugins.components.utils import handle_api_error
 from gcloud.conf import settings
@@ -22,6 +26,7 @@ from gcloud.conf import settings
 from .utils import get_cmdb_topo_tree
 from .constants import NO_ERROR, ERROR_CODES
 
+logger = logging.getLogger('root')
 get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 
 
@@ -133,6 +138,10 @@ def cmdb_get_mainline_object_topo(request, bk_biz_id, bk_supplier_account=''):
                                    'cc.get_mainline_object_topo',
                                    kwargs,
                                    cc_result)
+        if cc_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=cc_result.get('permission', []))
+
         return JsonResponse({'result': cc_result['result'], 'code': cc_result['code'], 'message': message})
     data = cc_result['data']
     for bk_obj in data:
