@@ -591,8 +591,12 @@
                 let querys = ''
                 const entrance = this.getEntrance()
                 urlMap[name].query.forEach(item => {
-                    if (template_id && item === 'template_id') querys += `&template_id=${template_id}`
-                    if ((this.common || this.common_template) && item === 'common') querys += `&common=1`
+                    if (template_id && item === 'template_id') {
+                        querys += `&template_id=${template_id}`
+                    }
+                    if ((this.common || this.common_template) && item === 'common') {
+                        querys += `&common=1`
+                    }
                 })
                 return `${urlMap[name].path}?entrance=${entrance}${querys}`
             },
