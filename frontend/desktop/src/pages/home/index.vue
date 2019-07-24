@@ -11,16 +11,18 @@
 */
 <template>
     <div class="home-page">
-        <div v-show="isShowPage" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div>
             <div class="summary-info">
                 <HomeSummary
+                    v-bkloading="{ isLoading: loading, opacity: 1 }"
+                    :loading="loading"
                     :cc_id="cc_id"
                     :summary-data="summaryData">
                 </HomeSummary>
             </div>
             <div class="main-wrapper">
                 <QuickCreateTask
-                    v-if="!loading"
+                    v-bkloading="{ isLoading: loading, opacity: 1 }"
                     :cc_id="cc_id"
                     :quick-task-list="quickTaskList"
                     :template-classify="templateClassify"
@@ -30,14 +32,14 @@
                 <div class="column-panel clearfix">
                     <div class="col-item">
                         <TaskFeeds
-                            v-if="!loading"
+                            v-bkloading="{ isLoading: loading, opacity: 1 }"
                             :top-three-task-feeds="topThreeTaskFeeds"
                             :cc_id="cc_id">
                         </TaskFeeds>
                     </div>
                     <div class="col-item">
                         <TaskPercentChart
-                            v-if="!loading"
+                            v-bkloading="{ isLoading: loading, opacity: 1 }"
                             :task-count="taskCount"
                             :total-task="totalTask">
                         </TaskPercentChart>
@@ -71,7 +73,6 @@
         data () {
             return {
                 loading: true,
-                isShowPage: false,
                 summaryData: {
                     executeStatus: {},
                     templateStatus: {},
@@ -92,11 +93,6 @@
         },
         created () {
             this.getData()
-            const RENDERTIME = 200
-            const pageRenderTime = setTimeout(() => {
-                this.isShowPage = true
-                clearTimeout(pageRenderTime)
-            }, RENDERTIME)
         },
         methods: {
             ...mapActions('template/', [
@@ -293,5 +289,9 @@
     &:nth-child(2n) {
         margin-right: 0;
     }
+}
+[v-cloak] {
+   display:none;
+
 }
 </style>
