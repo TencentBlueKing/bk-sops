@@ -273,7 +273,6 @@
             }
         },
         created () {
-            console.log(this.authOperations)
             this.queryProjectCreatePerm()
             this.getProjectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
