@@ -58,6 +58,15 @@
                             <td>{{item.creator}}</td>
                             <td>
                                 <bk-button
+                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, projectOperations) }"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['view'], item.auth_actions, projectOperations)
+                                    }]"
+                                    type="default"
+                                    @click="onViewProject(item)">
+                                    {{i18n.view}}
+                                </bk-button>
+                                <bk-button
                                     v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
@@ -237,6 +246,7 @@
                     comma: gettext('，'),
                     currentPageTip: gettext('当前第'),
                     page: gettext('页'),
+                    view: gettext('查看'),
                     edit: gettext('编辑'),
                     stop: gettext('停用'),
                     start: gettext('启用'),
@@ -252,7 +262,8 @@
         computed: {
             ...mapState('project', {
                 'authResource': state => state.authResource,
-                'authOperations': state => state.authOperations
+                'authOperations': state => state.authOperations,
+                'project_id': state => state.project_id
             }),
             projectDialogTitle () {
                 return this.dialogType === 'create' ? this.i18n.createProject : this.i18n.editProject
@@ -262,6 +273,7 @@
             }
         },
         created () {
+            console.log(this.authOperations)
             this.queryProjectCreatePerm()
             this.getProjectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
@@ -417,6 +429,13 @@
                     this.dialogType = 'create'
                     this.isProjectDialogShow = true
                 }
+            },
+            onViewProject (project) {
+                if (!this.hasPermission(['view'], project.auth_actions, this.projectOperations)) {
+                    this.applyForPermission(['view'], project, this.projectOperations, this.projectResource)
+                    return
+                }
+                this.$router.push(`/template/home/${this.project_id}/`)
             },
             onEditProject (project) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
