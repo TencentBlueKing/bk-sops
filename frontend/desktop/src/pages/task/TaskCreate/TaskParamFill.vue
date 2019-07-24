@@ -79,7 +79,7 @@
                 </div>
             </div>
         </div>
-        <div ref="paramInfo" class="param-info" :style="{ 'min-height': minHeight }">
+        <div ref="paramInfo" class="param-info">
             <div class="param-info-title">
                 <span>
                     {{ i18n.paramsInfo }}
@@ -170,8 +170,7 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
-                disabledButton: true,
-                minHeight: '200px'
+                disabledButton: true
             }
         },
         computed: {
@@ -192,7 +191,6 @@
         mounted () {
             this.loadData()
             this.period()
-            this.initParamInfoMinHeight()
         },
         methods: {
             ...mapActions('template/', [
@@ -380,18 +378,6 @@
                 if (this.taskMessageLoading === false && val === false) {
                     this.disabledButton = false
                 }
-            },
-            /**
-             * 动态计算 ParamInfo 的最小高度
-             * @description
-             * 保证 footer 永远在视窗的最下面
-             */
-            initParamInfoMinHeight () {
-                const WindowHeight = document.documentElement.clientHeight || document.body.clientHeight
-                const oDivTop = this.$refs.paramInfo.offsetTop
-                const oDivHeight = this.$refs.paramInfo.offsetHeight
-                const minHeight = WindowHeight - oDivTop - oDivHeight - 72 - 50
-                this.minHeight = minHeight > 0 ? minHeight + oDivHeight + 'px' : '200px'
             }
         }
     }
@@ -399,8 +385,12 @@
 <style lang="scss" scoped>
 @import "@/scss/config.scss";
 .param-fill-wrapper {
+    position: relative;
     padding-top: 50px;
+    box-sizing: border-box;
     background: #fff;
+    min-height: calc(100vh - 50px - 139px);
+    padding-bottom: 72px;
     @media screen and (max-width: 1300px){
         width: calc(100% - 40px);
     }
@@ -506,6 +496,9 @@
     }
 }
 .action-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
     button {
