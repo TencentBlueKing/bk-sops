@@ -438,11 +438,11 @@
             margin-right: 0;
         }
         &.permission-disable {
-            background: #ffffff;
+            background: #f7f7f7;
             border: 1px solid #dcdee5;
             .template-item-icon {
                 color: #dcdee5;
-                background: #ffffff;
+                background: #f7f7f7;
                 border-right: 1px solid #dcdee5;
             }
             .template-item-name {
@@ -450,7 +450,7 @@
             }
             .apply-permission-mask {
                 padding: 12px 0;
-                background: rgba(255, 255, 255, 0.8);
+                background: rgba(255, 255, 255, 0.6);
                 text-align: center;
             }
             .bk-button {
