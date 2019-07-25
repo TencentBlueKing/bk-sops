@@ -384,6 +384,7 @@ class ComponentModelResource(ModelResource):
             bundle.data['output'] = component.outputs_format()
             bundle.data['form'] = component.form
             bundle.data['desc'] = component.desc
+            bundle.data['form_is_embedded'] = component.form_is_embedded()
             # 国际化
             name = bundle.data['name'].split('-')
             bundle.data['group_name'] = _(name[0])
@@ -397,6 +398,7 @@ class ComponentModelResource(ModelResource):
         bundle.data['output'] = component.outputs_format()
         bundle.data['form'] = component.form
         bundle.data['desc'] = component.desc
+        bundle.data['form_is_embedded'] = component.form_is_embedded()
         # 国际化
         name = bundle.data['name'].split('-')
         bundle.data['group_name'] = _(name[0])
