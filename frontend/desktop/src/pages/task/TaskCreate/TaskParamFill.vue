@@ -79,7 +79,7 @@
                 </div>
             </div>
         </div>
-        <div ref="paramInfo" class="param-info">
+        <div class="param-info">
             <div class="param-info-title">
                 <span>
                     {{ i18n.paramsInfo }}
@@ -387,10 +387,10 @@
 .param-fill-wrapper {
     position: relative;
     padding-top: 50px;
-    box-sizing: border-box;
-    background: #fff;
-    min-height: calc(100vh - 50px - 139px);
     padding-bottom: 72px;
+    box-sizing: border-box;
+    min-height: calc(100vh - 50px - 139px);
+    background: #fff;
     @media screen and (max-width: 1300px){
         width: calc(100% - 40px);
     }
