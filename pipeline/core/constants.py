@@ -64,6 +64,7 @@ class PipelineElement(object):
 
     location = 'location'
     line = 'line'
+    version = 'version'
 
 
 PE = PipelineElement()

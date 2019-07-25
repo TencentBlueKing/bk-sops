@@ -54,9 +54,9 @@ class ComponentModel(models.Model):
         return self.name
 
     @property
-    def group_name(self):
-        return ComponentLibrary.get_component_class(self.code).group_name
+    def group_name(self, version=None):
+        return ComponentLibrary.get_component_class(self.code, version).group_name
 
     @property
-    def group_icon(self):
-        return ComponentLibrary.get_component_class(self.code).group_icon
+    def group_icon(self, version=None):
+        return ComponentLibrary.get_component_class(self.code, version).group_icon

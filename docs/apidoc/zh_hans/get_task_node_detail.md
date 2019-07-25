@@ -10,7 +10,7 @@
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
 |   bk_app_secret |   string    |   是    |  安全密钥(应用 TOKEN)，可以通过 蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 获取 |
-|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与bk_username必须一个有效，bk_token可以通过Cookie获取  |
+|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与.bk_username必须一个有效，bk_token可以通过Cookie获取  |
 |   bk_username   |   string    |   否    |  当前用户用户名，应用免登录态验证白名单中的应用，用此字段指定当前用户              |
 
 #### 接口参数
@@ -22,6 +22,7 @@
 |   node_id        | string     | 是         | 节点 ID                        |
 |   component_code| string     | 否         | 标准插件编码，请求标准插件执行详情必填 |
 |   subprocess_stack| string   | 否         | 子流程堆栈，json 格式的列表    |
+| component_version| string   | 否         | 组件版本号，默认返回 legacy 版本的组件    |
 
 ### 请求参数示例
 

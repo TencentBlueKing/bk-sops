@@ -86,7 +86,7 @@ class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
     def _get_business_for_user(self, user, perms):
         business_list = get_business_for_user(user, perms)
         return business_list.exclude(status='disabled') \
-                            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
 
     def _get_objects_for_user(self, object_list, bundle, perms):
         user = bundle.request.user
@@ -300,7 +300,7 @@ class GCloudModelResource(ModelResource):
 class BusinessResource(GCloudModelResource):
     class Meta:
         queryset = Business.objects.exclude(status='disabled') \
-                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
         authorization = GCloudReadOnlyAuthorization()
@@ -350,10 +350,8 @@ class ComponentModelResource(ModelResource):
     def build_filters(self, filters=None, ignore_bad_filters=False):
         orm_filters = super(ComponentModelResource, self).build_filters(filters=filters,
                                                                         ignore_bad_filters=ignore_bad_filters)
-        if filters:
+        if filters and 'version' in filters:
             orm_filters['version'] = filters.get('version') or LEGACY_PLUGINS_VERSION
-        else:
-            orm_filters['version'] = LEGACY_PLUGINS_VERSION
 
         return orm_filters
 
@@ -363,7 +361,7 @@ class ComponentModelResource(ModelResource):
 
     def alter_list_data_to_serialize(self, request, data):
         for bundle in data['objects']:
-            component = ComponentLibrary.get_component_class(bundle.data['code'])
+            component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
             bundle.data['output'] = component.outputs_format()
             bundle.data['form'] = component.form
             bundle.data['desc'] = component.desc
@@ -376,7 +374,7 @@ class ComponentModelResource(ModelResource):
 
     def alter_detail_data_to_serialize(self, request, data):
         bundle = data
-        component = ComponentLibrary.get_component_class(bundle.data['code'])
+        component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
         bundle.data['output'] = component.outputs_format()
         bundle.data['form'] = component.form
         bundle.data['desc'] = component.desc

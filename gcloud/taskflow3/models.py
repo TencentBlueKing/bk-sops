@@ -917,7 +917,7 @@ class TaskFlowInstance(models.Model):
         TaskFlowInstance.format_pipeline_status(status_tree)
         return status_tree
 
-    def get_node_data(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_data(self, node_id, component_code=None, subprocess_stack=None, version=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -959,7 +959,7 @@ class TaskFlowInstance(models.Model):
         if component_code:
             outputs_table = []
             try:
-                component = library.ComponentLibrary.get_component_class(component_code)
+                component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
             except Exception as e:
                 result = False
@@ -1008,7 +1008,7 @@ class TaskFlowInstance(models.Model):
         }
         return {'result': result, 'data': data, 'message': '' if result else data['ex_data']}
 
-    def get_node_detail(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_detail(self, node_id, component_code=None, subprocess_stack=None, version=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -1016,7 +1016,10 @@ class TaskFlowInstance(models.Model):
             )
             return {'result': False, 'message': message, 'data': {}}
 
-        ret_data = self.get_node_data(node_id, component_code, subprocess_stack)
+        ret_data = self.get_node_data(node_id=node_id,
+                                      component_code=component_code,
+                                      subprocess_stack=subprocess_stack,
+                                      version=version)
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:
