@@ -128,15 +128,16 @@
             </ul>
         </div>
         <bk-dialog
-            :is-show.sync="deleteConfirmDialogShow"
-            :quick-close="false"
-            :ext-cls="'common-dialog'"
-            :title="i18n.tips"
             width="400"
-            padding="30px"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.tips"
+            :value="deleteConfirmDialogShow"
             @confirm="onConfirm"
             @cancel="onCancel">
-            <div slot="content">{{ i18n.confirm }}</div>
+            <div>{{ i18n.confirm }}</div>
         </bk-dialog>
     </div>
 </template>
@@ -385,10 +386,50 @@ $localBorderColor: #d8e2e7;
     .global-variable-tootip {
         float: right;
         margin-top: 8px;
-        color:#c4c6cc;
-        cursor: pointer;
-        &:hover {
-            color:#f4aa1a;
+        .icon-info-circle {
+            margin-top: 20px;
+            color:#c4c6cc;
+            cursor: pointer;
+            &:hover {
+                color:#f4aa1a;
+            }
+        }
+        /deep/.bk-tooltip-popper {
+            transform: translate3d(-7px, 104px, 0px) !important;
+            .tips-item {
+                margin-bottom: 20px;
+                &:last-child {
+                    margin-bottom: 0;
+                }
+                h4 {
+                    margin-top: 0;
+                    margin-bottom: 10px;
+                }
+                p {
+                    white-space: normal;
+                    word-wrap: break-word;
+                    word-break: break-all;
+                }
+            }
+            .tips-item-content {
+                margin-bottom: 20px;
+                &:last-child {
+                    margin-bottom: 0;
+                }
+                h4 {
+                    margin-top: 0;
+                    margin-bottom: 10px;
+                }
+                p {
+                    margin-top: -18px;
+                }
+            }
+        }
+        .bk-tooltip-arrow {
+            right: 2px;
+        }
+        .bk-tooltip-inner {
+            margin-right: -18px;
         }
     }
     .global-variable-content {

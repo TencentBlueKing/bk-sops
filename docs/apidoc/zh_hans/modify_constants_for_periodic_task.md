@@ -37,7 +37,9 @@
     "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
-    "constants": {"${bk_timing}": "100"},
+    "constants": {
+        "${bk_timing}": "100"
+    }
 }
 ```
 

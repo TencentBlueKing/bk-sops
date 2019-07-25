@@ -1,38 +1,48 @@
 <template>
     <bk-dialog
-        class="new-task-dialog"
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.title"
         width="850"
-        padding="0"
-        :is-show.sync="isNewTaskDialogShow"
+        class="new-task-dialog"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.title"
+        :value="isNewTaskDialogShow"
         @confirm="onCreateTask"
         @cancel="onCancel">
-        <div slot="content" class="task-container">
+        <div class="task-container">
             <div class="task-wrapper">
                 <div class="filtrate-wrapper">
                     <div class="task-search flow-types">
-                        <bk-selector
+                        <bk-select
                             v-if="createEntrance"
-                            :list="templateType"
-                            :search-key="'name'"
-                            :setting-key="'name'"
+                            v-model="selectedTplType"
+                            class="bk-select-inline"
+                            :popover-width="260"
                             :disabled="!categoryListPending"
-                            :selected="selectedTplType"
-                            @item-selected="onChooseTplType">
-                        </bk-selector>
+                            @selected="onChooseTplType">
+                            <bk-option
+                                v-for="(option, index) in templateType"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
                     </div>
                     <div class="task-search">
-                        <bk-selector
-                            :list="templateCategories"
-                            :search-key="'name'"
-                            :setting-key="'name'"
+                        <bk-select
+                            v-model="selectedTplCategory"
+                            :popover-width="260"
+                            class="bk-select-inline"
                             :disabled="!categoryListPending"
-                            :selected="selectedTplCategory"
-                            @item-selected="onChooseTplCategory">
-                        </bk-selector>
+                            @selected="onChooseTplCategory">
+                            <bk-option
+                                v-for="(option, index) in templateCategories"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
                     </div>
                     <div class="task-search">
                         <input class="search-input" :placeholder="i18n.placeholder" v-model="searchWord" @input="onSearchInput" />
@@ -87,7 +97,7 @@
         components: {
             NoData
         },
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'cc_id', 'taskCategory', 'createEntrance'],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'cc_id', 'taskCategory', 'createEntrance', 'dialogTitle'],
         data () {
             return {
                 i18n: {
@@ -108,16 +118,16 @@
                 templateList: [],
                 templateType: [
                     {
-                        value: 'BusinessProcess',
+                        id: 'BusinessProcess',
                         name: gettext('业务流程')
                     },
                     {
-                        value: 'PublicProcess',
+                        id: 'PublicProcess',
                         name: gettext('公共流程')
                     }
                 ],
-                selectedTplType: gettext('业务流程'),
-                selectedTplCategory: gettext('全部分类'),
+                selectedTplType: gettext('BusinessProcess'),
+                selectedTplCategory: gettext('all'),
                 searchWord: '',
                 nowTypeList: []
             }
@@ -126,13 +136,16 @@
             templateCategories () {
                 const list = toolsUtils.deepClone(this.taskCategory)
                 list.unshift({ value: 'all', name: gettext('全部分类') })
-                return list
+                return list.map(m => ({ id: m.value || m.id, name: m.name }))
             },
             categoryListPending () {
                 return this.taskCategory.length !== 0 && this.taskListPending === false
             },
             isNoData () {
                 return this.templateList.length === 0
+            },
+            title () {
+                return this.dialogTitle || this.i18n.title
             }
         },
         watch: {

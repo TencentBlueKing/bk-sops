@@ -520,14 +520,14 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getTaskScheme (data) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { cc_id, template_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
             params: {
                 'biz_cc_id': cc_id,
-                'template__template_id': template_id
+                'template_id': template_id
             }
         }
         return request(opts)
@@ -537,7 +537,7 @@ const api = {
      * @param {Object}} schemeData 方案配置数据
      */
     createTaskScheme (schemeData) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = schemeData.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { cc_id, template_id, data, name } = schemeData
         const opts = {
             method: 'POST',
@@ -555,11 +555,11 @@ const api = {
      * 删除任务节点选择方案
      * @param {String} schemeId 方案id
      */
-    deleteTaskScheme (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    deleteTaskScheme (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'DELETE',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },
@@ -567,11 +567,11 @@ const api = {
      * 获取任务节点选择方案详情
      * @param {String} schemeId 方案id
      */
-    getSchemeDetail (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    getSchemeDetail (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },

@@ -19,7 +19,7 @@
 |---------------|------------|--------|---------------|
 | bk_biz_id     | string     |   是   |  模板所属业务ID |
 | template_id   | string     |   是   |  模板ID        |
-|   template_source | string   | 否         | 流程模板来源，business:默认值，业务流程，common：公共流程 |
+| template_source | string   | 否     | 流程模板来源，business:默认值，业务流程，common：公共流程 |
 
 ### 请求参数示例
 
@@ -30,7 +30,7 @@
     "bk_token": "xxx",
     "bk_biz_id": "1",
     "template_id": "30",
-    "template_source": "business",
+    "template_source": "business"
 }
 ```
 

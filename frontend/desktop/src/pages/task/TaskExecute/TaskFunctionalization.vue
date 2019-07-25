@@ -49,7 +49,7 @@
             </bk-button>
             <bk-button
                 class="task-claim-button"
-                type="success"
+                theme="success"
                 :loading="isSubmit"
                 @click="onTaskClaim">
                 {{ i18n.claim }}

@@ -25,6 +25,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     export default {
         name: 'LoadingBtnDialog',
         props: {
@@ -51,6 +52,8 @@
 </script>
 <style lang="scss">
 .btn-wrapper {
+    // float: right;
+    // margin: 0 16px 2px 0;
     .dialog-Btn {
         min-width: 120px;
         &:not(:last-child) {
@@ -58,5 +61,5 @@
         }
     }
 }
-    
+
 </style>

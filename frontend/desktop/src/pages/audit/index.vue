@@ -24,66 +24,89 @@
                     <div class="audit-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.business}}</span>
-                            <bk-selector
-                                :list="business.list"
-                                :display-key="'cc_name'"
-                                :setting-name="'cc_id'"
-                                :search-key="'cc_name'"
-                                :setting-key="'cc_id'"
-                                :selected.sync="selectedCcId"
-                                :placeholder="i18n.choice"
+                            <bk-select
+                                v-model="selectedCcId"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
-                                @item-selected="onSelectedBizCcId">
-                            </bk-selector>
+                                :placeholder="i18n.choice"
+                                :clearable="true"
+                                @selected="onSelectedBizCcId">
+                                <bk-option
+                                    v-for="(option, index) in business.list"
+                                    :key="index"
+                                    :id="option.cc_id"
+                                    :name="option.cc_name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.startedTime}}</span>
-                            <bk-date-range
-                                :range-separator="'-'"
-                                :quick-select="false"
-                                :start-date.sync="executeStartTime"
-                                :end-date.sync="executeEndTime"
+                            <bk-date-picker
+                                ref="bkRanger"
+                                :placeholder="i18n.dateRange"
+                                :type="'daterange'"
                                 @change="onChangeExecuteTime">
-                            </bk-date-range>
+                            </bk-date-picker>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.taskType}}</span>
-                            <bk-selector
-                                :placeholder="i18n.taskTypePlaceholder"
-                                :is-loading="taskBasicInfoLoading"
-                                :list="taskCategory"
-                                :selected.sync="taskSync"
-                                :setting-key="'value'"
-                                :display-key="'name'"
+                            <bk-select
+                                v-model="taskSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
+                                :placeholder="i18n.taskTypePlaceholder"
+                                :clearable="true"
                                 @clear="onClearCategory"
-                                @item-selected="onSelectedCategory">
-                            </bk-selector>
+                                @selected="onSelectedCategory">
+                                <bk-option
+                                    v-for="(option, index) in taskCategory"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
+                            <bk-input
+                                v-model="creator"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.creatorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.operator}}</span>
-                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder" />
+                            <bk-input
+                                v-model="executor"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.executorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.status}}</span>
-                            <bk-selector
-                                :placeholder="i18n.statusPlaceholder"
-                                :list="statusList"
-                                :selected.sync="statusSync"
-                                :allow-clear="true"
+                            <bk-select
+                                v-model="statusSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
+                                :placeholder="i18n.statusPlaceholder"
+                                :clearable="true"
                                 @clear="onClearStatus"
-                                @item-selected="onSelectedStatus">
-                            </bk-selector>
+                                @selected="onSelectedStatus">
+                                <bk-option
+                                    v-for="(option, index) in statusList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -144,11 +167,14 @@
                     <div class="page-info">
                         <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
                     </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
+                    <bk-pagination
+                        :current.sync="currentPage"
+                        :count="totalCount"
+                        :limit="countPerPage"
+                        :limit-list="[15,20,30]"
+                        :show-limit="false"
+                        @change="onPageChange">
+                    </bk-pagination>
                 </div>
             </div>
         </div>
@@ -202,18 +228,19 @@
                     taskTypePlaceholder: gettext('请选择分类'),
                     creatorPlaceholder: gettext('请输入创建人'),
                     executorPlaceholder: gettext('请输入执行人'),
-                    statusPlaceholder: gettext('请选择状态')
+                    statusPlaceholder: gettext('请选择状态'),
+                    dateRange: gettext('选择日期时间范围')
                 },
                 taskBasicInfoLoading: true,
                 listLoading: true,
                 isAdvancedSerachShow: false,
                 currentPage: 1,
-                selectedCcId: -1,
+                selectedCcId: '',
                 totalPage: 1,
                 countPerPage: 15,
                 totalCount: 0,
-                taskSync: 0,
-                statusSync: 0,
+                taskSync: '',
+                statusSync: '',
                 searchStr: '',
                 bizCcId: undefined,
                 creator: undefined,
@@ -378,7 +405,7 @@
                 this.taskBasicInfoLoading = true
                 try {
                     const data = await this.loadBusinessBaseInfo()
-                    this.taskCategory = data.task_categories
+                    this.taskCategory = data.task_categories.map(m => ({ name: m.name, id: m.value }))
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -388,16 +415,15 @@
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
             },
-            onChangeExecuteTime (oldValue, newValue) {
-                const timeArray = newValue.split(' - ')
-                this.executeStartTime = timeArray[0]
-                this.executeEndTime = timeArray[1]
+            onChangeExecuteTime (Value) {
+                this.executeStartTime = Value[0]
+                this.executeEndTime = Value[1]
             },
             onClearCategory () {
                 this.activeTaskCategory = undefined
             },
-            onSelectedCategory (name, value) {
-                this.activeTaskCategory = name
+            onSelectedCategory (id) {
+                this.activeTaskCategory = id
             },
             onResetForm () {
                 this.isStarted = undefined
@@ -405,9 +431,9 @@
                 this.creator = undefined
                 this.executor = undefined
                 this.searchStr = undefined
-                this.statusSync = 0
-                this.selectedCcId = 0
-                this.taskSync = 0
+                this.statusSync = ''
+                this.selectedCcId = ''
+                this.taskSync = ''
                 this.activeTaskCategory = undefined
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
@@ -431,6 +457,10 @@
 </script>
 <style lang='scss'>
 @import '@/scss/config.scss';
+.bk-select-inline,.bk-input-inline {
+    display: inline-block;
+    width: 260px;
+}
 .audit-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
@@ -438,7 +468,6 @@
 }
 .list-wrapper {
     padding: 0 60px;
-    padding-top: 50px;
     min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 20px 0px;
@@ -505,17 +534,6 @@
                 max-width: 260px;
                 height: 32px;
                 line-height: 32px;
-            }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-selector-icon.clear-icon {
-                top:6px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
             }
             input::-webkit-input-placeholder{
                 color: $formBorderColor;

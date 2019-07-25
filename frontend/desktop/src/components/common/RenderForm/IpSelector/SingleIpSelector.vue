@@ -13,12 +13,9 @@
     <div class="single-ip-selector">
         <div class="selector-choose-wrap">
             <div
-                v-for="selector in selectorTabs"
+                v-for="(selector) in selectorTabs"
                 :key="selector.type"
-                :class="['ip-tab-radio', {
-                    'disabled': !editable,
-                    'ip-tab-select': activeSelector === selector.id
-                }]"
+                :class="['ip-tab-radio', { 'disabled': !editable }, { 'ip-tab-select': activeSelector === selector.id }]"
                 @click="onChooseSelector(selector.id)">
                 <span :class="['radio', { 'checked': activeSelector === selector.id }]"></span>
                 <span class="radio-text">{{selector.name}}</span>

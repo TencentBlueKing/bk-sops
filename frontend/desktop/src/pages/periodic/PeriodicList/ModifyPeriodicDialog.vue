@@ -11,26 +11,28 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
+        width="600"
         :ext-cls="'common-dialog'"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
         :title="i18n.modifyTask"
-        width="610"
-        :is-show.sync="isModifyDialogShow"
+        :value="isModifyDialogShow"
         @confirm="onModifyPeriodicConfirm"
         @cancel="onModifyPeriodicCancel">
-        <div slot="content" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="periodic-info">
-                <h3 class="common-section-title">{{ i18n.periodicInfo }}</h3>
+                <h3 class="local-section-title">{{ i18n.periodicInfo }}</h3>
                 <div class="common-form-item">
                     <LoopRuleSelect
                         ref="loopRuleSelect"
+                        class="loop-rule"
                         :manual-input-value="periodicCron" />
                 </div>
                 <div
                     v-if="!loading"
                     class="param-info">
-                    <h3 class="common-section-title">{{ i18n.paramsInfo }}</h3>
+                    <h3 class="local-section-title">{{ i18n.paramsInfo }}</h3>
                     <div class="common-form-content">
                         <NoData v-if="isVariableEmpty"></NoData>
                         <TaskParamEdit
@@ -146,7 +148,7 @@
                         'taskId': this.taskId,
                         'cron': jsonCron
                     }
-                    if (this.cron === this.periodicCron && periodicConstants === '') {
+                    if (this.cron === loopRule.rule && periodicConstants === '') {
                         // 没有改变表达式，且没有ramdomform内容
                         this.$emit('onModifyPeriodicCancel')
                     } else if (periodicConstants === '') {
@@ -222,11 +224,15 @@
     overflow-y: auto;
 }
 .periodic-info {
-    padding-bottom: 40px;
+    padding: 20px;
 }
-.common-section-title {
-    margin-bottom: 24px;
-    padding-left: 16px;
+.local-section-title {
+    font-size: 14px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #313238;
+    border-bottom: 1px solid #cacedb;
+    margin-bottom: 30px;
 }
 .periodic-img-tooltip {
     float: right;

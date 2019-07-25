@@ -13,7 +13,7 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <span class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
+                <span v-if="isShowBackBtn" class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
                 <span class="task-title">{{ taskTemplateTitle }}</span>
                 <span class="task-name">{{ instanceName }}</span>
             </div>
@@ -58,7 +58,8 @@
         computed: {
             ...mapState({
                 'lang': state => state.lang,
-                userType: state => state.userType
+                userType: state => state.userType,
+                view_mode: state => state.view_mode
             }),
             currentStepIndex () {
                 return this.getCurrentStepIndex()
@@ -68,6 +69,9 @@
             },
             taskTemplateTitle () {
                 return this.$route.query.instance_id === undefined ? this.i18n.newTask : this.i18n.taskExecution
+            },
+            isShowBackBtn () {
+                return !(this.view_mode === 'appmaker' && this.$route.path.indexOf('newtask') !== -1)
             }
         },
         methods: {
@@ -104,25 +108,45 @@
                 }
                 return style
             },
+            /**
+             * 返回任务列表
+             */
             getHomeUrl () {
                 let url = '/'
-                const entrance = this.$route.query.entrance
-                if (this.userType === 'maintainer') {
-                    if (entrance && entrance === '0') {
-                        url = `/periodic/home/${this.cc_id}/`
-                    } else if (entrance && entrance === '1') {
-                        url = `/taskflow/home/${this.cc_id}/`
-                    } else {
-                        url = `/template/home/${this.cc_id}/`
-                    }
-                    if (this.common) {
-                        url += `?common=1&common_template=${this.common}`
-                    }
-                } else if (this.userType === 'functor') {
-                    url = `/function/home/`
-                } else if (this.userType === 'auditor') {
-                    url = `/audit/home/`
-                }
+                const userType = this.userType // 用户类型
+                const path = this.$route.fullPath
+                const entrance = this.$route.query.entrance || '' // 入口参数
+                const ccId = this.$route.params.cc_id
+                const actions = [
+                    // 编辑模板
+                    { userType: 'maintainer', path: '/template/edit/', url: `/periodic/home/${this.cc_id}/` },
+                    // 任务记录
+                    { userType: 'maintainer', path: '/taskflow/execute/', url: `/taskflow/home/${this.cc_id}/` },
+                    // 新建-周期任务
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: '0', url: `/periodic/home/${this.cc_id}/` },
+                    // 新建-任务记录
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: '1', url: `/taskflow/home/${this.cc_id}/` },
+                    // 新建-业务流程
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'commonList', url: `/template/common/${this.cc_id}/` },
+                    // 新建-公共流程
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'businessList', url: `/template/home/${this.cc_id}/` },
+                    // maintainer 默认
+                    { userType: 'maintainer', path: 'default', url: `/template/home/${this.cc_id}/` },
+                    // 职能化
+                    { userType: 'functor', url: `/function/home/` },
+                    // 审计员
+                    { userType: 'auditor', url: `/audit/home/` },
+                    // 轻应用
+                    { view_mode: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${ccId}/` }
+                ]
+                actions.forEach(key => {
+                    const flag_view_mode = key.view_mode ? key.view_mode === this.view_mode : true
+                    const flag_userType = key.userType ? key.userType === userType : true
+                    const flag_path = key.path ? new RegExp(key.path).test(path) : true
+                    const flag_entrance = key.entrance ? key.entrance === entrance : true
+                    if (flag_view_mode && flag_userType && flag_path && flag_entrance) url = key.url
+                })
+                if (this.common && userType === 'maintainer') url += `?common=1&common_template=${this.common}`
                 this.$router.push(url)
             }
         }
@@ -148,11 +172,9 @@
         margin: 0;
         color: #313238;
         line-height: 67px;
-        text-align: center;
+        text-align: left;
     }
     .task-title {
-        position: absolute;
-        left: 0;
         padding-left: 30px;
         font-size: 14px;
         font-weight: 600;

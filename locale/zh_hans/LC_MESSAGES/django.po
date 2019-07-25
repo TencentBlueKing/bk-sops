@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-06-12 11:44+0800\n"
+"POT-Creation-Date: 2019-07-15 14:58+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -98,11 +98,11 @@ msgstr "user property"
 msgid "user properties"
 msgstr "user properties"
 
-#: config/default.py:152
+#: config/default.py:165
 msgid "English"
 msgstr "English"
 
-#: config/default.py:153
+#: config/default.py:166
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -499,7 +499,7 @@ msgid "业务 Business"
 msgstr "业务 Business"
 
 #: gcloud/core/models.py:68 gcloud/webservice3/resources.py:88
-#: gcloud/webservice3/resources.py:304
+#: gcloud/webservice3/resources.py:302
 msgid "停运"
 msgstr "停运"
 
@@ -691,7 +691,7 @@ msgstr "当前任务流程阶段"
 msgid "流程实例 TaskFlowInstance"
 msgstr "流程实例 TaskFlowInstance"
 
-#: gcloud/taskflow3/resources.py:267
+#: gcloud/taskflow3/resources.py:262
 msgid "无法删除未进入完成或撤销状态的流程"
 msgstr "无法删除未进入完成或撤销状态的流程"
 
@@ -1216,7 +1216,7 @@ msgstr "重试计时器失败，请稍后再次尝试"
 msgid "模板不存在"
 msgstr "模板不存在"
 
-#: pipeline/core/flow/activity.py:162
+#: pipeline/core/flow/activity.py:179
 msgid "执行结果"
 msgstr "执行结果"
 
@@ -1576,7 +1576,7 @@ msgid "提示: 1.请求URL需要在当前网络下可以访问，否则会超时
 msgstr "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 2.响应状态码在200-300(不包括300)之间，并且相应内容是 JSON 格式才会执行成功"
 
 #: pipeline_plugins/components/collections/controller.py:47
-#: pipeline_plugins/components/collections/sites/open/job.py:416
+#: pipeline_plugins/components/collections/sites/open/job.py:348
 msgid "暂停"
 msgstr "暂停"
 
@@ -1716,7 +1716,6 @@ msgid "JOB任务链接"
 msgstr "JOB任务链接"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:136
-#: pipeline_plugins/components/collections/sites/open/job.py:341
 msgid "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"
 msgstr "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"
 
@@ -1732,27 +1731,23 @@ msgstr "快速分发文件"
 msgid "快速执行脚本"
 msgstr "快速执行脚本"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:383
-msgid "快速执行SQL脚本"
-msgstr "快速执行SQL脚本"
-
-#: pipeline_plugins/components/collections/sites/open/job.py:427
+#: pipeline_plugins/components/collections/sites/open/job.py:359
 msgid "启动"
 msgstr "启动"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:429
+#: pipeline_plugins/components/collections/sites/open/job.py:361
 msgid "新建定时任务成功但是启动失败：{error}"
 msgstr "新建定时任务成功但是启动失败：{error}"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:436
+#: pipeline_plugins/components/collections/sites/open/job.py:368
 msgid "定时作业ID"
 msgstr "定时作业ID"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:437
+#: pipeline_plugins/components/collections/sites/open/job.py:369
 msgid "定时作业状态"
 msgstr "定时作业状态"
 
-#: pipeline_plugins/components/collections/sites/open/job.py:442
+#: pipeline_plugins/components/collections/sites/open/job.py:374
 msgid "新建定时作业"
 msgstr "新建定时作业"
 
@@ -2032,4 +2027,7 @@ msgstr "IP选择器"
 
 #~ msgid "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
 #~ msgstr "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
+
+#~ msgid "快速执行SQL脚本"
+#~ msgstr "快速执行SQL脚本"
 

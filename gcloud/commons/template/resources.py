@@ -22,17 +22,19 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
 
 from pipeline.exceptions import PipelineException
-from pipeline.models import PipelineTemplate
-
-from gcloud.commons.template.models import CommonTemplate
+from pipeline.models import PipelineTemplate, TemplateScheme
 from pipeline_web.parser.validator import validate_web_pipeline_tree
+
+from gcloud.core.models import Business
+from gcloud.commons.template.models import CommonTemplate
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
 from gcloud.webservice3.resources import (
     GCloudModelResource,
     AppSerializer,
     pipeline_node_name_handle,
-    TemplateFilterPaginator
+    TemplateFilterPaginator,
+    get_business_for_user
 )
 
 
@@ -255,3 +257,73 @@ class CommonTemplateResource(GCloudModelResource):
             filters.pop('has_subprocess__exact')
 
         return filters
+
+
+class CommonTemplateSchemeResource(GCloudModelResource):
+    class Meta:
+        queryset = TemplateScheme.objects.all()
+        resource_name = 'common_scheme'
+        authorization = Authorization()
+        always_return_data = True
+        serializer = AppSerializer()
+
+        filtering = {
+            'template': ALL,
+        }
+        limit = 0
+
+    def build_filters(self, filters=None, **kwargs):
+        orm_filters = super(CommonTemplateSchemeResource, self).build_filters(filters, **kwargs)
+        if 'biz_cc_id' in filters and 'template_id' in filters:
+            template_id = filters.pop('template_id')[0]
+            biz_cc_id = filters.pop('biz_cc_id')[0]
+            template = CommonTemplate.objects.get(pk=template_id)
+            orm_filters.update({
+                'template__template_id': template.pipeline_template.template_id,
+                # 这里通过业务ID前缀隔离不同业务在同一个公共流程下的执行方案
+                'unique_id__startswith': '%s-' % biz_cc_id,
+            })
+        elif 'pk' not in filters:
+            # 不允许请求全部执行方案
+            orm_filters.update({'unique_id': ''})
+        return orm_filters
+
+    def alter_list_data_to_serialize(self, request, data):
+        for bundle in data['objects']:
+            bundle.data.pop('data')
+
+        return data
+
+    def obj_create(self, bundle, **kwargs):
+        biz_cc_id = bundle.data.pop('biz_cc_id', None)
+        template_id = bundle.data.pop('template_id', None)
+        try:
+            template = CommonTemplate.objects.get(pk=template_id)
+        except Exception:
+            raise BadRequest('common template does not exist')
+        business = get_business_for_user(bundle.request.user, ['view_business'])
+        if not business.filter(cc_id=biz_cc_id).exists():
+            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to make such operation'))
+        bundle.data['name'] = name_handler(bundle.data['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
+        kwargs['unique_id'] = '%s-%s-%s' % (biz_cc_id, template_id, bundle.data['name'])
+        if TemplateScheme.objects.filter(unique_id=kwargs['unique_id']).exists():
+            raise BadRequest('common template scheme name has existed, please change the name')
+        kwargs['template'] = template.pipeline_template
+        return super(CommonTemplateSchemeResource, self).obj_create(bundle, **kwargs)
+
+    def obj_delete(self, bundle, **kwargs):
+        try:
+            scheme_id = kwargs['pk']
+            scheme = TemplateScheme.objects.get(pk=scheme_id)
+            CommonTemplate.objects.get(pipeline_template=scheme.template)
+        except Exception:
+            raise BadRequest('common scheme or template does not exist')
+        try:
+            biz_cc_id = int(scheme['unique_id'].split('-')[0])
+        except Exception:
+            # maybe old unique id rule
+            biz_cc_id = None
+        business = get_business_for_user(bundle.request.user, ['manage_business'])
+        if Business.objects.filter(cc_id=biz_cc_id) and not business.filter(cc_id=biz_cc_id).exists():
+            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to make such operation'))
+        return super(CommonTemplateSchemeResource, self).obj_delete(bundle, **kwargs)

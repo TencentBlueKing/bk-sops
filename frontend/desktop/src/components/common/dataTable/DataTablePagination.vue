@@ -67,13 +67,25 @@
             <!--按钮操作组end-->
         </el-table>
         <!--分页-->
-        <el-pagination v-if="pagination" @size-change="handleSizeChange"
+        <!-- <el-pagination v-if="pagination" @size-change="handleSizeChange"
             @current-change="handleIndexChange"
             :page-size="tableCurrentPagination.limit"
             :page-sizes="tableCurrentPagination.pageArray" :current-page="tableCurrentPagination.pageIndex"
             layout="total,sizes, prev, pager, next, jumper"
             :total="total"
-            :pagination="pagination"></el-pagination>
+            :pagination="pagination"></el-pagination> -->
+        <div class="panagation" v-if="pagination">
+            <bk-pagination
+                v-if="pagination"
+                class=""
+                :current="tableCurrentPagination.pageIndex"
+                :limit="tableCurrentPagination.limit"
+                :limit-list="tableCurrentPagination.pageArray"
+                :count="total"
+                @change="handleIndexChange"
+                @limit-change="handleSizeChange">
+            </bk-pagination>
+        </div>
     <!--分页end-->
     </div>
 </template>
@@ -164,7 +176,7 @@
                 // pageIndex:当前页，默认为1，
                 // pageArray: 每页展示条数的控制集合，默认 _page_array 即[15, 25]
                 type: Object,
-                default: null
+                default: () => ({})
             },
             options: {
                 // 表格的控制参数
@@ -218,24 +230,12 @@
             // return this.$utils.Common.getWidthHeight() - this.otherHeight
             }
         },
-        mounted () {
-            // 判断是否需要分页，传递了pagination 参数 但是没有 pageArray 参数
-            if (this.pagination && !this.pagination.pageArray) {
-                // 设置每页展示条数数组
-                this.pagination.pageArray = _pageArray
-            }
-            if (this.pagination && !this.pagination.limit) {
-                // 设置每页展示数目
-                this.pagination.limit = this.limit
-            }
-            if (this.pagination && !this.pagination.pageIndex) {
-                // 设置当前页
-                this.pagination.pageIndex = 1
-            }
-            // 传入列表当前分页中
-            this.tableCurrentPagination = this.pagination || {
-                limit: this.total,
-                pageIndex: 1
+        created () {
+            const { pageIndex, limit, pageArray } = this.pagination
+            this.tableCurrentPagination = {
+                pageIndex: pageIndex || 1,
+                limit: limit || 15,
+                pageArray: pageArray || [15, 25]
             }
         },
         methods: {
@@ -253,6 +253,7 @@
             },
             // 切换页码
             handleIndexChange (index) {
+                console.log('qihuan')
                 if (this.pagination) {
                     // 设置当前页
                     this.tableCurrentPagination.pageIndex = index
@@ -354,5 +355,12 @@
 }
 .el-pager, .el-pager li{
     vertical-align: unset;
+}
+.panagation {
+    padding: 10px 20px;
+    text-align: right;
+    border: 1px solid #dde4eb;
+    border-top: none;
+    background: #ffff;
 }
 </style>

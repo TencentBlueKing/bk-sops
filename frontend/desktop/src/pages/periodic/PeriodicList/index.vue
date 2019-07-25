@@ -16,9 +16,9 @@
             <div class="task-table-content">
                 <bk-button
                     ref="childComponent"
-                    type="primary"
+                    theme="primary"
                     class="task-create-btn"
-                    size="small"
+                    size="normal"
                     @click="onCreatePeriodTask">
                     {{i18n.createPeriodTask}}
                 </bk-button>
@@ -35,21 +35,33 @@
                     <div class="periodic-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input v-model="creator" class="search-input" :placeholder="i18n.creatorPlaceholder" />
+                            <bk-input
+                                v-model="creator"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.creatorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.enabled}}</span>
-                            <bk-selector
+                            <bk-select
+                                class="bk-select-inline"
+                                v-model="enabledSync"
+                                :popover-width="260"
                                 :placeholder="i18n.enabledPlaceholder"
-                                :list="enabledList"
-                                :selected.sync="enabledSync"
-                                :allow-clear="true"
+                                :clearable="true"
                                 @clear="onClearSelectedEnabled"
-                                @item-selected="onSelectEnabled">
-                            </bk-selector>
+                                @selected="onSelectEnabled">
+                                <bk-option
+                                    v-for="(option, index) in enabledList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
@@ -77,7 +89,7 @@
                             <td class="periodic-name" :title="item.name">
                                 <router-link
                                     :title="item.task_template_name"
-                                    :to="`/template/edit/${cc_id}/?template_id=${item.template_id}`">
+                                    :to="`/template/edit/${cc_id}/?template_id=${item.template_id}&entrance=periodicTask`">
                                     {{item.task_template_name}}
                                 </router-link>
                             </td>
@@ -131,11 +143,14 @@
                     <div class="page-info">
                         <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
                     </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
+                    <bk-pagination
+                        :current.sync="currentPage"
+                        :count="totalCount"
+                        :limit="countPerPage"
+                        :limit-list="[15,20,30]"
+                        :show-limit="false"
+                        @change="onPageChange">
+                    </bk-pagination>
                 </div>
             </div>
         </div>
@@ -146,10 +161,10 @@
             :business-info-loading="businessInfoLoading"
             :create-entrance="false"
             :task-category="taskCategory"
+            :dialog-title="i18n.dialogTitle"
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <ModifyPeriodicDialog
-            v-if="isModifyDialogShow"
             :loading="modifyDialogLoading"
             :constants="constants"
             :cron="selectedCron"
@@ -159,7 +174,6 @@
             @onModifyPeriodicCancel="onModifyPeriodicCancel">
         </ModifyPeriodicDialog>
         <DeletePeriodicDialog
-            v-if="isDeleteDialogShow"
             :is-delete-dialog-show="isDeleteDialogShow"
             :template-name="selectedTemplateName"
             :deleting="deleting"
@@ -196,6 +210,7 @@
             return {
                 i18n: {
                     createPeriodTask: gettext('新建'),
+                    dialogTitle: gettext('新建周期任务'),
                     lastRunAt: gettext('上次运行时间'),
                     periodicRule: gettext('周期规则'),
                     periodicTask: gettext('周期任务'),
@@ -243,11 +258,11 @@
                 periodicList: [],
                 isModifyDialogShow: false,
                 selectedCron: undefined,
-                constants: undefined,
+                constants: {},
                 modifyDialogLoading: false,
                 selectedTemplateName: undefined,
                 periodicName: undefined,
-                enabledSync: -1,
+                enabledSync: '',
                 periodEntrance: '',
                 taskCategory: []
             }
@@ -275,7 +290,7 @@
                         offset: (this.currentPage - 1) * this.countPerPage,
                         task__celery_task__enabled: this.enabled,
                         task__creator__contains: this.creator,
-                        task__name__contains: this.periodicName
+                        task__name__contains: this.periodicName || undefined
                     }
                     const periodicListData = await this.loadPeriodicList(data)
                     const list = periodicListData.objects
@@ -402,7 +417,7 @@
                 this.periodicName = undefined
                 this.creator = undefined
                 this.enabled = undefined
-                this.enabledSync = -1
+                this.enabledSync = ''
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
@@ -419,10 +434,6 @@
 <style lang='scss'>
 @import '@/scss/config.scss';
 .periodic-container {
-    min-width: 1320px;
-    padding-top: 50px;
-    min-height: calc(100% - 50px);
-    background: #f4f7fa;
 }
 .list-wrapper {
     padding: 0 60px;
@@ -464,7 +475,11 @@
                     min-width: 100px;
                 }
             }
-            .bk-selector {
+            .bk-select-inline {
+                display: inline-block;
+                width: 260px;
+            }
+            .bk-input-inline {
                 display: inline-block;
                 width: 260px;
             }

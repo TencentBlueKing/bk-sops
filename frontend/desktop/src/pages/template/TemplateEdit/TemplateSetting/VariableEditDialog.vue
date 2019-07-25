@@ -12,10 +12,12 @@
 <template>
     <div class="edit-dialog-wrapper">
         <bk-dialog
-            :quick-close="false"
-            :ext-cls="'common-dialog'"
-            :title="i18n.edit"
             width="600"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.edit"
             :value="isShow"
             @confirm="onConfirm"
             @cancel="onCancel">

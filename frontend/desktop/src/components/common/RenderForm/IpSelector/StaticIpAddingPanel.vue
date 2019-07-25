@@ -14,8 +14,8 @@
         <div class="ip-added-number">{{i18n.add}}({{selectedIp.length}})</div>
         <div class="operation-area">
             <div class="ip-list-add">
-                <bk-button type="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
-                <bk-button type="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
+                <bk-button theme="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
+                <bk-button theme="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
             </div>
             <ip-search-input class="ip-search-wrap" @search="onIpSearch"></ip-search-input>
         </div>
@@ -57,13 +57,15 @@
                 </tbody>
             </table>
             <div class="table-pagination">
-                <bk-paging
+                <bk-pagination
                     v-if="isPaginationShow"
-                    :location="'right'"
-                    :cur-page.sync="currentPage"
-                    :total-page="totalPage"
-                    @page-change="onPageChange">
-                </bk-paging>
+                    :current.sync="currentPage"
+                    :count="totalCount"
+                    :limit="listCountPerPage"
+                    :limit-list="[15,20,30]"
+                    :show-limit="false"
+                    @change="onPageChange">
+                </bk-pagination>
             </div>
         </div>
     </div>
@@ -99,6 +101,7 @@
                 isPaginationShow: totalPage > 1,
                 selectedIp: this.staticIps.slice(0),
                 currentPage: 1,
+                totalCount: this.staticIpList.length,
                 totalPage,
                 listCountPerPage,
                 listInPage,

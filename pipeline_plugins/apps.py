@@ -17,20 +17,12 @@ import sys
 
 from django.apps import AppConfig
 
+from django.conf import settings
+
 
 class PipelinePluginsConfig(AppConfig):
     name = 'pipeline_plugins'
 
-    compatible_module_map = {
-        'pipeline.components.collections.common': 'pipeline_plugins.components.collections.common',
-        'pipeline.components.collections.controller': 'pipeline_plugins.components.collections.controller',
-        'pipeline.components.collections.sites.community.bk': 'pipeline_plugins.components.collections.sites.open.bk',
-        'pipeline.components.collections.sites.community.cc': 'pipeline_plugins.components.collections.sites.open.cc',
-        'pipeline.components.collections.sites.community.job': 'pipeline_plugins.components.collections.sites.open.job',
-        'pipeline.variables.collections.common': 'pipeline_plugins.variables.collections.common',
-        'pipeline.variables.collections.sites.community.cc': 'pipeline_plugins.variables.collections.sites.open.cc',
-    }
-
     def ready(self):
-        for old_path, new_path in self.compatible_module_map.items():
+        for old_path, new_path in getattr(settings, 'COMPATIBLE_MODULE_MAP', {}).items():
             sys.modules[old_path] = sys.modules[new_path]

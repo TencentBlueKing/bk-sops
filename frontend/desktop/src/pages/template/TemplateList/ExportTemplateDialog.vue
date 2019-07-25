@@ -406,7 +406,7 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border-radius: 2px;
+        border-radius: 4px;
         cursor: pointer;
         &:nth-child(2n + 1) {
             margin-left: 0;
@@ -488,7 +488,6 @@
             width: 254px;
             height: 56px;
             background: #838799;
-            border-radius: 2px;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -582,7 +581,7 @@
     }
     .task-footer {
         position: absolute;
-        right: 210px;
+        right: 290px;
         bottom: -40px;
         .error-info {
             margin-right: 20px;

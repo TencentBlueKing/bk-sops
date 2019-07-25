@@ -634,12 +634,12 @@
 
                 return { locations, lines }
             },
-            onSelectNode () {
+            onToggleAllNode () {
                 if (this.isPreviewMode) {
                     return
                 }
                 this.isSelectAll = !this.isSelectAll
-                this.$emit('onSelectNode', this.isSelectAll)
+                this.$emit('onToggleAllNode', this.isSelectAll)
             }
         }
     }

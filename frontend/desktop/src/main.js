@@ -27,7 +27,6 @@ import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
 const cron = require('@/assets/js/node-cron-valid/node-cron-vaild.js')
-
 Vue.use(VeeValidate)
 
 Vue.use(bkMagicVue)
@@ -70,6 +69,12 @@ Validator.extend('cronRlue', {
         return args + gettext('输入定时表达式非法，请校验')
     },
     validate: value => cron.validate(value).status
+})
+Validator.extend('integer', {
+    getMessage: (field, args) => {
+        return args + gettext('间隔时间必须是正整数')
+    },
+    validate: value => Number(value) >= 1 && Number(value) % 1 === 0
 })
 Validator.localize({
     en: {
@@ -138,6 +143,10 @@ Validator.localize({
             periodicCron: {
                 required: gettext('定时表达式不能为空'),
                 regex: gettext('输入定时表达式非法，请校验')
+            },
+            interval: {
+                required: gettext('间隔时间不能为空'),
+                regex: gettext('间隔时间必须是正整数')
             },
             draftName: {
                 required: gettext('本地缓存名称不能为空'),

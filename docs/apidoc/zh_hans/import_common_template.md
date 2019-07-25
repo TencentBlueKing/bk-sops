@@ -16,21 +16,19 @@
 
 |   字段   |    参数类型  |  必须  |     参数说明     |
 | ------------ | ------------ | ------ | ---------------- |
-|   data_file    |   file     |   是   |  公共流程数据文件 |
+|   template_data    |   string     |   是   |  公共流程数据，即从标准运维 - 公共流程 - 导出功能下载的文件的内容 |
 |   override        | bool     | 否         | 是否覆盖 ID 相同的流程           |           |
 
 ### 请求参数示例
 
 ```
-import requests
-kwargs = {
-    "app_code": "app_code",
-    "app_secret": "app_secret",
-    "access_token": "access_token",
-    "data_file": data_file
+{
+    "bk_app_code": "esb_test",
+    "bk_app_secret": "xxx",
+    "bk_token": "xxx",
+    "template_data": "xxx",
+    "override": true
 }
-response = requests.post("http://{stageVariables.domain}/apigw/import_common_template/", kwargs)
-result = response.json()
 ```
 
 ### 返回结果示例

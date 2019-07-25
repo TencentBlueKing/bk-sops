@@ -27,82 +27,66 @@
             <!-- 自动生成 -->
             <bk-tab
                 v-show="currentWay === 'selectGeneration'"
-                :type="'fill'"
-                :size="'small'"
-                :active-name="tabName"
+                :type="'card'"
+                :active="tabName"
                 @tab-changed="tabChanged">
-                <bk-tabpanel
+                <bk-tab-panel
                     v-for="(item, index) in autoRuleList"
                     :key="index"
                     :name="item.key"
-                    :title="item.title">
+                    :label="item.title">
                     <div class="tabpanel-container">
-                        <div class="radio-group">
-                            <div class="radio-item loop-radio">
-                                <input
-                                    :id="'loop' + item.key"
-                                    v-model.number="item.radio"
-                                    :value="0"
-                                    :name="item.key"
-                                    class="ui-radio"
-                                    type="radio" />
-                                <label
-                                    class="ui-label"
-                                    :for="'loop' + item.key"
-                                    @click.stop="onAutoWaySwitch(index, '0')">
-                                    {{ autoWay.loop.name }}
-                                </label>
-                            </div>
-                            <div class="radio-item appoint-radio">
-                                <input
-                                    :id="'appoint' + item.key"
-                                    v-model.number="item.radio"
-                                    type="radio"
-                                    class="ui-radio"
-                                    :value="1"
-                                    :name="item.key" />
-                                <label
-                                    class="ui-label"
-                                    :for="'appoint' + item.key"
-                                    @click.stop="onAutoWaySwitch(index, '1')">
-                                    {{ autoWay.appoint.name }}
-                                </label>
-                            </div>
-                        </div>
-                        <!-- 循环 -->
+                        <bk-radio-group v-model="item.radio" @change="renderRule">
+                            <bk-radio :value="0">{{ autoWay.loop.name }}</bk-radio>
+                            <bk-radio :value="1">{{ autoWay.appoint.name }}</bk-radio>
+                        </bk-radio-group>
+                        <!-- 循环生成 -->
                         <div
                             v-if="item.radio === 0"
                             class="loop-select-bd">
                             {{ item.key !== 'week' ? autoWay.loop.start : autoWay.loop.startWeek }}
-                            <BaseInput
+                            <!-- <BaseInput
                                 v-model.number="item.loop.start"
                                 v-validate="item.loop.reg"
                                 :name="item.key + 'Rule'"
                                 class="loop-time"
                                 @blur="renderRule()" />
-                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
-                            <BaseInput
+                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }} -->
+                            <bk-input
+                                v-model.number="item.loop.start"
+                                v-validate="item.loop.reg"
+                                class="loop-time"
+                                @blur="renderRule()">
+                            </bk-input>
+                            <!-- <BaseInput
+                                v-model.number="item.loop.inter"
+                                v-validate="{ required: true, integer: true }"
+                                name="interval"
+                                class="loop-time"
+                                @blur="renderRule()" /> -->
+                            <bk-input
                                 v-model.number="item.loop.inter"
                                 class="loop-time"
-                                @blur="renderRule()" />
+                                @blur="renderRule()">
+                            </bk-input>
                             {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
                             <i
                                 v-if="item.key === 'week'"
-                                v-bktooltips.right="i18n.monthTips"
-                                class="common-icon-tooltips month-tips"></i>
+                                v-bk-tooltips="i18n.monthTips"
+                                class="common-icon-tooltips month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
                             <div
-                                v-show="errors.has(item.key + 'Rule')"
+                                v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
                                 class="local-error-tip error-msg">
-                                {{ errors.first(item.key + 'Rule') }}
+                                {{ errors.first(item.key + 'Rule') || errors.first('interval') }}
                             </div>
                         </div>
                         <!-- 指定 -->
                         <div
                             v-else
                             class="appoint-select-bd">
-                            <div
+                            <!-- <div
                                 v-for="(box, i) in item.checkboxList"
                                 :key="i"
                                 class="ui-checkbox-group">
@@ -118,7 +102,14 @@
                                     <span class="ui-checkbox-icon"></span>
                                     <span class="ui-checkbox-tex"> {{ box.value | addZero(item.key) }}</span>
                                 </label>
-                            </div>
+                            </div> -->
+                            <bk-checkbox
+                                v-for="(box, i) in item.checkboxList"
+                                :key="i"
+                                v-model="box.checked"
+                                @change="renderRule">
+                                {{ box.value | addZero(item.key) }}
+                            </bk-checkbox>
                         </div>
                         <div class="expression">
                             {{ i18n.expression }} {{ expressionShowText }}
@@ -129,10 +120,9 @@
                             </span>
                         </div>
                     </div>
-                </bk-tabpanel>
+                </bk-tab-panel>
             </bk-tab>
             <!-- 手动输入 -->
-            <!-- @input="onInputName" @blur="onInputBlur" @enter="onInputBlur"-->
             <div
                 v-show="currentWay === 'manualInput'"
                 class="hand-input">
@@ -140,23 +130,20 @@
                     v-model="periodicCron"
                     v-validate="{ required: true, cronRlue: true }"
                     name="periodicCron"
-                    class="step-form-content-size"
-                    :placeholder="i18n.placeholder" />
+                    class="step-form-content-size" />
             </div>
         </div>
-        <!-- 说明 -->
-        <bk-tooltip
-            placement="bottom-end"
-            class="periodic-img-tooltip">
-            <i class="common-icon-tooltips"></i>
-            <div slot="content">
-                <img class="ui-img"
-                    :src="periodicCronImg">
-            </div>
-        </bk-tooltip>
+        <i class="common-icon-tooltips rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
+        <!-- corn 规则 tips -->
+        <div id="periodic-cron-tips-html">
+            <img class="ui-img" :src="periodicCronImg">
+        </div>
+        <!-- 手动输入错误提示 -->
         <span
             v-show="errors.has('periodicCron') && currentWay === 'manualInput'"
-            class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
+            class="common-error-tip error-msg">
+            {{ errors.first('periodicCron') }}
+        </span>
     </div>
 </template>
 <script>
@@ -248,7 +235,7 @@
             start: gettext('从第'),
             startWeek: gettext('从星期'),
             center: gettext('开始,每隔'),
-            end: gettext('执行')
+            end: gettext('执行一次')
         },
         'appoint': {
             name: gettext('指定')
@@ -307,7 +294,15 @@
                 tabName: 'min',
                 tName: '',
                 periodicCron: '',
-                templateNameRule: ''
+                templateNameRule: '',
+                ruleTipsHtmlConfig: {
+                    allowHtml: true,
+                    width: 560,
+                    trigger: 'mouseenter',
+                    theme: 'light',
+                    content: '#periodic-cron-tips-html',
+                    placement: 'bottom'
+                }
             }
         },
         computed: {
@@ -561,6 +556,20 @@ $bgBlue: #3a84ff;
         border-color: $bgBlue;
     }
 }
+.bk-form-radio {
+    margin-right: 30px;
+}
+.bk-form-checkbox {
+    margin-top: 20px;
+    margin-right: 22px;
+}
+.rule-tips {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-right: -20px;
+    margin-top: 8px;
+}
 .local-error-tip {
     margin-top: 10px;
     font-size: 14px;
@@ -578,7 +587,7 @@ $bgBlue: #3a84ff;
             border-radius: 0;
         }
         .manual-input-btn {
-            margin-left: -4px;
+            margin-left: -5px;
         }
         .active-btn {
             background-color: $blueBtnBg;
@@ -593,6 +602,7 @@ $bgBlue: #3a84ff;
         /deep/ .tab2-nav-item {
             width: 20%;
             border-bottom: 1px solid $commonBorderColor;
+            line-height: 40px !important;
             &:not(:first-child) {
                 border-left: 1px solid $commonBorderColor !important;
             }
@@ -606,45 +616,12 @@ $bgBlue: #3a84ff;
         }
         .tabpanel-container {
             padding: 20px;
-            .radio-item {
-                display: inline-block;
-                &:not(:first-child) {
-                    margin-left: 48px;
-                }
-                .ui-label {
-                    font-size: 14px;
-                    color: $colorGrey;
-                    &::before {
-                        content: "\a0"; /*不换行空格*/
-                        display: inline-block;
-                        vertical-align: middle;
-                        width: 1em;
-                        height: 1em;
-                        margin-right: 0.4em;
-                        border-radius: 50%;
-                        border: 1px solid $commonBorderColor;
-                        text-indent: 0.15em;
-                        line-height: 1;
-                        box-sizing: border-box;
-                        font-size: 16px;
-                    }
-                }
-                .ui-radio {
-                    position: absolute;
-                    clip: rect(0, 0, 0, 0);
-                }
-                .ui-radio:checked + .ui-label::before {
-                    background-color: $blueDefault;
-                    background-clip: content-box;
-                    box-sizing: border-box;
-                    padding: 0.2em;
-                }
-            }
             .loop-select-bd {
                 margin-top: 18px;
                 font-size: 14px;
                 color: $colorBalck;
                 .loop-time {
+                    display: inline-block;
                     margin: 0 10px;
                     width: 46px;
                 }
@@ -680,8 +657,6 @@ $bgBlue: #3a84ff;
         color: #c4c6cc;
         font-size: 14px;
         z-index: 4;
-        .ui-img {
-        }
         &:hover {
             color: #f4aa1a;
         }

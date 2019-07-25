@@ -1,6 +1,6 @@
 /* eslint-disable */
 'use strict';
-
+var commonConfig = {}
 var convertExpression = require('./convert-expression');
 var KEYSMAP = [
     {
@@ -80,8 +80,8 @@ module.exports = ( () => {
     return !isValidExpression(expression, 0, 6);
   }
 
-  function validateFields(patterns, executablePatterns, common_config, ErrorException){
-    var errorKey = common_config.language === 'en' ? 'error_en' : 'error_ch'
+  function validateFields(patterns, executablePatterns, ErrorException){
+    var errorKey = 'error_ch'
     if (isIncludeDecimals(patterns).valid) {
         var currIndex = isIncludeDecimals(patterns).index
         throw new ErrorException(patterns[currIndex] + KEYSMAP[currIndex][errorKey]);
@@ -111,6 +111,21 @@ module.exports = ( () => {
       throw new ErrorException(patterns[5] + KEYSMAP[5][errorKey]);
     }
   }
+  /**
+   * 接受: 
+   * [a-z] , - * / \d
+   * 排除：
+   * [A-Z]
+   * \d[a-z]
+  */
+  function basicCheck (patterns) {
+    var allowValue = /[^\,|\-|\*|\/|\w]|\d[a-z]|[A-Z]/
+    for (const pattern in patterns) {
+        if (allowValue.test(patterns[pattern])) {
+            throw '表达式非法，请校验'
+        }
+    }
+  }
   function WeekExchangeDay (pattern) {
     var patterns = pattern.split(' ');
     var week = patterns[2]
@@ -122,20 +137,24 @@ module.exports = ( () => {
     return patterns.join(' ')
   }
   function validate(pattern, common_config, ErrorException){
+    commonConfig = common_config
     if (typeof pattern !== 'string'){
       throw new ErrorException('pattern must be a string!');
     }
-    if (pattern.split(' ').length > 6 || pattern.split(' ').length < 5) {
-      throw common_config.language === 'en' ? 'pattern is a invalid expression' : '表达式非法，请校验' 
+    if (pattern.split(' ').length !== 5) {
+      throw  '表达式非法，请校验'
     }
     pattern = WeekExchangeDay(pattern);
-    var patterns = pattern.split(' ');    
+    var patterns = pattern.split(' ');
+    // 先基础验证下
+    basicCheck(patterns, ErrorException)
+    // 对应的表达式解析成数字
     var executablePattern = convertExpression(pattern);
     var executablePatterns = executablePattern.split(' ');
     if(patterns.length === 5){
       patterns = ['0'].concat(patterns);
     }
-    validateFields(patterns, executablePatterns, common_config, ErrorException);
+    validateFields(patterns, executablePatterns, ErrorException);
   }
 
   return validate;
