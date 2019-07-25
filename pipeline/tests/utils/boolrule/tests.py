@@ -205,4 +205,3 @@ class BoolRuleTests(TestCase):
         self.assertFalse(BoolRule('(1 > 2 or 2 > 3) and ("s" > "s" or "su" > "st")').test())
         self.assertFalse(BoolRule('(1 > 2 or 2 > 3) and ("s" > "s" or "su" < "st")').test())
         self.assertFalse(BoolRule('(1 < 3 and 2 < 3)  and ("s" > "s" or "su" > "st") and (4 > 5 and 5 < 6)').test())
-
