@@ -18,11 +18,13 @@ class ComponentLibrary(object):
     components = {}
 
     @classmethod
-    def get_component_class(cls, component_code, version=LEGACY_PLUGINS_VERSION):
+    def get_component_class(cls, component_code, version=None):
+        version = version or LEGACY_PLUGINS_VERSION
         return cls.components.get(component_code, {}).get(version)
 
     @classmethod
-    def get_component(cls, component_code, data_dict, version=LEGACY_PLUGINS_VERSION):
+    def get_component(cls, component_code, data_dict, version=None):
+        version = version or LEGACY_PLUGINS_VERSION
         return cls.get_component_class(component_code=component_code, version=version)(data_dict)
 
     @classmethod
