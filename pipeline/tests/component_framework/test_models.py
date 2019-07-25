@@ -17,6 +17,7 @@ from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 from pipeline.component_framework.models import ComponentModel
 from pipeline.component_framework.library import ComponentLibrary
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 
 __group_name__ = 'gn'
 __group_icon__ = 'gi'
@@ -52,23 +53,37 @@ class TestModels(TestCase):
             code = 'cc_update_module'
             form = 'form path'
 
+        class CCUpdateHostModuleComponentV2(Component):
+            name = '1234'
+            bound_service = CCUpdateHostModuleService
+            code = 'cc_update_module'
+            form = 'form path'
+            version = '2.0'
+
         self.service = CCUpdateHostModuleService
         self.component = CCUpdateHostModuleComponent
+        self.component_v2 = CCUpdateHostModuleComponentV2
 
     def tearDown(self):
         ComponentModel.objects.all().delete()
         ComponentLibrary.components = {}
 
     def test_unicode(self):
-        component = ComponentModel.objects.get(code=self.component.code)
+        component = ComponentModel.objects.get(code=self.component.code, version=LEGACY_PLUGINS_VERSION)
         self.assertEqual(component.name, component.__unicode__())
 
     def test_group_name(self):
-        component = ComponentModel.objects.get(code=self.component.code)
+        component = ComponentModel.objects.get(code=self.component.code, version=LEGACY_PLUGINS_VERSION)
         self.assertEqual(component.group_name, self.component.group_name)
 
-    def group_icon(self):
-        component = ComponentModel.objects.get(code=self.component.code)
+    def test_version(self):
+        component = ComponentModel.objects.get(code=self.component.code, version=LEGACY_PLUGINS_VERSION)
+        component_v2 = ComponentModel.objects.get(code=self.component.code, version='2.0')
+        self.assertEqual(component.version, LEGACY_PLUGINS_VERSION)
+        self.assertEqual(component_v2.version, '2.0')
+
+    def test_group_icon(self):
+        component = ComponentModel.objects.get(code=self.component.code, version=LEGACY_PLUGINS_VERSION)
         self.assertEqual(component.group_icon, self.component.group_icon)
 
     def test_get_component_dict(self):
