@@ -568,7 +568,7 @@
             },
             // 获取编辑按钮的跳转链接
             getEditTemplateUrl (id) {
-                let url = `/template/edit/${this.cc_id}/?template_id=${id}`
+                let url = `/template/edit/${this.cc_id}/?template_id=${id}&entrance=businessList`
                 if (this.common) {
                     url += '&common=1'
                 }
@@ -586,7 +586,9 @@
             getNewTaskUrl (id) {
                 let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${id}`
                 if (this.common || this.common_template) {
-                    url += '&common=1'
+                    url += '&common=1&entrance=commonList'
+                } else {
+                    url += '&entrance=businessList'
                 }
                 return url
             },
@@ -660,19 +662,137 @@
     word-break: break-all;
 }
 .template-container {
-    min-width: 1320px;
-    padding-top: 50px;
-    min-height: calc(100% - 100px);
-    background: #f4f7fa;
+    .dialog-content {
+        word-break: break-all;
+    }
+    .bk-selector-icon.clear-icon {
+        top: 6px;
+    }
 }
 .list-wrapper {
     padding: 0 60px;
     min-height: calc(100vh - 240px);
 }
+.template-fieldset {
+    width: 100%;
+    margin: 0;
+    padding: 8px;
+    border: 1px solid $commonBorderColor;
+    background: $whiteDefault;
+    margin-bottom: 15px;
+    .template-query-content {
+        display: flex;
+        flex-wrap: wrap;
+        .query-content {
+            min-width: 420px;
+            @media screen and (max-width: 1420px){
+                min-width: 380px;
+            }
+            padding: 10px;
+            .query-span {
+                float: left;
+                min-width: 130px;
+                margin-right: 12px;
+                height: 32px;
+                line-height: 32px;
+                font-size: 14px;
+                @media screen and (max-width: 1420px){
+                    min-width: 100px;
+                }
+                text-align: right;
+            }
+            input {
+                max-width: 260px;
+                height: 32px;
+                line-height: 32px;
+            }
+            .bk-date-range:after {
+                height: 32px;
+                line-height: 32px;
+            }
+            /deep/ .bk-selector {
+                max-width: 260px;
+                display: inline-block;
+            }
+            input::-webkit-input-placeholder{
+                color: $formBorderColor;
+            }
+            input:-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input::-moz-placeholder {
+                color: $formBorderColor;
+            }
+            input:-ms-input-placeholder {
+                color: $formBorderColor;
+            }
+            input, .bk-selector, .bk-date-range {
+                min-width: 260px;
+            }
+            .bk-selector-search-item > input {
+                min-width: 249px;
+            }
+            .bk-date-range {
+                display: inline-block;
+                width: 260px;
+                height: 32px;
+                line-height: 32px;
+            }
+            /deep/ .bk-date-range input {
+                height: 32px;
+                line-height: 32px;
+            }
+            .search-input {
+                width: 260px;
+                height: 32px;
+                padding: 0 10px 0 10px;
+                font-size: 14px;
+                color: $greyDefault;
+                border: 1px solid $formBorderColor;
+                line-height: 32px;
+                outline: none;
+                &:hover {
+                    border-color: #c0c4cc;
+                }
+                &:focus {
+                    border-color: $blueDefault;
+                }
+            }
+            .ommon-icon-search {
+                position: relative;
+                right: 15px;
+                top: 11px;
+                color:#dddddd;
+            }
+            .search-input.placeholder {
+                color: $formBorderColor;
+            }
+        }
+    }
+    .query-button {
+        padding: 10px;
+        min-width: 450px;
+        @media screen and (max-width: 1420px) {
+            min-width: 390px;
+        }
+        text-align: center;
+        .query-cancel {
+            margin-left: 5px;
+        }
+    }
+    .bk-button {
+        height: 32px;
+        line-height: 32px;
+    }
+}
+
 .operation-area {
     margin: 20px 0;
     .create-template {
-        width: 120px;
+        height: 32px;
+        min-width: 120px;
+        line-height: 29px;
+        font-size: 14px;
     }
     .template-btn {
         margin-left: 5px;
@@ -707,52 +827,6 @@
         }
     }
 }
-// .template-fieldset {
-//     width: 100%;
-//     margin: 0;
-//     padding: 8px;
-//     border: 1px solid $commonBorderColor;
-//     background: $whiteDefault;
-//     margin-bottom: 15px;
-//     .template-query-content {
-//         display: flex;
-//         flex-wrap: wrap;
-//         .query-content {
-//             min-width: 420px;
-//             @media screen and (max-width: 1420px){
-//                 min-width: 380px;
-//             }
-//             padding: 10px;
-//             .query-span {
-//                 float: left;
-//                 min-width: 130px;
-//                 margin-right: 12px;
-//                 height: 32px;
-//                 line-height: 32px;
-//                 font-size: 14px;
-//                 @media screen and (max-width: 1420px){
-//                     min-width: 100px;
-//                 }
-//                 text-align: right;
-//             }
-//         }
-//     }
-//     .query-button {
-//         padding: 10px;
-//         min-width: 450px;
-//         @media screen and (max-width: 1420px) {
-//             min-width: 390px;
-//         }
-//         text-align: center;
-//         .query-cancel {
-//             margin-left: 5px;
-//         }
-//     }
-//     .bk-button {
-//         height: 32px;
-//         line-height: 32px;
-//     }
-// }
 .template-table-content {
     table {
         width: 100%;

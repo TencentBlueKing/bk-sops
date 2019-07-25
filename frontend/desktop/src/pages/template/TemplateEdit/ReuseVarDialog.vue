@@ -23,12 +23,18 @@
                 <div class="common-form-item" v-if="!reuseVariable.useNewKey">
                     <label>{{ i18n.reuse }}</label>
                     <div class="common-form-content">
-                        <bk-selector
-                            :list="reuseableVarList"
-                            :selected.sync="selectedVar"
+                        <bk-select
+                            v-model="selectedVar"
+                            :popover-width="260"
                             :disabled="isSelectDisabled"
-                            @item-selected="onSelect">
-                        </bk-selector>
+                            @selected="onSelect">
+                            <bk-option
+                                v-for="(option, index) in reuseableVarList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
                     </div>
                 </div>
                 <div class="common-form-item" v-if="!reuseVariable.useNewKey">

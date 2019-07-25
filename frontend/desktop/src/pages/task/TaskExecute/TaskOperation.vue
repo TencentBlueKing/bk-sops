@@ -34,14 +34,17 @@
                     <template v-for="operation in taskOperationBtns">
                         <bk-button
                             :class="['operation-btn', operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn']"
-                            type="default"
+                            theme="default"
                             size="mini"
                             hide-text="true"
                             :icon="'common-icon ' + operation.icon"
                             :key="operation.action"
                             :loading="operation.loading"
                             :disabled="operation.disabled"
-                            v-bktooltips.bottom="operation.text"
+                            v-bk-tooltips="{
+                                content: operation.text,
+                                placements: ['bottom']
+                            }"
                             @click="onOperationClick(operation.action)">
                         </bk-button>
                     </template>
@@ -51,28 +54,38 @@
                         :class="['params-btn', 'solid-eye', {
                             actived: nodeInfoType === 'viewParams'
                         }]"
-                        type="default"
+                        theme="default"
                         size="mini"
                         hide-text="true"
                         icon="common-icon common-icon-solid-eye params-btn-icon"
-                        v-bktooltips.bottom="i18n.params"
+                        v-bk-tooltips="{
+                            content: i18n.params,
+                            placements: ['bottom']
+                        }"
                         @click="onTaskParamsClick('viewParams')">
                     </bk-button>
                     <bk-button
                         :class="['params-btn', {
                             actived: nodeInfoType === 'modifyParams'
                         }]"
-                        type="default"
+                        theme="default"
                         size="mini"
                         hide-text="true"
                         icon="common-icon common-icon-edit params-btn-icon"
-                        v-bktooltips.bottom="i18n.changeParams"
+                        v-bk-tooltips="{
+                            content: i18n.changeParams,
+                            placements: ['bottom']
+                        }"
                         @click="onTaskParamsClick('modifyParams')">
                     </bk-button>
                     <router-link
+                        v-if="isShowViewProcess"
                         class="jump-tpl-page-btn common-icon-link params-btn-icon"
                         target="_blank"
-                        v-bktooltips.bottom="i18n.checkFlow"
+                        v-bk-tooltips="{
+                            content: i18n.checkFlow,
+                            placements: ['bottom']
+                        }"
                         :to="getTplURL()">
                     </router-link>
                 </div>
@@ -150,7 +163,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import Tooltip from 'tooltip.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
@@ -255,6 +268,9 @@
             }
         },
         computed: {
+            ...mapState({
+                userType: state => state.userType
+            }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
             },
@@ -321,6 +337,10 @@
             },
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
+            },
+            // 职能化/审计中心时,隐藏[查看流程]按钮
+            isShowViewProcess () {
+                return this.userType !== 'functor' && this.userType !== 'auditor'
             }
         },
         watch: {
@@ -1320,6 +1340,9 @@
             .solid-eye {
                 font-size: 12px;
             }
+            .params-btn-icon, .params-btn {
+                font-size: 15px;
+            }
         }
     }
 }
@@ -1440,6 +1463,12 @@
             text-align: left;
             border: 1px solid #ebeef5;
         }
+    }
+    .bk-flow-canvas .tooltip .tooltip-inner {
+        height: 34px;
+        width: 80px;
+        line-height: 34px;
+        padding: 0;
     }
 }
 </style>

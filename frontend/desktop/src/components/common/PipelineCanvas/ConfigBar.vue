@@ -126,6 +126,11 @@
             },
             getHomeUrl () {
                 let url = `/template/home/${this.cc_id}/`
+                const path = this.$route.fullPath
+                if (path.indexOf('/template/edit/') !== -1) {
+                    if (this.$route.query.entrance === 'businessList') url = `/template/home/${this.cc_id}/`
+                    if (this.$route.query.entrance === 'periodicTask') url = `/periodic/home/${this.cc_id}/`
+                }
                 if (this.common) {
                     url += '?common=1'
                 }

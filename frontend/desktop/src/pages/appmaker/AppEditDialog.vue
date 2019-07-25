@@ -11,58 +11,78 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.title"
         width="800"
-        :is-show.sync="isEditDialogShow"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.title"
+        :value="isEditDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content" class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+        <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
             <div class="common-form-item">
                 <label class="required">{{i18n.template}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="templateList"
-                        :selected.sync="appData.appTemplate"
+
+                    <bk-select
+                        v-model="appData.appTemplate"
+                        class="bk-select-inline"
                         :searchable="true"
+                        :placeholder="i18n.statusPlaceholder"
+                        :clearable="true"
                         :disabled="!isCreateNewApp"
-                        @item-selected="onSelectTemplate">
-                    </bk-selector>
+                        @selected="onSelectTemplate">
+                        <bk-option
+                            v-for="(option, index) in templateList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                     <span v-show="appTemplateEmpty" class="common-error-tip error-msg">{{i18n.templateTips}}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label class="required">{{i18n.appName}}</label>
                 <div class="common-form-content">
-                    <BaseInput
-                        name="appName"
+                    <bk-input
                         v-model="appData.appName"
-                        v-validate="appNameRule" />
+                        v-validate="appNameRule"
+                        class="bk-input-inline"
+                        :clearable="true">
+                    </bk-input>
                     <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label>{{i18n.scheme}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="schemeList"
-                        :selected.sync="appData.appScheme"
+                    <bk-select
+                        v-model="appData.appScheme"
+                        class="bk-select-inline"
                         :searchable="true"
+                        :placeholder="i18n.statusPlaceholder"
+                        :clearable="true"
                         :is-loading="schemeLoading"
-                        :allow-clear="true"
-                        @visible-toggle="onOpenScheme"
-                        @item-selected="onSelectScheme">
-                    </bk-selector>
+                        @toggle="onOpenScheme"
+                        @selected="onSelectTemplate">
+                        <bk-option
+                            v-for="(option, index) in schemeList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                     <i
                         class="bk-icon icon-info-circle scheme-tooltip"
-                        v-bktooltips="{
+                        v-bk-tooltips="{
                             content: i18n.schemeTips,
                             placements: ['left'],
+                            customClass: 'offset-left-tooltip',
                             width: 400,
-                            zIndex: 1501
-                        }"></i>
+                            zIndex: 1501 }">
+                    </i>
                 </div>
             </div>
             <div class="common-form-item">
@@ -104,12 +124,8 @@
     import { mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     export default {
         name: 'AppEditDialog',
-        components: {
-            BaseInput
-        },
         props: ['cc_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
         data () {
             return {
