@@ -12,9 +12,8 @@
 <template>
     <div class="home-page">
         <div>
-            <div class="summary-info">
+            <div class="summary-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <HomeSummary
-                    v-bkloading="{ isLoading: loading, opacity: 1 }"
                     :loading="loading"
                     :cc_id="cc_id"
                     :summary-data="summaryData">
@@ -30,16 +29,14 @@
                     @updateQuickTaskList="updateQuickTaskList">
                 </QuickCreateTask>
                 <div class="column-panel clearfix">
-                    <div class="col-item">
+                    <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
                         <TaskFeeds
-                            v-bkloading="{ isLoading: loading, opacity: 1 }"
                             :top-three-task-feeds="topThreeTaskFeeds"
                             :cc_id="cc_id">
                         </TaskFeeds>
                     </div>
-                    <div class="col-item">
+                    <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
                         <TaskPercentChart
-                            v-bkloading="{ isLoading: loading, opacity: 1 }"
                             :task-count="taskCount"
                             :total-task="totalTask">
                         </TaskPercentChart>
