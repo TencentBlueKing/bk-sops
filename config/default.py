@@ -121,7 +121,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
-
 # CELERY 开关，使用时请改为 True，修改项目目录下的 Procfile 文件，添加以下两行命令：
 # python manage.py celery worker -l info
 # python manage.py celery beat -l info
@@ -139,13 +138,13 @@ CELERY_IMPORTS = (
 if IS_USE_CELERY:
     INSTALLED_APPS = locals().get('INSTALLED_APPS', [])
     import djcelery
+
     INSTALLED_APPS += (
         'djcelery',
     )
     djcelery.setup_loader()
     CELERY_ENABLE_UTC = True
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
-
 
 LOGGING['loggers']['pipeline'] = {
     'handlers': ['root'],
@@ -192,7 +191,6 @@ HAYSTACK_CONNECTIONS = {
 
 # 通知公告域名
 PUSH_URL = os.environ.get('BK_PUSH_URL', '')
-
 
 # remove disabled apps
 if locals().get('DISABLED_APPS'):
@@ -285,6 +283,8 @@ PIPELINE_RERUN_MAX_TIMES = 50
 EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY', None)
 # 是否只允许加载远程 https 仓库的插件
 EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = 'BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE' not in os.environ
+
+UUID_DIGIT_STARTS_SENSITIVE = True
 
 from pipeline.celery.settings import *  # noqa
 
