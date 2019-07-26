@@ -89,7 +89,7 @@
                             <tbody>
                                 <tr v-for="field in detailFields" :key="field.id">
                                     <th>{{field.name}}</th>
-                                    <td>
+                                    <td class="td-with-input">
                                         <input
                                             type="text"
                                             class="table-input"
@@ -341,6 +341,10 @@
                 bottom: 0;
                 font-size: 12px;
                 white-space: nowrap;
+            }
+            .td-with-input:hover {
+                border-style: double;
+                border-color: #3c96ff;
             }
         }
         .table-input {
