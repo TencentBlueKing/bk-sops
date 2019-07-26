@@ -178,7 +178,7 @@
                                                     {{ i18n.required }}
                                                 </span>
                                             </td>
-                                            <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage">{{i18n.delete}}</bk-button></td>
+                                            <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -370,7 +370,6 @@
 
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
-                console.log(packages)
                 if (Object.keys(packages).length === 0) {
                     this.showModuleError = true
                 }
