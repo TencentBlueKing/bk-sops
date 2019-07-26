@@ -98,7 +98,7 @@
                                 <tbody>
                                     <tr v-for="field in detailFields" :key="field.id">
                                         <th>{{field.name}}</th>
-                                        <td>
+                                        <td class="td-with-input">
                                             <input
                                                 type="text"
                                                 class="table-input"
@@ -135,7 +135,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="(item, index) in packageValues" :key="index">
-                                        <td>
+                                        <td class="td-with-input">
                                             <input
                                                 type="text"
                                                 class="table-input"
@@ -149,7 +149,7 @@
                                                 {{ errors.first('moduleName') }}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td class="td-with-input">
                                             <input
                                                 type="text"
                                                 class="table-input"
@@ -163,7 +163,7 @@
                                                 {{ i18n.required }}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td class="td-with-input">
                                             <input
                                                 type="text"
                                                 class="table-input"
@@ -587,6 +587,12 @@
         .common-error-tip {
             display: none;
             bottom: 0;
+        }
+    }
+    .detail-table, .module-table {
+        .td-with-input:hover {
+            border-style: double;
+            border-color: #3c96ff;
         }
     }
     .table-input {

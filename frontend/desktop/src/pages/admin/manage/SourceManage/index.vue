@@ -163,9 +163,11 @@
             color: #3a84ff;
         }
     }
-    .no-data-wrapper {
-        margin-top: 30px;
-        background: transparent;
-        color: #c4c6cc;
+    .page-manage {
+        .no-data-wrapper {
+            margin-top: 30px;
+            background: transparent;
+            color: #c4c6cc;
+        }
     }
 </style>
