@@ -139,7 +139,6 @@
                 </div>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <bk-dialog
             :is-show.sync="isShowNewTaskDialog"
             @confirm="onConfirmlNewTask"
@@ -204,7 +203,6 @@
     import '@/utils/i18n.js'
     import { mapActions, mapMutations, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
@@ -214,7 +212,6 @@
     export default {
         name: 'functorTaskHome',
         components: {
-            CopyrightFooter,
             BaseSearch,
             BaseTitle,
             NoData
@@ -567,7 +564,7 @@ label.required:after {
     background: #f4f7fa;
 }
 .list-wrapper {
-    padding: 0 60px;
+    padding: 0 60px 30px;
     min-height: calc(100vh - 240px);
 }
 .template-tooltip {

@@ -212,7 +212,6 @@
                 </div>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <ImportTemplateDialog
             v-if="isImportDialogShow"
             :common="common"
@@ -259,7 +258,6 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import AuthorityManageDialog from './AuthorityManageDialog.vue'
@@ -271,7 +269,6 @@
     export default {
         name: 'TemplateList',
         components: {
-            CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
             AuthorityManageDialog,
@@ -678,7 +675,7 @@
     }
 }
 .list-wrapper {
-    padding: 0 60px;
+    padding: 0 60px 30px;
     min-height: calc(100vh - 240px);
 }
 .template-fieldset {

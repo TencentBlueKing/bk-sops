@@ -71,21 +71,18 @@
                 </div>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import toolsUtils from '@/utils/tools.js'
     export default {
         name: 'appmakerTaskHome',
         components: {
-            CopyrightFooter,
             BaseTitle,
             NoData
         },
@@ -262,7 +259,7 @@
     background: #fafafa;
 }
 .list-wrapper {
-    padding: 0 60px;
+    padding: 0 60px 30px;
     min-height: calc(100vh - 240px);
 }
 .operation-area {

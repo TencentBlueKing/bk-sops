@@ -139,7 +139,6 @@
                 </div>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             :cc_id="cc_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
@@ -174,7 +173,6 @@
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
@@ -184,7 +182,6 @@
     export default {
         name: 'PeriodicList',
         components: {
-            CopyrightFooter,
             BaseTitle,
             BaseSearch,
             NoData,
@@ -420,10 +417,8 @@
 </script>
 <style lang='scss'>
 @import '@/scss/config.scss';
-.periodic-container {
-}
 .list-wrapper {
-    padding: 0 60px;
+    padding: 0 60px 30px;
     min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 0px;

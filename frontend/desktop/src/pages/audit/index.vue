@@ -152,14 +152,12 @@
                 </div>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
@@ -169,7 +167,6 @@
     export default {
         name: 'auditTaskHome',
         components: {
-            CopyrightFooter,
             BaseTitle,
             BaseSearch,
             NoData
@@ -437,7 +434,7 @@
     background: #fafafa;
 }
 .list-wrapper {
-    padding: 0 60px;
+    padding: 0 60px 30px;
     min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 20px 0px;

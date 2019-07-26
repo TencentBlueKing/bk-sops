@@ -164,7 +164,6 @@
                 </div>
             </div>
         </div>
-        <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             :common="common"
             :cc_id="cc_id"
@@ -203,7 +202,6 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
-    import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import TaskCreateDialog from './TaskCreateDialog.vue'
@@ -214,7 +212,6 @@
     export default {
         name: 'TaskList',
         components: {
-            CopyrightFooter,
             BaseTitle,
             BaseSearch,
             NoData,
@@ -597,7 +594,7 @@
     }
 }
 .list-wrapper {
-    padding: 0 60px;
+    padding: 0 60px 30px;
     min-height: calc(100vh - 240px);
     .advanced-search {
         margin: 20px 0px;
