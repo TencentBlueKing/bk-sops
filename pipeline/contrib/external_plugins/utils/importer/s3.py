@@ -33,7 +33,7 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
         super(S3ModuleImporter, self).__init__(modules=modules)
 
         if secure_only and not service_address.startswith('https'):
-            raise ValueError('Only accept https when secure_only it True.')
+            raise ValueError('Only accept https when secure_only is True.')
         elif not secure_only:
             logger.warning('Using not secure protocol is extremely dangerous!!')
 
