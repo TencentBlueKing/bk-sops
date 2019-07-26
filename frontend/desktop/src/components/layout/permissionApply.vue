@@ -127,21 +127,16 @@
                 }
             },
             goToApply () {
-                let name = '项目'
-                try {
-                    name = this.getResource(this.permissionData.permission[0])
-                } catch (err) {
-                    errorHandler(err, this)
-                }
+                const name = this.getResource(this.permissionData.permission[0]) || '项目'
                 const resourceData = {
                     name,
                     auth_actions: this.authActions
                 }
                 this.applyForPermission(['create'], resourceData, this.authOperations, this.authResource)
             },
-            getResource (permission, type = 'resource_name') {
+            getResource (permission) {
                 return permission.resources.map(res => {
-                    return res.map(item => item[type]).join(',')
+                    return res.map(item => item.resource_name).join(',')
                 }).join(',')
             },
             async queryProjectCreatePerm () {
