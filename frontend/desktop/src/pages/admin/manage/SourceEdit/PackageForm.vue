@@ -124,65 +124,68 @@
                             </div>
                         </th>
                         <td class="value">
-                            <table class="module-table">
-                                <thead>
-                                    <tr>
-                                        <th>{{i18n.subModule}}</th>
-                                        <th>{{i18n.version}}</th>
-                                        <th>{{i18n.importModule}}</th>
-                                        <th>{{i18n.operation}}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(item, index) in packageValues" :key="index">
-                                        <td class="td-with-input">
-                                            <input
-                                                type="text"
-                                                class="table-input"
-                                                name="moduleName"
-                                                :placeholder="i18n.placeholder"
-                                                v-model="item.key"
-                                                v-validate="packageNameRule"
-                                                @blur="onPackageInputBlur($event, 'key', index)">
-                                            <span
-                                                class="common-error-tip error-msg">
-                                                {{ errors.first('moduleName') }}
-                                            </span>
-                                        </td>
-                                        <td class="td-with-input">
-                                            <input
-                                                type="text"
-                                                class="table-input"
-                                                name="moduleVersion"
-                                                :placeholder="i18n.placeholder"
-                                                v-model="item.version"
-                                                v-validate="valueRule"
-                                                @blur="onPackageInputBlur($event, 'version', index)">
-                                            <span
-                                                class="common-error-tip error-msg">
-                                                {{ i18n.required }}
-                                            </span>
-                                        </td>
-                                        <td class="td-with-input">
-                                            <input
-                                                type="text"
-                                                class="table-input"
-                                                name="modules"
-                                                :placeholder="i18n.importPlaceholder"
-                                                v-model="item.modules"
-                                                v-validate="valueRule"
-                                                @blur="onPackageInputBlur($event, 'modules', index)">
-                                            <span
-                                                class="common-error-tip error-msg">
-                                                {{ i18n.required }}
-                                            </span>
-                                        </td>
-                                        <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage">{{i18n.delete}}</bk-button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="add-module">
-                                <bk-button type="default" size="mini" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                            <div class="module-table-wrapper">
+                                <table class="module-table">
+                                    <thead>
+                                        <tr>
+                                            <th>{{i18n.subModule}}</th>
+                                            <th>{{i18n.version}}</th>
+                                            <th>{{i18n.importModule}}</th>
+                                            <th>{{i18n.operation}}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item, index) in packageValues" :key="index">
+                                            <td class="td-with-input">
+                                                <input
+                                                    type="text"
+                                                    class="table-input"
+                                                    name="moduleName"
+                                                    :placeholder="i18n.placeholder"
+                                                    v-model="item.key"
+                                                    v-validate="packageNameRule"
+                                                    @blur="onPackageInputBlur($event, 'key', index)">
+                                                <span
+                                                    class="common-error-tip error-msg">
+                                                    {{ errors.first('moduleName') }}
+                                                </span>
+                                            </td>
+                                            <td class="td-with-input">
+                                                <input
+                                                    type="text"
+                                                    class="table-input"
+                                                    name="moduleVersion"
+                                                    :placeholder="i18n.placeholder"
+                                                    v-model="item.version"
+                                                    v-validate="valueRule"
+                                                    @blur="onPackageInputBlur($event, 'version', index)">
+                                                <span
+                                                    class="common-error-tip error-msg">
+                                                    {{ i18n.required }}
+                                                </span>
+                                            </td>
+                                            <td class="td-with-input">
+                                                <input
+                                                    type="text"
+                                                    class="table-input"
+                                                    name="modules"
+                                                    :placeholder="i18n.importPlaceholder"
+                                                    v-model="item.modules"
+                                                    v-validate="valueRule"
+                                                    @blur="onPackageInputBlur($event, 'modules', index)">
+                                                <span
+                                                    class="common-error-tip error-msg">
+                                                    {{ i18n.required }}
+                                                </span>
+                                            </td>
+                                            <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage">{{i18n.delete}}</bk-button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="add-module">
+                                    <bk-button type="default" size="mini" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                                </div>
+                                <div v-if="showModuleError" class="common-error-tip error-msg">{{i18n.required}}</div>
                             </div>
                         </td>
                     </tr>
@@ -236,9 +239,9 @@
                 detailFields,
                 packageValues,
                 isSettingPanelShow: true,
-                showError: false,
-                // 名称校验规则
-                packageNameRule: {
+                showError: false, // 包源配置错误
+                showModuleError: false, // 模块配置错误
+                packageNameRule: { // 名称校验规则
                     required: true,
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
                     regex: NAME_REG
@@ -302,7 +305,6 @@
             getPackageValues (packages) {
                 const values = []
                 for (const key in packages) {
-                    console.log(packages[key].modules)
                     values.push({
                         key: key,
                         version: packages[key].version,
@@ -331,7 +333,10 @@
             },
             validate () {
                 return this.$validator.validateAll().then(result => {
-                    return result
+                    if (this.packageValues.length === 0) {
+                        this.showModuleError = true
+                    }
+                    return result && !this.showModuleError
                 })
             },
             onTogglePanelShow () {
@@ -358,12 +363,17 @@
                     version: '',
                     modules: []
                 })
+                this.showModuleError = false
             },
             onDeletePackage (index) {
                 this.packageValues.splice(index, 1)
 
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
+                console.log(packages)
+                if (Object.keys(packages).length === 0) {
+                    this.showModuleError = true
+                }
             },
             onPackageNameBlur () {
                 this.updateValue('name', this.name)
@@ -565,6 +575,9 @@
             display: none;
             bottom: 0;
         }
+    }
+    .module-table-wrapper {
+        position: relative;
     }
     .module-table {
         width: 100%;
