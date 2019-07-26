@@ -40,7 +40,7 @@
                 <table class="permission-table">
                     <tbody>
                         <tr v-for="(permission, index) in list" :key="index">
-                            <td width="60%">{{getResource(permission, 'resource_type_name')}}：{{getResource(permission)}}</td>
+                            <td width="60%">{{getResource(permission)}}</td>
                             <td width="40%">{{permission.action_name}}</td>
                         </tr>
                         <tr v-if="false">
@@ -108,10 +108,12 @@
                 this.isModalShow = true
                 this.list = data
             },
-            getResource (permission, type = 'resource_name') {
-                return permission.resources.map(res => {
-                    return res.map(item => item[type]).join(',')
+            getResource (permission) {
+                const type = permission.resources[0][0].resource_type_name
+                const names = permission.resources.map(res => {
+                    return res.map(item => item.resource_name).join(',')
                 }).join(',')
+                return type + '：' + names
             },
             goToApply () {
                 if (this.loading) {
