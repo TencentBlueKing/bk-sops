@@ -12,8 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 from abc import ABCMeta
-from pipeline.core.flow.base import FlowNode
 from django_signal_valve import valve
+from pipeline.core.flow.base import FlowNode
 from pipeline.engine import signals
 from pipeline.core.pipeline import Pipeline
 
