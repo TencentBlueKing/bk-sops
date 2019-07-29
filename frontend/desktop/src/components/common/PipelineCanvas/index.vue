@@ -101,7 +101,7 @@
                             delay: 1000,
                             placements: ['bottom']
                         }"
-                        @click="onSelectNode">
+                        @click="onToggleAllNode">
                         <i :class="[{
                             'common-icon-black-box': !isSelectAll,
                             'common-icon-black-hook': isSelectAll,

@@ -1270,6 +1270,7 @@
 /deep/.icon-close {
     display: none;
 }
+<<<<<<< HEAD
 .common-icon-box-top-right-corner {
     position: absolute;
     right: 0;
@@ -1277,4 +1278,6 @@
     margin-top: 10px;
     margin-right: 10px;
 }
+=======
+>>>>>>> magicbox_update
 </style>
