@@ -95,12 +95,8 @@
                 'setProjectActions'
             ]),
             applyBtnClick () {
-                if (this.permissionData.type === 'project') {
-                    if (this.projectList.length === 0) {
-                        this.$router.push('/project/home/')
-                    } else {
-                        this.goToApply('view')
-                    }
+                if (this.permissionData.type === 'project' && this.projectList.length === 0) {
+                    this.$router.push('/project/home/')
                 } else {
                     this.goToAuthCenter()
                 }
