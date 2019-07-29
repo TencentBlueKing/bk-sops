@@ -380,7 +380,7 @@
                         pipeline_instance__name__contains: this.flowName,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
-                        create_method: this.createMethod || this.create_method || undefined
+                        create_method: this.createMethod || undefined
                     }
                     if (this.executeEndTime) {
                         if (this.common) {
