@@ -15,10 +15,10 @@
             <div class="task-info-title">
                 <span>{{ i18n.taskInfo }}</span>
             </div>
-            <div v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
+            <div>
                 <div class="common-form-item">
                     <label class="required">{{ i18n.taskName }}</label>
-                    <div class="common-form-content">
+                    <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
                         <BaseInput
                             v-model="taskName"
                             v-validate="taskNameRule"
