@@ -385,7 +385,11 @@
 <style lang="scss" scoped>
 @import "@/scss/config.scss";
 .param-fill-wrapper {
+    position: relative;
     padding-top: 50px;
+    padding-bottom: 72px;
+    box-sizing: border-box;
+    min-height: calc(100vh - 50px - 139px);
     background: #fff;
     @media screen and (max-width: 1300px){
         width: calc(100% - 40px);
@@ -492,6 +496,9 @@
     }
 }
 .action-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
     button {
