@@ -194,8 +194,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
             for incoming_id in incoming_id_list:
                 lines[incoming_id][PE.target]['id'] = next_node['id']
-        except Exception as e:
-            logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error:%s' % e)
+        except Exception:
+            logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error: %s' %
+                             traceback.format_exc())
 
     @staticmethod
     def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree):
@@ -947,8 +948,8 @@ class TaskFlowInstance(models.Model):
             except Exception as e:
                 inputs = {}
                 result = False
+                logger.exception(traceback.format_exc())
                 message = 'parser pipeline tree error: %s' % e
-                logger.exception(message)
                 outputs = {'ex_data': message}
 
         if not isinstance(inputs, dict):
@@ -964,7 +965,7 @@ class TaskFlowInstance(models.Model):
             except Exception as e:
                 result = False
                 message = 'get component[component_code=%s] format error: %s' % (component_code, e)
-                logger.exception(message)
+                logger.exception(traceback.format_exc())
                 outputs = {'ex_data': message}
             else:
                 # for some special empty case e.g. ''
@@ -1111,7 +1112,7 @@ class TaskFlowInstance(models.Model):
 
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)
-                logger.exception(message)
+                logger.exception(traceback.format_exc())
                 return {'result': False, 'message': message}
         try:
             action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
@@ -1121,7 +1122,7 @@ class TaskFlowInstance(models.Model):
                 return {'result': action_result.result, 'message': action_result.message}
         except Exception as e:
             message = u"task[id=%s] action failed:%s" % (self.id, e)
-            logger.exception(message)
+            logger.exception(traceback.format_exc())
             return {'result': False, 'message': message}
 
     def nodes_action(self, action, node_id, username, **kwargs):
@@ -1144,7 +1145,7 @@ class TaskFlowInstance(models.Model):
                 action_result = NODE_ACTIONS[action](node_id)
         except Exception as e:
             message = u"task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
-            logger.exception(message)
+            logger.exception(traceback.format_exc())
             return {'result': False, 'message': message}
         if action_result.result:
             return {'result': True, 'data': 'success'}
@@ -1176,9 +1177,9 @@ class TaskFlowInstance(models.Model):
             if name:
                 self.pipeline_instance.name = name
                 self.pipeline_instance.save()
-        except Exception as e:
+        except Exception:
             logger.exception('TaskFlow reset_pipeline_instance_data error:id=%s, constants=%s, error=%s' % (
-                self.pk, json.dumps(constants), e))
+                self.pk, json.dumps(constants), traceback.format_exc()))
             return {'result': False, 'message': 'constants is not valid'}
         return {'result': True, 'data': 'success'}
 
