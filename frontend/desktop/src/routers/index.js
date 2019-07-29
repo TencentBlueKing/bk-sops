@@ -107,7 +107,7 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:project_id/',
+                    path: 'home/:project_id?/',
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
