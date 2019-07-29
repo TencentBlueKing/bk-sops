@@ -77,7 +77,11 @@
                 }
             },
             isUnreferencedShow () {
-                return this.taskMessageLoading ? false : (Object.keys(this.unReferencedVariable).length > 0)
+                return this.taskMessageLoading
+                    ? false
+                    : (Object.keys(this.unReferencedVariable).some(key => {
+                        return this.unReferencedVariable[key].show_type === 'show'
+                    }))
             },
             isParameterInfoLoading () {
                 return this.isRefVarLoading || this.isUnrefVarLoading
