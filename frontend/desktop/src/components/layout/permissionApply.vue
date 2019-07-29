@@ -12,9 +12,6 @@
                     v-cursor="{
                         active: permissionData.toProject && !hasProjectPermission
                     }"
-                    :class="{
-                        'btn-permission-disable': permissionData.toProject && !hasProjectPermission
-                    }"
                     @click="applyBtnClick">
                     {{i18n.apply}}
                 </bk-button>
@@ -104,11 +101,7 @@
             ]),
             applyBtnClick () {
                 if (this.permissionData.toProject) {
-                    if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
-                        this.goToApply()
-                    } else {
-                        this.$router.push('/project/home/')
-                    }
+                    this.$router.push('/project/home/')
                 } else {
                     this.goToAuthCenter()
                 }
