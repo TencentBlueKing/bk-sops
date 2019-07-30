@@ -14,6 +14,7 @@
             v-model="value"
             class="bk-search"
             @change="search()"
+            @clear="search()"
             @search="search()">
         </van-search>
         <!-- 列表 -->
