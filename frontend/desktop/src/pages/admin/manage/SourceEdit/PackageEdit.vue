@@ -58,7 +58,7 @@
                 i18n: {
                     nextStep: gettext('下一步'),
                     cancel: gettext('取消'),
-                    addPackage: gettext('添加主源包')
+                    addPackage: gettext('添加主包源')
                 }
             }
         },
