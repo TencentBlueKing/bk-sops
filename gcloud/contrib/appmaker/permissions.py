@@ -59,4 +59,5 @@ mini_app_resource = DjangoModelResource(
                                          creator_id_f='creator',
                                          resource_id_f='id',
                                          resource_name_f='name',
-                                         parent_f='project'))
+                                         parent_f='project',
+                                         scope_id_f=None))
