@@ -316,7 +316,7 @@
                     if (this.searchStr !== '') {
                         data.q = this.searchStr
                     }
-
+                    
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
                     this.totalCount = projectList.meta.total_count
@@ -360,6 +360,7 @@
                     await this.createProject(data)
                     this.isProjectDialogShow = false
                     this.getProjectList()
+                    this.loadProjectList({ limit: 0 })
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
