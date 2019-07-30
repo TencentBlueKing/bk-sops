@@ -26,3 +26,8 @@ MIGRATION_MIGRATION_CLASS = 'auth_backend.resources.migrations.migration.setting
 MIGRATION_IMPORT_STRING = 'auth_backend.resources.migrations.migration.import_string'
 
 SNAPPER_RESOURCE_TYPE_LIB = 'auth_backend.resources.migrations.snapper.resource_type_lib'
+
+RESOURCE_BASE_CONF_SYSTEM_ID = 'auth_backend.resources.base.conf.SYSTEM_ID'
+RESOURCE_BASE_CONF_SYSTEM_NAME = 'auth_backend.resources.base.conf.SYSTEM_NAME'
+RESOURCE_CLEAN_INSTANCE = 'auth_backend.resources.base.Resource.clean_instances'
+RESOURCE_REAL_SCOPE_ID = 'auth_backend.resources.base.Resource.real_scope_id'
