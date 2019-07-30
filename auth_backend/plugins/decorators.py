@@ -24,7 +24,7 @@ from auth_backend.plugins.utils import build_need_permission
 logger = logging.getLogger('root')
 
 
-def verify_perms(auth_resource, resource_get, actions):
+def verify_perms(auth_resource, resource_get, actions, scope_id_get=None):
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
         def _wrapped_view(request, *args, **kwargs):
@@ -74,7 +74,8 @@ def verify_perms(auth_resource, resource_get, actions):
                 if not action_resource['is_pass']:
                     permission.append(build_need_permission(auth_resource,
                                                             action_resource['action_id'],
-                                                            instance_id))
+                                                            instance_id,
+                                                            scope_id_get(request) if scope_id_get else None))
 
             if permission:
                 return HttpResponseAuthFailed(permission)
