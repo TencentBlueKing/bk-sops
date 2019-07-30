@@ -85,7 +85,7 @@
     import NoData from '@/components/NoData/index.vue'
     import StatusIcon from '@/components/MobileStatusIcon/index.vue'
     import VueJsonPretty from 'vue-json-pretty'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
 
     export default {
         name: 'TaskNodes',
@@ -119,6 +119,12 @@
                 }
             }
         },
+        computed: {
+            ...mapState({
+                taskId: state => state.taskId,
+                node: state => state.node
+            })
+        },
         created () {
             this.loadData()
         },
@@ -131,18 +137,16 @@
 
             async loadData () {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
-                const node = this.$route.params.node
-                const taskId = this.$store.state.taskId
                 const params = {
-                    taskId: taskId,
-                    nodeId: node.id,
+                    taskId: this.taskId,
+                    nodeId: this.node.id,
                     componentCode: ''
                 }
                 this.loadingIcon = true
                 Promise.all([
                     this.getNodeDetail(params),
-                    this.getTaskStatus({ id: taskId }),
-                    this.getTask({ id: taskId })
+                    this.getTaskStatus({ id: this.taskId }),
+                    this.getTask({ id: this.taskId })
                 ]).then(values => {
                     if (values[0].result) {
                         this.nodeDetail = values[0].data
@@ -169,7 +173,7 @@
             getOutputValue (output) {
                 if (output.value === 'undefined' || output.value === '') {
                     return '--'
-                } else if (!output.preset && this.$route.params.node.componentCode === 'job_execute_task') {
+                } else if (!output.preset && this.node.componentCode === 'job_execute_task') {
                     return output.value
                 } else {
                     if (URL_REG.test(output.value)) {
