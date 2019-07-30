@@ -37,14 +37,35 @@ class DjangoModelResource(ObjectResource):
     def post_save_handler(self, sender, instance, created, **kwargs):
         try:
             if created:
-                self.register_instance(instance)
+                result = self.register_instance(instance)
+
+                if not result.get('result', False):
+                    logger.error('{type}-{name} register failed: {result}'.format(
+                        type=self.rtype,
+                        name=self.resource_name(instance),
+                        result=result
+                    ))
                 return
 
             if self.tomb_field and getattr(instance, self.tomb_field):
-                self.delete_instance(instance)
+                result = self.delete_instance(instance)
+
+                if not result.get('result', False):
+                    logger.error('{type}-{name} delete failed: {result}'.format(
+                        type=self.rtype,
+                        name=self.resource_name(instance),
+                        result=result
+                    ))
                 return
 
-            self.update_instance(instance)
+            result = self.update_instance(instance)
+
+            if not result.get('result', False):
+                logger.error('{type}-{name} update failed: {result}'.format(
+                    type=self.rtype,
+                    name=self.resource_name(instance),
+                    result=result
+                ))
         except Exception:
             logger.error('{name} resource post save handler raise error: {exc}'.format(
                 name=self.name,
