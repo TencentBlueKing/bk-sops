@@ -15,7 +15,7 @@ from abc import abstractmethod
 
 
 class AuthDelegation(object):
-    def __init__(self, delegate_resource, action_ids):
+    def __init__(self, delegate_resource, action_ids=None):
         self.delegate_resource = delegate_resource
         self.action_ids = action_ids
 
