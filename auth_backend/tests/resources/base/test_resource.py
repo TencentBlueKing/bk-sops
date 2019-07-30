@@ -43,6 +43,23 @@ class ResourceTestCase(TestCase):
             'operate_id': 'edit',
             'actions_id': ['view', 'edit']
         }]
+        self.rtype = 'type_token'
+        self.name = 'name_token'
+        self.scope_type = 'scope_type_token'
+        self.scope_name = 'scope_name_token'
+        self.actions = [Action(id='view', name='view', is_instance_related=True),
+                        Action(id='edit', name='edit', is_instance_related=True)]
+        self.inspect = MagicMock()
+        self.scope_id = 'scope_id_token'
+        self.parent = MagicMock()
+        self.parent.rtype = 'parent_type_token'
+        self.operations = [{
+            'operate_id': 'view',
+            'actions_id': ['view'],
+        }, {
+            'operate_id': 'edit',
+            'actions_id': ['view', 'edit']
+        }]
         self.backend = MagicMock()
 
         self.resource = TestUseResource(rtype=self.rtype,
