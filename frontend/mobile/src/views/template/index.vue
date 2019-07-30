@@ -13,6 +13,8 @@
             :placeholder="i18n.placeholder"
             v-model="value"
             class="bk-search"
+            @change="search()"
+            @clear="search()"
             @search="search()">
         </van-search>
         <!-- 收藏 -->
