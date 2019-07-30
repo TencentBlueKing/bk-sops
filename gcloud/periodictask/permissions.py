@@ -47,6 +47,7 @@ periodic_task_resource = DjangoModelResource(
         },
     ],
     parent=project_resource,
+    id_field='id',
     resource_cls=PeriodicTask,
     backend=get_backend_from_config(),
     inspect=FixedCreatorTypeFieldInspect(creator_type='user',

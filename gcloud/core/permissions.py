@@ -56,6 +56,7 @@ project_resource = DjangoModelResource(
         }
     ],
     resource_cls=Project,
+    id_field='id',
     backend=get_backend_from_config(),
     inspect=FixedCreatorTypeFieldInspect(creator_type='user',
                                          creator_id_f='creator',
