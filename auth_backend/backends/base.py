@@ -17,52 +17,57 @@ import abc
 class AuthBackend(object):
     __metaclass__ = abc.ABCMeta
 
-    def register_instance(self, resource, instance):
+    def register_instance(self, resource, instance, scope_id=None):
         """
         向权限系统注册实例
         :param resource: 实例对应的资源对象
         :param instance: 资源实例
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def batch_register_instance(self, resource, instances):
+    def batch_register_instance(self, resource, instances, scope_id=None):
         """
         向权限系统批量注册实例
         :param resource: 实例对应的资源对象
         :param instances: 资源实例列表
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def update_instance(self, resource, instance):
+    def update_instance(self, resource, instance, scope_id=None):
         """
         更新权限系统中的实例信息
         :param resource: 实例对应的资源对象
         :param instance: 资源实例
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def delete_instance(self, resource, instance):
+    def delete_instance(self, resource, instance, scope_id=None):
         """
         删除注册在权限系统中的实例
         :param resource: 实例对应的资源对象
         :param instance: 资源实例
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def batch_delete_instance(self, resource, instances):
+    def batch_delete_instance(self, resource, instances, scope_id=None):
         """
         批量删除注册在权限系统中的实例
         :param resource: 实例对应的资源对象
         :param instances: 资源实例列表
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def verify_perms(self, principal_type, principal_id, resource, action_ids, instance=None):
+    def verify_perms(self, principal_type, principal_id, resource, action_ids, instance=None, scope_id=None):
         """
         校验主体是否拥有某个资源下的某些操作权限
         :param principal_type: 主体类型
@@ -70,11 +75,12 @@ class AuthBackend(object):
         :param resource: 资源对象
         :param action_ids: 资源对象中的操作 ID
         :param instance: 关联实例的操作中所关联的实例
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def batch_verify_perms(self, principal_type, principal_id, resource, action_ids, instances=None):
+    def batch_verify_perms(self, principal_type, principal_id, resource, action_ids, instances=None, scope_id=None):
         """
         批量校验主体是否拥有某个资源下的某些操作权限
         :param principal_type: 主体类型
@@ -82,27 +88,40 @@ class AuthBackend(object):
         :param resource: 资源对象
         :param action_ids: 资源对象中的操作 ID
         :param instances: 关联实例的操作中所关联的实例
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples):
+    def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples, scope_id=None):
         """
         批量校验主体是否有某几个同作用域下的资源的某些操作权限
         :param principal_type: 主体类型
         :param principal_id: 主体 ID
         :param perms_tuples: 待校验权限元组 (资源对象, [操作 ID 列表], 资源实例)
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()
 
-    def search_authorized_resources(self, resource, principal_type, principal_id, action_ids):
+    def search_authorized_resources(self, resource, principal_type, principal_id, action_ids, scope_id=None):
         """
         批量查询有权限的资源
         :param resource: 资源对象
         :param principal_type: 主题类型
         :param principal_id: 主题 ID
         :param action_ids: 资源对象中的操作 ID
+        :param scope_id: 作用域 ID
+        :return:
+        """
+        raise NotImplementedError()
+
+    def search_resources_perms_principals(self, resource, resources_actions, scope_id=None):
+        """
+
+        :param resource: 资源对象
+        :param resources_actions: 资源操作列表
+        :param scope_id: 作用域 ID
         :return:
         """
         raise NotImplementedError()

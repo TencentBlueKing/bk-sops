@@ -38,16 +38,16 @@ class BkIAMBackend(AuthBackend):
         cls.__gen_complete_id(resource, instance, resource_id)
         return resource_id
 
-    def register_instance(self, resource, instance):
+    def register_instance(self, resource, instance, scope_id=None):
         return self.client.register_resource(creator_type=resource.creator_type(instance),
                                              creator_id=resource.creator_id(instance),
                                              scope_type=resource.scope_type,
-                                             scope_id=resource.scope_id,
+                                             scope_id=scope_id or resource.scope_id,
                                              resource_type=resource.rtype,
                                              resource_name=resource.resource_name(instance),
                                              resource_id=self._resource_id_for(resource, instance))
 
-    def batch_register_instance(self, resource, instances):
+    def batch_register_instance(self, resource, instances, scope_id=None):
         if not instances:
             raise ValueError('can not batch register a empty instances list')
 
@@ -55,7 +55,7 @@ class BkIAMBackend(AuthBackend):
         for instance in instances:
             iam_resources.append({
                 'scope_type': resource.scope_type,
-                'scope_id': resource.scope_id,
+                'scope_id': scope_id or resource.scope_id,
                 'resource_type': resource.rtype,
                 'resource_id': self._resource_id_for(resource, instance),
                 'resource_name': resource.resource_name(instance)
@@ -65,25 +65,25 @@ class BkIAMBackend(AuthBackend):
                                                    creator_id=resource.creator_id(instances[0]),
                                                    resources=iam_resources)
 
-    def update_instance(self, resource, instance):
+    def update_instance(self, resource, instance, scope_id=None):
         return self.client.update_resource(scope_type=resource.scope_type,
-                                           scope_id=resource.scope_id,
+                                           scope_id=scope_id or resource.scope_id,
                                            resource_type=resource.rtype,
                                            resource_id=self._resource_id_for(resource, instance),
                                            resource_name=resource.resource_name(instance))
 
-    def delete_instance(self, resource, instance):
+    def delete_instance(self, resource, instance, scope_id=None):
         return self.client.delete_resource(scope_type=resource.scope_type,
-                                           scope_id=resource.scope_id,
+                                           scope_id=scope_id or resource.scope_id,
                                            resource_type=resource.rtype,
                                            resource_id=self._resource_id_for(resource, instance))
 
-    def batch_delete_instance(self, resource, instances):
+    def batch_delete_instance(self, resource, instances, scope_id=None):
         iam_resources = []
         for instance in instances:
             iam_resources.append({
                 'scope_type': resource.scope_type,
-                'scope_id': resource.scope_id,
+                'scope_id': scope_id or resource.scope_id,
                 'resource_type': resource.rtype,
                 'resource_id': self._resource_id_for(resource, instance),
                 'resource_name': resource.resource_name(instance)
@@ -91,7 +91,7 @@ class BkIAMBackend(AuthBackend):
 
         return self.client.batch_delete_resource(resources=iam_resources)
 
-    def verify_perms(self, resource, principal_type, principal_id, action_ids, instance=None):
+    def verify_perms(self, resource, principal_type, principal_id, action_ids, instance=None, scope_id=None):
         actions = []
         for action_id in action_ids:
             action = {'action_id': action_id,
@@ -104,10 +104,10 @@ class BkIAMBackend(AuthBackend):
         return self.client.batch_verify_resources_perms(principal_type=principal_type,
                                                         principal_id=principal_id,
                                                         scope_type=resource.scope_type,
-                                                        scope_id=resource.scope_id,
+                                                        scope_id=scope_id or resource.scope_id,
                                                         resources_actions=actions)
 
-    def batch_verify_perms(self, resource, principal_type, principal_id, action_ids, instances=None):
+    def batch_verify_perms(self, resource, principal_type, principal_id, action_ids, instances=None, scope_id=None):
         actions = []
         for action_id in action_ids:
             action = {'action_id': action_id,
@@ -121,18 +121,17 @@ class BkIAMBackend(AuthBackend):
         return self.client.batch_verify_resources_perms(principal_type=principal_type,
                                                         principal_id=principal_id,
                                                         scope_type=resource.scope_type,
-                                                        scope_id=resource.scope_id,
+                                                        scope_id=scope_id or resource.scope_id,
                                                         resources_actions=actions)
 
-    def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples):
+    def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples, scope_id=None):
         actions = []
         scope_type = None
-        scope_id = None
         for perms_tuple in perms_tuples:
             resource = perms_tuple[0]
             instance = perms_tuple[2]
             scope_type = resource.scope_type
-            scope_id = resource.scope_id
+            scope_id = scope_id or resource.scope_id
             for action_id in perms_tuple[1]:
                 action = {'action_id': action_id,
                           'resource_type': resource.rtype}
@@ -148,12 +147,23 @@ class BkIAMBackend(AuthBackend):
                                                         scope_id=scope_id,
                                                         resources_actions=actions)
 
-    def search_authorized_resources(self, resource, principal_type, principal_id, action_ids):
+    def search_authorized_resources(self, resource, principal_type, principal_id, action_ids, scope_id=None):
         actions = [{'action_id': action_id, 'resource_type': resource.rtype} for action_id in action_ids]
         return self.client.search_authorized_resources(principal_type=principal_type,
                                                        principal_id=principal_id,
                                                        scope_type=resource.scope_type,
-                                                       scope_id=resource.scope_id,
+                                                       scope_id=scope_id or resource.scope_id,
                                                        resource_types_actions=actions,
                                                        resource_data_type='array',
                                                        is_exact_resource=True)
+
+    def search_resources_perms_principals(self, resource, resources_actions, scope_id=None):
+        actions = []
+        for resource_action in resources_actions:
+            action = {'action_id': resource_action['action_id'], 'resource_type': resource.rtype}
+            instance = resource_action.get('instance')
+            if instance:
+                action['resource_id'] = self._resource_id_for(resource, instance)
+        return self.client.search_resources_perms_principals(scope_type=resource.scope_type,
+                                                             scope_id=scope_id or resource.scope_id,
+                                                             resources_actions=actions)
