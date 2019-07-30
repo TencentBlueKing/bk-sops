@@ -43,23 +43,6 @@ class ResourceTestCase(TestCase):
             'operate_id': 'edit',
             'actions_id': ['view', 'edit']
         }]
-        self.rtype = 'type_token'
-        self.name = 'name_token'
-        self.scope_type = 'scope_type_token'
-        self.scope_name = 'scope_name_token'
-        self.actions = [Action(id='view', name='view', is_instance_related=True),
-                        Action(id='edit', name='edit', is_instance_related=True)]
-        self.inspect = MagicMock()
-        self.scope_id = 'scope_id_token'
-        self.parent = MagicMock()
-        self.parent.rtype = 'parent_type_token'
-        self.operations = [{
-            'operate_id': 'view',
-            'actions_id': ['view'],
-        }, {
-            'operate_id': 'edit',
-            'actions_id': ['view', 'edit']
-        }]
         self.backend = MagicMock()
 
         self.resource = TestUseResource(rtype=self.rtype,
@@ -131,6 +114,23 @@ class ResourceTestCase(TestCase):
         candidate = 'candidate'
         self.assertEqual(self.resource.real_scope_id(None, candidate), candidate)
         self.resource.inspect.scope_id.assert_not_called()
+
+    def test_clean_instances(self):
+        clean_str_instance_return = 'clean_str_instance_return'
+        clean_list_instance_return = 'clean_list_instance_return'
+        self.resource.clean_str_instances = MagicMock(return_value=clean_str_instance_return)
+        self.resource.clean_list_instances = MagicMock(return_value=clean_list_instance_return)
+
+        str_instances = 'str_instances'
+        list_instances = ['instance']
+
+        self.assertEqual(self.resource.clean_instances(str_instances), clean_str_instance_return)
+        self.resource.clean_str_instances.assert_called_once_with(self.resource, str_instances)
+        self.assertEqual(self.resource.clean_instances(list_instances), clean_list_instance_return)
+        self.resource.clean_list_instances.assert_called_once_with(self.resource, list_instances)
+
+    def test_clean_instances__instances_is_none(self):
+        self.assertIsNone(self.resource.clean_instances(None))
 
     @patch(RESOURCE_CLEAN_INSTANCE, MagicMock(return_value='clean_instance_token'))
     def test_resource_id(self):
