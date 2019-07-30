@@ -61,7 +61,8 @@ project_resource = DjangoModelResource(
                                          creator_id_f='creator',
                                          resource_id_f='id',
                                          resource_name_f='name',
-                                         parent_f=None))
+                                         parent_f=None,
+                                         scope_id_f=None))
 
 admin_operate_resource = NeverInitiateResource(
     rtype='admin_operate',
