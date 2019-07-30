@@ -74,16 +74,27 @@
             initChart () {
                 const x = []
                 const y = []
+                const text = []
                 this.sortDimensionList.forEach(item => {
                     x.push(item.time)
                     y.push(item.value)
+                    text.push(`日期：${item.time}    任务：${item.value}`)
                 })
+                const max = Math.max(...y)
+                const RangeMax = max < 100 ? Math.floor((max / 10 + 1)) * 10 : Math.floor((max / 100 + 1)) * 100
                 const data = [{
                     x,
                     y,
-                    textposition: 'auto',
+                    text,
                     marker: {
                         color: '#3a84ff'
+                    },
+                    hoverinfo: 'text',
+                    hoverlabel: {
+                        bgcolor: '#000',
+                        font: {
+                            color: '#fff'
+                        }
                     },
                     type: 'bar'
                 }]
@@ -98,7 +109,8 @@
                         b: 80
                     },
                     yaxis: {
-                        fixedrange: true
+                        fixedrange: true,
+                        range: [0, RangeMax]
                     },
                     xaxis: {
                         fixedrange: true,
