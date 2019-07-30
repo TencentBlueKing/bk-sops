@@ -107,7 +107,7 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:project_id/',
+                    path: 'home/:project_id?/',
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
@@ -117,7 +117,7 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: 'common/:project_id/',
+                    path: 'common/:project_id?/',
                     component: TemplateList,
                     props: (route) => ({
                         project_id: route.params.project_id,
@@ -127,7 +127,7 @@ const routers = new VueRouter({
                     meta: { project: true }
                 },
                 {
-                    path: 'edit/:project_id?/',
+                    path: 'edit/:project_id/',
                     component: TemplateEdit,
                     name: 'templateEdit',
                     props: (route) => ({
@@ -184,7 +184,7 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:project_id/',
+                    path: 'home/:project_id?/',
                     component: TaskList,
                     name: 'taskList',
                     props: (route) => ({
@@ -206,7 +206,7 @@ const routers = new VueRouter({
                 }]
         },
         {
-            path: '/appmaker/home/:project_id/',
+            path: '/appmaker/home/:project_id?/',
             component: AppMaker,
             props: (route) => ({
                 project_id: route.params.project_id
@@ -263,7 +263,7 @@ const routers = new VueRouter({
             path: '/periodic',
             component: periodic,
             children: [{
-                path: 'home/:project_id/',
+                path: 'home/:project_id?/',
                 component: periodicTemplateList,
                 name: 'periodicTemplate',
                 props: (route) => ({
