@@ -23,7 +23,11 @@ class BkSaaSLabeledDataResourceMixin(object):
         if auth_resource is None:
             return bundle
 
-        resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource)
+        scope_inspect = getattr(self._meta, 'scope_inspect', None)
+        scope_id = scope_inspect.scope_id(bundle) if scope_inspect else None
+
+        resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource,
+                                                                  scope_id=scope_id)
         auth_actions = resources_perms.get(str(bundle.obj.pk), [])
         if ALL_INSTANCE_PLACEHOLDER in resources_perms:
             auth_actions.extend(resources_perms['*'])
@@ -43,6 +47,13 @@ class BkSaaSLabeledDataResourceMixin(object):
         auth_resource = getattr(self._meta, 'auth_resource', None)
         if auth_resource is None:
             return data
+
+        resource_info = auth_resource.base_info()
+        if not resource_info['scope_id']:
+            scope_inspect = getattr(self._meta, 'scope_inspect', None)
+            resource_info['scope_id'] = scope_inspect.scope_id(data) if scope_inspect else None
+
         data.data['auth_operations'] = auth_resource.operations
-        data.data['auth_resource'] = auth_resource.base_info()
+        data.data['auth_resource'] = resource_info
+
         return data

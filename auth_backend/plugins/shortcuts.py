@@ -22,9 +22,9 @@ from auth_backend.plugins.utils import build_need_permission
 logger = logging.getLogger('root')
 
 
-def verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples):
+def verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples, scope_id=None):
     auth_backend = get_backend_from_config()
-    auth_result = auth_backend.verify_multiple_resource_perms(principal_type, principal_id, perms_tuples)
+    auth_result = auth_backend.verify_multiple_resource_perms(principal_type, principal_id, perms_tuples, scope_id)
 
     if not auth_result['result']:
         logger.error('Shortcut verify multiple resource perms failed, return error: {error}'.format(
@@ -47,20 +47,23 @@ def verify_or_return_insufficient_perms(principal_type, principal_id, perms_tupl
 
         permissions.append(build_need_permission(auth_resource=resource_type_lib[verify_item['resource_type']],
                                                  action_id=verify_item['action_id'],
-                                                 instance=instance_id))
+                                                 instance=instance_id,
+                                                 scope_id=scope_id))
 
     return permissions
 
 
-def batch_verify_or_raise_auth_failed(principal_type, principal_id, perms_tuples, status=HTTP_AUTH_FAILED_CODE):
-    permissions = verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples)
+def batch_verify_or_raise_auth_failed(principal_type, principal_id, perms_tuples, scope_id=None,
+                                      status=HTTP_AUTH_FAILED_CODE):
+    permissions = verify_or_return_insufficient_perms(principal_type, principal_id, perms_tuples, scope_id)
     if permissions:
         raise AuthFailedException(permissions=permissions, status=status)
 
 
-def verify_or_raise_auth_failed(principal_type, principal_id, resource, action_ids, instance,
+def verify_or_raise_auth_failed(principal_type, principal_id, resource, action_ids, instance, scope_id=None,
                                 status=HTTP_AUTH_FAILED_CODE):
     batch_verify_or_raise_auth_failed(principal_type,
                                       principal_id,
                                       [(resource, action_ids, instance)],
+                                      scope_id,
                                       status)
