@@ -95,8 +95,11 @@
             templateTitle () {
                 return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
             },
+            isSaveAndCreateTaskType () {
+                return this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone'
+            },
             createTaskBtnText () {
-                return (this.isTemplateDataChanged || this.type === 'new') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+                return this.isSaveAndCreateTaskType ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
             }
         },
         watch: {
@@ -116,7 +119,7 @@
                     if (!result) return
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
-                    if (saveAndCreate && !this.isTemplateDataChanged && this.type !== 'new') {
+                    if (saveAndCreate && !this.isSaveAndCreateTaskType) {
                         const taskUrl = this.getTaskUrl()
                         this.$router.push(taskUrl)
                     } else {
@@ -126,11 +129,10 @@
             },
             getHomeUrl () {
                 let url = `/template/home/${this.cc_id}/`
-                const path = this.$route.fullPath
-                if (path.indexOf('/template/edit/') !== -1) {
-                    if (this.$route.query.entrance === 'businessList') url = `/template/home/${this.cc_id}/`
-                    if (this.$route.query.entrance === 'periodicTask') url = `/periodic/home/${this.cc_id}/`
-                }
+                const entrance = this.$route.query.entrance
+                if (entrance === 'businessList') url = `/template/home/${this.cc_id}/`
+                if (entrance === 'periodicTask') url = `/periodic/home/${this.cc_id}/`
+                if (entrance === 'adminCommon') url = '/admin/common/template/'
                 if (this.common) {
                     url += '?common=1'
                 }

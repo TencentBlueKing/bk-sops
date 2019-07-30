@@ -133,6 +133,7 @@
                         return
                     }
                     if (!result || !formValid) {
+                        this.dialogFooterData[0].loading = false
                         return
                     }
                     const jsonCron = JSON.stringify({
