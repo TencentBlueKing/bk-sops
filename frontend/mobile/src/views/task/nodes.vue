@@ -37,7 +37,6 @@
                 class="parameter-info"
                 :data="nodeDetail.inputs">
             </VueJsonPretty>
-            <van-button type="default" class="view-btn" @click="showParameters">{{ i18n.showTotal }}</van-button>
         </section>
         <!-- 输出参数 -->
         <section class="bk-block">
@@ -48,8 +47,9 @@
                         v-for="item in nodeDetail.outputs"
                         :key="item.index"
                         :title="item.name"
-                        v-html="getOutputValue(item)"
-                        :value="item.value ? item.value.toString() : '--'" />
+                        :is-link="isOutputValueLink(item.value)"
+                        :url="isOutputValueLink(item.value) ? item.value : ''"
+                        :value="getOutputValue(item)" />
                 </template>
                 <template v-else>
                     <no-data />
@@ -96,7 +96,7 @@
         },
         data () {
             return {
-                nodeDetail: {},
+                nodeDetail: { 'inputs': {} },
                 status: '',
                 showText: true,
                 loadingIcon: true,
@@ -113,7 +113,6 @@
                     retryTimes: window.gettext('重试次数'),
                     inputParameter: window.gettext('输入参数'),
                     outputParameter: window.gettext('输出参数'),
-                    showTotal: window.gettext('查看全部'),
                     errorInfo: window.gettext('异常信息'),
                     executeHistory: window.gettext('执行记录')
                 }
@@ -140,7 +139,7 @@
                 const params = {
                     taskId: this.taskId,
                     nodeId: this.node.id,
-                    componentCode: ''
+                    componentCode: this.node.componentCode
                 }
                 this.loadingIcon = true
                 Promise.all([
@@ -150,6 +149,7 @@
                 ]).then(values => {
                     if (values[0].result) {
                         this.nodeDetail = values[0].data
+                        this.loadNodeInfo()
                     }
                     this.status = values[1].data.state
                     this.nodeDetail.name = values[2].name
@@ -162,8 +162,18 @@
                 })
             },
 
-            showParameters () {
-                this.$router.push({ name: 'task_node_parameter', params: { parameters: JSON.stringify(this.nodeDetail.inputs) } })
+            loadNodeInfo () {
+                if (this.node.component_code === 'job_execute_task') {
+                    this.nodeDetail.outputs = this.nodeDetail.outputs.filter(output => {
+                        const outputIndex = this.nodeDetail.inputs['job_global_var'].findIndex(prop => prop.name === output.key)
+                        if (!output.preset && outputIndex === -1) {
+                            return false
+                        }
+                        return true
+                    })
+                } else {
+                    this.nodeDetail.outputs = this.nodeDetail.outputs.filter(output => output.preset)
+                }
             },
 
             getLastTime (time) {
@@ -173,14 +183,13 @@
             getOutputValue (output) {
                 if (output.value === 'undefined' || output.value === '') {
                     return '--'
-                } else if (!output.preset && this.node.componentCode === 'job_execute_task') {
-                    return output.value
                 } else {
-                    if (URL_REG.test(output.value)) {
-                        return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
-                    }
-                    return output.value
+                    return output.value + ''
                 }
+            },
+
+            isOutputValueLink (value) {
+                return URL_REG.test(value)
             },
 
             transformFailInfo (data) {
@@ -212,7 +221,6 @@
     }
     .parameter-info{
         background: #313238;
-        max-height: 100px;
         color: $white;
         font-size: $fs-14;
         padding: 0 25px;
