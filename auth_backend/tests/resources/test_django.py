@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch
+from mock import MagicMock, patch, call
 from django.test import TestCase
 
 from auth_backend.resources import base, django
@@ -43,6 +43,7 @@ class DjangoModelResourceTestCase(TestCase):
         }]
         self.backend = MagicMock()
         self.resource_cls = MagicMock()
+        self.id_field = 'id'
 
         self.init_kwargs = {
             'rtype': self.rtype,
@@ -55,7 +56,8 @@ class DjangoModelResourceTestCase(TestCase):
             'parent': self.parent,
             'operations': self.operations,
             'backend': self.backend,
-            'resource_cls': self.resource_cls
+            'resource_cls': self.resource_cls,
+            'id_field': self.id_field
         }
 
     def tearDown(self):
@@ -123,16 +125,36 @@ class DjangoModelResourceTestCase(TestCase):
 
     def test_clean_instances__instances_is_none(self):
         resource = DjangoModelResource(auto_register=False, **self.init_kwargs)
+        resource.resource_cls = str
         self.assertIsNone(resource.clean_instances(None))
 
-    def test_clean_instances__single_instance(self):
-        instance = 'instance'
+    def test_clean_str_instances(self):
+        instances = 'instance'
         resource = DjangoModelResource(auto_register=False, **self.init_kwargs)
-        resource.resource_cls = str
-        self.assertEqual(resource.clean_instances(instance), instance)
+        self.assertIsNotNone(resource.clean_str_instances(instances))
+        resource.resource_cls.objects.get.assert_called_once_with(**{self.id_field: instances})
 
-    def test_clean_instances__instance_list(self):
-        instances = ['instance0', 'instance1']
+    def test_clean_int_instances(self):
+        instances = 1
         resource = DjangoModelResource(auto_register=False, **self.init_kwargs)
-        resource.resource_cls = str
-        self.assertEqual(resource.clean_instances(instances), instances)
+        self.assertIsNotNone(resource.clean_str_instances(instances))
+        resource.resource_cls.objects.get.assert_called_once_with(**{self.id_field: instances})
+
+    def test_clean_list_instances(self):
+        resource = DjangoModelResource(auto_register=False, **self.init_kwargs)
+
+        get_return = 'get_token'
+
+        class AnyResource(object):
+            objects = MagicMock()
+
+        AnyResource.objects.get = MagicMock(return_value=get_return)
+
+        resource.resource_cls = AnyResource
+        instances = [AnyResource(), 2, AnyResource(), 4]
+        self.assertEqual(resource.clean_list_instances(instances), [instances[0],
+                                                                    'get_token',
+                                                                    instances[2],
+                                                                    'get_token'])
+        AnyResource.objects.get.assert_has_calls([call(**{resource.id_field: 2}),
+                                                  call(**{resource.id_field: 4})])

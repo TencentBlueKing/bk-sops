@@ -94,6 +94,12 @@ class Resource(object):
         }
 
     def clean_instances(self, instances):
+        t = type(instances).__name__
+        clean_method = getattr(self, 'clean_{type}_instances'.format(type=t), None)
+
+        if clean_method:
+            return clean_method(self, instances)
+
         return instances
 
     def real_scope_id(self, instance, candidate):
@@ -242,3 +248,9 @@ class ObjectResource(Resource):
     def __init__(self, resource_cls, *args, **kwargs):
         super(ObjectResource, self).__init__(*args, **kwargs)
         self.resource_cls = resource_cls
+
+    def clean_instances(self, instances):
+        if isinstance(instances, self.resource_cls):
+            return instances
+
+        return super(ObjectResource, self).clean_instances(instances)
