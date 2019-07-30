@@ -14,11 +14,7 @@
         <div class="list-wrapper">
             <BaseTitle :title="i18n.functorList"></BaseTitle>
             <div class="operation-area clearfix">
-<<<<<<< HEAD
                 <bk-button theme="primary" class="task-create-btn" @click="onCreateTask">{{i18n.new}}</bk-button>
-=======
-                <bk-button type="primary" class="task-create-btn" size="small" @click="onCreateTask">{{i18n.new}}</bk-button>
->>>>>>> magicbox_update
                 <BaseSearch
                     v-model="searchStr"
                     :input-placeholader="i18n.placeholder"
