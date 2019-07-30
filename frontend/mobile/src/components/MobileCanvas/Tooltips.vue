@@ -73,6 +73,9 @@
                 taskId: state => state.taskId
             })
         },
+        beforeDestroy () {
+            this.onBeforeDestroy()
+        },
         methods: {
             ...mapActions('task', [
                 'getTask',
@@ -89,6 +92,10 @@
             onNodeExecuteDetail () {
                 this.show = false
                 this.$router.push({ name: 'task_nodes', params: { node: this.node } })
+            },
+            onBeforeDestroy () {
+                this.show = false
+                global.$('.tippy-popper').remove()
             },
             async retry () {
                 this.show = false
