@@ -91,7 +91,8 @@
             },
             onNodeExecuteDetail () {
                 this.show = false
-                this.$router.push({ name: 'task_nodes', params: { node: this.node } })
+                this.$store.commit('setNode', this.node)
+                this.$router.push({ name: 'task_nodes' })
             },
             onBeforeDestroy () {
                 this.show = false

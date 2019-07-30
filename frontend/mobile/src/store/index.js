@@ -35,6 +35,7 @@ const store = new Vuex.Store({
         bizId: 0, // 业务ID
         templateId: '', // 模板ID
         taskId: '', // 任务ID
+        node: {}, // 当前节点数据
         title: '业务选择',
         template: {},
         collectedTemplateList: [],
@@ -107,6 +108,9 @@ const store = new Vuex.Store({
         },
         setDefaultSchemaIndex (state, defaultSchemaIndex) {
             state.defaultSchemaIndex = defaultSchemaIndex
+        },
+        setNode (state, node) {
+            state.node = node
         }
     },
     actions: {
