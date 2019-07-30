@@ -42,6 +42,27 @@ class InstanceInspect(object):
         raise NotImplementedError()
 
 
+class DummyInspect(InstanceInspect):
+
+    def creator_type(self, instance):
+        return None
+
+    def creator_id(self, instance):
+        return None
+
+    def resource_id(self, instance):
+        return None
+
+    def resource_name(self, instance):
+        return None
+
+    def parent(self, instance):
+        return None
+
+    def scope_id(self, instance):
+        return None
+
+
 class FieldInspect(InstanceInspect):
     def __init__(self, creator_type_f, creator_id_f, resource_id_f, resource_name_f, parent_f, scope_id_f):
         self.creator_type_f = creator_type_f

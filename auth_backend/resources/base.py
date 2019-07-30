@@ -12,9 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import abc
+import copy
 
+from auth_backend import conf
 from auth_backend import exceptions
 from auth_backend.backends import get_backend_from_config
+from auth_backend.resources.inspect import DummyInspect
 
 resource_type_lib = {}
 
@@ -58,18 +61,17 @@ class Resource(object):
         if rtype in resource_type_lib:
             raise exceptions.AuthKeyError('Resource with rtype: {rtype} already exist.'.format(rtype=rtype))
 
-        if operations is None:
-            operations = []
-        for operation in operations:
+        _operations = [] if operations is None else copy.deepcopy(operations)
+        for operation in _operations:
             operation['actions'] = [getattr(self.actions, act).dict() for act in operation['actions_id']]
-        self.operations = operations
+        self.operations = _operations
 
         resource_type_lib[rtype] = self
 
     def base_info(self):
         return {
-            'system_id': self.backend.client.system_id,
-            'system_name': self.backend.client.system_name,
+            'system_id': conf.SYSTEM_ID,
+            'system_name': conf.SYSTEM_NAME,
             'scope_type': self.scope_type,
             'scope_id': self.scope_id,
             'scope_name': self.scope_name,
@@ -131,8 +133,8 @@ class Resource(object):
 
     def batch_register_instance(self, instances, scope_id=None):
         clean_instances = self.clean_instances(instances)
-        if instances:
-            scope_id = self.real_scope_id(instances[0], scope_id)
+        if clean_instances:
+            scope_id = self.real_scope_id(clean_instances[0], scope_id)
         return self.backend.batch_register_instance(resource=self,
                                                     instances=clean_instances,
                                                     scope_id=scope_id)
@@ -151,8 +153,8 @@ class Resource(object):
 
     def batch_delete_instance(self, instances, scope_id=None):
         clean_instances = self.clean_instances(instances)
-        if instances:
-            scope_id = self.real_scope_id(instances[0], scope_id)
+        if clean_instances:
+            scope_id = self.real_scope_id(clean_instances[0], scope_id)
         return self.backend.batch_delete_instance(resource=self,
                                                   instances=clean_instances,
                                                   scope_id=scope_id)
@@ -168,8 +170,8 @@ class Resource(object):
 
     def batch_verify_perms(self, principal_type, principal_id, action_ids, instances=None, scope_id=None):
         clean_instances = self.clean_instances(instances)
-        if instances:
-            scope_id = self.real_scope_id(instances[0], scope_id)
+        if clean_instances:
+            scope_id = self.real_scope_id(clean_instances[0], scope_id)
         return self.backend.batch_verify_perms(principal_type=principal_type,
                                                principal_id=principal_id,
                                                resource=self,
@@ -184,7 +186,7 @@ class Resource(object):
 
 
 class NeverInitiateResource(Resource):
-    def __init__(self, rtype, name, scope_type, scope_id, scope_name, actions, backend=None):
+    def __init__(self, rtype, name, scope_type, scope_name, actions, scope_id=None, operations=None, backend=None):
         super(NeverInitiateResource, self).__init__(rtype=rtype,
                                                     name=name,
                                                     actions=actions,
@@ -192,7 +194,8 @@ class NeverInitiateResource(Resource):
                                                     scope_id=scope_id,
                                                     scope_name=scope_name,
                                                     backend=backend,
-                                                    inspect=None)
+                                                    operations=operations,
+                                                    inspect=DummyInspect())
 
     def resource_id(self, instance):
         raise exceptions.AuthInvalidOperationError(
