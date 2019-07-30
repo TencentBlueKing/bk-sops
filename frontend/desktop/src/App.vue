@@ -58,8 +58,7 @@
                 permissinApplyShow: false,
                 permissionData: {
                     type: 'project', // 无权限类型: project、other
-                    permission: [],
-                    toProject: false
+                    permission: []
                 },
                 isRouterAlive: false,
                 appmakerDataLoading: false // 轻应用加载 app 详情,
@@ -91,12 +90,11 @@
             bus.$on('showErrorModal', (type, responseText, title) => {
                 this.$refs.errorModal.show(type, responseText, title)
             })
-            bus.$on('togglePermissionApplyPage', (show, type, permission, toProject) => {
+            bus.$on('togglePermissionApplyPage', (show, type, permission) => {
                 this.permissinApplyShow = show
                 this.permissionData = {
                     type,
-                    permission,
-                    toProject
+                    permission
                 }
                 if (!show) {
                     this.isRouterAlive = true
@@ -141,7 +139,7 @@
                 'setProjectActions'
             ]),
             initData () {
-                if (this.project_id !== '' && !isNaN(this.project_id)) {
+                if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
                     this.getProjectDetail()
                 }
                 if (this.viewMode === 'appmaker') {
@@ -176,20 +174,17 @@
                 this.isRouterAlive = true
                 if (!this.$route.meta.project) {
                     this.permissinApplyShow = false
+                    $.context.biz_binding = false
                 } else {
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
                         this.permissinApplyShow = false
                         this.getProjectDetail()
                     } else { // 需要项目id页面，id为空是显示无权限页面，申请按钮跳转到项目管理页面
                         this.permissinApplyShow = true
-                        bus.$emit('togglePermissionApplyPage', true, 'project', [], true)
                     }
                 }
                 if (this.$route.query.template_id !== undefined) {
                     this.setAppmakerTemplateId(this.$route.query.template_id)
-                }
-                if (!this.$route.meta.project) {
-                    $.context.biz_binding = false
                 }
             },
             reload () {
