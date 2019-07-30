@@ -68,16 +68,10 @@
         },
         computed: {
             isReferencedShow () {
-                if (this.taskMessageLoading) {
-                    return false
-                } else {
-                    return Object.keys(this.referencedVariable).filter(key => {
-                        return this.referencedVariable[key].show_type === 'show'
-                    }).length
-                }
+                return this.getReferencedStatus(this.referencedVariable)
             },
             isUnreferencedShow () {
-                return this.taskMessageLoading ? false : (Object.keys(this.unReferencedVariable).length > 0)
+                return this.getReferencedStatus(this.unReferencedVariable)
             },
             isParameterInfoLoading () {
                 return this.isRefVarLoading || this.isUnrefVarLoading
@@ -114,6 +108,13 @@
             // 获取 TaskParamEdit
             getTaskParamEdit () {
                 return this.$refs.TaskParamEdit
+            },
+            getReferencedStatus (variable) {
+                return this.taskMessageLoading
+                    ? false
+                    : (Object.keys(variable).some(key => {
+                        return variable[key].show_type === 'show'
+                    }))
             }
         }
     }
