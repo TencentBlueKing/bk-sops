@@ -12,10 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 from tastypie import fields
-from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
-from gcloud.core.api_adapter import is_user_functor
+from auth_backend.plugins.delegation import RelateAuthDelegation
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAuthorization
+
+from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.webservice3.resources import GCloudModelResource
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
@@ -46,7 +48,13 @@ class FunctionTaskResource(GCloudModelResource):
     class Meta(GCloudModelResource.Meta):
         queryset = FunctionTask.objects.filter(task__is_deleted=False)
         resource_name = 'function_task'
-        authorization = ReadOnlyAuthorization()
+        auth_resource = taskflow_resource
+        delegation = RelateAuthDelegation(delegate_resource=auth_resource,
+                                          delegate_instance_f='task')
+        authorization = BkSaaSLooseReadOnlyAuthorization(auth_resource=auth_resource,
+                                                         read_action_id='view',
+                                                         update_action_id='edit',
+                                                         delegation=delegation)
         filtering = {
             'task': ALL_WITH_RELATIONS,
             'creator': ALL,
@@ -56,9 +64,3 @@ class FunctionTaskResource(GCloudModelResource):
             'claim_time': ['gte', 'lte']
         }
         q_fields = ['task__pipeline_instance__name']
-
-    def get_object_list(self, request):
-        if is_user_functor(request) or request.user.is_superuser:
-            return super(FunctionTaskResource, self).get_object_list(request)
-        else:
-            return super(FunctionTaskResource, self).get_object_list(request).none()

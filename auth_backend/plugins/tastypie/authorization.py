@@ -24,19 +24,37 @@ logger = logging.getLogger('root')
 
 
 class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
+    """
+    @summary: 严格接入权限中心的Tastypie ReadOnlyAuthorization
+    """
     principal_type = 'user'
 
-    def __init__(self, auth_resource, create_action_id='create', read_action_id='read', update_action_id='update',
-                 delete_action_id='delete', create_delegation=None):
+    def __init__(self,
+                 auth_resource,
+                 create_action_id='create',
+                 read_action_id='read',
+                 update_action_id='update',
+                 delete_action_id='delete',
+                 delegation=None,
+                 create_delegation=None):
         self.auth_resource = auth_resource
+        if delegation is not None:
+            self.resource_pk_field = '%s__pk' % delegation.delegate_instance_f
+        else:
+            self.resource_pk_field = 'pk'
+        self.resource_pk_field_in = '%s__in' % self.resource_pk_field
         self.create_action_id = create_action_id
         self.read_action_id = read_action_id
         self.update_action_id = update_action_id
         self.delete_action_id = delete_action_id
+        self.delegation = delegation
         self.create_delegation = create_delegation
 
     def build_auth_failed_response(self, action_ids, instance, auth_resource=None):
-        auth_resource = auth_resource or self.auth_resource
+        if auth_resource is None:
+            auth_resource = self.auth_resource
+            if self.delegation is not None:
+                instance = self.delegation.delegate_instance(instance)
         if isinstance(action_ids, list):
             permission = [build_need_permission(
                 auth_resource=auth_resource,
@@ -77,7 +95,7 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
         authorized_pks = self.authorized_list(username, self.read_action_id)
         if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
             return object_list
-        return object_list.filter(pk__in=authorized_pks)
+        return object_list.filter(**{self.resource_pk_field_in: authorized_pks})
 
     def read_detail(self, object_list, bundle):
         if bundle.obj not in self.read_list(object_list, bundle):
@@ -86,7 +104,9 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
 
 
 class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
-
+    """
+    @summary: 严格接入权限中心的Tastypie Authorization
+    """
     def create_detail(self, object_list, bundle):
 
         auth_resource = self.auth_resource
@@ -117,10 +137,10 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
         authorized_pks = self.authorized_list(username, self.update_action_id)
         if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
             return object_list
-        return object_list.filter(pk__in=authorized_pks)
+        return object_list.filter(**{self.resource_pk_field_in: authorized_pks})
 
     def update_detail(self, object_list, bundle):
-        if not self.update_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
+        if not self.update_list(object_list, bundle).filter(**{self.resource_pk_field: bundle.obj.pk}).exists():
             raise self.build_auth_failed_response(self.update_action_id, bundle.obj)
         return True
 
@@ -129,15 +149,18 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
         authorized_pks = self.authorized_list(username, self.delete_action_id)
         if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
             return object_list
-        return object_list.filter(pk__in=authorized_pks)
+        return object_list.filter(**{self.resource_pk_field_in: authorized_pks})
 
     def delete_detail(self, object_list, bundle):
-        if not self.delete_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
+        if not self.delete_list(object_list, bundle).filter(**{self.resource_pk_field: bundle.obj.pk}).exists():
             raise self.build_auth_failed_response(self.delete_action_id, bundle.obj)
         return True
 
 
 class BkSaaSLooseReadOnlyAuthorization(BkSaaSReadOnlyAuthorization):
+    """
+    @summary: 宽松接入（read_list不鉴权）权限中心的Tastypie ReadOnlyAuthorization
+    """
     def read_list(self, object_list, bundle):
         return object_list
 
@@ -148,4 +171,7 @@ class BkSaaSLooseReadOnlyAuthorization(BkSaaSReadOnlyAuthorization):
 
 
 class BkSaaSLooseAuthorization(BkSaaSLooseReadOnlyAuthorization, BkSaaSAuthorization):
+    """
+    @summary: 宽松接入（read_list不鉴权）权限中心的Tastypie Authorization
+    """
     pass
