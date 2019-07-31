@@ -19,8 +19,7 @@
         :show-footer="false"
         :close-icon="code !== 401"
         :value="isModalShow"
-        @confirm="onConfirm"
-        @cancel="onCancel">
+        @cancel="onCloseDialog">
         <div class="error-content">
             <div class="pic-wrapper">
                 <img :src="errorPic" class="error-pic" alt="error-pic">
