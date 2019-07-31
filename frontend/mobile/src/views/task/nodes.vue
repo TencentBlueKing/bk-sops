@@ -22,8 +22,8 @@
         <section class="bk-block">
             <h2 class="bk-text-title">{{ i18n.executeInfo }}</h2>
             <div class="bk-text-list">
-                <van-cell :title="i18n.startTime" :value="nodeDetail.start_time" />
-                <van-cell :title="i18n.endTime" :value="nodeDetail.finish_time" />
+                <van-cell :title="i18n.startTime" :value="nodeDetail.start_time || '--'" />
+                <van-cell :title="i18n.endTime" :value="nodeDetail.finish_time || '--'" />
                 <van-cell :title="i18n.costTime" :value="getLastTime(nodeDetail.elapsed_time)" />
                 <van-cell :title="i18n.skipped" :value="nodeDetail.skip ? i18n.yes : i18n.no" />
                 <van-cell :title="i18n.ignore" :value="nodeDetail.error_ignorable ? i18n.yes : i18n.no" />
@@ -71,8 +71,8 @@
             :key="history.index">
             <h2 class="bk-text-title">{{ i18n.executeHistory }}</h2>
             <div class="bk-text-list">
-                <van-cell :title="i18n.startTime" :value="history.start_time" />
-                <van-cell :title="i18n.endTime" :value="history.finish_time" />
+                <van-cell :title="i18n.startTime" :value="history.start_time || '--'" />
+                <van-cell :title="i18n.endTime" :value="history.finish_time || '--'" />
                 <van-cell :title="i18n.costTime" :value="getLastTime(history.elapsed_time)" />
             </div>
         </section>

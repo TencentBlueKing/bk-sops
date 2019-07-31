@@ -35,9 +35,12 @@
                         <div class="bk-text">{{ item.name }}</div>
                         <div class="bk-name">{{ item.creator_name }}</div>
                         <div class="bk-time">
-                            {{ item.create_time }}{{ i18n.to }}
+                            {{ item.create_time }} {{ i18n.to }}
                             <template v-if="item.finish_time">
-                                <p>{{ item.finish_time || '--' }}</p>
+                                <p>{{ item.finish_time }}</p>
+                            </template>
+                            <template v-else>
+                                --
                             </template>
                         </div>
                     </template>
