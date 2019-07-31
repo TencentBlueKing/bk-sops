@@ -174,7 +174,6 @@
             </div>
         </div>
         <ReuseVarDialog
-            v-if="isReuseVarDialogShow"
             :is-reuse-var-dialog-show="isReuseVarDialogShow"
             :reuse-variable="reuseVariable"
             :reuseable-var-list="reuseableVarList"
