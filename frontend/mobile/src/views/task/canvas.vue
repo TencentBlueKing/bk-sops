@@ -113,7 +113,6 @@
                 loading: true,
                 i18n: {
                     tip: window.gettext('提示'),
-                    executeStart: window.gettext('开始执行任务'),
                     executeStartFailed: window.gettext('开始执行任务失败'),
                     loading: window.gettext('加载中...')
                 }
@@ -213,7 +212,6 @@
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const response = await this.instanceStart({ id: this.taskId })
                     if (response.result) {
-                        global.bus.$emit('notify', { message: this.i18n.executeStart })
                         this.setTaskStatusTimer()
                     } else {
                         errorHandler(response, this)
