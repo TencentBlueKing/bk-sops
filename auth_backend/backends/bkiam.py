@@ -51,15 +51,12 @@ class BkIAMBackend(AuthBackend):
         if not instances:
             raise ValueError('can not batch register a empty instances list')
 
-        iam_resources = []
-        for instance in instances:
-            iam_resources.append({
-                'scope_type': resource.scope_type,
-                'scope_id': scope_id or resource.real_scope_id(instance, scope_id),
-                'resource_type': resource.rtype,
-                'resource_id': self._resource_id_for(resource, instance),
-                'resource_name': resource.resource_name(instance)
-            })
+        iam_resources = [{'scope_type': resource.scope_type,
+                          'scope_id': scope_id or resource.real_scope_id(instance, scope_id),
+                          'resource_type': resource.rtype,
+                          'resource_id': self._resource_id_for(resource, instance),
+                          'resource_name': resource.resource_name(instance)
+                          } for instance in instances]
 
         return self.client.batch_register_resource(creator_type=resource.creator_type(instances[0]),
                                                    creator_id=resource.creator_id(instances[0]),
