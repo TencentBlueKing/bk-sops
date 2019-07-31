@@ -21,16 +21,16 @@
             </template>
             <template v-else>
                 <template v-if="node.status !== 'RUNNING'">
-                    <div class="tooltip-btn" @click="onNodeExecuteDetail">{{ i18n.detail }}</div>
                     <template v-if="node.status === 'FAILED'">
                         <div class="tooltip-btn" @click="onNodeOperationClick('retry')">{{ i18n.retry }}</div>
                         <div class="tooltip-btn" @click="onNodeOperationClick('skip')">{{ i18n.skip }}</div>
                     </template>
                 </template>
                 <template v-else>
-                    <div class="tooltip-btn" @click="onNodeOperationClick('resume')">{{ i18n.detail }}</div>
+                    <div class="tooltip-btn" @click="onNodeOperationClick('resume')">{{ i18n.resume }}</div>
                 </template>
             </template>
+            <div class="tooltip-btn" @click="onNodeExecuteDetail">{{ i18n.detail }}</div>
         </div>
         <div v-else-if="node.type === 'subflow'" class="tooltip-btn">{{ i18n.sub }}</div>
     </tippy>
@@ -62,6 +62,7 @@
                     skip: window.gettext('跳过'),
                     skipSuccess: window.gettext('跳过成功'),
                     skipFailed: window.gettext('跳过失败'),
+                    resume: window.gettext('继续'),
                     sub: window.gettext('查看子流程')
                 },
                 operating: false,
