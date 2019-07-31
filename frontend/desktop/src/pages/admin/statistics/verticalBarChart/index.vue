@@ -49,7 +49,11 @@
             return {
                 chart: null,
                 sortDimensionList: [],
-                isUpdated: false
+                isUpdated: false,
+                i18n: {
+                    date: '日期',
+                    task: '任务'
+                }
             }
         },
         watch: {
@@ -78,7 +82,7 @@
                 this.sortDimensionList.forEach(item => {
                     x.push(item.time)
                     y.push(item.value)
-                    text.push(`日期：${item.time}    任务：${item.value}`)
+                    text.push(`${this.i18n.date}：${item.time}    ${this.i18n.task}：${item.value}`)
                 })
                 const max = Math.max(...y)
                 const RangeMax = max < 100 ? Math.floor((max / 10 + 1)) * 10 : Math.floor((max / 100 + 1)) * 100
