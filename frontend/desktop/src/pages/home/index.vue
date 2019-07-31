@@ -31,12 +31,14 @@
                 <div class="column-panel clearfix">
                     <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
                         <TaskFeeds
+                            v-if="!loading"
                             :top-three-task-feeds="topThreeTaskFeeds"
                             :cc_id="cc_id">
                         </TaskFeeds>
                     </div>
                     <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
                         <TaskPercentChart
+                            v-if="!loading"
                             :task-count="taskCount"
                             :total-task="totalTask">
                         </TaskPercentChart>
