@@ -11,17 +11,17 @@
 */
 <template>
     <bk-dialog
+        width="600"
         ext-cls="error-content-dialog"
-        :is-show="isModalShow"
+        header-position="left"
         :title="title"
-        :width="'600'"
-        padding="45px"
-        :has-header="true"
-        :has-footer="false"
-        :quick-close="false"
+        :mask-close="false"
+        :show-footer="false"
         :close-icon="code !== 401"
-        @cancel="onCloseDialog">
-        <div slot="content" class="error-content">
+        :value="isModalShow"
+        @confirm="onConfirm"
+        @cancel="onCancel">
+        <div class="error-content">
             <div class="pic-wrapper">
                 <img :src="errorPic" class="error-pic" alt="error-pic">
             </div>
