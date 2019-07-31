@@ -18,7 +18,7 @@ from bkiam import bkiam_client
 from auth_backend.backends.base import AuthBackend
 
 
-class BkIAMBackend(AuthBackend):
+class BKIAMBackend(AuthBackend):
 
     def __init__(self, client=None):
         self.client = client or bkiam_client
@@ -27,10 +27,25 @@ class BkIAMBackend(AuthBackend):
     def __gen_complete_id(resource, instance, id_tree):
         if resource.parent:
             parent_resource = resource.parent
-            BkIAMBackend.__gen_complete_id(parent_resource, resource.parent_instance(instance), id_tree)
+            BKIAMBackend.__gen_complete_id(parent_resource, resource.parent_instance(instance), id_tree)
 
         # bk_iam only accept str type id
         id_tree.append({'resource_type': resource.rtype, 'resource_id': str(resource.resource_id(instance))})
+
+    @classmethod
+    def __gen_resource_actions_for(cls, resource, action_ids, instances):
+        actions = []
+        for action_id in action_ids:
+            if resource.is_instance_related_action(action_id):
+                if instances:
+                    actions.extend({'action_id': action_id,
+                                    'resource_type': resource.rtype,
+                                    'resource_id': cls._resource_id_for(resource, instance)} for instance in instances)
+            else:
+                actions.append({'action_id': action_id,
+                                'resource_type': resource.rtype})
+
+        return actions
 
     @classmethod
     def _resource_id_for(cls, resource, instance):
@@ -76,15 +91,15 @@ class BkIAMBackend(AuthBackend):
                                            resource_id=self._resource_id_for(resource, instance))
 
     def batch_delete_instance(self, resource, instances, scope_id=None):
-        iam_resources = []
-        for instance in instances:
-            iam_resources.append({
-                'scope_type': resource.scope_type,
-                'scope_id': scope_id or resource.real_scope_id(instance, scope_id),
-                'resource_type': resource.rtype,
-                'resource_id': self._resource_id_for(resource, instance),
-                'resource_name': resource.resource_name(instance)
-            })
+        if not instances:
+            raise ValueError('can not batch delete a empty instances list')
+
+        iam_resources = [{'scope_type': resource.scope_type,
+                          'scope_id': scope_id or resource.real_scope_id(instance, scope_id),
+                          'resource_type': resource.rtype,
+                          'resource_id': self._resource_id_for(resource, instance),
+                          'resource_name': resource.resource_name(instance)
+                          } for instance in instances]
 
         return self.client.batch_delete_resource(resources=iam_resources)
 
@@ -105,15 +120,9 @@ class BkIAMBackend(AuthBackend):
                                                         resources_actions=actions)
 
     def batch_verify_perms(self, resource, principal_type, principal_id, action_ids, instances=None, scope_id=None):
-        actions = []
-        for action_id in action_ids:
-            action = {'action_id': action_id,
-                      'resource_type': resource.rtype}
-            if resource.is_instance_related_action(action_id) and instances:
-                for instance in instances:
-                    action['resource_id'] = self._resource_id_for(resource, instance)
-
-            actions.append(action)
+        resource_actions = self.__gen_resource_actions_for(resource=resource,
+                                                           action_ids=action_ids,
+                                                           instances=instances)
 
         if not scope_id:
             scope_id = resource.real_scope_id(instances[0] if instances else None, scope_id)
@@ -122,24 +131,21 @@ class BkIAMBackend(AuthBackend):
                                                         principal_id=principal_id,
                                                         scope_type=resource.scope_type,
                                                         scope_id=scope_id,
-                                                        resources_actions=actions)
+                                                        resources_actions=resource_actions)
 
     def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples, scope_id=None):
         actions = []
         scope_type = None
         for perms_tuple in perms_tuples:
             resource = perms_tuple[0]
+            action_ids = perms_tuple[1]
             instance = perms_tuple[2]
+
+            actions.extend(self.__gen_resource_actions_for(resource=resource,
+                                                           action_ids=action_ids,
+                                                           instances=[instance] if instance else None))
+
             scope_type = resource.scope_type
-            for action_id in perms_tuple[1]:
-                action = {'action_id': action_id,
-                          'resource_type': resource.rtype}
-
-                if instance:
-                    action['resource_id'] = self._resource_id_for(resource, instance)
-
-                actions.append(action)
-
             scope_id = scope_id or resource.real_scope_id(instance, scope_id)
 
         return self.client.batch_verify_resources_perms(principal_type=principal_type,
@@ -167,6 +173,7 @@ class BkIAMBackend(AuthBackend):
                 action['resource_id'] = self._resource_id_for(resource, instance)
 
             scope_id = scope_id or resource.real_scope_id(instance, scope_id)
+            actions.append(action)
 
         return self.client.search_resources_perms_principals(scope_type=resource.scope_type,
                                                              scope_id=scope_id,
