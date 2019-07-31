@@ -101,122 +101,108 @@
                 </bk-form>
             </div>
             <div class="template-table-content" v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="template-id">ID</th>
-                            <th class="template-name">{{ i18n.name }}</th>
-                            <th class="template-type">{{ i18n.type }}</th>
-                            <th class="update-time">{{ i18n.updateTime }}</th>
-                            <th v-if="!common_template" class="subflow-update">{{ i18n.subflowUpdate }}</th>
-                            <th class="template-creator">{{ i18n.creator }}</th>
-                            <th class="template-operation">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in listData" :key="item.id">
-                            <td class="template-id">{{item.id}}</td>
-                            <td class="template-name">
-                                <router-link
-                                    v-if="!common || !common_template"
-                                    :title="item.name"
-                                    :to="getEditTemplateUrl(item.id)">
-                                    {{item.name}}
-                                </router-link>
-                                <p v-else>{{item.name}}</p>
-                            </td>
-                            <td class="template-type">{{item.category_name}}</td>
-                            <td class="update-time">{{item.edit_time}}</td>
-                            <td v-if="!common_template" :class="['subflow-update', { 'subflow-has-update': item.subprocess_has_update }]">
-                                {{getSubflowContent(item)}}
-                            </td>
-                            <td class="template-creator">{{item.creator_name}}</td>
-                            <td class="template-operation" v-if="!common && !common_template">
-                                <!-- 业务流程按钮 -->
-                                <router-link
-                                    class="template-operate-btn"
-                                    :to="getNewTaskUrl(item.id)">
-                                    {{ i18n.newTemplate }}
-                                </router-link>
-                                <router-link
-                                    class="template-operate-btn"
-                                    :to="getEditTemplateUrl(item.id)">
-                                    {{ i18n.edit }}
-                                </router-link>
-                                <bk-dropdown-menu>
-                                    <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                    <ul class="bk-dropdown-list" slot="dropdown-content">
-                                        <li>
-                                            <router-link :to="getCloneUrl(item.id)">{{ i18n.clone }}</router-link>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:void(0);" @click="onManageAuthority(item.id)">{{ i18n.authority }}</a>
-                                        </li>
-                                        <li>
-                                            <router-link :to="getExecuteHistoryUrl(item.id)">{{ i18n.executeHistory }}</router-link>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:void(0);" @click="onDeleteTemplate(item.id, item.name)">{{ i18n.delete }}</a>
-                                        </li>
-                                    </ul>
-                                </bk-dropdown-menu>
-                            </td>
-                            <td class="template-operation" v-else-if="common_template || !common">
-                                <!-- 嵌套在业务流程页面中的公共流程，通过查询条件切换 -->
-                                <router-link
-                                    class="template-operate-btn"
-                                    :to="getNewTaskUrl(item.id)">
-                                    {{ i18n.newTemplate }}
-                                </router-link>
-                                <bk-dropdown-menu>
-                                    <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                    <ul class="bk-dropdown-list" slot="dropdown-content">
-                                        <li>
-                                            <a href="javascript:void(0);" @click="onManageAuthority(item.id)">{{ i18n.authority }}</a>
-                                        </li>
-                                        <li>
-                                            <router-link :to="getExecuteHistoryUrl(item.id)">{{ i18n.executeHistory }}</router-link>
-                                        </li>
-                                    </ul>
-                                </bk-dropdown-menu>
-                            </td>
-                            <td class="template-operation" v-else-if="common">
-                                <!-- 公共流程首页 -->
-                                <router-link class="template-operate-btn" :to="getEditTemplateUrl(item.id)">{{ i18n.edit}}</router-link>
-                                <bk-dropdown-menu>
-                                    <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                    <ul class="bk-dropdown-list" slot="dropdown-content">
-                                        <li>
-                                            <router-link :to="getCloneUrl(item.id)">{{ i18n.clone }}</router-link>
-                                        </li>
-                                        <li>
-                                            <a href="javascript:void(0);" @click="onDeleteTemplate(item.id, item.name)">{{i18n.delete}}</a>
-                                        </li>
-                                    </ul>
-                                </bk-dropdown-menu>
-                            </td>
-                        </tr>
-                        <tr v-if="!listData || !listData.length" class="empty-tr">
-                            <td colspan="7">
-                                <div class="empty-data"><NoData :message="i18n.empty" /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-pagination
-                        :current.sync="currentPage"
-                        :count="totalCount"
-                        :limit="countPerPage"
-                        :limit-list="[15]"
-                        :show-limit="false"
-                        :align="'right'"
-                        @change="onPageChange">
-                    </bk-pagination>
-                </div>
+                <bk-table
+                    :data="listData"
+                    :pagination="pagination"
+                    @page-change="onPageChange">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <router-link
+                                v-if="!common || !common_template"
+                                class="template-name"
+                                :title="props.row.name"
+                                :to="getEditTemplateUrl(props.row.id)">
+                                {{props.row.name}}
+                            </router-link>
+                            <p v-else class="template-name">{{props.row.name}}</p>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.type" prop="category_name"></bk-table-column>
+                    <bk-table-column :label="i18n.updateTime" prop="edit_time"></bk-table-column>
+                    <bk-table-column
+                        v-if="!common_template"
+                        width="120"
+                        :label="i18n.subflowUpdate">
+                        <template slot-scope="props">
+                            <div :class="['subflow-update', { 'subflow-has-update': props.subprocess_has_update }]">
+                                {{getSubflowContent(props.row)}}
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.operation" width="180" class="operation-cell">
+                        <template slot-scope="props">
+                            <div class="template-operation">
+                                <template v-if="!common && !common_template">
+                                    <!-- 业务流程按钮 -->
+                                    <router-link
+                                        class="template-operate-btn"
+                                        :to="getNewTaskUrl(props.row.id)">
+                                        {{ i18n.newTemplate }}
+                                    </router-link>
+                                    <router-link
+                                        class="template-operate-btn"
+                                        :to="getEditTemplateUrl(props.row.id)">
+                                        {{ i18n.edit }}
+                                    </router-link>
+                                    <bk-dropdown-menu>
+                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                                            <li>
+                                                <router-link :to="getCloneUrl(props.row.id)">{{ i18n.clone }}</router-link>
+                                            </li>
+                                            <li>
+                                                <a href="javascript:void(0);" @click="onManageAuthority(props.row.id)">{{ i18n.authority }}</a>
+                                            </li>
+                                            <li>
+                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
+                                            </li>
+                                            <li>
+                                                <a href="javascript:void(0);" @click="onDeleteTemplate(props.row.id, props.row.name)">{{ i18n.delete }}</a>
+                                            </li>
+                                        </ul>
+                                    </bk-dropdown-menu>
+                                </template>
+                                <template v-else-if="common_template || !common">
+                                    <!-- 嵌套在业务流程页面中的公共流程，通过查询条件切换 -->
+                                    <router-link
+                                        class="template-operate-btn"
+                                        :to="getNewTaskUrl(props.row.id)">
+                                        {{ i18n.newTemplate }}
+                                    </router-link>
+                                    <bk-dropdown-menu>
+                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                                            <li>
+                                                <a href="javascript:void(0);" @click="onManageAuthority(props.row.id)">{{ i18n.authority }}</a>
+                                            </li>
+                                            <li>
+                                                <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
+                                            </li>
+                                        </ul>
+                                    </bk-dropdown-menu>
+                                </template>
+                                <template v-else-if="common">
+                                    <!-- 公共流程首页 -->
+                                    <router-link class="template-operate-btn" :to="getEditTemplateUrl(props.row.id)">{{ i18n.edit}}</router-link>
+                                    <bk-dropdown-menu>
+                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
+                                        <ul class="bk-dropdown-list" slot="dropdown-content">
+                                            <li>
+                                                <router-link :to="getCloneUrl(props.row.id)">{{ i18n.clone }}</router-link>
+                                            </li>
+                                            <li>
+                                                <a href="javascript:void(0);" @click="onDeleteTemplate(props.row.id, props.row.name)">{{i18n.delete}}</a>
+                                            </li>
+                                        </ul>
+                                    </bk-dropdown-menu>
+                                </template>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
@@ -330,10 +316,7 @@
                 listLoading: true,
                 businessInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
-                currentPage: 1,
                 totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
                 isDeleteDialogShow: false,
                 isImportDialogShow: false,
                 isExportDialogShow: false,
@@ -366,7 +349,14 @@
                 isHasSubprocess: undefined,
                 creator: undefined,
                 templateType: this.common_template,
-                deleteTemplateName: ''
+                deleteTemplateName: '',
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                }
             }
         },
         computed: {
@@ -412,8 +402,8 @@
                 const isCommon = this.common === 1
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         common: this.common,
                         pipeline_template__name__contains: this.flowName,
                         pipeline_template__creator__contains: this.creator,
@@ -439,8 +429,8 @@
                     const templateListData = await this.loadTemplateList(data)
                     const list = templateListData.objects
                     this.setTemplateListData({ list, isCommon })
-                    this.totalCount = templateListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    this.pagination.count = templateListData.meta.total_count
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -467,7 +457,7 @@
                 }
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getTemplateList()
             },
             onImportTemplate () {
@@ -512,7 +502,7 @@
                 this.isDeleteDialogShow = true
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.getTemplateList()
             },
             onManageAuthority (id) {
@@ -532,11 +522,11 @@
                     this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
-                        this.currentPage > 1
-                        && this.totalPage === this.currentPage
-                        && this.totalCount - (this.totalPage - 1) * this.countPerPage === 1
+                        this.pagination.current > 1
+                        && this.totalPage === this.pagination.current
+                        && this.pagination.count - (this.totalPage - 1) * this.pagination.limit === 1
                     ) {
-                        this.currentPage -= 1
+                        this.pagination.current -= 1
                     }
                     this.getTemplateList()
                 } catch (e) {
@@ -758,7 +748,7 @@
                     border-color: $blueDefault;
                 }
             }
-            .ommon-icon-search {
+            .common-icon-search {
                 position: relative;
                 right: 15px;
                 top: 11px;
@@ -828,69 +818,15 @@
     }
 }
 .template-table-content {
-    table {
-        width: 100%;
-        border: 1px solid #dde4eb;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
-        }
-        th, td {
-            padding: 11px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;
-        }
-        td {
-            color: #63656e
-        }
-        th {
-            background: $whiteNodeBg;
-        }
-        .template-id {
-            padding-left: 20px;
-            width: 80px;
-        }
-        .template-name {
-            text-align: left;
-            a, p{
-                display: block;
-                width: 100%;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
-            a {
-                color: $blueDefault;
-            }
-        }
-        .template-type {
-            width: 122px;
-        }
-        .update-time {
-            width: 220px;
-        }
-        .subflow-update {
-            width: 100px;
-        }
-        .subflow-has-update {
-            color: $redDefault;
-        }
-        .template-creator {
-            width: 110px;
-        }
-        .template-operation {
-            width: 260px;
-        }
+    background: #ffffff;
+    a.template-name {
+        color: $blueDefault;
     }
-    .btn-size-mini {
-        height: 24px;
-        line-height: 22px;
-        padding: 0 11px;
-        font-size: 12px;
+    /deep/ .bk-table {
+        .bk-table-body-wrapper,.is-scrolling-none,
+        td.is-last .cell {
+            overflow: initial;
+        }
     }
     .template-operate-btn {
         padding: 5px;
@@ -908,12 +844,6 @@
     .empty-data {
         padding: 120px 0;
     }
-}
-.template-content-from {
-    height: 156px;
-    background: $whiteDefault;
-    border-radius:2px;
-    border: 1px solid #dde4eb;
 }
 .bk-dropdown-menu .bk-dropdown-list > li > a {
     font-size: 12px;
