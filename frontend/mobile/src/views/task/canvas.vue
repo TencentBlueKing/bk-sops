@@ -79,7 +79,7 @@
     import { mapActions } from 'vuex'
 
     const TASK_STATE = {
-        'CREATED': [window.gettext('未执行'), 'info'],
+        'CREATED': [window.gettext('未执行'), 'muted'],
         'RUNNING': [window.gettext('执行中'), 'info'],
         'SUSPENDED': [window.gettext('暂停'), 'warning'],
         'NODE_SUSPENDED': [window.gettext('节点暂停'), 'warning'],
