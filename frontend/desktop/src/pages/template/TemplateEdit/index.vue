@@ -82,7 +82,7 @@
                 :value="isLeaveDialogShow"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
-                <div>{{ i18n.tips }}</div>
+                <div class="leave-tips">{{ i18n.tips }}</div>
             </bk-dialog>
         </div>
     </div>
@@ -950,5 +950,8 @@
     }
     .pipeline-canvas-wrapper {
         height: 100%;
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>
