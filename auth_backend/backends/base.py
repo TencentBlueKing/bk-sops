@@ -17,6 +17,7 @@ import abc
 class AuthBackend(object):
     __metaclass__ = abc.ABCMeta
 
+    @abc.abstractmethod
     def register_instance(self, resource, instance, scope_id=None):
         """
         向权限系统注册实例
@@ -27,6 +28,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def batch_register_instance(self, resource, instances, scope_id=None):
         """
         向权限系统批量注册实例
@@ -37,6 +39,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def update_instance(self, resource, instance, scope_id=None):
         """
         更新权限系统中的实例信息
@@ -47,6 +50,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def delete_instance(self, resource, instance, scope_id=None):
         """
         删除注册在权限系统中的实例
@@ -57,6 +61,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def batch_delete_instance(self, resource, instances, scope_id=None):
         """
         批量删除注册在权限系统中的实例
@@ -67,6 +72,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def verify_perms(self, principal_type, principal_id, resource, action_ids, instance=None, scope_id=None):
         """
         校验主体是否拥有某个资源下的某些操作权限
@@ -80,6 +86,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def batch_verify_perms(self, principal_type, principal_id, resource, action_ids, instances=None, scope_id=None):
         """
         批量校验主体是否拥有某个资源下的某些操作权限
@@ -93,6 +100,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples, scope_id=None):
         """
         批量校验主体是否有某几个同作用域下的资源的某些操作权限
@@ -104,6 +112,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def search_authorized_resources(self, resource, principal_type, principal_id, action_ids, scope_id=None):
         """
         批量查询有权限的资源
@@ -116,6 +125,7 @@ class AuthBackend(object):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def search_resources_perms_principals(self, resource, resources_actions, scope_id=None):
         """
 
