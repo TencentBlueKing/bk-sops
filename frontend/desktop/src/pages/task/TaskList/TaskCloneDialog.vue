@@ -11,26 +11,25 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.title"
         width="600"
-        :is-show.sync="isTaskCloneDialogShow"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.title"
+        :value="isTaskCloneDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content">
-            <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1 }">
-                <div class="common-form-item">
-                    <label>{{ i18n.template }}</label>
-                    <div class="common-form-content">
-                        <BaseInput
-                            name="taskName"
-                            v-model="name"
-                            v-validate="taskNameRule">
-                        </BaseInput>
-                        <span v-if="errors.has('taskName')" class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
-                    </div>
+        <div class="clone-wrapper" v-bkloading="{ isLoading: pending, opacity: 1 }">
+            <div class="common-form-item">
+                <label>{{ i18n.template }}</label>
+                <div class="common-form-content">
+                    <BaseInput
+                        name="taskName"
+                        v-model="name"
+                        v-validate="taskNameRule">
+                    </BaseInput>
+                    <span v-if="errors.has('taskName')" class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                 </div>
             </div>
         </div>
@@ -61,6 +60,11 @@
                 }
             }
         },
+        watch: {
+            taskName (val) {
+                this.name = 'copy' + val.slice(0, STRING_LENGTH.TASK_NAME_MAX_LENGTH - 4)
+            }
+        },
         methods: {
             onConfirm () {
                 this.$validator.validateAll().then(result => {
@@ -79,7 +83,7 @@
 </script>
 <style lang="scss" scoped>
     .clone-wrapper {
-        padding: 10px 0;
+        padding: 30px 0;
         .common-form-item {
             label {
                 font-weight: normal;

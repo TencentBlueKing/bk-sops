@@ -21,7 +21,7 @@
         :draggable="true"
         @confirm="onDeletePeriodicConfrim"
         @cancel="onDeletePeriodicCancel">
-        <div v-bkloading="{ isLoading: deleting, opacity: 1 }">
+        <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1 }">
             <div class="information-tips">{{deleteInfo}}</div>
         </div>
     </bk-dialog>
@@ -55,6 +55,9 @@
 </script>
 
 <style lang="scss" scoped>
+    .dialog-content {
+        padding: 30px;
+    }
     .information-tips {
         word-break: break-all;
     }

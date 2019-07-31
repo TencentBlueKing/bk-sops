@@ -13,7 +13,7 @@
     <div class="task-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.task_list"></BaseTitle>
-            <div class="task-table-content">
+            <div class="operation-area">
                 <div class="operation-area clearfix">
                     <bk-button
                         theme="primary"
@@ -128,66 +128,72 @@
                 </fieldset>
             </div>
             <div class="task-table-content">
-                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th class="task-id">ID</th>
-                            <th class="task-name">{{ i18n.task_name }}</th>
-                            <th class="task-time">{{ i18n.start_time }}</th>
-                            <th class="task-time">{{ i18n.finish_time }}</th>
-                            <th class="task-type">{{ i18n.task_type }}</th>
-                            <th class="task-executor">{{ i18n.creator }}</th>
-                            <th class="task-executor">{{ i18n.executor }}</th>
-                            <th class="task-method">{{ i18n.createMethod }}</th>
-                            <th class="task-status">{{ i18n.status }}</th>
-                            <th class="task-operation">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in taskList" :key="item.id">
-                            <td class="task-id">{{item.id}}</td>
-                            <td class="task-name">
-                                <router-link
-                                    :title="item.name"
-                                    :to="`/taskflow/execute/${cc_id}/?instance_id=${item.id}`">
-                                    {{item.name}}
-                                </router-link>
-                            </td>
-                            <td class="task-time">{{item.start_time || '--'}}</td>
-                            <td class="task-time">{{item.finish_time || '--'}}</td>
-                            <td class="task-type">{{item.category_name}}</td>
-                            <td class="task-executor">{{item.creator_name}}</td>
-                            <td class="task-executor">{{item.executor_name || '--'}}</td>
-                            <td class="task-method">{{transformCreateMethod(item.create_method)}}</td>
-                            <td class="task-status">
-                                <span :class="executeStatus[index] && executeStatus[index].cls"></span>
-                                <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
-                            </td>
-                            <td class="task-operation">
-                                <a class="task-operation-clone" href="javascript:void(0);" @click.prevent="onCloneTaskClick(item.id, item.name)">{{ i18n.clone }}</a>
-                                <a class="task-operation-delete" href="javascript:void(0);" @click.prevent="onDeleteTask(item.id, item.name)">{{ i18n.delete }}</a>
-                            </td>
-                        </tr>
-                        <tr v-if="!taskList || !taskList.length" class="empty-tr">
-                            <td colspan="10">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-pagination
-                        :current.sync="currentPage"
-                        :count="totalCount"
-                        :limit="countPerPage"
-                        :limit-list="[15,20,30]"
-                        :show-limit="false"
-                        @change="onPageChange">
-                    </bk-pagination>
-                </div>
+                <bk-table
+                    :data="taskList"
+                    :pagination="pagination"
+                    @page-change="onPageChange"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.task_name" prop="name">
+                        <template slot-scope="props">
+                            <router-link
+                                class="task-name"
+                                :title="props.row.name"
+                                :to="`/taskflow/execute/${cc_id}/?instance_id=${props.row.id}`">
+                                {{ props.row.name }}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.start_time" prop="category_name">
+                        <template slot-scope="props">
+                            {{ props.row.start_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.finish_time">
+                        <template slot-scope="props">
+                            {{ props.row.finish_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.task_type" prop="category_name"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.executor" width="100">
+                        <template slot-scope="props">
+                            {{ props.row.executor_name || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.createMethod" width="80">
+                        <template slot-scope="props">
+                            {{ transformCreateMethod(props.row.create_method) }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.status" width="120">
+                        <template slot-scope="props">
+                            <div class="task-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.operation" width="120">
+                        <template slot-scope="props">
+                            <div class="task-operation">
+                                <a
+                                    class="task-operation-clone"
+                                    href="javascript:void(0);"
+                                    @click.prevent="onCloneTaskClick(props.row.id, props.row.name)">
+                                    {{ i18n.clone }}
+                                </a>
+                                <a
+                                    class="task-operation-delete"
+                                    href="javascript:void(0);"
+                                    @click.prevent="onDeleteTask(props.row.id, props.row.name)">
+                                    {{ i18n.delete }}
+                                </a>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
@@ -201,7 +207,6 @@
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
         <TaskCloneDialog
-            v-if="isTaskCloneDialogShow"
             :is-task-clone-dialog-show="isTaskCloneDialogShow"
             :task-name="theCloneTaskName"
             :pending="pending.clone"
@@ -213,7 +218,7 @@
             ext-cls="common-dialog"
             :theme="'primary'"
             :mask-close="false"
-            :header-position="'center'"
+            :header-position="'left'"
             :title="i18n.delete"
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
@@ -257,10 +262,7 @@
                 searchStr: '',
                 executeStatus: [], // 任务执行状态
                 TimeRange: ['', ''],
-                currentPage: 1,
                 totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
                 isDeleteDialogShow: false,
                 shapeShow: false,
                 isAdvancedSerachShow: false,
@@ -329,7 +331,14 @@
                 isFinished: undefined,
                 statusSync: '',
                 taskCreateMethodList: [],
-                createMethod: this.create_method || ''
+                createMethod: this.create_method || '',
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                }
             }
         },
         computed: {
@@ -370,8 +379,8 @@
                 this.executeStatus = []
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         category: this.activeTaskCategory,
                         template_id: this.templateId,
                         common: this.common,
@@ -393,8 +402,8 @@
                     }
                     const taskListData = await this.loadTaskList(data)
                     const list = taskListData.objects
-                    this.totalCount = taskListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    this.pagination.count = taskListData.meta.total_count
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -476,15 +485,14 @@
             },
             onCategoryClick (category) {
                 this.activeTaskCategory = category
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getTaskList()
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getTaskList()
             },
             onDeleteTask (id, name) {
-                console.log('zhixing')
                 this.theDeleteTaskId = id
                 this.theDeleteTaskName = name
                 this.isDeleteDialogShow = true
@@ -499,11 +507,11 @@
                     this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
-                        this.currentPage > 1
-                        && this.totalPage === this.currentPage
-                        && this.totalCount - (this.totalPage - 1) * this.countPerPage === 1
+                        this.pagination.current > 1
+                        && this.totalPage === this.pagination.current
+                        && this.pagination.count - (this.totalPage - 1) * this.pagination.limit === 1
                     ) {
-                        this.currentPage -= 1
+                        this.pagination.current -= 1
                     }
                     await this.getTaskList()
                 } catch (e) {
@@ -561,7 +569,7 @@
                 this.isFinished = undefined
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.getTaskList()
             },
             onResetForm () {
@@ -621,10 +629,9 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
-.task-container {
-    .dialog-content {
-        word-break: break-all;
-    }
+.dialog-content {
+    padding: 30px;
+    word-break: break-all;
 }
 .list-wrapper {
     padding: 0 60px;
@@ -763,128 +770,70 @@
     }
 }
 .common-icon-dark-circle-pause {
-    color: #FF9C01;
+    color: #ff9c01;
     font-size: 12px;
 }
-.task-table-content {
+.operation-area {
     .bk-button {
         min-width: 120px;
     }
-    table {
-        width: 100%;
-        border: 1px solid $commonBorderColor;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
+}
+.task-table-content {
+    background: #ffffff;
+    a.task-name {
+        color: $blueDefault;
+    }
+    .task-status {
+        width: 105px;
+        text-align: left;
+        .common-icon-dark-circle-shape {
+            display: inline-block;
+            font-size: 14px;
+            color: #979BA5;
+            vertical-align: middle;
         }
-        th,td {
-            padding: 11px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;
+        .common-icon-dark-circle-ellipsis {
+            color: #3c96ff;
+            font-size: 14px;
+            vertical-align: middle;
         }
-        td {
-            color: #63656e
+        .icon-check-circle-shape {
+            font-size: 14px;
+            color: $greenDefault;
+            vertical-align: middle;
         }
-        th {
-            background: $whiteNodeBg;
+        .common-icon-dark-circle-close {
+            color: $redDefault;
+            font-size: 14px;
+            vertical-align: middle;
         }
-        .task-id {
-            padding-left: 20px;
-            width: 80px;
+        &.revoke {
+            color: $blueDisable;
         }
-        .task-name {
-            text-align: left;
-            a {
-                display: block;
-                width: 100%;
-                color: $blueDefault;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
+        .common-icon-loading {
+            display: inline-block;
+            animation: bk-button-loading 1.4s infinite linear;
         }
-        @media screen and (min-width: 1500px) {
-            .task-time {
-                width: 220px;
-            }
-        }
-        @media screen and (max-width: 1500px) {
-            .task-time {
-                width: 152px;
-            }
-            td[class="task-time"] {
-                height: 60px;
+        @keyframes bk-button-loading {
+            from {
+                -webkit-transform: rotate(0);
+                transform: rotate(0); }
+            to {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
             }
         }
-        .task-type {
-            width: 122px;
+    }
+    .task-operation {
+        width: 150px;
+        .task-operation-clone {
+            color: #3C96FF;
+            font-size: 12px;
         }
-        .task-executor {
-            width: 110px;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            word-break: break-all;
-            overflow: hidden;
-        }
-        .task-method {
-            width: 120px;
-        }
-        .task-status {
-            width: 105px;
-            text-align: left;
-           .common-icon-dark-circle-shape {
-                display: inline-block;
-                font-size: 14px;
-                color: #979BA5;
-                vertical-align: middle;
-            }
-            .common-icon-dark-circle-ellipsis {
-                color: #3c96ff;
-                font-size: 14px;
-                vertical-align: middle;
-            }
-            .icon-check-circle-shape {
-                font-size: 14px;
-                color: $greenDefault;
-                vertical-align: middle;
-            }
-            .common-icon-dark-circle-close {
-                color: $redDefault;
-                font-size: 14px;
-                vertical-align: middle;
-            }
-            &.revoke {
-                color: $blueDisable;
-            }
-            .common-icon-loading {
-                display: inline-block;
-                animation: bk-button-loading 1.4s infinite linear;
-            }
-            @keyframes bk-button-loading {
-                from {
-                    -webkit-transform: rotate(0);
-                    transform: rotate(0); }
-                to {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-        }
-        .task-operation {
-            width: 150px;
-            .task-operation-clone {
-                color: #3C96FF;
-                font-size: 12px;
-            }
-            .task-operation-delete {
-                padding: 5px;
-                color: #3C96FF;
-                font-size: 12px;
-            }
+        .task-operation-delete {
+            padding: 5px;
+            color: #3C96FF;
+            font-size: 12px;
         }
     }
     .empty-data {
