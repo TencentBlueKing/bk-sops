@@ -48,7 +48,7 @@
                                 result: true,
                                 error_message: ""
                             }
-                            var strRegex = '^https?:\/\/[-a-z0-9_.:]+\/[-a-z0-9_:@&?=+,.!/~*%$]*';
+                            var strRegex = '^https?:\/\/[-a-z0-9_.:]+\/?[-a-z0-9_:@&?=+,.!/~*%$]*';
                             var re = new RegExp(strRegex, 'i')
                             if (!re.test(value)) {
                                 result.result = false
