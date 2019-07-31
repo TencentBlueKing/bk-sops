@@ -157,7 +157,9 @@
                     paramInfo: window.gettext('参数信息'),
                     paramInput: window.gettext('输入参数值'),
                     datetimeInput: window.gettext('请选择日期时间'),
-                    taskInfo: window.gettext('任务信息')
+                    taskInfo: window.gettext('任务信息'),
+                    collectSuccess: window.gettext('添加收藏成功'),
+                    cancelCollectSuccess: window.gettext('取消收藏成功')
                 },
                 taskId: 0,
                 taskName: '',
@@ -322,6 +324,11 @@
                         const response = await this.collectTemplate(params)
                         if (response.result) {
                             this.collected = !this.collected
+                            if (this.collected) {
+                                this.$toast.success(this.i18n.collectSuccess)
+                            } else {
+                                this.$toast.success(this.i18n.cancelCollectSuccess)
+                            }
                         } else {
                             errorHandler(response, this)
                         }
