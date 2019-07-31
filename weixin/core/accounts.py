@@ -166,6 +166,7 @@ class WeixinAccount(WeixinAccountSingleton):
             return HttpResponse(_(u"登录失败"))
 
         # 获取用户信息并设置用户
+        logger.info('get_user_info begin: %s' % base_data)
         userinfo = self.get_user_info(base_data)
         userid = userinfo.pop('userid')
         user = BkWeixinUser.objects.get_update_or_create_user(userid, **userinfo)
