@@ -42,7 +42,7 @@ class BkIAMBackend(AuthBackend):
         return self.client.register_resource(creator_type=resource.creator_type(instance),
                                              creator_id=resource.creator_id(instance),
                                              scope_type=resource.scope_type,
-                                             scope_id=scope_id or resource.scope_id,
+                                             scope_id=scope_id or resource.real_scope_id(instance, scope_id),
                                              resource_type=resource.rtype,
                                              resource_name=resource.resource_name(instance),
                                              resource_id=self._resource_id_for(resource, instance))
@@ -55,7 +55,7 @@ class BkIAMBackend(AuthBackend):
         for instance in instances:
             iam_resources.append({
                 'scope_type': resource.scope_type,
-                'scope_id': scope_id or resource.scope_id,
+                'scope_id': scope_id or resource.real_scope_id(instance, scope_id),
                 'resource_type': resource.rtype,
                 'resource_id': self._resource_id_for(resource, instance),
                 'resource_name': resource.resource_name(instance)
@@ -67,14 +67,14 @@ class BkIAMBackend(AuthBackend):
 
     def update_instance(self, resource, instance, scope_id=None):
         return self.client.update_resource(scope_type=resource.scope_type,
-                                           scope_id=scope_id or resource.scope_id,
+                                           scope_id=scope_id or resource.real_scope_id(instance, scope_id),
                                            resource_type=resource.rtype,
                                            resource_id=self._resource_id_for(resource, instance),
                                            resource_name=resource.resource_name(instance))
 
     def delete_instance(self, resource, instance, scope_id=None):
         return self.client.delete_resource(scope_type=resource.scope_type,
-                                           scope_id=scope_id or resource.scope_id,
+                                           scope_id=scope_id or resource.real_scope_id(instance, scope_id),
                                            resource_type=resource.rtype,
                                            resource_id=self._resource_id_for(resource, instance))
 
@@ -83,7 +83,7 @@ class BkIAMBackend(AuthBackend):
         for instance in instances:
             iam_resources.append({
                 'scope_type': resource.scope_type,
-                'scope_id': scope_id or resource.scope_id,
+                'scope_id': scope_id or resource.real_scope_id(instance, scope_id),
                 'resource_type': resource.rtype,
                 'resource_id': self._resource_id_for(resource, instance),
                 'resource_name': resource.resource_name(instance)
@@ -104,7 +104,7 @@ class BkIAMBackend(AuthBackend):
         return self.client.batch_verify_resources_perms(principal_type=principal_type,
                                                         principal_id=principal_id,
                                                         scope_type=resource.scope_type,
-                                                        scope_id=scope_id or resource.scope_id,
+                                                        scope_id=scope_id or resource.real_scope_id(instance, scope_id),
                                                         resources_actions=actions)
 
     def batch_verify_perms(self, resource, principal_type, principal_id, action_ids, instances=None, scope_id=None):
@@ -118,10 +118,13 @@ class BkIAMBackend(AuthBackend):
 
             actions.append(action)
 
+        if not scope_id:
+            scope_id = resource.real_scope_id(instances[0] if instances else None, scope_id)
+
         return self.client.batch_verify_resources_perms(principal_type=principal_type,
                                                         principal_id=principal_id,
                                                         scope_type=resource.scope_type,
-                                                        scope_id=scope_id or resource.scope_id,
+                                                        scope_id=scope_id,
                                                         resources_actions=actions)
 
     def verify_multiple_resource_perms(self, principal_type, principal_id, perms_tuples, scope_id=None):
@@ -131,7 +134,6 @@ class BkIAMBackend(AuthBackend):
             resource = perms_tuple[0]
             instance = perms_tuple[2]
             scope_type = resource.scope_type
-            scope_id = scope_id or resource.scope_id
             for action_id in perms_tuple[1]:
                 action = {'action_id': action_id,
                           'resource_type': resource.rtype}
@@ -140,6 +142,8 @@ class BkIAMBackend(AuthBackend):
                     action['resource_id'] = self._resource_id_for(resource, instance)
 
                 actions.append(action)
+
+            scope_id = scope_id or resource.real_scope_id(instance, scope_id)
 
         return self.client.batch_verify_resources_perms(principal_type=principal_type,
                                                         principal_id=principal_id,
@@ -152,7 +156,7 @@ class BkIAMBackend(AuthBackend):
         return self.client.search_authorized_resources(principal_type=principal_type,
                                                        principal_id=principal_id,
                                                        scope_type=resource.scope_type,
-                                                       scope_id=scope_id or resource.scope_id,
+                                                       scope_id=scope_id or resource.real_scope_id(None, scope_id),
                                                        resource_types_actions=actions,
                                                        resource_data_type='array',
                                                        is_exact_resource=True)
@@ -164,6 +168,9 @@ class BkIAMBackend(AuthBackend):
             instance = resource_action.get('instance')
             if instance:
                 action['resource_id'] = self._resource_id_for(resource, instance)
+
+            scope_id = scope_id or resource.real_scope_id(instance, scope_id)
+
         return self.client.search_resources_perms_principals(scope_type=resource.scope_type,
-                                                             scope_id=scope_id or resource.scope_id,
+                                                             scope_id=scope_id,
                                                              resources_actions=actions)
