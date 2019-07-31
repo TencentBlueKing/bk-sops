@@ -51,8 +51,8 @@
                 sortDimensionList: [],
                 isUpdated: false,
                 i18n: {
-                    date: '日期',
-                    task: '任务'
+                    date: gettext('日期'),
+                    task: gettext('任务')
                 }
             }
         },
