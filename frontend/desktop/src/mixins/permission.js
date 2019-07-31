@@ -38,7 +38,7 @@ const permission = {
                 })
             })
             
-            const { scope_id, scope_name, scope_type, system_id, system_name, resource } = authResource
+            const { scope_id, scope_name, scope_type, system_id, system_name, resource, scope_type_name } = authResource
             const permissions = []
             actions.forEach(item => {
                 const res = []
@@ -51,6 +51,7 @@ const permission = {
                 permissions.push({
                     scope_id,
                     scope_name,
+                    scope_type_name,
                     scope_type,
                     system_id,
                     system_name,
