@@ -39,3 +39,5 @@ RESOURCE_DELETE_INSTANCE = 'auth_backend.resources.base.Resource.delete_instance
 RESOURCE_UPDATE_INSTANCE = 'auth_backend.resources.base.Resource.update_instance'
 
 DJANGO_MODEL_RESOURCE_DISPATCH_HANDLERS = 'auth_backend.resources.django.DjangoModelResource._dispatch_handlers'
+
+BK_IAM_BACKEND_RESOURCE_ID_FOR = 'auth_backend.backends.bkiam.BKIAMBackend._resource_id_for'
