@@ -21,6 +21,7 @@ from pipeline.core.pipeline import Pipeline
 
 logger = logging.getLogger('celery')
 
+
 class Event(FlowNode):
     __metaclass__ = ABCMeta
 
