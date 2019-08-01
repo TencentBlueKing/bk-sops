@@ -39,6 +39,7 @@ class EndEvent(ThrowEvent):
     __metaclass__ = ABCMeta
 
     def pipeline_finish(self, root_pipeline_id):
+        pipeline_end.send(sender=Pipeline, root_pipeline_id=root_pipeline_id)
         return
 
 
@@ -57,4 +58,4 @@ class EmptyEndEvent(EndEvent):
             PipelineInstance.objects.set_finished(root_pipeline_id)
         except PipelineInstance.DoesNotExist:  # task which do not belong to any instance
             pass
-        pipeline_end.send(sender=Pipeline, root_pipeline_id=root_pipeline_id)
+        super(EmptyEndEvent, self).pipeline_finish(root_pipeline_id)
