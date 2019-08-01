@@ -60,8 +60,11 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         是否来自微信访问
         """
+        logger.info('visit host is: %s' % request.get_host())
+        logger.info('WEIXIN_APP_EXTERNAL_HOST is: %s' % weixin_settings.WEIXIN_APP_EXTERNAL_HOST)
         if weixin_settings.USE_WEIXIN and request.path.startswith(weixin_settings.WEIXIN_SITE_URL) and \
                 request.get_host() == weixin_settings.WEIXIN_APP_EXTERNAL_HOST:
+            logger.info('weixin visit begin')
             return True
         return False
 
