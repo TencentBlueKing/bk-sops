@@ -15,7 +15,7 @@ import logging
 
 from auth_backend.resources.base import resource_type_lib
 from auth_backend.backends import get_backend_from_config
-from auth_backend.exceptions import AuthFailedException
+from auth_backend.exceptions import AuthFailedException, AuthBackendError
 from auth_backend.constants import HTTP_AUTH_FAILED_CODE
 from auth_backend.plugins.utils import build_need_permission
 
@@ -27,9 +27,10 @@ def verify_or_return_insufficient_perms(principal_type, principal_id, perms_tupl
     auth_result = auth_backend.verify_multiple_resource_perms(principal_type, principal_id, perms_tuples, scope_id)
 
     if not auth_result['result']:
-        logger.error('Shortcut verify multiple resource perms failed, return error: {error}'.format(
-            error=auth_result['message']
-        ))
+        msg = 'Shortcut verify multiple resource perms failed, return error: {error}'.format(
+            error=auth_result['message'])
+        logger.error(msg)
+        raise AuthBackendError(msg)
 
     if all([item['is_pass'] for item in auth_result['data']]):
         return []

@@ -41,3 +41,8 @@ RESOURCE_UPDATE_INSTANCE = 'auth_backend.resources.base.Resource.update_instance
 DJANGO_MODEL_RESOURCE_DISPATCH_HANDLERS = 'auth_backend.resources.django.DjangoModelResource._dispatch_handlers'
 
 BK_IAM_BACKEND_RESOURCE_ID_FOR = 'auth_backend.backends.bkiam.BKIAMBackend._resource_id_for'
+
+SHORTCUTS_VERIFY_OR_RETURN_PERMS = 'auth_backend.plugins.shortcuts.verify_or_return_insufficient_perms'
+SHORTCUTS_GET_BACKEND_FROM_CONFIG = 'auth_backend.plugins.shortcuts.get_backend_from_config'
+SHORTCUTS_BUILD_NEED_PERMISSION = 'auth_backend.plugins.shortcuts.build_need_permission'
+SHORTCUTS_RESOURCE_TYPE_LIB = 'auth_backend.plugins.shortcuts.resource_type_lib'
