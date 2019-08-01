@@ -43,13 +43,10 @@
                                     name="packageName"
                                     v-model="name"
                                     v-validate="packageNameRule"
+                                    :style="errors.first('packageName') ? 'border:1px double #ea3636' : '' "
                                     :disabled="isEditing"
                                     @blur="onPackageNameBlur">
-                                <span
-                                    v-show="errors.has('packageName')"
-                                    class="common-error-tip error-msg">
-                                    {{ errors.first('packageName') }}
-                                </span>
+                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                             </div>
                         </td>
                     </tr>
@@ -98,19 +95,17 @@
                                 <tbody>
                                     <tr v-for="field in detailFields" :key="field.id">
                                         <th>{{field.name}}</th>
-                                        <td class="td-with-input">
+                                        <td class="td-with-input"
+                                            :style="errors.first('detailValue' + field.id) ? 'border:1px double #ea3636' : '' ">
                                             <input
                                                 type="text"
                                                 class="table-input"
-                                                name="detailValue"
+                                                :name="'detailValue' + field.id"
                                                 :placeholder="i18n.placeholder"
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
-                                            <span
-                                                class="common-error-tip error-msg">
-                                                {{i18n.required}}
-                                            </span>
+                                            <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -136,47 +131,44 @@
                                     </thead>
                                     <tbody>
                                         <tr v-for="(item, index) in packageValues" :key="index">
-                                            <td class="td-with-input">
+                                            <td
+                                                :style="errors.first('moduleName' + index) ? 'border:1px double #ea3636' : ''"
+                                                class="td-with-input">
                                                 <input
                                                     type="text"
                                                     class="table-input"
-                                                    name="moduleName"
+                                                    :name="'moduleName' + index"
                                                     :placeholder="i18n.placeholder"
                                                     v-model="item.key"
                                                     v-validate="packageNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
-                                                <span
-                                                    class="common-error-tip error-msg">
-                                                    {{ errors.first('moduleName') }}
-                                                </span>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                                             </td>
-                                            <td class="td-with-input">
+                                            <td
+                                                :style="errors.first('moduleVersion' + index) ? 'border:1px double #ea3636' : ''"
+                                                class="td-with-input">
                                                 <input
                                                     type="text"
                                                     class="table-input"
-                                                    name="moduleVersion"
+                                                    :name="'moduleVersion' + index"
                                                     :placeholder="i18n.placeholder"
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
-                                                <span
-                                                    class="common-error-tip error-msg">
-                                                    {{ i18n.required }}
-                                                </span>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                                             </td>
-                                            <td class="td-with-input">
+                                            <td
+                                                :style="errors.first('modules' + index) ? 'border:1px double #ea3636' : ''"
+                                                class="td-with-input">
                                                 <input
                                                     type="text"
                                                     class="table-input"
-                                                    name="modules"
+                                                    :name="'modules' + index"
                                                     :placeholder="i18n.importPlaceholder"
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
-                                                <span
-                                                    class="common-error-tip error-msg">
-                                                    {{ i18n.required }}
-                                                </span>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                                             </td>
                                             <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
                                         </tr>
@@ -404,6 +396,15 @@
     }
 </script>
 <style lang="scss" scoped>
+    @mixin input-verific-trigger {
+        input[aria-invalid="true"] + .common-error-tip {
+            display: inline-block;
+        }
+        .common-error-tip {
+            display: none;
+            bottom: 0;
+        }
+    }
     .package-form {
         margin-bottom: 30px;
         background: #f0f1f5;
@@ -505,6 +506,7 @@
             }
             
         }
+        @include input-verific-trigger;
         .form-content {
             position: relative;
             width: 40%;
@@ -567,13 +569,7 @@
             font-weight: 700;
             text-align: center;
         }
-        input[aria-invalid="true"] + .common-error-tip {
-            display: inline-block;
-        }
-        .common-error-tip {
-            display: none;
-            bottom: 0;
-        }
+        @include input-verific-trigger;
     }
     .module-table-wrapper {
         position: relative;
@@ -625,8 +621,11 @@
     }
     .common-error-tip {
         position: absolute;
-        bottom: -15px;
-        left: 0;
+        top: 50%;
+        right: 0;
+        margin-top: -6px;
+        margin-right: 6px;
+        height: 6px;
         font-size: 12px;
         white-space: nowrap;
     }
