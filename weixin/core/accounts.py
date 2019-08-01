@@ -60,8 +60,6 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         是否来自微信访问
         """
-        logger.info('visit host is: %s' % request.get_host())
-        logger.info('WEIXIN_APP_EXTERNAL_HOST is: %s' % weixin_settings.WEIXIN_APP_EXTERNAL_HOST)
         if weixin_settings.USE_WEIXIN and request.path.startswith(weixin_settings.WEIXIN_SITE_URL) and \
                 request.get_host() == weixin_settings.WEIXIN_APP_EXTERNAL_HOST:
             logger.info('weixin visit begin')
@@ -169,9 +167,8 @@ class WeixinAccount(WeixinAccountSingleton):
             return HttpResponse(_(u"登录失败"))
 
         # 获取用户信息并设置用户
-        logger.info('get_user_info begin: %s' % base_data)
         userinfo = self.get_user_info(base_data)
-        logger.info('get_user_info result: %s' % userinfo)
+        logger.info('get_user_info kwargs: %s, result: %s' % (base_data, userinfo))
         userid = userinfo.pop('userid')
         user = BkWeixinUser.objects.get_update_or_create_user(userid, **userinfo)
         # 设置session
