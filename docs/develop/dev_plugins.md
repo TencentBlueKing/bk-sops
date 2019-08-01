@@ -260,27 +260,26 @@ TestCustomComponent 类详解：
 
 标准运维支持从系统外部加载标准插件，但是，对于编写的插件有以下要求（如果你编写的插件不需要进行远程加载，可以跳过此章节）：
 
-- 需要声明插件所需的系统中不存在的第三方组件库
+- 需要声明插件所需的系统中不存在的 python 第三方组件库
 - 插件表单需要使用嵌入的方式
 
 #### 组件库依赖声明
 
-若你编写的插件需要依赖标准运维运行时不存在的第三方插件，则需要在 `{CUSTOM PLUGINS NAME}/__init__.py` 中添加 `__requirements__` 变量并声明所需要的组件及版本号：
+若你编写的插件需要依赖标准运维运行时不存在的 python 第三方插件，则需要在 `{CUSTOM PLUGINS NAME}/__init__.py` 中添加 `__requirements__` 变量并声明所需要的组件及版本号：
 
 ```python
 
 # {CUSTOM PLUGINS NAME}/__init__.py
 
 __requirements__ = [
-    "flask==x.x.x",
-    "mako==x.x.x",
-    "urllib3==x.x.x"
+    "flask==x.x.x", # 特定版本号
+    "mako", # 不限制版本号
 ]
 ```
 
 #### 嵌入式表单
 
-远程加载的插件目前不支持从静态文件中读取插件的表单，所以需要嵌入的方式将表单添加到插件的定义中：
+远程加载的插件目前不支持从静态文件中读取插件的前端表单，所以需要用嵌入的方式将表单添加到插件的后台定义中：
 
 - 在 Component 类中添加 `embedded_form` 属性并设置为 `True`
 - 在 Component 类中添加 `form` 属性并将其值设置为表单的定义
@@ -351,9 +350,13 @@ class TestCustomComponent(Component):
 
 ### 7. 标准插件单元测试
 
-标准插件的单元测试需要在 `{CUSTOM PLUGINS NAME}/tests` 下根据插件所在路径创建一直的路径并编写编写。例如针对 `{CUSTOM PLUGINS NAME}/components/collections/plugins.py` 中编写的插件，应该在 `{CUSTOM PLUGINS NAME}/tests/components/collections/plugins_test` 目录下为每个插件创建对应的文件并编写单元测试。另外，测试文件名应该为 `test_{code}.py`，`{code}` 为插件的唯一 code。
+在我们完成自定义组件的开发后，我们需要测试组件是否能够按照我们预期的那样运行。最简单的方式就是构造一个包含该节点的流程然后把流程跑起来观察其行为和输出是否符合预期。但是这种测试方式十分耗时而且是一次性的，下次若是修改了节点后需要再进行一遍相同的操作。
 
-单元测试编写的指引请参考：[标准插件单元测试编写](../../pipeline/docs/user_guide_component_unit_test.md)。
+为了解决这个问题，框架内部提供了组件测试单元测试框架，框架会模拟组件在流程中执行的场景，并根据开发者编写的测试用例来执行组件并检测组件的行为是否符合预期。借助组件单元测试框架能够节省我们测试组件的时间，并且保证组件实现在发生变化后能够快速确认改动是否影响了组件的功能。
+
+标准插件的单元测试需要在 `{CUSTOM PLUGINS NAME}/tests` 下根据插件后台定义文件创建子目录路径一致的测试文件并编写测试代码。例如针对 `{CUSTOM PLUGINS NAME}/components/collections/plugins.py` 中编写的插件，应该在 `{CUSTOM PLUGINS NAME}/tests/components/collections/plugins_test` 目录下为每个插件创建对应的文件并编写单元测试。另外，测试文件名应该为 `test_{code}.py`，`{code}` 为插件的唯一编码。
+
+单元测试编写指引请参考：[标准插件单元测试编写](../../pipeline/docs/user_guide_component_unit_test.md)。
 
 
 ### 8. 标准插件功能测试
