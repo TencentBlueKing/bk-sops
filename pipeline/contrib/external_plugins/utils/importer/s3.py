@@ -17,12 +17,14 @@ import boto3
 from botocore.exceptions import ClientError
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
+from pipeline.contrib.external_plugins.models.base import S3
 
 logger = logging.getLogger('root')
 
 
 class S3ModuleImporter(AutoInstallRequirementsImporter):
     def __init__(self,
+                 name,
                  modules,
                  service_address,
                  bucket,
@@ -30,7 +32,7 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
                  secret_key,
                  use_cache=True,
                  secure_only=True):
-        super(S3ModuleImporter, self).__init__(modules=modules)
+        super(S3ModuleImporter, self).__init__(name=name, modules=modules)
 
         if secure_only and not service_address.startswith('https'):
             raise ValueError('Only accept https when secure_only is True.')
@@ -45,6 +47,7 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
                                  aws_secret_access_key=secret_key,
                                  endpoint_url=self.service_address)
         self.obj_cache = {}
+        self.type = S3
 
     def is_package(self, fullname):
         return self._fetch_obj_content(self._obj_key(fullname, is_pkg=True)) is not None

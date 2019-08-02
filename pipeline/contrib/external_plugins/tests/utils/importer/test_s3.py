@@ -40,7 +40,8 @@ class S3ModuleImporterTestCase(TestCase):
 
     @patch(BOTO3_RESOURCE, mock_s3_resource)
     def test__init__(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -51,7 +52,8 @@ class S3ModuleImporterTestCase(TestCase):
                                                        aws_secret_access_key=self.secret_key,
                                                        endpoint_url=self.service_address))
 
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address_without_slash,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -70,7 +72,8 @@ class S3ModuleImporterTestCase(TestCase):
                           access_key=self.access_key,
                           secret_key=self.secret_key)
 
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.not_secure_service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -83,7 +86,8 @@ class S3ModuleImporterTestCase(TestCase):
                                                        endpoint_url=self.not_secure_service_address))
 
     def test_is_package(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -99,7 +103,8 @@ class S3ModuleImporterTestCase(TestCase):
     @patch(UTILS_IMPORTER_S3_GET_SOURCE, MagicMock(return_value=GET_SOURCE_RETURN))
     def test_get_code(self):
         expect_code = compile(GET_SOURCE_RETURN, GET_FILE_RETURN, 'exec')
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -110,7 +115,8 @@ class S3ModuleImporterTestCase(TestCase):
     @patch(UTILS_IMPORTER_S3_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
     @patch(UTILS_IMPORTER_S3__FETCH_OBJ_CONTENT, MagicMock(return_value=_FETCH_OBJ_CONTENT_RETURN))
     def test_get_source(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -122,7 +128,8 @@ class S3ModuleImporterTestCase(TestCase):
     @patch(UTILS_IMPORTER_S3_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
     @patch(UTILS_IMPORTER_S3__FETCH_OBJ_CONTENT, MagicMock(return_value=None))
     def test_get_source__fetch_none(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -133,7 +140,8 @@ class S3ModuleImporterTestCase(TestCase):
 
     @patch(UTILS_IMPORTER_S3_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
     def test_get_path(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -142,7 +150,8 @@ class S3ModuleImporterTestCase(TestCase):
         self.assertEqual(importer.get_path(self.fullname), ['https://test-s3-address/bucket/module1/module2/module3'])
 
     def test_get_file(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -155,7 +164,8 @@ class S3ModuleImporterTestCase(TestCase):
             self.assertEqual(importer.get_file(self.fullname), self.package_url)
 
     def test__obj_key(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -165,7 +175,8 @@ class S3ModuleImporterTestCase(TestCase):
         self.assertEqual('module1/module2/module3.py', importer._obj_key(self.fullname, is_pkg=False))
 
     def test__fetch_obj_content__no_cache(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,
@@ -188,7 +199,8 @@ class S3ModuleImporterTestCase(TestCase):
             self.assertEqual(importer.obj_cache, {})
 
     def test__fetch_obj_content__use_cache(self):
-        importer = S3ModuleImporter(modules=[],
+        importer = S3ModuleImporter(name='name',
+                                    modules=[],
                                     service_address=self.service_address,
                                     bucket=self.bucket,
                                     access_key=self.access_key,

@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import sys
 from copy import deepcopy
 from abc import abstractmethod
 
@@ -19,6 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.contrib.external_plugins import exceptions
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
+from pipeline.component_framework.library import ComponentLibrary
 
 GIT = 'git'
 S3 = 's3'
@@ -96,6 +98,21 @@ class ExternalPackageSource(models.Model):
     @abstractmethod
     def details(self):
         raise NotImplementedError()
+
+    @property
+    def imported_plugins(self):
+        plugins = []
+        for code, component in ComponentLibrary.components.items():
+            component_importer = getattr(sys.modules[component.__module__], '__loader__', None)
+            if component_importer and component_importer.type == self.type() and component_importer.name == self.name:
+                plugins.append({
+                    'code': code,
+                    'name': component.name,
+                    'group_name': component.group_name,
+                    'class_name': component.__name__,
+                    'module': component.__module__
+                })
+        return plugins
 
     @property
     def modules(self):
