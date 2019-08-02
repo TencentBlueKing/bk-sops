@@ -17,7 +17,7 @@ from django.test import TestCase
 from auth_backend.plugins import shortcuts
 from auth_backend.exceptions import AuthFailedException, AuthBackendError
 
-from auth_backend.tests.mock_path import *
+from auth_backend.tests.mock_path import *  # noqa
 
 
 class ShortcutsTestCase(TestCase):
@@ -171,7 +171,7 @@ class ShortcutsTestCase(TestCase):
                                                                     principal_id=self.principal_id,
                                                                     perms_tuples=self.perms_tuples,
                                                                     scope_id=self.scope_id)
-        
+
         self.assertEqual(permissions, [self.permissions, self.permissions, self.permissions])
         self.backend.verify_multiple_resource_perms.assert_called_once_with(self.principal_type,
                                                                             self.principal_id,
