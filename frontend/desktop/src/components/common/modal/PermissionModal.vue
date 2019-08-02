@@ -109,9 +109,11 @@
                 this.list = data
             },
             getResource (permission) {
-                return permission.resources.map(res => {
+                const type = permission.resources[0][0].resource_type_name
+                const names = permission.resources.map(res => {
                     return res.map(item => item.resource_name).join(',')
                 }).join(',')
+                return type + '：' + names
             },
             goToApply () {
                 if (this.loading) {
