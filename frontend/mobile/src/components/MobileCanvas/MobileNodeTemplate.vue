@@ -427,62 +427,64 @@
         }
     }
 
-    .task-node /deep/ .tooltip {
-        z-index: 4;
-        &[x-placement^="top"] {
-            padding-bottom: 5px;
+    .task-node {
+        /deep/ .tooltip {
+            z-index: 4;
+            &[x-placement^="top"] {
+                padding-bottom: 5px;
+                .tooltip-arrow {
+                    border-width: 5px 5px 0 5px;
+                    border-left-color: transparent;
+                    border-right-color: transparent;
+                    border-bottom-color: transparent;
+                    bottom: 0;
+                    left: calc(50% - 5px);
+                    margin-top: 0;
+                    margin-bottom: 0;
+                }
+            }
+            &[x-placement^="bottom"] {
+                padding-top: 5px;
+                .tooltip-arrow {
+                    border-width: 0 5px 5px 5px;
+                    border-left-color: transparent;
+                    border-right-color: transparent;
+                    border-top-color: transparent;
+                    top: 0;
+                    left: calc(50% - 5px);
+                    margin-top: 0;
+                    margin-bottom: 0;
+                }
+            }
             .tooltip-arrow {
-                border-width: 5px 5px 0 5px;
-                border-left-color: transparent;
-                border-right-color: transparent;
-                border-bottom-color: transparent;
-                bottom: 0;
-                left: calc(50% - 5px);
-                margin-top: 0;
-                margin-bottom: 0;
+                position: absolute;
+                margin: 5px;
+                width: 0;
+                height: 0;
+                border-style: solid;
+                border-color: #333333;
             }
-        }
-        &[x-placement^="bottom"] {
-            padding-top: 5px;
-            .tooltip-arrow {
-                border-width: 0 5px 5px 5px;
-                border-left-color: transparent;
-                border-right-color: transparent;
-                border-top-color: transparent;
-                top: 0;
-                left: calc(50% - 5px);
-                margin-top: 0;
-                margin-bottom: 0;
+            .tooltip-inner {
+                color: #ffffff;
+                border-radius: 4px;
+                padding: 10px;
+                text-align: center;
+                background: #333333;
+                .btn-wrapper {
+                    display: flex;
+                }
             }
-        }
-        .tooltip-arrow {
-            position: absolute;
-            margin: 5px;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            border-color: #333333;
-        }
-        .tooltip-inner {
-            color: #ffffff;
-            border-radius: 4px;
-            padding: 10px;
-            text-align: center;
-            background: #333333;
-            .btn-wrapper {
-                display: flex;
-            }
-        }
-        .tooltip-btn {
-            display: inline-block;
-            margin-right: 5px;
-            font-size: 12px;
-            cursor: pointer;
-            &:hover {
-                color: #3c96ff;
-            }
-            &:last-child {
-                margin-right: 0;
+            .tooltip-btn {
+                display: inline-block;
+                margin-right: 5px;
+                font-size: 12px;
+                cursor: pointer;
+                &:hover {
+                    color: #3c96ff;
+                }
+                &:last-child {
+                    margin-right: 0;
+                }
             }
         }
     }
