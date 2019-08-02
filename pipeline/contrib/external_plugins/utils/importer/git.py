@@ -17,6 +17,7 @@ import urlparse
 import requests
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
+from pipeline.contrib.external_plugins.models.base import GIT
 
 logger = logging.getLogger('root')
 
@@ -24,13 +25,14 @@ logger = logging.getLogger('root')
 class GitRepoModuleImporter(AutoInstallRequirementsImporter):
 
     def __init__(self,
+                 name,
                  modules,
                  repo_raw_url,
                  branch,
                  use_cache=True,
                  secure_only=True,
                  proxy=None):
-        super(GitRepoModuleImporter, self).__init__(modules=modules)
+        super(GitRepoModuleImporter, self).__init__(name=name, modules=modules)
 
         if secure_only and not repo_raw_url.startswith('https'):
             raise ValueError('Only accept https when secure_only is True.')
@@ -42,6 +44,7 @@ class GitRepoModuleImporter(AutoInstallRequirementsImporter):
         self.use_cache = use_cache
         self.file_cache = {}
         self.proxy = proxy or {}
+        self.type = GIT
 
     def is_package(self, fullname):
         return self._fetch_repo_file(self._file_url(fullname, is_pkg=True)) is not None

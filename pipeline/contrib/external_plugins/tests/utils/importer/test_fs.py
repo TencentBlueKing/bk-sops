@@ -32,14 +32,14 @@ class FSModuleImporterTestCase(TestCase):
         self.package_url = '/usr/imp/custom_components/module1/module2/module3/__init__.py'
 
     def test__init__(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
         self.assertEqual(self.path, importer.path)
 
-        importer = FSModuleImporter(modules=[], path=self.path_without_salsh)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path_without_salsh)
         self.assertEqual(self.path, importer.path)
 
     def test_is_package(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         with patch(OS_PATH_EXISTS, MagicMock(return_value=True)):
             self.assertTrue(importer.is_package(self.fullname))
@@ -51,14 +51,14 @@ class FSModuleImporterTestCase(TestCase):
     @patch(UTILS_IMPORTER_FS_GET_SOURCE, MagicMock(return_value=GET_SOURCE_RETURN))
     def test_get_code(self):
         expect_code = compile(GET_SOURCE_RETURN, GET_FILE_RETURN, 'exec')
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         self.assertEqual(expect_code, importer.get_code(self.fullname))
 
     @patch(UTILS_IMPORTER_FS_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
     @patch(UTILS_IMPORTER_FS__FETCH_FILE_CONTENT, MagicMock(return_value=_FETCH_FILE_RETURN))
     def test_get_source(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         self.assertEqual(_FETCH_FILE_RETURN, importer.get_source(self.fullname))
         importer._fetch_file_content.assert_called_once_with(
@@ -67,19 +67,19 @@ class FSModuleImporterTestCase(TestCase):
     @patch(UTILS_IMPORTER_FS_IS_PACKAGE, MagicMock(return_value=IS_PACKAGE_RETURN))
     @patch(UTILS_IMPORTER_FS__FETCH_FILE_CONTENT, MagicMock(return_value=None))
     def test_get_source__fetch_none(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         self.assertRaises(ImportError, importer.get_source, self.fullname)
         importer._fetch_file_content.assert_called_once_with(
             importer._file_path(self.fullname, is_pkg=IS_PACKAGE_RETURN))
 
     def test_get_path(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         self.assertEqual(importer.get_path(self.fullname), ['/usr/imp/custom_components/module1/module2/module3'])
 
     def test_get_file(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         with patch(UTILS_IMPORTER_FS_IS_PACKAGE, MagicMock(return_value=True)):
             self.assertEqual(importer.get_file(self.fullname), self.package_url)
@@ -88,13 +88,13 @@ class FSModuleImporterTestCase(TestCase):
             self.assertEqual(importer.get_file(self.fullname), self.module_url)
 
     def test__file_path(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         self.assertEqual(importer._file_path(self.fullname, is_pkg=True), self.package_url)
         self.assertEqual(importer._file_path(self.fullname, is_pkg=False), self.module_url)
 
     def test__fetch_file__nocache(self):
-        importer = FSModuleImporter(modules=[], path=self.path, use_cache=False)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path, use_cache=False)
 
         first_file_content = 'first_file_content'
         second_file_content = 'second_file_content'
@@ -112,7 +112,7 @@ class FSModuleImporterTestCase(TestCase):
             self.assertEqual(importer.file_cache, {})
 
     def test__fetch_file__use_cache(self):
-        importer = FSModuleImporter(modules=[], path=self.path)
+        importer = FSModuleImporter(name='name', modules=[], path=self.path)
 
         first_file_content = 'first_file_content'
         second_file_content = 'second_file_content'

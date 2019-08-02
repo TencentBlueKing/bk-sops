@@ -39,7 +39,8 @@ class GitRepoSource(ExternalPackageSource):
         return GIT
 
     def importer(self):
-        return GitRepoModuleImporter(repo_raw_url=self.repo_raw_address,
+        return GitRepoModuleImporter(name=self.name,
+                                     repo_raw_url=self.repo_raw_address,
                                      branch=self.branch,
                                      modules=self.packages.keys(),
                                      proxy=settings.EXTERNAL_PLUGINS_SOURCE_PROXY,
@@ -64,7 +65,8 @@ class S3Source(ExternalPackageSource):
         return S3
 
     def importer(self):
-        return S3ModuleImporter(modules=self.packages.keys(),
+        return S3ModuleImporter(name=self.name,
+                                modules=self.packages.keys(),
                                 service_address=self.service_address,
                                 bucket=self.bucket,
                                 access_key=self.access_key,
@@ -89,7 +91,8 @@ class FileSystemSource(ExternalPackageSource):
         return FILE_SYSTEM
 
     def importer(self):
-        return FSModuleImporter(modules=self.packages.keys(),
+        return FSModuleImporter(name=self.name,
+                                modules=self.packages.keys(),
                                 path=self.path)
 
     def details(self):

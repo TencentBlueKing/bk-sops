@@ -94,6 +94,10 @@ class PackageSource(models.Model):
 
         return source
 
+    @property
+    def imported_plugins(self):
+        return self.base_source.imported_plugins
+
     def delete(self, using=None, keep_parents=False):
         self.delete_base_source()
         return super(PackageSource, self).delete(using=using, keep_parents=keep_parents)

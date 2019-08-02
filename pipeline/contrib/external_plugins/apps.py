@@ -22,7 +22,7 @@ from django.db.utils import ProgrammingError
 logger = logging.getLogger('root')
 
 DJANGO_MANAGE_CMD = 'manage.py'
-DEFAULT_TRIGGERS = {'runserver', 'celery', 'worker', 'uwsgi'}
+DEFAULT_TRIGGERS = {'runserver', 'celery', 'worker', 'uwsgi', 'shell'}
 
 
 class ExternalPluginsConfig(AppConfig):
