@@ -116,10 +116,15 @@
             },
             goToApply (perm) {
                 const resourceData = {
-                    name: gettext('项目'),
+                    name,
                     auth_actions: this.authActions
                 }
                 this.applyForPermission([perm], resourceData, this.authOperations, this.authResource)
+            },
+            getResource (permission) {
+                return permission.resources.map(res => {
+                    return res.map(item => item.resource_name).join(',')
+                }).join(',')
             },
             async queryProjectCreatePerm () {
                 try {
