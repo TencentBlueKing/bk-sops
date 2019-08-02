@@ -35,11 +35,11 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
                  read_action_id='read',
                  update_action_id='update',
                  delete_action_id='delete',
-                 delegation=None,
+                 resource_f=None,
                  create_delegation=None):
         self.auth_resource = auth_resource
-        if delegation is not None:
-            self.resource_pk_field = '%s__pk' % delegation.delegate_instance_f
+        if resource_f is not None:
+            self.resource_pk_field = '%s__pk' % resource_f
         else:
             self.resource_pk_field = 'pk'
         self.resource_pk_field_in = '%s__in' % self.resource_pk_field
@@ -47,14 +47,14 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
         self.read_action_id = read_action_id
         self.update_action_id = update_action_id
         self.delete_action_id = delete_action_id
-        self.delegation = delegation
+        self.resource_f = resource_f
         self.create_delegation = create_delegation
 
     def build_auth_failed_response(self, action_ids, instance, auth_resource=None):
         if auth_resource is None:
             auth_resource = self.auth_resource
-            if self.delegation is not None:
-                instance = self.delegation.delegate_instance(instance)
+        if self.resource_f is not None:
+            instance = getattr(instance, self.resource_f)
         if isinstance(action_ids, list):
             permission = [build_need_permission(
                 auth_resource=auth_resource,

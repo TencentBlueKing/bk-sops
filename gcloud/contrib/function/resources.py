@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
-from auth_backend.plugins.delegation import RelateAuthDelegation
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAuthorization
 
 from gcloud.taskflow3.permissions import taskflow_resource
@@ -49,12 +48,10 @@ class FunctionTaskResource(GCloudModelResource):
         queryset = FunctionTask.objects.filter(task__is_deleted=False)
         resource_name = 'function_task'
         auth_resource = taskflow_resource
-        delegation = RelateAuthDelegation(delegate_resource=auth_resource,
-                                          delegate_instance_f='task')
         authorization = BkSaaSLooseReadOnlyAuthorization(auth_resource=auth_resource,
                                                          read_action_id='view',
                                                          update_action_id='edit',
-                                                         delegation=delegation)
+                                                         resource_f='task')
         filtering = {
             'task': ALL_WITH_RELATIONS,
             'creator': ALL,
