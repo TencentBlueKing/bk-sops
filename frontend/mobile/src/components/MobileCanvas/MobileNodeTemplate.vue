@@ -6,46 +6,48 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 <template>
-    <div
-        v-if="node.type === 'startpoint'"
-        :class="['node-circle', node['status'] ? node['status'].toLowerCase() : '']">
-        <div class="node-type-status">{{ i18n.start }}</div>
-    </div>
-    <div
-        v-else-if="node.type === 'endpoint'"
-        :class="['node-circle', node['status'] ? node['status'].toLowerCase() : '']">
-        <div class="node-type-status">{{ i18n.end }}</div>
-    </div>
-    <div v-else-if="node.type === 'tasknode'">
+    <div class="task-node">
         <div
+            v-if="node.type === 'startpoint'"
+            :class="['node-circle', node['status'] ? node['status'].toLowerCase() : '']">
+            <div class="node-type-status">{{ i18n.start }}</div>
+        </div>
+        <div
+            v-else-if="node.type === 'endpoint'"
+            :class="['node-circle', node['status'] ? node['status'].toLowerCase() : '']">
+            <div class="node-type-status">{{ i18n.end }}</div>
+        </div>
+        <div v-else-if="node.type === 'tasknode'">
+            <div
+                ref="nodeLocation"
+                :name="'tip_' + node.id"
+                :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']"
+                @click="onNodeClick(node, $event)">
+                <div class="node-name">
+                    <p class="name">{{ node.name }}</p>
+                </div>
+                <div class="task-name">{{ node.stage_name }}</div>
+            </div>
+        </div>
+        <div
+            v-else-if="node.type === 'subflow'"
             ref="nodeLocation"
-            :name="'tip_' + node.id"
-            :class="['bk-flow-location', node['status'] ? node['status'].toLowerCase() : '']"
+            :class="['bk-flow-location', 'node-subflow', node['status'] ? node['status'].toLowerCase() : '']"
             @click="onNodeClick(node, $event)">
             <div class="node-name">
+                <div :class="['subflow-node-icon', node['status'] ? node['status'].toLowerCase() : '']">
+                    <van-icon name="plus" />
+                </div>
                 <p class="name">{{ node.name }}</p>
             </div>
             <div class="task-name">{{ node.stage_name }}</div>
         </div>
-    </div>
-    <div
-        v-else-if="node.type === 'subflow'"
-        ref="nodeLocation"
-        :class="['bk-flow-location', 'node-subflow', node['status'] ? node['status'].toLowerCase() : '']"
-        @click="onNodeClick(node, $event)">
-        <div class="node-name">
-            <div :class="['subflow-node-icon', node['status'] ? node['status'].toLowerCase() : '']">
-                <van-icon name="plus" />
-            </div>
-            <p class="name">{{ node.name }}</p>
+        <div
+            v-else
+            ref="nodeLocation"
+            class="node-circle">
+            <van-icon slot="icon" class-prefix="icon" :name="`node-${node.type}`" />
         </div>
-        <div class="task-name">{{ node.stage_name }}</div>
-    </div>
-    <div
-        v-else
-        ref="nodeLocation"
-        class="node-circle">
-        <van-icon slot="icon" class-prefix="icon" :name="`node-${node.type}`" />
     </div>
 </template>
 
@@ -269,7 +271,7 @@
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
     @import '../../../static/style/var.scss';
 
     .bk-flow-location {
@@ -425,7 +427,7 @@
         }
     }
 
-    .tooltip {
+    .task-node /deep/ .tooltip {
         z-index: 4;
         &[x-placement^="top"] {
             padding-bottom: 5px;
