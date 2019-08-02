@@ -128,6 +128,9 @@
         created () {
             this.loadData()
         },
+        destroyed () {
+            this.cancelTaskStatusTimer()
+        },
         methods: {
             ...mapActions('task', [
                 'getTask',
@@ -166,7 +169,7 @@
                         this.$set(node, 'data', data)
                         if (data) {
                             this.$set(node, 'status', data.state)
-                            if (data.state === 'RUNNING' || data.state === 'FAILED') {
+                            if (data.state === 'RUNNING') {
                                 if (this.$refs.canvas) {
                                     this.$refs.canvas.setCanvasPosition(node)
                                 }
@@ -180,10 +183,10 @@
                     const taskState = await this.getTaskStatus({ id: this.taskId })
                     if (taskState.result) {
                         this.taskState = taskState.data.state
+                        this.updateTaskNodes(taskState.data)
                         if (this.taskState === 'RUNNING') {
                             this.setTaskStatusTimer()
                         }
-                        this.updateTaskNodes(taskState.data);
                         ([this.taskStateClass, this.taskStateName, this.taskStateColor] = ['task-status', ...TASK_STATE[this.taskState]])
                     } else {
                         this.cancelTaskStatusTimer()

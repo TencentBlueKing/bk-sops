@@ -27,7 +27,6 @@
             </div>
             <div class="task-name">{{ node.stage_name }}</div>
         </div>
-        <Tooltips :node="node" v-if="node.status && node.status !== 'CREATED'"></Tooltips>
     </div>
     <div
         v-else-if="node.type === 'subflow'"
@@ -51,14 +50,14 @@
 </template>
 
 <script>
+    import Tooltip from 'tooltip.js'
+    import { mapActions, mapState } from 'vuex'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
-    import Tooltips from './Tooltips.vue'
+    const NODE_ACTION = ['retry', 'skip', 'detail', 'timer', 'resume']
 
     export default {
         name: 'MobileNodeTemplate',
-        components: {
-            Tooltips
-        },
         props: {
             node: {
                 type: Object,
@@ -67,19 +66,49 @@
                 }
             }
         },
+        inject: ['refreshTaskStatus'],
         data () {
             return {
+                nodeTooltipInstance: {},
                 i18n: {
                     start: window.gettext('开始'),
                     end: window.gettext('结束'),
                     detail: window.gettext('执行详情'),
                     retry: window.gettext('重试'),
                     skip: window.gettext('跳过'),
-                    sub: window.gettext('查看子流程')
+                    sub: window.gettext('查看子流程'),
+                    editTime: window.gettext('修改时间'),
+                    skipSuccess: window.gettext('跳过成功'),
+                    skipFailed: window.gettext('跳过失败'),
+                    resume: window.gettext('继续')
                 }
             }
         },
+        computed: {
+            ...mapState({
+                taskId: state => state.taskId
+            })
+        },
+        destroyed () {
+            this.$el.removeEventListener('click', this.handleNodeClick, false)
+            this.clearNodeTooltipInstance()
+        },
+        mounted () {
+            this.$el.addEventListener('click', this.handleNodeClick, false)
+        },
         methods: {
+            ...mapActions('task', [
+                'getTask',
+                'instanceNodeResume',
+                'instanceNodeSkip',
+                'getNodeRetryData'
+            ]),
+            handleNodeClick (e) {
+                const nodeAction = global.$(e.target).data('action')
+                if (nodeAction) {
+                    this.onNodeOperationClick(nodeAction)
+                }
+            },
             onNodeClick (node) {
                 const pipelineTree = this.$store.state.pipelineTree
                 if (this.node.type === 'subflow') {
@@ -89,17 +118,161 @@
                         this.$store.commit('setPipelineTree', subTree)
                     }
                 } else {
-                    console.log(pipelineTree.activities[node.id].component.code)
                     const componentCode = pipelineTree.activities[node.id].component.code
                     if (!this.node.componentCode) {
                         this.$set(this.node, 'componentCode', componentCode)
                     }
+                    if (this.node.type === 'tasknode' && this.node.status) {
+                        let tip = null
+                        if (!this.nodeTooltipInstance[node.id]) {
+                            const el = global.$(`[name=tip_${node.id}]`)[0]
+                            tip = new Tooltip(el, {
+                                placement: 'bottom',
+                                html: true,
+                                title: this.getNodeBtnTpl(node)
+                            })
+                            this.nodeTooltipInstance[node.id] = tip
+                        } else {
+                            tip = this.nodeTooltipInstance[node.id]
+                            tip.hide()
+                        }
+                        tip.show()
+                    }
                 }
+            },
+
+            getNodeBtnTpl (node) {
+                const btnList = []
+                if (node.componentCode === 'sleep_timer' && node.status === 'RUNNING') {
+                    btnList.push({ type: 'timer', text: this.i18n.editTime })
+                } else {
+                    if (node.status !== 'RUNNING') {
+                        if (node.status === 'FAILED') {
+                            btnList.push({ type: 'retry', text: this.i18n.retry })
+                            btnList.push({ type: 'skip', text: this.i18n.skip })
+                        }
+                    } else {
+                        btnList.push({ type: 'resume', text: this.i18n.resume })
+                    }
+                }
+                btnList.push({ type: 'detail', text: this.i18n.detail })
+                return this.nodeBtnTplFactory(btnList)
+            },
+
+            nodeBtnTplFactory (btnList) {
+                return `
+                    <div class="btn-wrapper">
+                    ${btnList.map(btn => `
+                        <div class="tooltip-btn" data-action="${btn.type}">${btn.text}</div>
+                    `).join('')}
+                    </div>
+                    `
+            },
+
+            onNodeOperationClick (operation) {
+                if (!this.operating) {
+                    this.operating = true
+                    if (NODE_ACTION.includes(operation)) {
+                        this[operation]()
+                    }
+                    this.operating = false
+                }
+            },
+            detail () {
+                this.$store.commit('setNode', this.node)
+                this.$router.push({ name: 'task_nodes' })
+            },
+            destroyTooltipInstance (id) {
+                if (this.nodeTooltipInstance[id]) {
+                    this.nodeTooltipInstance[id].dispose()
+                    delete this.nodeTooltipInstance[id]
+                }
+            },
+            clearNodeTooltipInstance () {
+                Object.keys(this.nodeTooltipInstance).forEach(item => {
+                    this.destroyTooltipInstance(item)
+                })
+            },
+            async retry () {
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
+                const task = await this.getTask({ id: this.taskId })
+                const pipelineTree = JSON.parse(task.pipeline_tree)
+                const taskId = this.taskId
+                const params = {
+                    taskId: taskId,
+                    nodeId: this.node.id,
+                    componentCode: pipelineTree.activities[this.node.id].component.code
+                }
+                try {
+                    const response = await this.getNodeRetryData(params)
+                    params.inputs = response.data.inputs
+                    const newInputs = {}
+                    for (const k of Object.keys(params.inputs)) {
+                        newInputs[`${params.componentCode}.${k}`] = { source_tag: `${params.componentCode}.${k}`, value: params.inputs[k] }
+                    }
+                    params.inputs = newInputs
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+                this.$toast.clear()
+                this.operating = false
+                this.$router.push({ name: 'task_reset', params: params })
+            },
+            async skip () {
+                try {
+                    this.$toast.loading({ mask: true, message: this.i18n.loading })
+                    const response = await this.instanceNodeSkip({ id: this.taskId, nodeId: this.node.id })
+                    if (response.result) {
+                        global.bus.$emit('notify', { message: this.i18n.skipSuccess })
+                        setTimeout(() => {
+                            this.refreshTaskStatus()
+                        }, 1000)
+                    } else {
+                        errorHandler(response, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.$toast.clear()
+                    this.operating = false
+                    this.clearNodeTooltipInstance()
+                }
+            },
+            async resume () {
+                try {
+                    const response = await this.instanceNodeResume({ id: this.taskId, nodeId: this.node.id })
+                    if (response.result) {
+                        this.refreshTaskStatus()
+                    } else {
+                        errorHandler(response, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.operating = false
+                    this.clearNodeTooltipInstance()
+                }
+            },
+            async timer () {
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
+                const task = await this.getTask({ id: this.taskId })
+                const pipelineTree = JSON.parse(task.pipeline_tree)
+                const taskId = this.taskId
+                const params = {
+                    taskId: taskId,
+                    nodeId: this.node.id,
+                    componentCode: pipelineTree.activities[this.node.id].component.code
+                }
+                const response = await this.getNodeRetryData(params)
+                params.inputs = response.data.inputs
+                this.$toast.clear()
+                this.operating = false
+                this.$router.push({ name: 'task_edit_timing', params: params })
             }
         }
     }
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
     @import '../../../static/style/var.scss';
 
     .bk-flow-location {
@@ -251,6 +424,66 @@
             color: #ff9c01;
             .node-type-status{
                 background: #ff9c01;
+            }
+        }
+    }
+
+    .tooltip {
+        z-index: 4;
+        &[x-placement^="top"] {
+            padding-bottom: 5px;
+            .tooltip-arrow {
+                border-width: 5px 5px 0 5px;
+                border-left-color: transparent;
+                border-right-color: transparent;
+                border-bottom-color: transparent;
+                bottom: 0;
+                left: calc(50% - 5px);
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+        }
+        &[x-placement^="bottom"] {
+            padding-top: 5px;
+            .tooltip-arrow {
+                border-width: 0 5px 5px 5px;
+                border-left-color: transparent;
+                border-right-color: transparent;
+                border-top-color: transparent;
+                top: 0;
+                left: calc(50% - 5px);
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+        }
+        .tooltip-arrow {
+            position: absolute;
+            margin: 5px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-color: #333333;
+        }
+        .tooltip-inner {
+            color: #ffffff;
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+            background: #333333;
+            .btn-wrapper {
+                display: flex;
+            }
+        }
+        .tooltip-btn {
+            display: inline-block;
+            margin-right: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            &:hover {
+                color: #3c96ff;
+            }
+            &:last-child {
+                margin-right: 0;
             }
         }
     }
