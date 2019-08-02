@@ -46,8 +46,8 @@ class EndEvent(ThrowEvent):
     def pipeline_finish(self, root_pipeline_id):
         try:
             pipeline_end.send(sender=Pipeline, root_pipeline_id=root_pipeline_id)
-        except Exception as e:
-            logger.error("pipeline end handler error %s", traceback.format_exc(e))
+        except Exception:
+            logger.error("pipeline end handler error %s" % traceback.format_exc())
 
 
 class StartEvent(CatchEvent):
