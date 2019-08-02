@@ -143,17 +143,14 @@
 
             getNodeBtnTpl (node) {
                 const btnList = []
-                if (node.componentCode === 'sleep_timer' && node.status === 'RUNNING') {
-                    btnList.push({ type: 'timer', text: this.i18n.editTime })
-                } else {
-                    if (node.status !== 'RUNNING') {
-                        if (node.status === 'FAILED') {
-                            btnList.push({ type: 'retry', text: this.i18n.retry })
-                            btnList.push({ type: 'skip', text: this.i18n.skip })
-                        }
-                    } else {
-                        btnList.push({ type: 'resume', text: this.i18n.resume })
+                if (node.status === 'RUNNING') {
+                    if (node.componentCode === 'sleep_timer') {
+                        btnList.push({ type: 'timer', text: this.i18n.editTime })
                     }
+                    btnList.push({ type: 'resume', text: this.i18n.resume })
+                } else if (node.status === 'FAILED') {
+                    btnList.push({ type: 'retry', text: this.i18n.retry })
+                    btnList.push({ type: 'skip', text: this.i18n.skip })
                 }
                 btnList.push({ type: 'detail', text: this.i18n.detail })
                 return this.nodeBtnTplFactory(btnList)
