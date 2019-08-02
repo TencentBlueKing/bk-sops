@@ -429,7 +429,7 @@
                 try {
                     // 查询职能化数据及公共流程数据
                     await Promise.all([
-                        this.loadTemplateList({ project_id: this.business.id }),
+                        this.loadTemplateList({ project__id: this.business.id }),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
                         if (value[0].objects.length === 0) {
