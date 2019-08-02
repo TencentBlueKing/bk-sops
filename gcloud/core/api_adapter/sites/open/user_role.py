@@ -46,7 +46,6 @@ def get_role_user_list(role):
         auth_resource = audit_center_resource
     resources_actions = {
         'action_id': auth_resource.actions.view.id,
-        'resource_type': auth_resource.rtype,
     }
     search_result = auth_resource.search_resources_perms_principals(resources_actions)
     if not search_result['result']:

@@ -26,3 +26,23 @@ MIGRATION_MIGRATION_CLASS = 'auth_backend.resources.migrations.migration.setting
 MIGRATION_IMPORT_STRING = 'auth_backend.resources.migrations.migration.import_string'
 
 SNAPPER_RESOURCE_TYPE_LIB = 'auth_backend.resources.migrations.snapper.resource_type_lib'
+
+RESOURCE_BASE_CONF_SYSTEM_ID = 'auth_backend.resources.base.conf.SYSTEM_ID'
+RESOURCE_BASE_CONF_SYSTEM_NAME = 'auth_backend.resources.base.conf.SYSTEM_NAME'
+RESOURCE_DJANGO_POST_SAVE = 'auth_backend.resources.django.post_save'
+RESOURCE_DJANGO_POST_DELETE = 'auth_backend.resources.django.post_delete'
+
+RESOURCE_CLEAN_INSTANCE = 'auth_backend.resources.base.Resource.clean_instances'
+RESOURCE_REAL_SCOPE_ID = 'auth_backend.resources.base.Resource.real_scope_id'
+RESOURCE_REGISTER_INSTANCE = 'auth_backend.resources.base.Resource.register_instance'
+RESOURCE_DELETE_INSTANCE = 'auth_backend.resources.base.Resource.delete_instance'
+RESOURCE_UPDATE_INSTANCE = 'auth_backend.resources.base.Resource.update_instance'
+
+DJANGO_MODEL_RESOURCE_DISPATCH_HANDLERS = 'auth_backend.resources.django.DjangoModelResource._dispatch_handlers'
+
+BK_IAM_BACKEND_RESOURCE_ID_FOR = 'auth_backend.backends.bkiam.BKIAMBackend._resource_id_for'
+
+SHORTCUTS_VERIFY_OR_RETURN_PERMS = 'auth_backend.plugins.shortcuts.verify_or_return_insufficient_perms'
+SHORTCUTS_GET_BACKEND_FROM_CONFIG = 'auth_backend.plugins.shortcuts.get_backend_from_config'
+SHORTCUTS_BUILD_NEED_PERMISSION = 'auth_backend.plugins.shortcuts.build_need_permission'
+SHORTCUTS_RESOURCE_TYPE_LIB = 'auth_backend.plugins.shortcuts.resource_type_lib'
