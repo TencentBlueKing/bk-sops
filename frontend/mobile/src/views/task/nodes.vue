@@ -149,7 +149,7 @@
                 ]).then(values => {
                     if (values[0].result) {
                         this.nodeDetail = values[0].data
-                        this.loadNodeInfo()
+                        this.filterNodeInfo()
                     }
                     this.status = values[1].data.state
                     this.nodeDetail.name = values[2].name
@@ -162,7 +162,7 @@
                 })
             },
 
-            loadNodeInfo () {
+            filterNodeInfo () {
                 if (this.node.component_code === 'job_execute_task') {
                     this.nodeDetail.outputs = this.nodeDetail.outputs.filter(output => {
                         const outputIndex = this.nodeDetail.inputs['job_global_var'].findIndex(prop => prop.name === output.key)
@@ -184,7 +184,7 @@
                 if (output.value === 'undefined' || output.value === '') {
                     return '--'
                 } else {
-                    return output.value + ''
+                    return String(output.value)
                 }
             },
 

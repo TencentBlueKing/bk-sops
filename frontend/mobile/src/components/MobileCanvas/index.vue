@@ -71,18 +71,20 @@
                 location: '-60'
             }
             const gateways = this.canvasData.gateways
-            if (Object.keys(gateways).length) {
-                this.canvasData.nodes.forEach(node => {
-                    if (node.type === 'branchgateway') {
-                        const { conditions } = gateways[node.id]
-                        for (const c of Object.keys(conditions)) {
-                            const line = lineMap.get(c)
-                            const overlay = Object.assign({}, overlayConfig, { name: conditions[c].evaluate })
-                            this.$refs.jsFlow.addLineOverlay(line, overlay)
-                        }
+            this.canvasData.nodes.forEach(node => {
+                if (node.type === 'branchgateway') {
+                    const { conditions } = gateways[node.id]
+                    for (const c of Object.keys(conditions)) {
+                        const line = lineMap.get(c)
+                        const overlay = Object.assign({}, overlayConfig, { name: conditions[c].evaluate })
+                        this.$refs.jsFlow.addLineOverlay(line, overlay)
                     }
-                })
-            }
+                } else if (node.type === 'tasknode') {
+                    if (node.status === 'RUNNING' || node.status === 'FAILED') {
+                        this.setCanvasPosition(node)
+                    }
+                }
+            })
         },
         methods: {
             setCanvasPosition (node) {
