@@ -223,7 +223,7 @@ BK_IAM_RELATED_SCOPE_TYPES = 'system'
 BK_IAM_SYSTEM_MANAGERS = 'admin'
 BK_IAM_SYSTEM_CREATOR = 'admin'
 BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
-AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BkIAMBackend')
+AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
 
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
