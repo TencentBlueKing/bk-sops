@@ -163,7 +163,7 @@ class BKIAMBackend(AuthBackend):
         return self.client.search_authorized_resources(principal_type=principal_type,
                                                        principal_id=principal_id,
                                                        scope_type=resource.scope_type,
-                                                       scope_id=scope_id or resource.real_scope_id(None, scope_id),
+                                                       scope_id=self.__real_scope_id(resource, None, scope_id),
                                                        resource_types_actions=actions,
                                                        resource_data_type='array',
                                                        is_exact_resource=True)
