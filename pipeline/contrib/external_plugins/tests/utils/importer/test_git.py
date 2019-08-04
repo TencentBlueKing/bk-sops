@@ -50,6 +50,7 @@ class GitRepoModuleImporterTestCase(TestCase):
 
         self.assertRaises(ValueError,
                           GitRepoModuleImporter,
+                          name='name',
                           modules=[],
                           repo_raw_url='http://repo-addr/',
                           branch=self.branch)

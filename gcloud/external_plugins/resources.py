@@ -63,7 +63,8 @@ class PackageSourceResource(Resource):
     )
     imported_plugins = fields.ListField(
         attribute='imported_plugins',
-        readonly=True
+        readonly=True,
+        null=True
     )
     packages = fields.DictField(attribute='packages')
 
