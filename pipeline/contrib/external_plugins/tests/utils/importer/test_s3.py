@@ -66,6 +66,7 @@ class S3ModuleImporterTestCase(TestCase):
 
         self.assertRaises(ValueError,
                           S3ModuleImporter,
+                          name='name',
                           modules=[],
                           service_address=self.not_secure_service_address,
                           bucket=self.bucket,
