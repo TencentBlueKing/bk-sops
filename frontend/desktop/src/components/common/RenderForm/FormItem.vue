@@ -24,7 +24,7 @@
             <span class="name">{{scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: scheme.attrs.desc,
                         placements: ['right'],
                         zIndex: 2002
@@ -58,7 +58,7 @@
         </component>
         <div class="rf-tag-hook" v-if="showHook">
             <BaseCheckbox
-                v-bktooltips="{
+                v-bk-tooltips="{
                     content: hook ? i18n.hooked : i18n.cancelHook,
                     placements: ['left'],
                     customClass: 'offset-left-tooltip',

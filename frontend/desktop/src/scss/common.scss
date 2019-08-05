@@ -48,82 +48,45 @@
     }
 }
 
-.common-dialog {
+.common-dialog .bk-dialog {
+    .bk-dialog-tool {
+        min-height: 20px;
+    }
     .bk-dialog-header {
-        padding: 20px 30px;
+        padding: 0 20px 20px;
         border-bottom: 1px solid #ebebeb;
-        .bk-dialog-title {
-            text-align: left;
-            line-height: 1;
+        .bk-dialog-header-inner {
+            font-size: 20px;
         }
     }
-    .bk-dialog-tool {
-        min-height: 0px;
-        .bk-dialog-close {
-            margin-top: 16px;
-            margin-right: 20px;
-        }
+    .bk-dialog-body {
+        padding: 0;
     }
 }
 
 .common-error-tip {
     display: inline-block;
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1;
     color: #ff5757;
 }
 
-// 弹窗按钮
-.bk-dialog-wrapper .bk-dialog-footer .bk-dialog-outer button {
-    width: 90px;
-    height: 32px;
-    line-height: 30px;
-}
 .common-warning-tip {
     display: inline-block;
     font-size: 14px;
     color: #ffb400;
 }
 
-// tooltip组件的箭头会挡住操作区域
-.v-tooltips-container.offset-left-tooltip {
-    margin-left: -7px;
-}
-// bk-selector组件选项过长会换行的问题兼容
-.bk-selector label {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-// 表单下拉框
-.bk-selector-wrapper {
-    .bk-selector-icon {
-        top: 10px;
-    }
-    .bk-selector-icon.clear-icon {
-        top: 7px;
-    }
-    .bk-selector-input {
-        height: 32px;
-        line-height: 32px;
-    }
-}
-// 列表分页
 .panagation {
-    .bk-page .page-item {
-        float: none;
-    }
-    .bk-page .page-item.cur-page {
-        background: #3c96ff;
-    }
-    .bk-page .page-item .page-button {
-        padding: 0 7px;
-    }
-    .bk-page .page-item.disabled .page-button {
-        padding: 0 5px;
-        color: #737987;
-         &:hover {
-              color: #737987;
-        }
+    padding: 10px 20px;
+    text-align: right;
+    border: 1px solid #dde4eb;
+    border-top: none;
+    background: #ffffff;
+    overflow: hidden;
+    .page-info {
+        float: left;
+        line-height: 36px;
+        font-size: 12px;
     }
 }

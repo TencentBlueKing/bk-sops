@@ -17,20 +17,28 @@
         <div class="common-form-item">
             <label>{{ i18n.type }}</label>
             <div class="common-form-content">
-                <bk-selector
-                    :list="taskCategories"
-                    :selected.sync="category"
-                    @item-selected="onChangeTaskCategories">
-                </bk-selector>
+                <bk-select v-model="category" @change="onChangeTaskCategories">
+                    <bk-option
+                        v-for="(item, index) in taskCategories"
+                        :key="index"
+                        :id="item.id"
+                        :name="item.name">
+                    </bk-option>
+                </bk-select>
                 <span v-show="!isTemplateConfigValid" class="common-error-tip error-msg">{{ i18n.categoryTip}}</span>
             </div>
         </div>
         <div class="common-form-item">
             <label> {{i18n.notify_type}} </label>
             <div class="common-form-content">
-                <el-checkbox-group v-model="notifyType">
-                    <el-checkbox v-for="item in notifyTypeList" :key="item.id" :label="item.id">{{item.name}}</el-checkbox>
-                </el-checkbox-group>
+                <bk-checkbox-group v-model="notifyType">
+                    <bk-checkbox
+                        v-for="item in notifyTypeList"
+                        :key="item.id"
+                        :value="item.id">
+                        {{item.name}}
+                    </bk-checkbox>
+                </bk-checkbox-group>
             </div>
         </div>
         <div class="common-form-item hide">
@@ -42,9 +50,14 @@
         <div class="common-form-item">
             <label>{{ i18n.receiver_group }}</label>
             <div class="common-form-content">
-                <el-checkbox-group v-model="receiverGroup">
-                    <el-checkbox v-for="item in notifyGroup" :key="item.id" :label="item.id">{{item.name}}</el-checkbox>
-                </el-checkbox-group>
+                <bk-checkbox-group v-model="receiverGroup">
+                    <bk-checkbox
+                        v-for="item in notifyGroup"
+                        :key="item.id"
+                        :value="item.id">
+                        {{item.name}}
+                    </bk-checkbox>
+                </bk-checkbox-group>
             </div>
         </div>
     </div>
@@ -186,17 +199,13 @@
             line-height: 32px;
         }
     }
-    .el-checkbox {
+    .bk-form-checkbox {
         min-width: 96px;
         margin-left: 0px;
         margin-right: 30px;
-    }
-    /deep/ .el-checkbox__input.is-checked + .el-checkbox__label {
-        color: $greyDefault;
-    }
-    .bk-selector-input {
-        height: 32px;
-        line-height: 32px;
+        .bk-checkbox-text {
+            color: $greyDefault;
+        }
     }
     .hide {
         display: none;

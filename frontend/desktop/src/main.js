@@ -16,8 +16,8 @@ import store from './store/index.js'
 import './directives/index.js'
 import App from './App.vue'
 import './api/index.js'
-import bkMagic, { locale, langPkg } from './assets/bk-magic/bk-magic-vue.min.js'
-import './assets/bk-magic/bk-magic-vue.min.css'
+import bkMagicVue, { locale, lang } from 'bk-magic-vue'
+import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
@@ -29,7 +29,7 @@ import { STRING_LENGTH } from '@/constants/index.js'
 const cron = require('@/assets/js/node-cron-valid/node-cron-vaild.js')
 Vue.use(VeeValidate)
 
-Vue.use(bkMagic)
+Vue.use(bkMagicVue)
 
 Vue.use(Input)
 Vue.use(Select)
@@ -55,7 +55,7 @@ Vue.use(Col)
 Vue.use(Pagination)
 
 if (store.state.lang === 'en') {
-    locale.use(langPkg.enUS)
+    locale.use(lang.enUS)
     locales.use(enLocale)
 } else {
     locales.use(zhLocale)

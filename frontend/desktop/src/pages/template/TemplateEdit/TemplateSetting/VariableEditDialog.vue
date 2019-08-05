@@ -12,14 +12,16 @@
 <template>
     <div class="edit-dialog-wrapper">
         <bk-dialog
-            :quick-close="false"
-            :ext-cls="'common-dialog'"
-            :title="i18n.edit"
             width="600"
-            :is-show.sync="isShow"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.edit"
+            :value="isShow"
             @confirm="onConfirm"
             @cancel="onCancel">
-            <div slot="content" class="variable-params-content">
+            <div class="variable-params-content">
                 <RenderForm
                     ref="renderForm"
                     :scheme="renderConfig"

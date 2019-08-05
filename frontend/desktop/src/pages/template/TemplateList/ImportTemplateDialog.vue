@@ -12,15 +12,14 @@
 <template>
     <bk-dialog
         class="import-dialog"
-        :quick-close="false"
-        :has-header="true"
+        width="739"
+        :header-position="'left'"
+        :mask-close="false"
         :ext-cls="'common-dialog'"
         :title="i18n.title"
-        width="739"
-        height="578"
-        :is-show.sync="isImportDialogShow"
+        :value="isImportDialogShow"
         @cancel="onCancel">
-        <div slot="content" class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1 }">
+        <div class="import-container" v-bkloading="{ isLoading: pending.submit, opacity: 1 }">
             <div class="import-wrapper">
                 <div class="common-form-item">
                     <label class="required">{{ i18n.files }}</label>
@@ -28,7 +27,7 @@
                         <label
                             :for="pending.upload ? '' : 'template-file'"
                             :class="['bk-button', 'bk-primary', { 'is-disabled': pending.upload }]">
-                            {{ i18n.click }}
+                            {{ uploadText }}
                         </label>
                         <h4 class="file-name">{{file && file.name}}</h4>
                         <input
@@ -94,7 +93,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="common-content" v-show="uploadData">
+                <div class="common-content" v-show="dataConflict">
                     <div class="common-list-label">
                         <label class="common-list">{{i18n.uploadProcess}}{{exportList.length}}{{i18n.process}}</label>
                         <label class="common-item" v-if="overrideList.length">{{i18n.amongThem}}{{overrideList.length}}{{i18n.conflictList}}</label>
@@ -105,11 +104,11 @@
                     </div>
                 </div>
             </div>
-            <div class="common-wrapper-btn">
-                <bk-button type="primary button" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-                <bk-button type="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
-                <bk-button type="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
-            </div>
+        </div>
+        <div slot="footer" class="common-wrapper-btn">
+            <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
+            <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
+            <bk-button theme="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
         </div>
     </bk-dialog>
 </template>
@@ -134,13 +133,18 @@
                 overrideList: [],
                 isChecked: false,
                 overrideFormDisabled: true,
+                uploaded: false,
                 pending: {
                     upload: false,
                     submit: false
                 },
+                templateFileEmpty: false,
+                templateFileError: false,
+                templateFileErrorExt: false,
+                dataConflict: false,
                 i18n: {
                     files: gettext('上传文件'),
-                    click: gettext('点击上传'),
+                    upload: gettext('点击上传'),
                     reupload: gettext('重新上传'),
                     title: gettext('导入流程'),
                     list: gettext('导入列表'),
@@ -164,11 +168,7 @@
                     reservedSubmit: gettext('保留两者, 并提交'),
                     cancel: gettext('取消'),
                     conflictList: gettext('条流程与系统已有流程存在冲突')
-                },
-                templateFileEmpty: false,
-                templateFileError: false,
-                templateFileErrorExt: false,
-                uploadData: false
+                }
             }
         },
         computed: {
@@ -184,8 +184,10 @@
             },
             isEmpty () {
                 return !this.exportList.length || (this.isChecked && !this.overrideList.length)
+            },
+            uploadText () {
+                return this.uploaded ? this.i18n.reupload : this.i18n.upload
             }
-
         },
         methods: {
             ...mapActions('templateList/', [
@@ -194,7 +196,7 @@
             ]),
             async uploadCheck () {
                 this.pending.upload = true
-                this.uploadData = true
+                this.dataConflict = true
                 this.exportList = []
                 this.overrideList = []
                 this.overrideFormDisabled = true
@@ -214,7 +216,7 @@
                     } else {
                         this.templateFileError = true
                         this.pending.upload = false
-                        this.uploadData = false
+                        this.dataConflict = false
                     }
                 } catch (e) {
                     errorHandler(e, this)
@@ -260,7 +262,7 @@
                         return
                     }
                     this.file = file
-                    this.i18n.click = this.i18n.reupload
+                    this.uploaded = true
                     this.uploadCheck()
                 }
             },
@@ -277,6 +279,7 @@
                 }
                 if (!this.templateFileErrorExt && !this.templateFileEmpty && !this.templateFileError) {
                     this.importTemplate(isOverride)
+                    this.resetData()
                 }
             },
             onShowConflicts () {
@@ -284,6 +287,7 @@
             },
             onCancel () {
                 this.resetErrorTips()
+                this.resetData()
                 this.$emit('onImportCancel')
             },
             resetErrorTips () {
@@ -293,6 +297,19 @@
             },
             exportSubmit (isOverride) {
                 this.onConfirm(isOverride)
+            },
+            resetData () {
+                this.file = null
+                this.filename = ''
+                this.exportList = []
+                this.overrideList = []
+                this.isChecked = false
+                this.uploaded = false
+                this.overrideFormDisabled = true
+                this.templateFileEmpty = false
+                this.templateFileError = false
+                this.templateFileErrorExt = false
+                this.dataConflict = false
             }
         }
     }
@@ -301,6 +318,7 @@
 @import "@/scss/config.scss";
 @import "@/scss/mixins/scrollbar.scss";
 .import-container {
+    padding: 20px;
     .common-form-item {
         margin-bottom: 15px;
         & > label {
