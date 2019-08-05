@@ -177,7 +177,7 @@ class JobExecuteTaskComponent(Component):
     name = _(u'执行作业')
     code = 'job_execute_task'
     bound_service = JobExecuteTaskService
-    form = '%scomponents/atoms/sites/%s/job/job_execute_task.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/job/job_execute_task.js' % settings.STATIC_URL
 
 
 class JobFastPushFileService(JobService):
@@ -315,7 +315,7 @@ class JobFastExecuteScriptComponent(Component):
     name = _(u'快速执行脚本')
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
-    form = '%scomponents/atoms/sites/%s/job/job_fast_execute_script.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/job/job_fast_execute_script.js' % settings.STATIC_URL
 
 
 class JobCronTaskService(Service):
@@ -374,4 +374,4 @@ class JobCronTaskComponent(Component):
     name = _(u'新建定时作业')
     code = 'job_cron_task'
     bound_service = JobCronTaskService
-    form = '%scomponents/atoms/sites/%s/job/job_cron_task.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/job/job_cron_task.js' % settings.STATIC_URL
