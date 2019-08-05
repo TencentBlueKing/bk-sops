@@ -74,10 +74,38 @@
                             </span>
                             <span class="col-item col-attributes">
                                 <span class="icon-wrap">
-                                    <i v-if="constant.source_type !== 'component_outputs'" class="common-icon-show-left" />
-                                    <i v-else class="common-icon-hide-right color-org" />
-                                    <i v-if="constant.show_type === 'show'" class="common-icon-eye-show" />
-                                    <i v-else class="common-icon-eye-hide color-org" />
+                                    <i
+                                        v-if="constant.source_type !== 'component_outputs'"
+                                        class="common-icon-show-left"
+                                        v-bktooltips="{
+                                            content: i18n.inputs,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
+                                    <i
+                                        v-else
+                                        class="common-icon-hide-right color-org"
+                                        v-bktooltips="{
+                                            content: i18n.outputs,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
+                                    <i
+                                        v-if="constant.show_type === 'show'"
+                                        class="common-icon-eye-show"
+                                        v-bktooltips="{
+                                            content: i18n.show,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
+                                    <i
+                                        v-else
+                                        class="common-icon-eye-hide color-org"
+                                        v-bktooltips="{
+                                            content: i18n.hide,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
                                 </span>
                             </span>
                             <span class="col-item col-output">
