@@ -22,10 +22,11 @@ logger = logging.getLogger('root')
 
 class FSModuleImporter(AutoInstallRequirementsImporter):
     def __init__(self,
+                 name,
                  modules,
                  path,
                  use_cache=True):
-        super(FSModuleImporter, self).__init__(modules=modules)
+        super(FSModuleImporter, self).__init__(name=name, modules=modules)
 
         self.path = path if path.endswith('/') else '%s/' % path
         self.use_cache = use_cache

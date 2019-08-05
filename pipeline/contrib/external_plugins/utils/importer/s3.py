@@ -23,6 +23,7 @@ logger = logging.getLogger('root')
 
 class S3ModuleImporter(AutoInstallRequirementsImporter):
     def __init__(self,
+                 name,
                  modules,
                  service_address,
                  bucket,
@@ -30,7 +31,7 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
                  secret_key,
                  use_cache=True,
                  secure_only=True):
-        super(S3ModuleImporter, self).__init__(modules=modules)
+        super(S3ModuleImporter, self).__init__(name=name, modules=modules)
 
         if secure_only and not service_address.startswith('https'):
             raise ValueError('Only accept https when secure_only is True.')

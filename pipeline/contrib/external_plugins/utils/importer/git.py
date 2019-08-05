@@ -24,13 +24,14 @@ logger = logging.getLogger('root')
 class GitRepoModuleImporter(AutoInstallRequirementsImporter):
 
     def __init__(self,
+                 name,
                  modules,
                  repo_raw_url,
                  branch,
                  use_cache=True,
                  secure_only=True,
                  proxy=None):
-        super(GitRepoModuleImporter, self).__init__(modules=modules)
+        super(GitRepoModuleImporter, self).__init__(name=name, modules=modules)
 
         if secure_only and not repo_raw_url.startswith('https'):
             raise ValueError('Only accept https when secure_only is True.')
