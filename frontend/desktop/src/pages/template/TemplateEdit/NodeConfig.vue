@@ -470,7 +470,6 @@
                 }
             },
             isNaN (number) {
-                console.log(typeof number === 'number' && isNaN(number))
                 return typeof number === 'number' && isNaN(number)
             },
             /**
@@ -632,8 +631,6 @@
                         }
                     }
                 } else {
-                    console.log(formData, 'formData')
-                    console.log(formData.template_id, 'formData.template_id')
                     this.currentAtom = parseInt(formData.template_id)
                     for (const key in formData.constants) {
                         const form = formData.constants[key]
@@ -724,7 +721,6 @@
             },
             updateActivities () {
                 const nodeData = tools.deepClone(this.nodeConfigData)
-                console.log(this.nodeConfigData, 'ccc')
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
@@ -755,7 +751,6 @@
                 return this.$validator.validateAll().then(result => {
                     let status = ''
                     let formValid = true
-                    console.log(this)
                     if (!this.currentAtom) {
                         this.taskTypeEmpty = true
                     }
@@ -833,9 +828,7 @@
                 }
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
-                console.log(this.nodeConfigData, 'this.nodeConfigData')
                 this.updateActivities()
-                console.log(this.nodeConfigData, 'this.nodeConfigData')
                 this.getConfig()
                 this.$nextTick(() => {
                     this.isAtomChanged = false
