@@ -14,6 +14,7 @@
             v-model="value"
             class="bk-search"
             @change="search()"
+            @clear="search()"
             @search="search()">
         </van-search>
         <!-- 列表 -->
@@ -34,9 +35,12 @@
                         <div class="bk-text">{{ item.name }}</div>
                         <div class="bk-name">{{ item.creator_name }}</div>
                         <div class="bk-time">
-                            {{ item.create_time }}{{ i18n.to }}
+                            {{ item.create_time }} {{ i18n.to }}
                             <template v-if="item.finish_time">
-                                <p>{{ item.finish_time || '--' }}</p>
+                                <p>{{ item.finish_time }}</p>
+                            </template>
+                            <template v-else>
+                                --
                             </template>
                         </div>
                     </template>
@@ -107,7 +111,7 @@
 
             async fillTaskStatus () {
                 for (const task of this.taskList) {
-                    if (task.is_started && !task.is_finished) {
+                    if (task['is_started'] && !task['is_finished']) {
                         try {
                             const response = await this.getTaskStatus({ id: task.id })
                             this.$set(task, 'status', response.state)
@@ -115,7 +119,11 @@
                             errorHandler(e, this)
                         }
                     } else {
-                        task['status'] = 'CREATED'
+                        if (task['is_finished']) {
+                            task['status'] = 'FINISHED'
+                        } else {
+                            task['status'] = 'CREATED'
+                        }
                     }
                 }
             },

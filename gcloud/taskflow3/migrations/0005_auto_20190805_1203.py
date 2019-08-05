@@ -11,20 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.translation import ugettext_lazy as _
+from __future__ import unicode_literals
+
+from django.db import migrations, models
 
 
-# 任务流程创建方式
-TASK_CREATE_METHOD = [
-    ('app', _(u"手动")),
-    ('api', _(u"API网关")),
-    ('app_maker', _(u"轻应用")),
-    ('periodic', _(u"周期任务")),
-    ('mobile', _(u"移动端")),
-]
+class Migration(migrations.Migration):
 
-# 任务引用的流程模板来源
-TEMPLATE_SOURCE = [
-    ('business', _(u"业务流程")),
-    ('common', _(u"公共流程")),
-]
+    dependencies = [
+        ('taskflow3', '0004_auto_20190103_1918'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='taskflowinstance',
+            name='create_method',
+            field=models.CharField(choices=[(b'app', '\u624b\u52a8'), (b'api', 'API\u7f51\u5173'), (b'app_maker', '\u8f7b\u5e94\u7528'), (b'periodic', '\u5468\u671f\u4efb\u52a1'), (b'mobile', '\u79fb\u52a8\u7aef')], default=b'app', max_length=30, verbose_name='\u521b\u5efa\u65b9\u5f0f'),
+        ),
+    ]

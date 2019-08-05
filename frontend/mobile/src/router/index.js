@@ -24,7 +24,6 @@ const TaskReset = () => import(/* webpackChunkName: 'home' */'../views/task/rese
 const TaskEditTiming = () => import(/* webpackChunkName: 'home' */'../views/task/timing')
 const TaskDetail = () => import(/* webpackChunkName: 'home' */'../views/task/detail')
 const TaskNodes = () => import(/* webpackChunkName: 'home' */'../views/task/nodes')
-const TaskParameter = () => import(/* webpackChunkName: 'home' */'../views/task/parameter')
 const TaskCanvas = () => import(/* webpackChunkName: 'home' */'../views/task/canvas')
 const NotFound = () => import(/* webpackChunkName: 'none' */'../views/404')
 
@@ -91,13 +90,6 @@ const routes = [
         title: '执行详情',
         isActionSheetShow: true,
         component: TaskNodes
-    },
-    {
-        path: '/task/nodes/parameter',
-        name: 'task_node_parameter',
-        title: '输入参数',
-        isActionSheetShow: true,
-        component: TaskParameter
     },
     {
         path: '/task/canvas',

@@ -77,7 +77,7 @@ export default {
                 'name': data.name,
                 'description': data.description,
                 'pipeline_tree': data.exec_data,
-                'create_method': 'api',
+                'create_method': 'mobile',
                 'create_info': 'mobile',
                 'flow_type': 'common'
             }

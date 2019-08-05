@@ -79,7 +79,7 @@
     import { mapActions } from 'vuex'
 
     const TASK_STATE = {
-        'CREATED': [window.gettext('未执行'), 'info'],
+        'CREATED': [window.gettext('未执行'), 'muted'],
         'RUNNING': [window.gettext('执行中'), 'info'],
         'SUSPENDED': [window.gettext('暂停'), 'warning'],
         'NODE_SUSPENDED': [window.gettext('节点暂停'), 'warning'],
@@ -113,7 +113,6 @@
                 loading: true,
                 i18n: {
                     tip: window.gettext('提示'),
-                    executeStart: window.gettext('开始执行任务'),
                     executeStartFailed: window.gettext('开始执行任务失败'),
                     loading: window.gettext('加载中...')
                 }
@@ -128,6 +127,9 @@
         },
         created () {
             this.loadData()
+        },
+        destroyed () {
+            this.cancelTaskStatusTimer()
         },
         methods: {
             ...mapActions('task', [
@@ -167,7 +169,7 @@
                         this.$set(node, 'data', data)
                         if (data) {
                             this.$set(node, 'status', data.state)
-                            if (data.state === 'RUNNING' || data.state === 'FAILED') {
+                            if (data.state === 'RUNNING') {
                                 if (this.$refs.canvas) {
                                     this.$refs.canvas.setCanvasPosition(node)
                                 }
@@ -181,10 +183,10 @@
                     const taskState = await this.getTaskStatus({ id: this.taskId })
                     if (taskState.result) {
                         this.taskState = taskState.data.state
+                        this.updateTaskNodes(taskState.data)
                         if (this.taskState === 'RUNNING') {
                             this.setTaskStatusTimer()
                         }
-                        this.updateTaskNodes(taskState.data);
                         ([this.taskStateClass, this.taskStateName, this.taskStateColor] = ['task-status', ...TASK_STATE[this.taskState]])
                     } else {
                         this.cancelTaskStatusTimer()
@@ -213,7 +215,6 @@
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const response = await this.instanceStart({ id: this.taskId })
                     if (response.result) {
-                        global.bus.$emit('notify', { message: this.i18n.executeStart })
                         this.setTaskStatusTimer()
                     } else {
                         errorHandler(response, this)
