@@ -15,20 +15,26 @@
             <span>{{i18n.global_varibles}}</span>
         </div>
         <div class="add-variable">
-            <bk-button type="default" class="add-variable-btn" size="small" @click="onAddVariable">{{ i18n.new }}</bk-button>
-            <bk-tooltip placement="bottom-end" class="global-variable-tootip">
-                <i class="bk-icon icon-info-circle"></i>
-                <div slot="content">
-                    <div class="tips-item">
-                        <h4>{{ i18n.attr }}</h4>
-                        <p>{{ i18n.attr_desc }}</p>
-                    </div>
-                    <div class="tips-item">
-                        <h4>{{ i18n.outputs2 }}</h4>
-                        <p>{{ i18n.outputs_desc }}</p>
-                    </div>
+            <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
+            <i
+                class="bk-icon icon-info-circle global-variable-tootip"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    content: '#var-desc',
+                    placement: 'bottom-end',
+                    width: 400
+                }">
+            </i>
+            <div id="var-desc">
+                <div class="tips-item">
+                    <h4>{{ i18n.attr }}</h4>
+                    <p>{{ i18n.attr_desc }}</p>
                 </div>
-            </bk-tooltip>
+                <div class="tips-item">
+                    <h4>{{ i18n.outputs2 }}</h4>
+                    <p>{{ i18n.outputs_desc }}</p>
+                </div>
+            </div>
         </div>
         <div class="global-variable-content">
             <div class="variable-header clearfix">
@@ -58,7 +64,7 @@
                                 <a
                                     class="col-key-copy"
                                     href="javascript:void(0)"
-                                    v-bktooltips.click="{
+                                    v-bk-tooltips.click="{
                                         content: i18n.copied,
                                         placements: ['bottom']
                                     }"
@@ -122,15 +128,16 @@
             </ul>
         </div>
         <bk-dialog
-            :is-show.sync="deleteConfirmDialogShow"
-            :quick-close="false"
-            :ext-cls="'common-dialog'"
-            :title="i18n.tips"
             width="400"
-            padding="30px"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.tips"
+            :value="deleteConfirmDialogShow"
             @confirm="onConfirm"
             @cancel="onCancel">
-            <div slot="content">{{ i18n.confirm }}</div>
+            <div>{{ i18n.confirm }}</div>
         </bk-dialog>
     </div>
 </template>
@@ -368,8 +375,6 @@ $localBorderColor: #d8e2e7;
         margin: 20px;
         .add-variable-btn {
             width: 90px;
-            height: 32px;
-            line-height: 32px;
         }
         .draft-form {
             display: inline-block;
@@ -592,6 +597,16 @@ $localBorderColor: #d8e2e7;
         .empty-variable-tip {
             margin-top: 120px;
         }
+    }
+}
+.tooltip-content {
+    margin-bottom: 20px;
+    &:last-child {
+        margin-bottom: 0;
+    }
+    h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
     }
 }
 </style>

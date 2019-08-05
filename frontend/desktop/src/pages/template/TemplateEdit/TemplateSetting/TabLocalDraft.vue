@@ -22,23 +22,29 @@
                     v-model="newDraftName"
                     data-vv-validate-on=" "
                     v-validate="draftNameRule" />
-                <bk-button type="success" size="small" @click="onNewDraft">{{i18n.affirm}}</bk-button>
-                <bk-button size="small" @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
+                <bk-button theme="success" @click="onNewDraft">{{i18n.affirm}}</bk-button>
+                <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
             </div>
-            <bk-button class="add-draft-btn" v-else type="default" size="small" @click="onShowDraftForm">
+            <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
                 {{ i18n.newDraft }}
             </bk-button>
-            <bk-tooltip placement="bottom-end" class="draft-tooltip">
-                <i class="bk-icon icon-info-circle"></i>
-                <div slot="content">
-                    <div class="tips-item" style="white-space: normal;">
-                        <h4>{{ i18n.sketch }}</h4>
-                        <p>
-                            {{ i18n.draftSketch }}
-                        </p>
-                    </div>
+            <i
+                class="bk-icon icon-info-circle draft-tooltip"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    content: '#draft-desc',
+                    placement: 'bottom-end',
+                    width: 400
+                }">
+            </i>
+            <div id="draft-desc">
+                <div class="tips-item" style="white-space: normal;">
+                    <h4>{{ i18n.sketch }}</h4>
+                    <p>
+                        {{ i18n.draftSketch }}
+                    </p>
                 </div>
-            </bk-tooltip>
+            </div>
             <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
         </div>
         <div class="local-draft-content">
@@ -209,48 +215,10 @@
     .draft-tooltip {
         float: right;
         margin-top: 8px;
-        .icon-info-circle {
-            color:#c4c6cc;
-            cursor: pointer;
-            &:hover {
-                color: #f4aa1a;
-            }
-        }
-        /deep/ .bk-tooltip-popper {
-            .tips-item {
-                margin-bottom: 20px;
-                &:last-child {
-                    margin-bottom: 0;
-                }
-                h4 {
-                    margin-top: 0;
-                    margin-bottom: 10px;
-                }
-                p {
-                    white-space: normal;
-                    word-wrap: break-word;
-                    word-break: break-all;
-                }
-            }
-            .tips-item-content {
-                margin-bottom: 20px;
-                &:last-child {
-                    margin-bottom: 0;
-                }
-                h4 {
-                    margin-top: 0;
-                    margin-bottom: 10px;
-                }
-                p {
-                    margin-top: -18px;
-                }
-            }
-            .bk-tooltip-arrow {
-                right: 2px;
-            }
-            .bk-tooltip-inner {
-                 margin-right: -18px;
-            }
+        color:#c4c6cc;
+        cursor: pointer;
+        &:hover {
+            color: #f4aa1a;
         }
     }
     .local-draft-content {
@@ -334,6 +302,16 @@
                 line-height: 1;
             }
         }
+    }
+}
+.tooltip-content {
+    margin-bottom: 20px;
+    &:last-child {
+        margin-bottom: 0;
+    }
+    h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
     }
 }
 </style>
