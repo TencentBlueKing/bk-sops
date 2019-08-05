@@ -16,7 +16,6 @@ import logging
 import traceback
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
-from pipeline.contrib.external_plugins.models.base import FILE_SYSTEM
 
 logger = logging.getLogger('root')
 
@@ -32,7 +31,6 @@ class FSModuleImporter(AutoInstallRequirementsImporter):
         self.path = path if path.endswith('/') else '%s/' % path
         self.use_cache = use_cache
         self.file_cache = {}
-        self.type = FILE_SYSTEM
 
     def is_package(self, fullname):
         return os.path.exists(self._file_path(fullname, is_pkg=True))

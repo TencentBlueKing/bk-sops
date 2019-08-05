@@ -17,7 +17,6 @@ import boto3
 from botocore.exceptions import ClientError
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
-from pipeline.contrib.external_plugins.models.base import S3
 
 logger = logging.getLogger('root')
 
@@ -47,7 +46,6 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
                                  aws_secret_access_key=secret_key,
                                  endpoint_url=self.service_address)
         self.obj_cache = {}
-        self.type = S3
 
     def is_package(self, fullname):
         return self._fetch_obj_content(self._obj_key(fullname, is_pkg=True)) is not None
