@@ -50,6 +50,49 @@ else:
 logger = logging.getLogger("root")
 
 
+def format_template_list_data(templates, biz=None):
+    data = []
+    for tmpl in templates:
+        item = {
+            'id': tmpl.id,
+            'name': tmpl.pipeline_template.name,
+            'creator': tmpl.pipeline_template.creator,
+            'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
+            'editor': tmpl.pipeline_template.editor,
+            'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
+            'category': tmpl.category,
+        }
+
+        if biz:
+            item.update({'bk_biz_id': biz.cc_id,
+                         'bk_biz_name': biz.cc_name})
+
+        data.append(item)
+
+    return data
+
+
+def format_template_data(template, biz=None):
+    pipeline_tree = template.pipeline_tree
+    pipeline_tree.pop('line')
+    pipeline_tree.pop('location')
+    data = {
+        'id': template.id,
+        'name': template.pipeline_template.name,
+        'creator': template.pipeline_template.creator,
+        'create_time': strftime_with_timezone(template.pipeline_template.create_time),
+        'editor': template.pipeline_template.editor,
+        'edit_time': strftime_with_timezone(template.pipeline_template.edit_time),
+        'category': template.category,
+        'pipeline_tree': pipeline_tree
+    }
+    if biz:
+        data.update({'bk_biz_id': biz.cc_id,
+                     'bk_biz_name': biz.cc_name})
+
+    return data
+
+
 @login_exempt
 @require_GET
 @apigw_required
@@ -61,20 +104,16 @@ def get_template_list(request, bk_biz_id):
         templates = TaskTemplate.objects.select_related('pipeline_template').filter(business=biz, is_deleted=False)
     else:
         templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
-    data = [
-        {
-            'id': tmpl.id,
-            'name': tmpl.pipeline_template.name,
-            'creator': tmpl.pipeline_template.creator,
-            'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
-            'editor': tmpl.pipeline_template.editor,
-            'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
-            'category': tmpl.category,
-            'bk_biz_id': bk_biz_id,
-            'bk_biz_name': biz.cc_name
-        } for tmpl in templates
-    ]
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({'result': True, 'data': format_template_list_data(templates, biz)})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+def get_common_template_list(request):
+    templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
+
+    return JsonResponse({'result': True, 'data': format_template_list_data(templates)})
 
 
 @login_exempt
@@ -107,22 +146,20 @@ def get_template_info(request, template_id, bk_biz_id):
             }
             return JsonResponse(result)
 
-    pipeline_tree = tmpl.pipeline_tree
-    pipeline_tree.pop('line')
-    pipeline_tree.pop('location')
-    data = {
-        'id': tmpl.id,
-        'name': tmpl.pipeline_template.name,
-        'creator': tmpl.pipeline_template.creator,
-        'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
-        'editor': tmpl.pipeline_template.editor,
-        'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
-        'category': tmpl.category,
-        'bk_biz_id': bk_biz_id,
-        'bk_biz_name': biz.cc_name,
-        'pipeline_tree': pipeline_tree
-    }
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({'result': True, 'data': format_template_data(tmpl, biz)})
+
+
+def get_common_template_info(request, template_id):
+    try:
+        tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
+    except CommonTemplate.DoesNotExist:
+        result = {
+            'result': False,
+            'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+        }
+        return JsonResponse(result)
+
+    return JsonResponse({'result': True, 'data': format_template_data(tmpl)})
 
 
 @login_exempt
