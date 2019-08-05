@@ -32,10 +32,22 @@ class UtilsTestCase(TestCase):
         self.assertEqual(sys.meta_path, ['2', '1'])
 
     def test__remove_importer(self):
-        importer_1 = GitRepoModuleImporter(modules=['module_1'], repo_raw_url='https://url_1', branch='master')
-        importer_2 = GitRepoModuleImporter(modules=['module_2'], repo_raw_url='https://url_2', branch='master')
-        importer_3 = GitRepoModuleImporter(modules=['module_3'], repo_raw_url='https://url_3', branch='master')
-        importer_4 = GitRepoModuleImporter(modules=['module_4'], repo_raw_url='https://url_4', branch='master')
+        importer_1 = GitRepoModuleImporter(name='name',
+                                           modules=['module_1'],
+                                           repo_raw_url='https://url_1',
+                                           branch='master')
+        importer_2 = GitRepoModuleImporter(name='name',
+                                           modules=['module_2'],
+                                           repo_raw_url='https://url_2',
+                                           branch='master')
+        importer_3 = GitRepoModuleImporter(name='name',
+                                           modules=['module_3'],
+                                           repo_raw_url='https://url_3',
+                                           branch='master')
+        importer_4 = GitRepoModuleImporter(name='name',
+                                           modules=['module_4'],
+                                           repo_raw_url='https://url_4',
+                                           branch='master')
 
         with patch(SYS_META_PATH, [importer_1, importer_2, importer_3]):
             utils._remove_importer(importer_4)

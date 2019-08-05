@@ -41,7 +41,8 @@ def hook_sandbox(hook, fullname):
 class NonstandardModuleImporter(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, modules):
+    def __init__(self, modules, name=None):
+        self.name = name
         self.modules = modules
 
     def find_module(self, fullname, path=None):
