@@ -100,10 +100,11 @@
                     </bk-form-item>
                 </bk-form>
             </div>
-            <div class="template-table-content" v-bkloading="{ isLoading: listLoading, opacity: 1 }">
+            <div class="template-table-content">
                 <bk-table
                     :data="listData"
                     :pagination="pagination"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.name">
@@ -779,9 +780,7 @@
 .operation-area {
     margin: 20px 0;
     .create-template {
-        height: 32px;
         min-width: 120px;
-        line-height: 29px;
         font-size: 14px;
     }
     .template-btn {

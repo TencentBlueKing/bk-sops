@@ -35,7 +35,6 @@
                         <bk-button
                             :class="['operation-btn', operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn']"
                             theme="default"
-                            size="mini"
                             hide-text="true"
                             :icon="'common-icon ' + operation.icon"
                             :key="operation.action"
@@ -55,7 +54,6 @@
                             actived: nodeInfoType === 'viewParams'
                         }]"
                         theme="default"
-                        size="mini"
                         hide-text="true"
                         icon="common-icon common-icon-solid-eye params-btn-icon"
                         v-bk-tooltips="{
@@ -69,7 +67,6 @@
                             actived: nodeInfoType === 'modifyParams'
                         }]"
                         theme="default"
-                        size="mini"
                         hide-text="true"
                         icon="common-icon common-icon-edit params-btn-icon"
                         v-bk-tooltips="{

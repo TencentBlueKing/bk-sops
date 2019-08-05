@@ -88,79 +88,63 @@
                 </fieldset>
             </div>
             <div class="functor-table-content">
-                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th class="functor-business">{{i18n.business}}</th>
-                            <th class="functor-id">{{i18n.taskId}}</th>
-                            <th class="functor-name">{{ i18n.name }}</th>
-                            <th class="functor-time">{{ i18n.createdTime }}</th>
-                            <th class="functor-time">{{ i18n.claimedTime }}</th>
-                            <th class="functor-creator">{{ i18n.creator }}</th>
-                            <th class="functor-claimant">{{ i18n.claimant }}</th>
-                            <th class="functor-status">{{ i18n.status }}</th>
-                            <th class="functor-operation">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in functorList" :key="item.id">
-                            <td class="functor-business">{{item.task.business.cc_name}}</td>
-                            <td class="functor-id">{{item.task.id}}</td>
-                            <td class="functor-name">
-                                <router-link
-                                    :title="item.task.name"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
-                                    {{item.task.name}}
-                                </router-link>
-                            </td>
-                            <td class="functor-time">{{item.create_time}}</td>
-                            <td class="functor-time">{{item.claim_time || '--'}}</td>
-                            <td class="functor-creator">{{item.creator}}</td>
-                            <td class="functor-claimant">{{item.claimant || '--'}}</td>
-                            <td class="functor-status">
-                                <span :class="statusClass(item.status)"></span>
-                                {{statusMethod(item.status, item.status_name)}}
-                            </td>
-                            <td class="functor-operation">
-                                <router-link v-if="item.status === 'submitted'"
-                                    class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
-                                    {{ i18n.claim }}
-                                </router-link>
-                                <router-link v-else
-                                    class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.business.cc_id}/?instance_id=${item.task.id}`">
-                                    {{ i18n.view }}
-                                </router-link>
-                            </td>
-                        </tr>
-                        <tr v-if="!functorList || !functorList.length" class="empty-tr">
-                            <td colspan="9">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-pagination
-                        :current.sync="currentPage"
-                        :count="totalCount"
-                        :limit="countPerPage"
-                        :limit-list="[15,20,30]"
-                        :show-limit="false"
-                        @change="onPageChange">
-                    </bk-pagination>
-                </div>
+                <bk-table
+                    :data="functorList"
+                    :pagination="pagination"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @page-change="onPageChange">
+                    <bk-table-column :label="i18n.business" prop="task.business.cc_name" width="160"></bk-table-column>
+                    <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <router-link
+                                class="task-name"
+                                :title="props.row.task.name"
+                                :to="`/taskflow/execute/${props.row.task.business.cc_id}/?instance_id=${props.row.task.id}`">
+                                {{props.row.task.name}}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.createdTime" prop="create_time" width="200"></bk-table-column>
+                    <bk-table-column :label="i18n.claimedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.claim_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator" width="140"></bk-table-column>
+                    <bk-table-column :label="i18n.claimant" width="140">
+                        <template slot-scope="props">
+                            {{ props.row.claimant || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.status" width="140">
+                        <template slot-scope="props">
+                            <span :class="statusClass(props.row.status)"></span>
+                            {{statusMethod(props.row.status, props.row.status_name)}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.operation" width="100">
+                        <template slot-scope="props">
+                            <router-link v-if="props.row.status === 'submitted'"
+                                class="functor-operation-btn"
+                                :to="`/taskflow/execute/${props.row.task.business.cc_id}/?instance_id=${props.row.task.id}`">
+                                {{ i18n.claim }}
+                            </router-link>
+                            <router-link v-else
+                                class="functor-operation-btn"
+                                :to="`/taskflow/execute/${props.row.task.business.cc_id}/?instance_id=${props.row.task.id}`">
+                                {{ i18n.view }}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
         <bk-dialog
             width="600"
             ext-cls="common-dialog"
-            padding="30px"
             :theme="'primary'"
             :mask-close="false"
             :header-position="'left'"
@@ -168,14 +152,14 @@
             :value="isShowNewTaskDialog"
             @confirm="onConfirmlNewTask"
             @cancel="onCancelNewTask">
-            <div>
+            <div class="create-task-content">
                 <div class="common-form-item">
                     <label>{{i18n.choiceBusiness}}</label>
                     <div class="common-form-content">
                         <bk-select
                             v-model="business.id"
                             class="bk-select-inline"
-                            :popover-width="260"
+                            :popover-width="430"
                             :searchable="true"
                             :is-loading="business.loading"
                             :placeholder="i18n.statusPlaceholder"
@@ -197,7 +181,7 @@
                     <div class="common-form-content">
                         <bk-select
                             v-model="template.id"
-                            style="width: 260px;"
+                            class="bk-select-inline"
                             :popover-width="260"
                             :is-loading="business.loading"
                             :searchable="template.searchable"
@@ -288,10 +272,6 @@
                 },
                 listLoading: true,
                 selectedCcId: '',
-                currentPage: 1,
-                totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
                 functorSync: 0,
                 statusSync: '',
                 searchStr: undefined,
@@ -338,7 +318,14 @@
                     { 'id': 'claimed', 'name': gettext('已认领') },
                     { 'id': 'executed', 'name': gettext('已执行') },
                     { 'id': 'finished', 'name': gettext('完成') }
-                ]
+                ],
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                }
             }
         },
         computed: {
@@ -368,8 +355,8 @@
                 this.listLoading = true
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__pipeline_instance__name__contains: this.searchStr,
                         creator: this.creator || undefined,
                         pipeline_instance__is_started: this.isStarted,
@@ -389,13 +376,7 @@
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
                     this.functorList = list
-                    this.totalCount = functorListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
-                    if (!totalPage) {
-                        this.totalPage = 1
-                    } else {
-                        this.totalPage = totalPage
-                    }
+                    this.pagination.count = functorListData.meta.total_count
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -403,11 +384,11 @@
                 }
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.loadFunctionTask()
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.loadFunctionTask()
             },
             statusMethod (status, status_name) {
@@ -466,16 +447,8 @@
                         this.loadFunctionTemplateList(this.business.id),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
-                        if (value[0].objects.length === 0) {
-                            this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据'), disabled: true }]
-                        } else {
-                            this.template.list[0].children = value[0].objects
-                        }
-                        if (value[1].objects.length === 0) {
-                            this.template.list[1].children = [{ 'id': undefined, 'name': gettext('无数据') }]
-                        } else {
-                            this.template.list[1].children = value[1].objects
-                        }
+                        this.template.list[0].children = value[0].objects
+                        this.template.list[1].children = value[1].objects
                         this.clearAtomForm()
                     })
                 } catch (e) {
@@ -584,14 +557,6 @@
     display: inline-block;
     width: 260px;
 }
-label.required:after {
-    content: '*';
-    position: absolute;
-    top: 0px;
-    right: -10px;
-    color: $redDark;
-    font-family: "SimSun";
-}
 .functor-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
@@ -600,32 +565,6 @@ label.required:after {
 .list-wrapper {
     padding: 0 60px;
     min-height: calc(100vh - 240px);
-}
-.template-tooltip {
-    position: absolute;
-    right: 30px;
-    top: 156px;
-    &:hover {
-        color: #FF9C01;
-    }
-}
-.common-form-item {
-    label {
-        width: 60px;
-        font-weight: normal;
-    }
-    .common-form-content {
-        position: relative;
-        margin-left: 80px;
-        margin-right: 30px;
-        .template-selector-tips {
-            position: absolute;
-            left: 0;
-            top: 0;
-            margin-left: 264px;
-            margin-top: 9px;
-        }
-    }
 }
 .operation-area {
     margin: 20px 0;
@@ -738,79 +677,9 @@ label.required:after {
     }
 }
 .functor-table-content {
-    table {
-        width: 100%;
-        border: 1px solid $commonBorderColor;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
-        }
-        th,td {
-            padding: 11px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;
-        }
-        td {
-            color: #63656e
-        }
-        th {
-            background: $whiteNodeBg;
-        }
-        .functor-id {
-            width: 80px;
-        }
-        .functor-name {
-            text-align: left;
-            a {
-                display: block;
-                width: 100%;
-                color: $blueDefault;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
-        }
-        .functor-type {
-            width: 110px;
-        }
-        .functor-time {
-            width: 215px;
-        }
-        .functor-creator {
-            width: 110px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .functor-claimant {
-            width: 110px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
-        .functor-business {
-            padding-left: 20px;
-            width: 130px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
-        .functor-status {
-            width: 110px;
-        }
-        .functor-operation {
-            width: 110px;
-        }
-    }
-    .btn-size-mini {
-        height: 24px;
-        line-height: 22px;
-        padding: 0 11px;
-        font-size: 12px;
+    background: #ffffff;
+    a.task-name {
+        color: $blueDefault;
     }
     .functor-operation-btn {
         color: #3c96ff;
@@ -848,5 +717,27 @@ label.required:after {
 }
 .success {
     color: #2dcb56;
+}
+.create-task-content {
+    padding: 30px;
+    .common-form-item {
+        label {
+            width: 60px;
+            font-weight: normal;
+        }
+        .common-form-content {
+            position: relative;
+            margin-left: 80px;
+            margin-right: 30px;
+            .template-selector-tips {
+                position: absolute;
+                right: -20px;
+                top: 9px;
+            }
+        }
+    }
+    .bk-select-inline {
+        width: 430px;
+    }
 }
 </style>
