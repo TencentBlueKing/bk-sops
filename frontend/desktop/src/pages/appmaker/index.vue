@@ -16,12 +16,12 @@
                 <BaseTitle :title="i18n.title"></BaseTitle>
                 <div class="operation-wrapper">
                     <bk-button theme="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
-                    <BaseSearch
+                    <AdvanceSearch
                         v-model="searchStr"
                         :input-placeholader="i18n.placeholder"
                         @onShow="onAdvanceShow"
                         @input="onSearchInput">
-                    </BaseSearch>
+                    </AdvanceSearch>
                 </div>
             </div>
             <div class="app-search" v-show="isAdvancedSerachShow">
@@ -136,7 +136,7 @@
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AppCard from './AppCard.vue'
     import AppEditDialog from './AppEditDialog.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
     export default {
@@ -146,7 +146,7 @@
             AppCard,
             NoData,
             AppEditDialog,
-            BaseSearch
+            AdvanceSearch
         },
         props: ['cc_id', 'common'],
         data () {

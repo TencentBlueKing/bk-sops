@@ -35,13 +35,13 @@
                     {{ i18n.import }}
                 </bk-button>
                 <div class="template-advanced-search">
-                    <BaseSearch
+                    <AdvanceSearch
                         class="base-search"
                         v-model="flowName"
                         :input-placeholader="i18n.templateNamePlaceholder"
                         @onShow="onAdvanceShow"
                         @input="onSearchInput">
-                    </BaseSearch>
+                    </AdvanceSearch>
                 </div>
             </div>
             <div class="advanced-search-form" v-if="isAdvancedSerachShow">
@@ -254,7 +254,7 @@
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
     import AuthorityManageDialog from './AuthorityManageDialog.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
     // moment用于时区使用
     import moment from 'moment-timezone'
@@ -266,7 +266,7 @@
             ExportTemplateDialog,
             AuthorityManageDialog,
             BaseTitle,
-            BaseSearch,
+            AdvanceSearch,
             NoData
         },
         props: ['cc_id', 'common', 'common_template'],
