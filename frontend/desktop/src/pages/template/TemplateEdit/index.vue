@@ -482,7 +482,7 @@
                         this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
                     if (this.createTaskSaving) {
-                        const taskUrl = this.getTaskUrl()
+                        const taskUrl = this.getTaskUrl(data.template_id)
                         this.$router.push(taskUrl)
                     }
                 } catch (e) {
@@ -749,8 +749,8 @@
                     this.isTemplateConfigValid = true
                 }
             },
-            getTaskUrl () {
-                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${this.template_id}`
+            getTaskUrl (template_id) {
+                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`
                 if (this.common) {
                     url += '&common=1'
                 }
