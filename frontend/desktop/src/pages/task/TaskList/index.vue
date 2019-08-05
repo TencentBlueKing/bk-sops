@@ -22,13 +22,13 @@
                         {{i18n.create}}
                     </bk-button>
                     <div class="task-advanced-search">
-                        <BaseSearch
+                        <AdvanceSearch
                             class="base-search"
                             v-model="flowName"
                             :input-placeholader="i18n.taskNamePlaceholder"
                             @onShow="onAdvanceShow"
                             @input="onSearchInput">
-                        </BaseSearch>
+                        </AdvanceSearch>
                     </div>
                 </div>
             </div>
@@ -236,7 +236,7 @@
     import toolsUtils from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
@@ -247,7 +247,7 @@
         components: {
             CopyrightFooter,
             BaseTitle,
-            BaseSearch,
+            AdvanceSearch,
             NoData,
             TaskCreateDialog,
             TaskCloneDialog

@@ -14,12 +14,12 @@
         <div class="list-wrapper">
             <BaseTitle :title="i18n.auditList"></BaseTitle>
             <div class="operation-area clearfix">
-                <BaseSearch
+                <AdvanceSearch
                     v-model="searchStr"
                     :input-placeholader="i18n.placeholder"
                     @onShow="onAdvanceShow"
                     @input="onSearchInput">
-                </BaseSearch>
+                </AdvanceSearch>
             </div>
             <div class="audit-search" v-show="isAdvancedSerachShow">
                 <fieldset class="audit-fieldset">
@@ -180,7 +180,7 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
 
@@ -189,7 +189,7 @@
         components: {
             CopyrightFooter,
             BaseTitle,
-            BaseSearch,
+            AdvanceSearch,
             NoData
         },
         data () {
@@ -582,7 +582,7 @@
     }
 }
 .common-icon-dark-circle-pause {
-    color: #FF9C01;
+    color: #ff9C01;
     font-size: 12px;
 }
 .audit-table-content {

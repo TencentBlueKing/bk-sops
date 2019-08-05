@@ -22,13 +22,13 @@
                     @click="onCreatePeriodTask">
                     {{i18n.createPeriodTask}}
                 </bk-button>
-                <BaseSearch
+                <AdvanceSearch
                     v-model="periodicName"
                     class="base-search"
                     :input-placeholader="i18n.periodicNamePlaceholder"
                     @onShow="onAdvanceShow"
                     @input="onSearchInput">
-                </BaseSearch>
+                </AdvanceSearch>
             </div>
             <div v-show="isAdvancedSerachShow" class="periodic-search">
                 <fieldset class="periodic-fieldset">
@@ -176,7 +176,7 @@
     import toolsUtils from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskCreateDialog from '../../task/TaskList/TaskCreateDialog.vue'
     import ModifyPeriodicDialog from './ModifyPeriodicDialog.vue'
@@ -186,7 +186,7 @@
         components: {
             CopyrightFooter,
             BaseTitle,
-            BaseSearch,
+            AdvanceSearch,
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,

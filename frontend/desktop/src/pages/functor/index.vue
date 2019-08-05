@@ -15,12 +15,12 @@
             <BaseTitle :title="i18n.functorList"></BaseTitle>
             <div class="operation-area clearfix">
                 <bk-button theme="primary" class="task-create-btn" @click="onCreateTask">{{i18n.new}}</bk-button>
-                <BaseSearch
+                <AdvanceSearch
                     v-model="searchStr"
                     :input-placeholader="i18n.placeholder"
                     @onShow="onAdvanceShow"
                     @input="onSearchInput">
-                </BaseSearch>
+                </AdvanceSearch>
             </div>
             <div class="functor-search" v-show="isAdvancedSerachShow">
                 <fieldset class="functor-fieldset">
@@ -220,7 +220,7 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
 
@@ -228,7 +228,7 @@
         name: 'functorTaskHome',
         components: {
             CopyrightFooter,
-            BaseSearch,
+            AdvanceSearch,
             BaseTitle,
             NoData
         },
