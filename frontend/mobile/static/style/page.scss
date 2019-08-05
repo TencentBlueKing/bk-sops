@@ -69,9 +69,9 @@ a{
             line-height: 18px;
         }
         .star-icon{
-            font-size: $fs-16;
+            font-size: $fs-18;
             color: #e1e1e1;
-            width: 30px;
+            width: 40px;
             text-align: right;
         }
         .collection{
@@ -79,7 +79,7 @@ a{
         }
         .task-icon{
             font-size: $fs-16;
-            width: 30px;
+            width: 40px;
             text-align: right;
         }
         .checked{
@@ -100,6 +100,9 @@ a{
             height: 14px;
             background-color: #979ba5;
             border-radius: 50%;
+        }
+        .van-cell__value{
+            flex: inherit;
         }
     }
 }
@@ -203,6 +206,11 @@ a{
     padding: 10px;
     text-align: center;
     font-size: $fs-14;
+}
+.task-status.muted{
+    background: #dcdee5;
+    border-bottom-color: #d2d4dd;
+    color: #63656e;
 }
 .task-status.info{
     background: #CFDFFB;
