@@ -43,7 +43,7 @@
                                     name="packageName"
                                     v-model="name"
                                     v-validate="packageNameRule"
-                                    :style="errors.first('packageName') ? 'border:1px double #ea3636' : '' "
+                                    :class="{ 'error-border': errors.first('packageName') }"
                                     :disabled="isEditing"
                                     @blur="onPackageNameBlur">
                                 <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
@@ -96,7 +96,7 @@
                                     <tr v-for="field in detailFields" :key="field.id">
                                         <th>{{field.name}}</th>
                                         <td class="td-with-input"
-                                            :style="errors.first('detailValue' + field.id) ? 'border:1px double #ea3636' : '' ">
+                                            :class="{ 'error-border': errors.first('detailValue' + field.id) }">
                                             <input
                                                 type="text"
                                                 class="table-input"
@@ -132,7 +132,7 @@
                                     <tbody>
                                         <tr v-for="(item, index) in packageValues" :key="index">
                                             <td
-                                                :style="errors.first('moduleName' + index) ? 'border:1px double #ea3636' : ''"
+                                                :class="{ 'error-border': errors.first('moduleName' + index) }"
                                                 class="td-with-input">
                                                 <input
                                                     type="text"
@@ -145,7 +145,7 @@
                                                 <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                                             </td>
                                             <td
-                                                :style="errors.first('moduleVersion' + index) ? 'border:1px double #ea3636' : ''"
+                                                :class="{ 'error-border': errors.first('moduleVersion' + index) }"
                                                 class="td-with-input">
                                                 <input
                                                     type="text"
@@ -158,7 +158,7 @@
                                                 <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                                             </td>
                                             <td
-                                                :style="errors.first('modules' + index) ? 'border:1px double #ea3636' : ''"
+                                                :class="{ 'error-border': errors.first('modules' + index) }"
                                                 class="td-with-input">
                                                 <input
                                                     type="text"
@@ -404,6 +404,9 @@
             display: none;
             bottom: 0;
         }
+    }
+    .error-border {
+        border:1px double #ea3636 !important;
     }
     .package-form {
         margin-bottom: 30px;
