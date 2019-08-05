@@ -17,7 +17,6 @@ import urlparse
 import requests
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
-from pipeline.contrib.external_plugins.models.base import GIT
 
 logger = logging.getLogger('root')
 
@@ -44,7 +43,6 @@ class GitRepoModuleImporter(AutoInstallRequirementsImporter):
         self.use_cache = use_cache
         self.file_cache = {}
         self.proxy = proxy or {}
-        self.type = GIT
 
     def is_package(self, fullname):
         return self._fetch_repo_file(self._file_url(fullname, is_pkg=True)) is not None

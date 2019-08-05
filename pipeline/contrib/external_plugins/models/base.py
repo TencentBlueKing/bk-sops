@@ -104,7 +104,7 @@ class ExternalPackageSource(models.Model):
         plugins = []
         for code, component in ComponentLibrary.components.items():
             component_importer = getattr(sys.modules[component.__module__], '__loader__', None)
-            if component_importer and component_importer.type == self.type() and component_importer.name == self.name:
+            if isinstance(component_importer, type(self.importer())) and component_importer.name == self.name:
                 plugins.append({
                     'code': code,
                     'name': component.name,
