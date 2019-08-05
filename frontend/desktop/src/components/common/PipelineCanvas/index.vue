@@ -512,7 +512,7 @@
                 this.$emit('onLabelBlur', labelData)
             },
             onUpdateNodeInfo (id, data) {
-                this.dataFlowInstance.updateLocationById(id, data)
+                id && this.dataFlowInstance.updateLocationById(id, data)
             },
             onUpdateCanvas (data) {
                 this.dataFlowInstance.updateCanvas(data)

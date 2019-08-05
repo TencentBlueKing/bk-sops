@@ -16,10 +16,9 @@
                 <li v-for="item in nodeDict"
                     :key="item.type"
                     :class="[
-                        'node-type-item',
+                        'node-type-item node-source',
                         `common-icon-node-${item.type}`,
                         { 'node-type-has-sub': isNodeTypeHasSub(item.type) },
-                        { 'node-source': !isNodeTypeHasSub(item.type) },
                         { 'active-node-type': activeNodeType === item.type && showNodeList },
                         { 'startpoint-unavailable': item.type === 'startpoint' ? isDisableStartPoint : false },
                         { 'endpoint-unavailable': item.type === 'endpoint' ? isDisableEndPoint : false }
@@ -269,7 +268,7 @@
         color: $blueDefault;
     }
     &.node-type-has-sub {
-        cursor: pointer;
+        cursor: move;
         &:hover{
             background: $whiteDefault;
         }
@@ -283,6 +282,7 @@
             border-style: solid;
             border-width: 0 0 8px 8px;
             border-color: transparent transparent #546a9e transparent;
+            cursor: pointer;
         }
     }
     &.active-node-type {

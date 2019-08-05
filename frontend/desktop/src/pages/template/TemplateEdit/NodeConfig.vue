@@ -256,7 +256,10 @@
                 nodeCouldBeSkipped: false,
                 subflowHasUpdate: false, // 是否显示子流程更新 icon
                 bkMessageInstance: null,
-                subAtomConfigData: null,
+                subAtomConfigData: {
+                    form: {},
+                    outputs: {}
+                },
                 nodeConfigData: null,
                 reuseVariable: {},
                 isReuseVarDialogShow: false,
@@ -456,7 +459,7 @@
              * @param {String} version 子流程版本
              */
             getConfig (version) {
-                if (this.currentAtom !== '' && this.currentAtom !== undefined) {
+                if (this.currentAtom !== '' && this.currentAtom !== undefined && !this.isNaN(this.currentAtom)) {
                     if (this.isSingleAtom) {
                         return this.getAtomConfig(this.currentAtom)
                     } else {
@@ -465,6 +468,10 @@
                 } else {
                     this.markInvalidForm()
                 }
+            },
+            isNaN (number) {
+                console.log(typeof number === 'number' && isNaN(number))
+                return typeof number === 'number' && isNaN(number)
             },
             /**
              * 加载标准插件节点数据
@@ -625,6 +632,8 @@
                         }
                     }
                 } else {
+                    console.log(formData, 'formData')
+                    console.log(formData.template_id, 'formData.template_id')
                     this.currentAtom = parseInt(formData.template_id)
                     for (const key in formData.constants) {
                         const form = formData.constants[key]
@@ -715,6 +724,7 @@
             },
             updateActivities () {
                 const nodeData = tools.deepClone(this.nodeConfigData)
+                console.log(this.nodeConfigData, 'ccc')
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
@@ -745,6 +755,7 @@
                 return this.$validator.validateAll().then(result => {
                     let status = ''
                     let formValid = true
+                    console.log(this)
                     if (!this.currentAtom) {
                         this.taskTypeEmpty = true
                     }
@@ -815,7 +826,6 @@
                         template_id: Number(this.currentAtom),
                         subprocess_node_id: this.idOfNodeInConfigPanel
                     })
-
                     nodeName = data.name.replace(/\s/g, '')
                     this.subAtomConfigData.form = {}
                     this.inputAtomHook = {}
@@ -823,7 +833,9 @@
                 }
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
+                console.log(this.nodeConfigData, 'this.nodeConfigData')
                 this.updateActivities()
+                console.log(this.nodeConfigData, 'this.nodeConfigData')
                 this.getConfig()
                 this.$nextTick(() => {
                     this.isAtomChanged = false
