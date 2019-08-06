@@ -22,7 +22,6 @@
 |   node_id        | string     | 是         | 节点 ID                        |
 |   component_code| string     | 否         | 标准插件编码，请求标准插件执行详情必填 |
 |   subprocess_stack| string   | 否         | 子流程堆栈，json 格式的列表    |
-| component_version| string   | 否         | 组件版本号，默认返回 legacy 版本的组件    |
 
 ### 请求参数示例
 

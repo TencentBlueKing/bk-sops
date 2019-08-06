@@ -1007,8 +1007,7 @@ class APITest(TestCase):
                                                                              bk_biz_id=TEST_BIZ_CC_ID),
                                        data={'node_id': TEST_NODE_ID,
                                              'component_code': TEST_COMPONENT_CODE,
-                                             'subprocess_stack': TEST_SUBPROCESS_STACK,
-                                             'component_version': 'version'})
+                                             'subprocess_stack': TEST_SUBPROCESS_STACK})
 
             data = json.loads(response.content)
 
@@ -1016,8 +1015,7 @@ class APITest(TestCase):
             self.assertEqual(data['data'], assert_data)
             mock_taskflow.get_node_detail.assert_called_once_with(node_id=TEST_NODE_ID,
                                                                   component_code=TEST_COMPONENT_CODE,
-                                                                  subprocess_stack=json.loads(TEST_SUBPROCESS_STACK),
-                                                                  version='version')
+                                                                  subprocess_stack=json.loads(TEST_SUBPROCESS_STACK))
 
     @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
     def test_get_task_node_detail__taskflow_doest_not_exist(self):

@@ -72,13 +72,11 @@ def data(request, biz_cc_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
-    version = request.GET.get('component_version')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
     ctx = task.get_node_data(node_id=node_id,
                              component_code=component_code,
-                             subprocess_stack=subprocess_stack,
-                             version=version)
+                             subprocess_stack=subprocess_stack)
     return JsonResponse(ctx)
 
 
@@ -87,13 +85,11 @@ def detail(request, biz_cc_id):
     task_id = request.GET.get('instance_id')
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
-    version = request.GET.get('component_version')
     subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=biz_cc_id)
     ctx = task.get_node_detail(node_id=node_id,
                                component_code=component_code,
-                               subprocess_stack=subprocess_stack,
-                               version=version)
+                               subprocess_stack=subprocess_stack)
     return JsonResponse(ctx)
 
 

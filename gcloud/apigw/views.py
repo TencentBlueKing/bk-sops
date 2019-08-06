@@ -613,7 +613,7 @@ def get_task_node_detail(request, task_id, bk_biz_id):
 
     node_id = request.GET.get('node_id')
     component_code = request.GET.get('component_code')
-    version = request.GET.get('component_version')
+
     try:
         subprocess_stack = json.loads(request.GET.get('subprocess_stack', '[]'))
     except Exception:
@@ -623,8 +623,7 @@ def get_task_node_detail(request, task_id, bk_biz_id):
         })
     result = task.get_node_detail(node_id=node_id,
                                   component_code=component_code,
-                                  subprocess_stack=subprocess_stack,
-                                  version=version)
+                                  subprocess_stack=subprocess_stack)
     return JsonResponse(result)
 
 
