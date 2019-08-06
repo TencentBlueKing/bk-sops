@@ -21,7 +21,7 @@ import logging
 
 from django.http import HttpResponseRedirect, HttpResponse
 from django.middleware.csrf import rotate_token
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from . import settings as weixin_settings
 from .api import WeiXinApi, QyWeiXinApi
@@ -62,7 +62,6 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         if weixin_settings.USE_WEIXIN and request.path.startswith(weixin_settings.WEIXIN_SITE_URL) and \
                 request.get_host() == weixin_settings.WEIXIN_APP_EXTERNAL_HOST:
-            logger.info('weixin visit begin')
             return True
         return False
 
