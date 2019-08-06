@@ -70,6 +70,9 @@ class PipelineInstanceResource(GCloudModelResource):
 
 
 class CustomCreateDetailAuthorization(BkSaaSLooseAuthorization):
+    """
+    @summary: 在obj_create自行控制复杂权限校验逻辑，上层不使用统一的create权限校验
+    """
     def create_detail(self, object_list, bundle):
         return True
 
