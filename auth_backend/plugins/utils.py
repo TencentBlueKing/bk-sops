@@ -21,7 +21,7 @@ logger = logging.getLogger('root')
 CACHE_PREFIX = __name__.replace('.', '_')
 
 
-def build_need_permission(auth_resource, action_id, instance=None):
+def build_need_permission(auth_resource, action_id, instance=None, scope_id=None):
     base_info = auth_resource.base_info()
     resource = base_info.pop('resource')
     if instance is not None:
@@ -33,6 +33,7 @@ def build_need_permission(auth_resource, action_id, instance=None):
 
     base_info.update({
         'action_id': action_id,
+        'scope_id': scope_id or base_info['scope_id'],
         'action_name': auth_resource.actions_map[action_id].name,
         'resources': [
             [
@@ -44,13 +45,14 @@ def build_need_permission(auth_resource, action_id, instance=None):
 
 
 @with_cache(seconds=10, prefix=CACHE_PREFIX, ex=[0, 1, "action_ids"])
-def search_all_resources_authorized_actions(username, resource_type, auth_resource, action_ids=None):
+def search_all_resources_authorized_actions(username, resource_type, auth_resource, action_ids=None, scope_id=None):
     """
     @summary: 获取所有用户对某个资源类型的所有资源实例的权限
     @param username:
     @param resource_type: 资源类型，这里仅用作缓存with_cache关键字
     @param auth_resource:
     @param action_ids:
+    @param scope_id:
     @return:
     """
     if action_ids is None:
@@ -59,7 +61,8 @@ def search_all_resources_authorized_actions(username, resource_type, auth_resour
         resource=auth_resource,
         principal_type=PRINCIPAL_TYPE_USER,
         principal_id=username,
-        action_ids=action_ids)
+        action_ids=action_ids,
+        scope_id=scope_id)
     if not authorized_result['result']:
         logger.error(u"Search authorized resources of Resource[{resource}] return error: {error}".format(
             resource=auth_resource.name,
