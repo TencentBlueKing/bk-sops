@@ -56,11 +56,11 @@ BKAPP_USE_WEIXIN(是否开启移动端)值设置为 1，BKAPP_IS_QY_WEIXIN(是�
 可能是蓝鲸消息通知渠道配置错误，请确认按照上述教程配置并保证变量值正确。
 
 ### 移动端打开后报错"redirect_uri需使用可信域名"
-![](../resource/img/mobile_error_redirect_uri.png)
+<img src="../resource/img/mobile_error_redirect_uri.png" height = "400" align=center />
 可能是企业微信后台管理中"网页授权及JS-SDK"配置错误，请设置可信域名为你部署的蓝鲸外网域名。
 
 ### 移动端打开后报错"网页发生错误"
-![](../resource/img/mobile_error_web.png)
+<img src="../resource/img/mobile_error_web.png" height = "400" align=center />
 可能是标准运维SaaS的环境变量配置错误，请检查BKAPP_WEIXIN_APP_ID(企业ID)、BKAPP_WEIXIN_APP_SECRET(企业应用Secret)、
 BKAPP_WEIXIN_APP_EXTERNAL_HOST(蓝鲸外网域名)配置是否正确。
 
