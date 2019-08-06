@@ -32,6 +32,7 @@ from tastypie.http import HttpForbidden
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from gcloud import exceptions
 from gcloud.core.models import Business
 from gcloud.core.utils import (
@@ -298,7 +299,7 @@ class GCloudModelResource(ModelResource):
 
 class BusinessResource(GCloudModelResource):
     class Meta:
-        queryset = Business.objects.exclude(status='disabled') \
+        queryset = Business.objects.exclude(status='disabled')\
                                    .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
@@ -346,9 +347,21 @@ class ComponentModelResource(ModelResource):
         authorization = ReadOnlyAuthorization()
         limit = 0
 
+    def build_filters(self, filters=None, ignore_bad_filters=False):
+        orm_filters = super(ComponentModelResource, self).build_filters(filters=filters,
+                                                                        ignore_bad_filters=ignore_bad_filters)
+        if filters and 'version' in filters:
+            orm_filters['version'] = filters.get('version') or LEGACY_PLUGINS_VERSION
+
+        return orm_filters
+
+    def get_detail(self, request, **kwargs):
+        kwargs['version'] = request.GET.get('version', None)
+        return super(ComponentModelResource, self).get_detail(request, **kwargs)
+
     def alter_list_data_to_serialize(self, request, data):
         for bundle in data['objects']:
-            component = ComponentLibrary.get_component_class(bundle.data['code'])
+            component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
             bundle.data['output'] = component.outputs_format()
             bundle.data['form'] = component.form
             bundle.data['desc'] = component.desc
@@ -361,7 +374,7 @@ class ComponentModelResource(ModelResource):
 
     def alter_detail_data_to_serialize(self, request, data):
         bundle = data
-        component = ComponentLibrary.get_component_class(bundle.data['code'])
+        component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
         bundle.data['output'] = component.outputs_format()
         bundle.data['form'] = component.form
         bundle.data['desc'] = component.desc

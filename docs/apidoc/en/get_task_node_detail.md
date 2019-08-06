@@ -22,6 +22,7 @@ Query a task node execution details
 |   node_id        | string     | YES         | the node ID of task                        |
 |   component_code| string     | NO         | the code of Standard Plugin, this field is required when query a Standard Plugin node |
 |   subprocess_stack| string   | NO         | stack of SubProcess, format is json  |
+| component_version| string   | NO         | component version, default is 'legacy'    |
 
 ### Request Parameters Example
 

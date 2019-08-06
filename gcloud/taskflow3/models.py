@@ -959,8 +959,9 @@ class TaskFlowInstance(models.Model):
 
         if component_code:
             outputs_table = []
+            version = self.pipeline_tree[PE.activities][node_id].get('version', None)
             try:
-                component = library.ComponentLibrary.get_component_class(component_code)
+                component = library.ComponentLibrary.get_component_class(component_code=component_code, version=version)
                 outputs_format = component.outputs_format()
             except Exception as e:
                 result = False
@@ -1017,7 +1018,9 @@ class TaskFlowInstance(models.Model):
             )
             return {'result': False, 'message': message, 'data': {}}
 
-        ret_data = self.get_node_data(node_id, component_code, subprocess_stack)
+        ret_data = self.get_node_data(node_id=node_id,
+                                      component_code=component_code,
+                                      subprocess_stack=subprocess_stack)
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:

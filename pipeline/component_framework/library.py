@@ -11,28 +11,30 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.exceptions import ComponentNotExistException
+from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 
 
 class ComponentLibrary(object):
     components = {}
 
-    def __new__(cls, *args, **kwargs):
-        component_code = kwargs.get('component_code', None)
-        if args:
-            component_code = args[0]
-        if not component_code:
-            raise ValueError('please pass a component_code in args or kwargs: '
-                             'ComponentLibrary(\'code\') or ComponentLibrary(component_code=\'code\')')
-        if component_code not in cls.components:
-            raise ComponentNotExistException('component %s does not exist.' %
-                                             component_code)
-        return cls.components[component_code]
+    @classmethod
+    def get_component_class(cls, component_code, version=None):
+        version = version or LEGACY_PLUGINS_VERSION
+        return cls.components.get(component_code, {}).get(version)
 
     @classmethod
-    def get_component_class(cls, component_code):
-        return cls.components.get(component_code)
+    def get_component(cls, component_code, data_dict, version=None):
+        version = version or LEGACY_PLUGINS_VERSION
+        return cls.get_component_class(component_code=component_code, version=version)(data_dict)
 
     @classmethod
-    def get_component(cls, component_code, data_dict):
-        return cls.get_component_class(component_code)(data_dict)
+    def register_component(cls, component_code, version, component_cls):
+        cls.components.setdefault(component_code, {})[version] = component_cls
+
+    @classmethod
+    def codes(cls):
+        return cls.components.keys()
+
+    @classmethod
+    def versions(cls, code):
+        return cls.components.get(code, {}).keys()
