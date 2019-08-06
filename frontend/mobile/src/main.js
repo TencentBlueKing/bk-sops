@@ -40,10 +40,11 @@ import {
     Radio,
     RadioGroup
 } from 'vant'
-import VueTippy from 'vue-tippy'
 import enUS from 'vant/lib/locale/lang/en-US'
 import zhCN from 'vant/lib/locale/lang/zh-CN'
 import 'amfe-flexible'
+
+import '../static/style/app.scss'
 
 Vue.use(NavBar)
     .use(Search)
@@ -69,7 +70,6 @@ Vue.use(NavBar)
     .use(RadioGroup)
 
 Vue.use(VeeValidate)
-Vue.use(VueTippy)
 Vue.component('app-exception', Exception)
 Vue.config.devtools = true
 

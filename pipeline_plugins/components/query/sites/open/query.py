@@ -34,7 +34,7 @@ from pipeline_plugins.cmdb_ip_picker.query import (
 from gcloud.conf import settings
 
 logger = logging.getLogger('root')
-get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 JOB_VAR_TYPE_STR = 1
 JOB_VAR_TYPE_IP = 2
@@ -51,7 +51,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     @param biz_cc_id:
     @return:
     """
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     kwargs = {
         'bk_obj_id': obj_id,
         'bk_supplier_account': supplier_account
@@ -80,7 +80,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
 
 @supplier_account_inject
 def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_account):
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     kwargs = {
         'bk_obj_id': obj_id,
         'bk_supplier_account': supplier_account
@@ -172,7 +172,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     @param biz_cc_id:
     @return:
     """
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     kwargs = {
         'bk_biz_id': biz_cc_id,
         'bk_supplier_account': supplier_account
@@ -223,7 +223,7 @@ def job_get_script_list(request, biz_cc_id):
     :return:
     """
     # 查询脚本列表
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     script_type = request.GET.get('type')
     kwargs = {
         'bk_biz_id': biz_cc_id,
@@ -317,7 +317,7 @@ def file_upload(request, biz_cc_id):
 
 
 def job_get_job_tasks_by_biz(request, biz_cc_id):
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_list({'bk_biz_id': biz_cc_id})
     if not job_result['result']:
         message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
@@ -339,7 +339,7 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
 
 
 def job_get_job_task_detail(request, biz_cc_id, task_id):
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_detail({'bk_biz_id': biz_cc_id,
                                             'bk_job_id': task_id})
     if not job_result['result']:

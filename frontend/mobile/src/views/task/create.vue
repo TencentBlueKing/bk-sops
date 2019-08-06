@@ -51,6 +51,7 @@
             <van-picker
                 show-toolbar
                 :columns="columns"
+                :default-index="defaultSchemaIndex"
                 @confirm="onConfirm"
                 @cancel="show = false" />
         </van-popup>
@@ -75,7 +76,7 @@
                 <template v-if="Object.keys(templateConstants).length">
                     <template v-for="item in sortedConstants">
                         <VantComponent
-                            v-if="!loadingConfig"
+                            v-if="!loadingConfig && item.show_type === 'show'"
                             :source-code="item.source_tag"
                             :custom-type="item.custom_type"
                             :key="item.key"
@@ -97,7 +98,7 @@
                 v-if="creating"
                 loading
                 disabled
-                :loading-text="i18n.btnCreating"
+                :loading-text="`${i18n.btnCreate}...`"
                 size="large"
                 type="info" />
             <van-button
@@ -113,7 +114,7 @@
 <script>
     import { NAME_REG } from '@/constants/index.js'
     import moment from 'moment'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import { dateFormatter } from '@/common/util.js'
     import NoData from '@/components/NoData/index.vue'
     import VantComponent from '@/components/VantForm/index.vue'
@@ -149,15 +150,16 @@
                 scheme: DEFAULT_SCHEMES_NAME,
                 i18n: {
                     loading: window.gettext('加载中'),
-                    btnCreate: window.gettext('执行任务'),
-                    btnCreating: window.gettext('执行任务...'),
+                    btnCreate: window.gettext('新建任务'),
                     taskName: window.gettext('任务名称'),
                     scheme: window.gettext('方案'),
                     canvasPreview: window.gettext('预览流程图'),
                     paramInfo: window.gettext('参数信息'),
                     paramInput: window.gettext('输入参数值'),
                     datetimeInput: window.gettext('请选择日期时间'),
-                    taskInfo: window.gettext('任务信息')
+                    taskInfo: window.gettext('任务信息'),
+                    collectSuccess: window.gettext('添加收藏成功'),
+                    cancelCollectSuccess: window.gettext('取消收藏成功')
                 },
                 taskId: 0,
                 taskName: '',
@@ -175,13 +177,16 @@
             }
         },
         computed: {
+            ...mapState({
+                defaultSchemaIndex: state => state.defaultSchemaIndex
+            }),
+
             sortedConstants () {
                 const sortedTemplateConstants = {}
                 const sortedConstants = Object.values(this.templateConstants).sort((a, b) => a.index - b.index)
                 sortedConstants.forEach((item) => {
                     sortedTemplateConstants[item['key']] = item
                 })
-                this.loadAtomOrVariableConfig(sortedConstants)
                 return sortedTemplateConstants
             }
         },
@@ -221,6 +226,7 @@
             fillSchemeData (response) {
                 this.schemes = response
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
+                this.scheme = this.columns[this.defaultSchemaIndex]
             },
             fillTemplateData (response) {
                 this.templateData = response
@@ -228,9 +234,10 @@
                 this.templatePipelineTree = pipelineTree
                 this.templateConstants = pipelineTree.constants
                 this.taskName = this.getDefaultTaskName()
-                this.collected = this.isTemplateCollected()
+                this.isTemplateCollected()
                 this.$store.commit('setTemplate', this.templateData)
                 this.$store.commit('setPipelineTree', pipelineTree)
+                this.loadAtomOrVariableConfig(this.templateConstants)
             },
             onCreateClick () {
                 this.$validator.validateAll().then((result) => {
@@ -260,8 +267,8 @@
                         if (response) {
                             this.taskId = response.id
                             this.$store.commit('setTaskId', this.taskId)
+                            this.$router.push({ path: '/task/canvas', query: { taskId: this.taskId } })
                         }
-                        this.$router.push({ path: '/task/canvas', query: { 'executeTask': 'true', taskId: this.taskId } })
                     } catch (e) {
                         errorHandler(e, this)
                     } finally {
@@ -283,6 +290,7 @@
             },
             async onConfirm (value) {
                 this.show = false
+                let selectedSchemaIndex = 0
                 if (value.id) {
                     try {
                         this.scheme = await this.getScheme(value.id)
@@ -296,13 +304,15 @@
                     if (includeNodesStr && includeNodesStr.length) {
                         const includeNodes = JSON.parse(includeNodesStr)
                         // 两个数组的差集，即被排除的节点
-                        // this.excludeTaskNodes = includeNodes.concat(existNodes).filter(v => includeNodes.includes(v) ^ existNodes.includes(v))
                         this.excludeTaskNodes = existNodes.filter(n => !includeNodes.includes(n))
-                        this.$store.commit('setExcludeTaskNodes', this.excludeTaskNodes)
                     }
+                    selectedSchemaIndex = this.columns.findIndex(col => col.id === value.id)
                 } else {
+                    this.excludeTaskNodes = []
                     this.scheme = value
                 }
+                this.$store.commit('setExcludeTaskNodes', this.excludeTaskNodes)
+                this.$store.commit('setDefaultSchemaIndex', selectedSchemaIndex)
             },
             async collect () {
                 // 防止重复提交
@@ -314,6 +324,11 @@
                         const response = await this.collectTemplate(params)
                         if (response.result) {
                             this.collected = !this.collected
+                            if (this.collected) {
+                                this.$toast.success(this.i18n.collectSuccess)
+                            } else {
+                                this.$toast.success(this.i18n.cancelCollectSuccess)
+                            }
                         } else {
                             errorHandler(response, this)
                         }
@@ -339,7 +354,7 @@
                         errorHandler(e, this)
                     }
                 }
-                return Boolean(this.templateData.is_add)
+                this.collected = Boolean(this.templateData.is_add)
             },
 
             onDateTimeConfirm (value) {
@@ -355,6 +370,9 @@
 
             async loadAtomOrVariableConfig (constants) {
                 this.loadingConfig = true
+                if (!global.$.context) {
+                    global.$.context = {}
+                }
                 for (const key of Object.keys(constants)) {
                     const constant = constants[key]
                     const [configKey] = constant.source_tag.split('.')
@@ -369,7 +387,7 @@
                             errorHandler(e, this)
                         }
                     }
-                    constant['renderConfig'] = global.$.atoms[configKey]
+                    this.$set(constant, 'renderConfig', global.$.atoms[configKey])
                 }
                 this.loadingConfig = false
             }

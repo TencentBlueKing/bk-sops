@@ -35,6 +35,7 @@ const store = new Vuex.Store({
         bizId: 0, // 业务ID
         templateId: '', // 模板ID
         taskId: '', // 任务ID
+        node: {}, // 当前节点数据
         title: '业务选择',
         template: {},
         collectedTemplateList: [],
@@ -44,6 +45,8 @@ const store = new Vuex.Store({
         isActionSheetShow: true,
         setPreviewCanvasData: {}, // 预览数据
         pipelineTree: {},
+        defaultSchemaIndex: 0, // 默认选中的方案
+        rsa_pub_key: global.RSA_PUB_KEY || '',
         // 系统当前登录用户
         user: {}
     },
@@ -102,6 +105,12 @@ const store = new Vuex.Store({
         },
         setPipelineTree (state, pipelineTree) {
             state.pipelineTree = pipelineTree
+        },
+        setDefaultSchemaIndex (state, defaultSchemaIndex) {
+            state.defaultSchemaIndex = defaultSchemaIndex
+        },
+        setNode (state, node) {
+            state.node = node
         }
     },
     actions: {

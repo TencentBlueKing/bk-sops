@@ -155,6 +155,7 @@ function handleResponse ({ config, response, resolve, reject }) {
  */
 function handleReject (error, config) {
     if (axios.isCancel(error)) {
+        error.isCancel = true
         return Promise.reject(error)
     }
 

@@ -11,16 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.conf import settings
+from __future__ import unicode_literals
 
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+from django.db import migrations, models
 
 
-def get_user_info(request):
-    client = get_client_by_user(request.user.username)
-    auth = getattr(client, settings.ESB_AUTH_COMPONENT_SYSTEM)
-    _get_user_info = getattr(auth, settings.ESB_AUTH_GET_USER_INFO)
-    user_info = _get_user_info({})
-    if user_info['result']:
-        user_info['data']['bk_supplier_account'] = 0
-    return user_info
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('taskflow3', '0004_auto_20190103_1918'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='taskflowinstance',
+            name='create_method',
+            field=models.CharField(choices=[(b'app', '\u624b\u52a8'), (b'api', 'API\u7f51\u5173'), (b'app_maker', '\u8f7b\u5e94\u7528'), (b'periodic', '\u5468\u671f\u4efb\u52a1'), (b'mobile', '\u79fb\u52a8\u7aef')], default=b'app', max_length=30, verbose_name='\u521b\u5efa\u65b9\u5f0f'),
+        ),
+    ]
