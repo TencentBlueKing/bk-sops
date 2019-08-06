@@ -12,7 +12,7 @@
                 <van-field
                     :label="i18n.timing"
                     placeholder="秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"
-                    :value="inputs['bk_timing']" />
+                    v-model="inputs['bk_timing']" />
             </div>
         </section>
         <div class="btn-group">
@@ -65,7 +65,7 @@
                     instance_id: this.taskId,
                     node_id: this.nodeId,
                     component_code: this.componentCode,
-                    inputs: this.inputs
+                    inputs: JSON.stringify(this.inputs)
                 }
                 try {
                     const response = await this.instanceNodeEditTime(params)
