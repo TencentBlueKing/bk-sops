@@ -203,7 +203,6 @@ const template = {
             state.time_out = time_out
             state.category = category
             state.subprocess_info = subprocess_info
-            
             pipelineTreeOrder.forEach(key => {
                 let val = pipelineData[key]
                 if (key !== 'constants') {
