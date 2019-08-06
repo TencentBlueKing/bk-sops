@@ -120,7 +120,7 @@
                         instance_id: this.taskId,
                         node_id: this.nodeId,
                         component_code: this.componentCode,
-                        inputs: this.inputs
+                        inputs: JSON.stringify(this.inputs)
                     }
                     try {
                         const response = await this.instanceNodeRetry(params)
