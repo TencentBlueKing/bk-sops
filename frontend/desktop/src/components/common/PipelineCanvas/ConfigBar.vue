@@ -120,8 +120,7 @@
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
-                        const taskUrl = this.getTaskUrl()
-                        this.$router.push(taskUrl)
+                        this.goToTaskUrl()
                     } else {
                         this.$emit('onSaveTemplate', saveAndCreate)
                     }
@@ -129,21 +128,25 @@
             },
             getHomeUrl () {
                 let url = `/template/home/${this.cc_id}/`
-                const entrance = this.$route.query.entrance
+                const entrance = this.$route.query.entrance || ''
                 if (entrance === 'businessList') url = `/template/home/${this.cc_id}/`
-                if (entrance === 'periodicTask') url = `/periodic/home/${this.cc_id}/`
-                if (entrance === 'adminCommon') url = '/admin/common/template/'
+                if (entrance.indexOf('periodicTask') > -1) url = `/periodic/home/${this.cc_id}/`
+                if (entrance.indexOf('admin_common') > -1) url = '/admin/common/template/'
                 if (this.common) {
                     url += '?common=1'
                 }
                 return url
             },
-            getTaskUrl () {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
-                if (this.common) {
-                    url += '&common=1'
-                }
-                return url
+            goToTaskUrl () {
+                const entrance = this.$route.query.entrance
+                this.$router.push({
+                    path: `/template/newtask/${this.cc_id}/selectnode/`,
+                    query: {
+                        template_id: this.template_id,
+                        common: this.common ? '1' : undefined,
+                        entrance: entrance || undefined
+                    }
+                })
             },
             onNameEditing () {
                 this.isShowMode = false
