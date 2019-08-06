@@ -20,7 +20,7 @@
                 <i class="bk-icon icon-info-circle"></i>
                 <div slot="content">
                     <div class="tips-item">
-                        <h4>{{ i18n.attr }}:</h4>
+                        <h4>{{ i18n.attrTitle }}</h4>
                         <p>
                             {{ i18n.attrDesc1 }}
                             <i class="common-icon-show-left" style="color: #219f42"></i>
@@ -30,7 +30,7 @@
                         </p>
                     </div>
                     <div class="tips-item">
-                        <h4>{{ i18n.outputs }}:</h4>
+                        <h4>{{ i18n.outputsTitle }}</h4>
                         <p>{{ i18n.outputsDesc }}</p>
                     </div>
                 </div>
@@ -193,7 +193,9 @@
                     attributes: gettext('属性'),
                     inputs: gettext('输入'),
                     outputs: gettext('输出'),
+                    outputsTitle: gettext('输出：'),
                     attr: gettext('属性'),
+                    attrTitle: gettext('属性：'),
                     attrDesc1: gettext('来源/是否显示"格式，来源是输入类型'),
                     attrDesc2: gettext('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型'),
                     attrDesc3: gettext('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，输出类型的变量一定是隐藏的。'),
