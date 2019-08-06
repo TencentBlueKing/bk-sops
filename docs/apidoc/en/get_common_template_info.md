@@ -4,7 +4,7 @@ Query common flow template details
 
 ### Request Parameters
 
-#### General Parameters
+### General Parameters
 
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
@@ -17,7 +17,7 @@ Query common flow template details
 
 | Field         |   Type     | Required   |  Description    |
 |---------------|------------|---------|--------------------|
-| template_id   | string     |   YES   |  the task ID       |
+| template_id   | string     |   YES   |  the template ID       |
 
 ### Request Parameters Example
 
