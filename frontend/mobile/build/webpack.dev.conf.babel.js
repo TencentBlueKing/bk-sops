@@ -32,23 +32,19 @@ const webpackConfig = merge(baseConf, {
     module: {
         rules: [
             {
-                test: /\.css$/,
+                test: /\.s?[ac]ss$/,
                 use: [
-                    'vue-style-loader',
+                    'style-loader',
+                    'css-loader',
                     {
-                        loader: 'css-loader',
+                        loader: 'px2rem-loader',
+                        // options here
                         options: {
-                            importLoaders: 1
+                            remUnit: 37.5,
+                            remPrecision: 8//换算的rem保留几位小数点
                         }
                     },
-                    {
-                        loader: 'postcss-loader',
-                        options: {
-                            config: {
-                                path: path.resolve(__dirname, '..', 'postcss.config.js')
-                            }
-                        }
-                    }
+                    'sass-loader'
                 ]
             }
         ]

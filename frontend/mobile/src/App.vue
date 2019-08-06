@@ -61,7 +61,6 @@
 </script>
 
 <style lang="scss">
-    @import '../static/style/app.scss';
     .app-container {
       font-family: 'PingFang SC', Helvetica, 'STHeiti STXihei', 'Microsoft YaHei', Tohoma, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;

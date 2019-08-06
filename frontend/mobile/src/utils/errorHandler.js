@@ -11,6 +11,10 @@
  * @param {Object} instance
  */
 export function errorHandler (error, instance) {
+    // 请求队列被取消不捕获
+    if (error.isCancel) {
+        return
+    }
     const data = error.data
     console.error(error)
     let msg = ''

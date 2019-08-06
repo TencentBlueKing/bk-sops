@@ -6,11 +6,48 @@
 * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 */
 <template>
-    <van-cell
-        :title="label"
-        :value="data.value">
-        {{ data.value }}
-    </van-cell>
+    <div class="select-list">
+        <template>
+            <van-cell
+                is-link
+                arrow-direction="down"
+                :title="label"
+                :value="value"
+                @click="show = true">
+                {{ value }}
+            </van-cell>
+        </template>
+        <van-popup
+            v-model="show"
+            position="bottom"
+            :overlay="true">
+            <van-cell-group>
+                <template v-if="multiple">
+                    <van-cell
+                        v-for="option in multipleSelectOptions"
+                        :key="option.value"
+                        center="true"
+                        :title="option.text"
+                        clickable
+                        @click="onOptionClick(option)">
+                        <van-icon
+                            slot="right-icon"
+                            name="success"
+                            v-show="option.selected"
+                            color="#1989FA" />
+                    </van-cell>
+                </template>
+                <tempate v-else>
+                    <van-picker
+                        show-toolbar
+                        :columns="multipleSelectOptions"
+                        :default-index="defaultIndex"
+                        @confirm="onConfirm"
+                        @cancel="show = false" />
+                </tempate>
+            </van-cell-group>
+        </van-popup>
+    </div>
 </template>
 
 <script>
@@ -29,8 +66,66 @@
                 type: String,
                 default: ''
             },
-            data: {
+            select: {
                 type: Object
+            },
+            data: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        },
+        data () {
+            return {
+                multiple: {
+                    type: Boolean,
+                    default: false
+                },
+                defaultVal: {
+                    type: Array,
+                    default: []
+                },
+                defaultIndex: {
+                    type: Number,
+                    default: 0
+                },
+                choseKey: {
+                    type: String,
+                    default: ''
+                },
+                multipleSelectOptions: [],
+                show: false
+            }
+        },
+        created () {
+            this.multiple = this.select.multiple
+            if (this.multiple) {
+                this.defaultVal = this.select.defaultVal
+                this.select.columns.forEach(item => {
+                    item.selected = this.defaultVal.includes(item.value)
+                })
+                this.multipleSelectOptions = this.select.columns
+                this.checkedValue = this.data.value
+            } else {
+                this.defaultIndex = this.select.defaultIndex
+                this.multipleSelectOptions = this.select.columns.map(item => {
+                    return { text: item.name, key: item.value }
+                })
+                this.value = this.select.columns[this.defaultIndex].name
+                this.choseKey = this.select.columns[this.defaultIndex].key
+            }
+        },
+        methods: {
+            onOptionClick (option) {
+                this.$set(option, 'selected', !option.selected)
+                this.value = this.multipleSelectOptions.filter(o => o.selected).map(o => o.text).join(',')
+                this.checkedValue = this.multipleSelectOptions.filter(o => o.selected).map(o => o.value).join(',')
+            },
+            onConfirm (option) {
+                this.show = false
+                this.value = option.text
+                this.choseKey = option.key
             }
         }
     }

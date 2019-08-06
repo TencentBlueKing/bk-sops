@@ -22,8 +22,8 @@
         <section class="bk-block">
             <h2 class="bk-text-title">{{ i18n.executeInfo }}</h2>
             <div class="bk-text-list">
-                <van-cell :title="i18n.startTime" :value="nodeDetail.start_time" />
-                <van-cell :title="i18n.endTime" :value="nodeDetail.finish_time" />
+                <van-cell :title="i18n.startTime" :value="nodeDetail.start_time || '--'" />
+                <van-cell :title="i18n.endTime" :value="nodeDetail.finish_time || '--'" />
                 <van-cell :title="i18n.costTime" :value="getLastTime(nodeDetail.elapsed_time)" />
                 <van-cell :title="i18n.skipped" :value="nodeDetail.skip ? i18n.yes : i18n.no" />
                 <van-cell :title="i18n.ignore" :value="nodeDetail.error_ignorable ? i18n.yes : i18n.no" />
@@ -37,7 +37,6 @@
                 class="parameter-info"
                 :data="nodeDetail.inputs">
             </VueJsonPretty>
-            <van-button type="default" class="view-btn" @click="showParameters">{{ i18n.showTotal }}</van-button>
         </section>
         <!-- 输出参数 -->
         <section class="bk-block">
@@ -48,8 +47,9 @@
                         v-for="item in nodeDetail.outputs"
                         :key="item.index"
                         :title="item.name"
-                        v-html="getOutputValue(item)"
-                        :value="item.value === '' ? '--' : str(item.value)" />
+                        :is-link="isOutputValueLink(item.value)"
+                        :url="isOutputValueLink(item.value) ? item.value : ''"
+                        :value="getOutputValue(item)" />
                 </template>
                 <template v-else>
                     <no-data />
@@ -71,8 +71,8 @@
             :key="history.index">
             <h2 class="bk-text-title">{{ i18n.executeHistory }}</h2>
             <div class="bk-text-list">
-                <van-cell :title="i18n.startTime" :value="history.start_time" />
-                <van-cell :title="i18n.endTime" :value="history.finish_time" />
+                <van-cell :title="i18n.startTime" :value="history.start_time || '--'" />
+                <van-cell :title="i18n.endTime" :value="history.finish_time || '--'" />
                 <van-cell :title="i18n.costTime" :value="getLastTime(history.elapsed_time)" />
             </div>
         </section>
@@ -85,7 +85,7 @@
     import NoData from '@/components/NoData/index.vue'
     import StatusIcon from '@/components/MobileStatusIcon/index.vue'
     import VueJsonPretty from 'vue-json-pretty'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
 
     export default {
         name: 'TaskNodes',
@@ -96,7 +96,7 @@
         },
         data () {
             return {
-                nodeDetail: {},
+                nodeDetail: { 'inputs': {} },
                 status: '',
                 showText: true,
                 loadingIcon: true,
@@ -113,11 +113,16 @@
                     retryTimes: window.gettext('重试次数'),
                     inputParameter: window.gettext('输入参数'),
                     outputParameter: window.gettext('输出参数'),
-                    showTotal: window.gettext('查看全部'),
                     errorInfo: window.gettext('异常信息'),
                     executeHistory: window.gettext('执行记录')
                 }
             }
+        },
+        computed: {
+            ...mapState({
+                taskId: state => state.taskId,
+                node: state => state.node
+            })
         },
         created () {
             this.loadData()
@@ -131,21 +136,20 @@
 
             async loadData () {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
-                const node = this.$route.params.node
-                const taskId = this.$store.state.taskId
                 const params = {
-                    taskId: taskId,
-                    nodeId: node.id,
-                    componentCode: ''
+                    taskId: this.taskId,
+                    nodeId: this.node.id,
+                    componentCode: this.node.componentCode
                 }
                 this.loadingIcon = true
                 Promise.all([
                     this.getNodeDetail(params),
-                    this.getTaskStatus({ id: taskId }),
-                    this.getTask({ id: taskId })
+                    this.getTaskStatus({ id: this.taskId }),
+                    this.getTask({ id: this.taskId })
                 ]).then(values => {
                     if (values[0].result) {
                         this.nodeDetail = values[0].data
+                        this.filterNodeInfo()
                     }
                     this.status = values[1].data.state
                     this.nodeDetail.name = values[2].name
@@ -158,8 +162,18 @@
                 })
             },
 
-            showParameters () {
-                this.$router.push({ name: 'task_node_parameter', params: { parameters: JSON.stringify(this.nodeDetail.inputs) } })
+            filterNodeInfo () {
+                if (this.node.component_code === 'job_execute_task') {
+                    this.nodeDetail.outputs = this.nodeDetail.outputs.filter(output => {
+                        const outputIndex = this.nodeDetail.inputs['job_global_var'].findIndex(prop => prop.name === output.key)
+                        if (!output.preset && outputIndex === -1) {
+                            return false
+                        }
+                        return true
+                    })
+                } else {
+                    this.nodeDetail.outputs = this.nodeDetail.outputs.filter(output => output.preset)
+                }
             },
 
             getLastTime (time) {
@@ -169,14 +183,13 @@
             getOutputValue (output) {
                 if (output.value === 'undefined' || output.value === '') {
                     return '--'
-                } else if (!output.preset && this.nodeDetailConfig.component_code === 'job_execute_task') {
-                    return output.value
                 } else {
-                    if (URL_REG.test(output.value)) {
-                        return `<a class="info-link" target="_blank" href="${output.value}">${output.value}</a>`
-                    }
-                    return output.value
+                    return String(output.value)
                 }
+            },
+
+            isOutputValueLink (value) {
+                return URL_REG.test(value)
             },
 
             transformFailInfo (data) {
@@ -208,7 +221,6 @@
     }
     .parameter-info{
         background: #313238;
-        max-height: 100px;
         color: $white;
         font-size: $fs-14;
         padding: 0 25px;

@@ -13,13 +13,16 @@
                 <template v-if="Object.keys(inputs).length">
                     <template v-for="item in inputs">
                         <VantComponent
+                            v-if="!loadingConfig && item.show_type === 'show'"
                             :source-code="item.source_tag"
-                            :key="item.source_tag"
+                            :custom-type="item.custom_type"
+                            :key="item.key"
+                            :label="item.name"
+                            :placeholder="i18n.paramInput"
                             :value="item.value"
                             :data="item"
-                            @dataChange="onInputDataChange"
-                            @onSelect="onSelect"
-                            @dateTimePick="onDateTimePick" />
+                            :render-config="item.renderConfig"
+                            @dataChange="onInputDataChange" />
                     </template>
                 </template>
                 <template v-else>
