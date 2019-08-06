@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.resources.base import Action, NeverInitiateResource
-from auth_backend.backends.bkiam import BkIAMBackend
+from auth_backend.backends.bkiam import BKIAMBackend
 
 audit_center_resource = NeverInitiateResource(
     rtype='audit_center',
@@ -23,4 +23,4 @@ audit_center_resource = NeverInitiateResource(
     scope_id='bk_sops',
     scope_name=_(u"标准运维"),
     actions=[Action(id='view', name=_(u"查看"), is_instance_related=False)],
-    backend=BkIAMBackend())
+    backend=BKIAMBackend())

@@ -11,10 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 
 
 class AuthDelegation(object):
+    __metaclass__ = ABCMeta
+
     def __init__(self, delegate_resource, action_ids):
         self.delegate_resource = delegate_resource
         self.action_ids = action_ids

@@ -63,10 +63,12 @@ taskflow_resource = DjangoModelResource(
     ],
     parent=project_resource,
     resource_cls=TaskFlowInstance,
+    id_field='id',
     tomb_field='is_deleted',
     backend=get_backend_from_config(),
     inspect=FixedCreatorTypeFieldInspect(creator_type='user',
                                          creator_id_f='creator',
                                          resource_id_f='id',
                                          resource_name_f='name',
-                                         parent_f='project'))
+                                         parent_f='project',
+                                         scope_id_f=None))
