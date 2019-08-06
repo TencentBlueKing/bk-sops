@@ -459,7 +459,8 @@
              * @param {String} version 子流程版本
              */
             getConfig (version) {
-                if (this.currentAtom !== '' && this.currentAtom !== undefined && !this.isNaN(this.currentAtom)) {
+                if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
+                    || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
                         return this.getAtomConfig(this.currentAtom)
                     } else {
@@ -468,9 +469,6 @@
                 } else {
                     this.markInvalidForm()
                 }
-            },
-            isNaN (number) {
-                return typeof number === 'number' && isNaN(number)
             },
             /**
              * 加载标准插件节点数据
