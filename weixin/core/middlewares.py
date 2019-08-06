@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
@@ -21,6 +23,8 @@ from blueapps.account import get_user_model
 from . import settings
 from .accounts import WeixinAccount
 from .models import BkWeixinUser
+
+logger = logging.getLogger('root')
 
 
 def get_user(request):
@@ -41,7 +45,7 @@ def get_bk_user(request):
         try:
             user_property = UserProperty.objects.get(key='wx_userid', value=request.weixin_user.userid)
         except UserProperty.DoesNotExist:
-            bkuser = None
+            logger.warning('user[wx_userid=%s] not in UserProperty' % request.weixin_user.userid)
         else:
             bkuser = user_model.objects.get(username=user_property.user.username)
     return bkuser or AnonymousUser()
