@@ -16,6 +16,7 @@ from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
 
 from blueapps.account.models import UserProperty
+from blueapps.account import get_user_model
 
 from . import settings
 from .accounts import WeixinAccount
@@ -36,11 +37,13 @@ def get_user(request):
 def get_bk_user(request):
     bkuser = None
     if request.weixin_user and not isinstance(request.weixin_user, AnonymousUser):
+        user_model = get_user_model()
         try:
             user_property = UserProperty.objects.get(key='wx_userid', value=request.weixin_user.userid)
-            bkuser = user_property.user
         except UserProperty.DoesNotExist:
             bkuser = None
+        else:
+            bkuser = user_model.objects.get(username=user_property.user.username)
     return bkuser or AnonymousUser()
 
 
