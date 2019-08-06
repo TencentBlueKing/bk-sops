@@ -16,7 +16,8 @@
                 <li v-for="item in nodeDict"
                     :key="item.type"
                     :class="[
-                        'node-type-item node-source',
+                        'node-type-item',
+                        'node-source',
                         `common-icon-node-${item.type}`,
                         { 'node-type-has-sub': isNodeTypeHasSub(item.type) },
                         { 'active-node-type': activeNodeType === item.type && showNodeList },
