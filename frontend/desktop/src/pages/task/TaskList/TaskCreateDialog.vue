@@ -252,9 +252,9 @@
                     url += '&common=1'
                 }
                 if (this.createEntrance === false) {
-                    url += '&entrance=0'
+                    url += '&entrance=periodicTask'
                 } else if (this.createEntrance === true) {
-                    url += '&entrance=1'
+                    url += '&entrance=taskflow'
                 }
                 this.$router.push(url)
             },

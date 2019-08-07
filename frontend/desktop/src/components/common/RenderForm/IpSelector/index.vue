@@ -210,6 +210,6 @@
     margin-bottom: 20px;
 }
 .condition-area {
-    border-top: 1px dashed #c4c6cc;
+    border-top: 1px dotted #c4c6cc;
 }
 </style>
