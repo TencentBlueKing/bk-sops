@@ -32,6 +32,9 @@ PIPELINE_ENGINE_ADAPTER_API = getattr(settings, 'PIPELINE_ENGINE_ADAPTER_API',
                                       'pipeline.service.pipeline_engine_adapter.adapter_api')
 PIPELINE_DATA_BACKEND = getattr(settings, 'PIPELINE_DATA_BACKEND',
                                 'pipeline.engine.core.data.redis_backend.RedisDataBackend')
+PIPELINE_END_HANDLER = getattr(settings, 'PIPELINE_END_HANDLER',
+                               'pipeline.engine.signals.handlers.pipeline_end_handler')
+
 PIPELINE_WORKER_STATUS_CACHE_EXPIRES = getattr(settings, 'PIPELINE_WORKER_STATUS_CACHE_EXPIRES',
                                                30)
 PIPELINE_RERUN_MAX_TIMES = getattr(settings, 'PIPELINE_RERUN_MAX_TIMES', 0)
