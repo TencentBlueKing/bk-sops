@@ -59,10 +59,4 @@ class EmptyStartEvent(StartEvent):
 
 
 class EmptyEndEvent(EndEvent):
-    def pipeline_finish(self, root_pipeline_id):
-        from pipeline.models import PipelineInstance  # noqa
-        try:
-            PipelineInstance.objects.set_finished(root_pipeline_id)
-        except PipelineInstance.DoesNotExist:  # task which do not belong to any instance
-            pass
-        super(EmptyEndEvent, self).pipeline_finish(root_pipeline_id)
+    pass
