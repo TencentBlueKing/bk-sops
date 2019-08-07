@@ -91,13 +91,13 @@
                             </el-checkbox>
                             <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
                                 <p>
-                                    {{ i18n.failureHandlingDetails1 }}
+                                    {{ i18n.failureHandlingIgnore }}
                                 </p>
                                 <p>
-                                    {{ i18n.failureHandlingDetails2 }}
+                                    {{ i18n.failureHandlingSkip }}
                                 </p>
                                 <p>
-                                    {{ i18n.failureHandlingDetails3 }}
+                                    {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
                             <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle"></i>
@@ -246,9 +246,9 @@
                     manuallyRetry: gettext('手动重试'),
                     failureHandling: gettext('失败处理'),
                     details: gettext('说明：'),
-                    failureHandlingDetails1: gettext('自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。'),
-                    failureHandlingDetails2: gettext('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。'),
-                    failureHandlingDetails3: gettext('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。'),
+                    failureHandlingIgnore: gettext('自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。'),
+                    failureHandlingSkip: gettext('手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。'),
+                    failureHandlingRetry: gettext('手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。'),
                     manuallyEmpty: gettext('未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续')
                 },
                 htmlConfig: {
@@ -543,10 +543,10 @@
                             await this.loadAtomConfig({ atomType, classify })
                             this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                         }
-                        
+
                         const atomConfig = this.atomFormConfig[atom]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
-                        
+
                         if (currentFormConfig) {
                             if (form.is_meta || currentFormConfig.meta_transform) {
                                 currentFormConfig = currentFormConfig.meta_transform(form.meta || form)

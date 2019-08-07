@@ -406,8 +406,9 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border-radius: 4px;
         cursor: pointer;
+        border-radius: 2px;
+        overflow: hidden;
         &:nth-child(2n + 1) {
             margin-left: 0;
         }
@@ -420,12 +421,10 @@
             font-size: 24px;
             color: #ffffff;
             text-align: center;
-            border-radius: 4px 0 0 4px;
         }
         .template-item-name {
             color: #313238;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #dcdee5
@@ -485,9 +484,11 @@
         .selected-item {
             position: relative;
             margin: 0 0 10px 14px;
-            width: 254px;
+            width: 252px;
             height: 56px;
             background: #838799;
+            border-radius: 2px;
+            overflow: hidden;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -498,7 +499,6 @@
             height: 56px;
             line-height: 56px;
             background: #666a7c;
-            border-radius: 4px 0 0 4px;
             .selected-name {
                 display: flex;
                 justify-content: center;
@@ -510,7 +510,6 @@
         .selected-item-name {
             color: #ffffff;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #838799
@@ -522,7 +521,7 @@
             top: -7px;
             right: -7px;
             padding: 2px;
-            color: #cecece;
+            color: #838799;
             background: #ffffff;
             border-radius: 50%;
             cursor: pointer;
