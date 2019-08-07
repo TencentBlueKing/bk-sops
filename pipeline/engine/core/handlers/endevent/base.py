@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from __future__ import absolute_import
+
 import logging
 
-from pipeline.core.flow.event import EmptyEndEvent
 from pipeline.core.flow import activity
 from pipeline.engine import states
 from pipeline.engine.models import (
@@ -22,18 +22,15 @@ from pipeline.engine.models import (
     Data,
 )
 
-from .base import FlowElementHandler
+from ..base import FlowElementHandler
 
 logger = logging.getLogger('celery')
 
-__all__ = ['EmptyEndEventHandler']
 
-
-class EmptyEndEventHandler(FlowElementHandler):
-
+class EndEventHandler(FlowElementHandler):
     @staticmethod
     def element_cls():
-        return EmptyEndEvent
+        raise NotImplementedError()
 
     def handle(self, process, element, status):
         pipeline = process.pop_pipeline()

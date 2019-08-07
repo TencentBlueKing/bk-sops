@@ -119,3 +119,5 @@ EXG_HYDRATE_NODE_DATA = 'pipeline.engine.core.handlers.exclusive_gateway.hydrate
 EXG_HYDRATE_DATA = 'pipeline.engine.core.handlers.exclusive_gateway.hydrate_data'
 
 CPG_HYDRATE_DATA = 'pipeline.engine.core.handlers.conditional_parallel.hydrate_data'
+
+ENGINE_HANDLERS_END_EVENT_HANDLE = 'pipeline.engine.core.handlers.endevent.base.EndEventHandler.handle'

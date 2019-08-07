@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 MAX_IN = 1000
 MAX_OUT = 1000
 FLOW_NODES_WITHOUT_STARTEVENT = [
@@ -30,6 +31,14 @@ FLOW_NODES_WITHOUT_START_AND_END = [
     "SubProcess"
 ]
 
+END_EVENT_RULE = {
+    "min_in": 1,
+    "max_in": MAX_IN,
+    "min_out": 0,
+    "max_out": 0,
+    "allowed_out": []
+}
+
 # rules of activity graph
 ACTIVITY_RULES = {
     "EmptyStartEvent": {
@@ -39,13 +48,7 @@ ACTIVITY_RULES = {
         "max_out": 1,
         "allowed_out": FLOW_NODES_WITHOUT_START_AND_END
     },
-    "EmptyEndEvent": {
-        "min_in": 1,
-        "max_in": MAX_IN,
-        "min_out": 0,
-        "max_out": 0,
-        "allowed_out": []
-    },
+    "EmptyEndEvent": END_EVENT_RULE,
     "ServiceActivity": {
         "min_in": 1,
         "max_in": MAX_IN,
