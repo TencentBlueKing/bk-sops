@@ -45,8 +45,15 @@
                         </bk-select>
                     </div>
                     <div class="task-search">
-                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchWord" @input="onSearchInput" />
-                        <i class="common-icon-search"></i>
+                        <bk-input
+                            class="search-input"
+                            :placeholder="i18n.placeholder"
+                            :right-icon="'bk-icon icon-search'"
+                            :clearable="true"
+                            v-model="searchWord"
+                            @input="onSearchInput">
+                        </bk-input>
+                        <!-- <i class="common-icon-search"></i> -->
                     </div>
                 </div>
                 <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1 }">
@@ -300,7 +307,7 @@
     }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
@@ -339,30 +346,7 @@
         margin-bottom: 20px;
         flex: 1;
         .search-input {
-            padding: 0 40px 0 10px;
             width: 260px;
-            height: 32px;
-            line-height: 32px;
-            font-size: 14px;
-            background: $whiteDefault;
-            border: 1px solid $commonBorderColor;
-            border-radius: 4px;
-            outline: none;
-            &:hover {
-                border-color: #c0c4cc;
-            }
-            &:focus {
-                border-color: $blueDefault;
-                & + i {
-                    color: $blueDefault;
-                }
-            }
-        }
-        .common-icon-search {
-            position: absolute;
-            right: 15px;
-            top: 9px;
-            color: $commonBorderColor;
         }
     }
     .flow-types {
