@@ -24,6 +24,7 @@
                         class="bk-icon icon-info-circle desc-tooltip"
                         v-bk-tooltips="{
                             content: i18n.executorTips,
+                            width: 200,
                             placements: ['right']
                         }">
                     </i>
