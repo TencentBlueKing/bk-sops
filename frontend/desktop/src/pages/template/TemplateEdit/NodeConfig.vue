@@ -23,7 +23,6 @@
                         <div class="form-content">
                             <bk-select
                                 v-model="currentAtom"
-                                class="bk-select-inline"
                                 :searchable="true"
                                 @selected="onAtomSelect">
                                 <bk-option
