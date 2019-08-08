@@ -25,7 +25,7 @@
                             <bk-option
                                 v-for="(option, index) in templateType"
                                 :key="index"
-                                :id="option.name"
+                                :id="option.id"
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
@@ -224,14 +224,14 @@
                 const groups = []
                 const atomGrouped = []
                 this.taskCategory.forEach(item => {
-                    groups.push(item.value)
+                    groups.push(item.name)
                     atomGrouped.push({
                         name: item.name,
                         children: []
                     })
                 })
                 list.forEach(item => {
-                    const type = item.category
+                    const type = item.category_name
                     const index = groups.indexOf(type)
                     if (index > -1) {
                         atomGrouped[index].children.push({
