@@ -91,10 +91,11 @@
                             style="width: 260px;"
                             class="search-input"
                             v-model="creator"
+                            right-icon="bk-icon icon-search"
                             :placeholder="i18n.creatorPlaceholder">
                         </bk-input>
                     </bk-form-item>
-                    <bk-form-item>
+                    <bk-form-item class="query-button">
                         <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                         <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                     </bk-form-item>
@@ -331,7 +332,7 @@
                     authority: false // 使用权限
                 },
                 flowName: undefined,
-                templateCategorySync: -1,
+                templateCategorySync: '',
                 templateCategoryList: [],
                 subprocessUpdateSync: '',
                 category: undefined,
@@ -607,7 +608,7 @@
             },
             // 清除查询的分类选择
             onClearCategory () {
-                this.templateCategorySync = -1
+                this.templateCategorySync = ''
                 this.category = undefined
             },
             // 选择查询的分类
@@ -634,7 +635,7 @@
             onResetForm () {
                 this.isSubprocessUpdated = undefined
                 this.isHasSubprocess = undefined
-                this.templateCategorySync = -1
+                this.templateCategorySync = ''
                 this.category = undefined
                 this.flowName = undefined
                 this.creator = undefined
@@ -660,131 +661,10 @@
     padding: 30px;
     word-break: break-all;
 }
-.template-container {
-    .dialog-content {
-        word-break: break-all;
-    }
-    .bk-selector-icon.clear-icon {
-        top: 6px;
-    }
-}
 .list-wrapper {
     padding: 0 60px;
     min-height: calc(100vh - 240px);
 }
-.template-fieldset {
-    width: 100%;
-    margin: 0;
-    padding: 8px;
-    border: 1px solid $commonBorderColor;
-    background: $whiteDefault;
-    margin-bottom: 15px;
-    .template-query-content {
-        display: flex;
-        flex-wrap: wrap;
-        .query-content {
-            min-width: 420px;
-            @media screen and (max-width: 1420px){
-                min-width: 380px;
-            }
-            padding: 10px;
-            .query-span {
-                float: left;
-                min-width: 130px;
-                margin-right: 12px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                @media screen and (max-width: 1420px){
-                    min-width: 100px;
-                }
-                text-align: right;
-            }
-            input {
-                max-width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
-            input::-webkit-input-placeholder{
-                color: $formBorderColor;
-            }
-            input:-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input::-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input:-ms-input-placeholder {
-                color: $formBorderColor;
-            }
-            input, .bk-selector, .bk-date-range {
-                min-width: 260px;
-            }
-            .bk-selector-search-item > input {
-                min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-date-range input {
-                height: 32px;
-                line-height: 32px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 10px 0 10px;
-                font-size: 14px;
-                color: $greyDefault;
-                border: 1px solid $formBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                }
-            }
-            .common-icon-search {
-                position: relative;
-                right: 15px;
-                top: 11px;
-                color:#dddddd;
-            }
-            .search-input.placeholder {
-                color: $formBorderColor;
-            }
-        }
-    }
-    .query-button {
-        padding: 10px;
-        min-width: 450px;
-        @media screen and (max-width: 1420px) {
-            min-width: 390px;
-        }
-        text-align: center;
-        .query-cancel {
-            margin-left: 5px;
-        }
-    }
-    .bk-button {
-        height: 32px;
-        line-height: 32px;
-    }
-}
-
 .operation-area {
     margin: 20px 0;
     .create-template {
@@ -821,6 +701,12 @@
         margin: 20px 20px 0 0 !important;
         .bk-label {
             min-width: 100px !important;
+        }
+    }
+    .query-button {
+        padding-left: 30px;
+        .query-cancel {
+            margin-left: 5px;
         }
     }
 }
