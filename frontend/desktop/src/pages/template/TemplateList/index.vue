@@ -331,7 +331,7 @@
                     authority: false // 使用权限
                 },
                 flowName: undefined,
-                templateCategorySync: -1,
+                templateCategorySync: '',
                 templateCategoryList: [],
                 subprocessUpdateSync: '',
                 category: undefined,
@@ -626,12 +626,13 @@
             onResetForm () {
                 this.isSubprocessUpdated = undefined
                 this.isHasSubprocess = undefined
-                this.templateCategorySync = -1
+                this.templateCategorySync = ''
                 this.category = undefined
                 this.flowName = undefined
                 this.creator = undefined
                 this.queryTime = []
                 this.subprocessUpdateSync = ''
+                this.searchInputhandler()
             },
             // 获得子流程展示内容
             getSubflowContent (item) {

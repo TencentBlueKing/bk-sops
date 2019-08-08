@@ -409,6 +409,7 @@
                 this.creator = undefined
                 this.enabled = undefined
                 this.enabledSync = ''
+                this.searchInputhandler()
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
