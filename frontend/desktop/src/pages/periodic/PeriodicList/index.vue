@@ -103,7 +103,7 @@
                             {{props.row.enabled ? i18n.start : i18n.pause}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="180">
+                    <bk-table-column :label="i18n.operation" width="140">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <a
@@ -422,7 +422,7 @@
         }
     }
 </script>
-<style lang='scss'>
+<style lang='scss' scoped>
 @import '@/scss/config.scss';
 .list-wrapper {
     padding: 0 60px;
