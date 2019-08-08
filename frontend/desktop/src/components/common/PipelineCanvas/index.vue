@@ -69,10 +69,12 @@
                             placements: ['bottom']
                         }"
                         @click="onResetPosition">
-                        <i class="common-icon-zoom-in"></i>
+                        <i class="common-icon-reduction"></i>
                     </div>
                     <div
-                        class="tool-icon"
+                        :class="['tool-icon', {
+                            'actived': isSelectionOpen
+                        }]"
                         v-if="isEdit"
                         v-bk-tooltips="{
                             content: i18n.nodeSelection,

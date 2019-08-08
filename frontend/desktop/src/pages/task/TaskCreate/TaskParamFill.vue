@@ -391,9 +391,6 @@
     box-sizing: border-box;
     min-height: calc(100vh - 50px - 139px);
     background: #fff;
-    @media screen and (max-width: 1300px){
-        width: calc(100% - 40px);
-    }
     /deep/ .no-data-wrapper {
         position: relative;
         top: 122px;

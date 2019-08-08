@@ -41,6 +41,7 @@
                             <bk-date-picker
                                 :placeholder="i18n.dateRange"
                                 :type="'daterange'"
+                                v-model="selectedTime"
                                 @change="onChangeEditTime">
                             </bk-date-picker>
                         </div>
@@ -163,6 +164,7 @@
                 isDeleteDialogShow: false,
                 isAdvancedSerachShow: false,
                 editor: undefined,
+                selectedTime: [],
                 editStartTime: undefined,
                 editEndTime: undefined,
                 isPermissionsDialog: false,
@@ -345,6 +347,7 @@
             },
             onResetForm () {
                 this.editor = undefined
+                this.selectedTime = []
                 this.editStartTime = undefined
                 this.editEndTime = undefined
             }
