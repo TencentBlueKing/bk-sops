@@ -53,7 +53,6 @@
                             v-model="searchWord"
                             @input="onSearchInput">
                         </bk-input>
-                        <!-- <i class="common-icon-search"></i> -->
                     </div>
                 </div>
                 <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1 }">
@@ -322,11 +321,15 @@
         .task-list {
             width: 830px;
             height: 268px;
-            overflow-y: auto;
-            @include scrollbar;
+            overflow: hidden;
         }
         .task-group {
             margin-bottom: 30px;
+        }
+        .grouped-list {
+            height: 100%;
+            overflow-y: auto;
+            @include scrollbar;
         }
         .search-list {
             padding-top: 40px;
@@ -362,7 +365,8 @@
         width: 260px;
         cursor: pointer;
         background: #dcdee5;
-        border-radius: 4px;
+        border-radius: 2px;
+        overflow: hidden;
         &:nth-child(3n + 1) {
             margin-left: 0;
         }
@@ -381,7 +385,6 @@
         .task-item-name {
             color: #313238;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #dcdee5
@@ -399,7 +402,6 @@
         height: 56px;
         width: 205px;
         font-size: 12px;
-        border-radius: 0 4px 4px 0;
     }
     .task-item-selected {
         .task-item-icon {
