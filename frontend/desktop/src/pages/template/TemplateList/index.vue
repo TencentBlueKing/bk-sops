@@ -68,6 +68,7 @@
                         <bk-date-picker
                             v-model="queryTime"
                             :type="'daterange'"
+                            :placeholder="i18n.dateRange"
                             @change="onChangeEditTime">
                         </bk-date-picker>
                     </bk-form-item>
@@ -314,7 +315,8 @@
                     reset: gettext('清空'),
                     templateName: gettext('名称'),
                     advanceSearch: gettext('高级搜索'),
-                    searchName: gettext('搜索流程名称')
+                    searchName: gettext('搜索流程名称'),
+                    dateRange: gettext('选择日期时间范围')
                 },
                 listLoading: true,
                 businessInfoLoading: true, // 模板分类信息 loading
