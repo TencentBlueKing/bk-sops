@@ -46,3 +46,5 @@ SHORTCUTS_VERIFY_OR_RETURN_PERMS = 'auth_backend.plugins.shortcuts.verify_or_ret
 SHORTCUTS_GET_BACKEND_FROM_CONFIG = 'auth_backend.plugins.shortcuts.get_backend_from_config'
 SHORTCUTS_BUILD_NEED_PERMISSION = 'auth_backend.plugins.shortcuts.build_need_permission'
 SHORTCUTS_RESOURCE_TYPE_LIB = 'auth_backend.plugins.shortcuts.resource_type_lib'
+
+CONF_SCOPE_TYPE_NAMES = 'auth_backend.conf.SCOPE_TYPE_NAMES'

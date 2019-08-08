@@ -15,3 +15,8 @@ from django.conf import settings
 
 SYSTEM_ID = getattr(settings, 'AUTH_SYSTEM_ID', getattr(settings, 'BK_IAM_SYSTEM_ID', None))
 SYSTEM_NAME = getattr(settings, 'AUTH_SYSTEM_NAME', getattr(settings, 'BK_IAM_SYSTEM_NAME', None))
+SCOPE_TYPE_NAMES = getattr(settings, 'SCOPE_TYPE_NAMES', {
+    'biz': u"业务",
+    'project': u"项目",
+    'system': u"系统"
+})
