@@ -26,6 +26,7 @@ from .activity import (  # noqa
 )
 
 from .event import (  # noqa
+    StartEvent,
     EndEvent,
     EmptyEndEvent,
     EmptyStartEvent,
@@ -54,6 +55,24 @@ class FlowNodeClsFactory(object):
         ExclusiveGateway.__name__: ExclusiveGateway,
         ConvergeGateway.__name__: ConvergeGateway
     }
+
+    @classmethod
+    def _nodes_types_filter(cls, cls_filter):
+        types = []
+        for node_type, node_cls in cls.nodes_cls.items():
+            if not cls_filter(node_cls):
+                types.append(node_type)
+
+        return types
+
+    @classmethod
+    def node_types_without_start_event(cls):
+        return cls._nodes_types_filter(cls_filter=lambda node_cls: issubclass(node_cls, StartEvent))
+
+    @classmethod
+    def node_types_without_start_end_event(cls):
+        return cls._nodes_types_filter(
+            cls_filter=lambda node_cls: issubclass(node_cls, EndEvent) or issubclass(node_cls, StartEvent))
 
     @classmethod
     def get_node_cls(cls, key):
