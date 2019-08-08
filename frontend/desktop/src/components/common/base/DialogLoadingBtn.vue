@@ -12,7 +12,7 @@
 <template>
     <div class="btn-wrapper">
         <bk-button
-            class="dialog-Btn"
+            class="dialog-btn"
             v-for="(item, index) in dialogFooterData"
             :key="index"
             :theme="item.type"
@@ -52,10 +52,8 @@
 </script>
 <style lang="scss">
 .btn-wrapper {
-    // float: right;
-    // margin: 0 16px 2px 0;
-    .dialog-Btn {
-        min-width: 120px;
+    .dialog-btn {
+        min-width: 76px;
         &:not(:last-child) {
             margin-right: 10px;
         }
