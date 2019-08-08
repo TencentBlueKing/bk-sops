@@ -52,6 +52,8 @@ const permission = {
                     scope_id,
                     scope_name,
                     scope_type_name,
+                    resource_type: resource.resource_type,
+                    resource_type_name: resource.resource_type_name,
                     scope_type,
                     system_id,
                     system_name,
