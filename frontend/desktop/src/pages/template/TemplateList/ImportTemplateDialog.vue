@@ -29,7 +29,7 @@
                             :class="['bk-button', 'bk-primary', { 'is-disabled': pending.upload }]">
                             {{ uploadText }}
                         </label>
-                        <h4 class="file-name">{{file && file.name}}</h4>
+                        <h4 v-if="file" class="file-name">{{ file.name }}</h4>
                         <input
                             ref="templateFile"
                             id="template-file"
@@ -387,7 +387,7 @@
         display: none;
     }
     .file-name {
-        padding: 4px 0px 0px 0px;
+        margin: 10px 0;
     }
     .template-head {
         height: 42px;
@@ -488,15 +488,11 @@
             }
         }
     }
-    .common-wrapper-btn {
-        float: right;
-        margin-top: 28px;
-        .bk-button {
-            margin: 5px;
+    /deep/ .common-wrapper-btn {
+        padding: 1200px;
+        /deep/ .bk-button {
+            min-width: 76px;
         }
     }
-}
-/deep/ .bk-dialog-footer .bk-dialog-outer {
-    display: none;
 }
 </style>

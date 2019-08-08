@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="btn-wrapper">
+    <div class="common-dialog-footer-btn-wrapper">
         <bk-button
             class="dialog-btn"
             v-for="(item, index) in dialogFooterData"
@@ -51,7 +51,7 @@
     }
 </script>
 <style lang="scss">
-.btn-wrapper {
+.common-dialog-footer-btn-wrapper {
     .dialog-btn {
         min-width: 76px;
         &:not(:last-child) {
