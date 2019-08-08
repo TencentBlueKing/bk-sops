@@ -100,10 +100,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="template-checkbox" @click="onSelectAllClick">
-                <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
-                <span class="checkbox-name">{{ i18n.selectAll }}</span>
-            </div>
+            <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ i18n.selectAll }}</bk-checkbox>
             <div class="task-footer" v-if="selectError">
                 <span class="error-info">{{i18n.errorInfo}}</span>
             </div>
@@ -532,52 +529,6 @@
         position: absolute;
         left: 20px;
         bottom: -42px;
-        cursor: pointer;
-        .checkbox {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            color: $whiteDefault;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &:hover {
-                border-color: $greyDark;
-            }
-            &.checked {
-                background: $blueDefault;
-                border-color: $blueDefault;
-                &::after {
-                    content: "";
-                    position: absolute;
-                    left: 2px;
-                    top: 2px;
-                    height: 4px;
-                    width: 8px;
-                    border-left: 1px solid;
-                    border-bottom: 1px solid;
-                    border-color: $whiteDefault;
-                    transform: rotate(-45deg);
-                }
-            }
-        }
-        .checkbox-disabled {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            color: $greyDisable;
-            cursor: not-allowed;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &::after {
-                background: #545454;
-            }
-        }
     }
     .task-footer {
         position: absolute;
