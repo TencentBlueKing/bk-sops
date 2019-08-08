@@ -76,6 +76,7 @@
                             style="width: 260px;"
                             :placeholder="i18n.select"
                             :clearable="true"
+                            v-model="subprocessUpdateVal"
                             @clear="onClearSubprocessUpdate"
                             @change="onSelectedSubprocessUpdate">
                             <bk-option
@@ -334,7 +335,6 @@
                 flowName: undefined,
                 templateCategorySync: '',
                 templateCategoryList: [],
-                subprocessUpdateSync: '',
                 category: undefined,
                 queryTime: [],
                 editEndTime: undefined,
@@ -343,10 +343,7 @@
                     { 'id': -1, name: gettext('否') },
                     { 'id': 0, name: gettext('无子流程') }
                 ],
-                subprocessUpdateList: [
-                    { 'id': 1, 'name': gettext('是') },
-                    { 'id': 0, 'name': gettext('否') }
-                ],
+                subprocessUpdateVal: '',
                 isSubprocessUpdated: undefined,
                 isHasSubprocess: undefined,
                 creator: undefined,
@@ -616,6 +613,7 @@
                 this.category = name
             },
             onClearSubprocessUpdate () {
+                this.subprocessUpdateVal = ''
                 this.isSubprocessUpdated = undefined
                 this.isHasSubprocess = undefined
             },
@@ -635,12 +633,12 @@
             onResetForm () {
                 this.isSubprocessUpdated = undefined
                 this.isHasSubprocess = undefined
+                this.subprocessUpdateVal = ''
                 this.templateCategorySync = ''
                 this.category = undefined
                 this.flowName = undefined
                 this.creator = undefined
                 this.queryTime = []
-                this.subprocessUpdateSync = ''
             },
             // 获得子流程展示内容
             getSubflowContent (item) {
