@@ -213,8 +213,9 @@
         }
     }
     .draft-tooltip {
-        float: right;
-        margin-top: 8px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 6px;
         color:#c4c6cc;
         cursor: pointer;
         &:hover {

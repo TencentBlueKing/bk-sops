@@ -384,8 +384,10 @@ $localBorderColor: #d8e2e7;
         }
     }
     .global-variable-tootip {
-        float: right;
-        margin-top: 8px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 6px;
+        color: #cccccc;
         .icon-info-circle {
             margin-top: 20px;
             color:#c4c6cc;
