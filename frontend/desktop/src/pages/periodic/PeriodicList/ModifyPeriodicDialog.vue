@@ -235,6 +235,9 @@
     border-bottom: 1px solid #cacedb;
     margin-bottom: 30px;
 }
+.loop-rule {
+    width: 530px;
+}
 .periodic-img-tooltip {
     float: right;
     position: relative;
