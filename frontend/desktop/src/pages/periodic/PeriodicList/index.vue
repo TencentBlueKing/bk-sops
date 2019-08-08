@@ -98,12 +98,12 @@
                     <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
                     <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="100"></bk-table-column>
                     <bk-table-column :label="i18n.enabled" width="80">
-                        <template slot-scope="props">
+                        <template slot-scope="props" class="periodic-status">
                             <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
                             {{props.row.enabled ? i18n.start : i18n.pause}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="180">
+                    <bk-table-column :label="i18n.operation" width="140">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <a
@@ -422,7 +422,7 @@
         }
     }
 </script>
-<style lang='scss'>
+<style lang='scss' scoped>
 @import '@/scss/config.scss';
 .list-wrapper {
     padding: 0 60px;
@@ -541,14 +541,11 @@
     .periodic-operation a {
         color: $blueDefault;
     }
-    .periodic-status {
-        width: 100px;
-        .icon-check-circle-shape {
-            color: $greenDefault;
-        }
+    .icon-check-circle-shape {
+        color: $greenDefault;
     }
     .common-icon-dark-circle-pause {
-        color: #FF9C01;
+        color: #ff9C01;
         border-radius: 20px;
         font-size: 12px;
     }
