@@ -66,7 +66,7 @@
                     class="common-icon-dark-circle-avatar"
                     v-bk-tooltips="{
                         content: username,
-                        placement: 'bottom-left',
+                        placement: 'bottom-end',
                         theme: 'light',
                         zIndex: 1001
                     }">

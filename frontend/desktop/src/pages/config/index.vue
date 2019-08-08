@@ -19,7 +19,6 @@
             <div class="common-form-item">
                 <label>{{i18n.executorLabel}}</label>
                 <div class="common-form-content">
-                    <!-- <BaseInput v-model="executor" /> -->
                     <bk-input class="bk-input-inline" :clearable="true" v-model="executor"></bk-input>
                     <i
                         class="bk-icon icon-info-circle desc-tooltip"
