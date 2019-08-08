@@ -347,6 +347,7 @@
                 this.editor = undefined
                 this.editStartTime = undefined
                 this.editEndTime = undefined
+                this.searchInputhandler()
             }
         }
     }
