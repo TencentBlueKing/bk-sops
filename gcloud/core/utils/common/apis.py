@@ -11,10 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
+
 from pipeline.utils.http import http_post_request
 
 from gcloud.conf import settings
-
 
 BK_IAM_APPLY_URL_QUERY_URL = '%s/o/%s/api/v1/apply-permission/url/' % (settings.BK_PAAS_HOST, settings.BK_IAM_APP_CODE)
 
@@ -25,5 +26,14 @@ def apply_permission_url(permission):
     @param permission:
     @return:
     """
-    result = http_post_request(BK_IAM_APPLY_URL_QUERY_URL, json=permission, verify=False)
+    perms = copy.deepcopy(permission)
+
+    for perm_item in perms:
+        for resource_topo in perm_item['resources']:
+            for resource in resource_topo:
+                resource_id = resource.get('resource_id')
+                if resource_id is not None:
+                    resource['resource_id'] = str(resource_id)
+
+    result = http_post_request(BK_IAM_APPLY_URL_QUERY_URL, json={'permission': perms}, verify=False)
     return result
