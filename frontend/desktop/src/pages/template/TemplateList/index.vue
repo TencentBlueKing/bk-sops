@@ -74,6 +74,7 @@
                     <bk-form-item v-if="!common_template" :label="i18n.subflowUpdate">
                         <bk-select
                             style="width: 260px;"
+                            v-model="subprocessUpdate"
                             :placeholder="i18n.select"
                             :clearable="true"
                             @clear="onClearSubprocessUpdate"
@@ -346,6 +347,7 @@
                     { 'id': 1, 'name': gettext('是') },
                     { 'id': 0, 'name': gettext('否') }
                 ],
+                subprocessUpdate: '',
                 isSubprocessUpdated: undefined,
                 isHasSubprocess: undefined,
                 creator: undefined,
@@ -611,6 +613,7 @@
                 this.isHasSubprocess = undefined
             },
             onSelectedSubprocessUpdate (val) {
+                this.subprocessUpdate = val
                 if (val === 0) {
                     this.isHasSubprocess = false
                     this.isSubprocessUpdated = undefined
@@ -632,6 +635,7 @@
                 this.creator = undefined
                 this.queryTime = []
                 this.subprocessUpdateSync = ''
+                this.subprocessUpdate = ''
                 this.searchInputhandler()
             },
             // 获得子流程展示内容
