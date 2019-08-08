@@ -540,6 +540,10 @@
     a.periodic-name,
     .periodic-operation a {
         color: $blueDefault;
+        &.periodic-bk-disable {
+            color:#cccccc;
+            cursor: not-allowed;
+        }
     }
     .periodic-status {
         width: 100px;
