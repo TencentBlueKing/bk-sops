@@ -126,7 +126,7 @@
                         width="120"
                         :label="i18n.subflowUpdate">
                         <template slot-scope="props">
-                            <div :class="['subflow-update', { 'subflow-has-update': props.subprocess_has_update }]">
+                            <div :class="['subflow-update', { 'subflow-has-update': props.row.subprocess_has_update }]">
                                 {{getSubflowContent(props.row)}}
                             </div>
                         </template>
@@ -842,6 +842,9 @@
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .subflow-has-update {
+        color: $redDefault;
     }
 }
 .bk-dropdown-menu .bk-dropdown-list > li > a {
