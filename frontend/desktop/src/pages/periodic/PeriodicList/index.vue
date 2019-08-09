@@ -532,9 +532,10 @@
     margin-top: 25px;
     background: #ffffff;
     /deep/ .bk-table {
+        overflow: visible;
         .bk-table-body-wrapper,.is-scrolling-none,
         td.is-last .cell {
-            overflow: initial;
+            overflow: visible;
         }
     }
     a.periodic-name,

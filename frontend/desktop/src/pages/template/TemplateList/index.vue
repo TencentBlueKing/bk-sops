@@ -105,6 +105,7 @@
             </div>
             <div class="template-table-content">
                 <bk-table
+                    class="template-table"
                     :data="listData"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
@@ -716,9 +717,10 @@
         color: $blueDefault;
     }
     /deep/ .bk-table {
+        overflow: visible;
         .bk-table-body-wrapper,.is-scrolling-none,
         td.is-last .cell {
-            overflow: initial;
+            overflow: visible;
         }
     }
     .template-operate-btn {
