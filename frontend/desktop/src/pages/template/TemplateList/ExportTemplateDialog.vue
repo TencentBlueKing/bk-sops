@@ -25,8 +25,8 @@
                     <div class="business-selector">
                         <bk-select
                             v-model="filterCondition.classifyId"
-                            :disabled="exportPending"
                             :clearable="false"
+                            :disabled="exportPending"
                             @change="onSelectClassify">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
@@ -40,7 +40,7 @@
                         <bk-input
                             class="search-input"
                             v-model="filterCondition.keywords"
-                            clearable="true"
+                            :clearable="true"
                             :placeholder="i18n.placeholder"
                             :right-icon="'icon-search'"
                             @input="onSearchInput">
@@ -360,7 +360,7 @@
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
