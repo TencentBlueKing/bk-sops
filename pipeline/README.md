@@ -111,6 +111,7 @@ task_service.run_pipeline(pipeline)
 - [流程构造器](./docs/user_guide_flow_builder.md)
 - [流程管理](./docs/user_guide_flow_management.md)
 - [自定义组件](./docs/user_guide_custom_component.md)
+- [Worker 配置](./docs/user_guide_workers.md)
 - [自定义配置](./docs/user_guide_config.md)
 - API Reference
   - [pipeline.service.task_service](./api_reference/pipeline.service.task_service.md)
