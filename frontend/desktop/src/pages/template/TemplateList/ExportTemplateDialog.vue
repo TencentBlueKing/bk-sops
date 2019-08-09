@@ -17,6 +17,7 @@
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
+        :auto-close="false"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
@@ -105,12 +106,6 @@
                 <span class="error-info">{{i18n.errorInfo}}</span>
             </div>
         </div>
-        <DialogLoadingBtn
-            slot="footer"
-            :dialog-footer-data="dialogFooterData"
-            @onConfirm="onConfirm"
-            @onCancel="onCancel">
-        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -118,12 +113,10 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
-            DialogLoadingBtn,
             NoData
         },
         props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
@@ -331,6 +324,7 @@
                 const idList = []
                 if (this.selectedTemplates.length === 0) {
                     this.selectError = true
+                    return false
                 } else {
                     this.selectedTemplates.forEach(item => {
                         idList.push(item.id)
