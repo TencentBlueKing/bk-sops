@@ -722,7 +722,7 @@
     padding: 30px;
     .common-form-item {
         label {
-            width: 60px;
+            width: 70px;
             font-weight: normal;
         }
         .common-form-content {
