@@ -771,7 +771,7 @@
 }
 .common-icon-dark-circle-pause {
     color: #ff9c01;
-    font-size: 12px;
+    font-size: 14px;
 }
 .operation-area {
     .bk-button {
@@ -804,7 +804,7 @@
         }
         .common-icon-dark-circle-close {
             color: $redDefault;
-            font-size: 14px;
+            font-size: 16px;
             vertical-align: middle;
         }
         &.revoke {
