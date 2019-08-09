@@ -16,7 +16,7 @@
         :endpoint-options="endpointOptions"
         :connector-options="connectorOptions">
         <template v-slot:nodeTemplate="{ node }">
-            <mobile-node-template :node="node"></mobile-node-template>
+            <mobile-node-template :node="node" @nodeClick="onNodeClick"></mobile-node-template>
         </template>
     </js-flow>
 </template>
@@ -102,6 +102,9 @@
                 const map = new Map()
                 lines.forEach((line) => map.set(line.id, line))
                 return map
+            },
+            onNodeClick (node) {
+                this.$emit('nodeClick', node)
             }
         }
 

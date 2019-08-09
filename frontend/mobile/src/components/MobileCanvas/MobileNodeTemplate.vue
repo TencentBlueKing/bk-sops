@@ -80,6 +80,8 @@
                         // 当前树替换成子流程树
                         this.$store.commit('setPipelineTree', subTree)
                     }
+                } else if (this.node.type === 'tasknode' && this.node.status) {
+                    this.$emit('nodeClick', node)
                 }
             }
         }

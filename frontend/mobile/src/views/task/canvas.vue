@@ -8,7 +8,11 @@
 <template>
     <div class="page-view">
         <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
-        <MobileCanvas v-if="!loading" :canvas-data="canvasData" ref="canvas"></MobileCanvas>
+        <MobileCanvas
+            v-if="!loading"
+            :canvas-data="canvasData"
+            ref="canvas"
+            @nodeClick="onNodeClick"></MobileCanvas>
         <van-tabbar>
             <van-tabbar-item>
                 <van-icon
@@ -89,7 +93,7 @@
         'REVOKED': [window.gettext('撤销'), 'danger']
     }
 
-    const NODE_ACTION = ['retry', 'skip', 'detail', 'timer', 'resume']
+    const NODE_ACTION = ['Retry', 'Skip', 'Detail', 'Timer', 'Resume']
 
     export default {
         name: '',
@@ -134,14 +138,13 @@
         created () {
             this.loadData()
         },
-
         destroyed () {
-            this.$el.removeEventListener('click', this.handleNodeClick, false)
+            this.$el.removeEventListener('click', this.handleNodeActionClick, false)
             this.clearNodeTooltipInstance()
             this.cancelTaskStatusTimer()
         },
         mounted () {
-            this.$el.addEventListener('click', this.handleNodeClick, false)
+            this.$el.addEventListener('click', this.handleNodeActionClick, false)
         },
         methods: {
             ...mapActions('task', [
@@ -306,7 +309,11 @@
                 })
             },
 
-            handleNodeClick (e) {
+            onNodeClick (node) {
+                this.createTooltipInstance(node)
+            },
+
+            handleNodeActionClick (e) {
                 const nodeAction = global.$(e.target).data('action')
                 const nodeId = global.$(e.target).data('id')
                 if (nodeId) {
@@ -314,8 +321,6 @@
                     _node.componentCode = this.pipelineTree.activities[nodeId].component.code
                     if (nodeAction) {
                         this.onNodeOperationClick(nodeAction, _node)
-                    } else {
-                        this.createTooltipInstance(_node)
                     }
                 }
             },
@@ -324,9 +329,8 @@
                 if (!this.operating) {
                     this.operating = true
                     if (NODE_ACTION.includes(operation)) {
-                        this[`node_${operation}`](node)
+                        this[`node${operation}`](node)
                     }
-                    this.operating = false
                 }
             },
 
@@ -353,16 +357,16 @@
                 const btnList = []
                 if (node.status === 'RUNNING') {
                     if (node.componentCode === 'sleep_timer') {
-                        btnList.push({ type: 'timer', text: this.i18n.editTime })
+                        btnList.push({ type: 'Timer', text: this.i18n.editTime })
                     } else {
-                        btnList.push({ type: 'resume', text: this.i18n.resume })
+                        btnList.push({ type: 'Resume', text: this.i18n.resume })
                     }
                 } else if (node.status === 'FAILED') {
-                    btnList.push({ type: 'retry', text: this.i18n.retry })
-                    btnList.push({ type: 'skip', text: this.i18n.skip })
-                    btnList.push({ type: 'detail', text: this.i18n.detail })
+                    btnList.push({ type: 'Retry', text: this.i18n.retry })
+                    btnList.push({ type: 'Skip', text: this.i18n.skip })
+                    btnList.push({ type: 'Detail', text: this.i18n.detail })
                 } else if (node.status === 'FINISHED') {
-                    btnList.push({ type: 'detail', text: this.i18n.detail })
+                    btnList.push({ type: 'Detail', text: this.i18n.detail })
                 }
                 return this.nodeBtnTplFactory(btnList, node.id)
             },
@@ -384,19 +388,18 @@
                 }
             },
             clearNodeTooltipInstance () {
-                console.log(this.nodeTooltipInstance)
                 Object.keys(this.nodeTooltipInstance).forEach(item => {
                     this.destroyTooltipInstance(item)
                 })
             },
 
-            node_detail (node) {
+            nodeDetail (node) {
                 this.$store.commit('setNode', node)
                 this.$store.commit('setTaskId', this.taskId)
                 this.$router.push({ name: 'task_nodes' })
             },
 
-            async node_retry (node) {
+            async nodeRetry (node) {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
                 const taskId = this.taskId
                 const params = {
@@ -419,7 +422,7 @@
                 this.operating = false
                 this.$router.push({ name: 'task_reset', params: params })
             },
-            async node_skip (node) {
+            async nodeSkip (node) {
                 try {
                     this.$toast.loading({ mask: true, message: this.i18n.loading })
                     const response = await this.instanceNodeSkip({ id: this.taskId, nodeId: node.id })
@@ -439,7 +442,7 @@
                     this.clearNodeTooltipInstance()
                 }
             },
-            async node_resume (node) {
+            async nodeResume (node) {
                 try {
                     const response = await this.instanceNodeResume({ id: this.taskId, nodeId: node.id })
                     if (response.result) {
@@ -454,7 +457,7 @@
                     this.clearNodeTooltipInstance()
                 }
             },
-            async node_timer (node) {
+            async nodeTimer (node) {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
                 const params = {
                     taskId: this.taskId,
