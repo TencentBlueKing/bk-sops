@@ -284,6 +284,10 @@ EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY',
 # 是否只允许加载远程 https 仓库的插件
 EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = 'BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE' not in os.environ
 
+PIPELINE_DATA_BACKEND = 'pipeline.engine.core.data.redis_backend.RedisDataBackend'
+
+ENABLE_EXAMPLE_COMPONENTS = False
+
 UUID_DIGIT_STARTS_SENSITIVE = True
 
 from pipeline.celery.settings import *  # noqa
