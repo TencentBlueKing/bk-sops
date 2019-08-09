@@ -74,7 +74,7 @@ constant value, the type of value should be same with data from API[get_template
                             }
                         }
                     },
-                    "stage_name": "步骤1",
+                    "stage_name": "stage1",
                     "can_retry": true,
                     "isSkipped": true,
                     "type": "ServiceActivity",
@@ -85,13 +85,13 @@ constant value, the type of value should be same with data from API[get_template
                 "node880ded556c6c3c269be3cedc64b6": {
                     "outgoing": "line490caa49d2a03e64829693281032",
                     "incoming": "lineb83161d6e0593ad68d9ec73a961b",
-                    "name": "暂停",
+                    "name": "pause",
                     "error_ignorable": false,
                     "component": {
                         "code": "pause_node",
                         "data": {}
                     },
-                    "stage_name": "步骤1",
+                    "stage_name": "stage1",
                     "can_retry": true,
                     "isSkipped": true,
                     "type": "ServiceActivity",
@@ -175,8 +175,8 @@ constant value, the type of value should be same with data from API[get_template
             "constants": {},
             "location": [
                 {
-                    "stage_name": "步骤1",
-                    "name": "暂停",
+                    "stage_name": "stage1",
+                    "name": "pause",
                     "y": 135,
                     "x": 300,
                     "type": "tasknode",
@@ -189,7 +189,7 @@ constant value, the type of value should be same with data from API[get_template
                     "id": "node5c48f37aa9f0351e8b43ab6a2295"
                 },
                 {
-                    "stage_name": "步骤1",
+                    "stage_name": "stage",
                     "name": "timing",
                     "y": 135,
                     "x": 595,
@@ -230,7 +230,7 @@ constant value, the type of value should be same with data from API[get_template
 |-----------|----------|-----------|
 |  start_event      |    dict    |      start node     |
 |  end_event      |    dict    |      end node    |
-|  activities      |    dict    |      task node（standard plugins or subprocess）info    |
+|  activities      |    dict    |      task node（plugins or subprocess）info    |
 |  gateways      |    dict    |      gateways（parallel gateway、exclusive gateway、exclusive gateway）info    |
 |  flows      |    dict    |      sequenceFlow（the line between nodes）info    |
 |  constants      |    dict    |  global variables, details are described below    |
@@ -250,5 +250,5 @@ KEY, the format is like ${key}
 |  desc      |    string    |     description   |
 |  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters   |
 |  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
-|  source_tag   | string   |      source tag and standard plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
+|  source_tag   | string   |      source tag and plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
 |  source_info | dict    |        source info about task node ID  |

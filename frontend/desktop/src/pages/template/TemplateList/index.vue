@@ -17,7 +17,7 @@
                 <router-link
                     class="bk-button bk-primary create-template"
                     v-show="showOperationBtn"
-                    :to="getNewTemplateUrl()">
+                    :to="getJumpUrl('newTemplate')">
                     {{i18n.new}}
                 </router-link>
                 <bk-button
@@ -117,7 +117,7 @@
                                 <router-link
                                     v-if="!common || !common_template"
                                     :title="item.name"
-                                    :to="getEditTemplateUrl(item.id)">
+                                    :to="getJumpUrl('edit',item.id)">
                                     {{item.name}}
                                 </router-link>
                                 <p v-else>{{item.name}}</p>
@@ -132,19 +132,19 @@
                                 <!-- 业务流程按钮 -->
                                 <router-link
                                     class="create-template-btn"
-                                    :to="getNewTaskUrl(item.id)">
+                                    :to="getJumpUrl('newTask',item.id)">
                                     {{ i18n.newTemplate }}
                                 </router-link>
                                 <router-link
                                     class="create-template-btn"
-                                    :to="getEditTemplateUrl(item.id)">
+                                    :to="getJumpUrl('edit',item.id)">
                                     {{ i18n.edit }}
                                 </router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
-                                            <router-link :to="getCloneUrl(item.id)">{{ i18n.clone }}</router-link>
+                                            <router-link :to="getJumpUrl('clone',item.id)">{{ i18n.clone }}</router-link>
                                         </li>
                                         <li>
                                             <a href="javascript:void(0);" @click="onManageAuthority(item.id)">{{ i18n.authority }}</a>
@@ -162,7 +162,7 @@
                                 <!-- 嵌套在业务流程页面中的公共流程，通过查询条件切换 -->
                                 <router-link
                                     class="create-template-btn"
-                                    :to="getNewTaskUrl(item.id)">
+                                    :to="getJumpUrl('newTask',item.id)">
                                     {{ i18n.newTemplate }}
                                 </router-link>
                                 <bk-dropdown-menu>
@@ -179,12 +179,12 @@
                             </td>
                             <td class="template-operation" v-else-if="common">
                                 <!-- 公共流程首页 -->
-                                <router-link class="create-template-btn" :to="getEditTemplateUrl(item.id)">{{ i18n.edit}}</router-link>
+                                <router-link class="create-template-btn" :to="getJumpUrl('edit',item.id)">{{ i18n.edit}}</router-link>
                                 <bk-dropdown-menu>
                                     <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                     <ul class="bk-dropdown-list" slot="dropdown-content">
                                         <li>
-                                            <router-link :to="getCloneUrl(item.id)">{{ i18n.clone }}</router-link>
+                                            <router-link :to="getJumpUrl('clone',item.id)">{{ i18n.clone }}</router-link>
                                         </li>
                                         <li>
                                             <a href="javascript:void(0);" @click="onDeleteTemplate(item.id, item.name)">{{i18n.delete}}</a>
@@ -564,41 +564,49 @@
                 this.isAuthorityDialogShow = false
                 this.theAuthorityManageId = undefined
             },
-            // 获取编辑按钮的跳转链接
-            getEditTemplateUrl (id) {
-                let url = `/template/edit/${this.cc_id}/?template_id=${id}&entrance=businessList`
-                if (this.common) {
-                    url += '&common=1'
+            /**
+             * 获取模版操作的跳转链接
+             * @param {string} name -类型
+             * @param {Number} template_id -模版id(可选)
+             */
+            getJumpUrl (name, template_id) {
+                const urlMap = {
+                    // 编辑按钮的跳转链接
+                    'edit': {
+                        path: `/template/edit/${this.cc_id}/`,
+                        query: ['template_id', 'common'] },
+                    // 新建模板的跳转链接
+                    'newTemplate': {
+                        path: `/template/new/${this.cc_id}/`,
+                        query: ['common'] },
+                    // 新建任务的跳转链接
+                    'newTask': {
+                        path: `/template/newtask/${this.cc_id}/selectnode/`,
+                        query: ['template_id', 'common'] },
+                    // 克隆
+                    'clone': {
+                        path: `/template/clone/${this.cc_id}/`,
+                        query: ['template_id', 'common'] }
                 }
-                return url
+                let querys = ''
+                const entrance = this.getEntrance()
+                urlMap[name].query.forEach(item => {
+                    if (template_id && item === 'template_id') {
+                        querys += `&template_id=${template_id}`
+                    }
+                    if ((this.common || this.common_template) && item === 'common') {
+                        querys += `&common=1`
+                    }
+                })
+                return `${urlMap[name].path}?entrance=${entrance}${querys}`
             },
-            // 获取新建模板的跳转链接
-            getNewTemplateUrl () {
-                let url = `/template/new/${this.cc_id}`
-                if (this.common) {
-                    url += '/?&common=1'
-                }
-                return url
-            },
-            // 获取新建任务的跳转链接
-            getNewTaskUrl (id) {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${id}`
-                if (this.common || this.common_template) {
-                    url += '&common=1&entrance=commonList'
-                } else {
-                    url += '&entrance=businessList'
-                }
-                return url
+            // 获取入口信息
+            getEntrance () {
+                return (new RegExp('/admin/').test(this.$route.path) ? 'admin' : 'template')
+                    + (new RegExp('/common/').test(this.$route.path) ? '_common' : '_business')
             },
             getExecuteHistoryUrl (id) {
                 let url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
-                if (this.common || this.common_template) {
-                    url += '&common=1'
-                }
-                return url
-            },
-            getCloneUrl (id) {
-                let url = `/template/clone/${this.cc_id}/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }

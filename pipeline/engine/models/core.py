@@ -814,7 +814,7 @@ class Status(models.Model):
     loop = models.IntegerField(_(u"循环次数"), default=1)
     skip = models.BooleanField(_(u"是否跳过"), default=False)
     error_ignorable = models.BooleanField(_(u"是否出错后自动忽略"), default=False)
-    created_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
+    created_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True, db_index=True)
     started_time = models.DateTimeField(_(u"开始时间"), null=True)
     archived_time = models.DateTimeField(_(u"归档时间"), null=True)
     version = models.CharField(_(u"版本"), max_length=32)

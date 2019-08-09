@@ -11,7 +11,7 @@
 */
 <template>
     <div class="single-ip-selector">
-        <div class="selector-choose-wrap">
+        <div :class="['selector-choose-wrap', { 'disabled': !editable }]">
             <div
                 v-for="(selector) in selectorTabs"
                 :key="selector.type"
@@ -88,6 +88,11 @@
     display: flex;
     justify-content: space-between;
     border-right: 1px solid #dcdee5;
+    &.disabled {
+        .ip-tab-radio {
+            background: #f0f1f5;
+        }
+    }
 }
 .ip-tab-radio {
     display: inline-block;

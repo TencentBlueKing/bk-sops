@@ -125,7 +125,7 @@ Query a task node execution details
 
 
 #### data.histories[]
-|      名称     |     类型   |               说明             |
+|      Field     |     Type   |               Description             |
 | ------------  | ---------- | ------------------------------ |
 |  start_time   | string     | start time    |
 |  finish_time  | string     | finish time    |

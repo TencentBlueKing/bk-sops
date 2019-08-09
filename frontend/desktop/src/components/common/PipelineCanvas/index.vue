@@ -674,7 +674,10 @@
         position: absolute;
         top: 86px;
         left: 50%;
+        padding: 2px 9px;
+        border-radius: 1px;
         transform: translateX(-50%);
+        background: rgba(225, 228, 232, 0.95);
         z-index: 4;
         .atom-number {
             color: #a9b2bd;
