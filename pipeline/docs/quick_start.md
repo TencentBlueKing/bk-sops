@@ -106,12 +106,12 @@ task_service.run_pipeline(pipeline)
 
 ### 接下来
 
-- [基础概念](./docs/user_guide_basic_concept.md)
-- [流程编排](./docs/user_guide_flow_orchestration.md)
-- [流程构造器](./docs/user_guide_flow_builder.md)
-- [流程管理](./docs/user_guide_flow_management.md)
-- [自定义组件](./docs/user_guide_custom_component.md)
-- [Worker 配置](./docs/user_guide_workers.md)
-- [自定义配置](./docs/user_guide_config.md)
+- [基础概念](./user_guide_basic_concept.md)
+- [流程编排](./user_guide_flow_orchestration.md)
+- [流程构造器](./user_guide_flow_builder.md)
+- [流程管理](./user_guide_flow_management.md)
+- [自定义组件](./user_guide_custom_component.md)
+- [Worker 配置](./user_guide_workers.md)
+- [自定义配置](./user_guide_config.md)
 - API Reference
-  - [pipeline.service.task_service](./docs/api_reference/pipeline.service.task_service.md)
+  - [pipeline.service.task_service](./api_reference/pipeline.service.task_service.md)
