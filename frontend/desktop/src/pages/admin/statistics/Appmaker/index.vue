@@ -276,8 +276,8 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: -1,
-                selectedCategory: -1,
+                selectedCcId: '',
+                selectedCategory: '',
                 categoryTime: [],
                 choiceBusiness: undefined,
                 tableTime: [],
@@ -494,13 +494,13 @@
                 this.onAppMakerInstance()
             },
             onClearBizCcId () {
-                this.selectedCcId = -1
+                this.selectedCcId = ''
                 this.bizCcId = undefined
                 this.resetPageIndex()
                 this.onAppMakerInstance()
             },
             onClearCategory () {
-                this.selectedCategory = -1
+                this.selectedCategory = ''
                 this.category = undefined
                 this.resetPageIndex()
                 this.onAppMakerInstance()
