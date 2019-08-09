@@ -210,6 +210,10 @@ def update_relationships(request, biz, extras, created=False, use_cache=True):
                 if role in roles.ADMIN_ROLES:
                     assign_perm('manage_business', group, biz)
 
+        functors = get_operate_user_list(request)
+        auditors = get_auditor_user_list(request)
+        user_model = get_user_model()
+
         with transaction.atomic():
             try:
                 Business.objects.select_for_update().get(pk=biz.pk)
@@ -220,9 +224,9 @@ def update_relationships(request, biz, extras, created=False, use_cache=True):
                 biz.groups.clear()
 
             for group_name in groups:
-                group, created = groups[group_name]
+                group, group_created = groups[group_name]
                 # If not created, clear group to user memberships
-                if not created:
+                if not group_created:
                     group.user_set.clear()
 
                 BusinessGroupMembership.objects.get_or_create(
@@ -233,16 +237,15 @@ def update_relationships(request, biz, extras, created=False, use_cache=True):
                 role = group_name.split('\x00')[1]
                 resp_data_role = '{}'.format(roles.CC_V2_ROLE_MAP.get(role, role))
                 role_users = extras.get(resp_data_role) or ''
-                user_model = get_user_model()
                 user_list = role_users.split(',')
 
                 # 职能化人员单独授权
                 if role == roles.FUNCTOR:
-                    user_list = get_operate_user_list(request)
+                    user_list = functors
 
                 # 审计人员单独授权
                 if role == roles.AUDITOR:
-                    user_list = get_auditor_user_list(request)
+                    user_list = auditors
 
                 for username in user_list:
                     if username:
@@ -250,7 +253,7 @@ def update_relationships(request, biz, extras, created=False, use_cache=True):
                             username=username)
                         user.groups.add(group)
 
-            cache.set(cache_key, True, DEFAULT_CACHE_TIME_FOR_CC)
+        cache.set(cache_key, True, DEFAULT_CACHE_TIME_FOR_CC)
 
 
 def prepare_view_all_business(request):
