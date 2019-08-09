@@ -170,7 +170,7 @@
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                             </div>
                         </template>
                     </bk-table-column>
@@ -822,6 +822,10 @@
                 -webkit-transform: rotate(360deg);
                 transform: rotate(360deg);
             }
+        }
+        .task-status-text {
+            display: inline-block;
+            vertical-align: middle;
         }
     }
     .task-operation {
