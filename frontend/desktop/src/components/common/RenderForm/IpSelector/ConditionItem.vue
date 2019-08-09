@@ -145,7 +145,7 @@
     float: left;
     position: relative;
     margin: 0 10px;
-    width: calc(100% - 120px - 20px - 60px);
+    width: calc(100% - 186px);
     .textarea-mirror, textarea {
         padding: 9px 10px 0;
         line-height: 1.2;

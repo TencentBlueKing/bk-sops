@@ -560,6 +560,9 @@ $localBorderColor: #d8e2e7;
 .form-content {
     margin-left: 80px;
     min-height: 36px;
+    .bk-select {
+        background: #ffffff;
+    }
     input {
         padding: 0 10px;
         width: 100%;

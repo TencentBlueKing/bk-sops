@@ -259,6 +259,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .app-edit-content {
+    padding: 30px;
     .common-form-content {
         position: relative;
         margin-right: 30px;
