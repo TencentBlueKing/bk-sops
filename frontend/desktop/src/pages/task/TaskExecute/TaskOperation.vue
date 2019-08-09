@@ -145,7 +145,6 @@
             </div>
         </transition>
         <gatewaySelectDialog
-            v-if="isGatewaySelectDialogShow"
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
             :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
