@@ -40,6 +40,7 @@
                         <bk-input
                             class="search-input"
                             v-model="filterCondition.keywords"
+                            clearable="true"
                             :placeholder="i18n.placeholder"
                             :right-icon="'icon-search'"
                             @input="onSearchInput">
