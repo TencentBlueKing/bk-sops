@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-15 14:58+0800\n"
+"POT-Creation-Date: 2019-07-25 20:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -716,8 +716,8 @@ msgstr "Executing"
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:210
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:242
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:182
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:176
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:691
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:177
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:699
 #: frontend/desktop/src/pages/task/TaskList/index.vue:284
 #: frontend/desktop/src/pages/task/TaskList/index.vue:414
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_cron_task.js:90
@@ -759,7 +759,7 @@ msgstr "Finished"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:210
 #: frontend/desktop/src/pages/audit/index.vue:353
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:143
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:186
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:187
 #: frontend/desktop/src/pages/task/TaskList/index.vue:426
 msgid "撤销"
 msgstr "Revoke"
@@ -1744,24 +1744,24 @@ msgstr "Rrror with image"
 msgid "输入周期表达式非法，请校验"
 msgstr "Invalid crontab, check it please"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:172
+#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:173
 msgid "修改周期任务信息成功"
 msgstr "Modify periodic task success"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:177
+#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:178
 msgid "修改周期任务参数成功，但表达式修改未成功，请重试"
 msgstr "Can not modify crontab, retry please"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:182
+#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:183
 msgid "修改周期任务表达式成功，但任务参数未修改成功，请重试"
 msgstr "Can not modify constants, retry please"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:187
-#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:207
+#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:188
+#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:208
 msgid "修改周期任务失败，请联系管理员"
 msgstr "Modify Periodic task failed, contact admin please"
 
-#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:202
+#: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:203
 msgid "修改周期任务表达式成功"
 msgstr "Modify crontab success"
 
@@ -1876,15 +1876,15 @@ msgstr "Scheme Name"
 msgid "预览模式："
 msgstr "Preview Mode:"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:304
+#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:323
 msgid "方案名称已存在"
 msgstr "Scheme name cannot repeat"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:339
+#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:363
 msgid "方案添加成功"
 msgstr "Scheme saved successfully"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:413
+#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:438
 msgid "方案删除成功"
 msgstr "Scheme deleted successfully"
 
@@ -2015,7 +2015,7 @@ msgid "修改成功"
 msgstr "Updated successfully"
 
 #: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:49
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:652
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:660
 msgid "重试"
 msgstr "Retry"
 
@@ -2031,63 +2031,63 @@ msgstr "Preview"
 msgid "任务流程预览"
 msgstr "Preview Task Flow"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:171
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:172
 msgid "执行"
 msgstr "Execution"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:181
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:685
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:697
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:182
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:693
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:705
 msgid "继续"
 msgstr "Continue"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:221
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:222
 msgid "查看参数"
 msgstr "Parameters"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:222
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:223
 msgid "修改参数"
 msgstr "Modify Parameters"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:223
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:224
 msgid "查看流程"
 msgstr "View Flow"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:392
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:400
 msgid "任务开始执行"
 msgstr "Task started"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:419
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:427
 msgid "任务暂停成功"
 msgstr "Task suspended"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:447
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:455
 msgid "任务继续成功"
 msgstr "Task Continued"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:465
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:473
 msgid "任务撤销成功"
 msgstr "Task Revoked"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:487
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:510
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:495
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:518
 msgid "跳过成功"
 msgstr "Skip successfully"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:532
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:540
 msgid "继续成功"
 msgstr "Continued successfully"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:653
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:679
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:661
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:687
 msgid "跳过"
 msgstr "Skip"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:654
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:662
 msgid "流程模板中该标准插件节点未配置失败处理方式，不可操作"
 msgstr "There is not failure process set to this node when editing flow, you can not operate"
 
-#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:673
+#: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:681
 msgid "修改时间"
 msgstr "Reset Timer"
 
@@ -2197,15 +2197,15 @@ msgstr "Description: "
 
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:249
 msgid "自动忽略：标准插件节点如果执行失败，会自动忽略错误并把节点状态设置为成功。"
-msgstr "Auto Ignore: this node will set to success automatically if failed;"
+msgstr "Auto Ignore: this node will set to success automatically if failed."
 
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:250
 msgid "手动重试：标准插件节点如果执行失败，可以人工干预，填写参数后重试节点。"
-msgstr "Manual Skip: you can skip this node if it failed"
+msgstr "Manual Retry: you can retry this node manually if it failed."
 
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:251
 msgid "手动跳过：标准插件节点如果执行失败，可以人工干预，直接跳过节点的执行。"
-msgstr "Manual Skip: you can skip this node if it failed"
+msgstr "Manual Skip: you can skip this node manually if it failed."
 
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:252
 msgid "未选择失败处理方式，标准插件节点如果执行失败，会导致任务中断后不可继续"

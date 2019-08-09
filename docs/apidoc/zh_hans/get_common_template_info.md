@@ -1,40 +1,36 @@
-### Functional description
+### 功能描述
 
-Query individual flow template details of the business
+查询公共流程模板详情
 
-### Request Parameters
+### 请求参数
 
-#### General Parameters
+#### 通用参数
 
-|   Field         |  Type       | Required |  Description    |
+|   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
-|   bk_app_code   |   string    |   YES    |  APP ID |
-|   bk_app_secret |   string    |   YES    |  APP Secret(APP TOKEN), which can be got via BlueKing Developer Center -> Click APP ID -> Basic Info |
-|   bk_token      |   string    |   NO     |  Current user login token, bk_token or bk_username must be valid, bk_token can be got by Cookie      |
-|   bk_username   |   string    |   NO     |  Current user username, APP in the white list, can use this field to specify the current user        |
+|   bk_app_code   |   string    |   是    |  应用ID |
+|   bk_app_secret |   string    |   是    |  安全密钥(应用 TOKEN)，可以通过 蓝鲸智云开发者中心 -> 点击应用ID -> 基本信息 获取 |
+|   bk_token      |   string    |   否    |  当前用户登录态，bk_token与bk_username必须一个有效，bk_token可以通过Cookie获取  |
+|   bk_username   |   string    |   否    |  当前用户用户名，应用免登录态验证白名单中的应用，用此字段指定当前用户              |
 
-#### Interface Parameters
+#### 接口参数
 
-| Field         |   Type     | Required   |  Description    |
-|---------------|------------|---------|--------------------|
-| bk_biz_id     | string     |   YES   |  the business ID   |
-| template_id   | string     |   YES   |  the template ID       |
-| template_source | string   |   NO    | source of flow，default value is business. business: from business, common: from common flow |
+| 字段          |  类型       | 必选   |  描述          |
+|---------------|------------|--------|---------------|
+| template_id   | string     |   是   |  模板ID        |
 
-### Request Parameters Example
+### 请求参数示例
 
 ```
 {
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "1",
     "template_id": "30",
-    "template_source": "business"
 }
 ```
 
-### Return Result Example
+### 返回结果示例
 
 ```
 {
@@ -44,14 +40,13 @@ Query individual flow template details of the business
         "edit_time": "2018-04-27 16:24:24 +0800",
         "create_time": "2018-04-16 21:43:15 +0800",
         "name": "new20180416213944",
-        "bk_biz_id": "2",
         "creator": "admin",
         "pipeline_tree": {
             "activities": {
                 "631b6576cc5dfbdcaa4f510ce88a7e67": {
                     "outgoing": "44ab36ebf4cf119edaf2d20401da87e4",
                     "incoming": "fb2f3a8b533ca5c67e2440b4164f7632",
-                    "name": "node_1",
+                    "name": "节点_1",
                     "error_ignorable": false,
                     "component": {
                         "code": "job_fast_execute_script",
@@ -125,7 +120,7 @@ Query individual flow template details of the business
                             "script_type"
                         ]
                     },
-                    "name": "script_type",
+                    "name": "脚本类型",
                     "index": 0,
                     "custom_type": "radio",
                     "value": "4",
@@ -138,7 +133,7 @@ Query individual flow template details of the business
                 "${content}": {
                     "source_tag": "",
                     "source_info": {},
-                    "name": "content",
+                    "name": "内容",
                     "index": 2,
                     "custom_type": "textarea",
                     "value": "",
@@ -154,7 +149,7 @@ Query individual flow template details of the business
                             "script_timeout"
                         ]
                     },
-                    "name": "script_timeout",
+                    "name": "超时时间",
                     "index": 1,
                     "custom_type": "input",
                     "value": "",
@@ -167,7 +162,7 @@ Query individual flow template details of the business
                 "${params}": {
                     "source_tag": "",
                     "source_info": {},
-                    "name": "params",
+                    "name": "参数",
                     "index": 3,
                     "custom_type": "input",
                     "value": "",
@@ -179,73 +174,70 @@ Query individual flow template details of the business
             },
             "gateways": {}
         },
-        "bk_biz_name": "blueking",
         "id": 30,
         "editor": "admin"
     },
 }
 ```
 
-### Return Result Description
+### 返回结果参数说明
 
-| Field      | Type      | Description      |
+| 字段      | 类型      | 描述      |
 |-----------|----------|-----------|
-|  result   |    bool    |      true or false, indicate success or failure                      |
-|  data     |    dict    |      data returned when result is true, details are described below  |
-|  message  |    string  |      error message returned when result is false                     |
+| result    | bool     | true/false 查询成功与否 |
+| data      | dict     | result=true 时模板详情，详细信息见下面说明 |
+| message   | string   | result=false 时错误信息 |
 
 #### data
 
-| Field      | Type      | Description      |
+| 字段      | 类型      | 描述      |
 |-----------|----------|-----------|
-|  bk_biz_id     |    string    |      the business ID      |
-|  bk_biz_name   |    string    |      the business name    |
-|  id            |    int       |      flow template ID             |
-|  name          |    string    |      flow template name            |
-|  category      |    string    |      flow type，the value is described below    |
-|  creator       |    string    |      person who created this flow template      |
-|  create_time   |    string    |      datetime when this flow template created   |
-|  editor        |    string or null | person who edited this flow template last |
-|  edit_time     |    string    |      datetime when this flow template edited          |
-|  pipeline_tree |    dict      |      template tree info, details are described below    |
+|  id            |    int       |      模板ID             |
+|  name          |    string    |      模板名称            |
+|  category      |    string    |      模板分类，分类信息见下面说明    |
+|  creator       |    string    |      模板创建人             |
+|  create_time   |    string    |      模板创建时间           |
+|  editor        |    string 或者 null    |      模板编辑人   |
+|  edit_time     |    string    |      模板最新编辑时间        |
+|  pipeline_tree |    dict      |      模板任务树信息，详细信息见下面说明   |
 
 #### data.category
 
-| Value        | Description     |
+| 返回值        | 描述     |
 |--------------|----------|
-| OpsTools     | operation tools  |
-| MonitorAlarm | monitor alarm  |
-| ConfManage   | configuration management  |
-| DevTools     | development tools  |
-| EnterpriseIT | enterprise IT   |
-| OfficeApp    | official APPs  |
-| Other        | other     |
+| OpsTools     | 运维工具  |
+| MonitorAlarm | 监控告警  |
+| ConfManage   | 配置管理  |
+| DevTools     | 开发工具  |
+| EnterpriseIT | 企业IT   |
+| OfficeApp    | 办公应用  |
+| Other        | 其它     |
 
 #### data.pipeline_tree
 
-| Field      | Type      | Description      |
+| 字段      | 类型      | 描述      |
 |-----------|----------|-----------|
-|  start_event      |    dict    |      start node     |
-|  end_event      |    dict    |      end node    |
-|  activities      |    dict    |      task node（standard plugins or subprocess）info    |
-|  gateways      |    dict    |      gateways（parallel gateway、exclusive gateway、exclusive gateway）info    |
-|  flows      |    dict    |      sequenceFlow（the line between nodes）info    |
-|  constants      |    dict    |  global variables, details are described below    |
-|  outputs      |    list    |    outputs info, indicate outputs field of global variables|
+|  start_event      |    dict    |      开始节点信息     |
+|  end_event      |    dict    |      结束节点信息    |
+|  activities      |    dict    |      任务节点（标准插件和子流程）信息    |
+|  gateways      |    dict    |      网关节点（并行网关、分支网关和汇聚网关）信息    |
+|  flows      |    dict    |     顺序流（节点连线）信息    |
+|  constants      |    dict    |  全局变量信息，详情见下面    |
+|  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
 
 #### data.pipeline_tree.constants.KEY
 
-KEY, the format is like ${key}
+全局变量 KEY，${key} 格式
 
 #### data.pipeline_tree.constants.VALUE
 
-| Field      | Type      | Description      |
+| 字段      | 类型      | 描述      |
 |-----------|----------|-----------|
-|  key      |    string    |      same with KEY     |
-|  name      |    string    |     name    |
-|  index      |    int    |       display order at the front end   |
-|  desc      |    string    |     description   |
-|  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters   |
-|  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
-|  source_tag   | string   |      source tag and standard plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
-|  source_info | dict    |        source info about task node ID  |
+|  key      |    string    |      同 KEY     |
+|  name      |    string    |      变量名字    |
+|  index      |    int    |      变量在模板中的显示顺序    |
+|  desc      |    string    |      变量说明   |
+|  source_type  | string   |      变量来源, 取值范围 custom: 自定义变量，component_inputs: 从标准插件输入参数勾选，component_outputs：从标准插件输出结果中勾选   |
+|  custom_type  | string   |      source_type=custom 时有效，自定义变量类型， 取值范围 input: 输入框，textarea: 文本框，datetime: 日期时间，int: 整数|
+|  source_tag   | string   |      source_type=component_inputs或component_outputs 时有效，变量的来源标准插件   |
+|   source_info | dict    |  source_type=component_inputs或component_outputs 时有效，变量的来源节点信息  |
