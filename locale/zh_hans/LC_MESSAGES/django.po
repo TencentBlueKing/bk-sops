@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-07-15 14:58+0800\n"
+"POT-Creation-Date: 2019-07-25 20:55+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -98,11 +98,15 @@ msgstr "user property"
 msgid "user properties"
 msgstr "user properties"
 
-#: config/default.py:165
+#: config/default.py:36
+msgid "标准运维"
+msgstr "标准运维"
+
+#: config/default.py:168
 msgid "English"
 msgstr "English"
 
-#: config/default.py:166
+#: config/default.py:169
 msgid "简体中文"
 msgstr "简体中文"
 
@@ -1220,11 +1224,11 @@ msgstr "模板不存在"
 msgid "执行结果"
 msgstr "执行结果"
 
-#: pipeline/engine/admin.py:120
+#: pipeline/engine/admin.py:121
 msgid "打开所选的功能"
 msgstr "打开所选的功能"
 
-#: pipeline/engine/admin.py:121
+#: pipeline/engine/admin.py:122
 msgid "关闭所选的功能"
 msgstr "关闭所选的功能"
 

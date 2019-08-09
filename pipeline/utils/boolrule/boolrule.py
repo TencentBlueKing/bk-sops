@@ -217,7 +217,8 @@ class BoolRule(object):
                 continue
 
             if not token.getName():
-                return self._test_tokens(token, context)
+                passed = self._test_tokens(token, context)
+                continue
 
             items = token.asDict()
 
