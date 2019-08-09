@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.utils.translation import ugettext_lazy as _
+
 from blueapps.conf.log import get_logging_config_dict
 from blueapps.conf.default_settings import *  # noqa
 
@@ -31,6 +33,7 @@ from blueapps.conf.default_settings import *  # noqa
 #     'blueapps.account',
 # )
 
+APP_NAME = _(u"标准运维")
 DEFAULT_OPEN_VER = 'community'
 OPEN_VER = os.environ.get('RUN_VER', 'open')
 

@@ -34,7 +34,7 @@
                         </div>
                     </div>
                 </bk-dropdown-menu>
-                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch"></ip-search-input>
+                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch" :editable="editable"></ip-search-input>
             </div>
             <div v-if="isShowQuantity" class="selected-num">{{i18n.selected}}
                 <span class="total-ip">{{staticIps.length}}</span>
@@ -43,7 +43,7 @@
                 {{i18n.num}}
             </div>
             <div class="selected-ip-table-wrap">
-                <table class="ip-table">
+                <table :class="['ip-table', { 'disabled': !editable }]">
                     <thead>
                         <tr>
                             <th width="">{{i18n.cloudArea}}</th>
@@ -357,6 +357,11 @@
             margin: 0 -2px 0 -2px;
             color: #3a84ff;
             cursor: pointer;
+        }
+    }
+    &.disabled {
+        th, td {
+            color: #cccccc;
         }
     }
 }
