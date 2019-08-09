@@ -896,9 +896,12 @@
                 height: 12px;
                 text-align: center;
                 line-height: 12px;
-                color: #cecece;
+                color: #979ba5;
                 opacity: 0;
                 cursor: pointer;
+                &:hover {
+                    color: #cecece;
+                }
             }
         }
         li:first-child {
