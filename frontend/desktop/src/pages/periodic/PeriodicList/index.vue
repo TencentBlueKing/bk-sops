@@ -537,6 +537,9 @@
             overflow: initial;
         }
     }
+    .icon-check-circle-shape {
+        color: #30d878;
+    }
     a.periodic-name,
     .periodic-operation a {
         color: $blueDefault;
