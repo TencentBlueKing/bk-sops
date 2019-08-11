@@ -426,6 +426,7 @@
                 this.activeTaskCategory = undefined
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
+                this.searchInputhandler()
             },
             onSelectedStatus (id, name) {
                 this.isStarted = id !== 'nonExecution'

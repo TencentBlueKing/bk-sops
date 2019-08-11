@@ -621,6 +621,7 @@
                 this.isHasSubprocess = undefined
             },
             onSelectedSubprocessUpdate (val) {
+                this.subprocessUpdate = val
                 if (val === 0) {
                     this.isHasSubprocess = false
                     this.isSubprocessUpdated = undefined
@@ -642,6 +643,8 @@
                 this.flowName = undefined
                 this.creator = undefined
                 this.queryTime = []
+                this.subprocessUpdateSync = ''
+                this.searchInputhandler()
             },
             // 获得子流程展示内容
             getSubflowContent (item) {
