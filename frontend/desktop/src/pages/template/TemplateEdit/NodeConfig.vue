@@ -23,7 +23,7 @@
                         <div class="form-content">
                             <bk-select
                                 v-model="currentAtom"
-                                class="bk-select-inline"
+                                class="node-select"
                                 :searchable="true"
                                 @selected="onAtomSelect">
                                 <bk-option
@@ -57,38 +57,34 @@
                     <div class="form-item">
                         <label class="required">{{ i18n.node_name }}</label>
                         <div class="form-content">
-                            <BaseInput v-model="nodeName" name="nodeName" v-validate="nodeNameRule" />
+                            <bk-input v-model="nodeName" name="nodeName" class="node-name" v-validate="nodeNameRule" />
                             <span v-show="errors.has('nodeName')" class="common-error-tip error-msg">{{ errors.first('nodeName') }}</span>
                         </div>
                     </div>
                     <div class="form-item">
                         <label>{{ i18n.stage_tag }}</label>
                         <div class="form-content">
-                            <BaseInput v-model="stageName" name="stageName" v-validate="stageNameRule" />
+                            <bk-input v-model="stageName" name="stageName" class="stage-name" v-validate="stageNameRule" />
                             <span v-show="errors.has('stageName')" class="common-error-tip error-msg">{{ errors.first('stageName') }}</span>
                         </div>
                     </div>
                     <div class="form-item" v-if="isSingleAtom">
                         <label>{{ i18n.failureHandling }}</label>
-                        <div class="form-content">
-                            <el-checkbox
+                        <div class="form-content error-handler">
+                            <bk-checkbox
                                 v-model="errorCouldBeIgnored"
                                 @change="onIgnoredChange">
                                 <i class="common-icon-dark-circle-i"></i>
                                 {{i18n.ignore}}
-                            </el-checkbox>
-                            <el-checkbox
-                                :disabled="isDisable"
-                                v-model="isSkip">
+                            </bk-checkbox>
+                            <bk-checkbox v-model="isSkip" :disabled="isDisable">
                                 <i class="common-icon-dark-circle-s"></i>
                                 {{i18n.manuallySkip}}
-                            </el-checkbox>
-                            <el-checkbox
-                                :disabled="isDisable"
-                                v-model="isRetry">
+                            </bk-checkbox>
+                            <bk-checkbox v-model="isRetry" :disabled="isDisable">
                                 <i class="common-icon-dark-circle-r"></i>
                                 {{i18n.manuallyRetry}}
-                            </el-checkbox>
+                            </bk-checkbox>
                             <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
                                 <p>
                                     {{ i18n.failureHandlingIgnore }}
@@ -100,7 +96,7 @@
                                     {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle"></i>
+                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle error-ingored-tootip"></i>
                             <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
@@ -108,9 +104,7 @@
                         <label>{{ i18n.optional }}</label>
                         <div class="form-content">
                             <bk-switcher
-                                on-text="ON"
-                                off-text="OFF"
-                                :show-text="showText"
+                                size="min"
                                 :selected="nodeCouldBeSkipped"
                                 @change="onSkippedChange">
                             </bk-switcher>
@@ -194,7 +188,6 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import ReuseVarDialog from './ReuseVarDialog.vue'
 
     const varKeyReg = /^\$\{(\w+)\}$/
@@ -212,7 +205,6 @@
         components: {
             NoData,
             RenderForm,
-            BaseInput,
             ReuseVarDialog
         },
         props: [
@@ -293,7 +285,6 @@
                     max: STRING_LENGTH.STAGE_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                showText: true,
                 isAtomChanged: false, // 用于切换标准插件
                 failureHandling: [], // 失败处理
                 isDisable: false, // 是否禁用手动选项
@@ -1125,26 +1116,53 @@
     &.position-right-side {
         right: 55px;
     }
-    /deep/ .bk-selector .bk-selector-list {
-        box-shadow: 0 0 8px 1px rgba(0, 0, 0, .2)
-    }
-    .common-icon-dark-circle-i {
-        color: #a6b0c7;
-    }
-    .common-icon-dark-circle-s {
-        color: #a6b0c7;
-    }
-    .common-icon-dark-circle-r {
-        color: #a6b0c7;
+    .basic-info-form {
+        .node-select,
+        /deep/ .bk-form-input {
+            font-size: 14px;
+        }
+        .error-handler {
+            position: relative;
+            height: 32px;
+            line-height: 32px;
+        }
+        .desc-tooltip,
+        .update-tooltip,
+        .error-ingored-tootip {
+            position: absolute;
+            right: 0;
+            top: 8px;
+            color: #c4c6cc;
+            cursor: pointer;
+            &:hover {
+                color: #f4aa1a;
+            }
+        }
+        .error-ingored-tootip {
+            right: -30px;
+        }
+        .common-icon-dark-circle-i,
+        .common-icon-dark-circle-s,
+        .common-icon-dark-circle-r {
+            color: #a6b0c7;
+        }
+        .common-warning-tip {
+            font-size: 12px;
+            height: 20px;
+            line-height: 20px;
+        }
+        .bk-switcher {
+            top: 5px;
+        }
     }
 }
 .form-item {
     margin-bottom: 20px;
+    @include clearfix;
     &:last-child {
         margin-bottom: 0;
     }
-    @include clearfix;
-    label {
+    & > label {
         position: relative;
         float: left;
         margin-top: 8px;
@@ -1164,8 +1182,9 @@
     .form-content {
         margin-left: 120px;
         margin-right: 30px;
-        /deep/ .el-checkbox {
+        .bk-form-checkbox {
             width: 110px;
+            margin-right: 30px;
             padding-right: 11px;
         }
         .icon-info-circle {
@@ -1173,30 +1192,6 @@
             &:hover {
                 color: #f4aa1a;
             }
-        }
-        .common-warning-tip {
-            margin-top: 15px;
-        }
-        .bk-switcher {
-            top: 5px;
-        }
-        .common-icon-dark-circle-i,
-        .common-icon-dark-circle-s,
-        .common-icon-dark-circle-r {
-            color: #a6b0c7;
-        }
-    }
-    .desc-tooltip, .update-tooltip, .error-ingored-tootip {
-        margin-left: 15px;
-        position: absolute;
-        right: 20px;
-        color: #c4c6cc;
-        cursor: pointer;
-        &:hover {
-            color: #f4aa1a;
-        }
-        /deep/ .bk-tooltip-rel {
-            top: 7px;
         }
     }
     &.form-name {
@@ -1255,19 +1250,6 @@
             width: 20%;
         }
     }
-}
-/deep/.icon-edit2:before {
-    content: '\e908';
-    font-family: 'commonicon' !important;
-    font-size: 16px;
-    color: #546a9e;
-    margin-right: 10px;
-}
-/deep/.bk-selector-tools {
-    top: 13px !important;
-}
-/deep/.icon-close {
-    display: none;
 }
 .common-icon-box-top-right-corner {
     position: absolute;
