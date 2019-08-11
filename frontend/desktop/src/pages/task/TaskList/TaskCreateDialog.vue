@@ -8,6 +8,7 @@
         :header-position="'left'"
         :title="i18n.title"
         :value="isNewTaskDialogShow"
+        :auto-close="false"
         @confirm="onCreateTask"
         @cancel="onCancel">
         <div class="task-container">
@@ -39,7 +40,7 @@
                             <bk-option
                                 v-for="(option, index) in templateCategories"
                                 :key="index"
-                                :id="option.id"
+                                :id="option.name"
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
@@ -132,8 +133,8 @@
                         name: gettext('公共流程')
                     }
                 ],
-                selectedTplType: gettext('BusinessProcess'),
-                selectedTplCategory: gettext('all'),
+                selectedTplType: gettext('业务流程'),
+                selectedTplCategory: gettext('全部分类'),
                 searchWord: '',
                 nowTypeList: []
             }
@@ -229,14 +230,14 @@
                 const groups = []
                 const atomGrouped = []
                 this.taskCategory.forEach(item => {
-                    groups.push(item.value)
+                    groups.push(item.name)
                     atomGrouped.push({
                         name: item.name,
                         children: []
                     })
                 })
                 list.forEach(item => {
-                    const type = item.category
+                    const type = item.category_name
                     const index = groups.indexOf(type)
                     if (index > -1) {
                         atomGrouped[index].children.push({
@@ -288,7 +289,7 @@
                 this.onFiltrationTemplate()
             },
             onFiltrationTemplate () {
-                const list = this.selectedTplType === this.templateType[0].name ? this.businessTplList : this.commonTplList
+                const list = this.selectedTplType === this.templateType[0].id ? this.businessTplList : this.commonTplList
                 const sourceList = toolsUtils.deepClone(list)
                 let filteredList = []
                 if (this.selectedTplCategory === this.i18n.allType) {
