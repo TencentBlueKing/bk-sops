@@ -89,7 +89,16 @@
                             <td class="functor-business">{{item.task.project.name}}</td>
                             <td class="functor-id">{{item.task.id}}</td>
                             <td class="functor-name">
+                                <a
+                                    v-if="!hasPermission(['view'], item.auth_actions, tplAuthOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="item.task.name"
+                                    @click="onTaskPermissonCheck(['view'], item, $event)">
+                                    {{item.task.name}}
+                                </a>
                                 <router-link
+                                    v-else
                                     :title="item.task.name"
                                     :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
                                     {{item.task.name}}
@@ -104,16 +113,36 @@
                                 {{statusMethod(item.status, item.status_name)}}
                             </td>
                             <td class="functor-operation">
-                                <router-link v-if="item.status === 'submitted'"
-                                    class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
-                                    {{ i18n.claim }}
-                                </router-link>
-                                <router-link v-else
-                                    class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
-                                    {{ i18n.view }}
-                                </router-link>
+                                <template v-if="item.status === 'submitted'">
+                                    <a
+                                        v-if="!hasPermission(['claim'], item.auth_actions, tplAuthOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTaskPermissonCheck(['claim'], item, $event)">
+                                        {{ i18n.claim }}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="functor-operation-btn"
+                                        :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
+                                        {{ i18n.claim }}
+                                    </router-link>
+                                </template>
+                                <template v-else>
+                                    <a
+                                        v-if="!hasPermission(['view'], item.auth_actions, tplAuthOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTaskPermissonCheck(['view'], item, $event)">
+                                        {{ i18n.view }}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="functor-operation-btn"
+                                        :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
+                                        {{ i18n.view }}
+                                    </router-link>
+                                </template>
                             </td>
                         </tr>
                         <tr v-if="!functorList || !functorList.length" class="empty-tr">
@@ -334,7 +363,6 @@
                 'timeZone': state => state.timezone
             }),
             hasConfirmPerm () {
-                // const authResource = this.isCommonTemplate ? this.commonTplAuthResource : this.commonTplAuthResource
                 const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
                 return this.hasPermission(['create_task'], this.tplAction, authOperations)
             }
@@ -381,6 +409,8 @@
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
+                    this.tplAuthOperations = functorListData.meta.auth_operations
+                    this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.totalCount = functorListData.meta.total_count
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
@@ -597,6 +627,10 @@
             },
             onSelectedStatus (id, name) {
                 this.status = id
+            },
+            onTaskPermissonCheck (required, template, event) {
+                this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
+                event.preventDefault()
             }
         }
     }
