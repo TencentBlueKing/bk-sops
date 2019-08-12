@@ -93,9 +93,6 @@ NODE_ACTIONS = {
     'pause_subproc': pipeline_api.pause_pipeline,
     'resume_subproc': pipeline_api.resume_node_appointment,
 }
-GROUP_BY_DICT = {
-    'instance_details': 'instance_details'
-}
 
 
 class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -1087,33 +1084,31 @@ class TaskFlowInstance(models.Model):
                                                                                            e.message,
                                                                                            e.gateway_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except StreamValidateError as e:
                 message = u"task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, e.message, e.node_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except IsolateNodeError as e:
                 message = u"task[id=%s] has isolate structure, message: %s" % (self.id, e.message)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except ConnectionValidateError as e:
                 message = u"task[id=%s] connection check failed, message: %s, nodes: %s" % (self.id,
                                                                                             e.detail,
                                                                                             e.failed_nodes)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except TypeError:
+                message = 'redis connection error, please check redis configuration'
                 logger.exception(traceback.format_exc())
-                return {'result': False, 'message': 'redis connection error, check redis configuration please'}
 
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)
                 logger.exception(traceback.format_exc())
-                return {'result': False, 'message': message}
+
+            return {'result': False, 'message': message}
+
         try:
             action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
             if action_result.result:
