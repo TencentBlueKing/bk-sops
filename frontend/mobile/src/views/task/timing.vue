@@ -11,8 +11,8 @@
             <div class="bk-text-list">
                 <van-field
                     :label="i18n.timing"
-                    placeholder="秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"
-                    :value="inputs['bk_timing']" />
+                    :placeholder="i18n.timePlaceholder"
+                    v-model="inputs['bk_timing']" />
             </div>
         </section>
         <div class="btn-group">
@@ -36,6 +36,7 @@
                 componentCode: '',
                 operating: false,
                 i18n: {
+                    timePlaceholder: window.gettext('秒(s) 或 时间(%Y-%m-%d %H:%M:%S)'),
                     cancel: window.gettext('取消'),
                     confirm: window.gettext('确定'),
                     timing: window.gettext('定时时间')
@@ -65,7 +66,7 @@
                     instance_id: this.taskId,
                     node_id: this.nodeId,
                     component_code: this.componentCode,
-                    inputs: this.inputs
+                    inputs: JSON.stringify(this.inputs)
                 }
                 try {
                     const response = await this.instanceNodeEditTime(params)
