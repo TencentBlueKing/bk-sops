@@ -129,9 +129,15 @@
             getHomeUrl () {
                 let url = `/template/home/${this.cc_id}/`
                 const entrance = this.$route.query.entrance || ''
-                if (entrance === 'businessList') url = `/template/home/${this.cc_id}/`
-                if (entrance.indexOf('periodicTask') > -1) url = `/periodic/home/${this.cc_id}/`
-                if (entrance.indexOf('admin_common') > -1) url = '/admin/common/template/'
+                const actions = [
+                    { key: 'template_business', url: `/template/home/${this.cc_id}/` },
+                    { key: 'admin_common', url: '/admin/common/template/' }
+                ]
+                actions.forEach(action => {
+                    if (entrance.indexOf(action.key) > -1) {
+                        url = action.url
+                    }
+                })
                 if (this.common) {
                     url += '?common=1'
                 }
