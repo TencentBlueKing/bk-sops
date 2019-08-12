@@ -11,7 +11,7 @@
             <div class="bk-text-list">
                 <van-field
                     :label="i18n.timing"
-                    placeholder="秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"
+                    :placeholder="i18n.timePlaceholder"
                     v-model="inputs['bk_timing']" />
             </div>
         </section>
@@ -36,6 +36,7 @@
                 componentCode: '',
                 operating: false,
                 i18n: {
+                    timePlaceholder: window.gettext('秒(s) 或 时间(%Y-%m-%d %H:%M:%S)'),
                     cancel: window.gettext('取消'),
                     confirm: window.gettext('确定'),
                     timing: window.gettext('定时时间')
@@ -59,7 +60,7 @@
                 }
             },
             async editTime () {
-                this.show = false
+                this.show = false // 1
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
                 const params = {
                     instance_id: this.taskId,
