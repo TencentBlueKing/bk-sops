@@ -8,7 +8,11 @@
 <template>
     <div class="page-view">
         <div :class="[taskStateClass, taskStateColor]">{{ taskStateName }}</div>
-        <MobileCanvas v-if="!loading" :canvas-data="canvasData" ref="canvas"></MobileCanvas>
+        <MobileCanvas
+            v-if="!loading"
+            :canvas-data="canvasData"
+            ref="canvas"
+            @nodeClick="onNodeClick"></MobileCanvas>
         <van-tabbar>
             <van-tabbar-item>
                 <van-icon
@@ -77,6 +81,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import MobileCanvas from '@/components/MobileCanvas/index.vue'
     import { mapActions } from 'vuex'
+    import Tooltip from 'tooltip.js'
 
     const TASK_STATE = {
         'CREATED': [window.gettext('未执行'), 'muted'],
@@ -88,18 +93,16 @@
         'REVOKED': [window.gettext('撤销'), 'danger']
     }
 
+    const NODE_ACTION = ['Retry', 'Skip', 'Detail', 'Timer', 'Resume']
+
     export default {
         name: '',
         components: {
             MobileCanvas
         },
-        provide () {
-            return {
-                refreshTaskStatus: this.setTaskStatusTimer
-            }
-        },
         data () {
             return {
+                nodeTooltipInstance: {},
                 operating: false,
                 revokeConfirmShow: false,
                 taskId: 0,
@@ -112,7 +115,14 @@
                 timer: null,
                 loading: true,
                 i18n: {
-                    tip: window.gettext('提示'),
+                    detail: window.gettext('执行详情'),
+                    retry: window.gettext('重试'),
+                    skip: window.gettext('跳过'),
+                    sub: window.gettext('查看子流程'),
+                    editTime: window.gettext('修改时间'),
+                    skipSuccess: window.gettext('跳过成功'),
+                    skipFailed: window.gettext('跳过失败'),
+                    resume: window.gettext('继续'),
                     executeStartFailed: window.gettext('开始执行任务失败'),
                     loading: window.gettext('加载中...')
                 }
@@ -129,7 +139,12 @@
             this.loadData()
         },
         destroyed () {
+            this.$el.removeEventListener('click', this.handleNodeActionClick, false)
+            this.clearNodeTooltipInstance()
             this.cancelTaskStatusTimer()
+        },
+        mounted () {
+            this.$el.addEventListener('click', this.handleNodeActionClick, false)
         },
         methods: {
             ...mapActions('task', [
@@ -138,7 +153,10 @@
                 'instanceStart',
                 'instancePause',
                 'instanceResume',
-                'instanceRevoke'
+                'instanceRevoke',
+                'instanceNodeResume',
+                'instanceNodeSkip',
+                'getNodeRetryData'
             ]),
             async loadData () {
                 try {
@@ -169,9 +187,13 @@
                         this.$set(node, 'data', data)
                         if (data) {
                             this.$set(node, 'status', data.state)
-                            if (data.state === 'RUNNING') {
-                                if (this.$refs.canvas) {
-                                    this.$refs.canvas.setCanvasPosition(node)
+                            if (node.type === 'tasknode' || node.type === 'subflow') {
+                                if (data.state === 'RUNNING') {
+                                    if (this.$refs.canvas) {
+                                        this.$refs.canvas.setCanvasPosition(node)
+                                    }
+                                } else {
+                                    this.clearNodeTooltipInstance()
                                 }
                             }
                         }
@@ -285,6 +307,168 @@
                 }).catch(() => {
                     this.revokeConfirmShow = false
                 })
+            },
+
+            onNodeClick (node) {
+                this.createTooltipInstance(node)
+            },
+
+            handleNodeActionClick (e) {
+                const nodeAction = global.$(e.target).data('action')
+                const nodeId = global.$(e.target).data('id')
+                if (nodeId) {
+                    const _node = this.canvasData.nodes.find(n => n.id === nodeId)
+                    _node.componentCode = this.pipelineTree.activities[nodeId].component.code
+                    if (nodeAction) {
+                        this.onNodeOperationClick(nodeAction, _node)
+                    }
+                }
+            },
+
+            onNodeOperationClick (operation, node) {
+                if (!this.operating) {
+                    this.operating = true
+                    if (NODE_ACTION.includes(operation)) {
+                        this[`node${operation}`](node)
+                    }
+                }
+            },
+
+            createTooltipInstance (node) {
+                if (node.type === 'tasknode' && node.status) {
+                    let tip = null
+                    if (!this.nodeTooltipInstance[node.id]) {
+                        const el = global.$(`[name=tip_${node.id}]`)[0]
+                        tip = new Tooltip(el, {
+                            placement: 'bottom',
+                            html: true,
+                            title: this.getNodeBtnTpl(node)
+                        })
+                        this.nodeTooltipInstance[node.id] = tip
+                    } else {
+                        tip = this.nodeTooltipInstance[node.id]
+                        tip.hide()
+                    }
+                    tip.show()
+                }
+            },
+
+            getNodeBtnTpl (node) {
+                const btnList = []
+                if (node.status === 'RUNNING') {
+                    if (node.componentCode === 'sleep_timer') {
+                        btnList.push({ type: 'Timer', text: this.i18n.editTime })
+                    } else {
+                        btnList.push({ type: 'Resume', text: this.i18n.resume })
+                    }
+                } else if (node.status === 'FAILED') {
+                    btnList.push({ type: 'Retry', text: this.i18n.retry })
+                    btnList.push({ type: 'Skip', text: this.i18n.skip })
+                    btnList.push({ type: 'Detail', text: this.i18n.detail })
+                } else if (node.status === 'FINISHED') {
+                    btnList.push({ type: 'Detail', text: this.i18n.detail })
+                }
+                return this.nodeBtnTplFactory(btnList, node.id)
+            },
+
+            nodeBtnTplFactory (btnList, nodeId) {
+                return `
+                    <div class="btn-wrapper">
+                    ${btnList.map(btn => `
+                        <div class="tooltip-btn" data-action="${btn.type}" data-id="${nodeId}">${btn.text}</div>
+                    `).join('')}
+                    </div>
+                    `
+            },
+
+            destroyTooltipInstance (id) {
+                if (this.nodeTooltipInstance[id]) {
+                    this.nodeTooltipInstance[id].dispose()
+                    delete this.nodeTooltipInstance[id]
+                }
+            },
+            clearNodeTooltipInstance () {
+                Object.keys(this.nodeTooltipInstance).forEach(item => {
+                    this.destroyTooltipInstance(item)
+                })
+            },
+
+            nodeDetail (node) {
+                this.$store.commit('setNode', node)
+                this.$store.commit('setTaskId', this.taskId)
+                this.$router.push({ name: 'task_nodes' })
+            },
+
+            async nodeRetry (node) {
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
+                const taskId = this.taskId
+                const params = {
+                    taskId: taskId,
+                    nodeId: node.id,
+                    componentCode: node.componentCode
+                }
+                try {
+                    const response = await this.getNodeRetryData(params)
+                    params.inputs = response.data.inputs
+                    const newInputs = {}
+                    for (const k of Object.keys(params.inputs)) {
+                        newInputs[`${params.componentCode}.${k}`] = { source_tag: `${params.componentCode}.${k}`, value: params.inputs[k] }
+                    }
+                    params.inputs = newInputs
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+                this.$toast.clear()
+                this.operating = false
+                this.$router.push({ name: 'task_reset', params: params })
+            },
+            async nodeSkip (node) {
+                try {
+                    this.$toast.loading({ mask: true, message: this.i18n.loading })
+                    const response = await this.instanceNodeSkip({ id: this.taskId, nodeId: node.id })
+                    if (response.result) {
+                        global.bus.$emit('notify', { message: this.i18n.skipSuccess })
+                        setTimeout(() => {
+                            this.setTaskStatusTimer()
+                        }, 1000)
+                    } else {
+                        errorHandler(response, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.$toast.clear()
+                    this.operating = false
+                    this.clearNodeTooltipInstance()
+                }
+            },
+            async nodeResume (node) {
+                try {
+                    const response = await this.instanceNodeResume({ id: this.taskId, nodeId: node.id })
+                    if (response.result) {
+                        this.setTaskStatusTimer()
+                    } else {
+                        errorHandler(response, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.operating = false
+                    this.clearNodeTooltipInstance()
+                }
+            },
+            async nodeTimer (node) {
+                this.$toast.loading({ mask: true, message: this.i18n.loading })
+                const params = {
+                    taskId: this.taskId,
+                    nodeId: node.id,
+                    componentCode: node.componentCode
+                }
+                const response = await this.getNodeRetryData(params)
+                params.inputs = response.data.inputs
+                this.$toast.clear()
+                this.operating = false
+                this.$router.push({ name: 'task_edit_timing', params: params })
             }
         }
     }
