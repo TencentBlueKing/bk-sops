@@ -45,28 +45,26 @@
             @change="updateForm">
         </component>
         <div class="rf-tag-hook" v-if="showHook">
-            <BaseCheckbox
+            <bk-checkbox
                 v-bk-tooltips="{
                     content: hook ? i18n.hooked : i18n.cancelHook,
                     placements: ['left'],
                     customClass: 'offset-left-tooltip'
                 }"
-                :is-checked="hook"
-                @checkCallback="onHookForm">
-            </BaseCheckbox>
+                :value="hook"
+                @change="onHookForm">
+            </bk-checkbox>
         </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
     import FormItem from './FormItem.vue'
-    import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
 
     export default {
         name: 'FormGroup',
         components: {
-            FormItem,
-            BaseCheckbox
+            FormItem
         },
         props: {
             scheme: {
@@ -218,7 +216,7 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 3px;
+        top: 6px;
         right: 0;
         z-index: 1;
     }
