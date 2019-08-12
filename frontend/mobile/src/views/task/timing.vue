@@ -60,7 +60,7 @@
                 }
             },
             async editTime () {
-                this.show = false // 1
+                this.show = false
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
                 const params = {
                     instance_id: this.taskId,
