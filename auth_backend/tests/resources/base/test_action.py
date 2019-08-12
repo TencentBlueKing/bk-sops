@@ -11,31 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+from django.test import TestCase
+
+from auth_backend.resources.base import Action
 
 
-class AuthBaseException(Exception):
-    pass
+class ActionTestCase(TestCase):
 
-
-class AuthKeyError(AuthBaseException):
-    pass
-
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthBackendError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
-        self.status = status
+    def test_dict(self):
+        action = Action(id='view', name='name', is_instance_related=True)
+        self.assertEqual(action.dict(), {'id': 'view', 'name': 'name'})

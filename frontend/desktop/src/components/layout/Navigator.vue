@@ -308,7 +308,12 @@
                 let path
                 if (route.key === 'appmakerTaskCreate') {
                     path = `${route.path}?template_id=${this.appmakerTemplateId}`
-                } else if (this.userType !== 'maintainer' || route.key === 'project' || route.parent === 'admin') {
+                } else if (
+                    this.userType !== 'maintainer'
+                    || route.key === 'project'
+                    || route.parent === 'admin'
+                    || (isNaN(this.project_id) || this.project_id === '')
+                ) {
                     path = `${route.path}`
                 } else {
                     path = { path: `${route.path}${this.project_id}/`, query: route.query }

@@ -11,31 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+from django.conf import settings
 
-
-class AuthBaseException(Exception):
-    pass
-
-
-class AuthKeyError(AuthBaseException):
-    pass
-
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthBackendError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
-        self.status = status
+SYSTEM_ID = getattr(settings, 'AUTH_SYSTEM_ID', getattr(settings, 'BK_IAM_SYSTEM_ID', None))
+SYSTEM_NAME = getattr(settings, 'AUTH_SYSTEM_NAME', getattr(settings, 'BK_IAM_SYSTEM_NAME', None))
