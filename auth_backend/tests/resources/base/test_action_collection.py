@@ -11,31 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+from django.test import TestCase
+
+from auth_backend.resources.base import Action, ActionCollection
 
 
-class AuthBaseException(Exception):
-    pass
+class ActionCollectionTestCase(TestCase):
 
+    def setUp(self):
+        self.actions = [Action(id='view', name='name_1', is_instance_related=True),
+                        Action(id='edit', name='name_2', is_instance_related=True)]
 
-class AuthKeyError(AuthBaseException):
-    pass
+    def test_init(self):
+        collection = ActionCollection(self.actions)
+        for action in self.actions:
+            self.assertEqual(getattr(collection, action.id).name, action.name)
 
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthBackendError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
-        self.status = status
+    def test_iter(self):
+        collection = ActionCollection(self.actions)
+        for i, action in enumerate(collection):
+            self.assertEqual(action.id, self.actions[i].id)
