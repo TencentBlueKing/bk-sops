@@ -229,7 +229,6 @@
                 let isValid = true
                 this.$children.forEach(childComp => {
                     const singleItemValid = childComp.validate()
-
                     if (isValid) {
                         isValid = singleItemValid
                     }
