@@ -531,10 +531,6 @@
                 margin-left: 5px;
             }
         }
-        /deep/.bk-button {
-            height: 32px;
-            line-height: 30px;
-        }
     }
     .card-wrapper {
         float: left;
