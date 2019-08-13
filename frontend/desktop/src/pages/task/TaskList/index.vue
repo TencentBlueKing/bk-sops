@@ -584,6 +584,7 @@
                 this.taskSync = ''
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
+                this.searchInputhandler()
             },
             onChangeExecuteTime (oldValue, newValue) {
                 // const timeArray = oldValue.split(' - ')

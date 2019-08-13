@@ -41,6 +41,7 @@
                             <bk-date-picker
                                 :placeholder="i18n.dateRange"
                                 :type="'daterange'"
+                                v-model="selectedTime"
                                 @change="onChangeEditTime">
                             </bk-date-picker>
                         </div>
@@ -89,7 +90,7 @@
             :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div class="delete-tips" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="delete-tips-dialog" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
                 {{i18n.deleteTips}}
             </div>
         </bk-dialog>
@@ -102,17 +103,17 @@
             :title="i18n.jurisdiction"
             :value="isPermissionsDialog"
             @cancel="onCloseWindows">
-            <div v-bkloading="{ isLoading: loadingAuthority, opacity: 1 }">
-                <p class="jurisdictionHint">{{i18n.jurisdictionHint}}</p>
-                <div class="box">
+            <div class="permission-content-dialog" v-bkloading="{ isLoading: loadingAuthority, opacity: 1 }">
+                <p class="jurisdiction-hint">{{i18n.jurisdictionHint}}</p>
+                <div class="permission-item">
                     <span class="addJurisdiction">{{i18n.addJurisdiction }}:</span>
                     <span>{{createdTaskPerList || '--'}}</span>
                 </div>
-                <div class="box">
+                <div class="permission-item">
                     <span class="getJurisdiction">{{i18n.getJurisdiction}}:</span>
                     <span>{{modifyParamsPerList || '--'}}</span>
                 </div>
-                <div>
+                <div class="permission-item">
                     <span class="executeJurisdiction">{{i18n.executeJurisdiction}}:</span>
                     <span>{{executeTaskPerList || '--'}}</span>
                 </div>
@@ -163,6 +164,7 @@
                 isDeleteDialogShow: false,
                 isAdvancedSerachShow: false,
                 editor: undefined,
+                selectedTime: [],
                 editStartTime: undefined,
                 editEndTime: undefined,
                 isPermissionsDialog: false,
@@ -263,28 +265,28 @@
             },
             onOpenPermissions (app) {
                 this.isPermissionsDialog = true
-                // this.loadTemplatePersons(app.template_id)
+                this.loadTemplatePersons(app.template_id)
             },
-            // async loadTemplatePersons (id) {
-            //     this.loadingAuthority = true
-            //     try {
-            //         const data = {
-            //             templateId: id
-            //         }
-            //         const res = await this.getTemplatePersons(data)
-            //         if (res.result) {
-            //             this.createdTaskPerList = res.data.create_task.map(item => item.show_name).join('、')
-            //             this.modifyParamsPerList = res.data.fill_params.map(item => item.show_name).join('、')
-            //             this.executeTaskPerList = res.data.execute_task.map(item => item.show_name).join('、')
-            //             this.loadingAuthority = false
-            //         } else {
-            //             errorHandler(res, this)
-            //             return []
-            //         }
-            //     } catch (e) {
-            //         errorHandler(e, this)
-            //     }
-            // },
+            async loadTemplatePersons (id) {
+                this.loadingAuthority = true
+                try {
+                    const data = {
+                        templateId: id
+                    }
+                    const res = await this.getTemplatePersons(data)
+                    if (res.result) {
+                        this.createdTaskPerList = res.data.create_task.map(item => item.show_name).join('、')
+                        this.modifyParamsPerList = res.data.fill_params.map(item => item.show_name).join('、')
+                        this.executeTaskPerList = res.data.execute_task.map(item => item.show_name).join('、')
+                        this.loadingAuthority = false
+                    } else {
+                        errorHandler(res, this)
+                        return []
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
             onCardDelete (app) {
                 this.isDeleteDialogShow = true
                 this.currentAppData = app
@@ -335,6 +337,13 @@
             },
             onEditCancel () {
                 this.isEditDialogShow = false
+                this.currentAppData = {
+                    template_id: '',
+                    name: '',
+                    template_scheme_id: '',
+                    desc: '',
+                    logo_url: undefined
+                }
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
@@ -345,8 +354,10 @@
             },
             onResetForm () {
                 this.editor = undefined
+                this.selectedTime = []
                 this.editStartTime = undefined
                 this.editEndTime = undefined
+                this.searchInputhandler()
             }
         }
     }
@@ -542,16 +553,6 @@
         background: $whiteDefault;
         border: 1px solid $commonBorderColor;
     }
-    .jurisdictionHint {
-        padding: 0 10PX;
-        line-height: 32px;
-        background: #f0f1f5;
-        border-radius: 2px;
-        font-size: 12px;
-    }
-    .box {
-        margin: 20px 0px;
-    }
     .exit-btn {
         float:right;
         .bk-button {
@@ -567,6 +568,22 @@
     }
     .advanced-search {
         margin: 0px;
+    }
+}
+.delete-tips-dialog {
+    padding: 30px;
+}
+.permission-content-dialog {
+    padding: 24px;
+    .jurisdiction-hint {
+        padding: 0 10PX;
+        line-height: 32px;
+        background: #f0f1f5;
+        border-radius: 2px;
+        font-size: 12px;
+    }
+    .permission-item {
+        margin: 20px 0px;
     }
 }
 </style>
