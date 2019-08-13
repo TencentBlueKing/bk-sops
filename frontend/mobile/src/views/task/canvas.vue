@@ -419,24 +419,24 @@
                     componentCode: node.componentCode
                 }
                 try {
-                    let response = await this.getNodeRetryData(params)
-                    if (response.result) {
-                        response = await this.instanceNodeRetry({
+                    const nodeRetryDataResponse = await this.getNodeRetryData(params)
+                    if (nodeRetryDataResponse.result) {
+                        const nodeRetryResponse = await this.instanceNodeRetry({
                             'instance_id': params.taskId,
                             'node_id': node.id,
                             'component_code': params.componentCode,
-                            'inputs': JSON.stringify(response.data.inputs)
+                            'inputs': JSON.stringify(nodeRetryDataResponse.data.inputs)
                         })
-                        if (response.result) {
+                        if (nodeRetryResponse.result) {
                             global.bus.$emit('notify', { message: this.i18n.retrySuccess })
                             setTimeout(() => {
                                 this.setTaskStatusTimer()
                             }, 1000)
                         } else {
-                            errorHandler(response, this)
+                            errorHandler(nodeRetryResponse, this)
                         }
                     } else {
-                        errorHandler(response, this)
+                        errorHandler(nodeRetryDataResponse, this)
                     }
                 } catch (e) {
                     errorHandler(e, this)
