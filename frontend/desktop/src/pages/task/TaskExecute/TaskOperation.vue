@@ -145,7 +145,6 @@
             </div>
         </transition>
         <gatewaySelectDialog
-            v-if="isGatewaySelectDialogShow"
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
             :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
@@ -1463,10 +1462,8 @@
         }
     }
     .bk-flow-canvas .tooltip .tooltip-inner {
-        height: 34px;
-        width: 80px;
-        line-height: 34px;
-        padding: 0;
+        line-height: 1;
+        box-sizing: content-box;
     }
 }
 </style>

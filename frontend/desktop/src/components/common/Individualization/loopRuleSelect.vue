@@ -61,7 +61,7 @@
                             <i
                                 v-if="item.key === 'week'"
                                 v-bk-tooltips="i18n.monthTips"
-                                class="common-icon-tooltips month-tips top-start"></i>
+                                class="bk-icon icon-info-circle month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
                             <div
                                 v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
@@ -103,7 +103,7 @@
                     class="step-form-content-size" />
             </div>
         </div>
-        <i class="common-icon-tooltips rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
+        <i class="bk-icon icon-info-circle rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
             <img class="ui-img" :src="periodicCronImg">
@@ -540,6 +540,10 @@ $bgBlue: #3a84ff;
     margin-right: -26px;
     margin-top: 8px;
     color: #c4c6cc;
+    font-size: 14px;
+    &:hover {
+        color: #f4aa1a;
+    }
 }
 .local-error-tip {
     margin-top: 10px;

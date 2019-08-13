@@ -544,6 +544,7 @@
                 this.funtorSync = 0
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
+                this.searchInputhandler()
             },
             onSelectedStatus (id, name) {
                 this.status = id

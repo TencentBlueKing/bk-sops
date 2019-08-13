@@ -10,31 +10,29 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="edit-dialog-wrapper">
-        <bk-dialog
-            width="600"
-            ext-cls="common-dialog"
-            :theme="'primary'"
-            :mask-close="false"
-            :header-position="'left'"
-            :title="i18n.edit"
-            :value="isShow"
-            @confirm="onConfirm"
-            @cancel="onCancel">
-            <div class="variable-params-content">
-                <RenderForm
-                    ref="renderForm"
-                    :scheme="renderConfig"
-                    :form-option="renderOption"
-                    v-model="formData"
-                    @change="onDataChange">
-                </RenderForm>
-                <div class="error-tips" v-if="formError">
-                    <span class="common-error-tip error-info">{{i18n.checkData}}</span>
-                </div>
+    <bk-dialog
+        width="600"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.edit"
+        :value="isShow"
+        @confirm="onConfirm"
+        @cancel="onCancel">
+        <div class="variable-params-content">
+            <RenderForm
+                ref="renderForm"
+                :scheme="renderConfig"
+                :form-option="renderOption"
+                v-model="formData"
+                @change="onDataChange">
+            </RenderForm>
+            <div class="error-tips" v-if="formError">
+                <span class="common-error-tip error-info">{{i18n.checkData}}</span>
             </div>
-        </bk-dialog>
-    </div>
+        </div>
+    </bk-dialog>
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -78,8 +76,8 @@
     }
 </script>
 <style lang="scss" scoped>
-.edit-dialog-wrapper {
-    position: relative;
+.variable-params-content {
+    padding: 30px;
     /deep/ .tag-form {
         margin-left: 0;
     }

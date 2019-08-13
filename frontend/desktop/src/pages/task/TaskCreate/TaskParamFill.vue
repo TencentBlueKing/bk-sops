@@ -15,10 +15,10 @@
             <div class="task-info-title">
                 <span>{{ i18n.taskInfo }}</span>
             </div>
-            <div v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
+            <div>
                 <div class="common-form-item">
                     <label class="required">{{ i18n.taskName }}</label>
-                    <div class="common-form-content">
+                    <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
                         <BaseInput
                             v-model="taskName"
                             v-validate="taskNameRule"
@@ -185,7 +185,7 @@
                 return this.userType !== 'functor' && this.isStartNow
             },
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== '0' && this.entrance !== '1'
+                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
             }
         },
         mounted () {
@@ -207,7 +207,7 @@
                 'createPeriodic'
             ]),
             period () {
-                if (this.entrance === '0') {
+                if (this.entrance === 'periodicTask') {
                     this.isStartNow = false
                 }
             },
@@ -385,11 +385,12 @@
 <style lang="scss" scoped>
 @import "@/scss/config.scss";
 .param-fill-wrapper {
+    position: relative;
     padding-top: 50px;
+    padding-bottom: 72px;
+    box-sizing: border-box;
+    min-height: calc(100vh - 50px - 139px);
     background: #fff;
-    @media screen and (max-width: 1300px){
-        width: calc(100% - 40px);
-    }
     /deep/ .no-data-wrapper {
         position: relative;
         top: 122px;
@@ -492,6 +493,9 @@
     }
 }
 .action-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
     border-top: 1px solid #cacedb;
     background-color: #ffffff;
     button {

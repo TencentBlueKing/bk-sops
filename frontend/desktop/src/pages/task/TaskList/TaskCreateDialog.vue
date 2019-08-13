@@ -8,6 +8,7 @@
         :header-position="'left'"
         :title="i18n.title"
         :value="isNewTaskDialogShow"
+        :auto-close="false"
         @confirm="onCreateTask"
         @cancel="onCancel">
         <div class="task-container">
@@ -39,14 +40,20 @@
                             <bk-option
                                 v-for="(option, index) in templateCategories"
                                 :key="index"
-                                :id="option.id"
+                                :id="option.name"
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
                     </div>
                     <div class="task-search">
-                        <input class="search-input" :placeholder="i18n.placeholder" v-model="searchWord" @input="onSearchInput" />
-                        <i class="common-icon-search"></i>
+                        <bk-input
+                            class="search-input"
+                            :placeholder="i18n.placeholder"
+                            :right-icon="'bk-icon icon-search'"
+                            :clearable="true"
+                            v-model="searchWord"
+                            @input="onSearchInput">
+                        </bk-input>
                     </div>
                 </div>
                 <div class="task-list" v-bkloading="{ isLoading: taskListPending, opacity: 1 }">
@@ -126,8 +133,8 @@
                         name: gettext('公共流程')
                     }
                 ],
-                selectedTplType: gettext('BusinessProcess'),
-                selectedTplCategory: gettext('all'),
+                selectedTplType: gettext('业务流程'),
+                selectedTplCategory: gettext('全部分类'),
                 searchWord: '',
                 nowTypeList: []
             }
@@ -223,14 +230,14 @@
                 const groups = []
                 const atomGrouped = []
                 this.taskCategory.forEach(item => {
-                    groups.push(item.value)
+                    groups.push(item.name)
                     atomGrouped.push({
                         name: item.name,
                         children: []
                     })
                 })
                 list.forEach(item => {
-                    const type = item.category
+                    const type = item.category_name
                     const index = groups.indexOf(type)
                     if (index > -1) {
                         atomGrouped[index].children.push({
@@ -252,9 +259,9 @@
                     url += '&common=1'
                 }
                 if (this.createEntrance === false) {
-                    url += '&entrance=0'
+                    url += '&entrance=periodicTask'
                 } else if (this.createEntrance === true) {
-                    url += '&entrance=1'
+                    url += '&entrance=taskflow'
                 }
                 this.$router.push(url)
             },
@@ -282,7 +289,7 @@
                 this.onFiltrationTemplate()
             },
             onFiltrationTemplate () {
-                const list = this.selectedTplType === this.templateType[0].name ? this.businessTplList : this.commonTplList
+                const list = this.selectedTplType === this.templateType[0].id ? this.businessTplList : this.commonTplList
                 const sourceList = toolsUtils.deepClone(list)
                 let filteredList = []
                 if (this.selectedTplCategory === this.i18n.allType) {
@@ -300,7 +307,7 @@
     }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
@@ -315,11 +322,15 @@
         .task-list {
             width: 830px;
             height: 268px;
-            overflow-y: auto;
-            @include scrollbar;
+            overflow: hidden;
         }
         .task-group {
             margin-bottom: 30px;
+        }
+        .grouped-list {
+            height: 100%;
+            overflow-y: auto;
+            @include scrollbar;
         }
         .search-list {
             padding-top: 40px;
@@ -339,30 +350,7 @@
         margin-bottom: 20px;
         flex: 1;
         .search-input {
-            padding: 0 40px 0 10px;
             width: 260px;
-            height: 32px;
-            line-height: 32px;
-            font-size: 14px;
-            background: $whiteDefault;
-            border: 1px solid $commonBorderColor;
-            border-radius: 4px;
-            outline: none;
-            &:hover {
-                border-color: #c0c4cc;
-            }
-            &:focus {
-                border-color: $blueDefault;
-                & + i {
-                    color: $blueDefault;
-                }
-            }
-        }
-        .common-icon-search {
-            position: absolute;
-            right: 15px;
-            top: 9px;
-            color: $commonBorderColor;
         }
     }
     .flow-types {
@@ -378,7 +366,8 @@
         width: 260px;
         cursor: pointer;
         background: #dcdee5;
-        border-radius: 4px;
+        border-radius: 2px;
+        overflow: hidden;
         &:nth-child(3n + 1) {
             margin-left: 0;
         }
@@ -397,7 +386,6 @@
         .task-item-name {
             color: #313238;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #dcdee5
@@ -415,7 +403,6 @@
         height: 56px;
         width: 205px;
         font-size: 12px;
-        border-radius: 0 4px 4px 0;
     }
     .task-item-selected {
         .task-item-icon {
