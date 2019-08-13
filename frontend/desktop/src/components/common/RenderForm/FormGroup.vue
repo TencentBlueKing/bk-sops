@@ -190,19 +190,22 @@
             },
             validate () {
                 let isValid = true
-                this.$children.forEach(childComp => {
-                    const compType = childComp.$options.name
+                if (!this.hook) {
+                    this.$children.forEach(childComp => {
+                        const compType = childComp.$options.name
 
-                    if (compType !== 'FormItem' && compType !== 'FormGroup') {
-                        return
-                    }
+                        if (compType !== 'FormItem' && compType !== 'FormGroup') {
+                            return
+                        }
 
-                    const singleItemValid = childComp.validate()
+                        const singleItemValid = childComp.validate()
 
-                    if (isValid) {
-                        isValid = singleItemValid
-                    }
-                })
+                        if (isValid) {
+                            isValid = singleItemValid
+                        }
+                    })
+                }
+                
                 return isValid
             }
         }

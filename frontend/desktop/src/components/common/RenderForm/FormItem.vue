@@ -301,7 +301,10 @@
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
             validate (combineValue) {
-                return this.$refs.tagComponent ? this.$refs.tagComponent.validate(combineValue) : true
+                if (!this.hook) {
+                    return this.$refs.tagComponent.validate(combineValue)
+                }
+                return true
             }
         }
     }
