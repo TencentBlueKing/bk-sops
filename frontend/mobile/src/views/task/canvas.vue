@@ -122,6 +122,7 @@
                     editTime: window.gettext('修改时间'),
                     skipSuccess: window.gettext('跳过成功'),
                     skipFailed: window.gettext('跳过失败'),
+                    retrySuccess: window.gettext('重试成功'),
                     resume: window.gettext('继续'),
                     executeStartFailed: window.gettext('开始执行任务失败'),
                     loading: window.gettext('加载中...')
@@ -156,7 +157,8 @@
                 'instanceRevoke',
                 'instanceNodeResume',
                 'instanceNodeSkip',
-                'getNodeRetryData'
+                'getNodeRetryData',
+                'instanceNodeRetry'
             ]),
             async loadData () {
                 try {
@@ -338,27 +340,33 @@
                 if (node.type === 'tasknode' && node.status) {
                     let tip = null
                     if (!this.nodeTooltipInstance[node.id]) {
-                        const el = global.$(`[name=tip_${node.id}]`)[0]
-                        tip = new Tooltip(el, {
-                            placement: 'bottom',
-                            html: true,
-                            title: this.getNodeBtnTpl(node)
-                        })
-                        this.nodeTooltipInstance[node.id] = tip
+                        const nodeBtnTpl = this.getNodeBtnTpl(node)
+                        if (nodeBtnTpl) {
+                            const el = global.$(`[name=tip_${node.id}]`)[0]
+                            tip = new Tooltip(el, {
+                                placement: 'bottom',
+                                html: true,
+                                title: nodeBtnTpl
+                            })
+                            this.nodeTooltipInstance[node.id] = tip
+                        }
                     } else {
                         tip = this.nodeTooltipInstance[node.id]
                         tip.hide()
                     }
-                    tip.show()
+                    if (tip) {
+                        tip.show()
+                    }
                 }
             },
 
             getNodeBtnTpl (node) {
                 const btnList = []
+                node.componentCode = this.pipelineTree.activities[node.id].component.code
                 if (node.status === 'RUNNING') {
                     if (node.componentCode === 'sleep_timer') {
                         btnList.push({ type: 'Timer', text: this.i18n.editTime })
-                    } else {
+                    } else if (node.componentCode === 'pause_node') {
                         btnList.push({ type: 'Resume', text: this.i18n.resume })
                     }
                 } else if (node.status === 'FAILED') {
@@ -368,7 +376,11 @@
                 } else if (node.status === 'FINISHED') {
                     btnList.push({ type: 'Detail', text: this.i18n.detail })
                 }
-                return this.nodeBtnTplFactory(btnList, node.id)
+                if (btnList.length > 0) {
+                    return this.nodeBtnTplFactory(btnList, node.id)
+                } else {
+                    return ''
+                }
             },
 
             nodeBtnTplFactory (btnList, nodeId) {
@@ -401,26 +413,38 @@
 
             async nodeRetry (node) {
                 this.$toast.loading({ mask: true, message: this.i18n.loading })
-                const taskId = this.taskId
                 const params = {
-                    taskId: taskId,
+                    taskId: this.taskId,
                     nodeId: node.id,
                     componentCode: node.componentCode
                 }
                 try {
-                    const response = await this.getNodeRetryData(params)
-                    params.inputs = response.data.inputs
-                    const newInputs = {}
-                    for (const k of Object.keys(params.inputs)) {
-                        newInputs[`${params.componentCode}.${k}`] = { source_tag: `${params.componentCode}.${k}`, value: params.inputs[k] }
+                    const nodeRetryDataResponse = await this.getNodeRetryData(params)
+                    if (nodeRetryDataResponse.result) {
+                        const nodeRetryResponse = await this.instanceNodeRetry({
+                            'instance_id': params.taskId,
+                            'node_id': node.id,
+                            'component_code': params.componentCode,
+                            'inputs': JSON.stringify(nodeRetryDataResponse.data.inputs)
+                        })
+                        if (nodeRetryResponse.result) {
+                            global.bus.$emit('notify', { message: this.i18n.retrySuccess })
+                            setTimeout(() => {
+                                this.setTaskStatusTimer()
+                            }, 1000)
+                        } else {
+                            errorHandler(nodeRetryResponse, this)
+                        }
+                    } else {
+                        errorHandler(nodeRetryDataResponse, this)
                     }
-                    params.inputs = newInputs
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.$toast.clear()
+                    this.operating = false
+                    this.clearNodeTooltipInstance()
                 }
-                this.$toast.clear()
-                this.operating = false
-                this.$router.push({ name: 'task_reset', params: params })
             },
             async nodeSkip (node) {
                 try {
