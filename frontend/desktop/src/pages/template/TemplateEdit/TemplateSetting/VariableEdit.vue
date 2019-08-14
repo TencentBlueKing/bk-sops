@@ -124,14 +124,12 @@
         <div class="action-wrapper">
             <bk-button
                 theme="success"
-                size="small"
                 :disabled="atomConfigLoading"
                 @click.stop="saveVariable">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
                 theme="default"
-                size="small"
                 @click.stop="cancelVariable">
                 {{ i18n.cancel }}
             </bk-button>
@@ -422,7 +420,6 @@
                         return true
                     }
                 })
-                console.log(data)
                 this.renderData = {}
                 // input 类型需要正则校验
                 if (val === 'input') {
@@ -616,7 +613,7 @@ $localBorderColor: #d8e2e7;
     }
 }
 .action-wrapper {
-    text-align: center;
+    padding-left: 80px;
     button:first-child {
         margin-right: 10px;
     }

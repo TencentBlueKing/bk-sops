@@ -186,8 +186,13 @@
 </script>
 <style lang="scss" scoped>
 .tag-tree {
-    /deep/ .el-tree > .el-tree-node > .el-tree-node__content {
-        height: 36px;
+    /deep/ .el-tree {
+        & > .el-tree-node > .el-tree-node__content {
+            height: 36px;
+        }
+        .el-tree-node__label {
+            padding-left: 4px;
+        }
     }
 }
 </style>
