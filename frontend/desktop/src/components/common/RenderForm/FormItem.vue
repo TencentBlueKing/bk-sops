@@ -229,7 +229,7 @@
                     case 'datetime':
                     case 'password':
                         valueFormat = {
-                            type: ['String', 'Number'],
+                            type: ['String', 'Number', 'Boolean'],
                             value: ''
                         }
                         break
@@ -250,7 +250,7 @@
                             }
                         } else {
                             valueFormat = {
-                                type: ['String', 'Number'],
+                                type: ['String', 'Number', 'Boolean'],
                                 value: ''
                             }
                         }
