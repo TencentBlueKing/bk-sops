@@ -31,7 +31,7 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
-from pipeline.utils.context import get_pipeline_context
+from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import states
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.models import ComponentModel
@@ -51,15 +51,8 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from pipeline_web.parser.format import format_node_io_to_list
 
 from gcloud.conf import settings
-from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
 from gcloud.core.models import Business
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
-from gcloud.taskflow3.constants import (
-    TASK_CREATE_METHOD,
-    TEMPLATE_SOURCE,
-)
 from gcloud.core.utils import (
     convert_readable_username,
     strftime_with_timezone,
@@ -69,7 +62,15 @@ from gcloud.core.utils import (
     gen_day_dates,
     get_month_dates
 )
+from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.constants import (
+    TASK_CREATE_METHOD,
+    TEMPLATE_SOURCE,
+)
 from gcloud.taskflow3.signals import taskflow_started
+from gcloud.taskflow3.context import TaskContext
+from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
@@ -942,14 +943,19 @@ class TaskFlowInstance(models.Model):
                 inputs = WebPipelineAdapter(instance_data).get_act_inputs(
                     act_id=node_id,
                     subprocess_stack=subprocess_stack,
-                    root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance')
+                    root_pipeline_data=get_pipeline_context(self.pipeline_instance,
+                                                            obj_type='instance',
+                                                            data_type='data'),
+                    root_pipeline_context=get_pipeline_context(self.pipeline_instance,
+                                                               obj_type='instance',
+                                                               data_type='context')
                 )
                 outputs = {}
             except Exception as e:
                 inputs = {}
                 result = False
                 logger.exception(traceback.format_exc())
-                message = 'parser pipeline tree error: %s' % e
+                message = u"parser pipeline tree error: %s" % e
                 outputs = {'ex_data': message}
 
         if not isinstance(inputs, dict):
@@ -964,7 +970,7 @@ class TaskFlowInstance(models.Model):
                 outputs_format = component.outputs_format()
             except Exception as e:
                 result = False
-                message = 'get component[component_code=%s] format error: %s' % (component_code, e)
+                message = u"get component[component_code=%s] format error: %s" % (component_code, e)
                 logger.exception(traceback.format_exc())
                 outputs = {'ex_data': message}
             else:
