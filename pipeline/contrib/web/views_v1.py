@@ -24,9 +24,9 @@ from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance, PipelineTemplate
 from pipeline.contrib.web import forms
 from pipeline.parser import pipeline_parser
+from pipeline.parser.context import get_pipeline_context
 from pipeline.service import task_service
 from pipeline.component_framework import library
-from pipeline.utils.context import get_pipeline_context
 from pipeline.log.models import LogEntry
 
 from django.utils.translation import ugettext_lazy as _
