@@ -70,10 +70,12 @@ class ResourceTestCase(TestCase):
 
     @patch(RESOURCE_BASE_CONF_SYSTEM_ID, 'system_id_token')
     @patch(RESOURCE_BASE_CONF_SYSTEM_NAME, 'system_name_token')
+    @patch(CONF_SCOPE_TYPE_NAMES, {'scope_type_token': 'system_type_name_token'})
     def test_base_info(self):
         self.assertEqual(self.resource.base_info(), {'system_id': 'system_id_token',
                                                      'system_name': 'system_name_token',
                                                      'scope_type': self.scope_type,
+                                                     'scope_type_name': 'system_type_name_token',
                                                      'scope_id': self.scope_id,
                                                      'scope_name': self.scope_name,
                                                      'resource': {
