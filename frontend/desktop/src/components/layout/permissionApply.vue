@@ -105,7 +105,12 @@
                 if (this.urlLoading || !this.url) {
                     return
                 }
-                window.open(this.url, '__blank')
+                
+                if (self === top) {
+                    window.open(this.url, '__blank')
+                } else {
+                    window.PAAS_API.open_other_app('bk_iam_app', this.url)
+                }
             },
             goToCreateProject () {
                 if (!this.hasPermission(['create'], this.authActions, this.authOperations)) {
