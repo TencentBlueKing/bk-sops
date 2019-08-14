@@ -159,7 +159,10 @@
 </script>
 <style lang="scss" scoped>
     .apply-content {
-        padding-top: 240px;
+        position: absolute;
+        top: 35%;
+        left: 0;
+        width: 100%;
         text-align: center;
         .lock-img {
             margin: 0 auto 20px;

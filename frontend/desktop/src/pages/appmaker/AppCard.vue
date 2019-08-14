@@ -34,6 +34,7 @@
                         'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
                     }]"
                     :title="i18n.modifier"
+                    v-cursor="{ active: !hasPermission(['edit'], appData.auth_actions, appOperations) }"
                     @click.stop="onCardEdit">
                 </span>
                 <router-link
@@ -45,6 +46,7 @@
                     :class="['common-icon-dustbin', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
+                    v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
                     @click="onCardDelete">
                 </span>
             </div>
