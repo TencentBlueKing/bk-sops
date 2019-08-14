@@ -73,6 +73,7 @@ class Resource(object):
             'system_id': conf.SYSTEM_ID,
             'system_name': conf.SYSTEM_NAME,
             'scope_type': self.scope_type,
+            'scope_type_name': conf.SCOPE_TYPE_NAMES[self.scope_type],
             'scope_id': self.scope_id,
             'scope_name': self.scope_name,
             'resource': {
