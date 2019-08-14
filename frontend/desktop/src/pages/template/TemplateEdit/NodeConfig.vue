@@ -482,7 +482,6 @@
                     errorHandler(e, this)
                 } finally {
                     this.atomConfigLoading = false
-                    this.isAtomChanged = true
                 }
             },
             /**

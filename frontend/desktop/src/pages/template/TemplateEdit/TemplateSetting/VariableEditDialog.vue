@@ -78,6 +78,8 @@
 <style lang="scss" scoped>
 .variable-params-content {
     padding: 30px;
+    max-height: 400px;
+    overflow-y: auto;
     /deep/ .tag-form {
         margin-left: 0;
     }
