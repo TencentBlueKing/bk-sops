@@ -13,9 +13,6 @@
     <div class="global-variable-panel">
         <div class="global-title">
             <span>{{i18n.global_varibles}}</span>
-        </div>
-        <div class="add-variable">
-            <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
             <i
                 class="bk-icon icon-info-circle global-variable-tootip"
                 v-bk-tooltips="{
@@ -35,6 +32,9 @@
                     <p>{{ i18n.outputs_desc }}</p>
                 </div>
             </div>
+        </div>
+        <div class="add-variable">
+            <bk-button theme="default" class="add-variable-btn" @click="onAddVariable">{{ i18n.new }}</bk-button>
         </div>
         <div class="global-variable-content">
             <div class="variable-header clearfix">
@@ -359,6 +359,9 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 $localBorderColor: #d8e2e7;
+/deep/ .common-dialog .bk-dialog-body{
+    padding: 20px;
+}
 .global-variable-panel {
     height: 100%;
     .global-title {

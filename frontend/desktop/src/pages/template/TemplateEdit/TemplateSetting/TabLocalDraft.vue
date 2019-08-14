@@ -13,21 +13,6 @@
     <div class="local-draft-panel">
         <div class="local-title">
             <span> {{i18n.localCache}} </span>
-        </div>
-        <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
-            <div class="draft-form" v-if="newDraftShow">
-                <BaseInput
-                    :placeholder="i18n.draftMessage"
-                    name="draftName"
-                    v-model="newDraftName"
-                    data-vv-validate-on=" "
-                    v-validate="draftNameRule" />
-                <bk-button theme="success" @click="onNewDraft">{{i18n.affirm}}</bk-button>
-                <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
-            </div>
-            <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
-                {{ i18n.newDraft }}
-            </bk-button>
             <i
                 class="bk-icon icon-info-circle draft-tooltip"
                 v-bk-tooltips="{
@@ -45,6 +30,22 @@
                     </p>
                 </div>
             </div>
+        </div>
+        <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
+            <div class="draft-form" v-if="newDraftShow">
+                <BaseInput
+                    :placeholder="i18n.draftMessage"
+                    name="draftName"
+                    v-model="newDraftName"
+                    data-vv-validate-on=" "
+                    v-validate="draftNameRule" />
+                <bk-button theme="success" @click="onNewDraft">{{i18n.affirm}}</bk-button>
+                <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
+            </div>
+            <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
+                {{ i18n.newDraft }}
+            </bk-button>
+            
             <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
         </div>
         <div class="local-draft-content">
@@ -213,8 +214,9 @@
         }
     }
     .draft-tooltip {
-        float: right;
-        margin-top: 8px;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 6px;
         color:#c4c6cc;
         cursor: pointer;
         &:hover {
@@ -301,6 +303,9 @@
                 margin-top: 120px;
                 line-height: 1;
             }
+        }
+        .common-icon-dark-circle-close:hover {
+            color: #cecece;
         }
     }
 }

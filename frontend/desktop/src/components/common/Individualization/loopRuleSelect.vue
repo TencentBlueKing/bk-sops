@@ -45,25 +45,12 @@
                             v-if="item.radio === 0"
                             class="loop-select-bd">
                             {{ item.key !== 'week' ? autoWay.loop.start : autoWay.loop.startWeek }}
-                            <!-- <BaseInput
-                                v-model.number="item.loop.start"
-                                v-validate="item.loop.reg"
-                                :name="item.key + 'Rule'"
-                                class="loop-time"
-                                @blur="renderRule()" />
-                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }} -->
                             <bk-input
                                 v-model.number="item.loop.start"
                                 v-validate="item.loop.reg"
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
-                            <!-- <BaseInput
-                                v-model.number="item.loop.inter"
-                                v-validate="{ required: true, integer: true }"
-                                name="interval"
-                                class="loop-time"
-                                @blur="renderRule()" /> -->
                             <bk-input
                                 v-model.number="item.loop.inter"
                                 class="loop-time"
@@ -86,23 +73,6 @@
                         <div
                             v-else
                             class="appoint-select-bd">
-                            <!-- <div
-                                v-for="(box, i) in item.checkboxList"
-                                :key="i"
-                                class="ui-checkbox-group">
-                                <input
-                                    :id="item.key + 'box' + i"
-                                    v-model="box.checked"
-                                    type="checkbox"
-                                    class="ui-checkbox-input"
-                                    @change="renderRule">
-                                <label
-                                    class="ui-checkbox-label"
-                                    :for="item.key + 'box' + i">
-                                    <span class="ui-checkbox-icon"></span>
-                                    <span class="ui-checkbox-tex"> {{ box.value | addZero(item.key) }}</span>
-                                </label>
-                            </div> -->
                             <bk-checkbox
                                 v-for="(box, i) in item.checkboxList"
                                 :key="i"
@@ -301,7 +271,7 @@
                     trigger: 'mouseenter',
                     theme: 'light',
                     content: '#periodic-cron-tips-html',
-                    placement: 'bottom'
+                    placement: 'top'
                 }
             }
         },
@@ -567,7 +537,7 @@ $bgBlue: #3a84ff;
     position: absolute;
     top: 0;
     right: 0;
-    margin-right: -20px;
+    margin-right: -26px;
     margin-top: 8px;
     color: #c4c6cc;
     font-size: 14px;
@@ -631,7 +601,8 @@ $bgBlue: #3a84ff;
                     width: 46px;
                 }
                 .month-tips {
-                    color: #c4c6cc;
+                    margin-left: 6px;
+                    color: #c4c6cc;color: #c4c6cc;
                     font-size: 14px;
                     &:hover {
                         color: #f4aa1a;

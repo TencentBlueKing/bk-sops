@@ -67,13 +67,6 @@
             <!--按钮操作组end-->
         </el-table>
         <!--分页-->
-        <!-- <el-pagination v-if="pagination" @size-change="handleSizeChange"
-            @current-change="handleIndexChange"
-            :page-size="tableCurrentPagination.limit"
-            :page-sizes="tableCurrentPagination.pageArray" :current-page="tableCurrentPagination.pageIndex"
-            layout="total,sizes, prev, pager, next, jumper"
-            :total="total"
-            :pagination="pagination"></el-pagination> -->
         <div class="panagation" v-if="pagination">
             <bk-pagination
                 v-if="pagination"
@@ -316,6 +309,14 @@
       .item {
         display: block;
         flex: 0 0 23%;
+        /deep/ .el-button {
+            color: #3c96ff;
+            border: none;
+            background: none;
+            &:hover {
+                background: none;
+            }
+        }
       }
     }
     .filter-data {
