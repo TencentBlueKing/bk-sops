@@ -23,7 +23,7 @@
     "qs": "^6.5.2",
     "tooltip.js": "^1.2.0",
     "vee-validate": "^2.1.0-beta.6",
-    "vue": "^2.5.16",
+    "vue": "^2.6.10",
     "vue-router": "^3.0.1",
     "vuedraggable": "^2.16.0",
     "vuex": "^3.0.1"

@@ -12,7 +12,7 @@
 <template>
     <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
-            <PipelineCanvas
+            <!-- <PipelineCanvas
                 ref="pipelineCanvas"
                 :single-atom-list-loading="singleAtomListLoading"
                 :sub-atom-list-loading="subAtomListLoading"
@@ -38,7 +38,16 @@
                 @onLocationMoveDone="onLocationMoveDone"
                 @onNewDraft="onNewDraft"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
-            </PipelineCanvas>
+            </PipelineCanvas> -->
+            <TemplateHeader></TemplateHeader>
+            <TemplateCanvas
+                :atom-type-list="atomTypeList"
+                :name="name"
+                :cc_id="cc_id"
+                :type="type"
+                :common="common"
+                :template_id="template_id">
+            </TemplateCanvas>
             <NodeConfig
                 ref="nodeConfig"
                 :cc_id="cc_id"
@@ -96,7 +105,8 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
+    import TemplateHeader from './TemplateHeader.vue'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
     import NodeConfig from './NodeConfig.vue'
     import draft from '@/utils/draft.js'
@@ -119,7 +129,8 @@
     export default {
         name: 'TemplateEdit',
         components: {
-            PipelineCanvas,
+            TemplateHeader,
+            TemplateCanvas,
             NodeConfig,
             TemplateSetting
         },
