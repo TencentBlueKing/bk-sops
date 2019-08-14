@@ -539,9 +539,16 @@
             overflow: visible;
         }
     }
+    .icon-check-circle-shape {
+        color: #30d878;
+    }
     a.periodic-name,
     .periodic-operation a {
         color: $blueDefault;
+        &.periodic-bk-disable {
+            color:#cccccc;
+            cursor: not-allowed;
+        }
     }
     .icon-check-circle-shape {
         color: $greenDefault;

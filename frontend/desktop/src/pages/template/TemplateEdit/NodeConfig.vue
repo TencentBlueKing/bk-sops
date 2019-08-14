@@ -1188,6 +1188,9 @@
             padding-right: 11px;
         }
         .icon-info-circle {
+            display: inline-block;
+            vertical-align: middle;
+            margin-top: 10px;
             color: #c4c6cc;
             &:hover {
                 color: #f4aa1a;

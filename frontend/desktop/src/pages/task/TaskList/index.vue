@@ -170,7 +170,7 @@
                         <template slot-scope="props">
                             <div class="task-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
-                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                                <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
                             </div>
                         </template>
                     </bk-table-column>
@@ -772,7 +772,7 @@
 }
 .common-icon-dark-circle-pause {
     color: #ff9c01;
-    font-size: 12px;
+    font-size: 14px;
 }
 .operation-area {
     .bk-button {
@@ -805,7 +805,7 @@
         }
         .common-icon-dark-circle-close {
             color: $redDefault;
-            font-size: 14px;
+            font-size: 16px;
             vertical-align: middle;
         }
         &.revoke {
@@ -823,6 +823,10 @@
                 -webkit-transform: rotate(360deg);
                 transform: rotate(360deg);
             }
+        }
+        .task-status-text {
+            display: inline-block;
+            vertical-align: middle;
         }
     }
     .task-operation {

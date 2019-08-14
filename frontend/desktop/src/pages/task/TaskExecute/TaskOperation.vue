@@ -1298,6 +1298,7 @@
                 &.is-disabled {
                     color: #ffffff !important; // 覆盖 bk-button important 规则
                     opacity: 0.4;
+                    cursor: no-drop;
                 }
             }
             .revoke-btn {
