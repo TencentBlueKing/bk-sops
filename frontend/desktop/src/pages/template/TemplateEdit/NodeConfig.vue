@@ -1187,8 +1187,7 @@
         margin-left: 120px;
         margin-right: 30px;
         .bk-form-checkbox {
-            width: 110px;
-            margin-right: 30px;
+            width: 150px;
             padding-right: 11px;
         }
         .icon-info-circle {
