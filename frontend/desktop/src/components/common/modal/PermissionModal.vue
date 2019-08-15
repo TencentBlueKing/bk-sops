@@ -95,13 +95,7 @@
             async loadPermissionUrl () {
                 try {
                     this.loading = true
-                    // 新建项目不需要传资源实例
-                    const permission = !this.isIncludeCreate()
-                        ? this.list
-                        : this.list.map(m => {
-                            m.resource = []
-                            return m
-                        })
+                    const permission = this.list
                     const res = await this.getPermissionUrl(JSON.stringify(permission))
                     this.url = res.data.url
                 } catch (err) {
@@ -120,10 +114,6 @@
                     return res.map(item => item.resource_name).join(',')
                 }).join(',')
                 return type + '：' + names
-            },
-            // 是否含有新建
-            isIncludeCreate () {
-                return this.list.some(m => m.action_id === 'create')
             },
             goToApply () {
                 if (this.loading) {
