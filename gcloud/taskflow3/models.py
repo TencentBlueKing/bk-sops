@@ -69,7 +69,6 @@ from gcloud.taskflow3.constants import (
     TEMPLATE_SOURCE,
 )
 from gcloud.taskflow3.signals import taskflow_started
-from gcloud.taskflow3.context import TaskContext
 from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
