@@ -24,11 +24,11 @@
             <div class="common-form-item">
                 <label>{{ i18n.template }}</label>
                 <div class="common-form-content">
-                    <BaseInput
+                    <bk-input
                         name="taskName"
                         v-model="name"
                         v-validate="taskNameRule">
-                    </BaseInput>
+                    </bk-input>
                     <span v-if="errors.has('taskName')" class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                 </div>
             </div>
@@ -37,14 +37,10 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'TaskCloneDialog',
-        components: {
-            BaseInput
-        },
         props: ['isTaskCloneDialogShow', 'taskName', 'pending'],
         data () {
             return {
