@@ -98,6 +98,12 @@ class DjangoModelResource(ObjectResource):
                 cleaned.append(self.resource_cls.objects.get(**id_filter))
         return cleaned
 
+    def clean_unicode_instances(self, instances):
+        id_filter = {
+            self.id_field: instances
+        }
+        return self.resource_cls.objects.get(**id_filter)
+
     def clean_str_instances(self, instances):
         id_filter = {
             self.id_field: instances
