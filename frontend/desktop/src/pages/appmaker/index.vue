@@ -357,7 +357,7 @@
                 this.selectedTime = []
                 this.editStartTime = undefined
                 this.editEndTime = undefined
-                this.searchInputhandler()
+                this.loadData()
             }
         }
     }
