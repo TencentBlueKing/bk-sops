@@ -46,7 +46,7 @@
                 {{ i18n.save }}
             </bk-button>
             <bk-button
-                theme="default"
+                theme="primary"
                 class="canvas-btn"
                 :loading="createTaskSaving"
                 @click="onSaveTemplate(true)">
