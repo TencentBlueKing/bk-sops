@@ -127,9 +127,9 @@ class ResourceTestCase(TestCase):
         list_instances = ['instance']
 
         self.assertEqual(self.resource.clean_instances(str_instances), clean_str_instance_return)
-        self.resource.clean_str_instances.assert_called_once_with(self.resource, str_instances)
+        self.resource.clean_str_instances.assert_called_once_with(str_instances)
         self.assertEqual(self.resource.clean_instances(list_instances), clean_list_instance_return)
-        self.resource.clean_list_instances.assert_called_once_with(self.resource, list_instances)
+        self.resource.clean_list_instances.assert_called_once_with(list_instances)
 
     def test_clean_instances__instances_is_none(self):
         self.assertIsNone(self.resource.clean_instances(None))
