@@ -283,8 +283,11 @@
                 top: 13px;
                 right: 14px;
                 font-size: 14px;
-                color: #979ba5;
+                color: #c4c6cc;
                 cursor: pointer;
+                &:hover {
+                    color: #979ba5;
+                }
             }
         }
         .empty-draft-tip {

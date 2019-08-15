@@ -487,7 +487,12 @@ $localBorderColor: #d8e2e7;
                         display: inline-block;
                     }
                 }
-                
+                .col-item-delete {
+                    color: #c4c6cc;
+                    &:hover {
+                        color: #979ba5;
+                    }
+                }
             }
         }
         .col-item {
