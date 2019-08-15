@@ -21,11 +21,12 @@
                             class="bk-select-inline"
                             :popover-width="260"
                             :disabled="!categoryListPending"
+                            :clearable="false"
                             @selected="onChooseTplType">
                             <bk-option
                                 v-for="(option, index) in templateType"
                                 :key="index"
-                                :id="option.id"
+                                :id="option.name"
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
