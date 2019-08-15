@@ -157,7 +157,7 @@
         margin: 30px 0 0 0;
     }
     .common-form-content {
-        margin-left: 180px;
+        margin-left: 160px;
     }
     .common-form-item > label {
         width: 140px;
