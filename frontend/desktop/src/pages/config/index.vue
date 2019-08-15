@@ -24,7 +24,7 @@
                         class="bk-icon icon-info-circle desc-tooltip"
                         v-bk-tooltips="{
                             content: i18n.executorTips,
-                            width: 200,
+                            width: 300,
                             placements: ['right']
                         }">
                     </i>
@@ -33,7 +33,7 @@
             <div class="common-form-item executor-switch">
                 <label>{{i18n.alwaysUseExecutorLabel}}</label>
                 <div class="common-form-content">
-                    <bk-switcher v-model="alwaysUseExecutor"></bk-switcher>
+                    <bk-switcher v-model="alwaysUseExecutor" size="small"></bk-switcher>
                     <i
                         class="bk-icon icon-info-circle desc-tooltip"
                         v-bk-tooltips="{
@@ -160,6 +160,7 @@
         margin-left: 180px;
     }
     .common-form-item > label {
+        width: 140px;
         text-align: left;
     }
     .desc-tooltip {
