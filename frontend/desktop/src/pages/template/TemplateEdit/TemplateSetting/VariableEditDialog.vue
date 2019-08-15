@@ -15,6 +15,7 @@
         ext-cls="common-dialog"
         :theme="'primary'"
         :mask-close="false"
+        :auto-close="false"
         :header-position="'left'"
         :title="i18n.edit"
         :value="isShow"
