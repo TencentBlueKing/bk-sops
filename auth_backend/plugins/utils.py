@@ -24,22 +24,22 @@ CACHE_PREFIX = __name__.replace('.', '_')
 def build_need_permission(auth_resource, action_id, instance=None, scope_id=None):
     base_info = auth_resource.base_info()
     resource = base_info.pop('resource')
+    resources = []
     if instance is not None:
         resource_id = instance if isinstance(instance, (basestring, int)) else auth_resource.resource_id(instance)
         resource.update({
             'resource_id': resource_id,
             'resource_name': auth_resource.resource_name(instance)
         })
+        resources.append([resource])
 
     base_info.update({
+        'resource_type': resource['resource_type'],
+        'resource_type_name': resource['resource_type_name'],
         'action_id': action_id,
         'scope_id': scope_id or base_info['scope_id'],
         'action_name': auth_resource.actions_map[action_id].name,
-        'resources': [
-            [
-                resource
-            ]
-        ]
+        'resources': resources
     })
     return base_info
 

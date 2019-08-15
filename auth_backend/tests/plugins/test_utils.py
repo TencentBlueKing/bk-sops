@@ -22,8 +22,13 @@ from auth_backend.tests.mock_path import *  # noqa
 class UtilsTestCase(TestCase):
 
     def setUp(self):
+        self.resource_type = 'resource_type_token'
+        self.resource_type_name = 'resource_type_name_token'
         self.base_info = {
-            'resource': {},
+            'resource': {
+                'resource_type': self.resource_type,
+                'resource_type_name': self.resource_type_name
+            },
             'base': 'base_token',
             'scope_id': 'base_scope_id_token'
         }
@@ -54,11 +59,9 @@ class UtilsTestCase(TestCase):
             'scope_id': self.scope_id,
             'action_id': self.action_id,
             'action_name': self.action_name,
-            'resources': [
-                [
-                    {}
-                ]
-            ]
+            'resource_type': self.resource_type,
+            'resource_type_name': self.resource_type_name,
+            'resources': []
         }
         self.assertEqual(permission, expect_permission)
 
@@ -70,11 +73,9 @@ class UtilsTestCase(TestCase):
             'scope_id': 'base_scope_id_token',
             'action_id': self.action_id,
             'action_name': self.action_name,
-            'resources': [
-                [
-                    {}
-                ]
-            ]
+            'resource_type': self.resource_type,
+            'resource_type_name': self.resource_type_name,
+            'resources': []
         }
         self.assertEqual(permission, expect_permission)
 
@@ -89,9 +90,13 @@ class UtilsTestCase(TestCase):
             'scope_id': 'scope_id_token',
             'action_id': self.action_id,
             'action_name': self.action_name,
+            'resource_type': self.resource_type,
+            'resource_type_name': self.resource_type_name,
             'resources': [
                 [
                     {
+                        'resource_type': self.resource_type,
+                        'resource_type_name': self.resource_type_name,
                         'resource_id': self.resource_id,
                         'resource_name': self.resource_name
                     }
@@ -112,9 +117,13 @@ class UtilsTestCase(TestCase):
             'scope_id': 'scope_id_token',
             'action_id': self.action_id,
             'action_name': self.action_name,
+            'resource_type': self.resource_type,
+            'resource_type_name': self.resource_type_name,
             'resources': [
                 [
                     {
+                        'resource_type': self.resource_type,
+                        'resource_type_name': self.resource_type_name,
                         'resource_id': self.instance,
                         'resource_name': self.resource_name
                     }
