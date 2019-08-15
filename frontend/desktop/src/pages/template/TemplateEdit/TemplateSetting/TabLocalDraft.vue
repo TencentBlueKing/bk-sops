@@ -19,6 +19,7 @@
                     allowHtml: true,
                     content: '#draft-desc',
                     placement: 'bottom-end',
+                    duration: 0,
                     width: 400
                 }">
             </i>
