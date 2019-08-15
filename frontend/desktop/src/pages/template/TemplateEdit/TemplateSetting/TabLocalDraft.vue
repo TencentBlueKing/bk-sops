@@ -169,6 +169,11 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+.tips-item {
+    & > h4 {
+        margin: 0;
+    }
+}
 .local-draft-panel {
     height: 100%;
     .local-title {
