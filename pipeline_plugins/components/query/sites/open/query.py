@@ -219,7 +219,7 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
     for del_id in (set(module_hosts.keys()) - set(map(lambda x: 'module_%s' % x, select_module_id))):
         del module_hosts[del_id]
 
-    return JsonResponse({'result': True if module_hosts else False, 'data': module_hosts})
+    return JsonResponse({'result': True, 'data': module_hosts})
 
 
 def job_get_script_list(request, biz_cc_id):
@@ -330,6 +330,11 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
         message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
             biz_cc_id, job_result['message'])
         logger.error(message)
+
+        if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=job_result.get('permission', []))
+
         result = {
             'result': False,
             'data': [],
