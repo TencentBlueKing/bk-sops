@@ -99,7 +99,7 @@ class Resource(object):
         clean_method = getattr(self, 'clean_{type}_instances'.format(type=t), None)
 
         if clean_method:
-            return clean_method(self, instances)
+            return clean_method(instances)
 
         return instances
 
