@@ -48,11 +48,14 @@
                             <bk-input
                                 v-model.number="item.loop.start"
                                 v-validate="item.loop.reg"
+                                :name="item.key + 'Rule'"
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
                             <bk-input
                                 v-model.number="item.loop.inter"
+                                v-validate="{ required: true, integer: true }"
+                                name="interval"
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
