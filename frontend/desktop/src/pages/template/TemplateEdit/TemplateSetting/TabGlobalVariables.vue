@@ -362,6 +362,14 @@ $localBorderColor: #d8e2e7;
 /deep/ .common-dialog .bk-dialog-body{
     padding: 20px;
 }
+.tips-item {
+    & > h4 {
+        margin: 0;
+    }
+    &:not(:last-child) {
+        margin-bottom: 10px;
+    }
+}
 .global-variable-panel {
     height: 100%;
     .global-title {
