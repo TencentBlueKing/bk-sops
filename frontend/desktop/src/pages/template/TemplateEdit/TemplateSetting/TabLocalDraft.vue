@@ -19,6 +19,7 @@
                     allowHtml: true,
                     content: '#draft-desc',
                     placement: 'bottom-end',
+                    duration: 0,
                     width: 400
                 }">
             </i>
@@ -33,9 +34,10 @@
         </div>
         <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
             <div class="draft-form" v-if="newDraftShow">
-                <BaseInput
-                    :placeholder="i18n.draftMessage"
+                <bk-input
                     name="draftName"
+                    class="draft-name-input"
+                    :placeholder="i18n.draftMessage"
                     v-model="newDraftName"
                     data-vv-validate-on=" "
                     v-validate="draftNameRule" />
@@ -86,13 +88,11 @@
 <script>
     import '@/utils/i18n.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'TabLocalDraft',
         components: {
-            BaseInput,
             NoData
         },
         props: ['draftArray'],
@@ -170,6 +170,11 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+.tips-item {
+    & > h4 {
+        margin: 0;
+    }
+}
 .local-draft-panel {
     height: 100%;
     .local-title {
@@ -186,20 +191,9 @@
         margin: 20px;
         .draft-form {
             display: inline-block;
-            input {
+            .draft-name-input {
+                display: inline-block;
                 width: 200px;
-            }
-            .operate-btn {
-                padding: 0 5px;
-                color: $blueDefault;
-                white-space: nowrap;
-                cursor: pointer;
-                &:first-child {
-                    padding-left: 20px;
-                }
-            }
-            .operate-btn:nth-child(2) {
-                padding-left: 15px;
             }
             .base-input {
                 height: 32px;
@@ -290,8 +284,11 @@
                 top: 13px;
                 right: 14px;
                 font-size: 14px;
-                color: #979ba5;
+                color: #c4c6cc;
                 cursor: pointer;
+                &:hover {
+                    color: #979ba5;
+                }
             }
         }
         .empty-draft-tip {

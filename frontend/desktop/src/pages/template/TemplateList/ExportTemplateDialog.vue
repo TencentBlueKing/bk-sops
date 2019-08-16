@@ -480,7 +480,6 @@
             height: 56px;
             background: #838799;
             border-radius: 2px;
-            overflow: hidden;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -491,6 +490,7 @@
             height: 56px;
             line-height: 56px;
             background: #666a7c;
+            border-radius: 2px;
             .selected-name {
                 display: flex;
                 justify-content: center;

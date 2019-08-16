@@ -15,6 +15,7 @@
         ext-cls="common-dialog"
         :theme="'primary'"
         :mask-close="false"
+        :auto-close="false"
         :header-position="'left'"
         :title="i18n.edit"
         :value="isShow"
@@ -52,6 +53,11 @@
                     edit: gettext('编辑变量'),
                     checkData: gettext('变量的参数值不合法')
                 }
+            }
+        },
+        watch: {
+            renderData (val) {
+                this.formData = tools.deepClone(val)
             }
         },
         methods: {

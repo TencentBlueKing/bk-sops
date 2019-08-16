@@ -19,6 +19,7 @@
                     allowHtml: true,
                     content: '#var-desc',
                     placement: 'bottom-end',
+                    duration: 0,
                     width: 400
                 }">
             </i>
@@ -362,6 +363,14 @@ $localBorderColor: #d8e2e7;
 /deep/ .common-dialog .bk-dialog-body{
     padding: 20px;
 }
+.tips-item {
+    & > h4 {
+        margin: 0;
+    }
+    &:not(:last-child) {
+        margin-bottom: 10px;
+    }
+}
 .global-variable-panel {
     height: 100%;
     .global-title {
@@ -479,7 +488,12 @@ $localBorderColor: #d8e2e7;
                         display: inline-block;
                     }
                 }
-                
+                .col-item-delete {
+                    color: #c4c6cc;
+                    &:hover {
+                        color: #979ba5;
+                    }
+                }
             }
         }
         .col-item {

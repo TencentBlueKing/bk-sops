@@ -294,10 +294,10 @@
 }
 .operation-btn {
     padding: 5px 8px;
-    color: #3a84ff;
     font-size: 14px;
     cursor: pointer;
     &:hover {
+        color: #3a84ff;
         background: #ebf4ff;
     }
 }

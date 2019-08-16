@@ -145,7 +145,7 @@
     float: left;
     position: relative;
     margin: 0 10px;
-    width: calc(100% - 186px);
+    width: calc(100% - 190px);
     .textarea-mirror, textarea {
         padding: 9px 10px 0;
         line-height: 1.2;
@@ -202,6 +202,7 @@
 .operation-wrap {
     float: right;
     margin-top: 10px;
+    width: 50px;
     text-align: right;
     user-select: none;
     .operation-btn {
