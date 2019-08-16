@@ -96,7 +96,7 @@
                                     {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle error-ingored-tootip"></i>
+                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle"></i>
                             <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
@@ -1128,6 +1128,9 @@
             position: relative;
             height: 32px;
             line-height: 32px;
+            /deep/ .bk-form-checkbox {
+                font-size: unset;
+            }
         }
         .desc-tooltip,
         .update-tooltip,
@@ -1147,6 +1150,8 @@
         .common-icon-dark-circle-i,
         .common-icon-dark-circle-s,
         .common-icon-dark-circle-r {
+            display: inline-block;
+            vertical-align: middle;
             color: #a6b0c7;
         }
         .common-warning-tip {
@@ -1186,14 +1191,12 @@
         margin-left: 120px;
         margin-right: 30px;
         .bk-form-checkbox {
-            width: 110px;
-            margin-right: 30px;
+            width: 150px;
             padding-right: 11px;
         }
         .icon-info-circle {
             display: inline-block;
             vertical-align: middle;
-            margin-top: 10px;
             color: #c4c6cc;
             &:hover {
                 color: #f4aa1a;

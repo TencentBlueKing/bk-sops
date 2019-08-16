@@ -433,8 +433,8 @@ $localBorderColor: #d8e2e7;
         }
     }
     .global-variable-tootip {
-        float: right;
-        margin-top: 8px;
+        vertical-align: middle;
+        margin-left: 6px;
         color:#c4c6cc;
         cursor: pointer;
         &:hover {
@@ -574,14 +574,10 @@ $localBorderColor: #d8e2e7;
                 display: inline-block;
                 width: 90px;
                 vertical-align: middle;
-                overflow: hidden;
-                text-overflow:ellipsis;
-                white-space: nowrap;
+               line-height: 2;
             }
             .col-key-copy {
-                position: absolute;
-                right: 14px;
-                bottom: 0;
+                margin-left: 2px;
                 color: #52699d;
                 text-decoration: underline;
             }

@@ -93,7 +93,6 @@
                             style="width: 260px;"
                             class="search-input"
                             v-model="creator"
-                            right-icon="bk-icon icon-search"
                             :placeholder="i18n.creatorPlaceholder">
                         </bk-input>
                     </bk-form-item>

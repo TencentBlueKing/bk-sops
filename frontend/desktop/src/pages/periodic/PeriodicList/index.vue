@@ -96,7 +96,7 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count"></bk-table-column>
                     <bk-table-column :label="i18n.enabled" width="80">
                         <template slot-scope="props" class="periodic-status">
                             <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
