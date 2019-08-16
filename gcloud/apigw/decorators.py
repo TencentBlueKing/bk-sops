@@ -32,7 +32,7 @@ if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
 else:
     apigw_required = None
 
-WHITE_APPS = {'bk_fta', 'bk_bcs', 'bk_itsm'}
+WHITE_APPS = {'bk_fta', 'bk_bcs'}
 WHETHER_PREPARE_BIZ = getattr(settings, 'WHETHER_PREPARE_BIZ_IN_API_CALL', True)
 
 
