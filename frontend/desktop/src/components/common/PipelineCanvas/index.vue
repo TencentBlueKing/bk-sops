@@ -541,6 +541,9 @@
                 this.$emit('onLabelBlur', labelData)
             },
             onUpdateNodeInfo (id, data) {
+                if (id === '') {
+                    return false
+                }
                 this.dataFlowInstance.updateLocationById(id, data)
             },
             onUpdateCanvas (data) {

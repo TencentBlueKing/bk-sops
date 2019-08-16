@@ -18,6 +18,7 @@
             :cc_id="cc_id"
             :list="stepList"
             :common="common"
+            :template_id="template_id"
             :task-status="'TaskCreate'"
             :current-step="currentStep">
         </TaskStep>
