@@ -42,6 +42,7 @@
 BKAPP_USE_WEIXIN(是否开启移动端)值设置为 1，BKAPP_IS_QY_WEIXIN(是否使用企业微信)值设置为 1，BKAPP_WEIXIN_APP_ID(企业ID) 的值
 设置为企业微信后台管理中"我的企业"页面的"企业ID"，BKAPP_WEIXIN_APP_SECRET(企业应用Secret) 的值设置为企业微信后台的应用管理中标准
 运维应用的 Secret，BKAPP_WEIXIN_APP_EXTERNAL_HOST(蓝鲸外网域名) 的值设置为你部署的蓝鲸外网域名 {BK_PAAS_OUTER_HOST}。
+![](../resource/img/bk_sops_envs.png)
 
 ### 重新部署
 设置标准运维应用运行时的环境变量后，需要重新部署才能生效.
