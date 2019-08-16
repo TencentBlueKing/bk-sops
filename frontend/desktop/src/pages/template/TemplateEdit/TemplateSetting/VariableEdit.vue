@@ -404,6 +404,9 @@
                 config.tag_code = 'customVariable'
 
                 this.renderConfig = [config]
+                if (this.isNewVariable) {
+                    this.variableData.value = atomFilter.getFormItemDefaultValue(this.renderConfig)
+                }
             },
             getValidateSet () {
                 return this.theEditingData.show_type === 'show' ? VALIDATE_SET.slice(1) : VALIDATE_SET
