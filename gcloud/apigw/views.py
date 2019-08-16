@@ -93,6 +93,65 @@ def get_template_list(request, project_id):
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
+def get_common_template_list(request):
+    templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
+    data = [
+        {
+            'id': tmpl.id,
+            'name': tmpl.pipeline_template.name,
+            'creator': tmpl.pipeline_template.creator,
+            'create_time': format_datetime(tmpl.pipeline_template.create_time),
+            'editor': tmpl.pipeline_template.editor,
+            'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
+            'category': tmpl.category,
+        } for tmpl in templates
+    ]
+    return JsonResponse({'result': True, 'data': data})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+@mark_request_whether_is_trust
+def get_common_template_info(request, template_id):
+    try:
+        tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
+        auth_resource = common_template_resource
+    except CommonTemplate.DoesNotExist:
+        result = {
+            'result': False,
+            'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+        }
+        return JsonResponse(result)
+
+    if not request.is_trust:
+        verify_or_raise_auth_failed(principal_type='user',
+                                    principal_id=request.user.username,
+                                    resource=auth_resource,
+                                    action_ids=[auth_resource.actions.view.id],
+                                    instance=tmpl,
+                                    status=200)
+
+    pipeline_tree = tmpl.pipeline_tree
+    pipeline_tree.pop('line')
+    pipeline_tree.pop('location')
+    data = {
+        'id': tmpl.id,
+        'name': tmpl.pipeline_template.name,
+        'creator': tmpl.pipeline_template.creator,
+        'create_time': format_datetime(tmpl.pipeline_template.create_time),
+        'editor': tmpl.pipeline_template.editor,
+        'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
+        'category': tmpl.category,
+        'pipeline_tree': pipeline_tree
+    }
+    return JsonResponse({'result': True, 'data': data})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+@mark_request_whether_is_trust
 @project_existence_check
 def get_template_info(request, template_id, project_id):
     project = Project.objects.get(id=project_id)
