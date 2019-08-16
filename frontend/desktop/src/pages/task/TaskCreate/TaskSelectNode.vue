@@ -497,15 +497,14 @@
                             this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/paramfill/`, query: { 'template_id': this.template_id } })
                         }
                     } else {
-                        if (this.common) {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
-                        } else {
-                            if (this.entrance !== undefined) {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
-                            } else {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                        this.$router.push({
+                            path: `/template/newtask/${this.cc_id}/paramfill/`,
+                            query: {
+                                template_id: this.template_id,
+                                common: this.common || undefined,
+                                entrance: this.entrance
                             }
-                        }
+                        })
                     }
                 } catch (e) {
                     errorHandler(e, this)

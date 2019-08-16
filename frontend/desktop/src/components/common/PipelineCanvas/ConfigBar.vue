@@ -120,8 +120,7 @@
                     this.tName = this.tName.trim()
                     this.setTemplateName(this.tName)
                     if (saveAndCreate && !this.isSaveAndCreateTaskType) {
-                        const taskUrl = this.getTaskUrl()
-                        this.$router.push(taskUrl)
+                        this.goToTaskUrl()
                     } else {
                         this.$emit('onSaveTemplate', saveAndCreate)
                     }
@@ -129,21 +128,31 @@
             },
             getHomeUrl () {
                 let url = `/template/home/${this.cc_id}/`
-                const entrance = this.$route.query.entrance
-                if (entrance === 'businessList') url = `/template/home/${this.cc_id}/`
-                if (entrance === 'periodicTask') url = `/periodic/home/${this.cc_id}/`
-                if (entrance === 'adminCommon') url = '/admin/common/template/'
+                const entrance = this.$route.query.entrance || ''
+                const actions = [
+                    { key: 'template_business', url: `/template/home/${this.cc_id}/` },
+                    { key: 'admin_common', url: '/admin/common/template/' }
+                ]
+                actions.forEach(action => {
+                    if (entrance.indexOf(action.key) > -1) {
+                        url = action.url
+                    }
+                })
                 if (this.common) {
                     url += '?common=1'
                 }
                 return url
             },
-            getTaskUrl () {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
-                if (this.common) {
-                    url += '&common=1'
-                }
-                return url
+            goToTaskUrl () {
+                const entrance = this.$route.query.entrance
+                this.$router.push({
+                    path: `/template/newtask/${this.cc_id}/selectnode/`,
+                    query: {
+                        template_id: this.template_id,
+                        common: this.common ? '1' : undefined,
+                        entrance: entrance || undefined
+                    }
+                })
             },
             onNameEditing () {
                 this.isShowMode = false

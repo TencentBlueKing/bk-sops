@@ -134,6 +134,7 @@
 </script>
 <style lang="scss" scoped>
 .tag-ip-selector-wrap {
-    padding: 0 10px 10px;
+    padding: 10px;
+    border: 1px solid #ececec;
 }
 </style>

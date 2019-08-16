@@ -260,7 +260,7 @@
                     url += '&common=1'
                 }
                 if (this.createEntrance === false) {
-                    url += '&entrance=periodicTask'
+                    url += '&entrance=periodicTask_new'
                 } else if (this.createEntrance === true) {
                     url += '&entrance=taskflow'
                 }
