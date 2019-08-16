@@ -55,6 +55,11 @@
                 }
             }
         },
+        watch: {
+            renderData (val) {
+                this.formData = tools.deepClone(val)
+            }
+        },
         methods: {
             onConfirm () {
                 let formValid = true
