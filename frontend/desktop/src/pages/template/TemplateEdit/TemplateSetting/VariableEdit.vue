@@ -125,14 +125,12 @@
         <div class="action-wrapper">
             <bk-button
                 theme="success"
-                size="small"
                 :disabled="atomConfigLoading"
                 @click.stop="saveVariable">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
                 theme="default"
-                size="small"
                 @click.stop="cancelVariable">
                 {{ i18n.cancel }}
             </bk-button>
@@ -407,6 +405,9 @@
                 config.tag_code = 'customVariable'
 
                 this.renderConfig = [config]
+                if (this.isNewVariable) {
+                    this.variableData.value = atomFilter.getFormItemDefaultValue(this.renderConfig)
+                }
             },
             getValidateSet () {
                 return this.theEditingData.show_type === 'show' ? VALIDATE_SET.slice(1) : VALIDATE_SET
@@ -423,7 +424,6 @@
                         return true
                     }
                 })
-                console.log(data)
                 this.renderData = {}
                 // input 类型需要正则校验
                 if (val === 'input') {
@@ -617,7 +617,7 @@ $localBorderColor: #d8e2e7;
     }
 }
 .action-wrapper {
-    text-align: center;
+    padding-left: 80px;
     button:first-child {
         margin-right: 10px;
     }
