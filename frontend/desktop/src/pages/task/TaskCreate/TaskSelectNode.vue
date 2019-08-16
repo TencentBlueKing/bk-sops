@@ -860,7 +860,7 @@
             &:hover {
                 margin: 0;
                 padding: 0 20px;
-                background-color: #f0f1f5;
+                background-color: #d9e8f8;
                 .icon-close-circle-shape {
                     opacity: 1;
                 }
