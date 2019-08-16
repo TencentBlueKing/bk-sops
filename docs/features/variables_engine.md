@@ -103,7 +103,7 @@ class AgentInstallService(Service):
 
 - 类型转换
 语法：${KEY.split("\n")}、${KEY.count()}、${list(KEY)}、${[item.strip() for item in KEY.split("\n")]}
-使用场景：插件前端表单参数都是以字符串形式传参的，类型转换一般不会单独使用，可以接口其他高级语法一起使用。
+使用场景：插件前端表单参数都是以字符串形式传参的，类型转换一般不会单独使用，可以配合其他高级语法一起使用。
 
 
 ### 内置变量
