@@ -224,7 +224,8 @@
                     showGroup: false,
                     showLabel: false,
                     editable: this.editRowNumber === index,
-                    formMode: this.editRowNumber === index
+                    formMode: this.editRowNumber === index,
+                    validateSet: ['required', 'custom', 'regex']
                 }
             },
             onEdit (index, row) {
