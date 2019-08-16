@@ -256,7 +256,10 @@
                 nodeCouldBeSkipped: false,
                 subflowHasUpdate: false, // 是否显示子流程更新 icon
                 bkMessageInstance: null,
-                subAtomConfigData: null,
+                subAtomConfigData: {
+                    form: {},
+                    outputs: {}
+                },
                 nodeConfigData: null,
                 reuseVariable: {},
                 isReuseVarDialogShow: false,
@@ -455,7 +458,8 @@
              * @param {String} version 子流程版本
              */
             getConfig (version) {
-                if (this.currentAtom !== '' && this.currentAtom !== undefined) {
+                if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
+                    || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
                         return this.getAtomConfig(this.currentAtom)
                     } else {

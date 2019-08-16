@@ -25,12 +25,18 @@
             </i>
             <div id="var-desc">
                 <div class="tips-item">
-                    <h4>{{ i18n.attr }}</h4>
-                    <p>{{ i18n.attr_desc }}</p>
+                    <h4>{{ i18n.attrTitle }}</h4>
+                    <p>
+                        {{ i18n.attrDesc1 }}
+                        <i class="common-icon-show-left" style="color: #219f42"></i>
+                        {{i18n.attrDesc2}}
+                        <i class="common-icon-hide-right" style="color: #de9524"></i>
+                        {{i18n.attrDesc3}}
+                    </p>
                 </div>
                 <div class="tips-item">
-                    <h4>{{ i18n.outputs2 }}</h4>
-                    <p>{{ i18n.outputs_desc }}</p>
+                    <h4>{{ i18n.outputsTitle }}</h4>
+                    <p>{{ i18n.outputsDesc }}</p>
                 </div>
             </div>
         </div>
@@ -75,10 +81,38 @@
                             </span>
                             <span class="col-item col-attributes">
                                 <span class="icon-wrap">
-                                    <i v-if="constant.source_type !== 'component_outputs'" class="common-icon-show-left" />
-                                    <i v-else class="common-icon-hide-right color-org" />
-                                    <i v-if="constant.show_type === 'show'" class="common-icon-eye-show" />
-                                    <i v-else class="common-icon-eye-hide color-org" />
+                                    <i
+                                        v-if="constant.source_type !== 'component_outputs'"
+                                        class="common-icon-show-left"
+                                        v-bktooltips="{
+                                            content: i18n.inputs,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
+                                    <i
+                                        v-else
+                                        class="common-icon-hide-right color-org"
+                                        v-bktooltips="{
+                                            content: i18n.outputs,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
+                                    <i
+                                        v-if="constant.show_type === 'show'"
+                                        class="common-icon-eye-show"
+                                        v-bktooltips="{
+                                            content: i18n.show,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
+                                    <i
+                                        v-else
+                                        class="common-icon-eye-hide color-org"
+                                        v-bktooltips="{
+                                            content: i18n.hide,
+                                            placements: ['bottom']
+                                        }">
+                                    </i>
                                 </span>
                             </span>
                             <span class="col-item col-output">
@@ -123,7 +157,7 @@
                 </li>
                 <li v-if="!isVariableEditing && !constantsArray.length" class="empty-variable-tip">
                     <NoData>
-                        <p>{{i18n.empty_variable_tip}}</p>
+                        <p>{{i18n.emptyVariableTip}}</p>
                     </NoData>
                 </li>
             </ul>
@@ -167,11 +201,14 @@
                     attributes: gettext('属性'),
                     inputs: gettext('输入'),
                     outputs: gettext('输出'),
-                    attr: gettext('属性：'),
-                    attr_desc: gettext('"来源/是否显示"格式，来源是输入类型表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，输出类型的变量一定是隐藏的。'),
-                    outputs2: gettext('输出：'),
-                    outputs_desc: gettext('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。'),
-                    empty_variable_tip: gettext('无数据，请手动新增变量或者勾选标准插件参数自动生成'),
+                    outputsTitle: gettext('输出：'),
+                    attr: gettext('属性'),
+                    attrTitle: gettext('属性：'),
+                    attrDesc1: gettext('来源/是否显示"格式，来源是输入类型'),
+                    attrDesc2: gettext('表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型'),
+                    attrDesc3: gettext('表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，输出类型的变量一定是隐藏的。'),
+                    outputsDesc: gettext('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。'),
+                    emptyVariableTip: gettext('无数据，请手动新增变量或者勾选标准插件参数自动生成'),
                     tips: gettext('删除变量'),
                     confirm: gettext('确认删除该变量？'),
                     copied: gettext('已复制'),
