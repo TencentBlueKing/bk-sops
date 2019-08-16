@@ -583,7 +583,7 @@
                         query: ['template_id', 'common'] }
                 }
                 let querys = ''
-                const entrance = this.getEntrance()
+                const entrance = this.getEntrance(name)
                 urlMap[name].query.forEach(item => {
                     if (template_id && item === 'template_id') {
                         querys += `&template_id=${template_id}`
@@ -595,9 +595,11 @@
                 return `${urlMap[name].path}?entrance=${entrance}${querys}`
             },
             // 获取入口信息
-            getEntrance () {
+            getEntrance (name) {
                 return (new RegExp('/admin/').test(this.$route.path) ? 'admin' : 'template')
                     + (new RegExp('/common/').test(this.$route.path) ? '_common' : '_business')
+                    + '_'
+                    + name
             },
             getExecuteHistoryUrl (id) {
                 let url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
