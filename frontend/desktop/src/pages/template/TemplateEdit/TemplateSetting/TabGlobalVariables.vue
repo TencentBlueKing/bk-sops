@@ -387,8 +387,8 @@ $localBorderColor: #d8e2e7;
         }
     }
     .global-variable-tootip {
-        float: right;
-        margin-top: 8px;
+        vertical-align: middle;
+        margin-left: 6px;
         color:#c4c6cc;
         cursor: pointer;
         &:hover {
