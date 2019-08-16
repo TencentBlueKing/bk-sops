@@ -110,6 +110,7 @@
                     <bk-select
                         v-model="theEditingData.show_type"
                         :disabled="isOutputVar"
+                        :clearable="false"
                         @change="onValShowTypeChange">
                         <bk-option
                             v-for="(option, index) in showTypeList"
