@@ -21,11 +21,12 @@
                             class="bk-select-inline"
                             :popover-width="260"
                             :disabled="!categoryListPending"
+                            :clearable="false"
                             @selected="onChooseTplType">
                             <bk-option
                                 v-for="(option, index) in templateType"
                                 :key="index"
-                                :id="option.id"
+                                :id="option.name"
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
@@ -289,7 +290,7 @@
                 this.onFiltrationTemplate()
             },
             onFiltrationTemplate () {
-                const list = this.selectedTplType === this.templateType[0].id ? this.businessTplList : this.commonTplList
+                const list = this.selectedTplType === this.templateType[0].name ? this.businessTplList : this.commonTplList
                 const sourceList = toolsUtils.deepClone(list)
                 let filteredList = []
                 if (this.selectedTplCategory === this.i18n.allType) {

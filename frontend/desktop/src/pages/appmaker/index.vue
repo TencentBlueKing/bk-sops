@@ -357,7 +357,7 @@
                 this.selectedTime = []
                 this.editStartTime = undefined
                 this.editEndTime = undefined
-                this.searchInputhandler()
+                this.loadData()
             }
         }
     }
@@ -385,7 +385,7 @@
     }
     @media screen and (min-width: 1561px) and (max-width: 1919px) {
         .card-wrapper {
-            width: 24%;
+            width: 24.265%;
         }
         .card-wrapper:nth-child(4n) {
             margin-right: 0;

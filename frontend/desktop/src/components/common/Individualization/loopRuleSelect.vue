@@ -11,14 +11,14 @@
 */
 <template>
     <div class="loop-rule-select">
-        <div class="loop-rule-title">
+        <div class="loop-rule-title bk-button-group">
             <bk-button
                 :class="['rule-btn', { 'active-btn': currentWay === 'selectGeneration' }]"
                 @click="onSwitchWay('selectGeneration')">
                 {{ i18n.selectGeneration }}
             </bk-button>
             <bk-button
-                :class="['rule-btn', 'manual-input-btn', { 'active-btn': currentWay === 'manualInput' }]"
+                :class="['rule-btn', { 'active-btn': currentWay === 'manualInput' }]"
                 @click="onSwitchWay('manualInput')">
                 {{ i18n.manualInput }}
             </bk-button>
@@ -27,7 +27,7 @@
             <!-- 自动生成 -->
             <bk-tab
                 v-show="currentWay === 'selectGeneration'"
-                :type="'card'"
+                :type="'border-card'"
                 :active="tabName"
                 @tab-changed="tabChanged">
                 <bk-tab-panel
@@ -48,11 +48,14 @@
                             <bk-input
                                 v-model.number="item.loop.start"
                                 v-validate="item.loop.reg"
+                                :name="item.key + 'Rule'"
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
                             <bk-input
                                 v-model.number="item.loop.inter"
+                                v-validate="{ required: true, integer: true }"
+                                name="interval"
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
@@ -555,6 +558,7 @@ $bgBlue: #3a84ff;
     position: relative;
     width: 500px;
     .loop-rule-title {
+        width: 100%;
         white-space: nowrap;
         .rule-btn {
             width: 50%;
@@ -588,6 +592,12 @@ $bgBlue: #3a84ff;
         }
         /deep/ .bk-tab2 {
             border: 1px solid $commonBorderColor;
+        }
+        /deep/ .bk-tab-label-list {
+            width: 100%;
+            .bk-tab-label-item {
+                width: 20.05%;
+            }
         }
         .tabpanel-container {
             padding: 20px;
