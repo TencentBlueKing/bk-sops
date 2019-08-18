@@ -17,6 +17,7 @@
         :mask-close="false"
         :value="isExportDialogShow"
         :header-position="'left'"
+        :auto-close="false"
         @confirm="onConfirm"
         @cancel="onCancel">
         <div class="export-container" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
@@ -25,8 +26,8 @@
                     <div class="business-selector">
                         <bk-select
                             v-model="filterCondition.classifyId"
-                            :disabled="exportPending"
                             :clearable="false"
+                            :disabled="exportPending"
                             @change="onSelectClassify">
                             <bk-option
                                 v-for="(item, index) in taskCategories"
@@ -40,6 +41,7 @@
                         <bk-input
                             class="search-input"
                             v-model="filterCondition.keywords"
+                            :clearable="true"
                             :placeholder="i18n.placeholder"
                             :right-icon="'icon-search'"
                             @input="onSearchInput">
@@ -100,20 +102,11 @@
                     </li>
                 </ul>
             </div>
-            <div class="template-checkbox" @click="onSelectAllClick">
-                <span :class="['checkbox', { checked: isTplInPanelAllSelected, 'checkbox-disabled': isCheckedDisabled }]"></span>
-                <span class="checkbox-name">{{ i18n.selectAll }}</span>
-            </div>
+            <bk-checkbox class="template-checkbox" @change="onSelectAllClick" :value="isTplInPanelAllSelected">{{ i18n.selectAll }}</bk-checkbox>
             <div class="task-footer" v-if="selectError">
                 <span class="error-info">{{i18n.errorInfo}}</span>
             </div>
         </div>
-        <DialogLoadingBtn
-            slot="footer"
-            :dialog-footer-data="dialogFooterData"
-            @onConfirm="onConfirm"
-            @onCancel="onCancel">
-        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
@@ -121,12 +114,10 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'ExportTemplateDialog',
         components: {
-            DialogLoadingBtn,
             NoData
         },
         props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
@@ -334,6 +325,7 @@
                 const idList = []
                 if (this.selectedTemplates.length === 0) {
                     this.selectError = true
+                    return false
                 } else {
                     this.selectedTemplates.forEach(item => {
                         idList.push(item.id)
@@ -359,7 +351,7 @@
         }
     }
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/scss/mixins/scrollbar.scss';
 @import '@/scss/mixins/multiLineEllipsis.scss';
 @import '@/scss/config.scss';
@@ -406,8 +398,9 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border-radius: 4px;
         cursor: pointer;
+        border-radius: 2px;
+        overflow: hidden;
         &:nth-child(2n + 1) {
             margin-left: 0;
         }
@@ -420,12 +413,10 @@
             font-size: 24px;
             color: #ffffff;
             text-align: center;
-            border-radius: 4px 0 0 4px;
         }
         .template-item-name {
             color: #313238;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #dcdee5
@@ -485,9 +476,10 @@
         .selected-item {
             position: relative;
             margin: 0 0 10px 14px;
-            width: 254px;
+            width: 252px;
             height: 56px;
             background: #838799;
+            border-radius: 2px;
             &:hover .selected-delete {
                 display: inline-block;
             }
@@ -498,7 +490,7 @@
             height: 56px;
             line-height: 56px;
             background: #666a7c;
-            border-radius: 4px 0 0 4px;
+            border-radius: 2px;
             .selected-name {
                 display: flex;
                 justify-content: center;
@@ -510,7 +502,6 @@
         .selected-item-name {
             color: #ffffff;
             word-break: break-all;
-            border-radius: 0 4px 4px 0;
             @include multiLineEllipsis(14px, 2);
             &:after {
                 background: #838799
@@ -522,7 +513,7 @@
             top: -7px;
             right: -7px;
             padding: 2px;
-            color: #cecece;
+            color: #838799;
             background: #ffffff;
             border-radius: 50%;
             cursor: pointer;
@@ -532,52 +523,6 @@
         position: absolute;
         left: 20px;
         bottom: -42px;
-        cursor: pointer;
-        .checkbox {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            color: $whiteDefault;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &:hover {
-                border-color: $greyDark;
-            }
-            &.checked {
-                background: $blueDefault;
-                border-color: $blueDefault;
-                &::after {
-                    content: "";
-                    position: absolute;
-                    left: 2px;
-                    top: 2px;
-                    height: 4px;
-                    width: 8px;
-                    border-left: 1px solid;
-                    border-bottom: 1px solid;
-                    border-color: $whiteDefault;
-                    transform: rotate(-45deg);
-                }
-            }
-        }
-        .checkbox-disabled {
-            display: inline-block;
-            position: relative;
-            width: 14px;
-            height: 14px;
-            color: $greyDisable;
-            cursor: not-allowed;
-            border: 1px solid $formBorderColor;
-            border-radius: 2px;
-            text-align: center;
-            vertical-align: -2px;
-            &::after {
-                background: #545454;
-            }
-        }
     }
     .task-footer {
         position: absolute;

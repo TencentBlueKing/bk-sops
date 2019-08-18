@@ -17,6 +17,7 @@
         :mask-close="false"
         :header-position="'left'"
         :title="i18n.title"
+        :auto-close="false"
         :value="isEditDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
@@ -24,7 +25,6 @@
             <div class="common-form-item">
                 <label class="required">{{i18n.template}}</label>
                 <div class="common-form-content">
-
                     <bk-select
                         v-model="appData.appTemplate"
                         class="bk-select-inline"
@@ -48,7 +48,8 @@
                 <div class="common-form-content">
                     <bk-input
                         v-model="appData.appName"
-                        v-validate="appNameRule"
+                        v-validate.disable="appNameRule"
+                        name="appName"
                         class="bk-input-inline"
                         :clearable="true">
                     </bk-input>
@@ -65,8 +66,7 @@
                         :placeholder="i18n.statusPlaceholder"
                         :clearable="true"
                         :is-loading="schemeLoading"
-                        @toggle="onOpenScheme"
-                        @selected="onSelectTemplate">
+                        @selected="onSelectScheme">
                         <bk-option
                             v-for="(option, index) in schemeList"
                             :key="index"
@@ -126,7 +126,23 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     export default {
         name: 'AppEditDialog',
-        props: ['cc_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
+        props: {
+            'cc_id': String,
+            'isCreateNewApp': Boolean,
+            'isEditDialogShow': Boolean,
+            'currentAppData': {
+                type: Object,
+                default () {
+                    return {
+                        template_id: '',
+                        name: '',
+                        template_scheme_id: '',
+                        desc: '',
+                        logo_url: undefined
+                    }
+                }
+            }
+        },
         data () {
             return {
                 templateLoading: true,
@@ -135,18 +151,15 @@
                 schemeList: [],
                 appTemplateEmpty: false,
                 appData: {
-                    appTemplate: this.currentAppData ? Number(this.currentAppData.template_id) : '',
-                    appName: this.currentAppData ? this.currentAppData.name : '',
-                    appScheme: this.currentAppData ? Number(this.currentAppData.template_scheme_id) : '',
-                    appDesc: this.currentAppData ? this.currentAppData.desc : '',
+                    appTemplate: '',
+                    appName: '',
+                    appScheme: '',
+                    appDesc: '',
                     appLogo: undefined
                 },
-                logoUrl: this.currentAppData ? this.currentAppData.logo_url : '',
+                logoUrl: '',
                 isShowDefaultLogo: false,
                 isLogoEmpty: !!this.isCreateNewApp,
-                appTemplateRule: {
-                    required: true
-                },
                 appNameRule: {
                     required: true,
                     max: STRING_LENGTH.APP_NAME_MAX_LENGTH,
@@ -169,11 +182,24 @@
                 }
             }
         },
+        watch: {
+            currentAppData (val) {
+                const { template_id, name, template_scheme_id, desc, logo_url } = val
+                this.appData = {
+                    appTemplate: template_id ? Number(template_id) : '',
+                    appName: name,
+                    appScheme: template_scheme_id ? Number(template_scheme_id) : '',
+                    appDesc: desc,
+                    appLogo: undefined
+                }
+                this.logoUrl = logo_url
+                if (template_id !== '') {
+                    this.getTemplateScheme()
+                }
+            }
+        },
         created () {
             this.getTemplateList()
-            if (!this.isCreateNewApp) {
-                this.getTemplateScheme()
-            }
         },
         methods: {
             ...mapActions('templateList', [
@@ -209,16 +235,13 @@
                     errorHandler(e, this)
                 }
             },
-            onSelectTemplate (id, data) {
-                this.appData.appName = data.name
+            onSelectTemplate (id) {
+                this.appData.appTemplate = id
+                this.appData.appName = this.templateList.find(item => item.id === id).name
                 this.appTemplateEmpty = false
+                this.getTemplateScheme()
             },
-            onOpenScheme (value) {
-                if (value && this.appData.appTemplate !== '') {
-                    this.getTemplateScheme()
-                }
-            },
-            onSelectScheme (id, data) {
+            onSelectScheme (id) {
                 this.appData.appScheme = Number(id)
             },
             // logo 上传
@@ -252,6 +275,8 @@
             },
             onCancel () {
                 this.$emit('onEditCancel')
+                this.errors.clear()
+                this.appTemplateEmpty = false
             }
         }
     }
@@ -259,6 +284,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .app-edit-content {
+    padding: 30px;
     .common-form-content {
         position: relative;
         margin-right: 30px;
@@ -267,6 +293,7 @@
         position: absolute;
         right: -20px;
         top: 10px;
+        color: #c4c6cc;
         &:hover {
             color: #f4aa1a;
         }

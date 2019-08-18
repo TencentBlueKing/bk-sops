@@ -135,6 +135,7 @@
                         return
                     }
                     if (!result || !formValid) {
+                        this.dialogFooterData[0].loading = false
                         return
                     }
                     const jsonCron = JSON.stringify({
@@ -233,6 +234,9 @@
     color: #313238;
     border-bottom: 1px solid #cacedb;
     margin-bottom: 30px;
+}
+.loop-rule {
+    width: 530px;
 }
 .periodic-img-tooltip {
     float: right;

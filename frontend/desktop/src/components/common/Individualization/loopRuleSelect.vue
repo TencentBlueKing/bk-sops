@@ -11,14 +11,14 @@
 */
 <template>
     <div class="loop-rule-select">
-        <div class="loop-rule-title">
+        <div class="loop-rule-title bk-button-group">
             <bk-button
                 :class="['rule-btn', { 'active-btn': currentWay === 'selectGeneration' }]"
                 @click="onSwitchWay('selectGeneration')">
                 {{ i18n.selectGeneration }}
             </bk-button>
             <bk-button
-                :class="['rule-btn', 'manual-input-btn', { 'active-btn': currentWay === 'manualInput' }]"
+                :class="['rule-btn', { 'active-btn': currentWay === 'manualInput' }]"
                 @click="onSwitchWay('manualInput')">
                 {{ i18n.manualInput }}
             </bk-button>
@@ -27,7 +27,7 @@
             <!-- 自动生成 -->
             <bk-tab
                 v-show="currentWay === 'selectGeneration'"
-                :type="'card'"
+                :type="'border-card'"
                 :active="tabName"
                 @tab-changed="tabChanged">
                 <bk-tab-panel
@@ -45,27 +45,17 @@
                             v-if="item.radio === 0"
                             class="loop-select-bd">
                             {{ item.key !== 'week' ? autoWay.loop.start : autoWay.loop.startWeek }}
-                            <!-- <BaseInput
+                            <bk-input
                                 v-model.number="item.loop.start"
                                 v-validate="item.loop.reg"
                                 :name="item.key + 'Rule'"
                                 class="loop-time"
-                                @blur="renderRule()" />
-                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }} -->
-                            <bk-input
-                                v-model.number="item.loop.start"
-                                v-validate="item.loop.reg"
-                                class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
-                            <!-- <BaseInput
+                            <bk-input
                                 v-model.number="item.loop.inter"
                                 v-validate="{ required: true, integer: true }"
                                 name="interval"
-                                class="loop-time"
-                                @blur="renderRule()" /> -->
-                            <bk-input
-                                v-model.number="item.loop.inter"
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
@@ -74,7 +64,7 @@
                             <i
                                 v-if="item.key === 'week'"
                                 v-bk-tooltips="i18n.monthTips"
-                                class="common-icon-tooltips month-tips top-start"></i>
+                                class="bk-icon icon-info-circle month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
                             <div
                                 v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
@@ -86,23 +76,6 @@
                         <div
                             v-else
                             class="appoint-select-bd">
-                            <!-- <div
-                                v-for="(box, i) in item.checkboxList"
-                                :key="i"
-                                class="ui-checkbox-group">
-                                <input
-                                    :id="item.key + 'box' + i"
-                                    v-model="box.checked"
-                                    type="checkbox"
-                                    class="ui-checkbox-input"
-                                    @change="renderRule">
-                                <label
-                                    class="ui-checkbox-label"
-                                    :for="item.key + 'box' + i">
-                                    <span class="ui-checkbox-icon"></span>
-                                    <span class="ui-checkbox-tex"> {{ box.value | addZero(item.key) }}</span>
-                                </label>
-                            </div> -->
                             <bk-checkbox
                                 v-for="(box, i) in item.checkboxList"
                                 :key="i"
@@ -133,7 +106,7 @@
                     class="step-form-content-size" />
             </div>
         </div>
-        <i class="common-icon-tooltips rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
+        <i class="bk-icon icon-info-circle rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
             <img class="ui-img" :src="periodicCronImg">
@@ -301,7 +274,7 @@
                     trigger: 'mouseenter',
                     theme: 'light',
                     content: '#periodic-cron-tips-html',
-                    placement: 'bottom'
+                    placement: 'top'
                 }
             }
         },
@@ -567,8 +540,13 @@ $bgBlue: #3a84ff;
     position: absolute;
     top: 0;
     right: 0;
-    margin-right: -20px;
+    margin-right: -26px;
     margin-top: 8px;
+    color: #c4c6cc;
+    font-size: 14px;
+    &:hover {
+        color: #f4aa1a;
+    }
 }
 .local-error-tip {
     margin-top: 10px;
@@ -580,6 +558,7 @@ $bgBlue: #3a84ff;
     position: relative;
     width: 500px;
     .loop-rule-title {
+        width: 100%;
         white-space: nowrap;
         .rule-btn {
             width: 50%;
@@ -614,6 +593,12 @@ $bgBlue: #3a84ff;
         /deep/ .bk-tab2 {
             border: 1px solid $commonBorderColor;
         }
+        /deep/ .bk-tab-label-list {
+            width: 100%;
+            .bk-tab-label-item {
+                width: 20.05%;
+            }
+        }
         .tabpanel-container {
             padding: 20px;
             .loop-select-bd {
@@ -626,7 +611,8 @@ $bgBlue: #3a84ff;
                     width: 46px;
                 }
                 .month-tips {
-                    color: #c4c6cc;
+                    margin-left: 6px;
+                    color: #c4c6cc;color: #c4c6cc;
                     font-size: 14px;
                     &:hover {
                         color: #f4aa1a;

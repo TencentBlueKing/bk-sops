@@ -49,35 +49,40 @@
                     </template>
                 </div>
                 <div class="task-params-btns">
-                    <bk-button
-                        :class="['params-btn', 'solid-eye', {
-                            actived: nodeInfoType === 'viewParams'
-                        }]"
-                        theme="default"
-                        hide-text="true"
-                        icon="common-icon common-icon-solid-eye params-btn-icon"
+                    <i
+                        :class="[
+                            'params-btn',
+                            'solid-eye',
+                            'common-icon',
+                            'common-icon-solid-eye',
+                            {
+                                actived: nodeInfoType === 'viewParams'
+                            }
+                        ]"
                         v-bk-tooltips="{
                             content: i18n.params,
                             placements: ['bottom']
                         }"
                         @click="onTaskParamsClick('viewParams')">
-                    </bk-button>
-                    <bk-button
-                        :class="['params-btn', {
-                            actived: nodeInfoType === 'modifyParams'
-                        }]"
-                        theme="default"
-                        hide-text="true"
-                        icon="common-icon common-icon-edit params-btn-icon"
+                    </i>
+                    <i
+                        :class="[
+                            'params-btn',
+                            'common-icon',
+                            'common-icon-edit',
+                            {
+                                actived: nodeInfoType === 'modifyParams'
+                            }
+                        ]"
                         v-bk-tooltips="{
                             content: i18n.changeParams,
                             placements: ['bottom']
                         }"
                         @click="onTaskParamsClick('modifyParams')">
-                    </bk-button>
+                    </i>
                     <router-link
                         v-if="isShowViewProcess"
-                        class="jump-tpl-page-btn common-icon-link params-btn-icon"
+                        class="jump-tpl-page-btn common-icon-link"
                         target="_blank"
                         v-bk-tooltips="{
                             content: i18n.checkFlow,
@@ -145,7 +150,6 @@
             </div>
         </transition>
         <gatewaySelectDialog
-            v-if="isGatewaySelectDialogShow"
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
             :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
@@ -759,11 +763,12 @@
             },
             handleNodeInfoPanelHide (e) {
                 const classList = e.target.classList
-                const isParamsBtn = classList.contains('params-btn-icon')
+                const isParamsBtn = classList.contains('params-btn')
                 const isTooltipBtn = classList.contains('tooltip-btn')
                 if (!this.isNodeInfoPanelShow || isParamsBtn || isTooltipBtn) {
                     return
                 }
+                console.log(1)
                 const NodeInfoPanel = document.querySelector('.node-info-panel')
                 if (NodeInfoPanel) {
                     if (!dom.nodeContains(NodeInfoPanel, e.target)) {
@@ -1299,6 +1304,7 @@
                 &.is-disabled {
                     color: #ffffff !important; // 覆盖 bk-button important 规则
                     opacity: 0.4;
+                    cursor: no-drop;
                 }
             }
             .revoke-btn {
@@ -1318,27 +1324,14 @@
                 margin-right: 36px;
                 padding: 0;
                 color: #979ba5;
-                font-size: 14px;
+                font-size: 15px;
+                cursor: pointer;
                 &.actived {
                     color: #63656e;
                 }
                 &:hover {
                     color: #63656e;
                 }
-            }
-            .jump-tpl-page-btn {
-                display: inline-block;
-                position: relative;
-                height: 24px;
-                width: 16px;
-                top: 2px;
-                line-height: 22px;
-            }
-            .solid-eye {
-                font-size: 12px;
-            }
-            .params-btn-icon, .params-btn {
-                font-size: 15px;
             }
         }
     }
@@ -1462,10 +1455,8 @@
         }
     }
     .bk-flow-canvas .tooltip .tooltip-inner {
-        height: 34px;
-        width: 80px;
-        line-height: 34px;
-        padding: 0;
+        line-height: 1;
+        box-sizing: content-box;
     }
 }
 </style>

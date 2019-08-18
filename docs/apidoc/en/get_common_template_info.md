@@ -1,10 +1,10 @@
 ### Functional description
 
-Query individual flow template details of the business
+Query common flow template details
 
 ### Request Parameters
 
-#### General Parameters
+### General Parameters
 
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
@@ -17,9 +17,7 @@ Query individual flow template details of the business
 
 | Field         |   Type     | Required   |  Description    |
 |---------------|------------|---------|--------------------|
-| bk_biz_id     | string     |   YES   |  the business ID   |
 | template_id   | string     |   YES   |  the template ID       |
-| template_source | string   |   NO    | source of flow，default value is business. business: from business, common: from common flow |
 
 ### Request Parameters Example
 
@@ -28,9 +26,7 @@ Query individual flow template details of the business
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
-    "bk_biz_id": "1",
     "template_id": "30",
-    "template_source": "business"
 }
 ```
 
@@ -44,7 +40,6 @@ Query individual flow template details of the business
         "edit_time": "2018-04-27 16:24:24 +0800",
         "create_time": "2018-04-16 21:43:15 +0800",
         "name": "new20180416213944",
-        "bk_biz_id": "2",
         "creator": "admin",
         "pipeline_tree": {
             "activities": {
@@ -179,7 +174,6 @@ Query individual flow template details of the business
             },
             "gateways": {}
         },
-        "bk_biz_name": "blueking",
         "id": 30,
         "editor": "admin"
     },
@@ -198,8 +192,6 @@ Query individual flow template details of the business
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
-|  bk_biz_id     |    string    |      the business ID      |
-|  bk_biz_name   |    string    |      the business name    |
 |  id            |    int       |      flow template ID             |
 |  name          |    string    |      flow template name            |
 |  category      |    string    |      flow type，the value is described below    |

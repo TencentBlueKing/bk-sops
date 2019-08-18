@@ -11,7 +11,7 @@
 */
 <template>
     <div class="ip-select-conditon">
-        <h3 class="condition-label">{{label}}{{i18n.allSatisfy}}:</h3>
+        <h3 :class="['condition-label', { 'disabled': !editable }]">{{label}}{{i18n.allSatisfy}}:</h3>
         <template v-if="conditions.length" class="condition-list">
             <div
                 v-for="(condition, index) in conditions"
@@ -29,7 +29,7 @@
                 </condition-item>
             </div>
         </template>
-        <div v-else class="condition-empty" @click.stop="addCondition">{{i18n.addItem + label}}</div>
+        <div v-else :class="['condition-empty', { 'disabled': !editable }]" @click.stop="addCondition">{{i18n.addItem + label}}</div>
     </div>
 </template>
 <script>
@@ -98,6 +98,9 @@
     color: #313138;
     font-size: 14px;
     font-weight: 400;
+    &.disabled {
+        color: #cccccc;
+    }
 }
 .condition-empty {
     padding: 21px;
@@ -106,10 +109,12 @@
     font-size: 14px;
     text-align: center;
     border: 1px dotted #c4c6cc;
-    cursor: pointer;
-    &:hover {
-        color: #3a84ff;
-        border-color: #3a84ff;
+    &:not(.disabled) {
+        cursor: pointer;
+        &:hover {
+            color: #3a84ff;
+            border-color: #3a84ff;
+        }
     }
 }
 </style>

@@ -19,12 +19,12 @@
             <div class="common-form-item">
                 <label>{{i18n.executorLabel}}</label>
                 <div class="common-form-content">
-                    <!-- <BaseInput v-model="executor" /> -->
                     <bk-input class="bk-input-inline" :clearable="true" v-model="executor"></bk-input>
                     <i
                         class="bk-icon icon-info-circle desc-tooltip"
                         v-bk-tooltips="{
                             content: i18n.executorTips,
+                            width: 300,
                             placements: ['right']
                         }">
                     </i>
@@ -33,7 +33,7 @@
             <div class="common-form-item executor-switch">
                 <label>{{i18n.alwaysUseExecutorLabel}}</label>
                 <div class="common-form-content">
-                    <bk-switcher v-model="alwaysUseExecutor"></bk-switcher>
+                    <bk-switcher v-model="alwaysUseExecutor" size="small"></bk-switcher>
                     <i
                         class="bk-icon icon-info-circle desc-tooltip"
                         v-bk-tooltips="{
@@ -157,9 +157,10 @@
         margin: 30px 0 0 0;
     }
     .common-form-content {
-        margin-left: 180px;
+        margin-left: 160px;
     }
     .common-form-item > label {
+        width: 140px;
         text-align: left;
     }
     .desc-tooltip {

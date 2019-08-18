@@ -69,10 +69,12 @@
                             placements: ['bottom']
                         }"
                         @click="onResetPosition">
-                        <i class="common-icon-zoom-in"></i>
+                        <i class="common-icon-reduction"></i>
                     </div>
                     <div
-                        class="tool-icon"
+                        :class="['tool-icon', {
+                            'actived': isSelectionOpen
+                        }]"
                         v-if="isEdit"
                         v-bk-tooltips="{
                             content: i18n.nodeSelection,
@@ -539,6 +541,9 @@
                 this.$emit('onLabelBlur', labelData)
             },
             onUpdateNodeInfo (id, data) {
+                if (id === '') {
+                    return false
+                }
                 this.dataFlowInstance.updateLocationById(id, data)
             },
             onUpdateCanvas (data) {
@@ -701,7 +706,10 @@
         position: absolute;
         top: 86px;
         left: 50%;
+        padding: 2px 9px;
+        border-radius: 1px;
         transform: translateX(-50%);
+        background: rgba(225, 228, 232, 0.95);
         z-index: 4;
         .atom-number {
             color: #a9b2bd;
