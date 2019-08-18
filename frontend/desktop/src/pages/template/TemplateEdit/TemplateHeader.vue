@@ -87,7 +87,8 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 20px;
-        height: 60px;
+        height: 59px;
+        line-height: 59px;
         background: #f4f7fa;
         border: 1px solid #cacedb;
         .template-name-input {
