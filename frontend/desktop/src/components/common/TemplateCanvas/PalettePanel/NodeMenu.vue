@@ -60,6 +60,7 @@
 <script>
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
+    import dom from '@/utils/dom.js'
 
     export default {
         name: 'NodeMenu',
@@ -119,9 +120,13 @@
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
             },
             onSearchInput () {},
-            handleClickOutSide () {
-                debugger
-                this.$emit('onHideNodeMenu')
+            handleClickOutSide (e) {
+                if (!this.isFixedNodeMenu) {
+                    if (dom.parentClsContains('palette-item', e.target)) {
+                        return
+                    }
+                    this.$emit('onCloseNodeMenu')
+                }
             }
         }
     }
@@ -141,8 +146,8 @@
     }
     .node-list-pin {
         position: absolute;
-        top: 4px;
-        right: 10px;
+        top: 0;
+        right: 0;
         font-size: 24px;
         color: #999999;
         cursor: pointer;
@@ -155,20 +160,21 @@
         }
     }
     .search-wrap {
-        position: relative;
-        padding-top: 30px;
-        padding-bottom: 10px;
-        text-align: center;
+        padding: 20px;
+        border-bottom: 1px solid #ccd0dd;
     }
     .node-list-wrap {
         height: calc(100% - 71px);
         overflow-y: auto;
         @include scrollbar;
     }
+    .bk-collapse-item {
+        border-bottom: 1px solid #ccd0dd;
+    }
     .group-header {
         .header-icon {
             float: left;
-            margin-top: 17px;
+            margin-top: 13px;
             width: 16px;
             height: 16px;
         }

@@ -41,6 +41,7 @@
             </PipelineCanvas> -->
             <TemplateHeader></TemplateHeader>
             <TemplateCanvas
+                class="template-canvas"
                 :atom-type-list="atomTypeList"
                 :name="name"
                 :cc_id="cc_id"
@@ -961,6 +962,9 @@
     }
     .pipeline-canvas-wrapper {
         height: 100%;
+    }
+    .template-canvas {
+        height: calc(100% - 60px);
     }
     .leave-tips {
         padding: 30px;

@@ -12,31 +12,31 @@
 <template>
     <div class="palette-panel">
         <div class="palette-container">
-            <div class="palette-item" data-type="startpoint">
+            <div class="palette-item entry-item" data-type="startpoint">
                 <div class="node-type-text start-point">{{ i18n.start }}</div>
             </div>
-            <div class="palette-item" data-type="endpoint">
+            <div class="palette-item entry-item" data-type="endpoint">
                 <div class="node-type-text end-point">{{ i18n.end }}</div>
             </div>
-            <div class="palette-item" data-type="parallelgateway">
+            <div class="palette-item entry-item" data-type="parallelgateway">
                 <div class="node-type-icon common-icon-node-parallelgateway"></div>
             </div>
-            <div class="palette-item" data-type="branchgateway">
+            <div class="palette-item entry-item" data-type="branchgateway">
                 <div class="node-type-icon common-icon-node-branchgateway"></div>
             </div>
-            <div class="palette-item" data-type="convergegateway">
+            <div class="palette-item entry-item" data-type="convergegateway">
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
             <div
                 :class="['palette-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
                 data-type="tasknode"
-                @mousedown="onToggleNodeMenu('tasknode')">
+                @click="onOpenNodeMenu('tasknode', $event)">
                 <div class="node-type-icon common-icon-node-tasknode"></div>
             </div>
             <div
                 :class="['palette-item', 'palette-with-menu', { actived: activeNodeListType === 'subflow' }]"
                 data-type="subflow"
-                @click.native="onToggleNodeMenu('subflow')">
+                @click.stop="onOpenNodeMenu('subflow', $event)">
                 <div class="node-type-icon common-icon-node-subflow"></div>
             </div>
         </div>
@@ -45,7 +45,7 @@
             :is-fixed-node-menu="isFixedNodeMenu"
             :active-node-list-type="activeNodeListType"
             :nodes="nodes"
-            @onHideNodeMenu="onHideNodeMenu"
+            @onCloseNodeMenu="onCloseNodeMenu"
             @onToggleNodeMenuFixed="onToggleNodeMenuFixed">
         </node-menu>
     </div>
@@ -71,6 +71,10 @@
                 activeNodeListType: '',
                 showNodeMenu: false,
                 isFixedNodeMenu: false,
+                moveFlag: {
+                    x: 0,
+                    y: 0
+                },
                 i18n: {
                     start: gettext('开始'),
                     end: gettext('结束')
@@ -87,31 +91,26 @@
             this.$emit('registerPaletteEvent')
         },
         methods: {
-            onToggleNodeMenu (type) {
-                debugger
-                let showNodeMenu
-                let activedType
-                if (this.isFixedNodeMenu) {
-                    showNodeMenu = true
-                    activedType = type
-                } else {
-                    if (this.activeNodeListType === type) {
-                        showNodeMenu = false
-                        activedType = ''
-                    } else {
-                        showNodeMenu = true
-                        activedType = type
-                    }
+            onMouseDown (e) {
+                this.moveFlag = {
+                    x: e.pageX,
+                    y: e.pageY
                 }
-                debugger
-                this.showNodeMenu = showNodeMenu
-                this.activeNodeListType = activedType
+            },
+            onOpenNodeMenu (type) {
+                this.showNodeMenu = true
+                this.activeNodeListType = type
+            },
+            onCloseNodeMenu () {
+                this.showNodeMenu = false
+            },
+            handleClickOutSide () {
+                if (!this.isFixedNodeMenu) {
+                    this.onCloseNodeMenu()
+                }
             },
             onToggleNodeMenuFixed (val) {
                 this.isFixedNodeMenu = val
-            },
-            onHideNodeMenu () {
-                this.showNodeMenu = false
             }
         }
     }
@@ -176,6 +175,10 @@
         .node-type-icon {
             font-size: 32px;
             color: #52699d;
+        }
+        .start-point,
+        .end-point {
+            transform: scale(0.8);
         }
     }
 </style>

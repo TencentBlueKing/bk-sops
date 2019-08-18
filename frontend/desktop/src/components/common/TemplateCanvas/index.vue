@@ -11,7 +11,7 @@
 */
 <template>
     <js-flow
-        selector="palette-item"
+        selector="entry-item"
         :canvas-data="{}"
         :show-palette="showPalette"
         :show-tool="showTool"

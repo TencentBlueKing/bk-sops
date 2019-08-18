@@ -11,7 +11,7 @@
 */
 <template>
     <div
-        class="node-item palette-item"
+        class="node-item entry-item"
         :data-atomid="type === 'tasknode' ? node.code : node.template_id"
         :data-version="type === 'tasknode' ? '' : node.version"
         :data-atomname="node.name.replace(/\s/g, '')"
