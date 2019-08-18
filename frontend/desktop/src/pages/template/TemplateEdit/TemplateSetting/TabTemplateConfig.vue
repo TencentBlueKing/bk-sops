@@ -17,7 +17,10 @@
         <div class="common-form-item">
             <label>{{ i18n.type }}</label>
             <div class="common-form-content">
-                <bk-select v-model="category" @change="onChangeTaskCategories">
+                <bk-select
+                    class="category-select"
+                    v-model="category"
+                    @change="onChangeTaskCategories">
                     <bk-option
                         v-for="(item, index) in taskCategories"
                         :key="index"
@@ -198,6 +201,9 @@
             height: 32px;
             line-height: 32px;
         }
+    }
+    .category-select {
+        font-size: 14px;
     }
     .bk-form-checkbox {
         min-width: 96px;

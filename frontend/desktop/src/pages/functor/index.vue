@@ -544,6 +544,7 @@
                 this.funtorSync = 0
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
+                this.searchInputhandler()
             },
             onSelectedStatus (id, name) {
                 this.status = id
@@ -722,7 +723,7 @@
     padding: 30px;
     .common-form-item {
         label {
-            width: 60px;
+            width: 70px;
             font-weight: normal;
         }
         .common-form-content {

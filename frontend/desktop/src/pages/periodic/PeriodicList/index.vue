@@ -80,7 +80,7 @@
                             <router-link
                                 class="periodic-name"
                                 :title="props.row.task_template_name"
-                                :to="`/template/edit/${cc_id}/?template_id=${props.row.template_id}&entrance=periodicTask`">
+                                :to="`/template/edit/${cc_id}/?template_id=${props.row.template_id}&entrance=periodicTask_view`">
                                 {{props.row.task_template_name}}
                             </router-link>
                         </template>
@@ -96,14 +96,14 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count"></bk-table-column>
                     <bk-table-column :label="i18n.enabled" width="80">
-                        <template slot-scope="props">
+                        <template slot-scope="props" class="periodic-status">
                             <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
                             {{props.row.enabled ? i18n.start : i18n.pause}}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="180">
+                    <bk-table-column :label="i18n.operation" width="140">
                         <template slot-scope="props">
                             <div class="periodic-operation">
                                 <a
@@ -409,6 +409,7 @@
                 this.creator = undefined
                 this.enabled = undefined
                 this.enabledSync = ''
+                this.searchInputhandler()
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
@@ -422,7 +423,7 @@
         }
     }
 </script>
-<style lang='scss'>
+<style lang='scss' scoped>
 @import '@/scss/config.scss';
 .list-wrapper {
     padding: 0 60px;
@@ -532,23 +533,28 @@
     margin-top: 25px;
     background: #ffffff;
     /deep/ .bk-table {
+        overflow: visible;
         .bk-table-body-wrapper,.is-scrolling-none,
         td.is-last .cell {
-            overflow: initial;
+            overflow: visible;
         }
+    }
+    .icon-check-circle-shape {
+        color: #30d878;
     }
     a.periodic-name,
     .periodic-operation a {
         color: $blueDefault;
-    }
-    .periodic-status {
-        width: 100px;
-        .icon-check-circle-shape {
-            color: $greenDefault;
+        &.periodic-bk-disable {
+            color:#cccccc;
+            cursor: not-allowed;
         }
     }
+    .icon-check-circle-shape {
+        color: $greenDefault;
+    }
     .common-icon-dark-circle-pause {
-        color: #FF9C01;
+        color: #ff9C01;
         border-radius: 20px;
         font-size: 12px;
     }

@@ -11,8 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+import traceback
+
 from abc import ABCMeta
 from pipeline.core.flow.base import FlowNode
+from pipeline.engine.signals import pipeline_end
+from pipeline.core.pipeline import Pipeline
+
+logger = logging.getLogger('celery')
 
 
 class Event(FlowNode):
@@ -37,7 +44,10 @@ class EndEvent(ThrowEvent):
     __metaclass__ = ABCMeta
 
     def pipeline_finish(self, root_pipeline_id):
-        return
+        try:
+            pipeline_end.send(sender=Pipeline, root_pipeline_id=root_pipeline_id)
+        except Exception:
+            logger.error("pipeline end handler error %s" % traceback.format_exc())
 
 
 class StartEvent(CatchEvent):
@@ -49,9 +59,4 @@ class EmptyStartEvent(StartEvent):
 
 
 class EmptyEndEvent(EndEvent):
-    def pipeline_finish(self, root_pipeline_id):
-        from pipeline.models import PipelineInstance  # noqa
-        try:
-            PipelineInstance.objects.set_finished(root_pipeline_id)
-        except PipelineInstance.DoesNotExist:  # task which do not belong to any instance
-            pass
+    pass

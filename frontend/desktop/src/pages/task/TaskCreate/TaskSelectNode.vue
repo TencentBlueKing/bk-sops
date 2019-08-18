@@ -497,15 +497,14 @@
                             this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/paramfill/`, query: { 'template_id': this.template_id } })
                         }
                     } else {
-                        if (this.common) {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, common: this.common } })
-                        } else {
-                            if (this.entrance !== undefined) {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id, entrance: this.entrance } })
-                            } else {
-                                this.$router.push({ path: `/template/newtask/${this.cc_id}/paramfill/`, query: { template_id: this.template_id } })
+                        this.$router.push({
+                            path: `/template/newtask/${this.cc_id}/paramfill/`,
+                            query: {
+                                template_id: this.template_id,
+                                common: this.common || undefined,
+                                entrance: this.entrance
                             }
-                        }
+                        })
                     }
                 } catch (e) {
                     errorHandler(e, this)
@@ -860,7 +859,7 @@
             &:hover {
                 margin: 0;
                 padding: 0 20px;
-                background-color: #f0f1f5;
+                background-color: #d9e8f8;
                 .icon-close-circle-shape {
                     opacity: 1;
                 }
@@ -896,9 +895,12 @@
                 height: 12px;
                 text-align: center;
                 line-height: 12px;
-                color: #cecece;
+                color: #979ba5;
                 opacity: 0;
                 cursor: pointer;
+                &:hover {
+                    color: #cecece;
+                }
             }
         }
         li:first-child {
