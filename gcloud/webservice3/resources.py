@@ -13,11 +13,12 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+from django import forms
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
 from haystack.query import SearchQuerySet
 from tastypie import fields
-
+from tastypie.validation import FormValidation
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
@@ -139,6 +140,11 @@ class BusinessResource(GCloudModelResource):
         }
 
 
+class ProjectForm(forms.Form):
+    name = forms.CharField(max_length=256)
+    desc = forms.CharField(max_length=512, required=False)
+
+
 class ProjectResource(GCloudModelResource):
     create_at = fields.DateTimeField(attribute='create_at', readonly=True)
     from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
@@ -148,6 +154,7 @@ class ProjectResource(GCloudModelResource):
 
     class Meta(GCloudModelResource.Meta):
         queryset = Project.objects.all().order_by('-id')
+        validation = FormValidation(form_class=ProjectForm)
         resource_name = 'project'
         auth_resource = project_resource
         authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
