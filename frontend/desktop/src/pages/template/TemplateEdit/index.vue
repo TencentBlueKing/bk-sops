@@ -73,15 +73,16 @@
                 @hideConfigPanel="hideConfigPanel">
             </TemplateSetting>
             <bk-dialog
-                :is-show.sync="isLeaveDialogShow"
-                :quick-close="false"
-                :ext-cls="'common-dialog'"
-                :title="i18n.leave"
                 width="400"
-                padding="30px"
+                ext-cls="common-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :header-position="'left'"
+                :title="i18n.leave"
+                :value="isLeaveDialogShow"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
-                <div slot="content">{{ i18n.tips }}</div>
+                <div class="leave-tips">{{ i18n.tips }}</div>
             </bk-dialog>
         </div>
     </div>
@@ -953,5 +954,8 @@
     }
     .pipeline-canvas-wrapper {
         height: 100%;
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>
