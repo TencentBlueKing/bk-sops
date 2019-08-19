@@ -19,10 +19,13 @@ from cryptography.fernet import Fernet
 from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
+from django.utils.translation import ugettext_lazy as _
 
 from blueapps.account.decorators import login_exempt
 
 from auth_backend.plugins.decorators import verify_perms
+from auth_backend.constants import AUTH_FORBIDDEN_CODE
+from auth_backend.exceptions import AuthFailedException
 
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions, states
@@ -110,8 +113,18 @@ def get_job_instance_log(request, biz_cc_id):
         "bk_biz_id": biz_cc_id,
         "job_instance_id": job_instance_id
     }
-    log_result = client.job.get_job_instance_log(log_kwargs)
-    return JsonResponse(log_result)
+    job_result = client.job.get_job_instance_log(log_kwargs)
+    if not job_result['result']:
+        message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
+            biz_cc_id, job_result['message'])
+
+        if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=job_result.get('permission', []))
+
+        logger.error(message)
+
+    return JsonResponse(job_result)
 
 
 @require_POST

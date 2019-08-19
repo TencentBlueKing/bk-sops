@@ -329,12 +329,12 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
     if not job_result['result']:
         message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
             biz_cc_id, job_result['message'])
-        logger.error(message)
 
         if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
             logger.warning(message)
             raise AuthFailedException(permissions=job_result.get('permission', []))
 
+        logger.error(message)
         result = {
             'result': False,
             'data': [],
