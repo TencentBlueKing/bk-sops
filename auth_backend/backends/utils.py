@@ -18,11 +18,11 @@ from django.utils.module_loading import import_string
 def get_backend_from_config():
     backend_path = settings.AUTH_BACKEND_CLS
     if not backend_path:
-        return None
+        raise LookupError('can not find AUTH_BACKEND_CLS in settings or AUTH_BACKEND_CLS is empty')
 
     try:
         backend_cls = import_string(backend_path)
     except ImportError:
-        return None
+        return ImportError('can not import backend class from path: {path}'.format(path=backend_path))
 
     return backend_cls()
