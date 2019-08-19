@@ -67,7 +67,8 @@ export function setJqueryAjaxConfig () {
                 bus.$emit('showErrorModal', '406')
             },
             499: function (xhr) {
-                const permission = xhr.data.permission
+                const resData = JSON.parse(xhr.responseText)
+                const permission = resData.permission
                 bus.$emit('showPermissionModal', permission)
             },
             500: function (xhr, textStatus) {
