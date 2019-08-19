@@ -51,6 +51,16 @@
                             </bk-collapse-item>
                         </bk-collapse>
                     </template>
+                    <template v-else>
+                        <div class="search-result">
+                            <node-item
+                                v-for="(node, index) in searchResult"
+                                :key="index"
+                                :type="activeNodeListType"
+                                :node="node">
+                            </node-item>
+                        </div>
+                    </template>
                 </template>
                 <no-data v-else></no-data>
             </div>
@@ -61,6 +71,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'
+    import toolsUtils from '@/utils/tools.js'
 
     export default {
         name: 'NodeMenu',
@@ -115,11 +126,34 @@
                 return this.searchStr === '' ? this.nodes : this.searchResult
             }
         },
+        watch: {
+            activeNodeListType () {
+                this.searchStr = ''
+            }
+        },
+        created () {
+            this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
+        },
         methods: {
             onClickPin () {
                 this.$emit('onToggleNodeMenuFixed', !this.isFixedNodeMenu)
             },
-            onSearchInput () {},
+            searchInputhandler () {
+                if (this.searchStr !== '') {
+                    const reg = new RegExp(this.searchStr)
+                    const result = []
+                    this.nodes.forEach(group => {
+                        if (group.list.length > 0) {
+                            group.list.forEach(node => {
+                                if (reg.test(node.name)) {
+                                    result.push(node)
+                                }
+                            })
+                        }
+                    })
+                    this.searchResult = result
+                }
+            },
             handleClickOutSide (e) {
                 if (!this.isFixedNodeMenu) {
                     if (dom.parentClsContains('palette-item', e.target)) {
@@ -193,5 +227,8 @@
     }
     .node-item-wrap {
         overflow: hidden;
+    }
+    .search-result {
+        padding: 20px 10px;
     }
 </style>

@@ -10,10 +10,158 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div></div>
+    <transition name="wrapperLeft">
+        <div class="tool-position">
+            <div
+                class="tool-icon"
+                v-bk-tooltips="{
+                    content: i18n.zoomIn,
+                    delay: 1000,
+                    placements: ['bottom']
+                }"
+                @click="onZoomIn">
+                <i class="common-icon-zoom-in"></i>
+            </div>
+            <div
+                class="tool-icon"
+                v-bk-tooltips="{
+                    content: i18n.zoomOut,
+                    delay: 1000,
+                    placements: ['bottom']
+                }"
+                @click="onZoomOut">
+                <i class="common-icon-zoom-out"></i>
+            </div>
+            <div
+                class="tool-icon"
+                v-bk-tooltips="{
+                    content: i18n.resetZoom,
+                    delay: 1000,
+                    placements: ['bottom']
+                }"
+                @click="onResetPosition">
+                <i class="common-icon-reduction"></i>
+            </div>
+            <div
+                :class="['tool-icon', {
+                    'actived': isSelectionOpen
+                }]"
+                v-if="isEdit"
+                v-bk-tooltips="{
+                    content: i18n.nodeSelection,
+                    delay: 1000,
+                    placements: ['bottom']
+                }"
+                @click="onOpenDragSelection">
+                <i class="common-icon-marquee"></i>
+            </div>
+            <div
+                class="tool-icon"
+                v-if="isEdit"
+                v-bk-tooltips="{
+                    content: i18n.formatPosition,
+                    delay: 1000,
+                    placements: ['bottom']
+                }"
+                @click="onFormatPosition">
+                <i class="common-icon-four-square"></i>
+            </div>
+            <div
+                class="tool-icon"
+                v-if="isSelectNode"
+                v-bk-tooltips="{
+                    content: selectNodeName,
+                    delay: 1000,
+                    placements: ['bottom']
+                }"
+                @click="onToggleAllNode">
+                <i :class="[
+                    isSelectAll ? 'common-icon-black-hook' : 'common-icon-black-box',
+                    { 'tool-disable': isPreviewMode }]">
+                </i>
+            </div>
+        </div>
+    </transition>
 </template>
 <script>
     export default {
-        name: 'ToolPanel'
+        name: 'ToolPanel',
+        props: {
+            isEdit: {
+                type: Boolean,
+                default: true
+            },
+            isSelectNode: {
+                type: Boolean,
+                default: true
+            },
+            isSelectAll: {
+                type: Boolean,
+                default: false
+            },
+            isPreviewMode: {
+                type: Boolean,
+                default: false
+            }
+        },
+        data () {
+            return {
+                isSelectionOpen: false,
+                i18n: {
+                    resetZoom: gettext('复位'),
+                    zoomIn: gettext('放大'),
+                    zoomOut: gettext('缩小'),
+                    nodeSelection: gettext('节点框选'),
+                    formatPosition: gettext('排版'),
+                    choiceAll: gettext('全选'),
+                    cancelChoiceAll: gettext('反选')
+                }
+            }
+        },
+        computed: {
+            selectNodeName () {
+                return this.isSelectAll ? this.i18n.choiceAll : this.i18n.cancelChoiceAll
+            }
+        },
+        methods: {
+            onZoomIn () {
+                this.$emit('onZoomIn')
+            },
+            onZoomOut () {
+                this.$emit('onZoomOut')
+            },
+            onResetPosition () {
+                this.$emit('onResetPosition')
+            },
+            onFormatPosition () {},
+            onToggleAllNode () {},
+            onOpenDragSelection () {
+                this.isSelectionOpen = true
+            },
+            onCloseDragSelection () {
+                this.isSelectionOpen = false
+            }
+        }
     }
 </script>
+<style lang="scss" scoped>
+    .tool-icon {
+        display: inline-block;
+        margin: 0 15px;
+        color: #ffffff;
+        cursor: pointer;
+        &:first-child {
+            margin-left: 20px;
+        }
+        &:last-child {
+            margin-right: 15px;
+        }
+        &.actived {
+            color: #3480ff;
+        }
+        .tool-disable {
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+    }
+</style>

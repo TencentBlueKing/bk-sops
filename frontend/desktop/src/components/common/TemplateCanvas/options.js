@@ -38,7 +38,8 @@ export const endpointOptions = {
     cssClass: 'template-canvas-endpoint',
     hoverClass: 'template-canvas-endpoint-hover',
     isSource: true, // 端点是否可以作为拖动源
-    isTarget: true // 端点是否可以作为拖动目标
+    isTarget: true, // 端点是否可以作为拖动目标
+    maxConnections: -1
 }
 
 /**

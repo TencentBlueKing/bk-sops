@@ -1104,7 +1104,7 @@
     border-left: 1px solid $commonBorderColor;
     box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.15);
     overflow-y: auto;
-    z-index: 4;
+    z-index: 5;
     transition: right 0.5s ease-in-out;
     @include scrollbar;
     .node-title {
