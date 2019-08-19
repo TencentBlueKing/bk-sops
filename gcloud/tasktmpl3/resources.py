@@ -244,9 +244,9 @@ class TemplateSchemeResource(GCloudModelResource):
 
     def build_filters(self, filters=None, **kwargs):
         orm_filters = super(TemplateSchemeResource, self).build_filters(filters, **kwargs)
-        if 'project_id' in filters and 'template_id' in filters:
+        if 'project__id' in filters and 'template_id' in filters:
             template_id = filters.pop('template_id')[0]
-            project_id = filters.pop('project_id')[0]
+            project_id = filters.pop('project__id')[0]
             try:
                 template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
             except TaskTemplate.DoesNotExist:
