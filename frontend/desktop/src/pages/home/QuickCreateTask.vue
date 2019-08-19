@@ -26,7 +26,7 @@
                     </router-link>
                     <i
                         class="common-icon-dark-circle-close delete-task"
-                        v-bktooltips.top="i18n.cancelCollect"
+                        v-bk-tooltips.top="i18n.cancelCollect"
                         @click="onDeleteTemplate(item.id)">
                     </i>
                 </li>

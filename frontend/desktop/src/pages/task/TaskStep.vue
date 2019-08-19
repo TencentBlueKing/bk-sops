@@ -45,7 +45,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'taskStatus'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'taskStatus', 'template_id'],
         data () {
             return {
                 i18n: {
@@ -110,13 +110,24 @@
             },
             /**
              * 返回任务列表
+             * 目的：返回到【节点选择】上一个页面
              */
             getHomeUrl () {
-                let url = '/'
                 const userType = this.userType // 用户类型
                 const path = this.$route.fullPath
                 const entrance = this.$route.query.entrance || '' // 入口参数
                 const ccId = this.$route.params.cc_id
+                let url = '/'
+                const isCommon = this.common && userType === 'maintainer'
+                // 不是从编辑模版页面进入的 entrance 列表
+                const unFromEditList = ['periodicTask_new', 'taskflow', '_newTask']
+                const isNotFromEdit = unFromEditList.some(item => entrance.indexOf(item) > -1)
+                if (!isNotFromEdit && userType === 'maintainer') {
+                    url = `/template/edit/${ccId}/`
+                    this.goToOriginPath(url, entrance, isCommon, true, true)
+                    return false
+                }
+
                 const actions = [
                     // 编辑模板
                     { userType: 'maintainer', path: '/template/edit/', url: `/periodic/home/${this.cc_id}/` },
@@ -143,11 +154,30 @@
                     const flag_view_mode = key.view_mode ? key.view_mode === this.view_mode : true
                     const flag_userType = key.userType ? key.userType === userType : true
                     const flag_path = key.path ? new RegExp(key.path).test(path) : true
-                    const flag_entrance = key.entrance ? key.entrance === entrance : true
-                    if (flag_view_mode && flag_userType && flag_path && flag_entrance) url = key.url
+                    const flag_entrance = key.entrance ? entrance.indexOf(key.entrance) > -1 : true
+                    if (flag_view_mode && flag_userType && flag_path && flag_entrance) {
+                        url = key.url
+                    }
                 })
-                if (this.common && userType === 'maintainer') url += `?common=1&common_template=${this.common}`
-                this.$router.push(url)
+                this.goToOriginPath(url, entrance, isCommon, false, false)
+            },
+            /**
+             * 跳转到原始页面
+             * @param {string} url -路由地址
+             * @param {string} entrance -入口
+             * @param {boolean} isAddTemplateId -是否加 template_id 参数
+             * @param {boolean} isAddEntrance -是否加 entrance 参数
+             */
+            goToOriginPath (url, entrance, isCommon, isAddTemplateId = true, isAddEntrance = true) {
+                this.$router.push({
+                    path: url,
+                    query: {
+                        template_id: isAddTemplateId ? this.template_id : undefined,
+                        common_template: isCommon ? this.common : undefined,
+                        common: isCommon ? '1' : undefined,
+                        entrance: isAddEntrance && entrance ? entrance : undefined
+                    }
+                })
             }
         }
     }
