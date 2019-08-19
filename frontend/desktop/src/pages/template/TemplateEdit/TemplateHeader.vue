@@ -13,17 +13,48 @@
     <div class="template-header-wrapper">
         <base-title class="template-title" :title="title"></base-title>
         <div class="template-name-input">
-            <bk-input :value="name"></bk-input>
+            <div class="name-show-mode" v-if="isShowMode">
+                <h3 class="canvas-name" :title="tName">{{tName}}</h3>
+                <span class="common-icon-edit" @click="onNameEditing"></span>
+            </div>
+            <bk-input
+                v-else
+                ref="canvasNameInput"
+                v-validate="templateNameRule"
+                data-vv-name="templateName"
+                :name="'templateName'"
+                :has-error="errors.has('templateName')"
+                :value="name"
+                :placeholder="i18n.placeholder"
+                @input="onInputName"
+                @enter="onInputBlur"
+                @blur="onInputBlur">
+            </bk-input>
+            <span class="name-error common-error-tip error-msg">{{ errors.first('templateName') }}</span>
         </div>
         <div class="button-area">
-            <bk-button theme="primary">{{i18n.save}}</bk-button>
-            <bk-button theme="primary">{{i18n.saveAndCreateTask}}</bk-button>
-            <bk-button theme="default">{{i18n.back}}</bk-button>
+            <bk-button
+                theme="primary"
+                :loading="templateSaving"
+                @click="onSaveTemplate(false)">
+                {{i18n.save}}
+            </bk-button>
+            <bk-button
+                theme="primary"
+                :loading="createTaskSaving"
+                @click="onSaveTemplate(true)">
+                {{i18n.saveAndCreateTask}}
+            </bk-button>
+            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>
         </div>
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
+    import { mapMutations } from 'vuex'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
+
     export default {
         name: 'TemplateHeader',
         components: {
@@ -61,7 +92,15 @@
         },
         data () {
             return {
+                tName: this.name.trim(),
+                templateNameRule: {
+                    required: true,
+                    max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
+                    regex: NAME_REG
+                },
+                isShowMode: true,
                 i18n: {
+                    placeholder: gettext('请输入名称'),
                     create: gettext('新建流程'),
                     edit: gettext('编辑流程'),
                     save: gettext('保存'),
@@ -73,11 +112,83 @@
         },
         computed: {
             title () {
-                return this.type === 'edit' ? this.i18n.edit : this.i18n.create
+                return this.$route.query.template_id === undefined ? this.i18n.create : this.i18n.edit
+            },
+            isSaveAndCreateTaskType () {
+                return this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone'
+            },
+            createTaskBtnText () {
+                return this.isSaveAndCreateTaskType ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+            }
+        },
+        watch: {
+            name (val) {
+                this.tName = val
             }
         },
         methods: {
-
+            ...mapMutations('template/', [
+                'setTemplateName'
+            ]),
+            onInputName (val) {
+                this.$emit('onChangeName', val)
+            },
+            onSaveTemplate (saveAndCreate = false) {
+                this.$validator.validateAll().then((result) => {
+                    if (!result) return
+                    this.tName = this.tName.trim()
+                    this.setTemplateName(this.tName)
+                    if (saveAndCreate && !this.isSaveAndCreateTaskType) {
+                        this.goToTaskUrl()
+                    } else {
+                        this.$emit('onSaveTemplate', saveAndCreate)
+                    }
+                })
+            },
+            getHomeUrl () {
+                let url = `/template/home/${this.cc_id}/`
+                const entrance = this.$route.query.entrance || ''
+                const actions = [
+                    { key: 'template_business', url: `/template/home/${this.cc_id}/` },
+                    { key: 'admin_common', url: '/admin/common/template/' }
+                ]
+                actions.forEach(action => {
+                    if (entrance.indexOf(action.key) > -1) {
+                        url = action.url
+                    }
+                })
+                if (this.common) {
+                    url += '?common=1'
+                }
+                return url
+            },
+            goToTaskUrl () {
+                const entrance = this.$route.query.entrance
+                this.$router.push({
+                    path: `/template/newtask/${this.cc_id}/selectnode/`,
+                    query: {
+                        template_id: this.template_id,
+                        common: this.common ? '1' : undefined,
+                        entrance: entrance || undefined
+                    }
+                })
+            },
+            onNameEditing () {
+                this.isShowMode = false
+                this.$nextTick(() => {
+                    const inputEl = this.$refs.canvasNameInput.$el.getElementsByClassName('bk-form-input')[0]
+                    this.$refs.canvasNameInput.focus()
+                    inputEl.select()
+                })
+            },
+            onInputBlur () {
+                this.$validator.validateAll().then((result) => {
+                    if (!result) {
+                        return
+                    }
+                    this.isShowMode = true
+                })
+            }
         }
     }
 </script>
@@ -86,13 +197,48 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        align-items: center;
         padding: 0 20px;
         height: 59px;
-        line-height: 59px;
         background: #f4f7fa;
         border: 1px solid #cacedb;
         .template-name-input {
+            position: relative;
             width: 430px;
+            text-align: center;
+        }
+        .name-show-mode {
+            display: inline-block;
+        }
+        .canvas-name {
+            display: inline-block;
+            margin: 0;
+            max-width: 400px;
+            height: 30px;
+            line-height: 30px;
+            font-size: 14px;
+            font-weight: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #606266;
+        }
+        .common-icon-edit {
+            float: right;
+            margin: 6px 0 0 4px;
+            color: #546a9e;
+            vertical-align: 9px;
+            cursor: pointer;
+            &:hover {
+                color: #3480ff;
+            }
+        }
+        .name-error {
+            position: absolute;
+            margin: 7px 0 0 10px;
+            right: 0;
+            top: 6px;
+            font-size: 12px;
         }
     }
 </style>

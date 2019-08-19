@@ -10,8 +10,12 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="canvas-node-item">
+    <div
+        class="canvas-node-item"
+        @mousedown="onMousedown"
+        @click="onNodeClick">
         <component :is="nodeTemplate" :node="node" />
+        <i class="common-icon-dark-circle-close close-icon" @click.stop="onNodeRemove"></i>
     </div>
 </template>
 <script>
@@ -35,6 +39,10 @@
         },
         data () {
             return {
+                moveFlag: {
+                    x: 0,
+                    y: 0
+                },
                 components: {
                     startpoint: StartPoint,
                     endpoint: EndPoint,
@@ -50,6 +58,28 @@
             nodeTemplate () {
                 return this.components[this.node.type.toLowerCase()]
             }
+        },
+        methods: {
+            onMousedown (e) {
+                const { pageX: x, pageY: y } = e
+                this.moveFlag = { x, y }
+            },
+            onNodeClick (e) {
+                const moveBuffer = 2
+                const { pageX: x, pageY: y } = e
+                if (
+                    Math.abs(x - this.moveFlag.x) < moveBuffer
+                    && Math.abs(y - this.moveFlag.y) < moveBuffer
+                ) {
+                    if (['tasknode', 'subflow'].indexOf(this.node.type) > -1) {
+                        this.$emit('onNodeClick', this.node.id)
+                        e.stopPropagation()
+                    }
+                }
+            },
+            onNodeRemove () {
+                this.$emit('onNodeRemove', this.node)
+            }
         }
     }
 </script>
@@ -57,6 +87,23 @@
     .canvas-node-item {
         position: relative;
         z-index: 3;
+        &:hover {
+            .close-icon {
+                display: inline-block;
+            }
+        }
+        .close-icon {
+            display: none;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 16px;
+            color: #ff5757;
+            background: #ffffff;
+            border-radius: 50%;
+            z-index: 2;
+            cursor: pointer;
+        }
         .circle-node {
             display: flex;
             align-items: center;

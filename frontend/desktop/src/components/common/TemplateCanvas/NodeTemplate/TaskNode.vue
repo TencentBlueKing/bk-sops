@@ -9,8 +9,9 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-<template v-else-if="node.type === 'tasknode'">
-    <div class="task-node">
+<template>
+    <div
+        class="task-node">
         <div class="node-name">
             <p>{{ node.name }}</p>
         </div>
@@ -26,6 +27,12 @@
                 default () {
                     return {}
                 }
+            }
+        },
+        methods: {
+            onMousedown () {},
+            onNodeClick () {
+                this.$emit('onNodeClick', this.node.id)
             }
         }
     }

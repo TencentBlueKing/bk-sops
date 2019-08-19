@@ -12,10 +12,22 @@
 <template>
     <div class="palette-panel">
         <div class="palette-container">
-            <div class="palette-item entry-item" data-type="startpoint">
+            <div
+                :class="[
+                    'palette-item',
+                    'entry-item',
+                    { disabled: isDisableStartPoint }
+                ]"
+                data-type="startpoint">
                 <div class="node-type-text start-point">{{ i18n.start }}</div>
             </div>
-            <div class="palette-item entry-item" data-type="endpoint">
+            <div
+                :class="[
+                    'palette-item',
+                    'entry-item',
+                    { disabled: isDisableEndPoint }
+                ]"
+                data-type="endpoint">
                 <div class="node-type-text end-point">{{ i18n.end }}</div>
             </div>
             <div class="palette-item entry-item" data-type="parallelgateway">
@@ -64,6 +76,14 @@
                 default () {
                     return {}
                 }
+            },
+            isDisableStartPoint: {
+                type: Boolean,
+                default: false
+            },
+            isDisableEndPoint: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -87,6 +107,11 @@
                 return data || []
             }
         },
+        watch: {
+            showNodeMenu (val) {
+                this.$emit('updateNodeMenuState', val)
+            }
+        },
         mounted () {
             this.$emit('registerPaletteEvent')
         },
@@ -103,11 +128,7 @@
             },
             onCloseNodeMenu () {
                 this.showNodeMenu = false
-            },
-            handleClickOutSide () {
-                if (!this.isFixedNodeMenu) {
-                    this.onCloseNodeMenu()
-                }
+                this.activeNodeListType = ''
             },
             onToggleNodeMenuFixed (val) {
                 this.isFixedNodeMenu = val
@@ -142,6 +163,15 @@
                     border-color: #3a84ff;
                 }
             }
+            &.disabled {
+                opacity: 0.3;
+                pointer-events: none;
+            }
+            .start-point,
+            .end-point {
+                transform: scale(0.8);
+            }
+
         }
         .palette-with-menu {
             position: relative;
@@ -175,10 +205,6 @@
         .node-type-icon {
             font-size: 32px;
             color: #52699d;
-        }
-        .start-point,
-        .end-point {
-            transform: scale(0.8);
         }
     }
 </style>
