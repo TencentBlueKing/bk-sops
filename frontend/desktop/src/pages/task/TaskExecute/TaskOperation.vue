@@ -1079,9 +1079,9 @@
                     nodeActivities = this.completePipelineData
                     this.nodeSwitching = true
                     this.pipelineData = nodeActivities
+                    this.selectedFlowPath = nodePath
                     this.cancelTaskStatusTimer()
                     this.updateTaskStatus(this.instance_id)
-                    this.selectedFlowPath = nodePath
                     this.treeNodeConfig = {}
                 }
             },
