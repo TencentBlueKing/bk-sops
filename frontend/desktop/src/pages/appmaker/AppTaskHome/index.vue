@@ -47,7 +47,7 @@
                                 </a>
                                 <router-link
                                     v-else
-                                    :to="`/appmaker/${item.create_info}/execute/${item.id}/?instance_id=${item.id}`">
+                                    :to="`/appmaker/${item.create_info}/execute/${item.project.id}/?instance_id=${item.id}`">
                                     {{item.name}}
                                 </router-link>
                             </td>
