@@ -50,6 +50,14 @@ COMPATIBLE_MODULE_MAP = {
     'pipeline.components.collections.sites.community.bk': 'pipeline_plugins.components.collections.sites.open.bk',
     'pipeline.components.collections.sites.community.cc': 'pipeline_plugins.components.collections.sites.open.cc',
     'pipeline.components.collections.sites.community.job': 'pipeline_plugins.components.collections.sites.open.job',
+    'pipeline_plugins.components.collections.sites.community.bk':
+        'pipeline_plugins.components.collections.sites.open.bk',
+    'pipeline_plugins.components.collections.sites.community.cc':
+        'pipeline_plugins.components.collections.sites.open.cc',
+    'pipeline_plugins.components.collections.sites.community.job':
+        'pipeline_plugins.components.collections.sites.open.job',
     'pipeline.variables.collections.common': 'pipeline_plugins.variables.collections.common',
     'pipeline.variables.collections.sites.community.cc': 'pipeline_plugins.variables.collections.sites.open.cc',
+    'pipeline_plugins.variables.variables.collections.sites.community.cc':
+        'pipeline_plugins.variables.collections.sites.open.cc',
 }

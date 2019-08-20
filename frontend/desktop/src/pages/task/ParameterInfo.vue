@@ -24,12 +24,12 @@
             <div class="title-background" @click="onToggleUnreferenceShow">
                 <div :class="['unreferenced-variable', { 'unreference-show': isUnrefVarShow }]"></div>
                 <span class="title">{{i18n.title}}</span>
-                <bk-tooltip placement="bottom-end" width="400" class="desc-tooltip">
-                    <i class="bk-icon icon-info-circle"></i>
-                    <div slot="content" style="white-space: normal;">
-                        <div>{{i18n.executorTips}}</div>
-                    </div>
-                </bk-tooltip>
+                <i class="bk-icon icon-info-circle desc-tooltip"
+                    v-bk-tooltips="{
+                        content: i18n.executorTips,
+                        width: '400',
+                        placements: ['bottom-end'] }">
+                </i>
             </div>
             <TaskParamEdit
                 class="unreferenced"
@@ -134,6 +134,7 @@
        padding-bottom: 20px;
     }
     .title-background {
+        position: relative;
         padding-left: 20px;
         cursor: pointer;
         &:hover {
@@ -154,16 +155,13 @@
             transform: rotate(90deg);
         }
         .desc-tooltip {
-            float: right;
-            margin: 20px;
-        }
-        /deep/.bk-tooltip-inner {
-            background: #333;
-            border: 0px;
-        }
-        .icon-info-circle {
-            position: relative;
-            right: 12px;
+            position: absolute;
+            right: 20px;
+            top: 22px;
+            color: #c4c6cc;
+            &:hover {
+                color: #f4aa1a;
+            }
         }
         .title {
             font-weight: 600;
