@@ -84,7 +84,9 @@
             if (this.permissionData.type === 'project' && this.viewMode !== 'appmaker') {
                 this.queryProjectCreatePerm()
             }
-            this.loadPermissionUrl()
+            if (this.permissionData.permission.length > 0) {
+                this.loadPermissionUrl()
+            }
         },
         methods: {
             ...mapActions([

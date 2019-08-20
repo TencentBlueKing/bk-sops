@@ -42,12 +42,15 @@ const permission = {
             const permissions = []
             actions.forEach(item => {
                 const res = []
-                res.push([{
-                    resource_id: resourceData.id,
-                    resource_name: resourceData.name,
-                    resource_type: resource.resource_type,
-                    resource_type_name: resource.resource_type_name
-                }])
+                if (resource.resource_type !== 'project' || item.id !== 'create') {
+                    res.push([{
+                        resource_id: resourceData.id,
+                        resource_name: resourceData.name,
+                        resource_type: resource.resource_type,
+                        resource_type_name: resource.resource_type_name
+                    }])
+                }
+                
                 permissions.push({
                     scope_id,
                     scope_name,
