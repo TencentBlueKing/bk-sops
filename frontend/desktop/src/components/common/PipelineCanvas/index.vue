@@ -133,7 +133,7 @@
     import formatPositionUtils from '@/utils/formatPosition.js'
 
     const ENDPOINT_DIRECTION = ['Top', 'Left', 'Right', 'Bottom']
-    
+
     export default {
         name: 'PipelineCanvas',
         components: {

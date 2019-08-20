@@ -182,7 +182,6 @@
                     suspended: gettext('暂停'),
                     failed: gettext('失败'),
                     finished: gettext('完成')
-
                 },
                 loading: true,
                 bkMessageInstance: null,
@@ -273,7 +272,7 @@
                             this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => output.preset)
                         }
                         this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
-                    
+
                         if (this.nodeInfo.ex_data && this.nodeInfo.ex_data.show_ip_log) {
                             this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data.exception_msg)
                         } else {

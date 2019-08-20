@@ -149,6 +149,9 @@ def get_template_info(request, template_id, bk_biz_id):
     return JsonResponse({'result': True, 'data': format_template_data(tmpl, biz)})
 
 
+@login_exempt
+@require_GET
+@apigw_required
 def get_common_template_info(request, template_id):
     try:
         tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)

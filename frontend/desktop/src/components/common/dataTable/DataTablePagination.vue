@@ -36,7 +36,7 @@
                             <template v-else-if="column.formatter">
                                 <span v-html="column.formatter(scope.row, column)"></span>
                             </template>
-              
+
                             <template v-else>
                                 <span>{{scope.row[column.prop]}}</span>
                             </template>

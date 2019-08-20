@@ -153,6 +153,18 @@ Validator.localize({
                 regex: gettext('本地缓存名称包含') + InvalidNameChar + gettext('非法字符'),
                 max: gettext('本地缓存名称不能超过') + STRING_LENGTH.DRAFT_NAME_MAX_LENGTH + gettext('个字符')
             },
+            packageName: {
+                regex: gettext('名称由英文字母、数字、下划线组成，且不能以数字开头'),
+                max: gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            moduleName: {
+                regex: gettext('名称由英文字母、数字、下划线组成，且不能以数字开头'),
+                max: gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            cacheName: {
+                regex: gettext('名称由英文字母、数字、下划线组成，且不能以数字开头'),
+                max: gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+            },
             minRule: {
                 required: gettext('开始分钟数不能为空'),
                 regex: gettext('请输入 0 - 59 之间的数')

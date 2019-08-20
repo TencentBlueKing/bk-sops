@@ -140,6 +140,12 @@
                 name: gettext('管理员入口'),
                 children: [
                     {
+                        key: 'manage',
+                        parent: 'admin',
+                        name: gettext('后台管理'),
+                        path: '/admin/manage/source_manage/'
+                    },
+                    {
                         key: 'statistics',
                         parent: 'admin',
                         name: gettext('运营数据'),
