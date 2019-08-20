@@ -163,6 +163,10 @@ class ProjectManager(models.Manager):
                 project_resource = resource_type_lib['project']
                 project_resource.batch_register_instance(list(projects))
 
+    def update_business_project_status(self, archived_cc_ids, active_cc_ids):
+        self.filter(bk_biz_id__in=archived_cc_ids, from_cmdb=True).update(is_disable=True)
+        self.filter(bk_biz_id__in=active_cc_ids, from_cmdb=True).update(is_disable=False)
+
 
 class Project(models.Model):
     name = models.CharField(_(u"项目名"), max_length=256)

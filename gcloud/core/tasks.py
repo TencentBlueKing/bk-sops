@@ -32,7 +32,7 @@ LOCK_ID = 'cmdb_business_sync_lock'
 
 
 @contextmanager
-def memcache_lock(lock_id, task_id):
+def redis_lock(lock_id, task_id):
     timeout_at = monotonic() + LOCK_EXPIRE - 3
     # cache.add fails if the key already exists
     status = cache.add(lock_id, task_id, LOCK_EXPIRE)
@@ -50,7 +50,7 @@ def memcache_lock(lock_id, task_id):
 
 @periodic_task(run_every=TzAwareCrontab(minute='*/2'))
 def cmdb_business_sync_task(task_id):
-    with memcache_lock(LOCK_ID, task_id) as acquired:
+    with redis_lock(LOCK_ID, task_id) as acquired:
         if acquired:
             loggger.info('Start sync business from cmdb...')
             try:
