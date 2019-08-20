@@ -18,7 +18,6 @@ from tastypie.exceptions import ImmediateHttpResponse
 
 from auth_backend.plugins.http import HttpResponseAuthFailed
 from auth_backend.plugins.utils import build_need_permission
-from auth_backend.plugins.constants import ALL_INSTANCE_PLACEHOLDER
 
 logger = logging.getLogger('root')
 
@@ -37,7 +36,7 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
                  delete_action_id='delete',
                  resource_f=None,
                  create_delegation=None,
-                 scope_inspect=None):
+                 inspect=None):
         self.auth_resource = auth_resource
         if resource_f is not None:
             self.resource_pk_field = '%s__pk' % resource_f
@@ -50,13 +49,13 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
         self.delete_action_id = delete_action_id
         self.resource_f = resource_f
         self.create_delegation = create_delegation
-        self.scope_inspect = scope_inspect
+        self.inspect = inspect
 
     def scope_id_for_bundle(self, bundle):
-        if not self.scope_inspect:
+        if not self.inspect:
             return None
 
-        return self.scope_inspect.scope_id(bundle)
+        return self.inspect.scope_id(bundle)
 
     def build_auth_failed_response(self, action_ids, instance, auth_resource=None, scope_id=None):
         if auth_resource is None:
@@ -104,8 +103,6 @@ class BkSaaSReadOnlyAuthorization(ReadOnlyAuthorization):
     def read_list(self, object_list, bundle):
         username = bundle.request.user.username
         authorized_pks = self.authorized_list(username, self.read_action_id, self.scope_id_for_bundle(bundle))
-        if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
-            return object_list
         return object_list.filter(**{self.resource_pk_field_in: authorized_pks})
 
     def read_detail(self, object_list, bundle):
@@ -148,8 +145,6 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
     def update_list(self, object_list, bundle):
         username = bundle.request.user.username
         authorized_pks = self.authorized_list(username, self.update_action_id, self.scope_id_for_bundle(bundle))
-        if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
-            return object_list
         return object_list.filter(**{self.resource_pk_field_in: authorized_pks})
 
     def update_detail(self, object_list, bundle):
@@ -161,8 +156,6 @@ class BkSaaSAuthorization(BkSaaSReadOnlyAuthorization):
     def delete_list(self, object_list, bundle):
         username = bundle.request.user.username
         authorized_pks = self.authorized_list(username, self.delete_action_id, self.scope_id_for_bundle(bundle))
-        if ALL_INSTANCE_PLACEHOLDER in set(authorized_pks):
-            return object_list
         return object_list.filter(**{self.resource_pk_field_in: authorized_pks})
 
     def delete_detail(self, object_list, bundle):

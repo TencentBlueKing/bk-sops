@@ -15,11 +15,21 @@ from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseReadOnlyAuthorization
+from auth_backend.plugins.tastypie.inspect import ResourceInspect
 
 from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.webservice3.resources import GCloudModelResource
 from gcloud.taskflow3.resources import TaskFlowInstanceResource
 from gcloud.contrib.function.models import FunctionTask
+
+
+class FunctionTaskResourceInspect(ResourceInspect):
+
+    def scope_id(self, bundle):
+        return None
+
+    def resource_id(self, bundle):
+        return bundle.obj.task.id
 
 
 class FunctionTaskResource(GCloudModelResource):
@@ -52,6 +62,8 @@ class FunctionTaskResource(GCloudModelResource):
                                                          read_action_id='view',
                                                          update_action_id='edit',
                                                          resource_f='task')
+        inspect = FunctionTaskResourceInspect()
+
         filtering = {
             'task': ALL_WITH_RELATIONS,
             'creator': ALL,
