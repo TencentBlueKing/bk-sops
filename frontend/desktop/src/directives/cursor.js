@@ -41,7 +41,6 @@ function init (el, binding) {
         el.element = null
         el.removeEventListener('mousemove', el.mouseMoveHandler)
     }
-
     if (binding.value.active) {
         el.addEventListener('mouseenter', el.mouseEnterHandler)
         el.addEventListener('mouseleave', el.mouseLeaveHandler)
@@ -49,7 +48,10 @@ function init (el, binding) {
 }
 
 function destroy (el) {
+    el.element && el.element.remove()
+    el.element = null
     el.removeEventListener('mouseenter', el.mouseEnterHandler)
+    el.removeEventListener('mousemove', el.mouseMoveHandler)
     el.removeEventListener('mouseleave', el.mouseLeaveHandler)
 }
 
