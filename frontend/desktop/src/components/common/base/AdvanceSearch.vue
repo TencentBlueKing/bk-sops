@@ -11,30 +11,44 @@
 */
 <template>
     <div class="advanced-search">
-        <span class="search-content" @click="onShow">
+        <span v-if="!hideAdvance" class="search-content" @click="onShow">
             {{i18n.advancedSearch}}
             <div class="advanced-shape">
                 <i class="bk-icon icon-down-shape search-shape" v-if="!shapeShow"></i>
                 <i class="bk-icon icon-up-shape search-up-shape" v-if="shapeShow"></i>
             </div>
         </span>
-        <input class="search-input" :value="value" :placeholder="inputPlaceholader" @input="onInput" />
-        <i class="common-icon-search"></i>
+        <bk-input
+            class="search-input"
+            v-model="localValue"
+            :clearable="true"
+            :placeholder="inputPlaceholader"
+            :right-icon="'bk-icon icon-search'"
+            @change="onInput"></bk-input>
     </div>
 </template>
 
 <script>
     import '@/utils/i18n.js'
     export default {
-        name: 'BaseSearch',
-        props: ['inputPlaceholader', 'value'],
+        name: 'AdvanceSearch',
+        props: ['inputPlaceholader', 'hideAdvance', 'value'],
         data () {
             return {
                 i18n: {
                     advancedSearch: gettext('高级搜索')
                 },
                 isAdvancedSerachShow: false,
-                shapeShow: false
+                shapeShow: false,
+                localValue: ''
+            }
+        },
+        watch: {
+            value: {
+                handler (value) {
+                    this.localValue = value
+                },
+                deep: true
             }
         },
         methods: {
@@ -42,8 +56,9 @@
                 this.$emit('onShow', this.isAdvancedSerachShow)
                 this.shapeShow = !this.shapeShow
             },
-            onInput (e) {
-                this.$emit('input', e.target.value)
+            onInput (value) {
+                const exportValue = typeof value === 'string' ? value : value.target.value
+                this.$emit('input', exportValue)
             }
         }
     }
@@ -56,20 +71,8 @@
     float: right;
     margin: 20px;
     .search-input {
+        display: inline-block;
         width: 360px;
-        height: 32px;
-        padding: 0 32px 0 10px;
-        font-size: 14px;
-        color: $greyDefault;
-        border: 1px solid $formBorderColor;
-        line-height: 32px;
-        outline: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: $blueDefault;
-        }
     }
     .search-input.placeholder {
         color: $formBorderColor;

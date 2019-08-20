@@ -35,12 +35,12 @@
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                :type="!isStartNow ? 'default' : 'primary'"
+                                :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
                                 {{ i18n.startNow }}
                             </bk-button>
                             <bk-button
-                                :type="!isStartNow ? 'primary' : 'default'"
+                                :theme="!isStartNow ? 'primary' : 'default'"
                                 @click="onChangeStartNow(false)">
                                 {{ i18n.periodicStart }}
                             </bk-button>
@@ -54,12 +54,12 @@
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                :type="isSelectFunctionalType ? 'default' : 'primary'"
+                                :theme="isSelectFunctionalType ? 'default' : 'primary'"
                                 @click="onSwitchTaskType(false)">
                                 {{ i18n.defaultFlowType }}
                             </bk-button>
                             <bk-button
-                                :type="isSelectFunctionalType ? 'primary' : 'default'"
+                                :theme="isSelectFunctionalType ? 'primary' : 'default'"
                                 @click="onSwitchTaskType(true)">
                                 {{ i18n.functionFlowType }}
                             </bk-button>
@@ -103,7 +103,7 @@
             </bk-button>
             <bk-button
                 class="next-step-button"
-                type="success"
+                theme="success"
                 :disabled="disabledButton"
                 :loading="isSubmit"
                 @click="onCreateTask">
@@ -391,9 +391,6 @@
     box-sizing: border-box;
     min-height: calc(100vh - 50px - 139px);
     background: #fff;
-    @media screen and (max-width: 1300px){
-        width: calc(100% - 40px);
-    }
     /deep/ .no-data-wrapper {
         position: relative;
         top: 122px;
@@ -516,6 +513,7 @@
         width: 140px;
         height: 32px;
         line-height: 32px;
+        color: #ffffff;
         background-color: #2dcb56;
         border-color: #2dcb56;
     }

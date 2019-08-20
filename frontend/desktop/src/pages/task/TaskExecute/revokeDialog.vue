@@ -11,16 +11,15 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
+        width="400"
+        :mask-close="false"
+        :header-position="'left'"
         :ext-cls="'common-dialog'"
         :title="i18n.title"
-        width="400"
-        padding="30px"
-        :is-show="isRevokeDialogShow"
+        :value="isRevokeDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content">
+        <div class="dialog-content">
             <div>{{ i18n.revoke }}</div>
         </div>
     </bk-dialog>
@@ -49,3 +48,8 @@
         }
     }
 </script>
+<style lang="scss" scoped>
+    .dialog-content {
+        padding: 30px;
+    }
+</style>

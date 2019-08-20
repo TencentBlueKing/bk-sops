@@ -73,15 +73,16 @@
                 @hideConfigPanel="hideConfigPanel">
             </TemplateSetting>
             <bk-dialog
-                :is-show.sync="isLeaveDialogShow"
-                :quick-close="false"
-                :ext-cls="'common-dialog'"
-                :title="i18n.leave"
                 width="400"
-                padding="30px"
+                ext-cls="common-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :header-position="'left'"
+                :title="i18n.leave"
+                :value="isLeaveDialogShow"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
-                <div slot="content">{{ i18n.tips }}</div>
+                <div class="leave-tips">{{ i18n.tips }}</div>
             </bk-dialog>
         </div>
     </div>
@@ -151,7 +152,8 @@
                 intervalGetDraftArray: null,
                 templateUUID: uuid(),
                 localTemplateData: null,
-                isClickDraft: false
+                isClickDraft: false,
+                entrance: this.$route.query.entrance
             }
         },
         computed: {
@@ -472,11 +474,10 @@
                     if (this.type !== 'edit') {
                         this.template_id = data.template_id
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
+                        this.$router.push({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
                     }
                     if (this.createTaskSaving) {
-                        const taskUrl = this.getTaskUrl()
-                        this.$router.push(taskUrl)
+                        this.goToTaskUrl(data.template_id)
                     }
                 } catch (e) {
                     errorHandler(e, this)
@@ -742,12 +743,16 @@
                     this.isTemplateConfigValid = true
                 }
             },
-            getTaskUrl () {
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.template_id}`
-                if (this.common) {
-                    url += '&common=1'
-                }
-                return url
+            // 跳转到节点选择页面
+            goToTaskUrl (template_id) {
+                this.$router.push({
+                    path: `/template/newtask/${this.cc_id}/selectnode/`,
+                    query: {
+                        template_id,
+                        common: this.common ? '1' : undefined,
+                        entrance: this.entrance
+                    }
+                })
             },
             // 点击保存模板按钮回调
             onSaveTemplate (saveAndCreate) {
@@ -949,5 +954,8 @@
     }
     .pipeline-canvas-wrapper {
         height: 100%;
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>
