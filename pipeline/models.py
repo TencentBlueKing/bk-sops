@@ -26,9 +26,9 @@ from django.db import models, transaction
 from django.utils.module_loading import import_string
 
 from pipeline.service import task_service
-from pipeline.utils.context import get_pipeline_context
 from pipeline.utils.uniqid import uniqid, node_uniqid
 from pipeline.parser.utils import replace_all_id
+from pipeline.parser.context import get_pipeline_context
 from pipeline.utils.graph import Graph
 from pipeline.exceptions import SubprocessRefError
 from pipeline.engine.utils import calculate_elapsed_time, ActionResult
@@ -723,7 +723,13 @@ class PipelineInstance(models.Model):
             instance.executor = executor
 
             parser = parser_cls(pipeline_data)
-            pipeline = parser.parse(get_pipeline_context(instance, 'instance'))
+            pipeline = parser.parse(root_pipeline_data=get_pipeline_context(instance,
+                                                                            obj_type='instance',
+                                                                            data_type='data'),
+                                    root_pipeline_context=get_pipeline_context(instance,
+                                                                               obj_type='instance',
+                                                                               data_type='context')
+                                    )
 
             # calculate tree info
             instance.calculate_tree_info()

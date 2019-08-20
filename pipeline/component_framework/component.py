@@ -40,6 +40,11 @@ class Component(object):
         return getattr(cls, 'embedded_form', False)
 
     def clean_execute_data(self, context):
+        """
+        @summary: hook for subclass of Component to clean execute data with context
+        @param context:
+        @return:
+        """
         return self.data_dict
 
     def data_for_execution(self, context, pipeline_data):
