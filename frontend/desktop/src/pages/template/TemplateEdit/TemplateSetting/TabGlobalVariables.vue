@@ -84,7 +84,7 @@
                                     <i
                                         v-if="constant.source_type !== 'component_outputs'"
                                         class="common-icon-show-left"
-                                        v-bktooltips="{
+                                        v-bk-tooltips="{
                                             content: i18n.inputs,
                                             placements: ['bottom']
                                         }">
@@ -92,7 +92,7 @@
                                     <i
                                         v-else
                                         class="common-icon-hide-right color-org"
-                                        v-bktooltips="{
+                                        v-bk-tooltips="{
                                             content: i18n.outputs,
                                             placements: ['bottom']
                                         }">
@@ -100,7 +100,7 @@
                                     <i
                                         v-if="constant.show_type === 'show'"
                                         class="common-icon-eye-show"
-                                        v-bktooltips="{
+                                        v-bk-tooltips="{
                                             content: i18n.show,
                                             placements: ['bottom']
                                         }">
@@ -108,7 +108,7 @@
                                     <i
                                         v-else
                                         class="common-icon-eye-hide color-org"
-                                        v-bktooltips="{
+                                        v-bk-tooltips="{
                                             content: i18n.hide,
                                             placements: ['bottom']
                                         }">
