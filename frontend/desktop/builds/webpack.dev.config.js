@@ -14,24 +14,25 @@ const webpack = require('webpack')
 const merge = require('webpack-merge')
 const webpackBaseConfig = require('./webpack.base.js')
 
+const SITE_URL = '/'
 const proxyPath = [
-    '/static/*',
-    '/jsi18n/*',
-    '/api/*',
-    '/core/api/*',
-    '/config/api/*',
-    '/apigw/*',
-    '/common_template/api/*',
-    '/template/api/*',
-    '/taskflow/api/*',
-    '/appmaker/*',
-    '/pipeline/*',
-    '/analysis/*',
-    '/periodictask/api/*'
+    'static/*',
+    'jsi18n/*',
+    'api/*',
+    'core/api/*',
+    'config/api/*',
+    'apigw/*',
+    'common_template/api/*',
+    'template/api/*',
+    'taskflow/api/*',
+    'appmaker/*',
+    'pipeline/*',
+    'analysis/*',
+    'periodictask/api/*'
 ]
 const proxyRule = {}
 proxyPath.forEach(item => {
-    proxyRule[item] = {
+    proxyRule[SITE_URL + item] = {
         target: 'http://dev.{BK_PAAS_HOST}:8000',
         secure: false,
         changeOrigin: true,

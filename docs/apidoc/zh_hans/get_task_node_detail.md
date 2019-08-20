@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -33,7 +34,7 @@
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd"
     "subprocess_stack": "[\"nodeaaa0ce51d2143aa9b0dbc27cb7df\"]",
-    "component_code": "job_fast_execute_script",
+    "component_code": "job_fast_execute_script"
 }
 ```
 

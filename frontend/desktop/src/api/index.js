@@ -209,10 +209,18 @@ const api = {
      */
     $getAtomForm (type, classify, isMeta) {
         return this.getAtomFormURL(type, classify, isMeta).then(response => {
-            const { output: outputData, form: url } = response.data
+            const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+
             store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
             store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
-            return $.getScript(url)
+
+            // 标准插件配置项内嵌到 form 字段
+            if (embedded) {
+                eval(formResource)
+                return Promise.resolve({ data: $.atoms[type] })
+            }
+
+            return $.getScript(formResource)
         }).catch(e => {
             return Promise.reject(e)
         })
@@ -520,14 +528,14 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getTaskScheme (data) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { cc_id, template_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
             params: {
                 'biz_cc_id': cc_id,
-                'template__template_id': template_id
+                'template_id': template_id
             }
         }
         return request(opts)
@@ -537,7 +545,7 @@ const api = {
      * @param {Object}} schemeData 方案配置数据
      */
     createTaskScheme (schemeData) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = schemeData.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { cc_id, template_id, data, name } = schemeData
         const opts = {
             method: 'POST',
@@ -555,11 +563,11 @@ const api = {
      * 删除任务节点选择方案
      * @param {String} schemeId 方案id
      */
-    deleteTaskScheme (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    deleteTaskScheme (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'DELETE',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },
@@ -567,11 +575,11 @@ const api = {
      * 获取任务节点选择方案详情
      * @param {String} schemeId 方案id
      */
-    getSchemeDetail (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    getSchemeDetail (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },
@@ -1328,6 +1336,109 @@ const api = {
         const opts = {
             method: 'GET',
             url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
+     * 加载插件包源配置
+     * @param {Object} fields 包源查询字段
+     */
+    loadPackageSource (fields) {
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                fields: JSON.stringify(fields)
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 新增插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    createPackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 删除所有插件包源
+     */
+    deletePackageSource (data) {
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'DELETE',
+            url: prefixUrl,
+            data
+        }
+        return request(opts)
+    },
+    /**
+     * 更新插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    updatePackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: {
+                'content-type': 'application/json',
+                'X-HTTP-Method-Override': 'PATCH'
+            },
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 加载远程包源同步任务列表
+     */
+    loadSyncTask (params) {
+        const { limit, offset } = params
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                limit,
+                offset
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 创建远程包源同步
+     */
+    createSyncTask () {
+        const creator = store.state.username
+        const create_method = 'manual'
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                creator,
+                create_method
+            }
         }
         return request(opts)
     }

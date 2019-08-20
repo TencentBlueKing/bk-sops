@@ -11,35 +11,28 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.modifyTask"
         width="600"
-        :is-show.sync="isModifyDialogShow"
+        :ext-cls="'common-dialog'"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.modifyTask"
+        :value="isModifyDialogShow"
         @confirm="onModifyPeriodicConfirm"
         @cancel="onModifyPeriodicCancel">
-        <div slot="content" v-bkloading="{ isLoading: loading, opacity: 1 }">
+        <div v-bkloading="{ isLoading: loading, opacity: 1 }">
             <div class="periodic-info">
-                <h3 class="common-section-title">{{ i18n.periodicInfo }}</h3>
+                <h3 class="local-section-title">{{ i18n.periodicInfo }}</h3>
                 <div class="common-form-item">
-                    <label class="required">{{i18n.periodicRule}}</label>
-                    <div class="common-form-content">
-                        <BaseInput
-                            name="periodicCron"
-                            v-model="periodicCron"
-                            v-validate="periodicRule" />
-                        <span v-show="errors.has('periodicCron')" class="common-error-tip error-msg">{{ errors.first('periodicCron') }}</span>
-                        <bk-tooltip placement="bottom-start" class="periodic-img-tooltip">
-                            <i class="bk-icon icon-info-circle"></i>
-                            <div slot="content">
-                                <img :src="periodicCronImg" alt="i18n.errorPicture">
-                            </div>
-                        </bk-tooltip>
-                    </div>
+                    <LoopRuleSelect
+                        ref="loopRuleSelect"
+                        class="loop-rule"
+                        :manual-input-value="periodicCron" />
                 </div>
-                <div class="param-info" v-if="!loading">
-                    <h3 class="common-section-title">{{ i18n.paramsInfo }}</h3>
+                <div
+                    v-if="!loading"
+                    class="param-info">
+                    <h3 class="local-section-title">{{ i18n.paramsInfo }}</h3>
                     <div class="common-form-content">
                         <NoData v-if="isVariableEmpty"></NoData>
                         <TaskParamEdit
@@ -52,23 +45,31 @@
                 </div>
             </div>
         </div>
+        <DialogLoadingBtn
+            slot="footer"
+            :dialog-footer-data="dialogFooterData"
+            @onConfirm="onModifyPeriodicConfirm"
+            @onCancel="onModifyPeriodicCancel">
+        </DialogLoadingBtn>
     </bk-dialog>
 </template>
 <script>
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { PERIODIC_REG } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
+    import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     import TaskParamEdit from '@/pages/task/TaskParamEdit.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import DialogLoadingBtn from '@/components/common/base/DialogLoadingBtn.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'ModifyPeriodicDialog',
         components: {
-            BaseInput,
             TaskParamEdit,
-            NoData
+            NoData,
+            LoopRuleSelect,
+            DialogLoadingBtn
         },
         props: ['isModifyDialogShow', 'taskId', 'cron', 'constants', 'loading'],
         data () {
@@ -85,7 +86,18 @@
                     regex: PERIODIC_REG
                 },
                 periodicCronImg: require('@/assets/images/' + gettext('task-zh') + '.png'),
-                periodicCron: this.cron
+                periodicCron: this.cron,
+                dialogFooterData: [
+                    {
+                        type: 'primary',
+                        loading: false,
+                        btnText: gettext('确认'),
+                        click: 'onConfirm'
+                    }, {
+                        btnText: gettext('取消'),
+                        click: 'onCancel'
+                    }
+                ]
             }
         },
         computed: {
@@ -102,6 +114,9 @@
                 this.$emit('onModifyPeriodicCancel')
             },
             onModifyPeriodicConfirm () {
+                const loopRule = this.$refs.loopRuleSelect.validationExpression()
+                if (!loopRule.check) return
+                this.dialogFooterData[0].loading = true
                 const paramEditComp = this.$refs.TaskParamEdit
                 this.$validator.validateAll().then((result) => {
                     let formValid = true
@@ -111,7 +126,7 @@
                         periodicConstants = formData
                         formValid = paramEditComp.validate()
                     }
-                    const cronArray = this.periodicCron.split(' ')
+                    const cronArray = loopRule.rule.split(' ')
                     if (cronArray.length !== 5) {
                         this.$bkMessage({
                             'message': gettext('输入周期表达式非法，请校验'),
@@ -120,6 +135,7 @@
                         return
                     }
                     if (!result || !formValid) {
+                        this.dialogFooterData[0].loading = false
                         return
                     }
                     const jsonCron = JSON.stringify({
@@ -133,7 +149,7 @@
                         'taskId': this.taskId,
                         'cron': jsonCron
                     }
-                    if (this.cron === this.periodicCron && periodicConstants === '') {
+                    if (this.cron === loopRule.rule && periodicConstants === '') {
                         // 没有改变表达式，且没有ramdomform内容
                         this.$emit('onModifyPeriodicCancel')
                     } else if (periodicConstants === '') {
@@ -175,6 +191,7 @@
                                 'theme': 'error'
                             })
                         }
+                        this.dialogFooterData[0].loading = false
                         this.$emit('onModifyPeriodicConfirm')
                     })
                 } catch (e) {
@@ -194,6 +211,7 @@
                         'theme': 'error'
                     })
                 }
+                this.dialogFooterData.confirmBtnPending = false
                 this.$emit('onModifyPeriodicConfirm')
             }
         }
@@ -207,11 +225,18 @@
     overflow-y: auto;
 }
 .periodic-info {
-    padding-bottom: 40px;
+    padding: 20px;
 }
-.common-section-title {
-    margin-bottom: 24px;
-    padding-left: 16px;
+.local-section-title {
+    font-size: 14px;
+    line-height: 32px;
+    font-weight: 600;
+    color: #313238;
+    border-bottom: 1px solid #cacedb;
+    margin-bottom: 30px;
+}
+.loop-rule {
+    width: 530px;
 }
 .periodic-img-tooltip {
     float: right;
