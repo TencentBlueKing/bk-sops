@@ -58,6 +58,7 @@ INSTALLED_APPS += (
     'gcloud.apigw',
     'gcloud.commons.template',
     'gcloud.periodictask',
+    'gcloud.external_plugins',
     'pipeline',
     'pipeline.component_framework',
     'pipeline.variable_framework',
@@ -65,6 +66,7 @@ INSTALLED_APPS += (
     'pipeline.log',
     'pipeline.contrib.statistics',
     'pipeline.contrib.periodic_task',
+    'pipeline.contrib.external_plugins',
     'django_signal_valve',
     'pipeline_plugins',
     'pipeline_plugins.components',
@@ -122,7 +124,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
 
-
 # CELERY 开关，使用时请改为 True，修改项目目录下的 Procfile 文件，添加以下两行命令：
 # python manage.py celery worker -l info
 # python manage.py celery beat -l info
@@ -140,6 +141,7 @@ CELERY_IMPORTS = (
 if IS_USE_CELERY:
     INSTALLED_APPS = locals().get('INSTALLED_APPS', [])
     import djcelery
+
     INSTALLED_APPS += (
         'djcelery',
     )
@@ -147,6 +149,11 @@ if IS_USE_CELERY:
     CELERY_ENABLE_UTC = True
     CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
 
+LOGGING['loggers']['pipeline'] = {
+    'handlers': ['root'],
+    'level': LOG_LEVEL,
+    'propagate': True,
+}
 
 # 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
 # 注意：请在首次提测和上线前修改，之后的修改将不会生效
@@ -187,7 +194,6 @@ HAYSTACK_CONNECTIONS = {
 
 # 通知公告域名
 PUSH_URL = os.environ.get('BK_PUSH_URL', '')
-
 
 # remove disabled apps
 if locals().get('DISABLED_APPS'):
@@ -276,6 +282,16 @@ VARIABLE_PATH = ['variables.collections.sites.%s' % RUN_VER]
 PIPELINE_PARSER_CLASS = 'pipeline_web.parser.WebPipelineAdapter'
 
 PIPELINE_RERUN_MAX_TIMES = 50
+
+EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY', None)
+# 是否只允许加载远程 https 仓库的插件
+EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = 'BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE' not in os.environ
+
+PIPELINE_DATA_BACKEND = 'pipeline.engine.core.data.redis_backend.RedisDataBackend'
+
+ENABLE_EXAMPLE_COMPONENTS = False
+
+UUID_DIGIT_STARTS_SENSITIVE = True
 
 from pipeline.celery.settings import *  # noqa
 
