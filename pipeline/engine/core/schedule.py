@@ -102,8 +102,14 @@ def schedule(process_id, schedule_id):
                 logger.info('node %s %s timeout monitor revoke' % (service_act.id, version))
 
             Data.objects.write_node_data(service_act, ex_data=ex_data)
-            process = PipelineProcess.objects.get(id=sched_service.process_id)
-            process.adjust_status()
+
+            with transaction.atomic():
+                process = PipelineProcess.objects.select_for_update().get(id=sched_service.process_id)
+                if not process.is_alive:
+                    logger.info('pipeline %s has been revoked, status adjust failed.' % process.root_pipeline_id)
+                    return
+
+                process.adjust_status()
 
             # send activity error signal
 

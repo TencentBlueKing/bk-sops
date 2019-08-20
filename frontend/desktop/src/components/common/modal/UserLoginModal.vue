@@ -11,23 +11,21 @@
 */
 <template>
     <bk-dialog
-        :is-show="isModalShow"
-        :width="600"
+        width="600"
+        :value="isModalShow"
         :has-header="false"
-        :has-footer="false"
-        :quick-close="false">
-        <div slot="content">
-            <div class="login-wrapper">
-                <iframe
-                    name="login_frame"
-                    id="login_frame"
-                    width="100%"
-                    height="100%"
-                    frameborder="0"
-                    allowtransparency="yes"
-                    :src="src">
-                </iframe>
-            </div>
+        :show-footer="false"
+        :mask-close="false">
+        <div class="login-wrapper">
+            <iframe
+                name="login_frame"
+                id="login_frame"
+                width="100%"
+                height="100%"
+                frameborder="0"
+                allowtransparency="yes"
+                :src="src">
+            </iframe>
         </div>
     </bk-dialog>
 </template>
@@ -51,7 +49,8 @@
 </script>
 <style lang="scss" scoped>
     .login-wrapper {
+        padding: 30px;
         width: 560px;
-        height:440px;
+        height: 440px;
     }
 </style>

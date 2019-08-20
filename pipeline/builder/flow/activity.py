@@ -40,11 +40,21 @@ class ServiceActivity(Element):
 
 class SubProcess(Element):
 
-    def __init__(self, start, data=None, params=None, global_outputs=None, *args, **kwargs):
+    def __init__(self,
+                 start=None,
+                 data=None,
+                 params=None,
+                 global_outputs=None,
+                 replace_id=False,
+                 template_id=None,
+                 *args,
+                 **kwargs):
         self.start = start
         self.data = data
         self.params = params or {}
+        self.replace_id = replace_id
         self.global_outputs = FancyDict(global_outputs or {})
+        self.template_id = template_id
         super(SubProcess, self).__init__(*args, **kwargs)
 
     def type(self):
