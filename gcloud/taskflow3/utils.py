@@ -25,7 +25,9 @@ def get_instance_context(pipeline_instance, data_type):
     except TaskFlowInstance.DoesNotExist:
         logger.warning('TaskFlowInstance does not exist: pipeline_template.id=%s' % pipeline_instance.pk)
         return {}
+    # pipeline的root_pipeline_params数据，最终会传给插件的parent_data，是简单地字典格式
     if data_type == 'data':
         return TaskContext(taskflow).__dict__
+    # pipeline的root_pipeline_context数据，可以直接在参数中引用，如 ${_system.biz_cc_id}
     else:
         return TaskContext(taskflow).context()
