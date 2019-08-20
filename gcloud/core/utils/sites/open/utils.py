@@ -67,7 +67,8 @@ def get_user_business_list(username, use_cache=True):
         user_info = _get_user_info(username)
         client = get_client_by_user(username)
         result = client.cc.search_business({
-            'bk_supplier_account': user_info['bk_supplier_account']
+            'bk_supplier_account': user_info['bk_supplier_account'],
+            'condition': {'bk_data_status': {'$in': ['enable', 'disabled', None]}}
         })
 
         if result['result']:

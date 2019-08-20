@@ -89,3 +89,13 @@ class ProjectTestCase(TestCase):
     def test_sync_project_from_cmdb_business__no_business(self):
         Project.objects.sync_project_from_cmdb_business({})
         self.assertEqual(Project.objects.all().count(), 0)
+
+    @patch(PROJECT_FILTER, MagicMock())
+    def test_update_business_project_status(self):
+        archived_cc_ids = 'archived_cc_ids_token'
+        active_cc_ids = 'active_cc_ids_token'
+        Project.objects.update_business_project_status(archived_cc_ids=archived_cc_ids, active_cc_ids=active_cc_ids)
+        Project.objects.filter.assert_has_calls([call(bk_biz_id__in='archived_cc_ids_token', from_cmdb=True),
+                                                 call().update(is_disable=True),
+                                                 call(bk_biz_id__in='active_cc_ids_token', from_cmdb=True),
+                                                 call().update(is_disable=False)])
