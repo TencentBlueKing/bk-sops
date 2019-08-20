@@ -77,7 +77,8 @@
                     requiredPermissions: gettext('需要申请的权限'),
                     noData: gettext('无数据'),
                     apply: gettext('去申请'),
-                    cancel: gettext('取消')
+                    cancel: gettext('取消'),
+                    project: gettext('项目')
                 }
             }
         },
@@ -109,6 +110,15 @@
                 this.list = data
             },
             getResource (permission) {
+                if (permission.resource_type === 'project' || permission.action_id === 'create') {
+                    return this.i18n.project
+                }
+
+                if (permission.resources.length === 0) {
+                    console.error('资源实例为空')
+                    return
+                }
+
                 const type = permission.resources[0][0].resource_type_name
                 const names = permission.resources.map(res => {
                     return res.map(item => item.resource_name).join(',')
