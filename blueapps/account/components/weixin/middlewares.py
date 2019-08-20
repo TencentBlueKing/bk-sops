@@ -37,7 +37,7 @@ class WeixinLoginRequiredMiddleware(MiddlewareMixin):
         if not request.is_wechat():
             return None
 
-        logger.debug('当前请求客户端为微信端')
+        logger.info('当前请求客户端为微信端')
         login_exempt = getattr(view, 'login_exempt', False)
         if not (login_exempt or request.user.is_authenticated):
 
@@ -46,7 +46,7 @@ class WeixinLoginRequiredMiddleware(MiddlewareMixin):
             if form.is_valid():
                 code = form.cleaned_data['code']
                 state = form.cleaned_data['state']
-                logger.debug(
+                logger.info(
                     u"微信请求链接，检测到微信验证码，code：%s，state：%s" % (
                         code,
                         state
@@ -61,7 +61,7 @@ class WeixinLoginRequiredMiddleware(MiddlewareMixin):
                         auth.login(request, user)
                         return self.process_view(request, view, args, kwargs)
             else:
-                logger.debug(
+                logger.info(
                     u"微信请求链接，未检测到微信验证码，url：%s，params：%s" % (
                         request.path_info, request.GET)
                 )
