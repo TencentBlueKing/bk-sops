@@ -156,7 +156,14 @@
                 <div class="common-form-item">
                     <label>{{ i18n.desc }}</label>
                     <div class="common-form-content">
-                        <textarea v-model="projectDetail.desc" rows="5"></textarea>
+                        <textarea
+                            v-model="projectDetail.desc"
+                            rows="5"
+                            name="projectDesc"
+                            data-vv-validate-on=" "
+                            v-validate="descRule">
+                        </textarea>
+                        <span v-show="errors.has('projectDesc')" class="common-error-tip error-msg">{{ errors.first('projectDesc') }}</span>
                     </div>
                 </div>
             </div>
@@ -227,6 +234,9 @@
                     required: true,
                     max: STRING_LENGTH.PROJECT_NAME_MAX_LENGTH,
                     regex: NAME_REG
+                },
+                descRule: {
+                    max: STRING_LENGTH.PROJECT_DESC_LENGTH
                 },
                 projectActions: [],
                 projectOperations: [],

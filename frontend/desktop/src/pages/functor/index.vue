@@ -459,7 +459,7 @@
                         cls = 'common-icon-dark-circle-close'
                         break
                     case 'finished': // 完成
-                        cls = 'bk-icon icon-check-circle-shape default'
+                        cls = 'bk-icon icon-check-circle-shape'
                         break
                     default:
                         cls = ''

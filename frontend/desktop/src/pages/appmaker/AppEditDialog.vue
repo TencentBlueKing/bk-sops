@@ -51,7 +51,6 @@
                         :searchable="true"
                         :is-loading="schemeLoading"
                         :allow-clear="true"
-                        @visible-toggle="onOpenScheme"
                         @item-selected="onSelectScheme">
                     </bk-selector>
                     <i
@@ -227,11 +226,9 @@
                 this.appData.appName = data.name
                 this.appData.appActions = data.auth_actions
                 this.appTemplateEmpty = false
-            },
-            onOpenScheme (value) {
-                if (value && this.appData.appTemplate !== '') {
-                    this.getTemplateScheme()
-                }
+                this.schemeList = []
+                this.appData.appScheme = ''
+                this.getTemplateScheme()
             },
             onSelectScheme (id, data) {
                 this.appData.appScheme = Number(id)
