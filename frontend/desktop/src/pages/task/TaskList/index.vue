@@ -241,7 +241,6 @@
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
     import TaskCloneDialog from './TaskCloneDialog.vue'
-
     export default {
         name: 'TaskList',
         components: {

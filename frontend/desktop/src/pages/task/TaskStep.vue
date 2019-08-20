@@ -233,7 +233,7 @@
         display: flex;
         margin: 0 0 16px 0;
         min-width: 1320px;
-            
+
     }
     .step-item {
         display: inline-block;
