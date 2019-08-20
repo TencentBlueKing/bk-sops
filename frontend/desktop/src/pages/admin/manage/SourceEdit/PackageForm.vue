@@ -101,7 +101,7 @@
                                                 type="text"
                                                 class="table-input"
                                                 :name="'detailValue' + field.id"
-                                                :placeholder="i18n.placeholder"
+                                                :placeholder="field.placeholder"
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
@@ -284,7 +284,8 @@
                 for (const key in source.keys) {
                     detailFields.push({
                         id: key,
-                        name: source.keys[key]
+                        name: source.keys[key].name,
+                        placeholder: source.keys[key].placeholder
                     })
                     detailValues[key] = ''
                 }
@@ -404,9 +405,6 @@
             display: none;
             bottom: 0;
         }
-    }
-    .error-border {
-        border:1px double #ea3636 !important;
     }
     .package-form {
         margin-bottom: 30px;
@@ -529,6 +527,12 @@
             &:active {
                 border-color: #3c96ff;
             }
+            &.error-border {
+                border:1px double #ea3636;
+                &:hover {
+                    border-color: #ea3636;
+                }
+            }
             &[disabled="disabled"] {
                 color: #aaa;
                 cursor: not-allowed;
@@ -601,10 +605,19 @@
         }
     }
     .detail-table, .module-table {
-        .td-with-input:hover {
-            border-style: double;
-            border-color: #3c96ff;
+        .td-with-input {
+            &:hover{
+                border-style: double;
+                border-color: #3c96ff;
+            }
+            &.error-border {
+                border:1px double #ea3636;
+                &:hover {
+                    border-color: #ea3636;
+                }
+            }
         }
+
     }
     .table-input {
         width: 100%;
@@ -625,9 +638,8 @@
     .common-error-tip {
         position: absolute;
         top: 50%;
-        right: 0;
+        right: 6px;
         margin-top: -6px;
-        margin-right: 6px;
         height: 6px;
         font-size: 12px;
         white-space: nowrap;
