@@ -205,6 +205,9 @@
             nextStepPerm () {
                 return this.isStartNow ? ['create_task'] : ['create_periodic_task']
             },
+            resourceName () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.name : this.templateName
+            },
             resourceId () {
                 return this.viewMode === 'appmaker' ? this.app_id : this.template_id
             },
@@ -306,7 +309,7 @@
             onCreateTask () {
                 if (!this.hasPermission(this.nextStepPerm, this.actions, this.operations)) {
                     const resourceData = {
-                        name: this.templateName,
+                        name: this.resourceName,
                         id: this.resourceId,
                         auth_actions: this.actions
                     }
