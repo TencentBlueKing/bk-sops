@@ -71,10 +71,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>--</td>
-                                    <td>--</td>
-                                    <td>--</td>
+                                <tr v-for="(item, key) in value.imported_plugins" :key="key">
+                                    <td>{{item.group_name}}-{{item.name}}</td>
+                                    <td>{{item.class_name}}</td>
+                                    <td>{{item.module}}</td>
                                 </tr>
                             </tbody>
                         </table>
