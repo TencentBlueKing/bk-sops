@@ -400,22 +400,17 @@
                     }
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
-                        if (item.auth_actions.indexOf('view') === -1) {
-                            status.cls = ''
-                            status.text = '--'
-                        } else {
-                            if (item.is_finished) {
-                                status.cls = 'finished bk-icon icon-check-circle-shape'
-                                status.text = gettext('完成')
-                            } else if (item.is_started) {
-                                status.cls = 'loading common-icon-loading'
-                                this.getExecuteDetail(item, index)
-                            } else {
-                                status.cls = 'created common-icon-dark-circle-shape'
-                                status.text = gettext('未执行')
-                            }
-                        }
                         
+                        if (item.is_finished) {
+                            status.cls = 'finished bk-icon icon-check-circle-shape'
+                            status.text = gettext('完成')
+                        } else if (item.is_started) {
+                            status.cls = 'loading common-icon-loading'
+                            this.getExecuteDetail(item, index)
+                        } else {
+                            status.cls = 'created common-icon-dark-circle-shape'
+                            status.text = gettext('未执行')
+                        }
                         return status
                     })
                     this.setTaskListData(list)
