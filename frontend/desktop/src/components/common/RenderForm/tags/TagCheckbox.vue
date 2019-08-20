@@ -33,7 +33,7 @@
             desc: "array like [{name: '', value: ''}, {name: '', value: ''}]"
         },
         value: {
-            type: Array,
+            type: [Array, String],
             required: false,
             default () {
                 return []
