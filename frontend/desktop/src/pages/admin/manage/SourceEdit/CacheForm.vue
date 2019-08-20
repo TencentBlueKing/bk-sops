@@ -12,7 +12,7 @@
 <template>
     <div class="cache-form">
         <bk-button
-            type="default"
+            theme="default"
             size="mini"
             class="delete-btn"
             @click="onDeleteCache">
@@ -52,12 +52,20 @@
                     </th>
                     <td class="value">
                         <div class="form-content">
-                            <bk-selector
-                                :list="list"
-                                :selected="type"
+                            <bk-select
+                                v-model="type"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :disabled="isEditing"
-                                @item-selected="onTypeSelect">
-                            </bk-selector>
+                                :searchable="true"
+                                @selected="onTypeSelect">
+                                <bk-option
+                                    v-for="(option, index) in list"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                     </td>
                 </tr>
