@@ -130,6 +130,14 @@ Validator.localize({
                 regex: gettext('定时流程名称包含') + InvalidNameChar + gettext('非法字符'),
                 max: gettext('定时流程名称不能超过') + STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH + gettext('个字符')
             },
+            projectName: {
+                required: gettext('项目名称不能为空'),
+                regex: gettext('项目名称包含') + InvalidNameChar + gettext('非法字符'),
+                max: gettext('项目名称不能超过') + STRING_LENGTH.PROJECT_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            projectDesc: {
+                max: gettext('项目描述不能超过') + STRING_LENGTH.PROJECT_DESC_LENGTH + gettext('个字符')
+            },
             periodicCron: {
                 required: gettext('定时表达式不能为空'),
                 regex: gettext('输入定时表达式非法，请校验')
