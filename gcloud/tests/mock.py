@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
 import mock  # noqa
-from mock import MagicMock, patch  # noqa
+from mock import MagicMock, patch, call  # noqa
 
 from django.utils.timezone import now
 
