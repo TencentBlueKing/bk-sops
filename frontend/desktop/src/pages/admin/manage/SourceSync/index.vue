@@ -65,11 +65,6 @@
                 <div class="page-info">
                     <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
                 </div>
-                <!-- <bk-paging
-                    :cur-page.sync="currentPage"
-                    :total-page="totalPage"
-                    @page-change="onPageChange">
-                </bk-paging> -->
                 <bk-pagination
                     :current.sync="currentPage"
                     :count="totalCount"
