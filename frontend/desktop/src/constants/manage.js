@@ -16,9 +16,18 @@ const SOURCE_TYPE = [
         type: 'git',
         name: gettext('GIT'),
         keys: {
-            repo_address: gettext('仓库链接'),
-            repo_raw_address: gettext('文件托管仓库链接'),
-            branch: gettext('分支名')
+            repo_address: {
+                name: gettext('仓库链接'),
+                placeholder: gettext('请输入 GIT 仓库地址，如 https://github.com/bk-sops/plugins_example.git')
+            },
+            repo_raw_address: {
+                name: gettext('文件托管仓库链接'),
+                placeholder: gettext('请输入仓库中文件的 Raw 链接的前缀，如 https://raw.githubusercontent.com/bk-sops/plugins_example/')
+            },
+            branch: {
+                name: gettext('分支名'),
+                placeholder: gettext('请输入分支名')
+            }
         }
     },
     {
