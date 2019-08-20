@@ -25,7 +25,7 @@ class TaskContext(object):
     """
     @summary: 流程任务内置环境变量
     """
-    prefix = 'system'
+    prefix = '_system'
 
     def __init__(self, taskflow):
         # 执行任务的操作员
