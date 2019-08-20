@@ -139,6 +139,13 @@ class ServiceActivity(Activity):
         self.data.override_inputs(deepcopy(self._prepared_inputs))
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
+    def __setstate__(self, state):
+        for attr, obj in state.items():
+            setattr(self, attr, obj)
+
+        if 'timeout' not in state:
+            self.timeout = None
+
 
 class SubProcess(Activity):
     def __init__(self, id, pipeline, name=None):
@@ -151,27 +158,44 @@ class SubProcess(Activity):
         self.data.override_inputs(deepcopy(self._prepared_inputs))
         self.data.override_outputs(deepcopy(self._prepared_outputs))
 
+    def __setstate__(self, state):
+        for attr, obj in state.items():
+            setattr(self, attr, obj)
+
+        if '_prepared_inputs' not in state:
+            self._prepared_inputs = self.pipeline.data.inputs_copy()
+
+        if '_prepared_outputs' not in state:
+            self._prepared_outputs = self.pipeline.data.outputs_copy()
+
 
 class Service(object):
     __metaclass__ = ABCMeta
 
     ScheduleResultAttr = '__schedule_finish__'
     ScheduleDetermineAttr = '__need_schedule__'
+    InputItem = namedtuple('InputItem', 'name key type required')
     OutputItem = namedtuple('OutputItem', 'name key type')
     interval = None
-    _result_output = OutputItem(name=_(u'执行结果'), key='_result', type='bool')
+    _result_output = OutputItem(name=_(u"执行结果"), key='_result', type='bool')
 
     def __init__(self, name=None):
         self.name = name
+        self.interval = deepcopy(getattr(type(self), 'interval'))
 
     @abstractmethod
     def execute(self, data, parent_data):
         # get params from data
         pass
 
-    @abstractmethod
     def outputs_format(self):
-        pass
+        return []
+
+    def inputs_format(self):
+        return []
+
+    def inputs(self):
+        return self.inputs_format()
 
     def outputs(self):
         custom_format = self.outputs_format()

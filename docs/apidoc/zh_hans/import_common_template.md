@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -16,21 +17,19 @@
 
 |   字段   |    参数类型  |  必须  |     参数说明     |
 | ------------ | ------------ | ------ | ---------------- |
-|   data_file    |   file     |   是   |  公共流程数据文件 |
+|   template_data    |   string     |   是   |  公共流程数据，即从标准运维 - 公共流程 - 导出功能下载的文件的内容 |
 |   override        | bool     | 否         | 是否覆盖 ID 相同的流程           |           |
 
 ### 请求参数示例
 
 ```
-import requests
-kwargs = {
-    "app_code": "app_code",
-    "app_secret": "app_secret",
-    "access_token": "access_token",
-    "data_file": data_file
+{
+    "bk_app_code": "esb_test",
+    "bk_app_secret": "xxx",
+    "bk_token": "xxx",
+    "template_data": "xxx",
+    "override": true
 }
-response = requests.post("http://{stageVariables.domain}/apigw/import_common_template/", kwargs)
-result = response.json()
 ```
 
 ### 返回结果示例
@@ -38,7 +37,9 @@ result = response.json()
 ```
 {
     "message": "Successfully imported 2 common flows",
-    "data": 2,
+    "data": {
+        "count": 2
+    },
     "result": true
 }
 ```
@@ -49,4 +50,10 @@ result = response.json()
 | ------------  | ---------- | ------------------------------ |
 |  result       | bool       | true/false 成功与否            |
 |  message      | string     | result=false 时错误信息        |
-|  data         | int        | 导入的流程数                    |
+|  data         | dict        | 返回数据                    |
+
+#### data
+
+|   名称   |  类型  |           说明             |
+| ------------ | ---------- | ------------------------------ |
+|  count      |    int    |      导入的流程数    |

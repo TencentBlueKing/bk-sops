@@ -1072,7 +1072,7 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
     @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=False))
-    @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock())
+    @mock.patch(APIGW_READ_ENCODED_TEMPLATE_DATA, MagicMock())
     def test_import_common_template__app_has_no_permission(self):
         response = self.client.post(path=self.IMPORT_COMMON_FLOW)
 
@@ -1081,13 +1081,18 @@ class APITest(TestCase):
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 
-        from gcloud.apigw.views import read_template_data_file
-        read_template_data_file.assert_not_called()
+        from gcloud.apigw.views import read_encoded_template_data
+        read_encoded_template_data.assert_not_called()
 
     @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
-    @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': False, 'message': 'token'}))
+    @mock.patch(APIGW_READ_ENCODED_TEMPLATE_DATA, MagicMock(return_value={'result': False, 'message': 'token'}))
     def test_import_common_template__read_template_data_file_error(self):
-        response = self.client.post(path=self.IMPORT_COMMON_FLOW)
+        response = self.client.post(path=self.IMPORT_COMMON_FLOW,
+                                    data=json.dumps({
+                                        'override': False,
+                                        'template_data': 'xxx'
+                                    }),
+                                    content_type='application/json')
 
         data = json.loads(response.content)
 
@@ -1095,11 +1100,16 @@ class APITest(TestCase):
         self.assertEqual(data['message'], 'token')
 
     @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
-    @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': True,
-                                                                       'data': {'template_data': 'token'}}))
+    @mock.patch(APIGW_READ_ENCODED_TEMPLATE_DATA, MagicMock(return_value={'result': True,
+                                                                          'data': {'template_data': 'token'}}))
     @mock.patch(COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(side_effect=Exception()))
     def test_import_common_template__import_templates_error(self):
-        response = self.client.post(path=self.IMPORT_COMMON_FLOW)
+        response = self.client.post(path=self.IMPORT_COMMON_FLOW,
+                                    data=json.dumps({
+                                        'override': False,
+                                        'template_data': 'xxx'
+                                    }),
+                                    content_type='application/json')
 
         data = json.loads(response.content)
 
@@ -1107,11 +1117,16 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
     @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
-    @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': True,
-                                                                       'data': {'template_data': 'token'}}))
+    @mock.patch(APIGW_READ_ENCODED_TEMPLATE_DATA, MagicMock(return_value={'result': True,
+                                                                          'data': {'template_data': 'token'}}))
     @mock.patch(COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={'result': False, 'message': 'token'}))
     def test_import_common_template__import_templates_fail(self):
-        response = self.client.post(path=self.IMPORT_COMMON_FLOW)
+        response = self.client.post(path=self.IMPORT_COMMON_FLOW,
+                                    data=json.dumps({
+                                        'override': False,
+                                        'template_data': 'xxx'
+                                    }),
+                                    content_type='application/json')
 
         data = json.loads(response.content)
 
@@ -1119,11 +1134,16 @@ class APITest(TestCase):
         self.assertEqual(data['message'], 'token')
 
     @mock.patch(APIGW_VIEW_CHECK_WHITE_LIST, MagicMock(return_value=True))
-    @mock.patch(APIGW_READ_TEMPLATE_DATA_FILE, MagicMock(return_value={'result': True,
-                                                                       'data': {'template_data': 'token'}}))
+    @mock.patch(APIGW_READ_ENCODED_TEMPLATE_DATA, MagicMock(return_value={'result': True,
+                                                                          'data': {'template_data': 'token'}}))
     @mock.patch(COMMONTEMPLATE_IMPORT_TEMPLATES, MagicMock(return_value={'result': True, 'message': 'token'}))
     def test_import_common_template__success(self):
-        response = self.client.post(path=self.IMPORT_COMMON_FLOW, data={'override': True})
+        response = self.client.post(path=self.IMPORT_COMMON_FLOW,
+                                    data=json.dumps({
+                                        'override': True,
+                                        'template_data': 'xxx'
+                                    }),
+                                    content_type='application/json')
 
         data = json.loads(response.content)
 
