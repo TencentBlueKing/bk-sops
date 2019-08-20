@@ -45,7 +45,7 @@ def sync_projects_from_cmdb(username, use_cache=True):
 
             # do not create model for archived business
             try:
-                Business.objects.get(cc_id=biz['bk_biz_id'])
+                Business.objects.get(cc_id=biz_cc_id)
             except Business.DoesNotExist:
                 continue
         else:
@@ -62,7 +62,7 @@ def sync_projects_from_cmdb(username, use_cache=True):
 
         # update or create business obj
         Business.objects.update_or_create(
-            cc_id=biz['bk_biz_id'],
+            cc_id=biz_cc_id,
             defaults=defaults
         )
 
