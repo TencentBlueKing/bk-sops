@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from auth_backend.plugins.utils import search_all_resources_authorized_actions
 
-from auth_backend.constants import ALL_INSTANCE_PLACEHOLDER
-
 
 class BkSaaSLabeledDataResourceMixin(object):
     def dehydrate(self, bundle):
@@ -23,15 +21,13 @@ class BkSaaSLabeledDataResourceMixin(object):
         if auth_resource is None:
             return bundle
 
-        scope_inspect = getattr(self._meta, 'scope_inspect', None)
-        scope_id = scope_inspect.scope_id(bundle) if scope_inspect else None
+        inspect = getattr(self._meta, 'inspect', None)
+        scope_id = inspect.scope_id(bundle) if inspect else None
 
         resources_perms = search_all_resources_authorized_actions(username, auth_resource.rtype, auth_resource,
                                                                   scope_id=scope_id)
-        auth_actions = resources_perms.get(str(bundle.obj.pk), [])
-        if ALL_INSTANCE_PLACEHOLDER in resources_perms:
-            auth_actions.extend(resources_perms['*'])
-            auth_actions = list(set(auth_actions))
+        obj_id = str(inspect.resource_id(bundle)) if inspect else str(bundle.obj.pk)
+        auth_actions = resources_perms.get(obj_id, [])
         bundle.data['auth_actions'] = auth_actions
         return bundle
 
@@ -50,8 +46,8 @@ class BkSaaSLabeledDataResourceMixin(object):
 
         resource_info = auth_resource.base_info()
         if not resource_info['scope_id']:
-            scope_inspect = getattr(self._meta, 'scope_inspect', None)
-            resource_info['scope_id'] = scope_inspect.scope_id(data) if scope_inspect else None
+            inspect = getattr(self._meta, 'inspect', None)
+            resource_info['scope_id'] = inspect.scope_id(data) if inspect else None
 
         data.data['auth_operations'] = auth_resource.operations
         data.data['auth_resource'] = resource_info

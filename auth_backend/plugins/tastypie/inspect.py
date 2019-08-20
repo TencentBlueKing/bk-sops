@@ -14,8 +14,12 @@ specific language governing permissions and limitations under the License.
 from abc import abstractmethod
 
 
-class ScopeInspect(object):
+class ResourceInspect(object):
 
     @abstractmethod
     def scope_id(self, bundle):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def resource_id(self, bundle):
         raise NotImplementedError()
