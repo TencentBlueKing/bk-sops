@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 import sys
-import ujson as json
 from functools import wraps
 
+import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
@@ -24,7 +24,8 @@ from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
 from gcloud.conf import settings
 from gcloud.core.models import Project
 from gcloud.core.permissions import project_resource
-from gcloud.apigw.utils import get_project_with, PROJECT_SCOPE_CMDB_BIZ
+from gcloud.apigw.utils import get_project_with
+from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
 from gcloud.apigw.exceptions import UserNotExistError
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:

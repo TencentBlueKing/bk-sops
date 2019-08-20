@@ -68,7 +68,7 @@ logger = logging.getLogger("root")
 def get_template_list(request, project_id):
     template_source = request.GET.get('template_source', PROJECT)
     project = request.project
-    if template_source == BUSINESS or template_source == PROJECT:
+    if template_source in {BUSINESS, PROJECT}:
         templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project.id,
                                                                                     is_deleted=False)
     else:
@@ -158,7 +158,7 @@ def get_common_template_info(request, template_id):
 def get_template_info(request, template_id, project_id):
     project = request.project
     template_source = request.GET.get('template_source', PROJECT)
-    if template_source == BUSINESS or template_source == PROJECT:
+    if template_source in {BUSINESS, PROJECT}:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project.id,
@@ -235,7 +235,7 @@ def create_task(request, template_id, project_id):
         params=params))
 
     # 兼容老版本的接口调用
-    if template_source == BUSINESS or template_source == PROJECT:
+    if template_source in {BUSINESS, PROJECT}:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project.id,
