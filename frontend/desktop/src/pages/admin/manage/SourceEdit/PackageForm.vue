@@ -18,7 +18,7 @@
                 {{i18n.sourceName}}: {{ name || i18n.noName }}
             </div>
             <bk-button
-                type="default"
+                theme="default"
                 size="mini"
                 class="delete-btn"
                 @click="onDeleteSource">
@@ -58,12 +58,20 @@
                         </th>
                         <td class="value">
                             <div class="form-content">
-                                <bk-selector
-                                    :list="list"
-                                    :selected="type"
+                                <bk-select
+                                    v-model="type"
+                                    class="bk-select-inline"
                                     :disabled="isEditing"
-                                    @item-selected="onTypeSelect">
-                                </bk-selector>
+                                    :popover-width="260"
+                                    :searchable="true"
+                                    @selected="onTypeSelect">
+                                    <bk-option
+                                        v-for="(option, index) in list"
+                                        :key="index"
+                                        :id="option.id"
+                                        :name="option.name">
+                                    </bk-option>
+                                </bk-select>
                             </div>
                         </td>
                     </tr>
@@ -170,12 +178,12 @@
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
                                                 <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
                                             </td>
-                                            <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
+                                            <td><bk-button theme="default" size="mini" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
                                         </tr>
                                     </tbody>
                                 </table>
                                 <div class="add-module">
-                                    <bk-button type="default" size="mini" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                                    <bk-button theme="default" size="mini" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
                                 </div>
                                 <div v-if="showModuleError" class="common-error-tip error-msg">{{i18n.required}}</div>
                             </div>
