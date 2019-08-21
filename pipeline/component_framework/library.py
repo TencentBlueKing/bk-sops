@@ -25,8 +25,7 @@ class ComponentLibrary(object):
             raise ValueError('please pass a component_code in args or kwargs: '
                              'ComponentLibrary(\'code\') or ComponentLibrary(component_code=\'code\')')
         if component_code not in cls.components:
-            raise ComponentNotExistException('component %s does not exist.' %
-                                             component_code)
+            raise ComponentNotExistException('component %s does not exist.' % component_code)
         return cls.components[component_code]
 
     @classmethod
@@ -35,4 +34,7 @@ class ComponentLibrary(object):
 
     @classmethod
     def get_component(cls, component_code, data_dict):
-        return cls.get_component_class(component_code)(data_dict)
+        component_cls = cls.get_component_class(component_code)
+        if component_cls is None:
+            raise ComponentNotExistException('component %s does not exist.' % component_code)
+        return component_cls(data_dict)
