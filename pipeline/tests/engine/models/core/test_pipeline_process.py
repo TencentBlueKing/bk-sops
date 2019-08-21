@@ -895,3 +895,25 @@ class TestPipelineProcess(TestCase):
             child_2.destroy.assert_not_called()
             child_3.destroy.assert_called()
             self.assertEqual(child_1.destroy.call_count, 2)
+
+    def test_in_subprocess__true(self):
+        snapshot = ProcessSnapshot(
+            data={
+                '_pipeline_stack': Stack([1, 2]),
+            }
+        )
+        process = PipelineProcess()
+        process.snapshot = snapshot
+
+        self.assertTrue(process.in_subprocess)
+
+    def test_in_subprocess__false(self):
+        snapshot = ProcessSnapshot(
+            data={
+                '_pipeline_stack': Stack([1]),
+            }
+        )
+        process = PipelineProcess()
+        process.snapshot = snapshot
+
+        self.assertFalse(process.in_subprocess)

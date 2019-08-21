@@ -11,31 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.builder.flow.base import *  # noqa
+from django.dispatch import Signal
 
-__all__ = [
-    'EmptyEndEvent',
-    'EmptyStartEvent',
-    'ExecutableEndEvent'
-]
-
-
-class EmptyStartEvent(Element):
-
-    def type(self):
-        return PE.EmptyStartEvent
-
-
-class EmptyEndEvent(Element):
-
-    def type(self):
-        return PE.EmptyEndEvent
-
-
-class ExecutableEndEvent(Element):
-    def __init__(self, type, **kwargs):
-        self._type = type
-        super(ExecutableEndEvent, self).__init__(**kwargs)
-
-    def type(self):
-        return self._type
+post_new_end_event_register = Signal(providing_args=['node_type', 'node_cls'])

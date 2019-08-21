@@ -17,6 +17,7 @@ import Queue
 from pipeline.utils.uniqid import uniqid
 from pipeline.core.constants import PE
 from pipeline.builder.flow.data import Data, Params
+from pipeline.builder.flow.event import ExecutableEndEvent
 from pipeline.parser.utils import replace_all_id
 
 __all__ = [
@@ -124,7 +125,7 @@ def __grow(tree, elem):
         next_elem = elem.outgoing[0]
         __grow_flow(tree, outgoing, elem, next_elem)
 
-    elif elem.type() in __end_elem:
+    elif elem.type() in __end_elem or isinstance(elem, ExecutableEndEvent):
         tree[PE.end_event] = {
             PE.incoming: tree[__incoming][elem.id],
             PE.outgoing: '',
