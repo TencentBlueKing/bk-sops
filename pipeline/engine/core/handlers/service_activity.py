@@ -103,7 +103,8 @@ class ServiceActivityHandler(FlowElementHandler):
             # send activity error signal
             valve.send(signals, 'activity_failed', sender=root_pipeline,
                        pipeline_id=root_pipeline.id,
-                       pipeline_activity_id=element.id)
+                       pipeline_activity_id=element.id,
+                       subprocess_id_stack=process.subprocess_stack)
 
             return self.HandleResult(next_node=None, should_return=False, should_sleep=True)
         else:

@@ -200,7 +200,8 @@ class ScheduleTestCase(TestCase):
                                                        'activity_failed',
                                                        sender=process.root_pipeline,
                                                        pipeline_id=process.root_pipeline_id,
-                                                       pipeline_activity_id=mock_ss.service_act.id)
+                                                       pipeline_activity_id=mock_ss.service_act.id,
+                                                       subprocess_id_stack=process.subprocess_stack)
 
                     # reset mock
                     schedule.set_schedule_data.reset_mock()
@@ -285,7 +286,8 @@ class ScheduleTestCase(TestCase):
                                                        'activity_failed',
                                                        sender=process.root_pipeline,
                                                        pipeline_id=process.root_pipeline_id,
-                                                       pipeline_activity_id=mock_ss.service_act.id)
+                                                       pipeline_activity_id=mock_ss.service_act.id,
+                                                       subprocess_id_stack=process.subprocess_stack)
 
                     signals.service_activity_timeout_monitor_end.send.reset_mock()
                     Data.objects.write_node_data.reset_mock()

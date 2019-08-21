@@ -145,7 +145,8 @@ def __grow(tree, elem):
             PE.name: elem.name,
             PE.error_ignorable: False,
             PE.component: elem.component_dict(),
-            PE.optional: False
+            PE.optional: False,
+            PE.failure_handler: elem.failure_handler
         }
 
         next_elem = elem.outgoing[0]

@@ -126,7 +126,8 @@ def schedule(process_id, schedule_id):
             valve.send(signals, 'activity_failed',
                        sender=process.root_pipeline,
                        pipeline_id=process.root_pipeline_id,
-                       pipeline_activity_id=service_act.id)
+                       pipeline_activity_id=service_act.id,
+                       subprocess_id_stack=process.subprocess_stack)
             return
 
         # schedule execute finished or callback finished
