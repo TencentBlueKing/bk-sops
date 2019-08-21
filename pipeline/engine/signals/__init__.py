@@ -22,7 +22,7 @@ wake_from_schedule = Signal(providing_args=['process_id, activity_id'])
 schedule_ready = Signal(providing_args=['schedule_id', 'countdown', 'process_id'])
 process_unfreeze = Signal(providing_args=['process_id'])
 # activity failed signal
-activity_failed = Signal(providing_args=['pipeline_id', 'pipeline_activity_id'])
+activity_failed = Signal(providing_args=['pipeline_id', 'pipeline_activity_id', 'subprocess_id_stack'])
 
 # signal for developer (do not use valve to pass them!)
 service_schedule_fail = Signal(providing_args=['activity_shell', 'schedule_service', 'ex_data'])
