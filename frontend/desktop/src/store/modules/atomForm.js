@@ -20,9 +20,16 @@ const atomForm = {
     namespaced: true,
     state: {
         fetching: false,
+        SingleAtomVersionMap: {},
         form: {},
-        config: {},
+        config: {
+        },
         output: {}
+    },
+    getters: {
+        SingleAtomVersionMap (state) {
+            return state.SingleAtomVersionMap
+        }
     },
     mutations: {
         setFetching (state, status) {
@@ -30,13 +37,43 @@ const atomForm = {
         },
         setAtomForm (state, payload) {
             const atomType = payload.isMeta ? META_FORM_TYPE[payload.atomType] : payload.atomType
-            Vue.set(state.form, atomType, payload.data)
+            const action = {}
+            action[payload.version] = payload.data
+            if (state.form[atomType]) {
+                Vue.set(state.form, atomType, {
+                    ...state.form[atomType],
+                    ...action
+                })
+            } else {
+                Vue.set(state.form, atomType, action)
+            }
         },
         setAtomConfig (state, payload) {
-            Vue.set(state.config, payload.atomType, payload.configData)
+            const action = {}
+            action[payload.version] = payload.configData
+            if (state.config[payload.atomType]) {
+                Vue.set(state.config, payload.atomType, {
+                    ...state.config[payload.atomType],
+                    ...action
+                })
+            } else {
+                Vue.set(state.config, payload.atomType, action)
+            }
         },
         setAtomOutput (state, payload) {
-            Vue.set(state.output, payload.atomType, payload.outputData)
+            const action = {}
+            action[payload.version] = payload.outputData
+            if (state.output[payload.atomType]) {
+                Vue.set(state.output, payload.atomType, {
+                    ...state.output[payload.atomType],
+                    ...action
+                })
+            } else {
+                Vue.set(state.output, payload.atomType, action)
+            }
+        },
+        setVersionMap (state, payload) {
+            state.SingleAtomVersionMap = payload
         },
         clearAtomForm (state, payload) {
             $.atoms = {}
@@ -47,9 +84,9 @@ const atomForm = {
     },
     actions: {
         loadAtomConfig ({ commit, state }, payload) {
-            const { atomType, classify, isMeta } = payload
+            const { atomType, classify, isMeta, version } = payload
             const atomClassify = classify || 'component'
-            return api.$getAtomForm(atomType, atomClassify, isMeta || 0).then(
+            return api.$getAtomForm(atomType, atomClassify, isMeta || 0, version).then(
                 response => response.data
             ).catch(e => {
                 Promise.reject(e)

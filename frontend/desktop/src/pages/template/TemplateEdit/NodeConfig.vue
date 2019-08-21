@@ -303,7 +303,8 @@
                 'atomForm': state => state.atomForm.form,
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormOutput': state => state.atomForm.output,
-                'subprocessInfo': state => state.template.subprocess_info
+                'subprocessInfo': state => state.template.subprocess_info,
+                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             /**
              * 标准插件节点、子节点列表
@@ -405,6 +406,9 @@
                     hook: this.inputAtomHook,
                     value: this.inputAtomData
                 }
+            },
+            currentSingleAtomVersion () {
+                return this.isSingleAtom && this.nodeConfigData ? this.nodeConfigData.component.version || this.SingleAtomVersionMap[this.currentAtom] : ''
             }
         },
         watch: {
@@ -450,18 +454,23 @@
                 this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
-                    this.getConfig(this.nodeConfigData.version) // load node config data
+                    if (this.isSingleAtom) {
+                        if (!this.nodeConfigData.component.version) return false
+                        this.getConfig(this.nodeConfigData.component.version)
+                    } else {
+                        this.getConfig(this.nodeConfigData.version) // load node config data
+                    }
                 }
             },
             /**
              * 加载标准插件配置文件或子流程表单配置
-             * @param {String} version 子流程版本
+             * @param {String} version 子流程版本/标准插件配置文件版本
              */
             getConfig (version) {
                 if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
                     || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
-                        return this.getAtomConfig(this.currentAtom)
+                        return this.getAtomConfig(this.currentAtom, version)
                     } else {
                         return this.getSubflowConfig(this.currentAtom, version)
                     }
@@ -472,16 +481,16 @@
             /**
              * 加载标准插件节点数据
              */
-            async getAtomConfig (atomType) {
-                if ($.atoms[atomType]) {
-                    this.setNodeConfigData(atomType)
+            async getAtomConfig (atomType, version) {
+                if (this.atomFormConfig[atomType] && this.atomFormConfig[atomType][version]) {
+                    this.setNodeConfigData(atomType, version)
                     return
                 }
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
-                    this.setNodeConfigData(atomType)
+                    await this.loadAtomConfig({ atomType, version })
+                    this.setAtomConfig({ atomType, configData: $.atoms[atomType], version })
+                    this.setNodeConfigData(atomType, version)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -535,7 +544,7 @@
 
                         if (!this.atomFormConfig[atomType]) {
                             await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom], version })
                         }
 
                         const atomConfig = this.atomFormConfig[atom]
@@ -582,9 +591,9 @@
             /**
              * normal task node render form value
              */
-            setNodeConfigData (atomType) {
+            setNodeConfigData (atomType, version) {
                 const data = {}
-                const config = this.atomFormConfig[atomType]
+                const config = this.atomFormConfig[atomType][version]
                 if (atomType === this.activities[this.nodeId].component.code) {
                     this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 } else {
@@ -641,8 +650,18 @@
                 this.inputAtomHook = inputFormHooks
                 this.inputAtomData = inputFormData
             },
+            // 过滤 computed 等引起的不正确调用获取节点配置函数
+            isCorrectSource (config) {
+                return !(!this.currentAtom
+                    || JSON.stringify(config) === '{}'
+                    || !config[this.currentAtom])
+            },
             getSingleAtomConfig () {
-                const config = this.atomFormConfig[this.currentAtom]
+                // 当前版本或最新版本
+                if (!this.isCorrectSource(this.atomFormConfig)) {
+                    return
+                }
+                const config = this.atomFormConfig[this.currentAtom][this.currentSingleAtomVersion]
                 if (!config) {
                     return {}
                 }
@@ -654,7 +673,11 @@
                 })
             },
             getOutputConfig () {
-                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom] : this.subAtomOutput
+                const version = this.currentSingleAtomVersion
+                if (!this.isCorrectSource(this.atomFormOutput)) {
+                    return
+                }
+                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
             },
             getHookedInputVariables () {
                 const variables = []
@@ -719,6 +742,11 @@
             },
             updateActivities () {
                 const nodeData = tools.deepClone(this.nodeConfigData)
+                const currentSingleAtom = this.singleAtom.filter(m => m.code === this.currentAtom)
+                let version = ''
+                if (currentSingleAtom.length) {
+                    version = currentSingleAtom[0].version
+                }
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
@@ -726,6 +754,7 @@
                 nodeData.can_retry = this.isRetry
                 if (this.isSingleAtom) {
                     nodeData.error_ignorable = this.errorCouldBeIgnored
+                    nodeData.component.version = version
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
@@ -827,7 +856,8 @@
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
                 this.updateActivities()
-                this.getConfig()
+                // 如果是单原子，这里取最新版本配置
+                this.getConfig(this.SingleAtomVersionMap[id])
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })

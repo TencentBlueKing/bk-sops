@@ -174,7 +174,8 @@
                 'businessTimezone': state => state.businessTimezone,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
-                'atomFormConfig': state => state.atomForm.config
+                'atomFormConfig': state => state.atomForm.config,
+                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             ...mapGetters('atomList/', [
                 'singleAtomGrouped'
@@ -312,7 +313,8 @@
             ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig',
-                'clearAtomForm'
+                'clearAtomForm',
+                'setVersionMap'
             ]),
             ...mapGetters('template/', [
                 'getLocalTemplateData'
@@ -322,6 +324,7 @@
                 try {
                     const data = await this.loadSingleAtomList()
                     this.setSingleAtom(data)
+                    this.updateStoreVersionMap(data)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -405,14 +408,16 @@
             },
             async getSingleAtomConfig (location) {
                 const atomType = location.atomId
-                if ($.atoms[atomType]) {
-                    this.addSingleAtomActivities(location, $.atoms[atomType])
+                const version = this.SingleAtomVersionMap[atomType]
+                if (this.atomConfig[atomType] && this.atomConfig[atomType][version]) {
+                    this.addSingleAtomActivities(location, this.atomConfig[atomType][version])
                     return
                 }
+                // 接口获取最新配置信息
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                    await this.loadAtomConfig({ atomType, version })
+                    this.setAtomConfig({ atomType, configData: $.atoms[atomType], version })
                     this.addSingleAtomActivities(location, $.atoms[atomType])
                 } catch (e) {
                     errorHandler(e, this)
@@ -921,6 +926,14 @@
                         isSkipped: nodes[node].isSkipped
                     })
                 })
+            },
+            // 更新单原子节点当前最新版本配置
+            updateStoreVersionMap (data) {
+                const actions = {}
+                data.forEach(atom => {
+                    actions[atom.code] = atom.version
+                })
+                this.setVersionMap(actions)
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
