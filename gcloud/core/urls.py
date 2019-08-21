@@ -27,6 +27,7 @@ urlpatterns = [
 
     url(r'^core/get_cache_key/(?P<key>\w+)/$', command.get_cache_key),
     url(r'^core/delete_cache_key/(?P<key>\w+)/$', command.delete_cache_key),
+    url(r'^core/get_settings/$', command.get_settings),
 
     # i18n
     url(r'^jsi18n/(?P<packages>\S+?)/$', javascript_catalog),

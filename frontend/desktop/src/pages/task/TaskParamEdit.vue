@@ -141,7 +141,7 @@
                 })
             },
             validate () {
-                return this.$refs.renderForm.validate()
+                return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
             getVariableData () {
                 const variables = tools.deepClone(this.constants)

@@ -129,6 +129,5 @@
         min-width: 1320px;
         min-height: calc(100% - 50px);
         overflow-x: hidden;
-        background: $whiteMainBg;
     }
 </style>
