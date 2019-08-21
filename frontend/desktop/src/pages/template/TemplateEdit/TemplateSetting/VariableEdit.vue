@@ -403,6 +403,13 @@
                 const atomConfig = this.atomFormConfig[atom]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
+                if (custom_type === 'input' && this.theEditingData.validation !== '') {
+                    config.attrs.validation.push({
+                        type: 'regex',
+                        args: this.theEditingData.validation,
+                        error_message: gettext('默认值不符合正则规则')
+                    })
+                }
 
                 this.renderConfig = [config]
                 if (this.isNewVariable) {
@@ -446,10 +453,19 @@
                 this.theEditingData.show_type = showType
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
-                this.getRenderConfig()
             },
             onBlurValidation () {
-                this.getRenderConfig()
+                const config = tools.deepClone(this.renderConfig[0])
+                const regValidate = config.attrs.validation.find(item => item.type === 'regex')
+                if (!this.errors.has('valueValidation')) {
+                    regValidate.args = this.theEditingData.validation
+                } else {
+                    regValidate.args = ''
+                }
+                this.$set(this.renderConfig, 0, config)
+                this.$nextTick(() => {
+                    this.$refs.renderForm.validate()
+                })
             },
             /**
              * datatable 编辑弹窗
