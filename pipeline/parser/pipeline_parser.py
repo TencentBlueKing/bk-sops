@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 from copy import deepcopy
 
+from django.utils.module_loading import import_string
+
 from pipeline import exceptions
 from pipeline.core.flow import (
     FlowNodeClsFactory,
@@ -137,6 +139,8 @@ class PipelineParser(object):
                 component = ComponentLibrary.get_component(act[PE.component][PE.code], act[PE.component][PE.inputs])
                 service = component.service()
                 data = component.data_for_execution(context, pipeline_data)
+                handler_path = act.get('failure_handler')
+                failure_handler = import_string(handler_path) if handler_path else None
                 act_objs.append(act_cls(id=act[PE.id],
                                         service=service,
                                         name=act[PE.name],
@@ -144,7 +148,8 @@ class PipelineParser(object):
                                         error_ignorable=act.get(PE.error_ignorable, False),
                                         skippable=act.get(PE.skippable, True),
                                         can_retry=act.get(PE.can_retry, True),
-                                        timeout=act.get(PE.timeout)))
+                                        timeout=act.get(PE.timeout),
+                                        failure_handler=failure_handler))
             elif act[PE.type] == PE.SubProcess:
                 sub_tree = act[PE.pipeline]
                 params = act[PE.params]
