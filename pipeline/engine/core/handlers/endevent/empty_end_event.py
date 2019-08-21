@@ -11,31 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.builder.flow.base import *  # noqa
+from __future__ import absolute_import
 
-__all__ = [
-    'EmptyEndEvent',
-    'EmptyStartEvent',
-    'ExecutableEndEvent'
-]
+from pipeline.core.flow.event import EmptyEndEvent
+
+from .base import EndEventHandler
 
 
-class EmptyStartEvent(Element):
+class EmptyEndEventHandler(EndEventHandler):
 
-    def type(self):
-        return PE.EmptyStartEvent
-
-
-class EmptyEndEvent(Element):
-
-    def type(self):
-        return PE.EmptyEndEvent
-
-
-class ExecutableEndEvent(Element):
-    def __init__(self, type, **kwargs):
-        self._type = type
-        super(ExecutableEndEvent, self).__init__(**kwargs)
-
-    def type(self):
-        return self._type
+    @staticmethod
+    def element_cls():
+        return EmptyEndEvent

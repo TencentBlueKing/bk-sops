@@ -14,7 +14,15 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 
 from pipeline import exceptions
-from pipeline.core.flow import base, activity, gateway, event
+from pipeline.core.flow import (
+    FlowNodeClsFactory,
+    SequenceFlow,
+    ExclusiveGateway,
+    ConditionalParallelGateway,
+    ParallelGateway,
+    ConvergeGateway,
+    Condition
+)
 from pipeline.core.pipeline import PipelineSpec, Pipeline
 from pipeline.core.data.base import DataObject
 from pipeline.core.data.context import Context
@@ -112,23 +120,21 @@ class PipelineParser(object):
                 pipeline_data.update({key: var})
 
         start = self.pipeline_tree[PE.start_event]
-        start_cls = getattr(event, start[PE.type])
-        start_event = start_cls(id=start[PE.id],
-                                name=start[PE.name])
+        start_cls = FlowNodeClsFactory.get_node_cls(start[PE.type])
+        start_event = start_cls(id=start[PE.id], name=start[PE.name])
 
         end = self.pipeline_tree[PE.end_event]
-        end_cls = getattr(event, end[PE.type])
+        end_cls = FlowNodeClsFactory.get_node_cls(end[PE.type])
         end_event = end_cls(id=end[PE.id],
-                            name=end[PE.name])
+                            name=end[PE.name],
+                            data=DataObject({}))
 
         acts = self.pipeline_tree[PE.activities]
         act_objs = []
         for act in acts.values():
-            act_cls = getattr(activity, act[PE.type])
+            act_cls = FlowNodeClsFactory.get_node_cls(act[PE.type])
             if act[PE.type] == PE.ServiceActivity:
-                component = ComponentLibrary.get_component(
-                    act[PE.component][PE.code], act[PE.component][PE.inputs]
-                )
+                component = ComponentLibrary.get_component(act[PE.component][PE.code], act[PE.component][PE.inputs])
                 service = component.service()
                 data = component.data_for_execution(context, pipeline_data)
                 act_objs.append(act_cls(id=act[PE.id],
@@ -159,12 +165,11 @@ class PipelineParser(object):
         flows = self.pipeline_tree[PE.flows]
         gateway_objs = []
         for gw in gateways.values():
-            gw_cls = getattr(gateway, gw[PE.type])
+            gw_cls = FlowNodeClsFactory.get_node_cls(gw[PE.type])
             if gw[PE.type] in {PE.ParallelGateway, PE.ConditionalParallelGateway}:
-                gateway_objs.append(
-                    gw_cls(id=gw[PE.id],
-                           converge_gateway_id=gw[PE.converge_gateway_id],
-                           name=gw[PE.name]))
+                gateway_objs.append(gw_cls(id=gw[PE.id],
+                                           converge_gateway_id=gw[PE.converge_gateway_id],
+                                           name=gw[PE.name]))
             elif gw[PE.type] in {PE.ExclusiveGateway, PE.ConvergeGateway}:
                 gateway_objs.append(gw_cls(id=gw[PE.id],
                                            name=gw[PE.name]))
@@ -183,9 +188,9 @@ class PipelineParser(object):
                 target = end_event
             else:
                 target = filter(lambda x: x.id == fl[PE.target], flow_nodes)[0]
-            flow_objs_dict[fl[PE.id]] = base.SequenceFlow(fl[PE.id],
-                                                          source,
-                                                          target)
+            flow_objs_dict[fl[PE.id]] = SequenceFlow(fl[PE.id],
+                                                     source,
+                                                     target)
         flow_objs = flow_objs_dict.values()
 
         # add incoming and outgoing flow to acts
@@ -210,43 +215,35 @@ class PipelineParser(object):
             act.outgoing.add_flow(flow_objs_dict[acts[act.id][PE.outgoing]])
 
         for gw in gateway_objs:
-            if isinstance(gw, gateway.ExclusiveGateway) or isinstance(gw, gateway.ConditionalParallelGateway):
+            if isinstance(gw, ExclusiveGateway) or isinstance(gw, ConditionalParallelGateway):
                 for flow_id, con in gateways[gw.id][PE.conditions].items():
-                    con_obj = gateway.Condition(
-                        con[PE.evaluate],
-                        flow_objs_dict[flow_id],
-                    )
+                    con_obj = Condition(con[PE.evaluate],
+                                        flow_objs_dict[flow_id])
                     gw.add_condition(con_obj)
 
                 if isinstance(gateways[gw.id][PE.incoming], list):
                     for incoming_id in gateways[gw.id][PE.incoming]:
                         gw.incoming.add_flow(flow_objs_dict[incoming_id])
                 else:
-                    gw.incoming.add_flow(
-                        flow_objs_dict[gateways[gw.id][PE.incoming]]
-                    )
+                    gw.incoming.add_flow(flow_objs_dict[gateways[gw.id][PE.incoming]])
 
                 for outgoing_id in gateways[gw.id][PE.outgoing]:
                     gw.outgoing.add_flow(flow_objs_dict[outgoing_id])
 
-            elif isinstance(gw, gateway.ParallelGateway):
+            elif isinstance(gw, ParallelGateway):
                 if isinstance(gateways[gw.id][PE.incoming], list):
                     for incoming_id in gateways[gw.id][PE.incoming]:
                         gw.incoming.add_flow(flow_objs_dict[incoming_id])
                 else:
-                    gw.incoming.add_flow(
-                        flow_objs_dict[gateways[gw.id][PE.incoming]]
-                    )
+                    gw.incoming.add_flow(flow_objs_dict[gateways[gw.id][PE.incoming]])
 
                 for outgoing_id in gateways[gw.id][PE.outgoing]:
                     gw.outgoing.add_flow(flow_objs_dict[outgoing_id])
 
-            elif isinstance(gw, gateway.ConvergeGateway):
+            elif isinstance(gw, ConvergeGateway):
                 for incoming_id in gateways[gw.id][PE.incoming]:
                     gw.incoming.add_flow(flow_objs_dict[incoming_id])
-                gw.outgoing.add_flow(
-                    flow_objs_dict[gateways[gw.id][PE.outgoing]]
-                )
+                gw.outgoing.add_flow(flow_objs_dict[gateways[gw.id][PE.outgoing]])
 
             else:
                 raise exceptions.FlowTypeError(u"Unknown Gateway type: %s" %

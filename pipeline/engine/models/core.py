@@ -191,6 +191,10 @@ class PipelineProcess(models.Model):
     def subprocess_stack(self):
         return self.snapshot.subprocess_stack if self.snapshot else None
 
+    @property
+    def in_subprocess(self):
+        return len(self.snapshot.pipeline_stack) > 1
+
     def push_pipeline(self, pipeline, is_subprocess=False):
         """
         将 pipeline 压入运行时栈中

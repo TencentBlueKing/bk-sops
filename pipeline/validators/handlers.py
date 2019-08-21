@@ -11,31 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from pipeline.builder.flow.base import *  # noqa
+from django.dispatch import receiver
 
-__all__ = [
-    'EmptyEndEvent',
-    'EmptyStartEvent',
-    'ExecutableEndEvent'
-]
+from pipeline.core.flow.event import EndEvent
+from pipeline.core.flow.signals import post_new_end_event_register
+from pipeline.validators import rules
 
 
-class EmptyStartEvent(Element):
-
-    def type(self):
-        return PE.EmptyStartEvent
-
-
-class EmptyEndEvent(Element):
-
-    def type(self):
-        return PE.EmptyEndEvent
-
-
-class ExecutableEndEvent(Element):
-    def __init__(self, type, **kwargs):
-        self._type = type
-        super(ExecutableEndEvent, self).__init__(**kwargs)
-
-    def type(self):
-        return self._type
+@receiver(post_new_end_event_register, sender=EndEvent)
+def post_new_end_event_register_handler(sender, node_type, node_cls, **kwargs):
+    rules.NODE_RULES[node_type] = rules.SINK_RULE
+    rules.FLOW_NODES_WITHOUT_STARTEVENT.append(node_type)
