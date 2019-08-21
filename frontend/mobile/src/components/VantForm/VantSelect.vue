@@ -108,12 +108,15 @@
                 this.multipleSelectOptions = this.select.columns
                 this.checkedValue = this.data.value
             } else {
-                this.defaultIndex = this.select.defaultIndex
                 this.multipleSelectOptions = this.select.columns.map(item => {
-                    return { text: item.name, key: item.value }
+                    return { text: item.text || item.name, key: item.value }
                 })
-                this.value = this.select.columns[this.defaultIndex].name
-                this.choseKey = this.select.columns[this.defaultIndex].key
+                this.defaultIndex = this.select.defaultIndex
+                if (this.defaultIndex === -1) {
+                    this.defaultIndex = 0
+                }
+                this.value = this.multipleSelectOptions[this.defaultIndex].text
+                this.choseKey = this.multipleSelectOptions[this.defaultIndex].key
             }
         },
         methods: {
