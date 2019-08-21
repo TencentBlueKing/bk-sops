@@ -23,7 +23,7 @@ from pipeline.engine.models import (
     Data,
     ScheduleService,
 )
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from .base import FlowElementHandler
 

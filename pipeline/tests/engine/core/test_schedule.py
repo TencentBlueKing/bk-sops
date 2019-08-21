@@ -17,7 +17,7 @@ import itertools
 
 from django.test import TestCase
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from pipeline.engine import signals
 from pipeline.engine.models import Status, PipelineProcess, ScheduleService, Data

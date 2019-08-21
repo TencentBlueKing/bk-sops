@@ -108,7 +108,7 @@ ENGINE_API_FORCED_FAIL = 'pipeline.engine.api.forced_fail'
 ENGINE_RUN_LOOP = 'pipeline.engine.core.runtime.run_loop'
 ENGINE_TASKS_WAKE_UP_APPLY = 'pipeline.engine.tasks.wake_up.apply_async'
 
-SIGNAL_VALVE_SEND = 'django_signal_valve.valve.send'
+SIGNAL_VALVE_SEND = 'pipeline.django_signal_valve.valve.send'
 
 SUBPROCESS_HYDRATE_NODE_DATA = 'pipeline.engine.core.handlers.subprocess.hydrate_node_data'
 SUBPROCESS_HYDRATE_DATA = 'pipeline.engine.core.handlers.subprocess.hydrate_data'
