@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import sys
 from functools import wraps
 
+import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
@@ -22,6 +23,9 @@ from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
 
 from gcloud.conf import settings
 from gcloud.core.models import Project
+from gcloud.core.permissions import project_resource
+from gcloud.apigw.utils import get_project_with
+from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
 from gcloud.apigw.exceptions import UserNotExistError
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
@@ -82,20 +86,82 @@ def mark_request_whether_is_trust(view_func):
     return wrapper
 
 
-def project_existence_check(view_func):
+def _get_project_scope_from_request(request):
+    if request.method == 'GET':
+        obj_scope = request.GET.get('scope', PROJECT_SCOPE_CMDB_BIZ)
+    else:
+        params = json.loads(request.body)
+        obj_scope = params.get('scope', PROJECT_SCOPE_CMDB_BIZ)
+
+    return obj_scope
+
+
+def project_inject(view_func):
     @wraps(view_func, assigned=available_attrs(view_func))
     def wrapper(request, *args, **kwargs):
-        project_id = kwargs['project_id']
 
-        if not Project.objects.filter(id=project_id, is_disable=False).exists():
+        obj_id = kwargs.get('project_id')
+        try:
+            obj_scope = _get_project_scope_from_request(request)
+        except Exception:
             return JsonResponse({
                 'result': False,
-                'message': 'project(%s) does not exist.' % project_id
+                'message': 'invalid param format'
             })
 
+        try:
+            project = get_project_with(obj_id=obj_id, scope=obj_scope)
+        except Project.DoesNotExist:
+            return JsonResponse({
+                'result': False,
+                'message': 'project({id}) with scope({scope}) does not exist.'.format(id=obj_id, scope=obj_scope)
+            })
+
+        setattr(request, 'project', project)
         return view_func(request, *args, **kwargs)
 
     return wrapper
+
+
+def api_verify_proj_perms(actions):
+    def decorator(view_func):
+        @wraps(view_func, assigned=available_attrs(view_func))
+        def wrapper(request, *args, **kwargs):
+            if not getattr(request, 'is_trust', False):
+
+                project = getattr(request, 'project', None)
+
+                if not project:
+                    obj_id = kwargs.get('project_id')
+                    try:
+                        obj_scope = _get_project_scope_from_request(request)
+                    except Exception:
+                        return JsonResponse({
+                            'result': False,
+                            'message': 'invalid param format'
+                        })
+
+                    try:
+                        project = get_project_with(obj_id=obj_id, scope=obj_scope)
+                    except Project.DoesNotExist:
+                        return JsonResponse({
+                            'result': False,
+                            'message': 'project{id} with scope{scope} does not exist.'.format(id=obj_id,
+                                                                                              scope=obj_scope)
+                        })
+
+                verify_or_raise_auth_failed(principal_type='user',
+                                            principal_id=request.user.username,
+                                            resource=project_resource,
+                                            action_ids=[act.id for act in actions],
+                                            instance=project,
+                                            status=200)
+
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 def api_verify_perms(auth_resource, actions, get_kwargs):
@@ -106,6 +172,19 @@ def api_verify_perms(auth_resource, actions, get_kwargs):
                 get_filters = {}
                 for kwarg, filter_arg in get_kwargs.items():
                     get_filters[filter_arg] = kwargs.get(kwarg)
+
+                # project_id value replace
+                if 'project_id' in get_filters:
+                    obj_id = get_filters['project_id']
+                    scope = _get_project_scope_from_request(request)
+                    try:
+                        project = get_project_with(obj_id=obj_id, scope=scope)
+                    except Project.DoesNotExist:
+                        return JsonResponse({
+                            'result': False,
+                            'message': 'project{id} with scope{scope} does not exist.'.format(id=obj_id, scope=scope)
+                        })
+                    get_filters['project_id'] = project.id
 
                 instance = auth_resource.resource_cls.objects.get(**get_filters)
 

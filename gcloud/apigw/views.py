@@ -26,11 +26,14 @@ from blueapps.account.decorators import login_exempt
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
 
-from gcloud.constants import PROJECT
+from gcloud.constants import PROJECT, BUSINESS
 from gcloud.conf import settings
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_existence_check, api_verify_perms
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    api_verify_perms,
+    api_verify_proj_perms,
+    project_inject)
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
-from gcloud.core.models import Project
 from gcloud.core.utils import format_datetime
 from gcloud.core.permissions import project_resource
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -60,14 +63,13 @@ logger = logging.getLogger("root")
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
-@api_verify_perms(project_resource,
-                  [project_resource.actions.view],
-                  get_kwargs={'project_id': 'id'})
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
 def get_template_list(request, project_id):
     template_source = request.GET.get('template_source', PROJECT)
-    project = Project.objects.get(id=project_id)
-    if template_source == PROJECT:
-        templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project_id,
+    project = request.project
+    if template_source in {BUSINESS, PROJECT}:
+        templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project.id,
                                                                                     is_deleted=False)
     else:
         templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
@@ -80,7 +82,7 @@ def get_template_list(request, project_id):
             'editor': tmpl.pipeline_template.editor,
             'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
             'category': tmpl.category,
-            'project_id': project_id,
+            'project_id': project.id,
             'project_name': project.name,
             'bk_biz_id': project.bk_biz_id,
             'bk_biz_name': project.name if project.from_cmdb else None
@@ -152,23 +154,23 @@ def get_common_template_info(request, template_id):
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
-@project_existence_check
+@project_inject
 def get_template_info(request, template_id, project_id):
-    project = Project.objects.get(id=project_id)
+    project = request.project
     template_source = request.GET.get('template_source', PROJECT)
-    if template_source == PROJECT:
+    if template_source in {BUSINESS, PROJECT}:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                project_id=project_id,
+                                                                                project_id=project.id,
                                                                                 is_deleted=False)
             auth_resource = task_template_resource
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'template[id={template_id}] of project[project_id={project_id}] does not exist'.format(
-                    template_id=template_id,
-                    project_id=project_id)
-            }
+                'message': 'template[id={template_id}] of project[project_id={project_id}, biz_id={biz_id}] '
+                           'does not exist'.format(template_id=template_id,
+                                                   project_id=project.id,
+                                                   biz_id=project.bk_biz_id)}
             return JsonResponse(result)
     else:
         try:
@@ -200,7 +202,7 @@ def get_template_info(request, template_id, project_id):
         'editor': tmpl.pipeline_template.editor,
         'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
         'category': tmpl.category,
-        'project_id': project_id,
+        'project_id': project.id,
         'project_name': project.name,
         'bk_biz_id': project.bk_biz_id,
         'bk_biz_name': project.name if project.from_cmdb else None,
@@ -214,7 +216,7 @@ def get_template_info(request, template_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
-@project_existence_check
+@project_inject
 def create_task(request, template_id, project_id):
     try:
         params = json.loads(request.body)
@@ -223,17 +225,20 @@ def create_task(request, template_id, project_id):
             'result': False,
             'message': 'invalid param format'
         })
+
+    project = request.project
+    template_source = params.get('template_source', PROJECT)
+
     logger.info('apigw create_task info, template_id: {template_id}, project_id: {project_id}, params: {params}'.format(
         template_id=template_id,
-        project_id=project_id,
+        project_id=project.id,
         params=params))
-    project = Project.objects.get(id=project_id)
-    template_source = params.get('template_source', PROJECT)
+
     # 兼容老版本的接口调用
-    if template_source == 'business' or template_source == PROJECT:
+    if template_source in {BUSINESS, PROJECT}:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                project_id=project_id,
+                                                                                project_id=project.id,
                                                                                 is_deleted=False)
 
             if not request.is_trust:
@@ -246,10 +251,10 @@ def create_task(request, template_id, project_id):
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'template[id={template_id}] of project[project_id={project_id}] does not exist'.format(
-                    template_id=template_id,
-                    project_id=project_id)
-            }
+                'message': 'template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] '
+                           'does not exist'.format(template_id=template_id,
+                                                   project_id=project.id,
+                                                   biz_id=project.bk_biz_id)}
             return JsonResponse(result)
     else:
         try:
@@ -324,13 +329,14 @@ def create_task(request, template_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
-@project_existence_check
+@project_inject
 @api_verify_perms(taskflow_resource,
                   [taskflow_resource.actions.operate],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
 def start_task(request, task_id, project_id):
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
+    project = request.project
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
     ctx = task.task_action('start', username)
     return JsonResponse(ctx)
 
@@ -340,7 +346,7 @@ def start_task(request, task_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
-@project_existence_check
+@project_inject
 @api_verify_perms(taskflow_resource,
                   [taskflow_resource.actions.operate],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
@@ -354,7 +360,8 @@ def operate_task(request, task_id, project_id):
         })
     action = params.get('action')
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id, is_deleted=False)
+    project = request.project
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
 
@@ -363,13 +370,14 @@ def operate_task(request, task_id, project_id):
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
-@project_existence_check
+@project_inject
 @api_verify_perms(taskflow_resource,
                   [taskflow_resource.actions.view],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
 def get_task_status(request, task_id, project_id):
+    project = request.project
     try:
-        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id, is_deleted=False)
+        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
         task_status = task.get_status()
         result = {
             'result': True,
@@ -405,10 +413,8 @@ def get_task_status(request, task_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
-@project_existence_check
-@api_verify_perms(project_resource,
-                  [project_resource.actions.view],
-                  get_kwargs={'project_id': 'id'})
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
 def query_task_count(request, project_id):
     """
     @summary: 按照不同维度统计业务任务总数
@@ -423,6 +429,7 @@ def query_task_count(request, project_id):
             'result': False,
             'message': 'invalid param format'
         })
+    project = request.project
     conditions = params.get('conditions', {})
     group_by = params.get('group_by')
     if not isinstance(conditions, dict):
@@ -434,7 +441,7 @@ def query_task_count(request, project_id):
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
 
-    filters = {'project_id': project_id, 'is_deleted': False}
+    filters = {'project_id': project.id, 'is_deleted': False}
     filters.update(conditions)
     success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
     if not success:
@@ -465,11 +472,11 @@ def info_data_from_period_task(task, detail=True):
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
-@api_verify_perms(project_resource,
-                  [project_resource.actions.view],
-                  get_kwargs={'project_id': 'id'})
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
 def get_periodic_task_list(request, project_id):
-    task_list = PeriodicTask.objects.filter(project_id=project_id)
+    project = request.project
+    task_list = PeriodicTask.objects.filter(project_id=project.id)
     data = []
     for task in task_list:
         data.append(info_data_from_period_task(task, detail=False))
@@ -481,12 +488,12 @@ def get_periodic_task_list(request, project_id):
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
-@api_verify_perms(periodic_task_resource,
-                  [periodic_task_resource.actions.edit],
-                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
 def get_periodic_task_info(request, task_id, project_id):
+    project = request.project
     try:
-        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -502,12 +509,15 @@ def get_periodic_task_info(request, task_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
+@project_inject
 @api_verify_perms(task_template_resource,
                   [task_template_resource.actions.create_periodic_task],
                   get_kwargs={'template_id': 'id', 'project_id': 'project_id'})
 def create_periodic_task(request, template_id, project_id):
+    project = request.project
+
     try:
-        template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
+        template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
     except TaskTemplate.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -525,7 +535,7 @@ def create_periodic_task(request, template_id, project_id):
     logger.info(
         'apigw create_periodic_task info, '
         'template_id: {template_id}, project_id: {project_id}, params: {params}'.format(template_id=template_id,
-                                                                                        project_id=project_id,
+                                                                                        project_id=project.id,
                                                                                         params=params))
 
     try:
@@ -549,7 +559,6 @@ def create_periodic_task(request, template_id, project_id):
         if key in pipeline_tree['constants']:
             pipeline_tree['constants'][key]['value'] = val
 
-    project = Project.objects.get(id=project_id)
     name = params['name']
     cron = params['cron']
 
@@ -584,10 +593,12 @@ def create_periodic_task(request, template_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
+@project_inject
 @api_verify_perms(periodic_task_resource,
                   [periodic_task_resource.actions.edit],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
 def set_periodic_task_enabled(request, task_id, project_id):
+    project = request.project
     try:
         params = json.loads(request.body)
     except Exception:
@@ -599,7 +610,7 @@ def set_periodic_task_enabled(request, task_id, project_id):
     enabled = params.get('enabled', False)
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -620,6 +631,7 @@ def set_periodic_task_enabled(request, task_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
+@project_inject
 @api_verify_perms(periodic_task_resource,
                   [periodic_task_resource.actions.edit],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
@@ -632,11 +644,12 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
             'message': 'invalid param format'
         })
 
+    project = request.project
     cron = params.get('cron', {})
-    tz = Project.objects.get(id=project_id).time_zone
+    tz = project.time_zone
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -664,10 +677,12 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
+@project_inject
 @api_verify_perms(periodic_task_resource,
                   [periodic_task_resource.actions.edit],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
 def modify_constants_for_periodic_task(request, task_id, project_id):
+    project = request.project
     try:
         params = json.loads(request.body)
     except Exception:
@@ -679,7 +694,7 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
     constants = params.get('constants', {})
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, project_id=project_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -704,6 +719,7 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
+@project_inject
 @api_verify_perms(taskflow_resource,
                   [taskflow_resource.actions.view],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
@@ -715,12 +731,14 @@ def get_task_detail(request, task_id, project_id):
     @param project_id:
     @return:
     """
+    project = request.project
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
             task_id=task_id,
-            project_id=project_id)
+            project_id=project.id,
+            biz_id=project.bk_biz_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -732,6 +750,7 @@ def get_task_detail(request, task_id, project_id):
 @require_GET
 @apigw_required
 @mark_request_whether_is_trust
+@project_inject
 @api_verify_perms(taskflow_resource,
                   [taskflow_resource.actions.view],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
@@ -743,12 +762,14 @@ def get_task_node_detail(request, task_id, project_id):
     @param project_id:
     @return:
     """
+    project = request.project
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
             task_id=task_id,
-            project_id=project_id)
+            project_id=project.id,
+            biz_id=project.bk_biz_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -770,6 +791,7 @@ def get_task_node_detail(request, task_id, project_id):
 @require_POST
 @apigw_required
 @mark_request_whether_is_trust
+@project_inject
 @api_verify_perms(taskflow_resource,
                   [taskflow_resource.actions.operate],
                   get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
@@ -782,12 +804,15 @@ def node_callback(request, task_id, project_id):
             'message': 'invalid param format'
         })
 
+    project = request.project
+
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of project[project_id={project_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
             task_id=task_id,
-            project_id=project_id)
+            project_id=project.id,
+            biz_id=project.bk_biz_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
