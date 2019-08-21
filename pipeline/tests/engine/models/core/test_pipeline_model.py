@@ -15,7 +15,7 @@ import mock
 
 from django.test import TestCase
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 from pipeline.engine import signals
 from pipeline.core.pipeline import Pipeline
 from pipeline.engine.models import PipelineModel, PipelineProcess
@@ -33,7 +33,7 @@ class TestPipelineModel(TestCase):
         self.assertEqual(pipeline_model.process.id, process.id)
         self.assertEqual(pipeline_model.id, pipeline.id)
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     def test_pipeline_ready(self):
         process_id = uniqid()
         PipelineModel.objects.pipeline_ready(process_id=process_id)
