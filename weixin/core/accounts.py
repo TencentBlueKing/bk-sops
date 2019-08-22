@@ -160,8 +160,8 @@ class WeixinAccount(WeixinAccountSingleton):
             # TODO 改造为友好页面
             return HttpResponse(_(u"State验证失败"))
         # 验证code有效性
-        is_code_vaild, base_data = self.verfiy_weixin_oauth_code(request)
-        if not is_code_vaild:
+        is_code_valid, base_data = self.verfiy_weixin_oauth_code(request)
+        if not is_code_valid:
             # TODO 改造为友好页面
             return HttpResponse(_(u"登录失败"))
 
