@@ -34,11 +34,12 @@
             RenderForm,
             NoData
         },
-        props: ['constants', 'editable'],
+        props: ['constants', 'editable', 'showRequired'],
         data () {
             return {
                 variables: tools.deepClone(this.constants),
                 renderOption: {
+                    showRequired: true,
                     showGroup: true,
                     showLabel: true,
                     showHook: false,
@@ -68,6 +69,9 @@
         },
         created () {
             this.getFormData()
+            if (this.showRequired === false) {
+                this.renderOption.showRequired = this.showRequired
+            }
         },
         beforeDestroy () {
             this.clearAtomForm()
@@ -137,7 +141,7 @@
                 })
             },
             validate () {
-                return this.$refs.renderForm.validate()
+                return this.isConfigLoading ? false : this.$refs.renderForm.validate()
             },
             getVariableData () {
                 const variables = tools.deepClone(this.constants)

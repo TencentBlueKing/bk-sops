@@ -11,11 +11,11 @@
 */
 <template>
     <div class="single-ip-selector">
-        <div class="selector-choose-wrap">
+        <div :class="['selector-choose-wrap', { 'disabled': !editable }]">
             <div
-                v-for="selector in selectorTabs"
+                v-for="(selector) in selectorTabs"
                 :key="selector.type"
-                :class="['ip-tab-radio', { 'disabled': !editable }]"
+                :class="['ip-tab-radio', { 'disabled': !editable }, { 'ip-tab-select': activeSelector === selector.id }]"
                 @click="onChooseSelector(selector.id)">
                 <span :class="['radio', { 'checked': activeSelector === selector.id }]"></span>
                 <span class="radio-text">{{selector.name}}</span>
@@ -85,18 +85,33 @@
 </script>
 <style lang="scss" scoped>
 .selector-choose-wrap {
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    border-right: 1px solid #dcdee5;
+    &.disabled {
+        .ip-tab-radio {
+            background: #f0f1f5;
+        }
+    }
 }
 .ip-tab-radio {
     display: inline-block;
-    margin-right: 20px;
     font-size: 14px;
+    height: 42px;
+    width: 100%;
+    background: #f7f7f7;
+    border: 1px solid #dcdee5;
+    border-right: 0;
     cursor: pointer;
+    .radio-box {
+        display: flex;
+    }
     .radio {
         display: inline-block;
         position: relative;
         width: 16px;
         height: 16px;
+        margin: 12px 5px 12px 20px;
         border: 1px solid #c4c6cc;
         border-radius: 50%;
         vertical-align: middle;
@@ -122,5 +137,9 @@
             }
         }
     }
+}
+.ip-tab-select {
+    background: #fff;
+    border-bottom: 0;
 }
 </style>
