@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from celery.task.control import revoke
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from pipeline.engine import exceptions
 from pipeline.core.data.base import DataObject

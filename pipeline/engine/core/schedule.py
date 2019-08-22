@@ -20,7 +20,7 @@ from django.db import transaction
 from pipeline.engine import signals, states, exceptions
 from pipeline.engine.core.data import get_schedule_parent_data, set_schedule_data, delete_parent_data
 from pipeline.engine.models import ScheduleService, Data, Status, PipelineProcess
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 logger = logging.getLogger('celery')
 

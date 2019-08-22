@@ -23,7 +23,7 @@ from pipeline.engine import signals
 from pipeline.engine.core import handlers
 from pipeline.engine.core.handlers import service_activity as service_act_h
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
