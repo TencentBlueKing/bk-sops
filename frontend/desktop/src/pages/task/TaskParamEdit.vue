@@ -131,6 +131,16 @@
                         currentFormConfig.tag_code = key
                         currentFormConfig.attrs.name = variable.name
                         currentFormConfig.attrs.desc = variable.desc
+                        if (
+                            variable.custom_type === 'input'
+                            && variable.validation !== ''
+                        ) {
+                            currentFormConfig.attrs.validation.push({
+                                type: 'regex',
+                                args: variable.validation,
+                                error_message: gettext('默认值不符合正则规则：') + variable.validation
+                            })
+                        }
                         this.renderConfig.push(currentFormConfig)
                     }
                     this.renderData[key] = tools.deepClone(variable.value)
