@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -51,8 +52,16 @@
     "template_id": "1",
     "bk_biz_id": "2",
 	"name": "from api 3",
-	"cron" : {"minute": "*/1", "hour": "15", "day_of_week":"*", "day_of_month":"*", "month_of_year":"*"},
-	"constants": {"${bk_timing}": "100"},
+	"cron" : {
+	    "minute": "*/1", 
+	    "hour": "15", 
+	    "day_of_week":"*", 
+	    "day_of_month":"*", 
+	    "month_of_year":"*"
+    },
+	"constants": {
+	    "${bk_timing}": "100"
+    },
 	"exclude_task_nodes_id": ["nodea5c396a3ef0f9f3cd7d4d7695f78"]
 }
 ```

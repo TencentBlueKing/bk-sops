@@ -25,54 +25,89 @@ from pipeline.validators.base import validate_pipeline_tree
 from pipeline.core.constants import PE
 
 
+def classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params=None):
+    """
+    @summary: classify pipeline inputs into different parts
+    @param pipeline_inputs: pipeline or subprocess inputs
+    @param params: pipeline or subprocess params, which can cover item whose is_param is True in inputs
+    @param is_subprocess: whether pipeline is root or subprocess
+    @param root_pipeline_params: root pipeline params which should deliver to all subprocess
+    @return:
+    """
+    # data from activity outputs
+    act_outputs = {}
+    # params should deliver to son subprocess
+    subprocess_params = {}
+    # context scope to resolving inputs
+    scope_info = deepcopy(root_pipeline_params)
+    for key, info in pipeline_inputs.items():
+        if info.get(PE.source_act):
+            act_outputs.setdefault(info[PE.source_act], {}).update({info[PE.source_key]: key})
+            continue
+
+        is_param = info.get(PE.is_param, False)
+        info = params.get(key, info) if is_param else info
+        if is_subprocess and is_param:
+            subprocess_params.update({key: info})
+            continue
+
+        scope_info.update({key: info})
+    result = {
+        'act_outputs': act_outputs,
+        'scope_info': scope_info,
+        'subprocess_params': subprocess_params
+    }
+    return result
+
+
 class PipelineParser(object):
 
     def __init__(self, pipeline_tree, cycle_tolerate=False):
         validate_pipeline_tree(pipeline_tree, cycle_tolerate=cycle_tolerate)
         self.pipeline_tree = deepcopy(pipeline_tree)
 
-    def parse(self, root_pipeline_data=None, params=None):
-        return self._parse(root_pipeline_data, params=params)
+    def parse(self, root_pipeline_data=None, root_pipeline_context=None):
+        """
+        @summary: parse pipeline json tree to object with root data
+        @param root_pipeline_data: like business info or operator, which can be accessed by parent_data in
+            Component.execute
+        @param root_pipeline_context: params for pipeline to resolving inputs data
+        @return:
+        """
+        return self._parse(root_pipeline_data, root_pipeline_context)
 
-    def parser(self, root_pipeline_data=None, params=None):
-        return self._parse(root_pipeline_data, params=params)
-
-    def _parse(self, root_pipeline_data=None, params=None, is_subprocess=False, parent_context=None):
+    def _parse(self, root_pipeline_data=None, root_pipeline_params=None, params=None,
+               is_subprocess=False, parent_context=None):
+        """
+        @summary: parse pipeline and subprocess recursively
+        @param root_pipeline_data: root data from root pipeline parsing, witch will be passed to subprocess recursively
+        @param root_pipeline_params: params from root pipeline for all subprocess
+        @param params: params from parent for son subprocess
+        @param is_subprocess: whither is subprocess
+        @param parent_context: parent context for activity of subprocess to resolving inputs
+        @return: Pipeline object
+        """
         if root_pipeline_data is None:
             root_pipeline_data = {}
+        if root_pipeline_params is None:
+            root_pipeline_params = {}
         if params is None:
             params = {}
-        pipeline_data = deepcopy(root_pipeline_data) if is_subprocess else root_pipeline_data
 
         pipeline_inputs = self.pipeline_tree[PE.data][PE.inputs]
-        act_outputs = {}
-        scope_info = {}
-        process_params = {}
-        for key, info in pipeline_inputs.items():
-            if info.get(PE.source_act):
-                act_outputs.setdefault(info[PE.source_act],
-                                       {}).update({info[PE.source_key]: key})
-                continue
-
-            is_param = info.get(PE.is_param, False)
-            info = params.get(key, info) if is_param else info
-
-            if is_subprocess and is_param:
-                process_params.update({key: info})
-                continue
-
-            scope_info.update({key: info})
+        classification = classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params)
 
         output_keys = self.pipeline_tree[PE.data][PE.outputs]
-        context = Context(act_outputs, output_keys)
-        for key, info in scope_info.items():
-            var = get_variable(key, info, context, pipeline_data)
+        context = Context(classification['act_outputs'], output_keys)
+        for key, info in classification['scope_info'].items():
+            var = get_variable(key, info, context, root_pipeline_data)
             context.set_global_var(key, var)
 
+        pipeline_data = deepcopy(root_pipeline_data)
         if is_subprocess:
             if parent_context is None:
                 raise exceptions.DataTypeErrorException('parent context of subprocess cannot be none')
-            for key, info in process_params.items():
+            for key, info in classification['subprocess_params'].items():
                 var = get_variable(key, info, parent_context, pipeline_data)
                 pipeline_data.update({key: var})
 
@@ -111,6 +146,7 @@ class PipelineParser(object):
                 act_objs.append(act_cls(id=act[PE.id],
                                         pipeline=sub_parser._parse(
                                             root_pipeline_data=root_pipeline_data,
+                                            root_pipeline_params=root_pipeline_params,
                                             params=params,
                                             is_subprocess=True,
                                             parent_context=context),
@@ -223,13 +259,10 @@ class PipelineParser(object):
                                      context)
         return Pipeline(self.pipeline_tree[PE.id], pipeline_spec)
 
-    def get_act(self, act_id, subprocess_stack=None, root_pipeline_data=None):
+    def get_act(self, act_id, subprocess_stack=None, root_pipeline_data=None, root_pipeline_context=None):
         if subprocess_stack is None:
             subprocess_stack = []
-        if root_pipeline_data is None:
-            root_pipeline_data = {}
-
-        subprocess = self.parse(root_pipeline_data)
+        subprocess = self.parse(root_pipeline_data, root_pipeline_context)
         for sub_id in subprocess_stack:
             subprocess_act = filter(lambda x: x.id == sub_id,
                                     subprocess.spec.activities)[0]
@@ -238,8 +271,8 @@ class PipelineParser(object):
         act = filter(lambda x: x.id == act_id, subprocess.spec.activities)[0]
         return act
 
-    def get_act_inputs(self, act_id, subprocess_stack=None, root_pipeline_data=None):
-        act = self.get_act(act_id, subprocess_stack, root_pipeline_data)
+    def get_act_inputs(self, act_id, subprocess_stack=None, root_pipeline_data=None, root_pipeline_context=None):
+        act = self.get_act(act_id, subprocess_stack, root_pipeline_data, root_pipeline_context)
         hydrate_node_data(act)
         inputs = act.data.inputs
         return inputs

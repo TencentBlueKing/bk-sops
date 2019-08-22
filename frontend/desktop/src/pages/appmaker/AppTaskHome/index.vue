@@ -15,60 +15,58 @@
             <BaseTitle :title="i18n.taskRecord"></BaseTitle>
             <div class="operation-area clearfix">
                 <div class="appmaker-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
-                    <i class="common-icon-search"></i>
+                    <AdvanceSearch
+                        v-model="searchStr"
+                        :hide-advance="true"
+                        :input-placeholader="i18n.placeholder"
+                        @input="onSearchInput">
+                    </AdvanceSearch>
                 </div>
             </div>
             <div class="appmaker-table-content">
-                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th class="appmaker-id">ID</th>
-                            <th class="appmaker-name">{{ i18n.name }}</th>
-                            <th class="appmaker-time">{{ i18n.startedTime }}</th>
-                            <th class="appmaker-time">{{ i18n.finishedTime }}</th>
-                            <th class="appmaker-category">{{ i18n.category }}</th>
-                            <th class="appmaker-creator">{{ i18n.creator }}</th>
-                            <th class="appmaker-operator">{{ i18n.operator }}</th>
-                            <th class="appmaker-status">{{ i18n.status }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in appmakerList" :key="item.id">
-                            <td class="appmaker-id">{{item.id}}</td>
-                            <td class="appmaker-name">
-                                <router-link
-                                    :to="`/appmaker/${item.create_info}/execute/${item.business.cc_id}/?instance_id=${item.id}`">
-                                    {{item.name}}
-                                </router-link>
-                            </td>
-                            <td class="appmaker-time">{{item.start_time || '--'}}</td>
-                            <td class="appmaker-time">{{item.finish_time || '--'}}</td>
-                            <td class="appmaker-category">{{item.category_name}}</td>
-                            <td class="appmaker-creator">{{item.creator_name}}</td>
-                            <td class="appmaker-operator">{{item.executor_name || '--'}}</td>
-                            <td class="appmaker-status">
-                                <span :class="executeStatus[index] ? executeStatus[index].cls : ''"></span>
-                                <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
-                            </td>
-                        </tr>
-                        <tr v-if="!appmakerList || !appmakerList.length" class="empty-tr">
-                            <td colspan="8">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
-                </div>
+                <bk-table
+                    :data="appmakerList"
+                    :pagination="pagination"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @page-change="onPageChange">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <router-link
+                                class="task-name"
+                                :title="props.row.name"
+                                :to="`/appmaker/${props.row.create_info}/execute/${props.row.business.cc_id}/?instance_id=${props.row.id}`">
+                                {{props.row.name}}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.startedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.start_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.finishedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.finish_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.category" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.operator" width="100">
+                        <template slot-scope="props">
+                            {{ props.row.executor_name || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.status" width="100">
+                        <template slot-scope="props">
+                            <div class="appmaker-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
@@ -81,12 +79,14 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     export default {
         name: 'appmakerTaskHome',
         components: {
             CopyrightFooter,
             BaseTitle,
+            AdvanceSearch,
             NoData
         },
         props: ['cc_id', 'app_id'],
@@ -109,10 +109,6 @@
                     taskRecord: gettext('任务记录')
                 },
                 listLoading: true,
-                currentPage: 1,
-                totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
                 isDeleteDialogShow: false,
                 theDeleteTemplateId: undefined,
                 pending: {
@@ -121,7 +117,14 @@
                 },
                 searchStr: '',
                 appmakerList: [],
-                executeStatus: [] // 任务执行状态
+                executeStatus: [], // 任务执行状态
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                }
             }
         },
         computed: {
@@ -141,8 +144,8 @@
                 this.listLoading = true
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
                         q: this.searchStr
@@ -150,13 +153,7 @@
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.objects
                     this.appmakerList = list
-                    this.totalCount = appmakerListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
-                    if (!totalPage) {
-                        this.totalPage = 1
-                    } else {
-                        this.totalPage = totalPage
-                    }
+                    this.pagination.count = appmakerListData.meta.total_count
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
                         if (item.is_finished) {
@@ -221,11 +218,11 @@
                 }
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.getAppmakerList()
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getAppmakerList()
             },
             statusMethod (is_started, is_finished) {
@@ -257,7 +254,6 @@
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
 .appmaker-container {
-    padding-top: 20px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #fafafa;
@@ -268,9 +264,8 @@
 }
 .operation-area {
     margin: 20px 0;
-    .appmaker-search {
-        float: right;
-        position: relative;
+    .advanced-search {
+        margin: 0;
     }
     .search-input {
         padding: 0 40px 0 10px;
@@ -300,117 +295,46 @@
     }
 }
 .appmaker-table-content {
-    table {
-        width: 100%;
-        border: 1px solid #ebebeb;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
-        }
-        th,td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;
-        }
-        th {
-            background: #fafafa;
-        }
-        .appmaker-id {
-            padding-left: 20px;
-            width: 80px;
-        }
-        .appmaker-name {
-            text-align: left;
-            a {
-                display: block;
-                width: 100%;
-                color: #3c96ff;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
-        }
-        .appmaker-type {
-            width: 110px;
-        }
-        .appmaker-time {
-            width: 220px;
-        }
-        .appmaker-creator {
-            width: 110px;
-        }
-        .appmaker-operator {
-            width: 110px;
-        }
-        .appmaker-category {
-            width: 110px;
-        }
-        .appmaker-name {
-            width: 220px;
-        }
-        .appmaker-status {
-            width: 84px;
-            .common-icon-dark-circle-shape {
-                display: inline-block;
-                transform: scale(0.9);
-                font-size: 12px;
-                color: #979BA5;
-            }
-             .common-icon-dark-circle-ellipsis {
-                color: #3c96ff;
-                font-size: 12px;
-            }
-            .icon-check-circle-shape {
-                color: $greenDefault;
-            }
-            .common-icon-dark-circle-close {
-                color: $redDefault;
-            }
-            &.revoke {
-                color: $blueDisable;
-            }
-            .common-icon-loading {
-                display: inline-block;
-                animation: bk-button-loading 1.4s infinite linear;
-            }
-            @keyframes bk-button-loading {
-                from {
-                    -webkit-transform: rotate(0);
-                    transform: rotate(0); }
-                to {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-        }
+    background: #ffffff;
+    a.task-name {
+        color: $blueDefault;
     }
-    .btn-size-mini {
-        height: 24px;
-        line-height: 22px;
-        padding: 0 11px;
-        font-size: 12px;
+    .appmaker-status {
+        .common-icon-dark-circle-shape {
+            display: inline-block;
+            transform: scale(0.9);
+            font-size: 12px;
+            color: #979BA5;
+        }
+            .common-icon-dark-circle-ellipsis {
+            color: #3c96ff;
+            font-size: 12px;
+        }
+        .icon-check-circle-shape {
+            color: $greenDefault;
+        }
+        .common-icon-dark-circle-close {
+            color: $redDefault;
+        }
+        &.revoke {
+            color: $blueDisable;
+        }
+        .common-icon-loading {
+            display: inline-block;
+            animation: bk-button-loading 1.4s infinite linear;
+        }
+        @keyframes bk-button-loading {
+            from {
+                -webkit-transform: rotate(0);
+                transform: rotate(0); }
+            to {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
     }
     .empty-data {
         padding: 120px 0;
-    }
-}
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #fafbfd;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 14px;
-    }
-    .bk-page {
-        display: inline-block;
     }
 }
 .success {
