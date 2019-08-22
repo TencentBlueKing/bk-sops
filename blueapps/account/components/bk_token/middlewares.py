@@ -29,7 +29,6 @@ logger = logging.getLogger('component')
 
 
 class LoginRequiredMiddleware(MiddlewareMixin):
-
     def process_view(self, request, view, args, kwargs):
         """
         Login paas by two ways
@@ -57,9 +56,18 @@ class LoginRequiredMiddleware(MiddlewareMixin):
         form = AuthenticationForm(request.COOKIES)
         if not form.is_valid():
             return None
+
         bk_token = form.cleaned_data['bk_token']
-        user = auth.authenticate(request=request, bk_token=bk_token)
-        # Succeed to login, recall self to exit process
-        if user and user.username != request.user.username:
+        # 确认 cookie 中的 bk_token 和 session 中的是否一致
+        # 如果登出删除 cookie 后 session 存在 is_match 为False
+        is_match = (bk_token == request.session.get('bk_token'))
+        if is_match and request.user.is_authenticated:
+            return request.user
+
+        user = auth.authenticate(request=request,
+                                 bk_token=bk_token)
+        if user:
+            # 登录成功，记录 user 信息
             auth.login(request, user)
+            request.session['bk_token'] = bk_token
         return user
