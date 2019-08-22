@@ -67,7 +67,7 @@ INSTALLED_APPS += (
     'pipeline.contrib.statistics',
     'pipeline.contrib.periodic_task',
     'pipeline.contrib.external_plugins',
-    'django_signal_valve',
+    'pipeline.django_signal_valve',
     'pipeline_plugins',
     'pipeline_plugins.components',
     'pipeline_plugins.variables',

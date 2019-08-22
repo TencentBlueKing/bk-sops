@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.contrib import admin
 
-from django_signal_valve.models import Signal
+from pipeline.django_signal_valve.models import Signal
 
 
 @admin.register(Signal)

@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from django_signal_valve.models import Signal
+from pipeline.django_signal_valve.models import Signal
 
 
 class TestModels(TestCase):
