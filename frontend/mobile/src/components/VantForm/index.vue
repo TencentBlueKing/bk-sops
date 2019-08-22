@@ -166,7 +166,6 @@
                     variable.attrs = metaConfig.attrs
                     variable.type = metaConfig.type
                     this.value = metaConfig.attrs.items.filter(item => metaConfig.attrs.value.includes(item.value)).map(obj => obj.text).join(',')
-                    console.log(this.value)
                 }
             },
 
