@@ -433,13 +433,14 @@
                     for (const key in constants) {
                         const form = constants[key]
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+                        const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
 
-                        if (!this.atomFormConfig[atomType]) {
+                        if (tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify })
                             this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
                         }
 
-                        const atomConfig = this.atomFormConfig[atom]
+                        const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
                         if (currentFormConfig) {
@@ -587,8 +588,8 @@
             },
             // 校验输入参数是否满足标准插件配置文件正则校验
             validateAtomInputForm (component) {
-                const { code, data } = component
-                const config = this.atomConfig[code]
+                const { code, data, version } = component
+                const config = this.atomConfig[code][version]
                 if (!data) return false
                 if (config) {
                     const formData = {}

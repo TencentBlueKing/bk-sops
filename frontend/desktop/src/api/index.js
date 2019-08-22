@@ -191,11 +191,13 @@ const api = {
     getAtomFormURL (type, classify, version = '', isMeta) {
         const prefixUrl = this.getPrefix(classify)
         let url = ''
-        console.log(version, 'getAtomFormURL')
-        if (isMeta) {
-            url = `${prefixUrl}${type}/?meta=1&version=${version}`
+        // 变量暂时没有版本系统
+        if (classify === 'variable') {
+            url = isMeta ? `${prefixUrl}${type}/?meta=1` : `${prefixUrl}${type}/`
         } else {
-            url = `${prefixUrl}${type}/?version=${version}`
+            url = isMeta
+                ? `${prefixUrl}${type}/?meta=1&version=${version}`
+                : `${prefixUrl}${type}/?version=${version}`
         }
         const opts = {
             method: 'GET',
@@ -211,7 +213,9 @@ const api = {
     $getAtomForm (type, classify, isMeta, version) {
         return this.getAtomFormURL(type, classify, version, isMeta).then(response => {
             const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
-
+            if (classify === 'variable') {
+                version = 'legacy'
+            }
             store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta, version })
             store.commit('atomForm/setAtomOutput', { atomType: type, outputData, version })
 

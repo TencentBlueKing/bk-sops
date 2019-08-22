@@ -110,7 +110,7 @@
                 for (const variable of variableArray) {
                     const { key } = variable
                     const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
-
+                    debugger
                     if (!this.atomFormConfig[atomType]) {
                         this.isConfigLoading = true
                         await this.loadAtomConfig({ atomType, classify })

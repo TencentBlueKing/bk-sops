@@ -455,8 +455,8 @@
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
                     if (this.isSingleAtom) {
-                        if (!this.nodeConfigData.component.version) return false
-                        this.getConfig(this.nodeConfigData.component.version)
+                        // if (!this.nodeConfigData.component.version) return false
+                        this.nodeConfigData.component.version && this.getConfig(this.nodeConfigData.component.version)
                     } else {
                         this.getConfig(this.nodeConfigData.version) // load node config data
                     }
@@ -482,7 +482,7 @@
              * 加载标准插件节点数据
              */
             async getAtomConfig (atomType, version) {
-                if (this.atomFormConfig[atomType] && this.atomFormConfig[atomType][version]) {
+                if (tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
                     this.setNodeConfigData(atomType, version)
                     return
                 }
@@ -541,13 +541,12 @@
                     for (const form of variableArray) {
                         const { key } = form
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-
-                        if (!this.atomFormConfig[atomType]) {
+                        const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
+                        if (!tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify })
                             this.setAtomConfig({ atomType: atom, configData: $.atoms[atom], version })
                         }
-
-                        const atomConfig = this.atomFormConfig[atom]
+                        const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                         if (currentFormConfig) {
@@ -933,7 +932,11 @@
 
                 if (this.isSingleAtom) {
                     key = tagCode
-                    source_tag = this.nodeConfigData.component.code + '.' + tagCode
+                    source_tag = this.nodeConfigData.component.code
+                        + '.'
+                        + this.nodeConfigData.component.version
+                        + '.'
+                        + tagCode
                     source_info = { [this.nodeId]: [tagCode] }
                     custom_type = ''
                     value = tools.deepClone(this.inputAtomData[tagCode])

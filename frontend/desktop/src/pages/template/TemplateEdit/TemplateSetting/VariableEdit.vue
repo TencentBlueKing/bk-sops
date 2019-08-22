@@ -366,22 +366,27 @@
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 const atom = tagStr.split('.')[0] || custom_type
-
                 const isMeta = this.varType === 'meta' ? 1 : 0
-                if ($.atoms[atom]) {
+                let classify = ''
+                let version = ''
+
+                // 如果是插件取最新版本，变量没有版本区分，定义版本为 legacy
+                if (this.theEditingData.custom_type) {
+                    classify = 'variable'
+                    version = 'legacy'
+                } else {
+                    classify = 'component'
+                    version = tagStr.split('.')[1]
+                }
+                if (tools.isKeyExists(`${atom}.${version}`, this.atomFormConfig)) {
                     this.getRenderConfig()
                     return
                 }
                 this.atomConfigLoading = true
-                let classify = ''
-                if (this.theEditingData.custom_type) {
-                    classify = 'variable'
-                } else {
-                    classify = 'component'
-                }
+                
                 try {
-                    await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta })
-                    this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                    await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta, version })
+                    this.setAtomConfig({ atomType: atom, configData: $.atoms[atom], version })
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)
@@ -392,15 +397,15 @@
             getRenderConfig () {
                 const { source_tag, custom_type } = this.theEditingData
                 const tagStr = this.metaTag || source_tag
-                let [atom, tag] = tagStr.split('.')
+                let [atom, version, tag] = tagStr.split('.')
 
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 if (custom_type) {
                     atom = atom || custom_type
                     tag = tag || custom_type
+                    version = 'legacy'
                 }
-                
-                const atomConfig = this.atomFormConfig[atom]
+                const atomConfig = this.atomFormConfig[atom][version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
 
