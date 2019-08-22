@@ -1,5 +1,5 @@
 # Base
-Django==1.11.11
+Django==1.11.23
 PyMySQL==0.6.7
 requests==2.20.0
 celery==3.1.25
