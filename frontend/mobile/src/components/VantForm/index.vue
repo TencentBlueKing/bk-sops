@@ -102,11 +102,15 @@
                             this.placeholder = item.attrs.placeholder
                         }
                         if (item.type === 'select') {
+                            const defaultIndex = item.attrs.items.findIndex(o => o.text === this.value)
                             this.domAttr.select = {
                                 multiple: item.attrs.multiple,
                                 columns: item.attrs.items,
-                                defaultVal: item.attrs.multiple ? item.attrs.value : [item.attrs.items.findIndex(o => o.text === this.value)],
+                                defaultVal: item.attrs.multiple ? item.attrs.value : [defaultIndex],
                                 tagCode: this.customType ? this.customType : this.sourceCode
+                            }
+                            if (!item.attrs.multiple) {
+                                this.domAttr.select.defaultIndex = defaultIndex
                             }
                         } else if (item.type === 'radio') {
                             // radio用picker代替
