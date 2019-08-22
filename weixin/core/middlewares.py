@@ -29,7 +29,7 @@ logger = logging.getLogger('root')
 
 def get_user(request):
     user = None
-    user_id = request.session.get('weixin_user_id')
+    user_id = request.COOKIES.get('weixin_user_id')
     if user_id:
         try:
             user = BkWeixinUser.objects.get(pk=user_id)
@@ -84,6 +84,17 @@ class WeixinAuthenticationMiddleware(MiddlewareMixin):
         )
         setattr(request, 'weixin_user', SimpleLazyObject(lambda: get_user(request)))
         setattr(request, 'user', SimpleLazyObject(lambda: get_bk_user(request)))
+
+    def process_response(self, request, response):
+        """
+        @summary: 移动端设置 weixin_user_id 到cookies中，避免 SESSION_COOKIE_AGE 时间太短导致 session 过期
+        @param request:
+        @param response:
+        @return:
+        """
+        if request.session.get('weixin_user_id'):
+            response.set_cookie('weixin_user_id', request.session['weixin_user_id'])
+        return response
 
 
 class WeixinLoginMiddleware(MiddlewareMixin):

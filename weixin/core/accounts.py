@@ -96,7 +96,7 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         url = urlparse.urlparse(request.build_absolute_uri())
         path = weixin_settings.WEIXIN_LOGIN_URL
-        query = urllib.urlencode({'curl': request.get_full_path()})
+        query = urllib.urlencode({'c_url': request.get_full_path()})
         callback_url = urlparse.urlunsplit((url.scheme, url.netloc, path, query, url.fragment))
         state = self.set_weixin_oauth_state(request)
         redirect_uri = self.get_oauth_redirect_url(callback_url, state)
@@ -160,8 +160,8 @@ class WeixinAccount(WeixinAccountSingleton):
             # TODO 改造为友好页面
             return HttpResponse(_(u"State验证失败"))
         # 验证code有效性
-        is_code_vaild, base_data = self.verfiy_weixin_oauth_code(request)
-        if not is_code_vaild:
+        is_code_valid, base_data = self.verfiy_weixin_oauth_code(request)
+        if not is_code_valid:
             # TODO 改造为友好页面
             return HttpResponse(_(u"登录失败"))
 
