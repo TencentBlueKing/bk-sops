@@ -96,7 +96,7 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         url = urlparse.urlparse(request.build_absolute_uri())
         path = weixin_settings.WEIXIN_LOGIN_URL
-        query = urllib.urlencode({'curl': request.get_full_path()})
+        query = urllib.urlencode({'c_url': request.get_full_path()})
         callback_url = urlparse.urlunsplit((url.scheme, url.netloc, path, query, url.fragment))
         state = self.set_weixin_oauth_state(request)
         redirect_uri = self.get_oauth_redirect_url(callback_url, state)
