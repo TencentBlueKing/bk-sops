@@ -621,6 +621,14 @@
         th {
             font-weight: 700;
             text-align: center;
+            &:nth-child(1),
+            &:nth-child(2),
+            &:nth-child(4) {
+                width: 16.66%;
+            }
+            &:nth-child(3) {
+                width: 50%;
+            }
         }
         input[aria-invalid="true"] + .common-error-tip {
             display: inline-block;

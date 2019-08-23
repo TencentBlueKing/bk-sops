@@ -34,17 +34,32 @@ const SOURCE_TYPE = [
         type: 's3',
         name: gettext('S3'),
         keys: {
-            service_address: gettext('对象存储服务地址'),
-            bucket: gettext('Bucket'),
-            access_key: gettext('Access Key'),
-            secret_key: gettext('Secret Key')
+            service_address: {
+                name: gettext('对象存储服务地址'),
+                placeholder: ''
+            },
+            bucket: {
+                name: gettext('Bucket'),
+                placeholder: ''
+            },
+            access_key: {
+                name: gettext('Access Key'),
+                placeholder: ''
+            },
+            secret_key: {
+                name: gettext('Secret Key'),
+                placeholder: ''
+            }
         }
     },
     {
         type: 'fs',
         name: gettext('文件系统'),
         keys: {
-            path: gettext('服务器文件系统路径')
+            path: {
+                name: gettext('服务器文件系统路径'),
+                placeholder: ''
+            }
         }
     }
 ]
