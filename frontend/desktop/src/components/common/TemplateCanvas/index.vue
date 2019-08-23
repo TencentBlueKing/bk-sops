@@ -20,7 +20,6 @@
         :editable="editable"
         :endpoint-options="endpointOptions"
         :connector-options="connectorOptions"
-        @onToolClick="onToolClick"
         @onCreateNodeBefore="onCreateNodeBefore"
         @onCreateNodeAfter="onCreateNodeAfter"
         @onConnectionDragStop="onConnectionDragStop"
@@ -28,7 +27,8 @@
         @onConnection="onConnection"
         @onConnectionDetached="onConnectionDetached"
         @onNodeMoveStop="onNodeMoveStop"
-        @onOverlayClick="onOverlayClick">
+        @onOverlayClick="onOverlayClick"
+        @frameSelectNodes="frameSelectNodes">
         <template
             v-slot:palettePanel>
             <palettePanel
@@ -40,26 +40,42 @@
         </template>
         <template v-slot:toolPanel>
             <toolPanel
-                :is-preview-mode="isPreviewMode"
+                :is-selection-open="isSelectionOpen"
+                :is-show-select-all-tool="isShowSelectAllTool"
+                :is-select-all-tool-disabled="isSelectAllToolDisabled"
+                :is-all-selected="isAllSelected"
+                :editable="editable"
                 @onZoomIn="onZoomIn"
                 @onZoomOut="onZoomOut"
-                @onResetPosition="onResetPosition">
+                @onResetPosition="onResetPosition"
+                @onOpenFrameSelect="onOpenFrameSelect"
+                @onFormatPosition="onFormatPosition"
+                @onToggleAllNode="onToggleAllNode">
             </toolPanel>
         </template>
         <template v-slot:nodeTemplate="{ node }">
             <node-template
                 :node="node"
+                :is-node-check-open="isNodeCheckOpen"
+                :editable="editable"
                 @onNodeClick="onNodeClick"
-                @onNodeRemove="onNodeRemove">
+                @onNodeCheckClick="onNodeCheckClick"
+                @onNodeRemove="onNodeRemove"
+                @onRetryClick="onRetryClick"
+                @onSkipClick="onSkipClick"
+                @onModifyTimeClick="onModifyTimeClick"
+                @onGatewaySelectionClick="onGatewaySelectionClick"
+                @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
             </node-template>
         </template>
     </js-flow>
 </template>
 <script>
     import JsFlow from '@/assets/js/jsflow.esm.js'
-    import NodeTemplate from './NodeTemplate'
-    import PalettePanel from './PalettePanel'
-    import ToolPanel from './ToolPanel'
+    import NodeTemplate from './NodeTemplate/index.vue'
+    import PalettePanel from './PalettePanel/index.vue'
+    import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import { endpointOptions, connectorOptions } from './options.js'
     import formatPositionUtils from '@/utils/formatPosition.js'
@@ -92,11 +108,19 @@
                     return {}
                 }
             },
-            isSelectAllNode: {
+            isNodeCheckOpen: {
                 type: Boolean,
                 default: false
             },
-            isPreviewMode: {
+            isShowSelectAllTool: {
+                type: Boolean,
+                default: false
+            },
+            isSelectAllToolDisabled: {
+                type: Boolean,
+                default: false
+            },
+            isAllSelected: {
                 type: Boolean,
                 default: false
             },
@@ -128,17 +152,20 @@
                 showNodeMenu: false,
                 isDisableStartPoint: false,
                 isDisableEndPoint: false,
+                isSelectionOpen: false,
                 flowData,
                 endpointOptions,
                 connectorOptions
             }
+        },
+        created () {
+            this.onFormatPosition = tools.debounce(this.formatPositionHandler, 500)
         },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
         },
         methods: {
-            onToolClick () {},
             onZoomIn () {
                 this.$refs.jsFlow.zoomIn()
             },
@@ -147,6 +174,10 @@
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
+            },
+            onOpenFrameSelect () {
+                this.isSelectionOpen = true
+                this.$refs.jsFlow.frameSelect()
             },
             formatPositionHandler () {
                 const validateMessage = validatePipeline.isDataValid(this.canvasData)
@@ -166,10 +197,12 @@
                 const locations = this.canvasData.locations
                 const data = formatPositionUtils.formatPosition(lines, locations)
 
-                this.onNewDraft(gettext('排版自动保存'), false)
+                this.$emit('onNewDraft', gettext('排版自动保存'))
                 const message = gettext('排版完成，原内容在本地缓存中')
+                // 改变store中的line和location内容
+                this.$emit('onReplaceLineAndLocation', data)
                 // 重绘Canvas
-                this.dataFlowInstance.updateCanvas(data)
+                this.$refs.jsFlow.updateCanvas({ nodes: data.locations, lines: data.lines })
                 const { overBorderLine } = data
                 if (overBorderLine.length !== 0) {
                     overBorderLine.forEach(line => {
@@ -184,22 +217,27 @@
                             // todo:需要增加midpoint数据的source,target,midpoint数据进行后台和前端保存
                             }
                         ]
-                        this.dataFlowInstance.setConnector(line.source, line.target, config)
+                        this.$refs.jsFlow.setConnector(line.source, line.target, config)
                     })
                 }
-                // 提示信息
-                this.$bkMessage({
-                    message: message,
-                    theme: 'success'
+                this.$nextTick(() => {
+                    this.$bkMessage({
+                        message: message,
+                        theme: 'success'
+                    })
                 })
-                // 改变store中的line和location内容
-                this.onReplaceLineAndLocation(data)
+            },
+            onToggleAllNode (val) {
+                this.$emit('onToggleAllNode', val)
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
             },
             onNodeClick (id) {
                 this.$emit('onNodeClick', id)
+            },
+            onNodeCheckClick (id, val) {
+                this.$emit('onNodeCheckClick', id, val)
             },
             onUpdateNodeInfo (id, info) {
                 const index = this.flowData.nodes.findIndex(item => item.id === id)
@@ -243,6 +281,7 @@
                     this.isDisableEndPoint = true
                 }
             },
+            // 拖拽到节点上自动连接
             onConnectionDragStop (source, targetId, event) {
                 if (source.id === targetId) {
                     return false // 节点不可以连接自身
@@ -277,6 +316,7 @@
                 const validateMessage = validatePipeline.isLineValid(line, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', line)
+                    this.$refs.jsFlow.createConnector(line)
                 } else {
                     this.$bkMessage({
                         message: validateMessage.message,
@@ -284,35 +324,52 @@
                     })
                 }
             },
+            // 拖拽到端点上连接
             onBeforeDrop (line) {
-                debugger
-                console.log('drop')
-                this.$nextTick(() => {
-                    this.$emit('onLineChange', 'add', line)
-                })
-                return false
+                const { sourceId, targetId, connection, dropEndpoint } = line
+                const data = {
+                    source: {
+                        id: sourceId,
+                        arrow: connection.endpoints[0].anchor.type
+                    },
+                    target: {
+                        id: targetId,
+                        arrow: dropEndpoint.anchor.type
+                    }
+                }
+                const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
+                if (validateMessage.result) {
+                    this.$emit('onLineChange', 'add', data)
+                    return true
+                } else {
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'warning'
+                    })
+                }
             },
             onConnection (line) {
-                console.log('test')
-                const lineId = this.canvasData.lines.filter(item => {
-                    return item.source.id === line.source.id && item.target.id === line.target.id
-                })[0].id
-                this.$refs.jsFlow.addLineOverlay(line, {
-                    type: 'Label',
-                    name: '<i class="common-icon-dark-circle-close"></i>',
-                    location: 0.5,
-                    id: `close_${lineId}`
-                })
-                const branchInfo = this.canvasData.branchConditions[line.source.id]
-                if (branchInfo) {
-                    const labelName = branchInfo[lineId].evaluate
-                    const labelData = {
+                this.$nextTick(() => {
+                    const lineId = this.canvasData.lines.filter(item => {
+                        return item.source.id === line.source.id && item.target.id === line.target.id
+                    })[0].id
+                    this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
-                        name: labelName,
-                        id: `condition${lineId}`
+                        name: '<i class="common-icon-dark-circle-close"></i>',
+                        location: 0.5,
+                        id: `close_${lineId}`
+                    })
+                    const branchInfo = this.canvasData.branchConditions[line.source.id]
+                    if (branchInfo) {
+                        const labelName = branchInfo[lineId].evaluate
+                        const labelData = {
+                            type: 'Label',
+                            name: labelName,
+                            id: `condition${lineId}`
+                        }
+                        this.$refs.jsFlow.addLineOverlay(line, labelData)
                     }
-                    this.$refs.jsFlow.addLineOverlay(line, labelData)
-                }
+                })
             },
             onConnectionDetached (line) {
                 this.$emit('onLineChange', 'delete', line)
@@ -337,6 +394,27 @@
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = false
                 }
+            },
+            frameSelectNodes (nodes) {
+                console.log(nodes)
+            },
+            onRetryClick (id) {
+                this.$emit('onRetryClick', id)
+            },
+            onSkipClick (id) {
+                this.$emit('onSkipClick', id)
+            },
+            onModifyTimeClick (id) {
+                this.$emit('onModifyTimeClick', id)
+            },
+            onGatewaySelectionClick (id) {
+                this.$emit('onGatewaySelectionClick', id)
+            },
+            onTaskNodeResumeClick (id) {
+                this.$emit('onTaskNodeResumeClick', id)
+            },
+            onSubflowPauseResumeClick (id, value) {
+                this.$emit('onSubflowPauseResumeClick', id, value)
             }
         }
     }

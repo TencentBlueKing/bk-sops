@@ -10,12 +10,48 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="circle-node branch-gateway">
-        <div class="node-type-icon common-icon-node-branchgateway"></div>
-    </div>
+    <el-tooltip placement="bottom" popper-class="task-node-tooltip" :disabled="!isOpenTooltip">
+        <div
+            :class="[
+                'circle-node',
+                'branch-gateway',
+                node.status ? node.status.toLowerCase() : ''
+            ]">
+            <div class="node-type-icon common-icon-node-branchgateway"></div>
+            
+        </div>
+        <div id="node-tooltip-content" slot="content">
+            <bk-button @click.stop="onGatewaySelectionClick">{{ i18n.skip }}</bk-button>
+        </div>
+    </el-tooltip>
 </template>
 <script>
     export default {
-        name: 'BranchGateway'
+        name: 'BranchGateway',
+        props: {
+            node: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        },
+        data () {
+            return {
+                i18n: {
+                    skip: gettext('跳过')
+                }
+            }
+        },
+        computed: {
+            isOpenTooltip () {
+                return this.node.status === 'FAILED'
+            }
+        },
+        methods: {
+            onGatewaySelectionClick () {
+                this.$emit('onGatewaySelectionClick', this.node.id)
+            }
+        }
     }
 </script>

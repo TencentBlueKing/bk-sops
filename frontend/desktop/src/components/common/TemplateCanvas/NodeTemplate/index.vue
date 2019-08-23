@@ -14,8 +14,21 @@
         class="canvas-node-item"
         @mousedown="onMousedown"
         @click="onNodeClick">
-        <component :is="nodeTemplate" :node="node" />
-        <i class="common-icon-dark-circle-close close-icon" @click.stop="onNodeRemove"></i>
+        <component
+            :is="nodeTemplate"
+            :node="node"
+            @onNodeCheckClick="onNodeCheckClick"
+            @onRetryClick="onRetryClick"
+            @onSkipClick="onSkipClick"
+            @onModifyTimeClick="onModifyTimeClick"
+            @onGatewaySelectionClick="onGatewaySelectionClick"
+            @onTaskNodeResumeClick="onTaskNodeResumeClick"
+            @onSubflowPauseResumeClick="onSubflowPauseResumeClick" />
+        <i
+            v-if="editable"
+            class="common-icon-dark-circle-close close-icon"
+            @click.stop="onNodeRemove">
+        </i>
     </div>
 </template>
 <script>
@@ -35,6 +48,10 @@
                 default () {
                     return {}
                 }
+            },
+            editable: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
@@ -77,13 +94,72 @@
                     }
                 }
             },
+            onNodeCheckClick (id, val) {
+                this.$emit('onNodeCheckClick', id, val)
+            },
             onNodeRemove () {
                 this.$emit('onNodeRemove', this.node)
+            },
+            onRetryClick (id) {
+                this.$emit('onRetryClick', id)
+            },
+            onSkipClick (id) {
+                this.$emit('onSkipClick', id)
+            },
+            onModifyTimeClick (id) {
+                this.$emit('onModifyTimeClick', id)
+            },
+            onGatewaySelectionClick (id) {
+                this.$emit('onGatewaySelectionClick', id)
+            },
+            onTaskNodeResumeClick (id) {
+                this.$emit('onTaskNodeResumeClick', id)
+            },
+            onSubflowPauseResumeClick (id, value) {
+                this.$emit('onSubflowPauseResumeClick', id, value)
             }
         }
     }
 </script>
 <style lang="scss">
+    $blueDark: #53699d;
+    $redDark: #ff5757;
+    $yellowDark: #f8b53f;
+    $greenDark: #30d878;
+    $greyShadow: rgba(83, 105, 157, 0.15);
+    $redShadow: rgba(255, 87, 87, 0.15);
+    $yellowShadow: rgba(248, 181, 63, 0.15);
+    $greenShadow: rgba(48, 216, 120, 0.15);
+
+    @mixin circleStatusStyle ($color, $shadow) {
+        border-color: $color;
+        color: $color;
+        &:hover {
+            box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
+        }
+        .circle-node-text {
+            background: $color;
+        }
+        .node-type-icon {
+            color: $color;
+        }
+    }
+
+    @mixin taskNodeStyle ($color, $shadow) {
+        &:hover {
+            box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
+        }
+        .node-name {
+            border-color: $color;
+        }
+        .stage-name {
+            background-color: $color;
+        }
+        .subflow-node-icon {
+            background-color: $color;
+        }
+    }
+
     .canvas-node-item {
         position: relative;
         z-index: 3;
@@ -113,31 +189,59 @@
             background: #ffffff;
             border: 1px dashed #b1b5bc;
             border-radius: 50%;
+            &:hover {
+                box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
+            }
+            &.finished {
+                @include circleStatusStyle($greenDark, $greenShadow)
+            }
+            &.running {
+                @include circleStatusStyle($yellowDark, $yellowShadow)
+            }
+            &.failed {
+                @include circleStatusStyle($redDark, $redShadow)
+            }
         }
         .circle-node-text {
             width: 50px;
             height: 50px;
             line-height: 50px;
             font-size: 12px;
-            background: #53699d;
+            background: $blueDark;
             color: #ffffff;
             text-align: center;
             border-radius: 50%;
         }
         .node-type-icon {
             font-size: 30px;
-            color: #53699d;
+            color: $blueDark;
             text-align: center;
         }
         .task-node,
         .subflow-node {
+            position: relative;
             width: 152px;
             height: 90px;
             text-align: center;
             cursor: pointer;
+            &:hover {
+                box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
+            }
+            &.failed {
+                @include taskNodeStyle ($redDark, $redShadow)
+            }
+            &.suspended {
+                @include taskNodeStyle ($yellowDark, $yellowShadow)
+            }
+            &.running {
+                @include taskNodeStyle ($yellowDark, $yellowShadow)
+            }
+            &.finished {
+                @include taskNodeStyle ($greenDark, $greenShadow)
+            }
         }
         .subflow-node .node-name {
-            border-top: 5px solid #53699d;
+            border-top: 5px solid $blueDark;
         }
         .subflow-node-icon {
             position: absolute;
@@ -148,7 +252,7 @@
             line-height: 19px;
             font-size: 18px;
             color: #ffffff;
-            background: #53699d;
+            background: $blueDark;
         }
         .node-name {
             display: table;
@@ -175,11 +279,64 @@
             line-height: 30px;
             font-size: 14px;
             color: #ffffff;
-            background: #53699d;
+            background: $blueDark;
             border-top: none;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        .task-status-icon {
+            position: absolute;
+            top: -10px;
+            right: -8px;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            font-size: 14px;
+            border-radius: 50%;
+            background: #f8b53f;
+            color: #ffffff;
+            text-align: center;
+            .common-icon-double-vertical-line {
+                display: inline-block;
+                font-size: 12px;
+                transform: scale(0.8);
+            }
+            .common-icon-clock {
+                display: inline-block;
+                margin-top: 2px;
+            }
+            .common-icon-loading {
+                display: inline-block;
+                vertical-align: -1px;
+                animation: loading 1.4s infinite linear;
+            }
+            @keyframes loading {
+                from {
+                    transform: rotate(0);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+        }
+    }
+    .task-node-tooltip.el-tooltip__popper {
+        z-index: 4 !important;
+    }
+    #node-tooltip-content {
+        .bk-button {
+            padding: 0;
+            min-width: auto;
+            height: 16px;
+            line-height: 16px;
+            font-size: 12px;
+            background: transparent;
+            color: #ffffff;
+            border: none;
+            &:hover {
+                color: #3a84ff;
+            }
         }
     }
 </style>

@@ -105,7 +105,7 @@
                         <div class="form-content">
                             <bk-switcher
                                 size="min"
-                                :selected="nodeCouldBeSkipped"
+                                v-model="nodeCouldBeSkipped"
                                 @change="onSkippedChange">
                             </bk-switcher>
                         </div>
