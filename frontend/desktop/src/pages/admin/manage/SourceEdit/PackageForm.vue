@@ -305,6 +305,13 @@
              */
             getPackageValues (packages) {
                 const values = []
+                if (JSON.stringify(packages) === '{}') {
+                    values.push({
+                        key: '',
+                        version: '',
+                        modules: ''
+                    })
+                }
                 for (const key in packages) {
                     values.push({
                         key: key,
@@ -367,6 +374,7 @@
                 this.showModuleError = false
             },
             onDeletePackage (index) {
+                if (index === 0) return false
                 this.packageValues.splice(index, 1)
 
                 const packages = this.getPackages()
