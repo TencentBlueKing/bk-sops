@@ -36,6 +36,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import tools from '@/utils/tools.js'
     export default {
         name: 'ModifyTime',
         components: {
@@ -87,8 +88,9 @@
             async loadNodeInfo () {
                 this.loading = true
                 try {
+                    const version = this.nodeDetailConfig.version
                     const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
-                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                    this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     this.nodeInfo = nodeDetailRes.data
                     if (nodeDetailRes.result) {
                         for (const key in this.nodeInfo.inputs) {
@@ -103,14 +105,14 @@
                     this.loading = false
                 }
             },
-            async getNodeConfig (type) {
-                if (this.atomFormConfig[type]) {
-                    return this.atomFormConfig[type]
+            async getNodeConfig (type, version) {
+                if (tools.isKeyExists(`${type}.${version}`, this.atomFormConfig)) {
+                    return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type })
-                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
-                        return this.atomFormConfig[type]
+                        await this.loadAtomConfig({ atomType: type, version })
+                        this.setAtomConfig({ atomType: type, configData: $.atoms[type], version })
+                        return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)
                     }

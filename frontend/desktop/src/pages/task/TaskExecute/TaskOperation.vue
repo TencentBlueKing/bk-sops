@@ -121,6 +121,7 @@
                     :node-data="nodeData"
                     :selected-flow-path="selectedFlowPath"
                     :tree-node-config="treeNodeConfig"
+                    :pipeline-data="pipelineData"
                     @onClickTreeNode="onClickTreeNode">
                 </ViewParams>
                 <ModifyParams
@@ -736,6 +737,7 @@
                 }
                 this.nodeDetailConfig = {
                     component_code: nodeActivities.component.code,
+                    version: nodeActivities.component.version,
                     node_id: nodeActivities.id,
                     instance_id: this.instance_id,
                     subprocess_stack: JSON.stringify(subprocessStack)
@@ -768,7 +770,6 @@
                 if (!this.isNodeInfoPanelShow || isParamsBtn || isTooltipBtn) {
                     return
                 }
-                console.log(1)
                 const NodeInfoPanel = document.querySelector('.node-info-panel')
                 if (NodeInfoPanel) {
                     if (!dom.nodeContains(NodeInfoPanel, e.target)) {
@@ -985,6 +986,7 @@
                 const nodeState = this.instanceStatus.children && this.instanceStatus.children[id]
                 const nodeActivities = this.pipelineData.activities[id]
                 const componentCode = type === 'singleAtom' ? nodeActivities.component.code : ''
+                const version = type === 'singleAtom' ? nodeActivities.component.version : undefined
                 let isPanelShow = false
                 if (nodeState) {
                     if (type === 'singleAtom') {
@@ -1007,6 +1009,7 @@
                     }
                     this.nodeDetailConfig = {
                         component_code: componentCode,
+                        version,
                         node_id: id,
                         instance_id: this.instance_id,
                         subprocess_stack: JSON.stringify(subprocessStack)
@@ -1089,6 +1092,7 @@
                         }
                         this.treeNodeConfig = {
                             component_code: nodeActivities.component.code,
+                            version: nodeActivities.component.version,
                             node_id: nodeActivities.id,
                             instance_id: this.instance_id,
                             subprocess_stack: JSON.stringify(subprocessStack)

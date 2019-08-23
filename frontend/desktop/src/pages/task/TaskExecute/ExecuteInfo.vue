@@ -250,7 +250,8 @@
                 try {
                     const nodeDetailRes = await this.getNodeActDetail(this.nodeDetailConfig)
                     if (this.isSingleAtom) {
-                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code)
+                        const version = this.nodeDetailConfig.version
+                        this.renderConfig = await this.getNodeConfig(this.nodeDetailConfig.component_code, version)
                     }
                     if (nodeDetailRes.result) {
                         this.nodeInfo = nodeDetailRes.data
@@ -287,14 +288,14 @@
                     this.loading = false
                 }
             },
-            async getNodeConfig (type) {
-                if (this.atomFormConfig[type]) {
-                    return this.atomFormConfig[type]
+            async getNodeConfig (type, version) {
+                if (tools.isKeyExists(`${type}.${version}`, this.atomFormConfig)) {
+                    return this.atomFormConfig[type][version]
                 } else {
                     try {
-                        await this.loadAtomConfig({ atomType: type })
-                        this.setAtomConfig({ atomType: type, configData: $.atoms[type] })
-                        return this.atomFormConfig[type]
+                        await this.loadAtomConfig({ atomType: type, version })
+                        this.setAtomConfig({ atomType: type, configData: $.atoms[type], version })
+                        return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({
                             message: e,

@@ -397,18 +397,21 @@
             getRenderConfig () {
                 const { source_tag, custom_type } = this.theEditingData
                 const tagStr = this.metaTag || source_tag
-                let [atom, version, tag] = tagStr.split('.')
-
+                const tagList = tagStr.split('.')
+                let atom, version, tag
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 if (custom_type) {
-                    atom = atom || custom_type
-                    tag = tag || custom_type
+                    atom = tagList[0] || custom_type
+                    tag = tagList[1] || custom_type
                     version = 'legacy'
+                } else {
+                    atom = tagList[0] || custom_type
+                    tag = tagList[2] || custom_type
+                    version = tagList[1]
                 }
                 const atomConfig = this.atomFormConfig[atom][version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
-
                 this.renderConfig = [config]
                 if (this.isNewVariable) {
                     this.variableData.value = atomFilter.getFormItemDefaultValue(this.renderConfig)
