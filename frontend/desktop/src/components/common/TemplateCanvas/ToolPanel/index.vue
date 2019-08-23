@@ -46,18 +46,18 @@
                 :class="['tool-icon', {
                     'actived': isSelectionOpen
                 }]"
-                v-if="isEdit"
+                v-if="editable"
                 v-bk-tooltips="{
                     content: i18n.nodeSelection,
                     delay: 1000,
                     placements: ['bottom']
                 }"
-                @click="onOpenDragSelection">
+                @click="onOpenFrameSelect">
                 <i class="common-icon-marquee"></i>
             </div>
             <div
                 class="tool-icon"
-                v-if="isEdit"
+                v-if="editable"
                 v-bk-tooltips="{
                     content: i18n.formatPosition,
                     delay: 1000,
@@ -68,7 +68,7 @@
             </div>
             <div
                 class="tool-icon"
-                v-if="isSelectNode"
+                v-if="isShowSelectAllTool"
                 v-bk-tooltips="{
                     content: selectNodeName,
                     delay: 1000,
@@ -76,8 +76,8 @@
                 }"
                 @click="onToggleAllNode">
                 <i :class="[
-                    isSelectAll ? 'common-icon-black-hook' : 'common-icon-black-box',
-                    { 'tool-disable': isPreviewMode }]">
+                    isAllSelected ? 'common-icon-black-hook' : 'common-icon-black-box',
+                    { 'tool-disable': isSelectAllToolDisabled }]">
                 </i>
             </div>
         </div>
@@ -87,26 +87,29 @@
     export default {
         name: 'ToolPanel',
         props: {
-            isEdit: {
+            editable: {
                 type: Boolean,
                 default: true
             },
-            isSelectNode: {
-                type: Boolean,
-                default: true
-            },
-            isSelectAll: {
+            isShowSelectAllTool: {
                 type: Boolean,
                 default: false
             },
-            isPreviewMode: {
+            isSelectAllToolDisabled: {
+                type: Boolean,
+                default: false
+            },
+            isAllSelected: {
+                type: Boolean,
+                default: false
+            },
+            isSelectionOpen: {
                 type: Boolean,
                 default: false
             }
         },
         data () {
             return {
-                isSelectionOpen: false,
                 i18n: {
                     resetZoom: gettext('复位'),
                     zoomIn: gettext('放大'),
@@ -120,7 +123,7 @@
         },
         computed: {
             selectNodeName () {
-                return this.isSelectAll ? this.i18n.choiceAll : this.i18n.cancelChoiceAll
+                return this.isAllSelected ? this.i18n.choiceAll : this.i18n.cancelChoiceAll
             }
         },
         methods: {
@@ -133,13 +136,14 @@
             onResetPosition () {
                 this.$emit('onResetPosition')
             },
-            onFormatPosition () {},
-            onToggleAllNode () {},
-            onOpenDragSelection () {
-                this.isSelectionOpen = true
+            onFormatPosition () {
+                this.$emit('onFormatPosition')
             },
-            onCloseDragSelection () {
-                this.isSelectionOpen = false
+            onToggleAllNode () {
+                this.$emit('onToggleAllNode', !this.isAllSelected)
+            },
+            onOpenFrameSelect () {
+                this.$emit('onOpenFrameSelect')
             }
         }
     }

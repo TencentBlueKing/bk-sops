@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="circle-node end-point">
+    <div :class="['circle-node', 'end-point', node.status ? node.status.toLowerCase() : '']">
         <div class="circle-node-text">
             {{ i18n.end }}
         </div>
@@ -19,6 +19,14 @@
 <script>
     export default {
         name: 'EndPoint',
+        props: {
+            node: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        },
         data () {
             return {
                 i18n: {

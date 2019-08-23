@@ -21,7 +21,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
-    Container, Row, Col, Pagination } from 'element-ui'
+    Container, Row, Col, Pagination, Tooltip } from 'element-ui'
 import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
@@ -53,6 +53,7 @@ Vue.use(Container)
 Vue.use(Row)
 Vue.use(Col)
 Vue.use(Pagination)
+Vue.use(Tooltip)
 
 if (store.state.lang === 'en') {
     locale.use(lang.enUS)
