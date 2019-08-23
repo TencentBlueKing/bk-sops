@@ -40,7 +40,7 @@
         data () {
             return {
                 i18n: {
-                    manage: gettext('管理后台'),
+                    manage: gettext('后台管理'),
                     editSource: gettext('编辑包源')
                 }
             }

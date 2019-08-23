@@ -35,9 +35,9 @@ const SOURCE_TYPE = [
         name: gettext('S3'),
         keys: {
             service_address: gettext('对象存储服务地址'),
-            bucket: gettext('bucket'),
-            access_key: gettext('access_key'),
-            secret_key: gettext('secret_key')
+            bucket: gettext('Bucket'),
+            access_key: gettext('Access Key'),
+            secret_key: gettext('Secret Key')
         }
     },
     {
