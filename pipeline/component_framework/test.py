@@ -141,6 +141,7 @@ class ComponentTestMixin(object):
                     bound_service = component.service()
 
                     setattr(bound_service, 'id', case.service_id)
+                    setattr(bound_service, 'logger', MagicMock())
 
                     data = DataObject(inputs=case.inputs)
                     parent_data = DataObject(inputs=case.parent_data)

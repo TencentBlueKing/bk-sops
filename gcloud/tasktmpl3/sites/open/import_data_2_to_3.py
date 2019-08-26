@@ -26,14 +26,14 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.sites.utils import draw_pipeline_automatic
 
 ENV_TYPE = {
-    1: _(u'测试'),
-    2: _(u'体验'),
-    3: _(u'正式')
+    1: _(u"测试"),
+    2: _(u"体验"),
+    3: _(u"正式")
 }
 
 SERVICE_TYPE = {
-    0: _(u'关闭'),
-    1: _(u'开放')
+    0: _(u"关闭"),
+    1: _(u"开放")
 }
 
 # v2 atom id : v3 component code
@@ -178,7 +178,7 @@ def import_template_data():
     failure_dict = {
         'num': 0,
         'tag_code': [],
-        'message': u'tag_code:{tag_code}不支持迁移'
+        'message': u"tag_code:{tag_code}不支持迁移"
     }
     for tmpl in data_list[::-1]:
         default_user = 'admin'

@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 from django.test import TestCase
 
 from pipeline.core.flow.activity import Service
+from pipeline.exceptions import ComponentNotExistException
 from pipeline.component_framework.component import Component
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
@@ -79,9 +80,16 @@ class TestRegistry(TestCase):
                 pass
 
         self.assertEqual(ComponentLibrary.get_component_class('code'), TestComponent)
-        self.assertIsNone(ComponentLibrary.get_component_class('code', '1.0'))
-        self.assertIsNone(ComponentLibrary.get_component_class('code_2'))
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, 'code', '1.0')
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component_class, 'code2')
         self.assertEqual(ComponentLibrary.get_component_class('code_2', '1.0'), TestComponent2)
+
+    def test_get_component__raise(self):
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component, 'c_not_exist', {})
+
+    def test_args_new(self):
+        component = ComponentLibrary(self.component.code)
+        self.assertEqual(component, self.component)
 
     def test_get_component(self):
         class TestService(Service):

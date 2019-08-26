@@ -18,7 +18,7 @@ import traceback
 from pipeline.core.flow.activity import SubProcess
 from pipeline.engine import states
 from pipeline.engine.models import Status, NodeRelationship, FunctionSwitch, NAME_MAX_LENGTH
-from pipeline.engine.core.handlers import FLOW_NODE_HANDLERS
+from pipeline.engine.core.handlers import HandlersFactory
 from pipeline.conf import settings as pipeline_settings
 
 logger = logging.getLogger('celery')
@@ -109,7 +109,7 @@ def run_loop(process):
 
             # build relationship
             NodeRelationship.objects.build_relationship(process.top_pipeline.id, current_node.id)
-            result = FLOW_NODE_HANDLERS[current_node.__class__](process, current_node, action.extra)
+            result = HandlersFactory.handlers_for(current_node)(process, current_node, action.extra)
 
             if result.should_return or result.should_sleep:
                 if result.should_sleep:

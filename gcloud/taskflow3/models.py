@@ -31,7 +31,7 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
-from pipeline.utils.context import get_pipeline_context
+from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import states
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.models import ComponentModel
@@ -51,15 +51,8 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from pipeline_web.parser.format import format_node_io_to_list
 
 from gcloud.conf import settings
-from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
 from gcloud.core.models import Business
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
-from gcloud.taskflow3.constants import (
-    TASK_CREATE_METHOD,
-    TEMPLATE_SOURCE,
-)
 from gcloud.core.utils import (
     convert_readable_username,
     strftime_with_timezone,
@@ -69,7 +62,14 @@ from gcloud.core.utils import (
     gen_day_dates,
     get_month_dates
 )
+from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.constants import (
+    TASK_CREATE_METHOD,
+    TEMPLATE_SOURCE,
+)
 from gcloud.taskflow3.signals import taskflow_started
+from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
@@ -92,9 +92,6 @@ NODE_ACTIONS = {
     'resume': pipeline_api.resume_node_appointment,
     'pause_subproc': pipeline_api.pause_pipeline,
     'resume_subproc': pipeline_api.resume_node_appointment,
-}
-GROUP_BY_DICT = {
-    'instance_details': 'instance_details'
 }
 
 
@@ -942,14 +939,19 @@ class TaskFlowInstance(models.Model):
                 inputs = WebPipelineAdapter(instance_data).get_act_inputs(
                     act_id=node_id,
                     subprocess_stack=subprocess_stack,
-                    root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance')
+                    root_pipeline_data=get_pipeline_context(self.pipeline_instance,
+                                                            obj_type='instance',
+                                                            data_type='data'),
+                    root_pipeline_context=get_pipeline_context(self.pipeline_instance,
+                                                               obj_type='instance',
+                                                               data_type='context')
                 )
                 outputs = {}
             except Exception as e:
                 inputs = {}
                 result = False
                 logger.exception(traceback.format_exc())
-                message = 'parser pipeline tree error: %s' % e
+                message = u"parser pipeline tree error: %s" % e
                 outputs = {'ex_data': message}
 
         if not isinstance(inputs, dict):
@@ -965,7 +967,7 @@ class TaskFlowInstance(models.Model):
                 outputs_format = component.outputs_format()
             except Exception as e:
                 result = False
-                message = 'get component[component_code=%s] format error: %s' % (component_code, e)
+                message = u"get component[component_code=%s] format error: %s" % (component_code, e)
                 logger.exception(traceback.format_exc())
                 outputs = {'ex_data': message}
             else:
@@ -1090,33 +1092,31 @@ class TaskFlowInstance(models.Model):
                                                                                            e.message,
                                                                                            e.gateway_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except StreamValidateError as e:
                 message = u"task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, e.message, e.node_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except IsolateNodeError as e:
                 message = u"task[id=%s] has isolate structure, message: %s" % (self.id, e.message)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except ConnectionValidateError as e:
                 message = u"task[id=%s] connection check failed, message: %s, nodes: %s" % (self.id,
                                                                                             e.detail,
                                                                                             e.failed_nodes)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except TypeError:
+                message = 'redis connection error, please check redis configuration'
                 logger.exception(traceback.format_exc())
-                return {'result': False, 'message': 'redis connection error, check redis configuration please'}
 
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)
                 logger.exception(traceback.format_exc())
-                return {'result': False, 'message': message}
+
+            return {'result': False, 'message': message}
+
         try:
             action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
             if action_result.result:

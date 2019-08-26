@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 import traceback
 
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from pipeline.core.flow.base import FlowNode
 from pipeline.engine.signals import pipeline_end
 from pipeline.core.pipeline import Pipeline
@@ -59,10 +59,12 @@ class EmptyStartEvent(StartEvent):
 
 
 class EmptyEndEvent(EndEvent):
-    def pipeline_finish(self, root_pipeline_id):
-        from pipeline.models import PipelineInstance  # noqa
-        try:
-            PipelineInstance.objects.set_finished(root_pipeline_id)
-        except PipelineInstance.DoesNotExist:  # task which do not belong to any instance
-            pass
-        super(EmptyEndEvent, self).pipeline_finish(root_pipeline_id)
+    pass
+
+
+class ExecutableEndEvent(EndEvent):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def execute(self, in_subprocess, root_pipeline_id, current_pipeline_id):
+        raise NotImplementedError()
