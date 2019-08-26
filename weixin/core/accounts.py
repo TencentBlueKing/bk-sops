@@ -171,7 +171,7 @@ class WeixinAccount(WeixinAccountSingleton):
         userid = userinfo.pop('userid')
         user = BkWeixinUser.objects.get_update_or_create_user(userid, **userinfo)
         # 设置session
-        _, weixin_user_session = WeixinUserSession.objects.get_or_create_user_session(bk_user_id=user.userid)
+        _created, weixin_user_session = WeixinUserSession.objects.get_or_create_user_session(bk_user_id=user.userid)
         request.session['weixin_user_session'] = weixin_user_session.session_key
         setattr(request, 'weixin_user', user)
 
