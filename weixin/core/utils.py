@@ -11,18 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib import admin
-
-from . import models
+import uuid
 
 
-@admin.register(models.BkWeixinUser)
-class BkWeixinUserAdmin(admin.ModelAdmin):
-    list_display = ['userid', 'name', 'date_joined']
-    search_fields = ['userid', 'name']
-
-
-@admin.register(models.WeixinUserSession)
-class WeixinUserSessionAdmin(admin.ModelAdmin):
-    list_display = ['bk_user_id', 'session_key', 'expired_time']
-    search_fields = ['bk_user_id', 'session_key']
+def uniqid():
+    return uuid.uuid3(
+        uuid.uuid1(),
+        uuid.uuid4().hex
+    ).hex
