@@ -356,7 +356,7 @@ class BusinessResource(GCloudModelResource):
         try:
             # fetch business from CMDB
             biz_list = prepare_user_business(request)
-        except (exceptions.Unauthorized, exceptions.Forbidden, exceptions.APIError) as e:
+        except Exception as e:
             logger.error(u'get business list[username=%s] from CMDB raise error: %s' % (request.user.username, e))
             return super(BusinessResource, self).get_object_list(request)
         cc_id_list = [biz.cc_id for biz in biz_list]
