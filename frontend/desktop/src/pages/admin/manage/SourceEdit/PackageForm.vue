@@ -178,7 +178,7 @@
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
                                                 <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
-                                            <td><bk-button theme="default" size="small" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
+                                            <td><bk-button v-if="packageValues.length > 1" theme="default" size="small" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -305,6 +305,13 @@
              */
             getPackageValues (packages) {
                 const values = []
+                if (JSON.stringify(packages) === '{}') {
+                    values.push({
+                        key: '',
+                        version: '',
+                        modules: ''
+                    })
+                }
                 for (const key in packages) {
                     values.push({
                         key: key,
@@ -366,9 +373,11 @@
                 })
                 this.showModuleError = false
             },
+            /**
+             * 删除模块配置（只有一条时不显示删除按钮）
+             */
             onDeletePackage (index) {
                 this.packageValues.splice(index, 1)
-
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
                 if (Object.keys(packages).length === 0) {
@@ -486,6 +495,8 @@
         background: transparent;
         border: none;
         color: #3a84ff;
+        height: auto;
+        line-height: initial;
     }
     .package-setting {
         padding: 0 20px 20px;
@@ -621,6 +632,14 @@
         th {
             font-weight: 700;
             text-align: center;
+            &:nth-child(1),
+            &:nth-child(2),
+            &:nth-child(4) {
+                width: 16.66%;
+            }
+            &:nth-child(3) {
+                width: 50%;
+            }
         }
         input[aria-invalid="true"] + .common-error-tip {
             display: inline-block;
@@ -631,7 +650,7 @@
         }
         tbody {
             td {
-                padding: 6px 20px;
+                padding: 10px 20px;
             }
         }
     }

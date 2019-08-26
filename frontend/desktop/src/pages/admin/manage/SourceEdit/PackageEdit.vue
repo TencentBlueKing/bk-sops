@@ -14,7 +14,7 @@
         <div class="source-centent">
             <template v-for="(item, index) in list">
                 <package-form
-                    :key="index"
+                    :key="item.id"
                     :source-index="index"
                     :value="item"
                     @updateSource="updateSource"
