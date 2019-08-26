@@ -7,6 +7,7 @@
         .content-wrap {
             min-height: 340px;
             margin: auto;
+            overflow: hidden;
             .content-dimesion {
                 float: left;
                 width: 49%;
@@ -16,7 +17,7 @@
                 border: solid 1px #dcdee5;
                 .content-date-business {
                     display: inline-block;
-                    margin-right: 80px;
+                    margin-right: 70px;
                     .icon-angle-down {
                         margin-left: 5px;
                     }
@@ -113,6 +114,7 @@
             height: 100%;
             margin-top: 30px;
             min-width: 1320px;
+            background: #ffffff;
             border: 1px solid #dcdee5;
             box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
             border-radius: 2px;
@@ -177,7 +179,7 @@
                 font-size: 14px;
                 color: #313238;
                 .content-detail-label {
-                    margin: 25px 20px 0 20px;
+                    margin: 6px 20px 0 20px;
                     float: left;
                     color: #313238;
                 }
@@ -219,9 +221,6 @@
                     display: none;
                 }
             }
-        }
-        .table {
-            border-top: 1px solid #dcdee5;
         }
         .bk-tab2 {
             border: none;

@@ -12,15 +12,30 @@ specific language governing permissions and limitations under the License.
 """
 
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
+from pipeline.exceptions import ComponentNotExistException
 
 
 class ComponentLibrary(object):
     components = {}
 
+    def __new__(cls, *args, **kwargs):
+        if args:
+            component_code = args[0]
+        else:
+            component_code = kwargs.get('component_code', None)
+        version = kwargs.get('version', None)
+        if not component_code:
+            raise ValueError('please pass a component_code in args or kwargs: '
+                             'ComponentLibrary(\'code\') or ComponentLibrary(component_code=\'code\')')
+        return cls.get_component_class(component_code=component_code, version=version)
+
     @classmethod
     def get_component_class(cls, component_code, version=None):
         version = version or LEGACY_PLUGINS_VERSION
-        return cls.components.get(component_code, {}).get(version)
+        component_cls = cls.components.get(component_code, {}).get(version)
+        if component_cls is None:
+            raise ComponentNotExistException('component %s does not exist.' % component_code)
+        return component_cls
 
     @classmethod
     def get_component(cls, component_code, data_dict, version=None):

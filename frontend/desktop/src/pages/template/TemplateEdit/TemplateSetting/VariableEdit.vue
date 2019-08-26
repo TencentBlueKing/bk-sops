@@ -15,45 +15,61 @@
             <li class="form-item clearfix">
                 <label class="required">{{ i18n.name }}</label>
                 <div class="form-content">
-                    <BaseInput
-                        type="text"
+                    <bk-input
                         name="variableName"
                         v-model="theEditingData.name"
                         v-validate="variableNameRule">
-                    </BaseInput>
+                    </bk-input>
                     <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
                 </div>
             </li>
             <li class="form-item clearfix">
                 <label class="required">KEY</label>
                 <div class="form-content">
-                    <BaseInput
-                        type="text"
+                    <bk-input
                         name="variableKey"
                         v-model="theEditingData.key"
                         v-validate="variableKeyRule"
                         :disabled="isDisabledValType">
-                    </BaseInput>
+                    </bk-input>
                     <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
                 </div>
             </li>
             <li class="form-item clearfix">
                 <label class="form-label">{{ i18n.desc }}</label>
                 <div class="form-content">
-                    <textarea v-model="theEditingData.desc"></textarea>
+                    <bk-input type="textarea" v-model="theEditingData.desc"></bk-input>
                 </div>
             </li>
             <li class="form-item clearfix">
                 <label class="required">{{ i18n.type }}</label>
                 <div class="form-content">
-                    <bk-selector
-                        setting-key="code"
-                        :list="valTypeList"
-                        :has-children="true"
-                        :selected.sync="currentValType"
+                    <bk-select
+                        v-model="currentValType"
                         :disabled="isDisabledValType"
-                        @item-selected="onValTypeChange">
-                    </bk-selector>
+                        @change="onValTypeChange">
+                        <template v-if="isDisabledValType">
+                            <bk-option
+                                v-for="(option, optionIndex) in valTypeList"
+                                :key="optionIndex"
+                                :id="option.code"
+                                :name="option.name">
+                            </bk-option>
+                        </template>
+                        <template v-else>
+                            <bk-option-group
+                                v-for="(group, groupIndex) in valTypeList"
+                                :key="groupIndex"
+                                :name="group.name">
+                                <bk-option
+                                    v-for="(option, optionIndex) in group.children"
+                                    :key="optionIndex"
+                                    :id="option.code"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-option-group>
+                        </template>
+                    </bk-select>
                 </div>
             </li>
             <li class="form-item clearfix" v-if="!isOutputVar">
@@ -79,44 +95,47 @@
             <li class="form-item clearfix" v-show="theEditingData.custom_type === 'input'">
                 <label class="form-label">{{ i18n.validation }}</label>
                 <div class="form-content">
-                    <el-input
+                    <bk-input
                         name="valueValidation"
                         v-model="theEditingData.validation"
                         v-validate="validationRule"
                         @blur="onBlurValidation">
-                    </el-input>
+                    </bk-input>
                     <span v-show="errors.has('valueValidation')" class="common-error-tip error-msg">{{errors.first('valueValidation')}}</span>
                 </div>
             </li>
             <li class="form-item clearfix">
                 <label class="required">{{ i18n.show }}</label>
                 <div class="form-content">
-                    <bk-selector
-                        :list="showTypeList"
-                        :selected.sync="theEditingData.show_type"
+                    <bk-select
+                        v-model="theEditingData.show_type"
                         :disabled="isOutputVar"
-                        @item-selected="onValShowTypeChange">
-                    </bk-selector>
+                        :clearable="false"
+                        @change="onValShowTypeChange">
+                        <bk-option
+                            v-for="(option, index) in showTypeList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                 </div>
             </li>
         </ul>
         <div class="action-wrapper">
             <bk-button
-                type="success"
-                size="small"
+                theme="success"
                 :disabled="atomConfigLoading"
                 @click.stop="saveVariable">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
-                type="default"
-                size="small"
+                theme="default"
                 @click.stop="cancelVariable">
                 {{ i18n.cancel }}
             </bk-button>
         </div>
         <VariableEditDialog
-            v-if="isEditDialogShow"
             :is-show="isEditDialogShow"
             :render-config="renderConfig"
             :render-option="renderOption"
@@ -135,7 +154,6 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import VariableEditDialog from './VariableEditDialog.vue'
 
     const SHOW_TYPE_LIST = [
@@ -149,8 +167,7 @@
         name: 'VariableEdit',
         components: {
             RenderForm,
-            VariableEditDialog,
-            BaseInput
+            VariableEditDialog
         },
         props: ['variableData', 'isNewVariable', 'variableTypeList'],
         data () {
@@ -386,8 +403,18 @@
                 const atomConfig = this.atomFormConfig[atom]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
+                if (custom_type === 'input' && this.theEditingData.validation !== '') {
+                    config.attrs.validation.push({
+                        type: 'regex',
+                        args: this.theEditingData.validation,
+                        error_message: gettext('默认值不符合正则规则')
+                    })
+                }
 
                 this.renderConfig = [config]
+                if (this.isNewVariable) {
+                    this.variableData.value = atomFilter.getFormItemDefaultValue(this.renderConfig)
+                }
             },
             getValidateSet () {
                 return this.theEditingData.show_type === 'show' ? VALIDATE_SET.slice(1) : VALIDATE_SET
@@ -395,10 +422,18 @@
             /**
              * 切换变量类型
              */
-            onValTypeChange (key, data) {
+            onValTypeChange (val) {
+                let data
+                this.valTypeList.some(group => {
+                    const option = group.children.find(item => item.code === val)
+                    if (option) {
+                        data = option
+                        return true
+                    }
+                })
                 this.renderData = {}
                 // input 类型需要正则校验
-                if (key === 'input') {
+                if (val === 'input') {
                     this.theEditingData.validation = '^.+$'
                 } else {
                     this.theEditingData.validation = ''
@@ -418,10 +453,19 @@
                 this.theEditingData.show_type = showType
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
-                this.getRenderConfig()
             },
             onBlurValidation () {
-                this.getRenderConfig()
+                const config = tools.deepClone(this.renderConfig[0])
+                const regValidate = config.attrs.validation.find(item => item.type === 'regex')
+                if (!this.errors.has('valueValidation')) {
+                    regValidate.args = this.theEditingData.validation
+                } else {
+                    regValidate.args = ''
+                }
+                this.$set(this.renderConfig, 0, config)
+                this.$nextTick(() => {
+                    this.$refs.renderForm.validate()
+                })
             },
             /**
              * datatable 编辑弹窗
@@ -515,7 +559,7 @@ $localBorderColor: #d8e2e7;
         float: left;
         width: 60px;
         margin-top: 8px;
-        font-size: 14px;
+        font-size: 12px;
         color: $greyDefault;
         text-align: right;
         word-wrap: break-word;
@@ -533,6 +577,9 @@ $localBorderColor: #d8e2e7;
 .form-content {
     margin-left: 80px;
     min-height: 36px;
+    .bk-select {
+        background: #ffffff;
+    }
     input {
         padding: 0 10px;
         width: 100%;
@@ -581,25 +628,14 @@ $localBorderColor: #d8e2e7;
         height: 36px;
         line-height: 36px;
         color: $blueDefault;
+        font-size: 12px;
         cursor: pointer;
     }
 }
 .action-wrapper {
-    text-align: center;
+    padding-left: 80px;
     button:first-child {
         margin-right: 10px;
     }
 }
 </style>
-© 2019 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About

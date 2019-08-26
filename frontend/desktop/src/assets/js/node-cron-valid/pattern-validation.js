@@ -39,7 +39,7 @@ module.exports = ( () => {
   function isValidExpression(expression, min, max){
     var options = expression.split(',');
     var regexValidation = /^\d+$|^\*$|^\*\/\d+$/;
-    for(var i = 0; i < options.length; i++){
+    for(const i in options){
       var option = options[i];
       var optionAsInt = parseInt(options[i], 10);
       if(optionAsInt < min || optionAsInt > max || !regexValidation.test(option)) {
@@ -117,9 +117,10 @@ module.exports = ( () => {
    * 排除：
    * [A-Z]
    * \d[a-z]
+   * *[^\/]
   */
   function basicCheck (patterns) {
-    var allowValue = /[^\,|\-|\*|\/|\w]|\d[a-z]|[A-Z]/
+    var allowValue = /[^\,|\-|\*|\/|\w]|\d[a-z]|[A-Z]|\*[^\/]/
     for (const pattern in patterns) {
         if (allowValue.test(patterns[pattern])) {
             throw '表达式非法，请校验'

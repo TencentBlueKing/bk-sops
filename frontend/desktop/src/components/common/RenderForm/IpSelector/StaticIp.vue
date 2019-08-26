@@ -13,14 +13,14 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button type="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
+                <bk-button theme="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
                     v-if="isShowQuantity"
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
                     @hide="onDropdownHide">
-                    <bk-button type="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
+                    <bk-button theme="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
                         <span>{{i18n.moreOperations}}</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </bk-button>
@@ -34,7 +34,7 @@
                         </div>
                     </div>
                 </bk-dropdown-menu>
-                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch"></ip-search-input>
+                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch" :editable="editable"></ip-search-input>
             </div>
             <div v-if="isShowQuantity" class="selected-num">{{i18n.selected}}
                 <span class="total-ip">{{staticIps.length}}</span>
@@ -43,7 +43,7 @@
                 {{i18n.num}}
             </div>
             <div class="selected-ip-table-wrap">
-                <table class="ip-table">
+                <table :class="['ip-table', { 'disabled': !editable }]">
                     <thead>
                         <tr>
                             <th width="">{{i18n.cloudArea}}</th>
@@ -80,13 +80,14 @@
                     </tbody>
                 </table>
                 <div class="table-pagination" v-if="isPaginationShow">
-                    <bk-paging
-                        :size="small"
-                        :location="'right'"
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
+                    <bk-pagination
+                        :current.sync="currentPage"
+                        :count="totalCount"
+                        :limit="listCountPerPage"
+                        :limit-list="[15,20,30]"
+                        :show-limit="false"
+                        @change="onPageChange">
+                    </bk-pagination>
                 </div>
                 <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
             </div>
@@ -145,6 +146,7 @@
                 copyText: '',
                 isPaginationShow: totalPage > 1,
                 currentPage: 1,
+                totalCount: this.staticIps.length,
                 totalPage: totalPage,
                 listCountPerPage: listCountPerPage,
                 listInPage: this.staticIps.slice(0, listCountPerPage),
@@ -292,10 +294,10 @@
 }
 .operation-btn {
     padding: 5px 8px;
-    color: #3a84ff;
     font-size: 14px;
     cursor: pointer;
     &:hover {
+        color: #3a84ff;
         background: #ebf4ff;
     }
 }
@@ -357,6 +359,11 @@
             margin: 0 -2px 0 -2px;
             color: #3a84ff;
             cursor: pointer;
+        }
+    }
+    &.disabled {
+        th, td {
+            color: #cccccc;
         }
     }
 }
