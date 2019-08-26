@@ -478,7 +478,6 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
-                        this.template_id = data.template_id
                         this.allowLeave = true
                         this.$router.push({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
                     }
@@ -589,8 +588,8 @@
             // 校验输入参数是否满足标准插件配置文件正则校验
             validateAtomInputForm (component) {
                 const { code, data, version } = component
-                const config = this.atomConfig[code][version]
                 if (!data) return false
+                const config = this.atomConfig[code][version]
                 if (config) {
                     const formData = {}
                     Object.keys(data).forEach(key => {

@@ -198,7 +198,7 @@
                 required: false
             },
             template_id: {
-                type: String,
+                type: [String, Number],
                 required: false
             },
             type: {
