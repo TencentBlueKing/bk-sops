@@ -19,16 +19,34 @@ from pipeline.component_framework.component import Component
 
 logger = logging.getLogger('celery')
 
-if settings.ENABLE_EXAMPLE_COMPONENTS:
+__register_ignore__ = not settings.ENABLE_EXAMPLE_COMPONENTS
 
-    class SimpleExampleService(Service):
-        def execute(self, data, parent_data):
-            return True
 
-        def outputs_format(self):
-            return []
+class SimpleExampleService(Service):
+    def execute(self, data, parent_data):
+        return True
 
-    class SimpleExampleComponent(Component):
-        name = u'example component'
-        code = 'example_component'
-        bound_service = SimpleExampleService
+    def outputs_format(self):
+        return []
+
+
+class SimpleExampleComponent(Component):
+    name = 'example component'
+    code = 'example_component'
+    bound_service = SimpleExampleService
+
+
+class PipeExampleService(Service):
+    def execute(self, data, parent_data):
+        for key, val in data.inputs.iteritems():
+            data.set_outputs(key, val)
+        return True
+
+    def outputs_format(self):
+        return []
+
+
+class PipeExampleComponent(Component):
+    name = 'pipe example component'
+    code = 'pipe_example_component'
+    bound_service = PipeExampleService

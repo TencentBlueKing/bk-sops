@@ -37,9 +37,24 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.context import TaskContext
 
 logger = logging.getLogger("root")
-get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+
+
+@require_GET
+def context(request):
+    """
+    @summary: 返回流程中可以引用的任务全局变量
+    @param request:
+    @return:
+    """
+    ctx = {
+        'result': True,
+        'data': TaskContext.flat_details()
+    }
+    return JsonResponse(ctx)
 
 
 @require_GET
@@ -107,7 +122,7 @@ def detail(request, project_id):
 
 @require_GET
 def get_job_instance_log(request, biz_cc_id):
-    client = get_client_by_request(request)
+    client = get_client_by_user(request.user.username)
     job_instance_id = request.GET.get('job_instance_id')
     log_kwargs = {
         "bk_biz_id": biz_cc_id,

@@ -80,6 +80,7 @@ class HistoryDataAdmin(admin.ModelAdmin):
 class HistoryAdmin(admin.ModelAdmin):
     list_display = ['identifier', 'started_time', 'archived_time']
     search_fields = ['identifier']
+    raw_id_fields = ['data']
 
 
 @admin.register(models.ScheduleCeleryTask)
