@@ -31,16 +31,6 @@
                                 </bk-option>
                             </bk-select>
                         </div>
-                        <div class="content-date-picker" @click="onDatePickerClick">
-                            <bk-date-picker
-                                ref="datePickerRef"
-                                v-model="categoryTime"
-                                class="bk-date-picker-common"
-                                :placeholder="i18n.choice"
-                                :type="'daterange'"
-                                @change="onChangeCategoryTime">
-                            </bk-date-picker>
-                        </div>
                     </div>
                 </div>
                 <data-statistics :dimension-list="taskPlotData" :total-value="taskToatal"></data-statistics>
@@ -65,16 +55,6 @@
                                 </bk-option>
                             </bk-select>
                         </div>
-                        <div class="content-business-picker" @click="onInstanceClick">
-                            <bk-date-picker
-                                ref="businessPickerRef"
-                                v-model="businessTime"
-                                class="bk-date-picker-common"
-                                :placeholder="i18n.choice"
-                                :type="'daterange'"
-                                @change="onChangeBusinessTime">
-                            </bk-date-picker>
-                        </div>
                     </div>
                 </div>
                 <data-statistics :dimension-list="ownBusinessData" :total-value="businessTotal"></data-statistics>
@@ -85,16 +65,6 @@
                 <bk-tab-panel name="applicationDetails" :label="i18n.applicationDetails">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.applicationTime}}</label>
-                                <bk-date-picker
-                                    v-model="tableTime"
-                                    class="bk-date-picker-common"
-                                    :placeholder="i18n.choice"
-                                    :type="'daterange'"
-                                    @change="onAppMakerInstance">
-                                </bk-date-picker>
-                            </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
@@ -156,7 +126,6 @@
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import moment from 'moment-timezone'
 
     const i18n = {
         ownBusiness: gettext('所属业务'),
@@ -184,6 +153,7 @@
             DataTablePagination
         },
         mixins: [AnalysisMixins],
+        props: ['timeRange'],
         data () {
             return {
                 i18n: i18n,
@@ -219,7 +189,6 @@
                     pageArray: this.dataTablePageArray
                 },
                 atom: '',
-                businessTime: [0, 0],
                 components: [],
                 appmakerData: [],
                 appmakerTotal: 0,
@@ -278,16 +247,12 @@
                 ],
                 selectedCcId: '',
                 selectedCategory: '',
-                categoryTime: [],
                 choiceBusiness: undefined,
-                tableTime: [],
                 choiceCategory: undefined,
                 endDateMax: '',
                 appmakerOrderBy: '-templateId',
                 businessSelected: 'all',
-                categorySelected: 'all',
-                showClassifyDatePanel: '',
-                showBusinessDatePanel: ''
+                categorySelected: 'all'
             }
         },
         computed: {
@@ -313,12 +278,18 @@
                 return list
             }
         },
+        watch: {
+            timeRange: function (val) {
+                this.onAppMakerCategory(null)
+                this.onAppMakerBizCcid(null)
+                this.onAppMakerInstance()
+            }
+        },
         created () {
-            this.getDateTime()
             this.choiceBusinessName = this.i18n.choiceAllBusiness
             this.choiceCategoryName = this.i18n.choiceAllCategory
-            this.onChangeCategoryTime()
-            this.onChangeBusinessTime()
+            this.onAppMakerCategory(null)
+            this.onAppMakerBizCcid(null)
         },
         methods: {
             ...mapActions('appmaker/', [
@@ -361,13 +332,13 @@
                     }
                     this.choiceBusiness = business
                 }
-                const time = this.getUTCTime([this.categoryTime[0], this.categoryTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'category',
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusines
+                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
                     })
                 }
                 this.appMakerData(data)
@@ -385,7 +356,7 @@
                     }
                     this.choiceCategory = category
                 }
-                const time = this.getUTCTime([this.categoryTime[0], this.categoryTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'biz_cc_id',
                     conditions: JSON.stringify({
@@ -437,10 +408,9 @@
             },
             onAppMakerInstance (value) {
                 if (value) {
-                    this.tableTime = value
                     this.resetPageIndex()
                 }
-                const time = this.getUTCTime([this.tableTime[0], this.tableTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'appmaker_instance',
                     conditions: JSON.stringify({
@@ -454,28 +424,6 @@
                     limit: this.appmakerLimit
                 }
                 this.appMakerInstanceData(data)
-            },
-            getDateTime () {
-                const date = new Date()
-                const endTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[1] = endTime
-                this.categoryTime[1] = endTime
-                this.businessTime[1] = endTime
-                date.setTime(date.getTime() - 3600 * 1000 * 24 * 30)
-                const startTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[0] = startTime
-                this.categoryTime[0] = startTime
-                this.businessTime[0] = startTime
-            },
-            onShutTimeSelector () {
-                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
-                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
-            },
-            onDatePickerClick () {
-                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
-            },
-            onInstanceClick () {
-                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
@@ -504,18 +452,6 @@
                 this.category = undefined
                 this.resetPageIndex()
                 this.onAppMakerInstance()
-            },
-            onChangeCategoryTime (value) {
-                if (value) {
-                    this.categoryTime = value
-                }
-                this.onAppMakerCategory(null)
-            },
-            onChangeBusinessTime (value) {
-                if (value) {
-                    this.businessTime = value
-                }
-                this.onAppMakerBizCcid(null)
             },
             resetPageIndex () {
                 this.appmakerPageIndex = 1

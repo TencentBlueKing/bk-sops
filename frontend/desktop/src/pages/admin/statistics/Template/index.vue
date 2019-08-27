@@ -31,18 +31,6 @@
                                 </bk-option>
                             </bk-select>
                         </div>
-                        <div class="content-date-picker" @click="onDatePickerClick">
-                            <bk-date-picker
-                                ref="datePickerRef"
-                                class="bk-date-picker-common"
-                                v-model="categoryTime"
-                                :placeholder="i18n.choice"
-                                :type="'daterange'"
-                                @open-change="onShutTimeSelector"
-                                @change="onChangeCategoryTime">
-                            </bk-date-picker>
-                            <!-- <i :class="['bk-icon icon-angle-down', { 'icon-flip': showClassifyDatePanel }]"></i> -->
-                        </div>
                     </div>
                 </div>
                 <data-statistics :dimension-list="classiFicationArray" :total-value="ficationTotal"></data-statistics>
@@ -67,18 +55,6 @@
                                 </bk-option>
                             </bk-select>
                         </div>
-                        <div class="content-business-picker" @click="onTemplatePickerClick">
-                            <bk-date-picker
-                                v-model="businessTime"
-                                class="bk-date-picker-common"
-                                ref="businessPickerRef"
-                                :placeholder="i18n.choice"
-                                :type="'daterange'"
-                                @open-change="onShutTimeSelector"
-                                @change="onChangeBusinessTime">
-                            </bk-date-picker>
-                            <!-- <i :class="['bk-icon icon-angle-down', { 'icon-flip': showBusinessDatePanel }]"></i> -->
-                        </div>
                     </div>
                 </div>
                 <data-statistics :dimension-list="taskStatistArray" :total-value="total"></data-statistics>
@@ -89,15 +65,6 @@
                 <bk-tab-panel name="processDetails" :label="i18n.node">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <span class="content-detail-label">{{i18n.timeLimit}}</span>
-                                <bk-date-picker
-                                    v-model="tableTime"
-                                    class="bk-date-picker-common"
-                                    :type="'daterange'"
-                                    @change="onTemplateNode">
-                                </bk-date-picker>
-                            </div>
                             <div class="content-wrap-select">
                                 <span class="content-detail-label">{{i18n.choiceBusiness}}</span>
                                 <bk-select
@@ -151,15 +118,6 @@
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
                             <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.timeLimit}}</label>
-                                <bk-date-picker
-                                    v-model="tableTime"
-                                    class="bk-date-picker-common"
-                                    :type="'daterange'"
-                                    @change="onTemplateByCiteData">
-                                </bk-date-picker>
-                            </div>
-                            <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
                                     v-model="selectedCcId"
@@ -204,7 +162,6 @@
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import moment from 'moment-timezone'
 
     const i18n = {
         flowCategory: gettext('流程分类'),
@@ -239,6 +196,7 @@
             DataTablePagination
         },
         mixins: [AnalysisMixins],
+        props: ['timeRange'],
         data () {
             return {
                 i18n: i18n,
@@ -375,18 +333,12 @@
                         sortable: 'custom'
                     }
                 ],
-                tableTime: ['', ''],
-                categoryTime: ['', ''],
-                businessTime: ['', ''],
                 selectedCcId: '',
                 businessSelected: 'all',
                 categorySelected: 'all',
                 selectedCategory: '',
                 choiceBusiness: '',
-                choiceCategory: undefined,
-                endDateMax: '',
-                showClassifyDatePanel: '',
-                showBusinessDatePanel: ''
+                choiceCategory: undefined
             }
         },
         computed: {
@@ -412,8 +364,15 @@
                 return list
             }
         },
+        watch: {
+            timeRange: function (val) {
+                this.onTemplateCategory(null)
+                this.onTemplateBizCcId(null)
+                this.onTemplateNode(val)
+                this.onTemplateByCiteData(val)
+            }
+        },
         created () {
-            this.getDateTime()
             this.onTemplateCategory(null)
             this.onTemplateBizCcId(null)
             this.onTemplateNode()
@@ -439,7 +398,7 @@
                     }
                     this.choiceBusiness = business
                 }
-                const time = this.getUTCTime(this.categoryTime)
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'category',
                     conditions: JSON.stringify({
@@ -455,12 +414,11 @@
                     // 防止不同界面进行触发接口调用
                     return
                 }
-                if (value) {
-                    this.tableTime = value
+                if (Array.isArray(value)) {
                     this.resetPageIndex()
                 }
                 this.isDetailLoading = true
-                const time = this.getUTCTime(this.tableTime)
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'template_node',
                     conditions: JSON.stringify({
@@ -492,7 +450,7 @@
                     }
                     this.choiceCategory = category
                 }
-                const time = this.getUTCTime(this.tableTime)
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'biz_cc_id',
                     conditions: JSON.stringify({
@@ -548,11 +506,10 @@
                     return
                 }
                 if (Array.isArray(value)) {
-                    this.tableTime = value
                     this.resetPageIndex()
                 }
                 this.isReferLoading = true
-                const time = this.getUTCTime(this.tableTime)
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'template_cite',
                     conditions: JSON.stringify({
@@ -608,30 +565,8 @@
                     this.onTemplateByCiteData()
                 }
             },
-            getDateTime () {
-                const date = new Date()
-                const endTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[1] = endTime
-                this.categoryTime[1] = endTime
-                this.businessTime[1] = endTime
-                date.setTime(date.getTime() - 3600 * 1000 * 24 * 30)
-                const startTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[0] = startTime
-                this.categoryTime[0] = startTime
-                this.businessTime[0] = startTime
-            },
             onInstanceHandleView (index, row) {
                 window.open(this.site_url + 'taskflow/home/' + row.businessId + '/?template_id=' + row.templateId)
-            },
-            onShutTimeSelector () {
-                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
-                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
-            },
-            onDatePickerClick () {
-                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
-            },
-            onTemplatePickerClick () {
-                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
@@ -660,14 +595,6 @@
                 this.category = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
-            },
-            onChangeCategoryTime (value) {
-                this.categoryTime = value
-                this.onTemplateCategory(null)
-            },
-            onChangeBusinessTime (value) {
-                this.businessTime = value
-                this.onTemplateBizCcId(null)
             },
             resetPageIndex () {
                 switch (this.tabName) {
@@ -701,9 +628,6 @@
 .icon-flip {
     display: inline-block;
     transform: rotate(180deg);
-}
-.content-date-picker {
-    vertical-align: top;
 }
 .content-business-picker {
     vertical-align: top;

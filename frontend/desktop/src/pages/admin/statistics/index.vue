@@ -25,17 +25,29 @@
                         {{dms.text}}
                     </router-link>
                 </div>
+                <div class="nav-date-range">
+                    <label class="content-detail-label">{{i18n.timeLimit}}</label>
+                    <bk-date-picker
+                        v-model="timeRange"
+                        :clearable="false"
+                        type="daterange"
+                        placement="top-end"
+                        @change="onChangeTimeRange"
+                    >
+                    </bk-date-picker>
+                </div>
             </div>
         </div>
         <div class="statistics-content">
             <div class="content-wrapper" v-if="reloadComponent">
-                <router-view></router-view>
+                <router-view :time-range="timeRange"></router-view>
             </div>
         </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
+    import moment from 'moment-timezone'
     const DATA_DIMENSION = [
         {
             text: gettext('流程统计'),
@@ -64,10 +76,12 @@
             return {
                 dataDimension: DATA_DIMENSION,
                 i18n: {
-                    operationData: gettext('运营数据')
+                    operationData: gettext('运营数据'),
+                    timeLimit: gettext('时间范围')
                 },
                 path: this.$router.currentRoute.path,
-                reloadComponent: true
+                reloadComponent: true,
+                timeRange: ['', '']
             }
         },
         watch: {
@@ -77,9 +91,21 @@
                 this.reloadComponent = true
             }
         },
+        created () {
+            this.getTimeRange()
+        },
         methods: {
             onGotoPath (path) {
                 this.$router.push(path)
+            },
+            onChangeTimeRange (value) {
+                this.timeRange = value
+            },
+            getTimeRange () {
+                const date = new Date()
+                this.timeRange[1] = moment(date).format('YYYY-MM-DD HH:mm:ss')
+                date.setTime(date.getTime() - 3600 * 1000 * 24 * 30)
+                this.timeRange[0] = moment(date).format('YYYY-MM-DD HH:mm:ss')
             }
         }
     }
@@ -126,6 +152,15 @@
                     color: #3a84ff;
                     border-bottom: 2px solid #3a84ff;
                 }
+            }
+        }
+        .nav-date-range {
+            font-size: 14px;
+            float: right;
+            margin: 15px 0 0 0;
+            .bk-date-picker {
+                width: 201px;
+                margin-left: 20px;
             }
         }
     }
