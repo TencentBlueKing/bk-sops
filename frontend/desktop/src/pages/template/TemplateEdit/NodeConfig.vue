@@ -455,7 +455,6 @@
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
                     if (this.isSingleAtom) {
-                        // if (!this.nodeConfigData.component.version) return false
                         this.nodeConfigData.component.version && this.getConfig(this.nodeConfigData.component.version)
                     } else {
                         this.getConfig(this.nodeConfigData.version) // load node config data
@@ -489,7 +488,6 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atomType, version })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType], version })
                     this.setNodeConfigData(atomType, version)
                 } catch (e) {
                     errorHandler(e, this)
@@ -543,8 +541,7 @@
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
                         if (!tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
-                            await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom], version })
+                            await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
                         const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
@@ -741,11 +738,13 @@
             },
             updateActivities () {
                 const nodeData = tools.deepClone(this.nodeConfigData)
-                const currentSingleAtom = this.singleAtom.filter(m => m.code === this.currentAtom)
                 let version = ''
-                if (currentSingleAtom.length) {
-                    version = currentSingleAtom[0].version
-                }
+                this.singleAtom.some(m => {
+                    if (m.code === this.currentAtom) {
+                        version = m.version
+                        return true
+                    }
+                })
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
@@ -927,14 +926,14 @@
                 const formConfig = this.renderInputConfig.filter(item => {
                     return item.tag_code === tagCode
                 })[0]
-
                 const name = formConfig.attrs.name.replace(/\s/g, '')
 
                 if (this.isSingleAtom) {
+                    const version = this.activities[this.nodeId].component['version']
                     key = tagCode
                     source_tag = this.nodeConfigData.component.code
                         + '.'
-                        + this.nodeConfigData.component.version
+                        + version
                         + '.'
                         + tagCode
                     source_info = { [this.nodeId]: [tagCode] }

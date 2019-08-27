@@ -89,20 +89,6 @@
             },
             currentNode () {
                 return this.selectedFlowPath.slice(-1)[0].id
-            },
-            NodeVersionMap () {
-                const versions = []
-                const activities = this.pipelineData.activities
-                for (const key in activities) {
-                    const component = activities[key].component
-                    if (component) {
-                        versions.push({
-                            id: key,
-                            version: component.version
-                        })
-                    }
-                }
-                return versions
             }
         },
         watch: {
@@ -149,7 +135,6 @@
                 } else {
                     try {
                         await this.loadAtomConfig({ atomType: type, version })
-                        this.setAtomConfig({ atomType: type, configData: $.atoms[type], version })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         errorHandler(e, this)

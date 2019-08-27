@@ -218,7 +218,6 @@ const api = {
             }
             store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta, version })
             store.commit('atomForm/setAtomOutput', { atomType: type, outputData, version })
-
             // 标准插件配置项内嵌到 form 字段
             if (embedded) {
                 /*eslint-disable */
@@ -226,7 +225,6 @@ const api = {
                 /*eslint-disable */
                 return Promise.resolve({ data: $.atoms[type] })
             }
-
             return $.getScript(formResource)
         }).catch(e => {
             return Promise.reject(e)

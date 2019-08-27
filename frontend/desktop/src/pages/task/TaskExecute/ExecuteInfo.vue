@@ -294,7 +294,6 @@
                 } else {
                     try {
                         await this.loadAtomConfig({ atomType: type, version })
-                        this.setAtomConfig({ atomType: type, configData: $.atoms[type], version })
                         return this.atomFormConfig[type][version]
                     } catch (e) {
                         this.$bkMessage({

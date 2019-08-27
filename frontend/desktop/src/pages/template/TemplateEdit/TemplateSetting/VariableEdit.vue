@@ -385,8 +385,7 @@
                 this.atomConfigLoading = true
                 
                 try {
-                    await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta, version })
-                    this.setAtomConfig({ atomType: atom, configData: $.atoms[atom], version })
+                    await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta, version, saveName: atom })
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)

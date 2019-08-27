@@ -417,7 +417,6 @@
                 this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atomType, version })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType], version })
                     this.addSingleAtomActivities(location, $.atoms[atomType])
                 } catch (e) {
                     errorHandler(e, this)
@@ -436,8 +435,7 @@
                         const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
 
                         if (tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
-                            await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                            await this.loadAtomConfig({ atomType, classify, saveName: atom })
                         }
 
                         const atomConfig = this.atomFormConfig[atom][version]

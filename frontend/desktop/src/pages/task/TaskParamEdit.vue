@@ -113,8 +113,7 @@
                     const version = custom_type ? 'legacy' : source_tag.split('.')[1]
                     if (!tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
                         this.isConfigLoading = true
-                        await this.loadAtomConfig({ atomType, classify })
-                        this.setAtomConfig({ atomType: atom, configData: $.atoms[atom], version })
+                        await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                     }
                     const atomConfig = this.atomFormConfig[atom][version]
                     let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
@@ -152,10 +151,10 @@
                         variable.meta = this.metaConfig[key]
                     } else if (variable.is_meta) {
                         const sourceTag = variable.source_tag
-                        const [atomType, tagCode] = sourceTag.split('.')
-                        if (!this.atomFormConfig[atomType]) {
-                            this.loadAtomConfig({ atomType })
-                            this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                        const [atomType, version, tagCode, form] = sourceTag.split('.')
+                        const atomVersion = form.custom_type ? 'legacy' : version
+                        if (!tools.isKeyExists(`${atomType}.${atomVersion}`, this.atomFormConfig)) {
+                            this.loadAtomConfig({ atomType, atomVersion })
                         }
                         const atomConfig = this.atomFormConfig[atomType]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))

@@ -298,9 +298,9 @@
              */
             setOutputParams (oldVal) {
                 const specialAtom = 'job_execute_task'
-                const versition = this.atomForm.SingleAtomVersionMap[specialAtom]
+                const veision = this.atomForm.SingleAtomVersionMap[specialAtom]
                 if (Array.isArray(this.value)) {
-                    const atomOutput = this.atomForm.form[specialAtom][versition].output.slice(0)
+                    const atomOutput = this.atomForm.form[specialAtom][veision].output.slice(0)
 
                     this.value.forEach(item => {
                         if (typeof item.type === 'number' && item.type !== 2 && item.category === 1) {

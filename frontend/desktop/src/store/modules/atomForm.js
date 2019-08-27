@@ -83,13 +83,37 @@ const atomForm = {
         }
     },
     actions: {
-        loadAtomConfig ({ commit, state }, payload) {
-            const { atomType, classify, isMeta, version } = payload
+        /**
+         * 加载标准插件配置项
+         * @param {String} payload.atomType 节点类型
+         * @param {String} payload.setName 自定义请求名字
+         */
+        async loadAtomConfig ({ commit, state }, payload) {
+            const { atomType, classify, isMeta, saveName } = payload
             const atomClassify = classify || 'component'
-            return api.$getAtomForm(atomType, atomClassify, isMeta || 0, version).then(
-                response => response.data
-            ).catch(e => {
-                Promise.reject(e)
+            let version = payload.version
+            const setTypeName = saveName || atomType
+            version = atomClassify === 'variable' ? 'legacy' : version
+            await api.getAtomFormURL(atomType, atomClassify, version, isMeta).then(async response => {
+                const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+                commit('setAtomForm', { atomType: setTypeName, data: response.data, isMeta, version })
+                commit('setAtomOutput', { atomType: setTypeName, outputData, version })
+
+                // 标准插件配置项内嵌到 form 字段
+                if (embedded) {
+                    /*eslint-disable */
+                    eval(formResource)
+                    /*eslint-disable */
+                    commit('setAtomConfig', { atomType: setTypeName, configData: $.atoms[setTypeName], version })
+                    return Promise.resolve({ data: $.atoms[setTypeName] })
+                }
+
+                return await new Promise ((resolve, reject) => {
+                    $.getScript(formResource, function(response) {
+                        commit('setAtomConfig', {atomType: setTypeName, configData: $.atoms[setTypeName], version })
+                        resolve(response)
+                    })
+                })
             })
         },
         loadSubflowConfig ({ commit }, payload) {
