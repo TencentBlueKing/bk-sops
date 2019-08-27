@@ -22,19 +22,22 @@ from blueapps.account import get_user_model
 
 from . import settings
 from .accounts import WeixinAccount
-from .models import BkWeixinUser
+from .models import BkWeixinUser, WeixinUserSession
 
 logger = logging.getLogger('root')
 
 
 def get_user(request):
     user = None
-    user_id = request.COOKIES.get('weixin_user_id')
-    if user_id:
+    session_key = request.COOKIES.get('weixin_user_session')
+    if session_key:
+        checked_user_id = WeixinUserSession.objects.check_session_key(session_key)
+        if checked_user_id is False:
+            logger.error("weixin user[session_key=%s] login status is expired" % session_key)
         try:
-            user = BkWeixinUser.objects.get(pk=user_id)
+            user = BkWeixinUser.objects.get(userid=checked_user_id)
         except BkWeixinUser.DoesNotExist:
-            user = None
+            logger.error("weixin user[user_id=%s] does not exist" % checked_user_id)
     return user or AnonymousUser()
 
 
@@ -87,13 +90,13 @@ class WeixinAuthenticationMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         """
-        @summary: 移动端设置 weixin_user_id 到cookies中，避免 SESSION_COOKIE_AGE 时间太短导致 session 过期
+        @summary: 移动端设置 weixin_user_session 到 cookies 中，避免 SESSION_COOKIE_AGE 时间太短导致 session 过期
         @param request:
         @param response:
         @return:
         """
-        if request.session.get('weixin_user_id'):
-            response.set_cookie('weixin_user_id', request.session['weixin_user_id'])
+        if request.session.get('weixin_user_session'):
+            response.set_cookie('weixin_user_session', request.session['weixin_user_session'])
         return response
 
 

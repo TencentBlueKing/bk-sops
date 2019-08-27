@@ -25,7 +25,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from . import settings as weixin_settings
 from .api import WeiXinApi, QyWeiXinApi
-from .models import BkWeixinUser
+from .models import BkWeixinUser, WeixinUserSession
 
 logger = logging.getLogger('root')
 
@@ -171,7 +171,8 @@ class WeixinAccount(WeixinAccountSingleton):
         userid = userinfo.pop('userid')
         user = BkWeixinUser.objects.get_update_or_create_user(userid, **userinfo)
         # 设置session
-        request.session['weixin_user_id'] = user.id
+        _created, weixin_user_session = WeixinUserSession.objects.get_or_create_user_session(bk_user_id=user.userid)
+        request.session['weixin_user_session'] = weixin_user_session.session_key
         setattr(request, 'weixin_user', user)
 
         # need csrftoken
