@@ -250,7 +250,6 @@
         top: 14px;
         right: 20px;
         .canvas-btn {
-            min-width: 90px;
             &:not(:last-child) {
                 margin-right: 10px;
             }
