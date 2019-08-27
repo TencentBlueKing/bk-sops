@@ -70,8 +70,20 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
             if business.time_zone:
                 request.session['blueking_timezone'] = business.time_zone
 
-            if not request.user.has_perm('view_business', business):
-                return HttpResponseForbidden()
+            try:
+                if not request.user.has_perm('view_business', business):
+                    raise exceptions.Unauthorized(
+                        'user[{username}] has no perm view_business of business[{biz}]'.format(
+                            username=request.user.username, biz=business.cc_id
+                        )
+                    )
+            except Exception as e:
+                logger.exception('user[username={username},type={user_type}] has_perm raise error[{error}]'.format(
+                    username=request.user.username,
+                    user_type=type(request.user),
+                    error=e)
+                )
+                return HttpResponseForbidden(e.message)
 
 
 class UnauthorizedMiddleware(MiddlewareMixin):

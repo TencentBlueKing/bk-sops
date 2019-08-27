@@ -19,7 +19,7 @@
             </div>
             <bk-button
                 theme="default"
-                size="mini"
+                size="small"
                 class="delete-btn"
                 @click="onDeleteSource">
                 {{i18n.delete}}
@@ -46,7 +46,7 @@
                                     :class="{ 'error-border': errors.first('packageName') }"
                                     :disabled="isEditing"
                                     @blur="onPackageNameBlur">
-                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
+                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                             </div>
                         </td>
                     </tr>
@@ -113,7 +113,7 @@
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
-                                            <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
+                                            <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -150,7 +150,7 @@
                                                     v-model="item.key"
                                                     v-validate="packageNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('moduleVersion' + index) }"
@@ -163,7 +163,7 @@
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('modules' + index) }"
@@ -176,14 +176,14 @@
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bktooltips.top="i18n.required"></i>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
-                                            <td><bk-button theme="default" size="mini" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
+                                            <td><bk-button v-if="packageValues.length > 1" theme="default" size="small" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
                                         </tr>
                                     </tbody>
                                 </table>
                                 <div class="add-module">
-                                    <bk-button theme="default" size="mini" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                                    <bk-button theme="default" size="small" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
                                 </div>
                                 <div v-if="showModuleError" class="common-error-tip error-msg">{{i18n.required}}</div>
                             </div>
@@ -305,6 +305,13 @@
              */
             getPackageValues (packages) {
                 const values = []
+                if (JSON.stringify(packages) === '{}') {
+                    values.push({
+                        key: '',
+                        version: '',
+                        modules: ''
+                    })
+                }
                 for (const key in packages) {
                     values.push({
                         key: key,
@@ -366,9 +373,11 @@
                 })
                 this.showModuleError = false
             },
+            /**
+             * 删除模块配置（只有一条时不显示删除按钮）
+             */
             onDeletePackage (index) {
                 this.packageValues.splice(index, 1)
-
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
                 if (Object.keys(packages).length === 0) {
@@ -412,6 +421,12 @@
         .common-error-tip {
             display: none;
             bottom: 0;
+        }
+    }
+    /deep/ .bk-select {
+        background-color: #ffffff;
+        &.is-disabled {
+            background-color: #fafafa;
         }
     }
     .package-form {
@@ -480,6 +495,8 @@
         background: transparent;
         border: none;
         color: #3a84ff;
+        height: auto;
+        line-height: initial;
     }
     .package-setting {
         padding: 0 20px 20px;
@@ -514,6 +531,18 @@
                 }
             }
             
+        }
+        .td-with-input {
+            &:hover{
+                border-style: double;
+                border-color: #3c96ff;
+            }
+            &.error-border {
+                border:1px double #ea3636;
+                &:hover {
+                    border-color: #ea3636;
+                }
+            }
         }
         @include input-verific-trigger;
         .form-content {
@@ -603,6 +632,14 @@
         th {
             font-weight: 700;
             text-align: center;
+            &:nth-child(1),
+            &:nth-child(2),
+            &:nth-child(4) {
+                width: 16.66%;
+            }
+            &:nth-child(3) {
+                width: 50%;
+            }
         }
         input[aria-invalid="true"] + .common-error-tip {
             display: inline-block;
@@ -610,6 +647,11 @@
         .common-error-tip {
             display: none;
             bottom: 0;
+        }
+        tbody {
+            td {
+                padding: 10px 20px;
+            }
         }
     }
     .detail-table, .module-table {

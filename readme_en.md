@@ -49,6 +49,7 @@ If you want to know more about the above features, please refer to the
 - [Development Front-end Deployment (In Chinese)](docs/install/dev_web.md)
 - [Production Source Deployment (In Chinese)](docs/install/source_code_deploy.md)
 - [Production Upload Deployment (In Chinese)](docs/install/upload_pack_deploy.md)
+- [Mobile Deployment (In Chinese)](docs/install/mobile_deploy.md)
 - [Standard Plugin Development](docs/develop/dev_plugins.md)
 - [API Documents](docs/apidoc/readme.md)
 
