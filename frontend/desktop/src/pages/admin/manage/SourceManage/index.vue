@@ -24,7 +24,7 @@
                     <h4>{{i18n.mainSource}}</h4>
                     <i
                         class="title-tooltip bk-icon icon-info-circle"
-                        v-bktooltips.right="i18n.sourceTip">
+                        v-bk-tooltips.right="i18n.sourceTip">
                     </i>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                     <h4>{{i18n.localCache}}</h4>
                     <i
                         class="title-tooltip bk-icon icon-info-circle"
-                        v-bktooltips.right="i18n.cacheTip">
+                        v-bk-tooltips.right="i18n.cacheTip">
                     </i>
                 </div>
             </div>

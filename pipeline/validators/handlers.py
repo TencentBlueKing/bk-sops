@@ -11,12 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib import admin
+from django.dispatch import receiver
 
-from django_signal_valve.models import Signal
+from pipeline.core.flow.event import EndEvent
+from pipeline.core.flow.signals import post_new_end_event_register
+from pipeline.validators import rules
 
 
-@admin.register(Signal)
-class SignalAdmin(admin.ModelAdmin):
-    list_display = ['id', 'module_path', 'name', 'kwargs']
-    search_fields = ['id', 'module_path', 'name']
+@receiver(post_new_end_event_register, sender=EndEvent)
+def post_new_end_event_register_handler(sender, node_type, node_cls, **kwargs):
+    rules.NODE_RULES[node_type] = rules.SINK_RULE
+    rules.FLOW_NODES_WITHOUT_STARTEVENT.append(node_type)

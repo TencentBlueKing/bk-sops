@@ -22,9 +22,9 @@ module.exports = (() => {
 
   // Function that takes care of normalization.
   function normalizeIntegers(expressions) {
-    for (var i=0; i < expressions.length; i++){
+    for (const i in expressions){
       var numbers = expressions[i].split(',');
-      for (var j=0; j<numbers.length; j++){
+      for (const j in numbers){
         numbers[j] = parseInt(numbers[j]);
       }
       expressions[i] = numbers;
@@ -57,9 +57,7 @@ module.exports = (() => {
     expressions = convertAsterisksToRanges(expressions);
     expressions = convertRanges(expressions);
     expressions = convertSteps(expressions);
-
     expressions = normalizeIntegers(expressions);
-
     return expressions.join(' ');
   }
 

@@ -7,7 +7,7 @@ module.exports = (() => {
     'sep', 'oct', 'nov', 'dec'];
 
   function convertMonthName(expression, items){
-    for(var i = 0; i < items.length; i++){
+    for(const i in expression){
       expression = expression.replace(new RegExp(items[i], 'gi'), parseInt(i, 10) + 1);
     }
     return expression;
