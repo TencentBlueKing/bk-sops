@@ -12,7 +12,7 @@
 <template>
     <div class="content-box">
         <div class="content-wrap">
-            <div class="content-dimesion atom-statistics" v-bkloading="{ isLoading: isCitationLoading, opacity: 1 }">
+            <div class="content-dimesion atom-statistics atom-content" v-bkloading="{ isLoading: isCitationLoading, opacity: 1 }">
                 <div class="clearfix">
                     <div class="content-title">{{i18n.numberCitations}}</div>
                     <div class="content-date">
@@ -30,16 +30,6 @@
                                     :name="option.cc_name">
                                 </bk-option>
                             </bk-select>
-                        </div>
-                        <div class="content-date-picker" @click="onDatePickerClick">
-                            <bk-date-picker
-                                ref="datePickerRef"
-                                v-model="businessTime"
-                                class="bk-date-picker-common"
-                                :placeholder="i18n.choice"
-                                :type="'daterange'"
-                                @change="onChangeBusinessTime">
-                            </bk-date-picker>
                         </div>
                     </div>
                 </div>
@@ -68,16 +58,6 @@
                                         :name="option.name">
                                     </bk-option>
                                 </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.taskStartTime}}</label>
-                                <bk-date-picker
-                                    v-model="tableTime"
-                                    class="bk-date-picker-common"
-                                    :placeholder="i18n.choice"
-                                    :type="'daterange'"
-                                    @change="onAtomTemplateData">
-                                </bk-date-picker>
                             </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
@@ -131,16 +111,6 @@
                 <bk-tab-panel name="executionTime" :label="i18n.executionTime">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.taskStartTime}}</label>
-                                <bk-date-picker
-                                    class="bk-date-picker-common"
-                                    v-model="tableTime"
-                                    :placeholder="i18n.choice"
-                                    :type="'daterange'"
-                                    @change="onAtomExecuteData">
-                                </bk-date-picker>
-                            </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
@@ -211,16 +181,6 @@
                                 </bk-select>
                             </div>
                             <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.taskStartTime}}</label>
-                                <bk-date-picker
-                                    class="bk-date-picker-common"
-                                    v-model="tableTime"
-                                    :placeholder="i18n.choice"
-                                    :type="'daterange'"
-                                    @change="onAtomInstanceData">
-                                </bk-date-picker>
-                            </div>
-                            <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
                                     v-model="selectedCcId"
@@ -281,7 +241,6 @@
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import moment from 'moment-timezone'
 
     const i18n = {
         numberCitations: gettext('引用次数'),
@@ -321,6 +280,7 @@
             DataTablePagination
         },
         mixins: [AnalysisMixins],
+        props: ['timeRange'],
         data () {
             return {
                 i18n: i18n,
@@ -328,7 +288,6 @@
                 category: undefined,
                 choiceBusinessName: '',
                 isDropdownShow: false,
-                choiceDownShow: false,
                 datePickerRefShow: false,
                 isTemplateLoading: true,
                 isCitationLoading: true,
@@ -513,8 +472,6 @@
                 selectedCategory: '',
                 selectedAtom: '',
                 choiceBusiness: undefined,
-                tableTime: [],
-                businessTime: [],
                 endDateMax: '',
                 businessSelected: 'all'
             }
@@ -544,10 +501,17 @@
                 return []
             }
         },
+        watch: {
+            timeRange: function (val) {
+                this.onAtomCiteData(null)
+                this.onAtomTemplateData()
+                this.onAtomExecuteData()
+                this.onAtomInstanceData()
+            }
+        },
         created () {
-            this.getDateTime()
             this.choiceBusinessName = this.i18n.choiceAllBusiness
-            this.onChangeBusinessTime()
+            this.onAtomCiteData(null)
             this.onAtomTemplateData()
             this.getCategorys()
         },
@@ -605,7 +569,7 @@
                     }
                     this.choiceBusiness = business
                 }
-                const time = this.getUTCTime([this.businessTime[0], this.businessTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'atom_cite',
                     conditions: JSON.stringify({
@@ -623,11 +587,10 @@
                     return
                 }
                 if (value) {
-                    this.tableTime = value
                     this.resetPageIndex()
                 }
                 this.isTemplateLoading = true
-                const time = this.getUTCTime([this.tableTime[0], this.tableTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'atom_template',
                     conditions: JSON.stringify({
@@ -652,11 +615,10 @@
                     return
                 }
                 if (value) {
-                    this.tableTime = value
                     this.resetPageIndex()
                 }
                 this.isExecutionLoading = true
-                const time = this.getUTCTime([this.tableTime[0], this.tableTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'atom_execute',
                     conditions: JSON.stringify({
@@ -716,11 +678,10 @@
                     return
                 }
                 if (value) {
-                    this.tableTime = value[1]
                     this.resetPageIndex()
                 }
                 this.isInstanceLoading = true
-                const time = this.getUTCTime([this.tableTime[0], this.tableTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'atom_instance',
                     conditions: JSON.stringify({
@@ -749,16 +710,6 @@
                     errorHandler(e, this)
                 }
             },
-            getDateTime () {
-                const date = new Date()
-                const endTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[1] = endTime
-                this.businessTime[1] = endTime
-                date.setTime(date.getTime() - 3600 * 1000 * 24 * 30)
-                const startTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[0] = startTime
-                this.businessTime[0] = startTime
-            },
             onChangeTabPanel (name) {
                 this.tabName = name
                 switch (name) {
@@ -774,10 +725,6 @@
                 }
             },
             onShutTimeSelector () {
-                this.choiceDownShow = this.$refs.datePickerRef.showDatePanel
-            },
-            onDatePickerClick () {
-                this.choiceDownShow = this.$refs.datePickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
@@ -821,12 +768,6 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onChangeBusinessTime (value) {
-                if (value) {
-                    this.businessTime = value
-                }
-                this.onAtomCiteData(null)
-            },
             resetPageIndex () {
                 switch (this.tabName) {
                     case 'processDetails':
@@ -849,7 +790,7 @@
 <style lang="scss">
 .content-box {
     .content-wrap {
-        .content-dimesion.atom-statistics {
+        .content-dimesion.atom-statistics.atom-content {
             width: 100%;
             .chart-statistics-tool .tool-name {
                 width: 250px;

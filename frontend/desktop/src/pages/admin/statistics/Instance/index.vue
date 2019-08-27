@@ -31,16 +31,6 @@
                                 </bk-option>
                             </bk-select>
                         </div>
-                        <div class="content-date-picker" @click="onDatePickerClick">
-                            <bk-date-picker
-                                ref="datePickerRef"
-                                v-model="categoryTime"
-                                class="bk-date-picker-common"
-                                :placeholder="i18n.choice"
-                                :type="'daterange'"
-                                @change="onChangeCategoryTime">
-                            </bk-date-picker>
-                        </div>
                     </div>
                 </div>
                 <data-statistics :dimension-list="taskPlotData" :total-value="taskTotal"></data-statistics>
@@ -64,16 +54,6 @@
                                     :name="option.name">
                                 </bk-option>
                             </bk-select>
-                        </div>
-                        <div class="content-business-picker" @click="onInstanceClick">
-                            <bk-date-picker
-                                ref="businessPickerRef"
-                                v-model="businessTime"
-                                class="bk-date-picker-common"
-                                :placeholder="i18n.choice"
-                                :type="'daterange'"
-                                @change="onChangeBusinessTime">
-                            </bk-date-picker>
                         </div>
                     </div>
                 </div>
@@ -118,23 +98,12 @@
                             </bk-option>
                         </bk-select>
                     </div>
-                    <div class="content-date-picker" @click="onTimePickerClick">
-                        <bk-date-picker
-                            ref="timePickerRef"
-                            v-model="timeTypeTime"
-                            class="bk-date-picker-common"
-                            :placeholder="i18n.choice"
-                            :type="'daterange'"
-                            @change="onInstanceTime">
-                        </bk-date-picker>
-                    </div>
                     <div class="content-instance-time date-scope">
                         <!--时间维度选择-->
                         <bk-select
                             v-model="choiceDate"
-                            class="bk-select-inline"
+                            class="bk-select-date-scope"
                             :popover-width="260"
-                            :searchable="true"
                             :placeholder="i18n.choice"
                             @selected="onChangeTimeType">
                             <bk-option
@@ -154,16 +123,6 @@
                 <bk-tab-panel name="taskDetails" :label="i18n.taskDetail">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.timeLimit}}</label>
-                                <bk-date-picker
-                                    v-model="tableTime"
-                                    class="bk-date-picker-common"
-                                    :placeholder="i18n.choice"
-                                    :type="'daterange'"
-                                    @change="onInstanceNode">
-                                </bk-date-picker>
-                            </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
@@ -217,16 +176,6 @@
                 <bk-tab-panel name="exectionTime" :label="i18n.executionName">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.timeLimit}}</label>
-                                <bk-date-picker
-                                    class="bk-date-picker-common"
-                                    v-model="tableTime"
-                                    :placeholder="i18n.choice"
-                                    :type="'daterange'"
-                                    @change="onInstanceDetailsData">
-                                </bk-date-picker>
-                            </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
@@ -288,7 +237,6 @@
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import moment from 'moment-timezone'
 
     const i18n = {
         taskCategory: gettext('任务分类'),
@@ -322,6 +270,7 @@
             DataTablePagination
         },
         mixins: [AnalysisMixins],
+        props: ['timeRange'],
         data () {
             return {
                 i18n: i18n,
@@ -330,7 +279,6 @@
                 datePickerRefShow: false,
                 businessPickerRefShow: false,
                 isDropdownShow: false,
-                choiceDownShow: false,
                 isInstanceLoading: true,
                 isBuinsessLoading: true,
                 isDetailsLoading: true,
@@ -454,10 +402,7 @@
                 instanceType: 'day',
                 selectedCcId: '',
                 selectedCategory: '',
-                categoryTime: [],
                 choiceBusiness: undefined,
-                tableTime: [],
-                businessTime: [],
                 choiceCategory: '',
                 endDateMax: '',
                 choiceTimeTypeName: '',
@@ -466,15 +411,12 @@
                 choiceTimeTypeCategory: undefined,
                 choiceTimeTypeBusinessName: '',
                 choiceTimeTypeBusiness: undefined,
-                timeTypeTime: [],
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
                 businessSelected: 'all',
                 timeBusinessSelected: 'all',
                 categorySelected: 'all',
                 choiceDate: 'day',
-                showClassifyDatePanel: '',
-                showBusinessDatePanel: '',
                 timeCategorySelected: 'all'
             }
         },
@@ -501,11 +443,19 @@
                 return list
             }
         },
+        watch: {
+            'timeRange': function (val) {
+                this.onInstanceCategory(null)
+                this.onInstanceBizCcId(null)
+                this.onInstanceNode(null)
+                this.onInstanceTime(null)
+                this.onInstanceDetailsData(null)
+            }
+        },
         created () {
-            this.getDateTime()
             this.choiceTimeTypeName = this.i18n.day
-            this.onChangeCategoryTime()
-            this.onChangeBusinessTime()
+            this.onInstanceCategory(null)
+            this.onInstanceBizCcId()
             this.onInstanceTime()
         },
         methods: {
@@ -543,7 +493,7 @@
                     }
                     this.choiceBusiness = business
                 }
-                const time = this.getUTCTime([this.categoryTime[0], this.categoryTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'category',
                     conditions: JSON.stringify({
@@ -567,7 +517,7 @@
                     }
                     this.choiceCategory = category
                 }
-                const time = this.getUTCTime([this.businessTime[0], this.businessTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'biz_cc_id',
                     conditions: JSON.stringify({
@@ -585,10 +535,9 @@
                 }
                 this.isNodeLoading = true
                 if (value instanceof Array) {
-                    this.tableTime = value
                     this.resetPageIndex()
                 }
-                const time = this.getUTCTime([this.tableTime[0], this.tableTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'instance_node',
                     conditions: JSON.stringify({
@@ -608,11 +557,8 @@
                 }
             },
             onInstanceTime (value) {
-                if (value) {
-                    this.timeTypeTime = value
-                }
                 this.isInstanceTypeLoading = true
-                const time = this.getUTCTime([this.timeTypeTime[0], this.timeTypeTime[1]])
+                const time = this.getUTCTime(this.timeRange)
                 const data = {
                     group_by: 'instance_time',
                     conditions: JSON.stringify({
@@ -700,11 +646,10 @@
                 }
                 this.isDetailsLoading = true
                 if (value instanceof Array) {
-                    this.tableTime = value
                     this.resetPageIndex()
                 }
                 try {
-                    const time = this.getUTCTime([this.tableTime[0], this.tableTime[1]])
+                    const time = this.getUTCTime(this.timeRange)
                     const data = {
                         group_by: 'instance_details',
                         conditions: JSON.stringify({
@@ -729,34 +674,6 @@
                 } else {
                     this.onInstanceDetailsData()
                 }
-            },
-            getDateTime () {
-                const date = new Date()
-                const endTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[1] = endTime
-                this.categoryTime[1] = endTime
-                this.businessTime[1] = endTime
-                this.timeTypeTime[1] = endTime
-                date.setTime(date.getTime() - 3600 * 1000 * 24 * 30)
-                const startTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
-                this.tableTime[0] = startTime
-                this.businessTime[0] = startTime
-                this.categoryTime[0] = startTime
-                this.timeTypeTime[0] = startTime
-            },
-            onShutTimeSelector () {
-                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
-                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
-                this.choiceDownShow = this.$refs.timePickerRef.showDatePanel
-            },
-            onDatePickerClick () {
-                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
-            },
-            onInstanceClick () {
-                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
-            },
-            onTimePickerClick () {
-                this.choiceDownShow = this.$refs.timePickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
@@ -785,18 +702,6 @@
                 this.category = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
-            },
-            onChangeCategoryTime (value) {
-                if (value) {
-                    this.categoryTime = value
-                }
-                this.onInstanceCategory(null)
-            },
-            onChangeBusinessTime (value) {
-                if (value) {
-                    this.businessTime = value
-                }
-                this.onInstanceBizCcId(null)
             },
             resetPageIndex () {
                 switch (this.tabName) {
@@ -869,13 +774,9 @@
     width: 260px;
     background-color: #ffffff;
 }
-.bk-date-range {
-    position: relative;
-    left: 20px;
-    border-right: 35px solid rgba(0,0,0,0);
-}
-.content-date-picker {
-    vertical-align: top;
+.bk-select-date-scope {
+    width: 80px;
+    margin-right: 30px;
 }
 .content-business-picker {
     vertical-align: top;
