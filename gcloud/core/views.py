@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import datetime
-import traceback
 import logging
 
 from django.http import HttpResponseRedirect
@@ -22,7 +21,6 @@ from django.shortcuts import render
 from blueapps.account.middlewares import LoginRequiredMiddleware
 
 from gcloud.conf import settings
-from gcloud.core.project import prepare_projects
 
 logger = logging.getLogger("root")
 
@@ -37,13 +35,6 @@ def page_not_found(request):
 
 
 def home(request):
-    try:
-        prepare_projects(request)
-    except Exception:
-        logger.error('an error occurred when sync user business to projects: {detail}'.format(
-            detail=traceback.format_exc()
-        ))
-
     return render(request, 'core/base_vue.html')
 
 

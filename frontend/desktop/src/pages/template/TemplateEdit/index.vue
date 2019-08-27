@@ -27,6 +27,9 @@
                 :template_id="template_id"
                 :atom-type-list="atomTypeList"
                 :search-atom-result="searchAtomResult"
+                :tpl-resource="tplResource"
+                :tpl-actions="tplActions"
+                :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
                 @onSaveTemplate="onSaveTemplate"
                 @onSearchAtom="onSearchAtom"
@@ -99,7 +102,6 @@
     import NodeConfig from './NodeConfig.vue'
     import draft from '@/utils/draft.js'
     import { STRING_LENGTH } from '@/constants/index.js'
-    import { setAtomConfigApiUrls } from '@/config/setting.js'
 
     const i18n = {
         templateEdit: gettext('流程编辑'),
@@ -150,7 +152,10 @@
                 intervalGetDraftArray: null,
                 templateUUID: uuid(),
                 localTemplateData: null,
-                isClickDraft: false
+                isClickDraft: false,
+                tplOperations: [],
+                tplActions: [],
+                tplResource: {}
             }
         },
         computed: {
@@ -232,10 +237,6 @@
             }
         },
         created () {
-            if (this.common) {
-                this.defaultProjectId = this.project_id
-                setAtomConfigApiUrls(this.site_url, 0)
-            }
             this.initTemplateData()
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
@@ -392,6 +393,9 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
+                    this.tplOperations = templateData.auth_operations
+                    this.tplActions = templateData.auth_actions
+                    this.tplResource = templateData.auth_resource
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
@@ -461,6 +465,9 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    this.tplActions = data.auth_actions
+                    this.tplOperations = data.auth_operations
+                    this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
                         draft.draftReplace(this.username, this.project_id, data.template_id, this.templateUUID)
@@ -471,12 +478,11 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
-                        this.template_id = data.template_id
                         this.allowLeave = true
                         this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
                     if (this.createTaskSaving) {
-                        const taskUrl = this.getTaskUrl()
+                        const taskUrl = this.getTaskUrl(data.template_id)
                         this.$router.push(taskUrl)
                     }
                 } catch (e) {
@@ -743,8 +749,8 @@
                     this.isTemplateConfigValid = true
                 }
             },
-            getTaskUrl () {
-                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${this.template_id}`
+            getTaskUrl (template_id) {
+                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`
                 if (this.common) {
                     url += '&common=1'
                 }
@@ -912,9 +918,6 @@
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
                     draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
-                }
-                if (this.common) {
-                    to.params.project_id = this.defaultProjectId
                 }
                 this.clearAtomForm()
                 next()

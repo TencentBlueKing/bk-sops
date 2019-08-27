@@ -63,7 +63,6 @@ from gcloud.taskflow3.constants import (
 )
 from gcloud.core.utils import (
     convert_readable_username,
-    strftime_with_timezone,
     timestamp_to_datetime,
     format_datetime,
     camel_case_to_underscore_naming,
@@ -885,8 +884,8 @@ class TaskFlowInstance(models.Model):
         status_tree.setdefault('children', {})
         status_tree.pop('created_time', '')
 
-        status_tree['start_time'] = strftime_with_timezone(status_tree.pop('started_time'))
-        status_tree['finish_time'] = strftime_with_timezone(status_tree.pop('archived_time'))
+        status_tree['start_time'] = format_datetime(status_tree.pop('started_time'))
+        status_tree['finish_time'] = format_datetime(status_tree.pop('archived_time'))
         child_status = []
         for identifier_code, child_tree in status_tree['children'].iteritems():
             TaskFlowInstance.format_pipeline_status(child_tree)
@@ -918,7 +917,7 @@ class TaskFlowInstance(models.Model):
         TaskFlowInstance.format_pipeline_status(status_tree)
         return status_tree
 
-    def get_node_data(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -942,7 +941,7 @@ class TaskFlowInstance(models.Model):
                 inputs = WebPipelineAdapter(instance_data).get_act_inputs(
                     act_id=node_id,
                     subprocess_stack=subprocess_stack,
-                    root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance')
+                    root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance', username)
                 )
                 outputs = {}
             except Exception as e:
@@ -1009,7 +1008,7 @@ class TaskFlowInstance(models.Model):
         }
         return {'result': result, 'data': data, 'message': '' if result else data['ex_data']}
 
-    def get_node_detail(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -1017,7 +1016,7 @@ class TaskFlowInstance(models.Model):
             )
             return {'result': False, 'message': message, 'data': {}}
 
-        ret_data = self.get_node_data(node_id, component_code, subprocess_stack)
+        ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack)
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:

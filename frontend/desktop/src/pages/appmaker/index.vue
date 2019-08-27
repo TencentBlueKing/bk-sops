@@ -15,7 +15,11 @@
             <div class="appmaker-table-content">
                 <BaseTitle :title="i18n.title"></BaseTitle>
                 <div class="operation-wrapper">
-                    <bk-button type="primary" @click="onCreateApp">{{i18n.addApp}}</bk-button>
+                    <bk-button
+                        type="primary"
+                        @click="onCreateApp">
+                        {{i18n.addApp}}
+                    </bk-button>
                     <BaseSearch
                         v-model="searchStr"
                         :input-placeholader="i18n.placeholder"
@@ -56,6 +60,8 @@
                         v-for="item in appList"
                         :key="item.id"
                         :app-data="item"
+                        :app-resource="appResource"
+                        :app-operations="appOperations"
                         :project_id="project_id"
                         @onCardEdit="onCardEdit"
                         @onCardDelete="onCardDelete"
@@ -170,6 +176,8 @@
                     edit: false,
                     delete: false
                 },
+                appOperations: [],
+                appResource: {},
                 i18n: {
                     title: gettext('轻应用'),
                     addApp: gettext('新建'),
@@ -229,6 +237,8 @@
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
+                    this.appOperations = resp.meta.auth_operations
+                    this.appResource = resp.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {

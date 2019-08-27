@@ -30,7 +30,9 @@
                     <div class="col-item">
                         <TaskFeeds
                             :top-three-task-feeds="topThreeTaskFeeds"
-                            :project_id="project_id">
+                            :project_id="project_id"
+                            :task-operations="taskOperations"
+                            :task-resource="taskResource">
                         </TaskFeeds>
                     </div>
                     <div class="col-item">
@@ -75,7 +77,9 @@
                 taskCount: [],
                 totalTask: 0,
                 templateClassify: [],
-                totalTemplate: 0
+                totalTemplate: 0,
+                taskOperations: [],
+                taskResource: {}
             }
         },
         watch: {
@@ -136,6 +140,8 @@
                         limit: 3
                     }
                     const taskTop3Data = await this.loadTaskList(query)
+                    this.taskOperations = taskTop3Data.meta.auth_operations
+                    this.taskResource = taskTop3Data.meta.auth_resource
                     return taskTop3Data.objects
                 } catch (e) {
                     errorHandler(e, this)

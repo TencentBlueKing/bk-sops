@@ -15,34 +15,31 @@ import ujson as json
 
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from django.http.response import HttpResponseForbidden
 from tastypie import fields
-from tastypie.resources import ModelResource
-from tastypie.authorization import Authorization, ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
+from tastypie.exceptions import BadRequest, NotFound
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate
 
 from gcloud.commons.template.models import CommonTemplate
+from gcloud.commons.template.permissions import common_template_resource
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
-from gcloud.webservice3.resources import (
-    GCloudModelResource,
-    AppSerializer,
-    pipeline_node_name_handle,
-    TemplateFilterPaginator
-)
+from gcloud.webservice3.resources import GCloudModelResource
+from gcloud.webservice3.paginator import TemplateFilterPaginator
+from gcloud.core.utils import pipeline_node_name_handle
 
 
-class PipelineTemplateResource(ModelResource):
-    class Meta:
+class PipelineTemplateResource(GCloudModelResource):
+    class Meta(GCloudModelResource.Meta):
         queryset = PipelineTemplate.objects.filter(is_deleted=False)
         resource_name = 'pipeline_template'
         authorization = ReadOnlyAuthorization()
-        serializer = AppSerializer()
         filtering = {
             'name': ALL,
             'creator': ALL,
@@ -50,38 +47,6 @@ class PipelineTemplateResource(ModelResource):
             'subprocess_has_update': ALL,
             'edit_time': ['gte', 'lte']
         }
-        limit = 0
-
-
-class CommonAuthorization(Authorization):
-    """
-    @summary: common authorization
-        create/update/delete: only superuser
-        read: all users
-    """
-
-    def is_superuser(self, bundle):
-        if bundle.request.user.is_superuser:
-            return True
-        raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write common flows'))
-
-    def create_list(self, object_list, bundle):
-        return []
-
-    def create_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
 
 
 class CommonTemplateResource(GCloudModelResource):
@@ -140,12 +105,13 @@ class CommonTemplateResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'common_template'
-        authorization = CommonAuthorization()
-        always_return_data = True
-        serializer = AppSerializer()
+        auth_resource = common_template_resource
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit')
         filtering = {
             "id": ALL,
             "name": ALL,
@@ -155,7 +121,6 @@ class CommonTemplateResource(GCloudModelResource):
             "has_subprocess": ALL
         }
         q_fields = ["id", "pipeline_template__name"]
-        limit = 0
         paginator_class = TemplateFilterPaginator
 
     @staticmethod
@@ -168,6 +133,7 @@ class CommonTemplateResource(GCloudModelResource):
         return json.dumps(bundle.data['pipeline_tree'])
 
     def alter_list_data_to_serialize(self, request, data):
+        data = super(CommonTemplateResource, self).alter_list_data_to_serialize(request, data)
         user_model = get_user_model()
         user = request.user
         collected_templates = user_model.objects.get(username=user.username) \

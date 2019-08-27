@@ -37,8 +37,17 @@
                         <tr v-for="(item, index) in appmakerList" :key="item.id">
                             <td class="appmaker-id">{{item.id}}</td>
                             <td class="appmaker-name">
+                                <a
+                                    v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="item.name"
+                                    @click="onTaskPermissonCheck(['view'], item, $event)">
+                                    {{item.name}}
+                                </a>
                                 <router-link
-                                    :to="`/appmaker/${item.create_info}/execute/${item.id}/?instance_id=${item.id}`">
+                                    v-else
+                                    :to="`/appmaker/${item.create_info}/execute/${item.project.id}/?instance_id=${item.id}`">
                                     {{item.name}}
                                 </router-link>
                             </td>
@@ -82,6 +91,8 @@
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import toolsUtils from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'appmakerTaskHome',
         components: {
@@ -89,6 +100,7 @@
             BaseTitle,
             NoData
         },
+        mixins: [permission],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -121,7 +133,9 @@
                 },
                 searchStr: '',
                 appmakerList: [],
-                executeStatus: [] // 任务执行状态
+                executeStatus: [], // 任务执行状态
+                taskOperations: [],
+                taskResource: {}
             }
         },
         computed: {
@@ -150,6 +164,8 @@
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.objects
                     this.appmakerList = list
+                    this.taskOperations = appmakerListData.meta.auth_operations
+                    this.taskResource = appmakerListData.meta.auth_resource
                     this.totalCount = appmakerListData.meta.total_count
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
@@ -249,8 +265,11 @@
                     statusClass = { primary: true }
                 }
                 return statusClass
+            },
+            onTaskPermissonCheck (task, event) {
+                this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
+                event.preventDefault()
             }
-
         }
     }
 </script>

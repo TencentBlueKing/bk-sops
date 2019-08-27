@@ -23,7 +23,10 @@
             :project_id="project_id"
             :instance_id="instance_id"
             :instance-name="instanceName"
-            :instance-flow="instanceFlow">
+            :instance-flow="instanceFlow"
+            :instance-actions="instanceActions"
+            :instance-operations="instanceOperations"
+            :instance-resource="instanceResource">
         </TaskFunctionalization>
         <TaskOperation
             v-if="!isFunctional && !loading"
@@ -31,6 +34,9 @@
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
+            :instance-actions="instanceActions"
+            :instance-operations="instanceOperations"
+            :instance-resource="instanceResource"
             @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
     </div>
@@ -75,7 +81,10 @@
                 isFunctional: false,
                 isAllStepsFinished: false,
                 instanceName: '',
-                instanceFlow: ''
+                instanceFlow: '',
+                instanceActions: [],
+                instanceOperations: [],
+                instanceResource: {}
             }
         },
         computed: {
@@ -111,6 +120,9 @@
                     }
                     this.instanceFlow = instanceData.pipeline_tree
                     this.instanceName = instanceData.name
+                    this.instanceActions = instanceData.auth_actions
+                    this.instanceOperations = instanceData.auth_operations
+                    this.instanceResource = instanceData.auth_resource
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true
                     }

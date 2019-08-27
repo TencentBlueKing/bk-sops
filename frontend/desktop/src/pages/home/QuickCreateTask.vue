@@ -12,15 +12,24 @@
 <template>
     <div class="quick-create-task-content">
         <h3 class="title">{{i18n.myTasks}}</h3>
-        <div v-if="quickTaskList.length" class="clearfix">
+        <div v-if="listData.length" class="clearfix">
             <ul class="task-list">
                 <li
-                    v-for="item in quickTaskList"
+                    v-for="item in listData"
                     :key="item.id"
                     class="task-item">
+                    <a
+                        v-if="!getTemplateCreateTaskPerm(item)"
+                        v-cursor
+                        :class="['task-name', {
+                            'btn-permission-disable': !getTemplateCreateTaskPerm(item)
+                        }]"
+                        @click="goToTemplate(item)">
+                        {{item.name}}
+                    </a>
                     <router-link
+                        v-else
                         class="task-name"
-                        :title="item.name"
                         :to="`/template/newtask/${project_id}/selectnode/?template_id=${item.id}`">
                         {{item.name}}
                     </router-link>
@@ -48,7 +57,9 @@
             :submitting="submitting"
             :is-select-template-dialog-show="isSelectTemplateDialogShow"
             :template-list="templateList"
-            :quick-task-list="quickTaskList"
+            :tpl-operations="tplOperations"
+            :tpl-resource="tplResource"
+            :quick-task-list="listData"
             :template-grouped="templateGrouped"
             :select-template-loading="selectTemplateLoading"
             @confirm="onConfirm"
@@ -60,14 +71,17 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import SelectTemplateDialog from './SelectTemplateDialog.vue'
+
     export default {
         name: 'QuickCreateTask',
         components: {
             NoData,
             SelectTemplateDialog
         },
+        mixins: [permission],
         props: ['quickTaskList', 'project_id', 'templateClassify', 'totalTemplate'],
         data () {
             return {
@@ -81,18 +95,50 @@
                     addTips2: gettext('立即添加')
                 },
                 selectTemplateLoading: false,
+                listData: [], // 收藏模板详情
                 templateList: [],
-                templateGrouped: []
+                templateGrouped: [],
+                tplOperations: [],
+                tplResource: {}
             }
+        },
+        watch: {
+            quickTaskList: {
+                handler (val) {
+                    this.getTemplateDetail()
+                },
+                deep: true
+            }
+        },
+        created () {
+            this.getTemplateDetail()
         },
         methods: {
             ...mapActions('template/', [
                 'templateCollectSelect',
-                'templateCollectDelete'
+                'templateCollectDelete',
+                'getCollectedTemplateDetail'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
+            async getTemplateDetail () {
+                if (this.quickTaskList.length === 0) {
+                    return
+                }
+                try {
+                    this.templateDetailLoading = true
+                    const ids = this.quickTaskList.map(item => item.id).join(',')
+                    const res = await this.getCollectedTemplateDetail(ids)
+                    this.tplOperations = res.meta.auth_operations
+                    this.tplResource = res.meta.auth_resource
+                    this.listData = res.objects
+                } catch (err) {
+                    errorHandler(err, this)
+                } finally {
+                    this.templateDetailLoading = false
+                }
+            },
             async onDeleteTemplate (id) {
                 const list = this.getDeletedList(id)
                 try {
@@ -134,7 +180,7 @@
             },
             getDeletedList (id) {
                 let index
-                const list = this.quickTaskList.slice(0)
+                const list = this.listData.slice(0)
                 list.some((item, i) => {
                     if (item.id === id) {
                         index = i
@@ -157,6 +203,8 @@
                 try {
                     const templateData = await this.loadTemplateList()
                     this.templateList = templateData.objects
+                    this.tplOperations = templateData.meta.auth_operations
+                    this.tplResource = templateData.meta.auth_resource
                     // 如果没有数据跳转至新建页面
                     this.templateGrouped = this.getGroupData(this.templateList, this.templateClassify)
                 } catch (e) {
@@ -185,6 +233,16 @@
                     groupData[index].list.push(item)
                 })
                 return groupData
+            },
+            getTemplateCreateTaskPerm (template) {
+                return this.hasPermission(['create_task'], template.auth_actions, this.tplOperations)
+            },
+            goToTemplate (template) {
+                if (!this.getTemplateCreateTaskPerm(template)) {
+                    this.applyForPermission(['create_task'], template, this.tplOperations, this.tplResource)
+                } else {
+                    this.$router.push(`/template/newtask/${this.project_id}/selectnode/?template_id=${template.id}`)
+                }
             }
         }
     }

@@ -25,3 +25,4 @@ class FunctionConfig(AppConfig):
             function_task_started_handler,
             function_task_finished_handler,
         )
+        from gcloud.contrib.function.permissions import function_center_resource  # noqa

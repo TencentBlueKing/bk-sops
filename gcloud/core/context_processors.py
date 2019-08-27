@@ -87,7 +87,7 @@ def mysetting(request):
         'IS_FUNCTOR': is_functor,
         'IS_AUDITOR': is_auditor,
         'PROJECT_TIMEZONE': project_timezone,
-        'DEFAULT_PROJECT_ID': default_project.id if default_project else None
+        'DEFAULT_PROJECT_ID': default_project.id if default_project else ''
     }
 
     return ctx

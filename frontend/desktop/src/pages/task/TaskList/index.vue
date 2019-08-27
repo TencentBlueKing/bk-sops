@@ -110,7 +110,17 @@
                         <tr v-for="(item, index) in taskList" :key="item.id">
                             <td class="task-id">{{item.id}}</td>
                             <td class="task-name">
+                                <a
+                                    v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="item.name"
+                                    @click="onTaskPermissonCheck(['view'], item, $event)">
+                                    {{item.name}}
+                                </a>
                                 <router-link
+                                    v-else
+                                    class="template-operate-btn"
                                     :title="item.name"
                                     :to="`/taskflow/execute/${project_id}/?instance_id=${item.id}`">
                                     {{item.name}}
@@ -127,8 +137,24 @@
                                 <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
                             </td>
                             <td class="task-operation">
-                                <a class="task-operation-clone" href="javascript:void(0);" @click="onCloneTaskClick(item.id, item.name)">{{ i18n.clone }}</a>
-                                <a class="task-operation-delete" href="javascript:void(0);" @click="onDeleteTask(item.id, item.name)">{{ i18n.delete }}</a>
+                                <a
+                                    v-cursor="{ active: !hasPermission(['clone'], item.auth_actions, taskOperations) }"
+                                    :class="['task-operation-clone', {
+                                        'text-permission-disable': !hasPermission(['clone'], item.auth_actions, taskOperations)
+                                    }]"
+                                    href="javascript:void(0);"
+                                    @click="onCloneTaskClick(item, $event)">
+                                    {{ i18n.clone }}
+                                </a>
+                                <a
+                                    v-cursor="{ active: !hasPermission(['delete'], item.auth_actions, taskOperations) }"
+                                    :class="['task-operation-delete', {
+                                        'text-permission-disable': !hasPermission(['delete'], item.auth_actions, taskOperations)
+                                    }]"
+                                    href="javascript:void(0);"
+                                    @click="onDeleteTask(item, $event)">
+                                    {{ i18n.delete }}
+                                </a>
                             </td>
                         </tr>
                         <tr v-if="!taskList || !taskList.length" class="empty-tr">
@@ -186,6 +212,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
     import TaskCloneDialog from './TaskCloneDialog.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TaskList',
@@ -196,6 +223,7 @@
             NoData,
             TaskCloneDialog
         },
+        mixins: [permission],
         props: {
             project_id: {
                 type: String,
@@ -234,6 +262,8 @@
                     delete: false,
                     clone: false
                 },
+                taskOperations: [],
+                taskResource: {},
                 i18n: {
                     allCategory: gettext('全部'),
                     placeholder: gettext('请输入ID或任务名称'),
@@ -360,6 +390,8 @@
                     const taskListData = await this.loadTaskList(data)
                     const list = taskListData.objects
                     this.totalCount = taskListData.meta.total_count
+                    this.taskOperations = taskListData.meta.auth_operations
+                    this.taskResource = taskListData.meta.auth_resource
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -368,6 +400,7 @@
                     }
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
+                        
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
@@ -449,9 +482,23 @@
                 this.currentPage = 1
                 this.getTaskList()
             },
-            onDeleteTask (id, name) {
-                this.theDeleteTaskId = id
-                this.theDeleteTaskName = name
+            /**
+             * 单个任务操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} task 任务数据对象
+             * @params {Object} event 事件对象
+             */
+            onTaskPermissonCheck (required, task, event) {
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
+                event.preventDefault()
+            },
+            onDeleteTask (task, event) {
+                if (!this.hasPermission(['delete'], task.auth_actions, this.taskOperations)) {
+                    this.onTaskPermissonCheck(['delete'], task, event)
+                    return
+                }
+                this.theDeleteTaskId = task.id
+                this.theDeleteTaskName = task.name
                 this.isDeleteDialogShow = true
             },
             async onDeleteConfirm () {
@@ -482,10 +529,14 @@
                 this.theDeleteTaskName = ''
                 this.isDeleteDialogShow = false
             },
-            onCloneTaskClick (id, name) {
+            onCloneTaskClick (task, event) {
+                if (!this.hasPermission(['clone'], task.auth_actions, this.taskOperations)) {
+                    this.onTaskPermissonCheck(['clone'], task, event)
+                    return
+                }
                 this.isTaskCloneDialogShow = true
-                this.theCloneTaskId = id
-                this.theCloneTaskName = name
+                this.theCloneTaskId = task.id
+                this.theCloneTaskName = task.name
             },
             async onCloneConfirm (name) {
                 if (this.pending.clone) return

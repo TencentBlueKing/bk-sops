@@ -13,6 +13,8 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
     return {
         // 业务人员列表
         bizPerson: SITE_URL + 'core/api/get_roles_and_personnel/' + PROJECT_ID + '/',
+        permission: SITE_URL + 'core/api/query_apply_permission_url/',
+        permissionQuery: SITE_URL + 'core/api/query_resource_verify_perms/',
         // 更改默认项目
         projectDefaultChange: SITE_URL + 'core/api/change_default_project/',
         projectBaseInfo: SITE_URL + 'core/api/get_basic_info/',
@@ -42,7 +44,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         instanceRevoke: SITE_URL + 'taskflow/api/action/revoke/' + PROJECT_ID + '/',
         instanceResume: SITE_URL + 'taskflow/api/action/resume/' + PROJECT_ID + '/',
         instanceModify: SITE_URL + 'taskflow/api/inputs/modify/' + PROJECT_ID + '/',
-        instanceClaim: SITE_URL + 'taskflow/api/flow/claim/' + PROJECT_ID + '/',
+        instanceClaim: SITE_URL + 'taskflow/api/flow/claim/',
         instanceDetail: SITE_URL + 'taskflow/detail/' + PROJECT_ID + '/',
         instanceStatus: SITE_URL + 'taskflow/api/status/',
         nodeActInfo: SITE_URL + 'taskflow/api/nodes/data/' + PROJECT_ID + '/',
