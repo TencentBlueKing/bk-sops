@@ -28,6 +28,7 @@ class DjangoModelResource(ObjectResource):
     def __init__(self, id_field, auto_register=True, tomb_field=None, *args, **kwargs):
         super(DjangoModelResource, self).__init__(*args, **kwargs)
         self.auto_register = auto_register
+        # 墓碑位，用于识别应用了伪删除的模型
         self.tomb_field = tomb_field
         self.id_field = id_field
 

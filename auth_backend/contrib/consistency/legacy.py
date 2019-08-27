@@ -44,7 +44,7 @@ def register_legacy_instances(legacy_resources):
         num_of_instances = resource.count()
 
         if num_of_instances == 0:
-            sys.stdout.write('Can\' not find instances for [{type}], skip it.\n'.format(type=resource_type))
+            sys.stdout.write('Can\' not find instances for [{type}], skip it\n'.format(type=resource_type))
             continue
 
         sys.stdout.write('Start to register [{len}] legacy data for [{type}]...\n'.format(len=num_of_instances,
@@ -60,7 +60,7 @@ def register_legacy_instances(legacy_resources):
             try:
                 result = resource.batch_register_instance(instances)
             except Exception:
-                warning_msg = '[{type}] resource [{start}, {end}] batch instance register failed: {trace}.'.format(
+                warning_msg = '[{type}] resource [{start}, {end}] batch instance register failed: {trace}'.format(
                     type=resource_type,
                     start=cursor,
                     end=cursor + step,
@@ -69,16 +69,20 @@ def register_legacy_instances(legacy_resources):
                 sys.stdout.write('[WARNING] {msg}\n'.format(msg=warning_msg))
                 logger.warning(warning_msg)
             else:
-                if not result.get('result'):
-                    if result.get('code') != AUTH_CONFLICT_CODE:
-                        raise AuthInvalidOperationError('[{type}] instances register error, register result: {result}; '
-                                                        'cursor: {cursor}; step: {step}'
-                                                        'instances length: {len}'.format(type=resource_type,
-                                                                                         result=result,
-                                                                                         cursor=cursor,
-                                                                                         step=step,
-                                                                                         len=num_of_instances))
+                if not result.get('result') and result.get('code') != AUTH_CONFLICT_CODE:
+                    raise AuthInvalidOperationError('[{type}] instances register error, register result: {result}; '
+                                                    'cursor: {cursor}; step: {step}'
+                                                    'instances count: {len}'.format(type=resource_type,
+                                                                                    result=result,
+                                                                                    cursor=cursor,
+                                                                                    step=step,
+                                                                                    len=num_of_instances))
 
-                sys.stdout.write('{success_num} instances register success.\n'.format(success_num=len(instances)))
+                sys.stdout.write('[{type}] {success_num} instances register success\n'.format(
+                    success_num=len(instances),
+                    type=resource_type))
 
             cursor += step
+
+        sys.stdout.write('[{type}] instances register finished\n\n'.format(len=num_of_instances,
+                                                                           type=resource_type))
