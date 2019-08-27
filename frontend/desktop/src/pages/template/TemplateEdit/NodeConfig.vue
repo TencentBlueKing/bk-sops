@@ -348,8 +348,14 @@
              */
             renderOutputData () {
                 const outputData = []
-                const outputConfig = this.getOutputConfig()
-
+                let outputConfig = []
+                if (!this.currentAtom
+                    || JSON.stringify(this.atomFormConfig) === '{}'
+                    || !this.atomFormConfig[this.currentAtom]) {
+                    outputConfig = []
+                } else {
+                    outputConfig = this.getOutputConfig()
+                }
                 outputConfig && outputConfig.forEach(item => {
                     let hook = false
                     let key = item.key
@@ -394,9 +400,16 @@
              * 输入参数表单配置项
              */
             renderInputConfig () {
-                return this.isSingleAtom
-                    ? this.getSingleAtomConfig()
-                    : this.subAtomInput
+                if (this.isSingleAtom) {
+                    if (!this.currentAtom
+                        || JSON.stringify(this.atomFormConfig) === '{}'
+                        || !this.atomFormConfig[this.currentAtom]) {
+                        return []
+                    }
+                    return this.getSingleAtomConfig()
+                } else {
+                    return this.subAtomInput
+                }
             },
             /**
              * 输入参数数据
@@ -646,17 +659,8 @@
                 this.inputAtomHook = inputFormHooks
                 this.inputAtomData = inputFormData
             },
-            // 过滤 computed 等引起的不正确调用获取节点配置函数
-            isCorrectSource (config) {
-                return !(!this.currentAtom
-                    || JSON.stringify(config) === '{}'
-                    || !config[this.currentAtom])
-            },
             getSingleAtomConfig () {
                 // 当前版本或最新版本
-                if (!this.isCorrectSource(this.atomFormConfig)) {
-                    return
-                }
                 const config = this.atomFormConfig[this.currentAtom][this.currentSingleAtomVersion]
                 if (!config) {
                     return {}
@@ -670,9 +674,6 @@
             },
             getOutputConfig () {
                 const version = this.currentSingleAtomVersion
-                if (!this.isCorrectSource(this.atomFormOutput)) {
-                    return
-                }
                 return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
             },
             getHookedInputVariables () {
