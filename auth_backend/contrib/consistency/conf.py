@@ -11,39 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from auth_backend.constants import HTTP_AUTH_FAILED_CODE
+import os
 
+from django.conf import settings
 
-class AuthBaseException(Exception):
-    pass
-
-
-class AuthLookupError(AuthBaseException):
-    pass
-
-
-class AuthKeyError(AuthBaseException):
-    pass
-
-
-class AuthInvalidOperationError(AuthBaseException):
-    pass
-
-
-class AuthInterfaceEmptyError(AuthBaseException):
-    pass
-
-
-class AuthBackendError(AuthBaseException):
-    pass
-
-
-class AuthOperationFailedError(AuthBaseException):
-    pass
-
-
-class AuthFailedException(AuthBaseException):
-    def __init__(self, permissions, status=HTTP_AUTH_FAILED_CODE, *args, **kwargs):
-        super(AuthFailedException, self).__init__(*args, **kwargs)
-        self.permissions = permissions
-        self.status = status
+LEGACY_RESOURCES = getattr(settings, 'AUTH_LEGACY_RESOURCES', [])
+BATCH_REGISTER_SIZE = getattr(settings, 'AUTH_LEGACY_BATCH_REGISTER_SIZE', None) \
+                      or os.getenv('AUTH_LEGACY_BATCH_REGISTER_SIZE') \
+                      or 100
