@@ -40,15 +40,21 @@
         <div class="canvas-operation-wrapper">
             <bk-button
                 type="primary"
-                class="save-canvas"
+                :class="['save-canvas', {
+                    'btn-permission-disable': !isSaveBtnEnable
+                }]"
                 :loading="templateSaving"
+                v-cursor="{ active: !isSaveBtnEnable }"
                 @click="onSaveTemplate(false)">
                 {{ i18n.save }}
             </bk-button>
             <bk-button
                 type="primary"
-                class="task-btn"
+                :class="['task-btn', {
+                    'btn-permission-disable': !isSaveAndCreateBtnEnable
+                }]"
                 :loading="createTaskSaving"
+                v-cursor="{ active: !isSaveAndCreateBtnEnable }"
                 @click="onSaveTemplate(true)">
                 {{ createTaskBtnText }}
             </bk-button>
@@ -58,18 +64,20 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapMutations } from 'vuex'
+    import { mapState, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ConfigBar',
         components: {
             BaseInput
         },
+        mixins: [permission],
         props: [
             'name', 'project_id', 'template_id', 'type', 'common', 'templateSaving',
-            'createTaskSaving', 'isTemplateDataChanged'
+            'createTaskSaving', 'isTemplateDataChanged', 'tplResource', 'tplActions', 'tplOperations'
         ],
         data () {
             return {
@@ -92,11 +100,47 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'authActions': state => state.authActions,
+                'authOperations': state => state.authOperations,
+                'authResource': state => state.authResource
+            }),
             templateTitle () {
                 return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
             },
             createTaskBtnText () {
                 return (this.isTemplateDataChanged || this.type === 'new') ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+            },
+            createTaskBtnIsPass () {
+                if (this.type === 'new') {
+                    return this.perm.create_task.isPass && this.perm.edit.isPass
+                } else {
+                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                }
+            },
+            saveRequiredPerm () {
+                return this.type === 'new' ? ['create_template'] : ['edit']
+            },
+            saveAndCreateRequiredPerm () {
+                if (this.type === 'new') {
+                    return ['create_template']
+                } else {
+                    return this.isTemplateDataChanged ? ['create_task', 'edit'] : ['create_task']
+                }
+            },
+            isSaveBtnEnable () {
+                if (this.type === 'new') {
+                    return this.hasPermission(this.saveRequiredPerm, this.authActions, this.authOperations)
+                } else {
+                    return this.hasPermission(this.saveRequiredPerm, this.tplActions, this.tplOperations)
+                }
+            },
+            isSaveAndCreateBtnEnable () {
+                if (this.type === 'new') {
+                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.authActions, this.authOperations)
+                } else {
+                    return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
+                }
             }
         },
         watch: {
@@ -112,6 +156,13 @@
                 this.$emit('onChangeName', val)
             },
             onSaveTemplate (saveAndCreate = false) {
+                const { resourceData, operations, actions, resource } = this.getPermissionData()
+                const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
+                if (!this.hasPermission(required, actions, operations)) {
+                    this.applyForPermission(required, resourceData, operations, resource)
+                    return
+                }
+
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
                     this.tName = this.tName.trim()
@@ -123,6 +174,29 @@
                         this.$emit('onSaveTemplate', saveAndCreate)
                     }
                 })
+            },
+            getPermissionData () {
+                let resourceData, operations, actions, resource
+                if (this.type === 'new') {
+                    resourceData = {
+                        id: this.project_id,
+                        name: gettext('项目'),
+                        auth_actions: this.authActions
+                    }
+                    operations = this.authOperations
+                    actions = this.authActions
+                    resource = this.authResource
+                } else {
+                    resourceData = {
+                        id: this.template_id,
+                        name: this.name,
+                        auth_actions: this.tplActions
+                    }
+                    operations = this.tplOperations
+                    actions = this.tplActions
+                    resource = this.tplResource
+                }
+                return { resourceData, operations, actions, resource }
             },
             getHomeUrl () {
                 let url = `/template/home/${this.project_id}/`

@@ -31,11 +31,18 @@ TASK_RESULT = [
 
 import base64
 import logging
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.components.utils import cc_get_ips_info_by_str, get_job_instance_url, get_node_callback_url
+from pipeline_plugins.components.utils import (
+    cc_get_ips_info_by_str,
+    get_job_instance_url,
+    get_node_callback_url,
+    handle_api_error
+)
+
 from pipeline.core.flow.activity import Service
 from pipeline.component_framework.component import Component
 
@@ -51,6 +58,8 @@ __group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+
+job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 class JobService(Service):
@@ -76,13 +85,16 @@ class JobService(Service):
         if status in JOB_SUCCESS:
 
             # 全局变量重载
-            global_var_result = client.job.get_job_instance_global_var_value({
-                "bk_biz_id": parent_data.get_one_of_inputs('biz_cc_id'),
+            get_var_kwargs = {
+                "bk_biz_id": data.get_one_of_inputs('biz_cc_id'),
                 "job_instance_id": job_instance_id
-            })
+            }
+            global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
 
             if not global_var_result['result']:
-                data.set_outputs('ex_data', global_var_result['message'])
+                data.outputs.ex_data = job_handle_api_error('job.get_job_instance_global_var_value',
+                                                            get_var_kwargs,
+                                                            global_var_result)
                 self.finish_schedule()
                 return False
 
@@ -158,13 +170,13 @@ class JobExecuteTaskService(JobService):
         LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_result, kwargs=job_kwargs))
         if job_result['result']:
             job_instance_id = job_result['data']['job_instance_id']
-            data.outputs.job_inst_url = get_job_instance_url(parent_data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
             data.outputs.client = client
             return True
         else:
-            data.outputs.ex_data = job_result['message']
+            data.outputs.ex_data = job_handle_api_error('job.execute_job', job_kwargs, job_result)
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -228,11 +240,13 @@ class JobFastPushFileService(JobService):
             job_instance_id = job_result['data']['job_instance_id']
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
-            data.outputs.job_inst_url = get_job_instance_url(parent_data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
             data.outputs.client = client
             return True
         else:
-            data.outputs.ex_data = job_result['message']
+            data.outputs.ex_data = job_handle_api_error('job.fast_push_file',
+                                                        job_kwargs,
+                                                        job_result)
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -260,6 +274,7 @@ class JobFastExecuteScriptService(JobService):
         job_script = data.get_one_of_inputs('job_script')
 
         biz_cc_id = job_script['biz_cc_id']
+        data.inputs.biz_cc_id = biz_cc_id
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(
             username=executor,
@@ -300,11 +315,13 @@ class JobFastExecuteScriptService(JobService):
             job_instance_id = job_result['data']['job_instance_id']
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
-            data.outputs.job_inst_url = get_job_instance_url(parent_data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             data.outputs.client = client
             return True
         else:
-            data.outputs.ex_data = '%s, invalid ip: %s' % (job_result['message'], ','.join(ip_info['invalid_ip']))
+            data.outputs.ex_data = job_handle_api_error('job.fast_execute_script',
+                                                        job_kwargs,
+                                                        job_result)
             return False
 
     def schedule(self, data, parent_data, callback_data=None):

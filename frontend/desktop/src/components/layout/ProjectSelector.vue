@@ -24,7 +24,6 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import { setAtomConfigApiUrls } from '@/config/setting.js'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
@@ -49,7 +48,8 @@
                 projectList: state => state.projectList
             }),
             projects () {
-                const projects = [
+                const projects = []
+                const projectsGroup = [
                     {
                         name: this.i18n.biz,
                         children: []
@@ -61,11 +61,18 @@
                 ]
                 this.projectList.forEach(item => {
                     if (item.from_cmdb) {
-                        projects[0].children.push(item)
+                        projectsGroup[0].children.push(item)
                     } else {
-                        projects[1].children.push(item)
+                        projectsGroup[1].children.push(item)
                     }
                 })
+                
+                projectsGroup.forEach(group => {
+                    if (group.children.length) {
+                        projects.push(group)
+                    }
+                })
+
                 return projects
             },
             currentProject: {
@@ -91,11 +98,10 @@
                     await this.changeDefaultProject(id)
                     const timeZone = project.time_zone || 'Asia/Shanghai'
                     this.setTimeZone(timeZone)
-                    setAtomConfigApiUrls(this.site_url, id)
                     
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
 
-                    this.$router.push({ path: `/project/home/${id}/` })
+                    this.$router.push({ path: `/home/${id}/` })
                 } catch (err) {
                     errorHandler(err, this)
                 }

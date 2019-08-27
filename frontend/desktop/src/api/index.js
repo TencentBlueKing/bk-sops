@@ -103,7 +103,7 @@ const api = {
         } else {
             prefixUrl = this.getPrefix('template')
         }
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, { 'project__id': project_id }, data)
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -165,7 +165,7 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                project_id
+                'project__id': project_id
             }
         }
         return request(opts)
@@ -235,7 +235,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersons')
-            params['project_id'] = project_id
+            params['project__id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersons')
         }
@@ -262,7 +262,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersonsSave')
-            bodyData['project_id'] = project_id
+            bodyData['project__id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersonsSave')
         }
@@ -454,10 +454,10 @@ const api = {
     getTaskList (data) {
         const { project_id } = store.state.project
         const { common, template_id } = data
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
-            querystring['template_source'] = 'business'
+            querystring['template_source'] = 'project'
         }
         if (common) {
             querystring['template_source'] = 'common'
@@ -514,8 +514,8 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                project_id,
-                'template__template_id': template_id
+                template_id,
+                'project__id': project_id
             }
         }
         return request(opts)
@@ -531,7 +531,7 @@ const api = {
             method: 'POST',
             url: prefixUrl,
             data: {
-                project_id,
+                'project__id': project_id,
                 template_id,
                 data,
                 name
@@ -573,7 +573,7 @@ const api = {
         const dataJson = {
             template_id: templateId,
             exclude_task_nodes_id: excludeTaskNodesId,
-            template_source: 'business'
+            template_source: 'project'
         }
         if (common) {
             dataJson['template_source'] = 'common'
@@ -593,7 +593,7 @@ const api = {
      */
     createTask (data) {
         const { app_id, view_mode, username } = store.state
-        const { project_id } = store.state
+        const { project_id } = store.state.project
         const { templateId, name, description, execData, flowType, common } = data
         const prefixUrl = this.getPrefix('instance')
         const requestData = {
@@ -606,7 +606,7 @@ const api = {
             'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
             'create_info': app_id,
             'flow_type': flowType,
-            'template_source': 'business'
+            'template_source': 'project'
         }
         if (common) {
             requestData['template_source'] = 'common'
@@ -636,10 +636,15 @@ const api = {
      */
     claimFuncTask (data) {
         const prefixUrl = this.getPrefix('instanceClaim')
-        const requestData = qs.stringify(data)
+        const { name, instance_id, constants, project_id } = data
+        const requestData = qs.stringify({
+            name,
+            instance_id,
+            constants
+        })
         const opts = {
             method: 'POST',
-            url: prefixUrl,
+            url: `${prefixUrl}${project_id}/`,
             data: requestData
         }
 
@@ -650,13 +655,14 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, project_id } = data
+        const { instance_id, project_id, subprocess_id } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
             url: `${prefixUrl}${project_id}/`,
             params: {
-                instance_id
+                instance_id,
+                subprocess_id
             }
         }
 
@@ -979,7 +985,7 @@ const api = {
     loadAppmaker (data) {
         const { project_id } = store.state.project
         const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -1155,7 +1161,7 @@ const api = {
      */
     getPeriodicList (data) {
         const { project_id } = store.state.project
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
@@ -1219,7 +1225,7 @@ const api = {
     getPeriodic (data) {
         const { project_id } = store.state.project
         const { taskId } = data
-        const querystring = Object.assign({}, { project_id })
+        const querystring = Object.assign({}, { 'project_id': project_id })
         const prefixUrl = this.getPrefix('periodic') + taskId + '/'
         const opts = {
             method: 'GET',
@@ -1294,7 +1300,7 @@ const api = {
      * 加载项目列表
      */
     loadProjectList (data = {}) {
-        const { limit, offset, is_disable, name } = data
+        const { limit, offset, is_disable = false, q } = data
         const prefixUrl = this.getPrefix('project')
 
         const opts = {
@@ -1304,7 +1310,7 @@ const api = {
                 limit,
                 offset,
                 is_disable,
-                name
+                q
             }
         }
         return request(opts)
@@ -1337,7 +1343,7 @@ const api = {
 
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}id`
+            url: `${prefixUrl}${id}`
         }
         return request(opts)
     },
@@ -1357,6 +1363,58 @@ const api = {
                 time_zone,
                 desc,
                 is_disable
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 获取申请权限 url
+     * @param {String} data 权限数据
+     */
+    getPermissionUrl (data) {
+        const prefixUrl = this.getPrefix('permission')
+        const dataBody = qs.stringify({ permission: data })
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 查询用户是否具有某权限
+     * @param {Object} data 查询参数 {resource_type: 'xxx', instance_id: 0, action_ids: "['aaa', 'bbb']"}
+     */
+    queryUserPermission (data) {
+        const prefixUrl = this.getPrefix('permissionQuery')
+        const { resource_type, instance_id, action_ids } = data
+        const dataBody = qs.stringify({
+            resource_type,
+            instance_id,
+            action_ids
+        })
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            data: dataBody
+        }
+        return request(opts)
+    },
+    /**
+     * 获取收藏模板详情
+     * @param {String} ids 模板id字符串, eg: 123,33
+     */
+    getCollectedTemplateDetail (ids) {
+        const prefixUrl = this.getPrefix('template')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                id__in: ids
             }
         }
         return request(opts)

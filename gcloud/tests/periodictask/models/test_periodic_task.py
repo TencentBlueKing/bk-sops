@@ -88,6 +88,7 @@ class PeriodicTaskTestCase(TestCase):
         self.template = task_template
         self.task = self.create_a_task()
 
+    @factory.django.mute_signals(signals.post_delete)
     def tearDown(self):
         if self.task:
             self.task = self.task.delete()
@@ -185,6 +186,7 @@ class PeriodicTaskTestCase(TestCase):
         self.assertFalse(self.task.enabled)
         self.assertFalse(self.task.task.enabled)
 
+    @factory.django.mute_signals(signals.post_delete)
     def test_delete(self):
         pipeline_periodic_task_id = self.task.task.id
         self.task = self.task.delete()

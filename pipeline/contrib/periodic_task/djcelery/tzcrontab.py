@@ -105,3 +105,6 @@ class TzAwareCrontab(schedules.crontab):
         if not is_naive(dt):
             return dt
         return make_aware(dt, self.tz)
+
+    def to_local(self, dt):
+        return self.maybe_make_aware(dt)

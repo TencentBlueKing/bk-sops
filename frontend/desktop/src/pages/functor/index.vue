@@ -89,7 +89,16 @@
                             <td class="functor-business">{{item.task.project.name}}</td>
                             <td class="functor-id">{{item.task.id}}</td>
                             <td class="functor-name">
+                                <a
+                                    v-if="!hasPermission(['view'], item.auth_actions, tplAuthOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    :title="item.task.name"
+                                    @click="onTaskPermissonCheck(['view'], item, $event)">
+                                    {{item.task.name}}
+                                </a>
                                 <router-link
+                                    v-else
                                     :title="item.task.name"
                                     :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
                                     {{item.task.name}}
@@ -104,16 +113,36 @@
                                 {{statusMethod(item.status, item.status_name)}}
                             </td>
                             <td class="functor-operation">
-                                <router-link v-if="item.status === 'submitted'"
-                                    class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
-                                    {{ i18n.claim }}
-                                </router-link>
-                                <router-link v-else
-                                    class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
-                                    {{ i18n.view }}
-                                </router-link>
+                                <template v-if="item.status === 'submitted'">
+                                    <a
+                                        v-if="!hasPermission(['claim'], item.auth_actions, tplAuthOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTaskPermissonCheck(['claim'], item, $event)">
+                                        {{ i18n.claim }}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="functor-operation-btn"
+                                        :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
+                                        {{ i18n.claim }}
+                                    </router-link>
+                                </template>
+                                <template v-else>
+                                    <a
+                                        v-if="!hasPermission(['view'], item.auth_actions, tplAuthOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTaskPermissonCheck(['view'], item, $event)">
+                                        {{ i18n.view }}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="functor-operation-btn"
+                                        :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
+                                        {{ i18n.view }}
+                                    </router-link>
+                                </template>
                             </td>
                         </tr>
                         <tr v-if="!functorList || !functorList.length" class="empty-tr">
@@ -190,6 +219,18 @@
                     </div>
                 </div>
             </div>
+            <div slot="footer" class="dialog-footer">
+                <bk-button
+                    type="primary"
+                    :class="{
+                        'btn-permission-disable': !hasConfirmPerm
+                    }"
+                    v-cursor="{ active: !hasConfirmPerm }"
+                    @click="onConfirmlNewTask">
+                    {{i18n.confirm}}
+                </bk-button>
+                <bk-button type="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
+            </div>
         </bk-dialog>
     </div>
 </template>
@@ -203,6 +244,7 @@
     import BaseSearch from '@/components/common/base/BaseSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'functorTaskHome',
@@ -212,6 +254,7 @@
             BaseTitle,
             NoData
         },
+        mixins: [permission],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -247,7 +290,9 @@
                     functorTypePlaceholder: gettext('请选择分类'),
                     creatorPlaceholder: gettext('请输入提单人'),
                     query: gettext('搜索'),
-                    reset: gettext('清空')
+                    reset: gettext('清空'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
                 },
                 listLoading: true,
                 selectedProject: -1,
@@ -282,6 +327,7 @@
                     loading: false,
                     searchable: true,
                     id: '',
+                    name: '',
                     empty: false,
                     disabled: true
                 },
@@ -301,7 +347,12 @@
                     { 'id': 'claimed', 'name': gettext('已认领') },
                     { 'id': 'executed', 'name': gettext('已执行') },
                     { 'id': 'finished', 'name': gettext('完成') }
-                ]
+                ],
+                tplAuthResource: {},
+                commonTplAuthResource: {},
+                tplAuthOperations: [],
+                commonTplAuthOperations: [],
+                tplAction: []
             }
         },
         computed: {
@@ -310,7 +361,11 @@
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            })
+            }),
+            hasConfirmPerm () {
+                const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
+                return this.hasPermission(['create_task'], this.tplAction, authOperations)
+            }
         },
         created () {
             this.loadFunctionTask()
@@ -354,6 +409,8 @@
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
+                    this.tplAuthOperations = functorListData.meta.auth_operations
+                    this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.totalCount = functorListData.meta.total_count
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
@@ -402,7 +459,7 @@
                         cls = 'common-icon-dark-circle-close'
                         break
                     case 'finished': // 完成
-                        cls = 'bk-icon icon-check-circle-shape default'
+                        cls = 'bk-icon icon-check-circle-shape'
                         break
                     default:
                         cls = ''
@@ -429,19 +486,29 @@
                 try {
                     // 查询职能化数据及公共流程数据
                     await Promise.all([
-                        this.loadTemplateList({ project_id: this.business.id }),
+                        this.loadTemplateList({ project__id: this.business.id }),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
                         if (value[0].objects.length === 0) {
                             this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据'), disabled: true }]
                         } else {
-                            this.template.list[0].children = value[0].objects
+                            this.template.list[0].children = value[0].objects.map(item => {
+                                item.isCommon = false
+                                return item
+                            })
                         }
                         if (value[1].objects.length === 0) {
                             this.template.list[1].children = [{ 'id': undefined, 'name': gettext('无数据') }]
                         } else {
-                            this.template.list[1].children = value[1].objects
+                            this.template.list[1].children = value[1].objects.map(item => {
+                                item.isCommon = true
+                                return item
+                            })
                         }
+                        this.tplAuthResource = value[0].meta.auth_resource
+                        this.tplAuthOperations = value[0].meta.auth_operations
+                        this.commonTplAuthResource = value[1].meta.auth_resource
+                        this.commonTplAuthOperations = value[1].meta.auth_operations
                         this.clearAtomForm()
                         this.$nextTick(() => {
                             this.changeNoDataTextStyle()
@@ -453,7 +520,7 @@
                     this.template.loading = false
                 }
             },
-            onSelectProject (id) {
+            onSelectProject (id, data) {
                 if (this.projectId === id) {
                     return
                 }
@@ -463,6 +530,8 @@
                 this.business.id = id
                 this.getTemplateList()
                 this.business.empty = false
+                this.template.id = ''
+                this.template.name = ''
                 this.template.disabled = false
             },
             onSelectedTemplate (id, data) {
@@ -475,7 +544,9 @@
                     this.isCommonTemplate = true
                 }
                 this.template.id = id
+                this.template.name = data.name
                 this.template.empty = false
+                this.tplAction = data.auth_actions
             },
             onConfirmlNewTask () {
                 if (this.business.id === '') {
@@ -486,6 +557,18 @@
                     this.template.empty = true
                     return
                 }
+                if (!this.hasConfirmPerm) {
+                    const authResource = this.isCommonTemplate ? this.commonTplAuthResource : this.tplAuthResource
+                    const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
+                    const resourceData = {
+                        name: this.template.name,
+                        id: this.template.id,
+                        auth_actions: this.tplAction
+                    }
+                    this.applyForPermission(['create_task'], resourceData, authOperations, authResource)
+                    return
+                }
+
                 if (this.isCommonTemplate) {
                     this.$router.push({ path: `/template/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id, common: 1 } })
                 } else {
@@ -501,10 +584,12 @@
             },
             onClearTemplate () {
                 this.template.id = ''
+                this.template.name = ''
             },
             onClearBusiness () {
                 this.business.id = ''
                 this.template.id = ''
+                this.template.name = ''
                 this.template.disabled = true
             },
             // 无数据文本修改样式
@@ -542,6 +627,10 @@
             },
             onSelectedStatus (id, name) {
                 this.status = id
+            },
+            onTaskPermissonCheck (required, template, event) {
+                this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
+                event.preventDefault()
             }
         }
     }
@@ -803,6 +892,16 @@ label.required:after {
         background-color: #fafafa;
         color: #aaaaaa;
         cursor: not-allowed;
+    }
+}
+.dialog-footer {
+    padding: 0 10px;
+    text-align: right;
+    .bk-button {
+        margin-left: 10px;
+        width: 90px;
+        height: 32px;
+        line-height: 30px;
     }
 }
 </style>

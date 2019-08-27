@@ -17,7 +17,6 @@
         :title="i18n.title"
         width="800"
         :is-show.sync="isEditDialogShow"
-        @confirm="onConfirm"
         @cancel="onCancel">
         <div slot="content" class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
             <div class="common-form-item">
@@ -52,7 +51,6 @@
                         :searchable="true"
                         :is-loading="schemeLoading"
                         :allow-clear="true"
-                        @visible-toggle="onOpenScheme"
                         @item-selected="onSelectScheme">
                     </bk-selector>
                     <i
@@ -97,6 +95,18 @@
                 </div>
             </div>
         </div>
+        <div slot="footer" class="dialog-footer">
+            <bk-button
+                type="primary"
+                :class="{
+                    'btn-permission-disable': !hasConfirmPerm
+                }"
+                v-cursor="{ active: !hasConfirmPerm }"
+                @click="onConfirm">
+                {{i18n.confirm}}
+            </bk-button>
+            <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+        </div>
     </bk-dialog>
 </template>
 <script>
@@ -105,11 +115,14 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import BaseInput from '@/components/common/base/BaseInput.vue'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'AppEditDialog',
         components: {
             BaseInput
         },
+        mixins: [permission],
         props: ['project_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
         data () {
             return {
@@ -123,6 +136,7 @@
                     appName: this.currentAppData ? this.currentAppData.name : '',
                     appScheme: this.currentAppData ? Number(this.currentAppData.template_scheme_id) : '',
                     appDesc: this.currentAppData ? this.currentAppData.desc : '',
+                    appActions: this.currentAppData ? this.currentAppData.auth_actions : [],
                     appLogo: undefined
                 },
                 logoUrl: this.currentAppData ? this.currentAppData.logo_url : '',
@@ -139,6 +153,8 @@
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
+                tplOperations: [],
+                tplResource: {},
                 i18n: {
                     title: this.isCreateNewApp ? gettext('新建轻应用') : gettext('修改轻应用'),
                     template: gettext('流程模板'),
@@ -149,8 +165,19 @@
                     appDesc: gettext('应用简介'),
                     appLogo: gettext('应用LOGO'),
                     change: gettext('点击更换'),
-                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')
+                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
                 }
+            }
+        },
+        computed: {
+
+            btnPermission () {
+                return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
+            },
+            hasConfirmPerm () {
+                return this.hasPermission(this.btnPermission, this.appData.appActions, this.tplOperations)
             }
         },
         created () {
@@ -174,6 +201,8 @@
                 try {
                     const templateListData = await this.loadTemplateList()
                     this.templateList = templateListData.objects
+                    this.tplOperations = templateListData.meta.auth_operations
+                    this.tplResource = templateListData.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -195,12 +224,11 @@
             },
             onSelectTemplate (id, data) {
                 this.appData.appName = data.name
+                this.appData.appActions = data.auth_actions
                 this.appTemplateEmpty = false
-            },
-            onOpenScheme (value) {
-                if (value && this.appData.appTemplate !== '') {
-                    this.getTemplateScheme()
-                }
+                this.schemeList = []
+                this.appData.appScheme = ''
+                this.getTemplateScheme()
             },
             onSelectScheme (id, data) {
                 this.appData.appScheme = Number(id)
@@ -228,6 +256,16 @@
                     this.appTemplateEmpty = true
                     return
                 }
+                if (!this.hasConfirmPerm) {
+                    const resourceData = {
+                        name: this.appData.appName,
+                        id: this.appData.appTemplate,
+                        auth_actions: this.appData.appActions
+                    }
+                    this.applyForPermission(['create_mini_app'], resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
+                
                 this.appData.appName = this.appData.appName.trim()
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
@@ -339,6 +377,16 @@
     }
     #app-logo {
         visibility: hidden;
+    }
+}
+.dialog-footer {
+    padding: 0 10px;
+    text-align: right;
+    .bk-button {
+        margin-left: 10px;
+        width: 90px;
+        height: 32px;
+        line-height: 30px;
     }
 }
 </style>

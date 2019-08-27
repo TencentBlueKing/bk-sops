@@ -42,8 +42,11 @@
                                     </h5>
                                     <ul>
                                         <li
-                                            class="template-item"
+                                            :class="['template-item', {
+                                                'text-permission-disable': !getTemplateViewPerm(item)
+                                            }]"
                                             v-for="item in group.list"
+                                            v-cursor="{ active: !getTemplateViewPerm(item) }"
                                             :key="item.id"
                                             @click="onSelectTemplate(item)">
                                             <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
@@ -57,9 +60,12 @@
                             <ul v-if="searchList.length">
                                 <li
                                     v-for="item in searchList"
+                                    v-cursor="{ active: !getTemplateViewPerm(item) }"
                                     :key="item.id"
-                                    @click="onSelectTemplate(item)"
-                                    class="template-item">
+                                    :class="['template-item', {
+                                        'text-permission-disable': !getTemplateViewPerm(item)
+                                    }]"
+                                    @click="onSelectTemplate(item)">
                                     <span :class="['checkbox', { checked: getItemStatus(item.id) }]"></span>
                                     {{item.name}}
                                 </li>
@@ -108,13 +114,20 @@
 <script>
     import '@/utils/i18n.js'
     import toolsUtils from '@/utils/tools.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
+
     export default {
         name: 'SelectTemplateDialog',
         components: {
             NoData
         },
-        props: ['project_id', 'submitting', 'isSelectTemplateDialogShow', 'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading'],
+        mixins: [permission],
+        props: [
+            'project_id', 'submitting', 'isSelectTemplateDialogShow',
+            'templateList', 'quickTaskList', 'templateGrouped', 'selectTemplateLoading',
+            'tplOperations', 'tplResource'
+        ],
         data () {
             const selectedTemplate = this.quickTaskList.slice(0)
             return {
@@ -169,25 +182,32 @@
                     this.searchList = []
                 }
             },
+            getTemplateViewPerm (template) {
+                return this.hasPermission(['view'], template.auth_actions, this.tplOperations)
+            },
             onSelectTemplate (template) {
-                let index
-                const isSelected = this.selectedTemplate.some((item, i) => {
-                    if (item.id === template.id) {
-                        index = i
-                        return true
+                if (this.getTemplateViewPerm(template)) {
+                    let index
+                    const isSelected = this.selectedTemplate.some((item, i) => {
+                        if (item.id === template.id) {
+                            index = i
+                            return true
+                        }
+                    })
+                    if (isSelected) {
+                        this.selectedTemplate.splice(index, 1)
+                    } else {
+                        if (this.selectedTemplate.length === 10) {
+                            this.$bkMessage({
+                                message: gettext('最多只能添加10项'),
+                                theme: 'warning'
+                            })
+                            return
+                        }
+                        this.selectedTemplate.push(template)
                     }
-                })
-                if (isSelected) {
-                    this.selectedTemplate.splice(index, 1)
                 } else {
-                    if (this.selectedTemplate.length === 10) {
-                        this.$bkMessage({
-                            message: gettext('最多只能添加10项'),
-                            theme: 'warning'
-                        })
-                        return
-                    }
-                    this.selectedTemplate.push(template)
+                    this.applyForPermission(['view'], template, this.tplOperations, this.tplResource)
                 }
             },
             onConfirm () {

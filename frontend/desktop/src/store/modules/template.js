@@ -803,6 +803,11 @@ const template = {
         },
         loadTemplateCollectList ({ commit }) {
             return api.loadTemplateCollectList().then(response => response.data)
+        },
+        getCollectedTemplateDetail ({ commit }, ids) {
+            return api.getCollectedTemplateDetail(ids).then(
+                response => response.data
+            )
         }
     },
     getters: {

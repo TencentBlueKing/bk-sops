@@ -17,6 +17,8 @@ import traceback
 from django.apps import AppConfig
 from django.conf import settings
 
+from auth_backend.plugins.bkiam.shortcuts import upsert_perm_templates
+
 logger = logging.getLogger('root')
 
 
@@ -26,6 +28,7 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         from gcloud.core.signals.handlers import business_post_save_handler  # noqa
+        from gcloud.core.permissions import project_resource, admin_operate_resource  # noqa
         if not hasattr(settings, 'REDIS'):
             try:
                 from gcloud.core.models import EnvironmentVariables
@@ -39,3 +42,5 @@ class CoreConfig(AppConfig):
                 }
             except Exception:
                 logger.error(traceback.format_exc())
+
+        upsert_perm_templates()

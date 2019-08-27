@@ -15,20 +15,21 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
 
+from auth_backend.plugins.decorators import verify_perms
+
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.analysis.permissions import statistics_resource
 from gcloud.core.constant import AE
 from gcloud.core.constant import TASK_CATEGORY
-from gcloud.core.decorators import check_is_superuser
 from gcloud.core.utils import check_and_rename_params
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
-@check_is_superuser()
 @require_GET
 def get_task_category(request):
     """
-    @summary 获取所有模板列表
+    @summary 获取所有模板分类列表
     :param request:
     :return:
     """
@@ -41,7 +42,7 @@ def get_task_category(request):
     return JsonResponse({'result': True, 'data': groups})
 
 
-@check_is_superuser()
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 def analysis_home(request):
     """
     @param request:
@@ -52,8 +53,8 @@ def analysis_home(request):
     return render(request, "core/base_vue.html", context)
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 def query_instance_by_group(request):
     """
     @summary 按起始时间、业务（可选）查询各类型任务实例个数和占比
@@ -80,8 +81,8 @@ def query_instance_by_group(request):
     return JsonResponse({'result': True, 'data': content})
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 def query_template_by_group(request):
     """
     @summary 查询模板相关信息
@@ -108,8 +109,8 @@ def query_template_by_group(request):
     return JsonResponse({'result': True, 'data': content})
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 def query_atom_by_group(request):
     """
     @summary 查询标准插件相关信息
@@ -140,8 +141,8 @@ def query_atom_by_group(request):
     return JsonResponse({'result': True, 'data': content})
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 def query_appmaker_by_group(request):
     """
     查询appmaker信息

@@ -15,8 +15,11 @@
             <BaseTitle :title="i18n.projectManage"></BaseTitle>
             <div class="list-header">
                 <bk-button
+                    v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"
                     type="primary"
-                    class="create-project-btn"
+                    :class="['create-project-btn', {
+                        'btn-permission-disable': !hasPermission(['create'], projectActions, authOperations)
+                    }]"
                     @click="onCreateProject">
                     {{i18n.createProject}}
                 </bk-button>
@@ -29,7 +32,7 @@
                         <BaseInput
                             v-model="searchStr"
                             class="search-input"
-                            :placeholader="i18n.placeholder"
+                            :placeholder="i18n.placeholder"
                             @input="onSearchInput">
                         </BaseInput>
                         <i class="common-icon-search"></i>
@@ -40,34 +43,54 @@
                 <table class="project-table" v-bkloading="{ isLoading: loading, opacity: 1 }">
                     <thead>
                         <tr>
+                            <th width="10%">ID</th>
                             <th width="30%">{{ i18n.projectName}}</th>
                             <th width="40%">{{ i18n.projectDesc}}</th>
                             <th width="10%">{{ i18n.creator }}</th>
-                            <th width="20%">{{ i18n.operation }}</th>
+                            <th width="10%">{{ i18n.operation }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="item in projectList" :key="item.id">
+                            <td>{{item.id}}</td>
                             <td><div class="project-name" :title="item.name">{{item.name}}</div></td>
                             <td><div class="project-desc" :title="item.desc">{{item.desc || '--' }}</div></td>
                             <td>{{item.creator}}</td>
                             <td>
                                 <bk-button
-                                    class="operate-btn"
+                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, projectOperations) }"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['view'], item.auth_actions, projectOperations)
+                                    }]"
+                                    type="default"
+                                    @click="onViewProject(item)">
+                                    {{i18n.view}}
+                                </bk-button>
+                                <bk-button
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
+                                    }]"
                                     type="default"
                                     @click="onEditProject(item)">
                                     {{i18n.edit}}
                                 </bk-button>
                                 <bk-button
                                     v-if="item.is_disable"
-                                    class="operate-btn"
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
+                                    }]"
                                     type="default"
                                     @click="onChangeProjectStatus(item, 'start')">
                                     {{i18n.start}}
                                 </bk-button>
                                 <bk-button
                                     v-else
-                                    class="operate-btn"
+                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
+                                    :class="['operate-btn', {
+                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
+                                    }]"
                                     type="default"
                                     @click="onChangeProjectStatus(item, 'stop')">
                                     {{i18n.stop}}
@@ -102,7 +125,7 @@
             :title="projectDialogTitle"
             :is-show.sync="isProjectDialogShow"
             width="600"
-            padding="30px"
+            padding="30px 20px"
             @confirm="onProjectConfirm"
             @cancel="onEditProjectCancel">
             <div slot="content" class="dialog-content">
@@ -123,6 +146,7 @@
                     <label class="required">{{ i18n.timeZone }}</label>
                     <div class="common-form-content">
                         <bk-selector
+                            :disabled="dialogType === 'edit'"
                             :list="timeZoneList"
                             :selected="projectDetail.timeZone"
                             @item-selected="onChangeTimeZone">
@@ -132,7 +156,14 @@
                 <div class="common-form-item">
                     <label>{{ i18n.desc }}</label>
                     <div class="common-form-content">
-                        <textarea v-model="projectDetail.desc" rows="5"></textarea>
+                        <textarea
+                            v-model="projectDetail.desc"
+                            rows="5"
+                            name="projectDesc"
+                            data-vv-validate-on=" "
+                            v-validate="descRule">
+                        </textarea>
+                        <span v-show="errors.has('projectDesc')" class="common-error-tip error-msg">{{ errors.first('projectDesc') }}</span>
                     </div>
                 </div>
             </div>
@@ -156,7 +187,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import toolsUtils from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -165,6 +196,7 @@
     import BaseInput from '@/components/common/base/BaseInput.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ProjectHome',
@@ -174,6 +206,7 @@
             BaseInput,
             CopyrightFooter
         },
+        mixins: [permission],
         data () {
             return {
                 searchStr: '',
@@ -202,21 +235,28 @@
                     max: STRING_LENGTH.PROJECT_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
+                descRule: {
+                    max: STRING_LENGTH.PROJECT_DESC_LENGTH
+                },
+                projectActions: [],
+                projectOperations: [],
+                projectResource: {},
                 i18n: {
                     projectManage: gettext('项目管理'),
                     createProject: gettext('新建项目'),
                     editProject: gettext('编辑项目'),
                     showClosedProject: gettext('显示已停用项目'),
-                    placeholder: gettext('请输入项目名称'),
+                    placeholder: gettext('请输入ID、名称、描述、创建人'),
                     projectName: gettext('项目名称'),
                     projectDesc: gettext('项目描述'),
-                    creator: gettext('创建者'),
+                    creator: gettext('创建人'),
                     operation: gettext('操作'),
                     total: gettext('共'),
                     item: gettext('条记录'),
                     comma: gettext('，'),
                     currentPageTip: gettext('当前第'),
                     page: gettext('页'),
+                    view: gettext('查看'),
                     edit: gettext('编辑'),
                     stop: gettext('停用'),
                     start: gettext('启用'),
@@ -230,6 +270,11 @@
             }
         },
         computed: {
+            ...mapState('project', {
+                'authResource': state => state.authResource,
+                'authOperations': state => state.authOperations,
+                'project_id': state => state.project_id
+            }),
             projectDialogTitle () {
                 return this.dialogType === 'create' ? this.i18n.createProject : this.i18n.editProject
             },
@@ -238,16 +283,36 @@
             }
         },
         created () {
+            this.queryProjectCreatePerm()
             this.getProjectList()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('project', [
                 'loadProjectList',
                 'createProject',
                 'loadProjectDetail',
                 'updateProject'
             ]),
+            async queryProjectCreatePerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'project',
+                        action_ids: JSON.stringify(['create'])
+                    })
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.projectActions = ['create']
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
             async getProjectList () {
                 this.loading = true
 
@@ -259,12 +324,14 @@
                     }
                     
                     if (this.searchStr !== '') {
-                        data.name = this.searchStr
+                        data.q = this.searchStr
                     }
-
+                    
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
                     this.totalCount = projectList.meta.total_count
+                    this.projectOperations = projectList.meta.auth_operations
+                    this.projectResource = projectList.meta.auth_resource
                     const totalPage = Math.ceil(this.totalCount / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -303,6 +370,7 @@
                     await this.createProject(data)
                     this.isProjectDialogShow = false
                     this.getProjectList()
+                    this.loadProjectList({ limit: 0 })
                 } catch (err) {
                     errorHandler(err, this)
                 } finally {
@@ -342,6 +410,12 @@
                 this.currentPage = 1
                 this.getProjectList()
             },
+            onProjectPermissonCheck (required, project, event) {
+                if (!this.hasPermission(required, project.auth_actions, this.projectOperations)) {
+                    this.applyForPermission(['create'], project, this.projectOperations, this.projectResource)
+                    event.preventDefault()
+                }
+            },
             clearProjectDetail () {
                 this.projectDetail = {
                     name: '',
@@ -355,10 +429,29 @@
                 this.getProjectList()
             },
             onCreateProject () {
-                this.dialogType = 'create'
-                this.isProjectDialogShow = true
+                if (!this.hasPermission(['create'], this.projectActions, this.authOperations)) {
+                    const resourceData = {
+                        name: gettext('项目'),
+                        auth_actions: this.projectActions
+                    }
+                    this.applyForPermission(['create'], resourceData, this.projectOperations, this.projectResource)
+                } else {
+                    this.dialogType = 'create'
+                    this.isProjectDialogShow = true
+                }
+            },
+            onViewProject (project) {
+                if (!this.hasPermission(['view'], project.auth_actions, this.projectOperations)) {
+                    this.applyForPermission(['view'], project, this.projectOperations, this.projectResource)
+                    return
+                }
+                this.$router.push(`/template/home/${this.project_id}/`)
             },
             onEditProject (project) {
+                if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
+                    this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
+                    return
+                }
                 this.isProjectDialogShow = true
                 this.dialogType = 'edit'
                 this.projectDetail = {
@@ -388,6 +481,10 @@
                 this.projectDetail.timeZone = value
             },
             onChangeProjectStatus (project, type) {
+                if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
+                    this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
+                    return
+                }
                 this.operationType = type
                 this.projectDetail = {
                     id: project.id,
@@ -424,7 +521,7 @@
         .create-project-btn {
             width: 120px;
             height: 32px;
-            line-height: 32px;
+            line-height: 30px;
         }
         .filter-area {
             float: right;

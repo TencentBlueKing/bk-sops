@@ -74,6 +74,7 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -100,7 +101,7 @@
                 children: [
                     {
                         key: 'template',
-                        name: gettext('业务流程'),
+                        name: gettext('项目流程'),
                         path: '/template/home/'
                     },
                     {
@@ -119,11 +120,6 @@
                 key: 'taskflow',
                 path: '/taskflow/home/',
                 name: gettext('任务记录')
-            },
-            {
-                key: 'config',
-                path: '/config/home/',
-                name: gettext('业务配置')
             },
             {
                 key: 'appmaker',
@@ -169,9 +165,10 @@
                 i18n: {
                     help: gettext('帮助文档')
                 },
+                hasAdminPerm: false, // 是否拥有管理员入口查看权限
                 homeRoute: {
                     key: 'home',
-                    path: '/project/home/'
+                    path: '/home/'
                 }
             }
         },
@@ -182,13 +179,15 @@
                 userType: state => state.userType,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
-                templateId: state => state.templateId,
                 notFoundPage: state => state.notFoundPage,
                 isSuperUser: state => state.isSuperUser
             }),
             ...mapState('project', {
                 projectList: state => state.projectList,
                 project_id: state => state.project_id
+            }),
+            ...mapState('appmaker', {
+                appmakerTemplateId: state => state.appmakerTemplateId
             }),
             showHeaderRight () {
                 return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
@@ -199,7 +198,7 @@
                         {
                             key: 'appmakerTaskCreate',
                             path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode`,
-                            query: { template_id: this.template_id },
+                            query: { template_id: this.appmakerTemplateId },
                             name: gettext('新建任务')
                         },
                         {
@@ -212,7 +211,7 @@
                     let routes = ROUTE_LIST[`${this.userType}_router_list`]
 
                     // 非管理员用户去掉管理员入口
-                    if (!this.isSuperUser) {
+                    if (!this.hasAdminPerm) {
                         routes = routes.filter(item => item.key !== 'admin')
                     }
                     return routes
@@ -236,15 +235,40 @@
             this.initHome()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('project', [
                 'loadProjectList'
             ]),
             ...mapMutations([
                 'setBizId'
             ]),
-            initHome () {
+            ...mapMutations('project', [
+                'setProjectPerm'
+            ]),
+            async initHome () {
                 if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.loadProjectList({ limit: 0 })
+                    this.getAdminPerm()
+                    const res = await this.loadProjectList({ limit: 0 })
+                    this.setProjectPerm(res.meta)
+                }
+            },
+            async getAdminPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'admin_operate',
+                        action_ids: JSON.stringify(['view'])
+                    })
+    
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'view' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.hasAdminPerm = true
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
                 }
             },
             isNavActived (route) {
@@ -283,8 +307,13 @@
 
                 let path
                 if (route.key === 'appmakerTaskCreate') {
-                    path = `${route.path}?template_id=${this.templateId}`
-                } else if (this.userType !== 'maintainer' || route.key === 'project' || route.parent === 'admin') {
+                    path = `${route.path}?template_id=${this.appmakerTemplateId}`
+                } else if (
+                    this.userType !== 'maintainer'
+                    || route.key === 'project'
+                    || route.parent === 'admin'
+                    || (isNaN(this.project_id) || this.project_id === '')
+                ) {
                     path = `${route.path}`
                 } else {
                     path = { path: `${route.path}${this.project_id}/`, query: route.query }

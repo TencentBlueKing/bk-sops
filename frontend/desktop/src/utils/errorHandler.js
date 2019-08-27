@@ -17,7 +17,11 @@
 export function errorHandler (error, instance) {
     const data = error.data
     console.error(error)
+    console.log(error)
     if (data && data.code) {
+        if (data.code === 499) {
+            return
+        }
         if (!data.code || data.code === 404) {
             instance.exception = {
                 code: '404',
