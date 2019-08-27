@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.http import HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
