@@ -15,3 +15,5 @@ desktop:
   is_max: True
 container:
     memory: 2048
+yums:
+  - git

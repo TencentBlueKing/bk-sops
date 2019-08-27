@@ -18,11 +18,11 @@ from gcloud.tasktmpl3.models import TaskTemplate
 logger = logging.getLogger("root")
 
 
-def get_template_context(obj, username=''):
+def get_template_context(pipeline_template, data_type, username=''):
     try:
-        template = TaskTemplate.objects.get(pipeline_template=obj)
+        template = TaskTemplate.objects.get(pipeline_template=pipeline_template)
     except TaskTemplate.DoesNotExist:
-        logger.warning('TaskTemplate Does not exist: pipeline_template.id=%s' % obj.pk)
+        logger.warning('TaskTemplate Does not exist: pipeline_template.id=%s' % pipeline_template.pk)
         return {}
     context = {
         'project_id': template.project.id,

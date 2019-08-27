@@ -13,8 +13,16 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import unicode_literals
 
+import sys
+
 from django.apps import AppConfig
+
+from django.conf import settings
 
 
 class PipelinePluginsConfig(AppConfig):
     name = 'pipeline_plugins'
+
+    def ready(self):
+        for old_path, new_path in getattr(settings, 'COMPATIBLE_MODULE_MAP', {}).items():
+            sys.modules[old_path] = sys.modules[new_path]

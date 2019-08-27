@@ -12,31 +12,22 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-from django.utils import translation
 
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.context import TaskContext
 
 logger = logging.getLogger("root")
 
 
-def get_instance_context(obj, username=''):
+def get_instance_context(pipeline_instance, data_type, username=''):
     try:
-        taskflow = TaskFlowInstance.objects.get(pipeline_instance=obj)
+        taskflow = TaskFlowInstance.objects.get(pipeline_instance=pipeline_instance)
     except TaskFlowInstance.DoesNotExist:
-        logger.warning('TaskFlowInstance Does not exist: pipeline_template.id=%s' % obj.pk)
+        logger.warning('TaskFlowInstance does not exist: pipeline_template.id=%s' % pipeline_instance.pk)
         return {}
-    project = taskflow.project
-    operator = obj.executor or username
-    # TODO 上下文中的信息需要再完善一些
-    context = {
-        'language': translation.get_language(),
-        'project_id': project.id,
-        'project_name': project.name,
-        # 执行任务的操作员
-        'operator': operator,
-        # 接入权限中心后，调用ESB接口的执行者和操作员一致，如无权限请前往对应系统申请
-        'executor': operator,
-        'task_id': taskflow.id,
-        'task_name': taskflow.pipeline_instance.name
-    }
-    return context
+    # pipeline的root_pipeline_params数据，最终会传给插件的parent_data，是简单地字典格式
+    if data_type == 'data':
+        return TaskContext(taskflow, username).__dict__
+    # pipeline的root_pipeline_context数据，可以直接在参数中引用，如 ${_system.biz_cc_id}
+    else:
+        return TaskContext(taskflow, username).context()
