@@ -114,7 +114,7 @@ class WeixinUserSessionManager(models.Manager):
             bk_user_session = self.get(session_key=session_key)
         except self.model.DoesNotExist:
             return False
-        if bk_user_session < timezone.now():
+        if bk_user_session.expired_time < timezone.now():
             return False
         return bk_user_session.bk_user_id
 
