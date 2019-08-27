@@ -46,7 +46,8 @@
 
 
 ### 3. 加入新的 API 网关
-如果你开发的标准插件依赖自定义接入的 API 网关，那么在你将接口接入蓝鲸API网关后，需要手动将 API 添加到 Client SDK 中。在 `{CUSTOM PLUGINS NAME}/__init__.py` 文件下编写相应的代码即可向 Client 中添加对应的接口：
+如果你开发的标准插件依赖自定义接入的 API 网关，那么在你将接口接入蓝鲸API网关后，需要手动将 API 添加到 Client SDK 中。
+在 `{CUSTOM PLUGINS NAME}/__init__.py` 文件下编写相应的代码即可向 Client 中添加对应的接口：
 
 ```python
 from packages.blueking.component import collections
@@ -173,13 +174,13 @@ execute 函数详解：
 outputs_format 函数详解：
 
 - 返回输出参数的列表。
-- 列表格式的每一项定义一个返回字段，是 `execute` 函数中的 `set_outputs` 输出的字段的子集；`key` 表示输出字段标识，`name` 表示输出字段含义，
-`type` 表示输出字段类型（`str`、`int` 等 `python` 数据结构）。
+- 列表格式的每一项定义一个返回字段，是 `execute` 函数中的 `set_outputs` 输出的字段的子集；`key` 表示输出字段标识，`name` 表示输出
+字段含义，`type` 表示输出字段类型（`str`、`int` 等 `python` 数据结构）。
 
 schedule 函数详解：
 
-- 由 `TestCustomService` 类的 `interval` 属性控制调度策略，如 `pipeline.core.flow.activity.StaticIntervalGenerator`（每隔多少秒
-轮询一次）、`SquareIntervalGenerator`（每次轮询间隔时间是当前已调度次数的平方）。
+- 由 `TestCustomService` 类的 `interval` 属性控制调度策略，如 `pipeline.core.flow.activity.StaticIntervalGenerator`（每隔
+多少秒轮询一次）、`SquareIntervalGenerator`（每次轮询间隔时间是当前已调度次数的平方）。
 - 使用 `self.finish_schedule` 结束轮询，返回 `True` 表示标准插件执行成功，`False` 表示执行失败。
 
 
@@ -265,7 +266,8 @@ TestCustomComponent 类详解：
 
 #### 组件库依赖声明
 
-若你编写的插件需要依赖标准运维运行时不存在的 python 第三方插件，则需要在 `{CUSTOM PLUGINS NAME}/__init__.py` 中添加 `__requirements__` 变量并声明所需要的组件及版本号：
+若你编写的插件需要依赖标准运维运行时不存在的 python 第三方插件，则需要在 `{CUSTOM PLUGINS NAME}/__init__.py` 中
+添加 `__requirements__` 变量并声明所需要的组件及版本号：
 
 ```python
 
@@ -350,11 +352,16 @@ class TestCustomComponent(Component):
 
 ### 7. 标准插件单元测试
 
-在我们完成自定义组件的开发后，我们需要测试组件是否能够按照我们预期的那样运行。最简单的方式就是构造一个包含该节点的流程然后把流程跑起来观察其行为和输出是否符合预期。但是这种测试方式十分耗时而且是一次性的，下次若是修改了节点后需要再进行一遍相同的操作。
+在我们完成自定义组件的开发后，我们需要测试组件是否能够按照我们预期的那样运行。最简单的方式就是构造一个包含该节点的流程然后把流程跑起来
+观察其行为和输出是否符合预期。但是这种测试方式十分耗时而且是一次性的，下次若是修改了节点后需要再进行一遍相同的操作。
 
-为了解决这个问题，框架内部提供了组件测试单元测试框架，框架会模拟组件在流程中执行的场景，并根据开发者编写的测试用例来执行组件并检测组件的行为是否符合预期。借助组件单元测试框架能够节省我们测试组件的时间，并且保证组件实现在发生变化后能够快速确认改动是否影响了组件的功能。
+为了解决这个问题，框架内部提供了组件测试单元测试框架，框架会模拟组件在流程中执行的场景，并根据开发者编写的测试用例来执行组件并检测组件
+的行为是否符合预期。借助组件单元测试框架能够节省我们测试组件的时间，并且保证组件实现在发生变化后能够快速确认改动是否影响了组件的功能。
 
-标准插件的单元测试需要在 `{CUSTOM PLUGINS NAME}/tests` 下根据插件后台定义文件创建子目录路径一致的测试文件并编写测试代码。例如针对 `{CUSTOM PLUGINS NAME}/components/collections/plugins.py` 中编写的插件，应该在 `{CUSTOM PLUGINS NAME}/tests/components/collections/plugins_test` 目录下为每个插件创建对应的文件并编写单元测试。另外，测试文件名应该为 `test_{code}.py`，`{code}` 为插件的唯一编码。
+标准插件的单元测试需要在 `{CUSTOM PLUGINS NAME}/tests` 下根据插件后台定义文件创建子目录路径一致的测试文件并编写测试代码。例如
+针对 `{CUSTOM PLUGINS NAME}/components/collections/plugins.py` 中编写的插件，
+应该在 `{CUSTOM PLUGINS NAME}/tests/components/collections/plugins_test` 目录下为每个插件创建对应的文件并编写单元测试。
+另外，测试文件名应该为 `test_{code}.py`，`{code}` 为插件的唯一编码。
 
 单元测试编写指引请参考：[标准插件单元测试编写](../../pipeline/docs/user_guide_component_unit_test.md)。
 

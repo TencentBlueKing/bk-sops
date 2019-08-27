@@ -71,7 +71,9 @@ INSTALLED_APPS += (
     'pipeline_plugins',
     'pipeline_plugins.components',
     'pipeline_plugins.variables',
-    'data_migration'
+    'data_migration',
+    'weixin.core',
+    'weixin',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -101,11 +103,15 @@ INSTALLED_APPS += (
 
 # 自定义中间件
 MIDDLEWARE += (
+    'weixin.core.middlewares.WeixinAuthenticationMiddleware',
+    'weixin.core.middlewares.WeixinLoginMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
 )
+
+MIDDLEWARE = ('weixin.core.middlewares.WeixinProxyPatchMiddleware',) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
 LOG_LEVEL = 'INFO'
@@ -285,7 +291,7 @@ PIPELINE_RERUN_MAX_TIMES = 50
 
 EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY', None)
 # 是否只允许加载远程 https 仓库的插件
-EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = 'BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE' not in os.environ
+EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE', '1') == '0'
 
 PIPELINE_DATA_BACKEND = 'pipeline.engine.core.data.redis_backend.RedisDataBackend'
 

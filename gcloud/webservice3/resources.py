@@ -116,8 +116,7 @@ class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
 
     def _get_business_for_user(self, user, perms):
         business_list = get_business_for_user(user, perms)
-        return business_list.exclude(status='disabled') \
-                            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+        return business_list.exclude(status='disabled')
 
     def _get_objects_for_user(self, object_list, bundle, perms):
         user = bundle.request.user
@@ -330,8 +329,7 @@ class GCloudModelResource(ModelResource):
 
 class BusinessResource(GCloudModelResource):
     class Meta:
-        queryset = Business.objects.exclude(status='disabled') \
-                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+        queryset = Business.objects.exclude(status='disabled')
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
         authorization = GCloudReadOnlyAuthorization()
@@ -356,7 +354,7 @@ class BusinessResource(GCloudModelResource):
         try:
             # fetch business from CMDB
             biz_list = prepare_user_business(request)
-        except (exceptions.Unauthorized, exceptions.Forbidden, exceptions.APIError) as e:
+        except Exception as e:
             logger.error(u'get business list[username=%s] from CMDB raise error: %s' % (request.user.username, e))
             return super(BusinessResource, self).get_object_list(request)
         cc_id_list = [biz.cc_id for biz in biz_list]
