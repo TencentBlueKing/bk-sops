@@ -16,6 +16,5 @@ import os
 from django.conf import settings
 
 LEGACY_RESOURCES = getattr(settings, 'AUTH_LEGACY_RESOURCES', [])
-BATCH_REGISTER_SIZE = getattr(settings, 'AUTH_LEGACY_BATCH_REGISTER_SIZE', None) \
-                      or os.getenv('AUTH_LEGACY_BATCH_REGISTER_SIZE') \
-                      or 100
+BATCH_REGISTER_SIZE = getattr(settings, 'AUTH_LEGACY_BATCH_REGISTER_SIZE', None) or \
+                      os.getenv('AUTH_LEGACY_BATCH_REGISTER_SIZE') or 100  # noqa

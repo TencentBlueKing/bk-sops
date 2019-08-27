@@ -12,11 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 
 import sys
+import logging
+import traceback
 
 from auth_backend.exceptions import AuthInvalidOperationError, AuthLookupError
 from auth_backend.resources import resource_type_lib
 from auth_backend.resources.interfaces import InstanceIterableResource
 from auth_backend.contrib.consistency import conf
+
+logger = logging.getLogger('root')
 
 AUTH_CONFLICT_CODE = 1901409
 
@@ -50,17 +54,31 @@ def register_legacy_instances(legacy_resources):
 
         while cursor <= num_of_instances:
             instances = resource.slice(start=cursor, end=cursor + step)
-            result = resource.batch_register_instance(instances)
-            if not result.get('result'):
-                if result.get('code') != AUTH_CONFLICT_CODE:
-                    raise AuthInvalidOperationError('[{type}] instances register error, register result: {result}; '
-                                                    'cursor: {cursor}; step: {step}'
-                                                    'instances length: {len}'.format(type=resource_type,
-                                                                                     result=result,
-                                                                                     cursor=cursor,
-                                                                                     step=step,
-                                                                                     len=num_of_instances))
+            if not instances:
+                break
 
-            sys.stdout.write('{success_num} instances register success.\n'.format(success_num=len(instances)))
+            try:
+                result = resource.batch_register_instance(instances)
+            except Exception:
+                warning_msg = '[{type}] resource [{start}, {end}] batch instance register failed: {trace}.'.format(
+                    type=resource_type,
+                    start=cursor,
+                    end=cursor + step,
+                    trace=traceback.format_exc()
+                )
+                sys.stdout.write('[WARNING] {msg}\n'.format(msg=warning_msg))
+                logger.warning(warning_msg)
+            else:
+                if not result.get('result'):
+                    if result.get('code') != AUTH_CONFLICT_CODE:
+                        raise AuthInvalidOperationError('[{type}] instances register error, register result: {result}; '
+                                                        'cursor: {cursor}; step: {step}'
+                                                        'instances length: {len}'.format(type=resource_type,
+                                                                                         result=result,
+                                                                                         cursor=cursor,
+                                                                                         step=step,
+                                                                                         len=num_of_instances))
+
+                sys.stdout.write('{success_num} instances register success.\n'.format(success_num=len(instances)))
 
             cursor += step

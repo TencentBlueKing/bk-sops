@@ -120,4 +120,10 @@ class DjangoModelResource(ObjectResource):
         return self.resource_cls.objects.count()
 
     def slice(self, start, end):
-        return self.resource_cls.objects.all()[start:end]
+        if self.tomb_field:
+            all_instances = self.resource_cls.objects.filter(
+                **{'{tomb_field}'.format(tomb_field=self.tomb_field): False})
+        else:
+            all_instances = self.resource_cls.objects.all()
+
+        return all_instances[start:end]
