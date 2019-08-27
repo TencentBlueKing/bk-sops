@@ -117,7 +117,11 @@ class DjangoModelResource(ObjectResource):
         return self.resource_cls.objects.get(**id_filter)
 
     def count(self):
-        return self.resource_cls.objects.count()
+        if self.tomb_field:
+            return self.resource_cls.objects.filter(
+                **{'{tomb_field}'.format(tomb_field=self.tomb_field): False}).count()
+        else:
+            return self.resource_cls.objects.count()
 
     def slice(self, start, end):
         if self.tomb_field:
