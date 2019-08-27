@@ -67,7 +67,7 @@ INSTALLED_APPS += (
     'pipeline.contrib.statistics',
     'pipeline.contrib.periodic_task',
     'pipeline.contrib.external_plugins',
-    'django_signal_valve',
+    'pipeline.django_signal_valve',
     'pipeline_plugins',
     'pipeline_plugins.components',
     'pipeline_plugins.variables',
@@ -291,7 +291,7 @@ PIPELINE_RERUN_MAX_TIMES = 50
 
 EXTERNAL_PLUGINS_SOURCE_PROXY = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_PROXY', None)
 # 是否只允许加载远程 https 仓库的插件
-EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = 'BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE' not in os.environ
+EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT = os.getenv('BKAPP_EXTERNAL_PLUGINS_SOURCE_SECURE_LOOSE', '1') == '0'
 
 PIPELINE_DATA_BACKEND = 'pipeline.engine.core.data.redis_backend.RedisDataBackend'
 

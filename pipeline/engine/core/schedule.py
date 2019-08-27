@@ -20,7 +20,7 @@ from django.db import transaction
 from pipeline.engine import signals, states, exceptions
 from pipeline.engine.core.data import get_schedule_parent_data, set_schedule_data, delete_parent_data
 from pipeline.engine.models import ScheduleService, Data, Status, PipelineProcess
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 logger = logging.getLogger('celery')
 
@@ -126,7 +126,8 @@ def schedule(process_id, schedule_id):
             valve.send(signals, 'activity_failed',
                        sender=process.root_pipeline,
                        pipeline_id=process.root_pipeline_id,
-                       pipeline_activity_id=service_act.id)
+                       pipeline_activity_id=service_act.id,
+                       subprocess_id_stack=process.subprocess_stack)
             return
 
         # schedule execute finished or callback finished

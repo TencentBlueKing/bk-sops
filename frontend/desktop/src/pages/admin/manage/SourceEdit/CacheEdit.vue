@@ -24,7 +24,7 @@
         <div class="operate-area">
             <router-link to="/admin/manage/source_edit/package_edit/" class="bk-button bk-default">{{ i18n.prevStep }}</router-link>
             <bk-button
-                type="success"
+                theme="success"
                 class="save-btn"
                 :loading="pending"
                 @click="onSaveSetting">

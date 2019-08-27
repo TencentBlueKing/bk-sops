@@ -18,8 +18,8 @@
                 {{i18n.sourceName}}: {{ name || i18n.noName }}
             </div>
             <bk-button
-                type="default"
-                size="mini"
+                theme="default"
+                size="small"
                 class="delete-btn"
                 @click="onDeleteSource">
                 {{i18n.delete}}
@@ -43,13 +43,10 @@
                                     name="packageName"
                                     v-model="name"
                                     v-validate="packageNameRule"
+                                    :class="{ 'error-border': errors.first('packageName') }"
                                     :disabled="isEditing"
                                     @blur="onPackageNameBlur">
-                                <span
-                                    v-show="errors.has('packageName')"
-                                    class="common-error-tip error-msg">
-                                    {{ errors.first('packageName') }}
-                                </span>
+                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                             </div>
                         </td>
                     </tr>
@@ -61,12 +58,20 @@
                         </th>
                         <td class="value">
                             <div class="form-content">
-                                <bk-selector
-                                    :list="list"
-                                    :selected="type"
+                                <bk-select
+                                    v-model="type"
+                                    class="bk-select-inline"
                                     :disabled="isEditing"
-                                    @item-selected="onTypeSelect">
-                                </bk-selector>
+                                    :popover-width="260"
+                                    :searchable="true"
+                                    @selected="onTypeSelect">
+                                    <bk-option
+                                        v-for="(option, index) in list"
+                                        :key="index"
+                                        :id="option.id"
+                                        :name="option.name">
+                                    </bk-option>
+                                </bk-select>
                             </div>
                         </td>
                     </tr>
@@ -98,19 +103,17 @@
                                 <tbody>
                                     <tr v-for="field in detailFields" :key="field.id">
                                         <th>{{field.name}}</th>
-                                        <td class="td-with-input">
+                                        <td class="td-with-input"
+                                            :class="{ 'error-border': errors.first('detailValue' + field.id) }">
                                             <input
                                                 type="text"
                                                 class="table-input"
-                                                name="detailValue"
-                                                :placeholder="i18n.placeholder"
+                                                :name="'detailValue' + field.id"
+                                                :placeholder="field.placeholder"
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
-                                            <span
-                                                class="common-error-tip error-msg">
-                                                {{i18n.required}}
-                                            </span>
+                                            <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -136,54 +139,51 @@
                                     </thead>
                                     <tbody>
                                         <tr v-for="(item, index) in packageValues" :key="index">
-                                            <td class="td-with-input">
+                                            <td
+                                                :class="{ 'error-border': errors.first('moduleName' + index) }"
+                                                class="td-with-input">
                                                 <input
                                                     type="text"
                                                     class="table-input"
-                                                    name="moduleName"
+                                                    :name="'moduleName' + index"
                                                     :placeholder="i18n.placeholder"
                                                     v-model="item.key"
                                                     v-validate="packageNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
-                                                <span
-                                                    class="common-error-tip error-msg">
-                                                    {{ errors.first('moduleName') }}
-                                                </span>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
-                                            <td class="td-with-input">
+                                            <td
+                                                :class="{ 'error-border': errors.first('moduleVersion' + index) }"
+                                                class="td-with-input">
                                                 <input
                                                     type="text"
                                                     class="table-input"
-                                                    name="moduleVersion"
+                                                    :name="'moduleVersion' + index"
                                                     :placeholder="i18n.placeholder"
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
-                                                <span
-                                                    class="common-error-tip error-msg">
-                                                    {{ i18n.required }}
-                                                </span>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
-                                            <td class="td-with-input">
+                                            <td
+                                                :class="{ 'error-border': errors.first('modules' + index) }"
+                                                class="td-with-input">
                                                 <input
                                                     type="text"
                                                     class="table-input"
-                                                    name="modules"
+                                                    :name="'modules' + index"
                                                     :placeholder="i18n.importPlaceholder"
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
-                                                <span
-                                                    class="common-error-tip error-msg">
-                                                    {{ i18n.required }}
-                                                </span>
+                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
-                                            <td><bk-button type="default" size="mini" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
+                                            <td><bk-button v-if="packageValues.length > 1" theme="default" size="small" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
                                         </tr>
                                     </tbody>
                                 </table>
                                 <div class="add-module">
-                                    <bk-button type="default" size="mini" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
+                                    <bk-button theme="default" size="small" class="add-btn" @click="onAddPackage">{{i18n.add}}</bk-button>
                                 </div>
                                 <div v-if="showModuleError" class="common-error-tip error-msg">{{i18n.required}}</div>
                             </div>
@@ -292,7 +292,8 @@
                 for (const key in source.keys) {
                     detailFields.push({
                         id: key,
-                        name: source.keys[key]
+                        name: source.keys[key].name,
+                        placeholder: source.keys[key].placeholder
                     })
                     detailValues[key] = ''
                 }
@@ -304,6 +305,13 @@
              */
             getPackageValues (packages) {
                 const values = []
+                if (JSON.stringify(packages) === '{}') {
+                    values.push({
+                        key: '',
+                        version: '',
+                        modules: ''
+                    })
+                }
                 for (const key in packages) {
                     values.push({
                         key: key,
@@ -365,9 +373,11 @@
                 })
                 this.showModuleError = false
             },
+            /**
+             * 删除模块配置（只有一条时不显示删除按钮）
+             */
             onDeletePackage (index) {
                 this.packageValues.splice(index, 1)
-
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
                 if (Object.keys(packages).length === 0) {
@@ -404,6 +414,21 @@
     }
 </script>
 <style lang="scss" scoped>
+    @mixin input-verific-trigger {
+        input[aria-invalid="true"] + .common-error-tip {
+            display: inline-block;
+        }
+        .common-error-tip {
+            display: none;
+            bottom: 0;
+        }
+    }
+    /deep/ .bk-select {
+        background-color: #ffffff;
+        &.is-disabled {
+            background-color: #fafafa;
+        }
+    }
     .package-form {
         margin-bottom: 30px;
         background: #f0f1f5;
@@ -470,6 +495,8 @@
         background: transparent;
         border: none;
         color: #3a84ff;
+        height: auto;
+        line-height: initial;
     }
     .package-setting {
         padding: 0 20px 20px;
@@ -505,6 +532,19 @@
             }
             
         }
+        .td-with-input {
+            &:hover{
+                border-style: double;
+                border-color: #3c96ff;
+            }
+            &.error-border {
+                border:1px double #ea3636;
+                &:hover {
+                    border-color: #ea3636;
+                }
+            }
+        }
+        @include input-verific-trigger;
         .form-content {
             position: relative;
             width: 40%;
@@ -523,6 +563,12 @@
             }
             &:active {
                 border-color: #3c96ff;
+            }
+            &.error-border {
+                border:1px double #ea3636;
+                &:hover {
+                    border-color: #ea3636;
+                }
             }
             &[disabled="disabled"] {
                 color: #aaa;
@@ -567,13 +613,7 @@
             font-weight: 700;
             text-align: center;
         }
-        input[aria-invalid="true"] + .common-error-tip {
-            display: inline-block;
-        }
-        .common-error-tip {
-            display: none;
-            bottom: 0;
-        }
+        @include input-verific-trigger;
     }
     .module-table-wrapper {
         position: relative;
@@ -592,6 +632,14 @@
         th {
             font-weight: 700;
             text-align: center;
+            &:nth-child(1),
+            &:nth-child(2),
+            &:nth-child(4) {
+                width: 16.66%;
+            }
+            &:nth-child(3) {
+                width: 50%;
+            }
         }
         input[aria-invalid="true"] + .common-error-tip {
             display: inline-block;
@@ -600,12 +648,26 @@
             display: none;
             bottom: 0;
         }
+        tbody {
+            td {
+                padding: 10px 20px;
+            }
+        }
     }
     .detail-table, .module-table {
-        .td-with-input:hover {
-            border-style: double;
-            border-color: #3c96ff;
+        .td-with-input {
+            &:hover{
+                border-style: double;
+                border-color: #3c96ff;
+            }
+            &.error-border {
+                border:1px double #ea3636;
+                &:hover {
+                    border-color: #ea3636;
+                }
+            }
         }
+
     }
     .table-input {
         width: 100%;
@@ -625,8 +687,10 @@
     }
     .common-error-tip {
         position: absolute;
-        bottom: -15px;
-        left: 0;
+        top: 50%;
+        right: 6px;
+        margin-top: -6px;
+        height: 6px;
         font-size: 12px;
         white-space: nowrap;
     }
