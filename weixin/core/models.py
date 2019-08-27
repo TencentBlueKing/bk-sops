@@ -67,12 +67,12 @@ class BkWeixinUser(models.Model):
     # (1)weixin.core.models.BkWeixinUserManager.get_update_or_create_user里update_fields
     # (2)weixin.core.api.QyWeiXinApi.get_user_info_for_account返回需要的字段
 
+    objects = BkWeixinUserManager()
+
     class Meta:
         db_table = 'bk_weixin_user'
         verbose_name = _(u"微信用户")
         verbose_name_plural = _(u"微信用户")
-
-    objects = BkWeixinUserManager()
 
     def is_authenticated(self):
         """
@@ -128,3 +128,7 @@ class WeixinUserSession(models.Model):
     expired_time = models.DateTimeField(_(u"过期时间"))
 
     objects = WeixinUserSessionManager()
+
+    class Meta:
+        verbose_name = _(u"微信用户Session记录")
+        verbose_name_plural = _(u"微信用户Session记录")
