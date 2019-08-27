@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from django.http import HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.functional import SimpleLazyObject
 from django.contrib.auth.models import AnonymousUser
@@ -35,12 +34,10 @@ def get_user(request):
         checked_user_id = WeixinUserSession.objects.check_session_key(session_key)
         if checked_user_id is False:
             logger.error("weixin user[session_key=%s] login status is expired" % session_key)
-            return HttpResponse(status=401)
         try:
-            user = BkWeixinUser.objects.get(pk=checked_user_id)
+            user = BkWeixinUser.objects.get(userid=checked_user_id)
         except BkWeixinUser.DoesNotExist:
             logger.error("weixin user[user_id=%s] does not exist" % checked_user_id)
-            return HttpResponse(status=401)
     return user or AnonymousUser()
 
 
