@@ -22,14 +22,18 @@ from auth_backend.contrib.consistency.legacy import register_legacy_instances
 
 class Command(BaseCommand):
     help = "Register Legacy Resource Instance to Permission System"
+    separator = '-----------------------------------------------------'
 
     def handle(self, *args, **options):
         legacy_resources = conf.LEGACY_RESOURCES
         sys.stdout.write('The following resource legacy instances will be register:\n')
+        sys.stdout.write(self.separator + '\n')
 
         for resource in legacy_resources:
             sys.stdout.write('{resource}\n'.format(resource=resource))
+        sys.stdout.write(self.separator + '\n')
 
         register_legacy_instances(legacy_resources)
 
+        sys.stdout.write(self.separator + '\n')
         sys.stdout.write('All legacy instances for {system} have been registered\n'.format(system=SYSTEM_ID))
