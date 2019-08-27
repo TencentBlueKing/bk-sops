@@ -115,3 +115,9 @@ class DjangoModelResource(ObjectResource):
             self.id_field: instances
         }
         return self.resource_cls.objects.get(**id_filter)
+
+    def count(self):
+        return self.resource_cls.objects.count()
+
+    def slice(self, start, end):
+        return self.resource_cls.objects.all()[start:end]

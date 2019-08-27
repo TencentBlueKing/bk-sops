@@ -67,7 +67,8 @@ INSTALLED_APPS += (
     'pipeline_plugins.components',
     'pipeline_plugins.variables',
     'data_migration',
-    'auth_backend'
+    'auth_backend',
+    'auth_backend.contrib.consistency',
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -227,6 +228,15 @@ AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bk
 BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
 
 BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
+
+AUTH_LEGACY_RESOURCES = [
+    'project',
+    'common_flow',
+    'flow',
+    'mini_app',
+    'periodic_task',
+    'task'
+]
 
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']
