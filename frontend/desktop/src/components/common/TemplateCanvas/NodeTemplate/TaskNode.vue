@@ -95,10 +95,13 @@
         },
         computed: {
             isOpenTooltip () {
-                if (this.node.status === 'RUNNING') {
-                    return ['sleep_timer', 'pause_node'].indexOf(this.node.code) > -1
+                if (this.node.mode === 'execute') {
+                    if (this.node.status === 'RUNNING') {
+                        return ['sleep_timer', 'pause_node'].indexOf(this.node.code) > -1
+                    }
+                    return this.node.status === 'FAILED'
                 }
-                return this.node.status === 'FAILED'
+                return false
             },
             isShowSkipBtn () {
                 if (this.node.status === 'FAILED') {

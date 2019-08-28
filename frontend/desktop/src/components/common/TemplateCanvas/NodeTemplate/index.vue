@@ -159,9 +159,12 @@
             background-color: $color;
         }
     }
-
+    .jsflow-node.selected {
+        outline: 1px dashed #348af3;
+    }
     .canvas-node-item {
         position: relative;
+        user-select: none;
         z-index: 3;
         &:hover {
             .close-icon {
