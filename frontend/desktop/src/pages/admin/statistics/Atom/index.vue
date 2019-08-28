@@ -22,7 +22,8 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
-                                @selected="onAtomCiteData">
+                                @selected="onAtomCiteData"
+                                @clear="onClearAtomCiteData">
                                 <bk-option
                                     v-for="(option, index) in businessList"
                                     :key="index"
@@ -473,7 +474,7 @@
                 selectedAtom: '',
                 choiceBusiness: undefined,
                 endDateMax: '',
-                businessSelected: 'all'
+                businessSelected: ''
             }
         },
         computed: {
@@ -487,7 +488,6 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
                 return list
             },
             componentsList () {
@@ -575,10 +575,13 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        biz_cc_id: this.choiceBusiness
                     })
                 }
                 this.atomData(data)
+            },
+            onClearAtomCiteData () {
+                this.onAtomCiteData()
             },
             onAtomTemplateData (value) {
                 if (this.tabName !== 'processDetails' || this.atom === '') {

@@ -22,7 +22,8 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
-                                @selected="onInstanceCategory">
+                                @selected="onInstanceCategory"
+                                @clear="onClearInstanceCategory">
                                 <bk-option
                                     v-for="(option, index) in businessList"
                                     :key="index"
@@ -46,7 +47,8 @@
                                 :popover-width="260"
                                 :searchable="true"
                                 :placeholder="i18n.choice"
-                                @selected="onInstanceBizCcId">
+                                @selected="onInstanceBizCcId"
+                                @clear="onClearInstanceBizCcId">
                                 <bk-option
                                     v-for="(option, index) in categoryList"
                                     :key="index"
@@ -72,7 +74,8 @@
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.choice"
-                            @selected="onChangeTimeTypeBusiness">
+                            @selected="onChangeTimeTypeBusiness"
+                            @clear="onClearTimeTypeBusiness">
                             <bk-option
                                 v-for="(option, index) in businessList"
                                 :key="index"
@@ -89,7 +92,8 @@
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.choice"
-                            @selected="onChangeTimeTypeCategory">
+                            @selected="onChangeTimeTypeCategory"
+                            @clear="onClearTimeTypeCategory">
                             <bk-option
                                 v-for="(option, index) in categoryList"
                                 :key="index"
@@ -413,11 +417,11 @@
                 choiceTimeTypeBusiness: undefined,
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
-                businessSelected: 'all',
-                timeBusinessSelected: 'all',
-                categorySelected: 'all',
+                businessSelected: '',
+                timeBusinessSelected: '',
+                categorySelected: '',
                 choiceDate: 'day',
-                timeCategorySelected: 'all'
+                timeCategorySelected: ''
             }
         },
         computed: {
@@ -431,7 +435,6 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
@@ -439,7 +442,6 @@
                     this.getCategorys()
                 }
                 const list = tools.deepClone(this.categorys)
-                list.unshift({ value: 'all', name: i18n.choiceAllCategory })
                 return list
             }
         },
@@ -499,10 +501,13 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        biz_cc_id: this.choiceBusiness
                     })
                 }
                 this.statisticsCategory(data)
+            },
+            onClearInstanceCategory () {
+                this.onInstanceCategory()
             },
             onInstanceBizCcId (category) {
                 if (category) {
@@ -523,10 +528,13 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        category: this.choiceCategory === 'all' ? '' : this.choiceCategory
+                        category: this.choiceCategory
                     })
                 }
                 this.statisticsBizCcId(data)
+            },
+            onClearInstanceBizCcId () {
+                this.onInstanceBizCcId()
             },
             onInstanceNode (value) {
                 if (this.tabName !== 'taskDetails') {
@@ -730,6 +738,9 @@
                 }
                 this.onInstanceTime()
             },
+            onClearTimeTypeCategory () {
+                this.onChangeTimeTypeCategory()
+            },
             onChangeTimeTypeBusiness (business, name) {
                 if (business) {
                     if (business === this.choiceTimeTypeBusiness) {
@@ -744,6 +755,9 @@
                     this.choiceTimeTypeBusiness = business
                 }
                 this.onInstanceTime()
+            },
+            onClearTimeTypeBusiness () {
+                this.onChangeTimeTypeBusiness()
             },
             onChangeTimeType (type, name) {
                 if (type) {

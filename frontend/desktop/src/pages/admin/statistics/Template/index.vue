@@ -22,7 +22,8 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
-                                @selected="onTemplateCategory">
+                                @selected="onTemplateCategory"
+                                @clear="onClearTemplateCategory">
                                 <bk-option
                                     v-for="(option, index) in businessList"
                                     :key="index"
@@ -46,7 +47,8 @@
                                 :popover-width="260"
                                 :searchable="true"
                                 :placeholder="i18n.choice"
-                                @selected="onTemplateBizCcId">
+                                @selected="onTemplateBizCcId"
+                                @clear="onClearTemplateBizCcId">
                                 <bk-option
                                     v-for="(option, index) in categoryList"
                                     :key="index"
@@ -73,6 +75,7 @@
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
+                                    @clear="onClearBizCcId"
                                     @selected="onSelectedBizCcId">
                                     <bk-option
                                         v-for="(option, index) in allBusinessList"
@@ -334,8 +337,8 @@
                     }
                 ],
                 selectedCcId: '',
-                businessSelected: 'all',
-                categorySelected: 'all',
+                businessSelected: '',
+                categorySelected: '',
                 selectedCategory: '',
                 choiceBusiness: '',
                 choiceCategory: undefined
@@ -352,7 +355,6 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: 'all', cc_name: gettext('全部业务') })
                 return list
             },
             categoryList () {
@@ -360,7 +362,6 @@
                     this.getCategorys()
                 }
                 const list = tools.deepClone(this.categorys)
-                list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
             }
         },
@@ -404,10 +405,13 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        biz_cc_id: this.choiceBusiness
                     })
                 }
                 this.templateData(data)
+            },
+            onClearTemplateCategory () {
+                this.onTemplateCategory()
             },
             onTemplateNode (value) {
                 if (this.tabName !== 'processDetails') {
@@ -456,10 +460,13 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        category: this.choiceCategory === 'all' ? '' : this.choiceCategory
+                        category: this.choiceCategory
                     })
                 }
                 this.templateBizIdData(data)
+            },
+            onClearTemplateBizCcId () {
+                this.onTemplateBizCcId()
             },
             async templateBizIdData (data) {
                 this.isBussLoading = true

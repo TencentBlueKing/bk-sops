@@ -22,7 +22,8 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
-                                @selected="onAppMakerCategory">
+                                @selected="onAppMakerCategory"
+                                @clear="onClearAppMakerCategory">
                                 <bk-option
                                     v-for="(option, index) in businessList"
                                     :key="index"
@@ -46,7 +47,8 @@
                                 :popover-width="260"
                                 :searchable="true"
                                 :placeholder="i18n.choice"
-                                @selected="onAppMakerBizCcid">
+                                @selected="onAppMakerBizCcid"
+                                @clear="onClearAppMakerBizCcid">
                                 <bk-option
                                     v-for="(option, index) in categoryList"
                                     :key="index"
@@ -251,8 +253,8 @@
                 choiceCategory: undefined,
                 endDateMax: '',
                 appmakerOrderBy: '-templateId',
-                businessSelected: 'all',
-                categorySelected: 'all'
+                businessSelected: '',
+                categorySelected: ''
             }
         },
         computed: {
@@ -266,7 +268,6 @@
                     this.getBizList(1)
                 }
                 const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
@@ -274,7 +275,6 @@
                     this.getCategorys()
                 }
                 const list = tools.deepClone(this.categorys)
-                list.unshift({ value: 'all', name: i18n.choiceAllCategory })
                 return list
             }
         },
@@ -338,10 +338,13 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        biz_cc_id: this.choiceBusiness
                     })
                 }
                 this.appMakerData(data)
+            },
+            onClearAppMakerCategory () {
+                this.onAppMakerCategory()
             },
             onAppMakerBizCcid (category, name) {
                 if (category) {
@@ -362,10 +365,13 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        category: this.choiceCategory === 'all' ? '' : this.choiceCategory
+                        category: this.choiceCategory
                     })
                 }
                 this.appMakerBusinessData(data)
+            },
+            onClearAppMakerBizCcid () {
+                this.onAppMakerBizCcid()
             },
             async appMakerData (data) {
                 this.isAppLicationLoading = true
