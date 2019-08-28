@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 
 from django.apps import AppConfig
 
+from pipeline.conf import default_settings
+
 
 class LogConfig(AppConfig):
     name = 'pipeline.log'
@@ -21,4 +23,4 @@ class LogConfig(AppConfig):
 
     def ready(self):
         from pipeline.log import setup
-        setup()
+        setup(level=default_settings.PIPELINE_LOG_LEVEL)
