@@ -28,7 +28,8 @@
         @onConnectionDetached="onConnectionDetached"
         @onNodeMoveStop="onNodeMoveStop"
         @onOverlayClick="onOverlayClick"
-        @frameSelectNodes="frameSelectNodes">
+        @onFrameSelectEnd="onFrameSelectEnd"
+        @onCloseFrameSelect="onCloseFrameSelect">
         <template
             v-slot:palettePanel>
             <palettePanel
@@ -73,6 +74,7 @@
 </template>
 <script>
     import JsFlow from '@/assets/js/jsflow.esm.js'
+    import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
     import PalettePanel from './PalettePanel/index.vue'
     import ToolPanel from './ToolPanel/index.vue'
@@ -153,6 +155,15 @@
                 isDisableStartPoint: false,
                 isDisableEndPoint: false,
                 isSelectionOpen: false,
+                selectedNodes: [],
+                selectionOriginPos: {
+                    x: 0,
+                    y: 0
+                },
+                pasteMousePos: {
+                    x: 0,
+                    y: 0
+                },
                 flowData,
                 endpointOptions,
                 connectorOptions
@@ -164,6 +175,11 @@
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
+        },
+        beforeDestroy () {
+            this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler, false)
+            document.removeEventListener('keydown', this.nodeLinePastehandler, false)
+            document.removeEventListener('keydown', this.nodeLineDeletehandler, false)
         },
         methods: {
             onZoomIn () {
@@ -178,6 +194,88 @@
             onOpenFrameSelect () {
                 this.isSelectionOpen = true
                 this.$refs.jsFlow.frameSelect()
+            },
+            onFrameSelectEnd (nodes, x, y) {
+                this.selectedNodes = nodes
+                this.isSelectionOpen = false
+                this.selectionOriginPos = { x, y }
+                this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler, false)
+                document.addEventListener('keydown', this.nodeLinePastehandler, false)
+                document.addEventListener('keydown', this.nodeLineDeletehandler, { capture: false, once: true })
+            },
+            onCloseFrameSelect () {
+                this.selectedNodes = []
+                this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler, false)
+                document.removeEventListener('keydown', this.pasteMousePosHandler, false)
+                document.removeEventListener('keydown', this.nodeLinePastehandler, false)
+            },
+            pasteMousePosHandler (e) {
+                this.pasteMousePos = {
+                    x: e.offsetX,
+                    y: e.offsetY
+                }
+            },
+            nodeLinePastehandler (e) {
+                if ((e.ctrlKey || e.metaKey) && e.keyCode === 86) {
+                    const { locations, lines } = this.createCopyOfSelectedNodes(this.selectedNodes)
+                    const selectedIds = []
+                    const { x: originX, y: originY } = this.selectionOriginPos
+                    const { x, y } = this.pasteMousePos
+
+                    locations.forEach(location => {
+                        location.x += (x - originX)
+                        location.y += (y - originY)
+                        selectedIds.push(location.id)
+                        this.$refs.jsFlow.createNode(location)
+                        this.$emit('onLocationChange', 'add', location)
+                    })
+                    this.$nextTick(() => {
+                        lines.forEach(line => {
+                            this.$refs.jsFlow.createConnector(line)
+                            this.$emit('onLineChange', 'add', line)
+                        })
+                        this.$refs.jsFlow.clearNodesDragSelection()
+                        this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                    })
+                }
+            },
+            nodeLineDeletehandler (e) {
+                if (e.keyCode === 46 || e.keyCode === 8) {
+                    this.selectedNodes.forEach(node => {
+                        this.onNodeRemove(node)
+                    })
+                    this.onCloseFrameSelect()
+                }
+            },
+            // 获取复制节点、连线数据
+            createCopyOfSelectedNodes (nodes) {
+                const lines = []
+                const locations = []
+                const locationIdReplaceHash = {} // 节点 id 替换映射表
+                const lineIdReplaceHash = {} // 连线 id 替换映射表
+                nodes.forEach((node, index) => {
+                    const location = tools.deepClone(node)
+                    const activity = tools.deepClone(this.canvasData.activities[node.id])
+                    // 复制 location 数据
+                    if (activity) {
+                        location.atomId = activity.type === 'ServiceActivity' ? activity.component.code : activity.template_id
+                    }
+                    if (location.type !== 'startpoint' && location.type !== 'endpoint') {
+                        locations.push(location)
+                        locationIdReplaceHash[node.id] = location.id = 'node' + uuid()
+                    }
+                })
+                // 复制 line 数据
+                this.canvasData.lines.forEach(line => {
+                    if (locationIdReplaceHash[line.source.id] && locationIdReplaceHash[line.target.id]) {
+                        const lineCopy = tools.deepClone(line)
+                        lineIdReplaceHash[line.id] = lineCopy.id = 'line' + uuid()
+                        lineCopy.source.id = locationIdReplaceHash[line.source.id]
+                        lineCopy.target.id = locationIdReplaceHash[line.target.id]
+                        lines.push(lineCopy)
+                    }
+                })
+                return { locations, lines }
             },
             formatPositionHandler () {
                 const validateMessage = validatePipeline.isDataValid(this.canvasData)
@@ -199,6 +297,7 @@
 
                 this.$emit('onNewDraft', gettext('排版自动保存'))
                 const message = gettext('排版完成，原内容在本地缓存中')
+                this.$refs.jsFlow.removeAllConnector()
                 // 改变store中的line和location内容
                 this.$emit('onReplaceLineAndLocation', data)
                 // 重绘Canvas
@@ -351,7 +450,7 @@
             onConnection (line) {
                 this.$nextTick(() => {
                     const lineId = this.canvasData.lines.filter(item => {
-                        return item.source.id === line.source.id && item.target.id === line.target.id
+                        return item.source.id === line.sourceId && item.target.id === line.targetId
                     })[0].id
                     this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
@@ -361,17 +460,28 @@
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
                     if (branchInfo) {
+                        console.log(branchInfo)
                         const labelName = branchInfo[lineId].evaluate
                         const labelData = {
                             type: 'Label',
-                            name: labelName,
+                            name: `<div class="branch-condition">${labelName}</div>`,
+                            location: 0.5,
+                            cls: 'branch-condition',
                             id: `condition${lineId}`
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
                     }
                 })
             },
-            onConnectionDetached (line) {
+            onConnectionDetached (connection) {
+                const line = {
+                    source: {
+                        id: connection.sourceId
+                    },
+                    target: {
+                        id: connection.targetId
+                    }
+                }
                 this.$emit('onLineChange', 'delete', line)
             },
             onNodeMoveStop (loc) {
@@ -394,9 +504,6 @@
                 } else if (node.type === 'endpoint') {
                     this.isDisableEndPoint = false
                 }
-            },
-            frameSelectNodes (nodes) {
-                console.log(nodes)
             },
             onRetryClick (id) {
                 this.$emit('onRetryClick', id)
@@ -457,6 +564,18 @@
                 color: #ff5757;
                 background: #ffffff;
                 border-radius: 50%;
+            }
+            .branch-condition {
+                padding: 4px 10px;
+                min-width: 60px;
+                max-width: 200px;
+                font-size: 12px;
+                text-align: center;
+                background: #e1f3ff;
+                border: 1px solid #c3cdd7;
+                border-radius: 2px;
+                z-index: 3;
+                cursor: pointer;
             }
         }
         &.editable {

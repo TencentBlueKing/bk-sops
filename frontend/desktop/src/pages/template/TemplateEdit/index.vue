@@ -49,6 +49,7 @@
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
                 @onChangeName="onChangeName"
+                @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate">
             </TemplateHeader>
             <TemplateCanvas
@@ -66,7 +67,8 @@
                 @onNodeClick="onNodeClick"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
-                @onLocationMoveDone="onLocationMoveDone">
+                @onLocationMoveDone="onLocationMoveDone"
+                @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
             <div class="atom-node">
                 <span class="atom-number">{{i18n.added}} {{Object.keys(activities).length}} {{i18n.node}}</span>

@@ -295,7 +295,7 @@
                 return {
                     lines: line,
                     locations: location.map(item => {
-                        return { ...item, mode: 'preview', checked: true }
+                        return { ...item, mode: 'execute', checked: true }
                     }),
                     branchConditions
                 }
