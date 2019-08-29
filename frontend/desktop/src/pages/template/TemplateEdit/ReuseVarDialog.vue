@@ -11,54 +11,57 @@
 */
 <template>
     <bk-dialog
-        :is-show.sync="isReuseVarDialogShow"
-        :quick-close="false"
-        :ext-cls="'common-dialog'"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
         :title="title"
+        :value="isReuseVarDialogShow"
         width="600"
         @confirm="onConfirm($event)"
         @cancel="onCancel">
-        <div slot="content">
-            <div class="reuse-variable-dialog">
-                <div class="common-form-item" v-if="!reuseVariable.useNewKey">
-                    <label>{{ i18n.reuse }}</label>
+        <div class="reuse-variable-dialog">
+            <div class="common-form-item" v-if="!reuseVariable.useNewKey">
+                <label>{{ i18n.reuse }}</label>
+                <div class="common-form-content">
+                    <bk-select
+                        v-model="selectedVar"
+                        :popover-width="260"
+                        :disabled="isSelectDisabled">
+                        <bk-option
+                            v-for="(option, index) in reuseableVarList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
+                </div>
+            </div>
+            <div class="common-form-item" v-if="!reuseVariable.useNewKey">
+                <label>{{ i18n.new }}</label>
+                <div class="common-form-content">
+                    <bk-switcher v-model="isCreateVar" size="min" class="create-var-switcher"></bk-switcher>
+                </div>
+            </div>
+            <div class="create-new-variable" v-show="isCreateVar">
+                <div class="common-form-item">
+                    <label>{{ i18n.name }}</label>
                     <div class="common-form-content">
-                        <bk-selector
-                            :list="reuseableVarList"
-                            :selected.sync="selectedVar"
-                            :disabled="isSelectDisabled"
-                            @item-selected="onSelect">
-                        </bk-selector>
+                        <BaseInput
+                            name="variableName"
+                            v-model="varName"
+                            v-validate="variableNameRule" />
+                        <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
                     </div>
                 </div>
-                <div class="common-form-item" v-if="!reuseVariable.useNewKey">
-                    <label>{{ i18n.new }}</label>
+                <div class="common-form-item clearfix">
+                    <label>{{ i18n.key }}</label>
                     <div class="common-form-content">
-                        <div class="new_variable-checkbox">
-                            <BaseCheckbox @checkCallback="onToggleCreateVar" />
-                        </div>
-                    </div>
-                </div>
-                <div class="create-new-variable" v-show="isCreateVar">
-                    <div class="common-form-item">
-                        <label>{{ i18n.name }}</label>
-                        <div class="common-form-content">
-                            <BaseInput
-                                name="variableName"
-                                v-model="varName"
-                                v-validate="variableNameRule" />
-                            <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
-                        </div>
-                    </div>
-                    <div class="common-form-item clearfix">
-                        <label>{{ i18n.key }}</label>
-                        <div class="common-form-content">
-                            <BaseInput
-                                name="variableKey"
-                                v-model="varKey"
-                                v-validate="variableKeyRule" />
-                            <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
-                        </div>
+                        <BaseInput
+                            name="variableKey"
+                            v-model="varKey"
+                            v-validate="variableKeyRule" />
+                        <span v-show="errors.has('variableKey')" class="common-error-tip error-msg">{{ errors.first('variableKey') }}</span>
                     </div>
                 </div>
             </div>
@@ -70,16 +73,18 @@
     import { mapState } from 'vuex'
     import { Validator } from 'vee-validate'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
     import BaseInput from '@/components/common/base/BaseInput.vue'
     export default {
         name: 'ReuseVarDialog',
         components: {
-            BaseCheckbox,
             BaseInput
         },
         props: ['isReuseVarDialogShow', 'reuseVariable', 'reuseableVarList'],
         data () {
+            let selectedVar = ''
+            if (!this.reuseVariable.useNewKey && this.reuseableVarList.length > 0) {
+                selectedVar = this.reuseableVarList[0].id
+            }
             return {
                 i18n: {
                     reuse: gettext('复用变量'),
@@ -87,7 +92,7 @@
                     name: gettext('变量名称'),
                     key: gettext('变量KEY')
                 },
-                selectedVar: this.reuseVariable.useNewKey ? '' : this.reuseableVarList[0].id,
+                selectedVar,
                 isCreateVar: this.reuseVariable.useNewKey,
                 varName: '',
                 varKey: '',
@@ -119,6 +124,16 @@
                 return gettext('是否复用变量')
             }
         },
+        watch: {
+            reuseVariable (val) {
+                let selectedVar = ''
+                if (!val.useNewKey && this.reuseableVarList.length > 0) {
+                    selectedVar = this.reuseableVarList[0].id
+                }
+                this.isCreateVar = val.useNewKey
+                this.selectedVar = selectedVar
+            }
+        },
         created () {
             this.validator = new Validator({})
             this.validator.extend('keyRepeat', (value) => {
@@ -130,8 +145,11 @@
             })
         },
         methods: {
-            onSelect (id) {
-                this.selectedVar = id
+            resetDialogSetting () {
+                this.selectedVar = ''
+                this.isCreateVar = false
+                this.varName = ''
+                this.varKey = ''
             },
             onToggleCreateVar (checked) {
                 this.isCreateVar = checked
@@ -166,11 +184,13 @@
                             }
                         }
                         this.$emit('onConfirmReuseVar', variableConfig)
+                        this.resetDialogSetting()
                     })
                 })
             },
             onCancel () {
                 this.$emit('onCancelReuseVar', this.reuseVariable)
+                this.resetDialogSetting()
             }
         }
     }
@@ -179,6 +199,7 @@
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
 .reuse-variable-dialog {
+    padding: 30px 0;
     .common-form-item {
         label {
             width: 100px;
@@ -187,67 +208,9 @@
         .common-form-content {
             margin: 0 30px 0 120px;
         }
-         .is-override-radio {
-            margin-right: 14px;
-            height: 36px;
-            line-height: 36px;
-            font-size: 14px;
-            .radio-icon {
-                position: relative;
-                display: inline-block;
-                width: 14px;
-                height: 14px;
-                border: 1px solid $commonBorderColor;
-                border-radius: 50%;
-                cursor: pointer;
-            }
-            .radio-label {
-                padding-left: 4px;
-                line-height: 1;
-                cursor: pointer;
-            }
-            input[type="radio"] {
-                display: none;
-            }
-            input[type="radio"]:checked + label {
-                & > .radio-icon {
-                    background: $blueDefault;
-                    border: 1px solid $blueDefault;
-                    &:after {
-                        content: "";
-                        position: absolute;
-                        top: 4px;
-                        left: 4px;
-                        width: 4px;
-                        height: 4px;
-                        background: $whiteDefault;
-                        border-radius: 50%;
-                    }
-                }
-            }
-            &.is-disabled {
-                .radio-label {
-                    color: $greyDisable;
-                    cursor: not-allowed;
-                }
-                .radio-icon {
-                    border-color: $greyDisable;
-                }
-                input[type="radio"]:checked + label {
-                    & > .radio-icon {
-                        background: $whiteDefault;
-                        border-color: $greyDisable;
-                        &::after {
-                            background: $greyDisable;
-                        }
-                    }
-                }
-            }
+        .create-var-switcher {
+            margin-top: 6px;
         }
-    }
-    .new_variable-checkbox {
-        height: 36px;
-        line-height: 36px;
     }
 }
 

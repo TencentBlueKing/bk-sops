@@ -44,7 +44,8 @@
             </PipelineCanvas>
             <NodeConfig
                 ref="nodeConfig"
-                v-if="isNodeConfigPanelShow"
+                :cc_id="cc_id"
+                v-show="isNodeConfigPanelShow"
                 :template_id="template_id"
                 :single-atom="singleAtom"
                 :sub-atom="subAtom"
@@ -75,15 +76,16 @@
                 @hideConfigPanel="hideConfigPanel">
             </TemplateSetting>
             <bk-dialog
-                :is-show.sync="isLeaveDialogShow"
-                :quick-close="false"
-                :ext-cls="'common-dialog'"
-                :title="i18n.leave"
                 width="400"
-                padding="30px"
+                ext-cls="common-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :header-position="'left'"
+                :title="i18n.leave"
+                :value="isLeaveDialogShow"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
-                <div slot="content">{{ i18n.tips }}</div>
+                <div class="leave-tips">{{ i18n.tips }}</div>
             </bk-dialog>
         </div>
     </div>
@@ -153,6 +155,7 @@
                 templateUUID: uuid(),
                 localTemplateData: null,
                 isClickDraft: false,
+                entrance: this.$route.query.entrance,
                 tplOperations: [],
                 tplActions: [],
                 tplResource: {}
@@ -479,11 +482,10 @@
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
+                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
                     }
                     if (this.createTaskSaving) {
-                        const taskUrl = this.getTaskUrl(data.template_id)
-                        this.$router.push(taskUrl)
+                        this.goToTaskUrl(data.template_id)
                     }
                 } catch (e) {
                     errorHandler(e, this)
@@ -749,12 +751,16 @@
                     this.isTemplateConfigValid = true
                 }
             },
-            getTaskUrl (template_id) {
-                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`
-                if (this.common) {
-                    url += '&common=1'
-                }
-                return url
+            // 跳转到节点选择页面
+            goToTaskUrl (template_id) {
+                this.$router.push({
+                    path: `/template/newtask/${this.project_id}/selectnode/`,
+                    query: {
+                        template_id,
+                        common: this.common ? '1' : undefined,
+                        entrance: this.entrance
+                    }
+                })
             },
             // 点击保存模板按钮回调
             onSaveTemplate (saveAndCreate) {
@@ -873,6 +879,7 @@
                     this.$nextTick(() => {
                         this.isClickDraft = type === 'replace'
                         this.$refs.templateSetting.onTemplateSettingShow('localDraftTab')
+                        this.upDataAllNodeInfo()
                     })
                 })
             },
@@ -907,6 +914,21 @@
             },
             updateLocalTemplateData () {
                 this.localTemplateData = this.getLocalTemplateData()
+            },
+            // 重新获得缓存后，更新 dom data[raw]上绑定的数据
+            upDataAllNodeInfo () {
+                const nodes = this.activities
+                Object.keys(nodes).forEach((node, index) => {
+                    this.onUpdateNodeInfo(node, {
+                        status: '',
+                        name: nodes[node].name,
+                        stage_name: nodes[node].stage_name,
+                        optional: nodes[node].optional,
+                        error_ignorable: nodes[node].error_ignorable,
+                        can_retry: nodes[node].can_retry,
+                        isSkipped: nodes[node].isSkipped
+                    })
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -932,12 +954,13 @@
     @import '@/scss/config.scss';
     .template-page {
         position: relative;
-        min-width: 1320px;
-        min-height: 600px;
-        height: calc(100% - 50px);
+        height: 100%;
         overflow: hidden;
     }
     .pipeline-canvas-wrapper {
         height: 100%;
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>

@@ -11,24 +11,28 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.select_branch"
         width="600"
-        padding="15px 40px 60px"
-        :is-show.sync="isGatewaySelectDialogShow"
+        :mask-close="false"
+        :header-position="'left'"
+        :ext-cls="'common-dialog'"
+        :title="i18n.selectBranch"
+        :value="isGatewaySelectDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content">
+        <div class="dialog-content">
             <div class="common-form-item">
                 <label>{{ i18n.branches }}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="gatewayBranches"
-                        :selected.sync="selectedBranch"
-                        @item-selected="onSelectBranch">
-                    </bk-selector>
+                    <bk-select
+                        v-model="selectedBranch"
+                        :clearable="false">
+                        <bk-option
+                            v-for="item in gatewayBranches"
+                            :key="item.id"
+                            :id="item.id"
+                            :name="item.name">
+                        </bk-option>
+                    </bk-select>
                 </div>
             </div>
         </div>
@@ -45,16 +49,18 @@
         data () {
             return {
                 i18n: {
-                    select_branch: gettext('请选择执行分支'),
+                    selectBranch: gettext('请选择执行分支'),
                     branches: gettext('可选执行分支')
                 },
                 selectedBranch: this.gatewayBranches.length ? this.gatewayBranches[0].id : ''
             }
         },
+        watch: {
+            gatewayBranches (val) {
+                this.selectedBranch = val.length ? val[0].id : ''
+            }
+        },
         methods: {
-            onSelectBranch (id) {
-                this.selectedBranch = id
-            },
             onConfirm () {
                 const selected = this.gatewayBranches.filter(item => {
                     return item.id === this.selectedBranch
@@ -67,3 +73,11 @@
         }
     }
 </script>
+<style lang="scss" scoped>
+    .dialog-content {
+        padding: 30px 40px;
+        .common-form-item > label {
+            font-weight: normal;
+        }
+    }
+</style>
