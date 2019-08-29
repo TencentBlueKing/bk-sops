@@ -46,7 +46,7 @@
                                     :class="{ 'error-border': errors.first('packageName') }"
                                     :disabled="isEditing"
                                     @blur="onPackageNameBlur">
-                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                             </div>
                         </td>
                     </tr>
@@ -113,7 +113,7 @@
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
-                                            <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -150,7 +150,7 @@
                                                     v-model="item.key"
                                                     v-validate="packageNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('moduleVersion' + index) }"
@@ -163,7 +163,7 @@
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('modules' + index) }"
@@ -176,7 +176,7 @@
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td><bk-button v-if="packageValues.length > 1" theme="default" size="small" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
                                         </tr>
