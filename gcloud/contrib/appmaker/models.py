@@ -210,15 +210,12 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         app_maker_obj.save()
         return True, app_maker_obj.code
 
-    def extend_classified_count(self, group_by, filters=None):
+    def general_filter(self, filters):
         """
-        @summary: 兼容按照任务状态分类的扩展
-        @param group_by:
+        @summary: 通用过滤
         @param filters:
         @return:
         """
-        if filters is None:
-            filters = {}
         prefix_filters = {}
         for cond, value in filters.items():
             if value in ['None', ''] or cond == 'type':
@@ -239,41 +236,42 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
         try:
             appmaker = self.filter(**prefix_filters)
+            return True, appmaker, None
         except Exception as e:
             message = u"query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
-            return False, message
-        if group_by == AE.business__cc_id:
-            # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
-            total = appmaker.count()
-            appmaker_list = appmaker.values(AE.business__cc_id, AE.business__cc_name).annotate(
-                value=Count(group_by)).order_by()
-            groups = []
-            for data in appmaker_list:
-                groups.append({
-                    'code': data.get(AE.business__cc_id),
-                    'name': data.get(AE.business__cc_name),
-                    'value': data.get('value', 0)
-                })
-        elif group_by == AE.category:
-            # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
-            # field 用于外键查询对应的类型内容
-            field = "task_template__%s" % group_by
-            total = appmaker.count()
-            # 获取choices字段
-            choices = TaskTemplate.objects.get_choices(group_by)
-            appmaker_list = appmaker.values(field).annotate(value=Count(field)).order_by()
-            values = {item[field]: item['value'] for item in appmaker_list}
-            groups = []
-            for code, name in choices:
-                groups.append({
-                    'code': code,
-                    'name': name,
-                    'value': values.get(code, 0)
-                })
-        else:
-            total, groups = 0, []
-        data = {'total': total, 'groups': groups}
-        return True, data
+            return False, None, message
+
+    def group_by_biz_cc_id(self, appmaker, group_by):
+        # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
+        total = appmaker.count()
+        appmaker_list = appmaker.values(AE.business__cc_id, AE.business__cc_name).annotate(
+            value=Count(group_by)).order_by()
+        groups = []
+        for data in appmaker_list:
+            groups.append({
+                'code': data.get(AE.business__cc_id),
+                'name': data.get(AE.business__cc_name),
+                'value': data.get('value', 0)
+            })
+        return total, groups
+
+    def group_by_category(self, appmaker, group_by):
+        # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
+        # field 用于外键查询对应的类型内容
+        field = "task_template__%s" % group_by
+        total = appmaker.count()
+        # 获取choices字段
+        choices = TaskTemplate.objects.get_choices(group_by)
+        appmaker_list = appmaker.values(field).annotate(value=Count(field)).order_by()
+        values = {item[field]: item['value'] for item in appmaker_list}
+        groups = []
+        for code, name in choices:
+            groups.append({
+                'code': code,
+                'name': name,
+                'value': values.get(code, 0)
+            })
+        return total, groups
 
 
 class AppMaker(models.Model):

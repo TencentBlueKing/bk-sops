@@ -18,7 +18,7 @@ import logging
 
 from django.utils import timezone
 
-from gcloud.core.constant import AE
+from gcloud.contrib.analysis.constant import AE
 from pipeline.component_framework.models import ComponentModel
 
 logger = logging.getLogger("root")
