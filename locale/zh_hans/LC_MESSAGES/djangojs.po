@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-27 22:45+0800\n"
+"POT-Creation-Date: 2019-08-28 19:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1215,8 +1215,9 @@ msgid "请输入模块绝对路径，如a.b.c，多个用,分隔"
 msgstr "请输入模块绝对路径，如a.b.c，多个用,分隔"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:263
-msgid "子模块名称"
-msgstr "子模块名称"
+#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
+msgid "根模块"
+msgstr "根模块"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:264
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:113
@@ -1224,6 +1225,7 @@ msgid "版本"
 msgstr "版本"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:265
+#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:114
 msgid "导入模块"
 msgstr "导入模块"
 
@@ -1243,14 +1245,6 @@ msgstr "服务地址"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:111
 msgid "已导入插件"
 msgstr "已导入插件"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
-msgid "根模块"
-msgstr "根模块"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:114
-msgid "已导入模块"
-msgstr "已导入模块"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:115
 msgid "插件名"
@@ -1285,8 +1279,8 @@ msgid "远程插件包源"
 msgstr "远程插件包源"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:79
-msgid "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
-msgstr "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
+msgid "远程插件包存储源，可以配置多个，注意插件包根模块名称不能冲突"
+msgstr "远程插件包存储源，可以配置多个，注意插件包根模块名称不能冲突"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:80
 msgid "可选配置，所有远程插件源都可以同步到本地进行缓存，避免在不能访问远程插件源时无法加载标准插件"
@@ -3537,6 +3531,12 @@ msgstr "请求后台接口异常:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "文本框"
+
+#~ msgid "子模块名称"
+#~ msgstr "子模块名称"
+
+#~ msgid "已导入模块"
+#~ msgstr "已导入模块"
 
 #~ msgid "管理后台"
 #~ msgstr "管理后台"
