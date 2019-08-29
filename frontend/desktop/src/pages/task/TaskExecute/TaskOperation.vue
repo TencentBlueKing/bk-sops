@@ -847,7 +847,6 @@
             },
             handleSubflowAtomClick (id) {
                 this.cancelTaskStatusTimer()
-                this.clearTooltipInstance()
                 const nodeActivities = this.pipelineData.activities[id]
                 this.nodeSwitching = true
                 this.selectedFlowPath.push({
@@ -883,7 +882,6 @@
                 }
                 this.isNodeInfoPanelShow = false
                 this.nodeDetailConfig = {}
-                this.clearTooltipInstance()
                 this.cancelTaskStatusTimer()
                 this.updateTaskStatus(id)
             },
