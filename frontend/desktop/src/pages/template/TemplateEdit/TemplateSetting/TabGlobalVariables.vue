@@ -14,7 +14,7 @@
         <div class="global-title">
             <span>{{i18n.global_varibles}}</span>
             <i
-                class="bk-icon icon-info-circle global-variable-tootip"
+                class="common-icon-info global-variable-tootip"
                 v-bk-tooltips="{
                     allowHtml: true,
                     content: '#var-desc',
