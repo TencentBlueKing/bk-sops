@@ -271,9 +271,7 @@ class JobFastExecuteScriptService(JobService):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        job_script = data.get_one_of_inputs('job_script')
-
-        biz_cc_id = job_script['biz_cc_id']
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
         data.inputs.biz_cc_id = biz_cc_id
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(
@@ -298,15 +296,15 @@ class JobFastExecuteScriptService(JobService):
                 'script_param': base64.b64encode(script_param.encode('utf-8'))
             })
 
-        script_source = job_script['job_script_source']
+        script_source = data.get_one_of_inputs('job_script_source')
         if script_source in ["general", "public"]:
             job_kwargs.update({
-                "script_id": job_script['job_script_list_%s' % script_source]
+                "script_id": data.get_one_of_inputs('job_script_list_%s' % script_source)
             })
         else:
             job_kwargs.update({
-                'script_type': job_script['job_script_type'],
-                'script_content': base64.b64encode(job_script['job_content'].encode('utf-8')),
+                'script_type': data.get_one_of_inputs('job_script_type'),
+                'script_content': base64.b64encode(data.get_one_of_inputs('job_content').encode('utf-8')),
             })
 
         job_result = client.job.fast_execute_script(job_kwargs)
