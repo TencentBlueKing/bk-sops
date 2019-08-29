@@ -15,7 +15,7 @@ import traceback
 
 from django.test import TestCase
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 from pipeline.engine import states, signals, exceptions
 from pipeline.engine.models import Status
 from pipeline.engine.utils import Stack
@@ -65,7 +65,7 @@ class TestPipelineProcess(TestCase):
 
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_process_ready(self):
-        from django_signal_valve.valve import send
+        from pipeline.django_signal_valve.valve import send
         process_id = uniqid()
         current_node_id = uniqid()
 
@@ -96,7 +96,7 @@ class TestPipelineProcess(TestCase):
 
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_batch_process_ready(self):
-        from django_signal_valve.valve import send
+        from pipeline.django_signal_valve.valve import send
         process_id_list = [uniqid(), uniqid(), uniqid()]
         pipeline_id = uniqid()
 
@@ -111,7 +111,7 @@ class TestPipelineProcess(TestCase):
 
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_child_process_ready(self):
-        from django_signal_valve.valve import send
+        from pipeline.django_signal_valve.valve import send
         child_id = uniqid()
 
         PipelineProcess.objects.child_process_ready(child_id)
@@ -324,7 +324,7 @@ class TestPipelineProcess(TestCase):
 
     @patch(SIGNAL_VALVE_SEND, MagicMock())
     def test_unfreeze(self):
-        from django_signal_valve.valve import send
+        from pipeline.django_signal_valve.valve import send
         pipeline = PipelineObject()
         process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
 
@@ -895,3 +895,25 @@ class TestPipelineProcess(TestCase):
             child_2.destroy.assert_not_called()
             child_3.destroy.assert_called()
             self.assertEqual(child_1.destroy.call_count, 2)
+
+    def test_in_subprocess__true(self):
+        snapshot = ProcessSnapshot(
+            data={
+                '_pipeline_stack': Stack([1, 2]),
+            }
+        )
+        process = PipelineProcess()
+        process.snapshot = snapshot
+
+        self.assertTrue(process.in_subprocess)
+
+    def test_in_subprocess__false(self):
+        snapshot = ProcessSnapshot(
+            data={
+                '_pipeline_stack': Stack([1]),
+            }
+        )
+        process = PipelineProcess()
+        process.snapshot = snapshot
+
+        self.assertFalse(process.in_subprocess)

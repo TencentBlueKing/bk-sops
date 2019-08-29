@@ -1,0 +1,56 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<title>{%  trans "标准运维移动版" %}|{% trans RUN_VER_NAME %}</title>
+    <script>
+        /* 全局变量 */
+        var RUN_VER = '{{RUN_VER}}';
+        var SITE_URL = '{{SITE_URL}}';
+        var USERNAME = '{{USERNAME}}';
+        var BK_CC_HOST = '{{BK_CC_HOST}}';
+        // 用户身份：管理员
+        var IS_SUPERUSER = Number('{{IS_SUPERUSER}}');
+        // 用户身份： 职能化
+        var IS_FUNCTOR = Number('{{IS_FUNCTOR}}');
+        // 用户身份： 审计员
+        var IS_AUDITOR = Number('{{IS_AUDITOR}}');
+        var RSA_PUB_KEY = '{{RSA_PUB_KEY}}';
+        var APP_CODE = '{{APP_CODE}}';
+        function getCookie(name) {
+            var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
+            return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;
+        }
+    </script>
+    {% if STATIC_VER == 'dev' %}
+        <link href="{{STATIC_URL}}weixin/{{STATIC_VER}}/dist/images/favicon.ico" rel="icon" type="image/x-icon">
+        <link href="{{STATIC_URL}}weixin/{{STATIC_VER}}/dist/images/favicon.ico" rel="shortcut icon" type="image/x-icon">
+        <link href="{{STATIC_URL}}weixin/{{STATIC_VER}}/dist/css/main.css" rel=stylesheet>
+        <link href="{{STATIC_URL}}weixin/{{STATIC_VER}}/dist/css/vendors~main.css" rel=stylesheet>
+    {% else %}
+        <link href="{{STATIC_URL}}weixin/{{RUN_VER}}/{{STATIC_VER}}/dist/images/favicon.ico" rel="icon" type="image/x-icon">
+        <link href="{{STATIC_URL}}weixin/{{RUN_VER}}/{{STATIC_VER}}/dist/images/favicon.ico" rel="shortcut icon" type="image/x-icon">
+        <link href="{{STATIC_URL}}weixin/{{RUN_VER}}/{{STATIC_VER}}/dist/css/main.css" rel=stylesheet>
+        <link href="{{STATIC_URL}}weixin/{{RUN_VER}}/{{STATIC_VER}}/dist/css/vendors~main.css" rel=stylesheet>
+    {% endif %}
+
+</head>
+
+<body>
+    <div id="app"></div>
+    <script type="text/javascript" src="{{SITE_URL}}jsi18n/gcloud/"></script>
+    {% if STATIC_VER == 'dev' %}
+        <script src="{{STATIC_URL}}weixin/{{STATIC_VER}}/dist/lib.bundle.js?v={{STATIC_VERSION}}" type="text/javascript"></script>
+        <script src="{{STATIC_URL}}weixin/{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}" type="text/javascript"></script>
+        <script src="{{STATIC_URL}}weixin/{{STATIC_VER}}/dist/js/vendors~main.js?v={{STATIC_VERSION}}" type="text/javascript"></script>
+    {% else %}
+        <script src="{{STATIC_URL}}weixin/{{RUN_VER}}/{{STATIC_VER}}/dist/lib.bundle.js?v={{STATIC_VERSION}}" type="text/javascript"></script>
+        <script src="{{STATIC_URL}}weixin/{{RUN_VER}}/{{STATIC_VER}}/dist/js/main.js?v={{STATIC_VERSION}}" type="text/javascript"></script>
+        <script src="{{STATIC_URL}}weixin/{{RUN_VER}}/{{STATIC_VER}}/dist/js/vendors~main.js?v={{STATIC_VERSION}}" type="text/javascript"></script>
+    {% endif %}
+</body>
+
+</html>

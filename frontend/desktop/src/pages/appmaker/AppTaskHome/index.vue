@@ -17,11 +17,85 @@
                 <div class="appmaker-search">
                     <AdvanceSearch
                         v-model="searchStr"
-                        :hide-advance="true"
                         :input-placeholader="i18n.placeholder"
+                        @onShow="onAdvanceShow"
                         @input="onSearchInput">
                     </AdvanceSearch>
                 </div>
+            </div>
+            <div class="app-search" v-show="isAdvancedSerachShow">
+                <fieldset class="task-fieldset">
+                    <div class="task-query-content">
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.startedTime}}</span>
+                            <bk-date-picker
+                                ref="bkRanger"
+                                v-model="timeRange"
+                                :placeholder="i18n.dateRange"
+                                :type="'daterange'">
+                            </bk-date-picker>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.task_type}}</span>
+                            <bk-select
+                                v-model="taskSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
+                                :searchable="true"
+                                :is-loading="taskBasicInfoLoading"
+                                :placeholder="i18n.taskTypePlaceholder"
+                                @clear="onClearCategory">
+                                <bk-option
+                                    v-for="(option, index) in taskCategory"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.creator}}</span>
+                            <bk-input
+                                v-model="creator"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.creatorPlaceholder">
+                            </bk-input>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.operator}}</span>
+                            <bk-input
+                                v-model="executor"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.executorPlaceholder">
+                            </bk-input>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.status}}</span>
+                            <bk-select
+                                v-model="statusSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
+                                :searchable="true"
+                                :is-loading="taskBasicInfoLoading"
+                                :placeholder="i18n.statusPlaceholder"
+                                @clear="onClearStatus"
+                                @selected="onSelectedStatus">
+                                <bk-option
+                                    v-for="(option, index) in statusList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
+                        </div>
+                        <div class="query-button">
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
+                        </div>
+                    </div>
+                </fieldset>
             </div>
             <div class="appmaker-table-content">
                 <bk-table
@@ -74,13 +148,14 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
+    import moment from 'moment-timezone'
     export default {
         name: 'appmakerTaskHome',
         components: {
@@ -106,31 +181,58 @@
                     comma: gettext('，'),
                     currentPageTip: gettext('当前第'),
                     page: gettext('页'),
-                    taskRecord: gettext('任务记录')
+                    taskRecord: gettext('任务记录'),
+                    query: gettext('搜索'),
+                    reset: gettext('清空'),
+                    dateRange: gettext('选择日期时间范围'),
+                    task_type: gettext('任务分类'),
+                    creatorPlaceholder: gettext('请输入创建人'),
+                    executorPlaceholder: gettext('请输入执行人'),
+                    taskTypePlaceholder: gettext('请选择分类'),
+                    statusPlaceholder: gettext('请选择状态')
                 },
                 listLoading: true,
                 isDeleteDialogShow: false,
+                taskBasicInfoLoading: true,
+                isAdvancedSerachShow: false,
                 theDeleteTemplateId: undefined,
                 pending: {
                     delete: false,
                     authority: false
                 },
                 searchStr: '',
+                taskSync: '',
+                creator: '',
+                executor: '',
+                statusSync: '',
+                isStarted: undefined,
+                isFinished: undefined,
                 appmakerList: [],
                 executeStatus: [], // 任务执行状态
+                taskCategory: [],
                 pagination: {
                     current: 1,
                     count: 0,
                     limit: 15,
                     'limit-list': [15],
                     'show-limit': false
-                }
+                },
+                timeRange: [],
+                statusList: [
+                    { 'id': 'nonExecution', 'name': gettext('未执行') },
+                    { 'id': 'runing', 'name': gettext('未完成') },
+                    { 'id': 'finished', 'name': gettext('完成') }
+                ]
             }
         },
         computed: {
+            ...mapState({
+                businessTimezone: state => state.businessTimezone
+            })
         },
         created () {
             this.getAppmakerList()
+            this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -140,6 +242,12 @@
             ...mapActions('task/', [
                 'getInstanceStatus'
             ]),
+            ...mapActions('template/', [
+                'loadBusinessBaseInfo'
+            ]),
+            ...mapMutations('template/', [
+                'setBusinessBaseInfo'
+            ]),
             async getAppmakerList () {
                 this.listLoading = true
                 try {
@@ -148,8 +256,19 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: this.searchStr
+                        q: this.searchStr,
+                        category: this.taskSync || undefined,
+                        pipeline_instance__creator__contains: this.creator || undefined,
+                        pipeline_instance__executor__contains: this.executor || undefined,
+                        pipeline_instance__is_started: this.isStarted,
+                        pipeline_instance__is_finished: this.isFinished
                     }
+                    
+                    if (this.timeRange.length && this.timeRange.every(m => m !== '')) {
+                        data['pipeline_instance__start_time__gte'] = moment.tz(this.timeRange[0], this.businessTimezone).format('YYYY-MM-DD')
+                        data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                    }
+                    
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.objects
                     this.appmakerList = list
@@ -217,13 +336,37 @@
                     errorHandler(e, this)
                 }
             },
+            async getBizBaseInfo () {
+                try {
+                    const bizBasicInfo = await this.loadBusinessBaseInfo()
+                    this.taskCategory = bizBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
+                    this.setBusinessBaseInfo(bizBasicInfo)
+                    this.taskBasicInfoLoading = false
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
             onPageChange (page) {
                 this.pagination.current = page
                 this.getAppmakerList()
             },
+            onClearCategory () {
+                this.activeTaskCategory = ''
+            },
             searchInputhandler () {
                 this.pagination.current = 1
                 this.getAppmakerList()
+            },
+            onAdvanceShow () {
+                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onClearStatus () {
+                this.isStarted = undefined
+                this.isFinished = undefined
+            },
+            onSelectedStatus (id) {
+                this.isStarted = id !== 'nonExecution'
+                this.isFinished = id === 'finished'
             },
             statusMethod (is_started, is_finished) {
                 let status = ''
@@ -246,6 +389,16 @@
                     statusClass = { primary: true }
                 }
                 return statusClass
+            },
+            onResetForm () {
+                this.timeRange = []
+                this.taskSync = ''
+                this.creator = ''
+                this.executor = ''
+                this.statusSync = ''
+                this.isStarted = undefined
+                this.isFinished = undefined
+                this.getAppmakerList()
             }
 
         }
@@ -253,6 +406,11 @@
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/advancedSearch.scss';
+.bk-select-inline,.bk-input-inline {
+   display: inline-block;
+    width: 260px;
+}
 .appmaker-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
@@ -293,6 +451,9 @@
         top: 8px;
         color: $commonBorderColor;
     }
+}
+.app-search {
+    @include advancedSearch;
 }
 .appmaker-table-content {
     background: #ffffff;

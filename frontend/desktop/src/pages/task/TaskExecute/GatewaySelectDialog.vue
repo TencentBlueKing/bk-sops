@@ -55,6 +55,11 @@
                 selectedBranch: this.gatewayBranches.length ? this.gatewayBranches[0].id : ''
             }
         },
+        watch: {
+            gatewayBranches (val) {
+                this.selectedBranch = val.length ? val[0].id : ''
+            }
+        },
         methods: {
             onConfirm () {
                 const selected = this.gatewayBranches.filter(item => {

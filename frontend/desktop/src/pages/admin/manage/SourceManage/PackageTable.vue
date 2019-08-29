@@ -19,7 +19,7 @@
                 </tr>
                 <tr>
                     <th class="source-label">{{i18n.type}}</th>
-                    <td class="source-content-item">{{value.type}}</td>
+                    <td class="source-content-item">{{packageName}}</td>
                 </tr>
                 <tr>
                     <th class="source-label">{{i18n.desc}}</th>
@@ -31,7 +31,7 @@
                         <table class="detail-table">
                             <tbody>
                                 <tr v-for="field in detailFields" :key="field.id">
-                                    <th>{{field.name}}</th>
+                                    <th>{{field.name.name}}</th>
                                     <td>{{value.details[field.id]}}</td>
                                 </tr>
                             </tbody>
@@ -71,10 +71,10 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>--</td>
-                                    <td>--</td>
-                                    <td>--</td>
+                                <tr v-for="(item, key) in value.imported_plugins" :key="key">
+                                    <td>{{item.group_name}}-{{item.name}}</td>
+                                    <td>{{item.class_name}}</td>
+                                    <td>{{item.module}}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -111,11 +111,16 @@
                     importedPlugin: gettext('已导入插件'),
                     rootModule: gettext('根模块'),
                     version: gettext('版本'),
-                    importedModule: gettext('已导入模块'),
+                    importedModule: gettext('导入模块'),
                     pluginName: gettext('插件名'),
                     clsName: gettext('类名'),
                     moduleBelong: gettext('所属模块')
                 }
+            }
+        },
+        computed: {
+            packageName () {
+                return SOURCE_TYPE.filter(m => m.type === this.value.type)[0].name
             }
         },
         methods: {
@@ -129,7 +134,7 @@
                         name: source.keys[key]
                     })
                 }
-                
+
                 return detailFields
             }
         }
