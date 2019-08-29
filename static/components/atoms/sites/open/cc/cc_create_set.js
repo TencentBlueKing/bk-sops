@@ -12,128 +12,118 @@
 (function () {
     $.atoms.cc_create_set = [
         {
-            tag_code: "cc_sets",
-            type: "combine",
+            tag_code: "biz_cc_id",
+            type: "select",
             attrs: {
-                name: gettext("集群选择"),
+                name: gettext("业务"),
                 hookable: true,
-                children: [
+                remote: true,
+                remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: $.context.project.from_cmdb,
+                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
+                validation: [
                     {
-                        tag_code: "biz_cc_id",
-                        type: "select",
-                        attrs: {
-                            name: gettext("业务"),
-                            hookable: false,
-                            remote: true,
-                            remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
-                            remote_data_init: function (resp) {
-                                return resp.data;
-                            },
-                            disabled: $.context.project.from_cmdb,
-                            value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        tag_code: "cc_set_parent_select",
-                        type: "tree",
-                        attrs: {
-                            name: gettext("父实例"),
-                            hookable: true,
-                            remote: true,
-                            remote_url: function () {
-                                url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + $.context.project.bk_biz_id + '/' : '';
-                                return url
-                            },
-                            remote_data_init: function (resp) {
-                                return resp.data;
-                            },
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        },
-                        events: [
-                            {
-                                source: "biz_cc_id",
-                                type: "init",
-                                action: function () {
-                                    cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
-                                    if (cc_id !== '') {
-                                        this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + cc_id + '/';
-                                        this.remoteMethod();
-                                    }
-                                }
-                            },
-                            {
-                                source: "biz_cc_id",
-                                type: "change",
-                                action: function (value) {
-                                    this._set_value('');
-                                    this.items = [];
-                                    if (value !== '') {
-                                        this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + value + '/';
-                                        this.remoteMethod();
-                                    }
-                                }
-                            }
-                        ],
-                        methods: {}
-                    },
-                    {
-                        tag_code: "cc_set_info",
-                        type: "datatable",
-                        attrs: {
-                            name: gettext("集群信息"),
-                            remote_url: function () {
-                                url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_create_object_attribute/set/' + $.context.project.bk_biz_id + '/' : '';
-                                return url
-                            },
-                            remote_data_init: function (resp) {
-                                return resp.data;
-                            },
-                            hookable: true,
-                            add_btn: true,
-                            validation: [
-                                {
-                                    type: "required"
-                                }
-                            ]
-                        },
-                        events: [
-                            {
-                                source: "biz_cc_id",
-                                type: "init",
-                                action: function () {
-                                    cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
-                                    this.columns = [];
-                                    if (cc_id !== '') {
-                                        this.remote_url = $.context.site_url + 'pipeline/cc_search_create_object_attribute/set/' + cc_id + '/';
-                                        this.remoteMethod();
-                                    }
-                                }
-                            },
-                            {
-                                source: "biz_cc_id",
-                                type: "change",
-                                action: function (value) {
-                                    this._set_value('');
-                                    this.columns = [];
-                                    if (value !== '') {
-                                        this.remote_url = $.context.site_url + 'pipeline/cc_search_create_object_attribute/set/' + value + '/';
-                                        this.remoteMethod();
-                                    }
-                                }
-                            }
-                        ],
+                        type: "required"
                     }
                 ]
             }
+        },
+        {
+            tag_code: "cc_set_parent_select",
+            type: "tree",
+            attrs: {
+                name: gettext("父实例"),
+                hookable: true,
+                remote: true,
+                remote_url: function () {
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + $.context.project.bk_biz_id + '/' : '';
+                    return url
+                },
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + cc_id + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        this._set_value('');
+                        this.items = [];
+                        if (value !== '') {
+                            this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/set/prev/' + value + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                }
+            ],
+            methods: {}
+        },
+        {
+            tag_code: "cc_set_info",
+            type: "datatable",
+            attrs: {
+                name: gettext("集群信息"),
+                remote_url: function () {
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_create_object_attribute/set/' + $.context.project.bk_biz_id + '/' : '';
+                    return url
+                },
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                hookable: true,
+                add_btn: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            },
+            events: [
+                {
+                    source: "biz_cc_id",
+                    type: "init",
+                    action: function () {
+                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        this.columns = [];
+                        if (cc_id !== '') {
+                            this.remote_url = $.context.site_url + 'pipeline/cc_search_create_object_attribute/set/' + cc_id + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                },
+                {
+                    source: "biz_cc_id",
+                    type: "change",
+                    action: function (value) {
+                        this._set_value('');
+                        this.columns = [];
+                        if (value !== '') {
+                            this.remote_url = $.context.site_url + 'pipeline/cc_search_create_object_attribute/set/' + value + '/';
+                            this.remoteMethod();
+                        }
+                    }
+                }
+            ],
         }
     ]
 })();
