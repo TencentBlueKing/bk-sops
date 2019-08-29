@@ -39,6 +39,7 @@ from gcloud.commons.template.utils import (
 )
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.contrib.analysis.analy_items import task_template
 
 logger = logging.getLogger('root')
 
@@ -377,7 +378,7 @@ def get_template_count(request, biz_cc_id):
     if not result_dict['success']:
         return JsonResponse({'result': False, 'message': result_dict['content']})
     filters = {'is_deleted': False, 'business__cc_id': biz_cc_id}
-    success, content = TaskTemplate.objects.extend_classified_count(result_dict['group_by'], filters)
+    success, content = task_template.dispatch(result_dict['group_by'], filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})
