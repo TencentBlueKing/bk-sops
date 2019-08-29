@@ -29,7 +29,7 @@
         </div>
         <div class="action-wrapper" v-if="!isParamsEmpty && paramsCanBeModify">
             <bk-button
-                type="success"
+                theme="success"
                 :class="{
                     'btn-permission-disable': !hasSavePermission
                 }"
