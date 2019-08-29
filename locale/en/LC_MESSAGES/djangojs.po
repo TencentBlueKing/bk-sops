@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-27 22:45+0800\n"
+"POT-Creation-Date: 2019-08-28 19:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1214,8 +1214,9 @@ msgid "请输入模块绝对路径，如a.b.c，多个用,分隔"
 msgstr "Absolute path, multiple are separated by ,"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:263
-msgid "子模块名称"
-msgstr "Sub Module Name"
+#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
+msgid "根模块"
+msgstr "Root Module"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:264
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:113
@@ -1223,6 +1224,7 @@ msgid "版本"
 msgstr "Version"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:265
+#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:114
 msgid "导入模块"
 msgstr "Modules Importing"
 
@@ -1242,14 +1244,6 @@ msgstr "Service Address"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:111
 msgid "已导入插件"
 msgstr "Plugins Imported"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
-msgid "根模块"
-msgstr "Root Module"
-
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:114
-msgid "已导入模块"
-msgstr "Modules Imported"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:115
 msgid "插件名"
@@ -1284,7 +1278,7 @@ msgid "远程插件包源"
 msgstr " Remote Plugins Package Source"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:79
-msgid "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
+msgid "远程插件包存储源，可以配置多个，注意插件包根模块名称不能冲突"
 msgstr "Remote plugins package source can be multiple, but root module name cannot be same"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:80
@@ -3536,6 +3530,12 @@ msgstr "Server API error:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
+
+#~ msgid "子模块名称"
+#~ msgstr "Sub Module Name"
+
+#~ msgid "已导入模块"
+#~ msgstr "Modules Imported"
 
 #~ msgid " 无数据 "
 #~ msgstr " No Data "
