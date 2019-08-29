@@ -30,6 +30,7 @@ def get_instance_context(obj, username=''):
     # TODO 上下文中的信息需要再完善一些
     context = {
         'language': translation.get_language(),
+        'biz_cc_id': project.bk_biz_id,
         'project_id': project.id,
         'project_name': project.name,
         # 执行任务的操作员

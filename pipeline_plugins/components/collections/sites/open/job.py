@@ -133,7 +133,7 @@ class JobExecuteTaskService(JobService):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         original_global_var = data.get_one_of_inputs('job_global_var')
         global_vars = []
         for _value in original_global_var:
@@ -202,7 +202,7 @@ class JobFastPushFileService(JobService):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         original_source_files = data.get_one_of_inputs('job_source_files', [])
         file_source = []
         for item in original_source_files:
@@ -271,7 +271,7 @@ class JobFastExecuteScriptService(JobService):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         data.inputs.biz_cc_id = biz_cc_id
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(

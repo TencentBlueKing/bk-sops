@@ -153,7 +153,7 @@ class CCTransferHostModuleService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
@@ -202,7 +202,7 @@ class CCUpdateHostService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
@@ -295,7 +295,7 @@ class CCReplaceFaultMachineService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_hosts = data.get_one_of_inputs('cc_host_replace_detail')
 
@@ -462,7 +462,7 @@ class CCEmptySetHostsService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
@@ -502,7 +502,7 @@ class CCBatchDeleteSetService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
@@ -544,7 +544,7 @@ class CCUpdateSetServiceStatusService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
@@ -587,7 +587,7 @@ class CCCreateSetService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_parent_select'))
         cc_set_info = data.get_one_of_inputs('cc_set_info')
@@ -664,7 +664,7 @@ class CCUpdateSetService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
@@ -741,7 +741,7 @@ class CCUpdateModuleService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         kwargs = {
             "bk_biz_id": biz_cc_id,
@@ -814,7 +814,7 @@ class CCTransferHostToIdleService(Service):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
