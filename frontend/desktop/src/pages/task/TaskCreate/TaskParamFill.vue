@@ -35,6 +35,7 @@
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
+                                v-if="!isPeriodicSelectShow"
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
                                 {{ i18n.startNow }}
@@ -186,6 +187,9 @@
             },
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
+            },
+            isPeriodicSelectShow () {
+                return this.entrance.indexOf('periodicTask') > -1
             }
         },
         mounted () {
@@ -207,7 +211,7 @@
                 'createPeriodic'
             ]),
             period () {
-                if (this.entrance === 'periodicTask') {
+                if (this.isPeriodicSelectShow) {
                     this.isStartNow = false
                 }
             },
