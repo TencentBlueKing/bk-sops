@@ -21,6 +21,7 @@ export function setAtomConfigApiUrls (site_url, project) {
         project,
         biz_binding: project.from_cmdb,
         bk_biz_id: project.bk_biz_id,
+        biz_cc_id: project.bk_biz_id,
         site_url: site_url,
         project_id: project.id,
         component: site_url + 'api/v3/component/',
