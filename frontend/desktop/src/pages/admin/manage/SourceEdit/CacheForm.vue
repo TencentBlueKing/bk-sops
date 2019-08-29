@@ -357,7 +357,7 @@
         }
         .table-input {
             width: 100%;
-            color: #63656e;
+            color: #333333;
             border: none;
             outline: none;
         }
