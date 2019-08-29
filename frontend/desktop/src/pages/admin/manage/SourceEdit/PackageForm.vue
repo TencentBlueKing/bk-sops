@@ -43,8 +43,8 @@
                                     name="packageName"
                                     v-model="name"
                                     v-validate="packageNameRule"
-                                    :class="{ 'error-border': errors.first('packageName') }"
                                     :disabled="isEditing"
+                                    :class="{ 'error-border': errors.first('packageName') }"
                                     @blur="onPackageNameBlur">
                                 <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                             </div>
@@ -414,15 +414,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    @mixin input-verific-trigger {
-        input[aria-invalid="true"] + .common-error-tip {
-            display: inline-block;
-        }
-        .common-error-tip {
-            display: none;
-            bottom: 0;
-        }
-    }
+    @import '@/scss/mixins/input-error.scss';
     /deep/ .bk-select {
         background-color: #ffffff;
         &.is-disabled {
@@ -537,14 +529,8 @@
                 border-style: double;
                 border-color: #3c96ff;
             }
-            &.error-border {
-                border:1px double #ea3636;
-                &:hover {
-                    border-color: #ea3636;
-                }
-            }
+            @include common-input-error;
         }
-        @include input-verific-trigger;
         .form-content {
             position: relative;
             width: 40%;
@@ -564,12 +550,6 @@
             &:active {
                 border-color: #3c96ff;
             }
-            &.error-border {
-                border:1px double #ea3636;
-                &:hover {
-                    border-color: #ea3636;
-                }
-            }
             &[disabled="disabled"] {
                 color: #aaa;
                 cursor: not-allowed;
@@ -578,6 +558,7 @@
                     border-color: #c3cdd7;
                 }
             }
+            @include common-input-error;
         }
         .package-desc {
             display: block;
@@ -613,7 +594,6 @@
             font-weight: 700;
             text-align: center;
         }
-        @include input-verific-trigger;
     }
     .module-table-wrapper {
         position: relative;
@@ -660,12 +640,7 @@
                 border-style: double;
                 border-color: #3c96ff;
             }
-            &.error-border {
-                border:1px double #ea3636;
-                &:hover {
-                    border-color: #ea3636;
-                }
-            }
+            @include common-input-error;
         }
 
     }
@@ -684,14 +659,5 @@
         background: #ffffff;
         border: 1px solid #dde4eb;
         border-top: none;
-    }
-    .common-error-tip {
-        position: absolute;
-        top: 50%;
-        right: 6px;
-        margin-top: -6px;
-        height: 6px;
-        font-size: 12px;
-        white-space: nowrap;
     }
 </style>
