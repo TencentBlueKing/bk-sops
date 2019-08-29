@@ -12,7 +12,7 @@
 <template>
     <div class="source-manage">
         <bk-button
-            type="primary"
+            theme="primary"
             class="sync-btn"
             :loading="pending"
             @click="onTaskSyncClick">
@@ -46,7 +46,7 @@
                         <td>{{i18n[item.create_method]}}</td>
                         <td>
                             <bk-button
-                                type="default"
+                                theme="default"
                                 size="mini"
                                 class="view-detail"
                                 @click="onViewDetailClick(item)">
@@ -65,22 +65,23 @@
                 <div class="page-info">
                     <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
                 </div>
-                <bk-paging
-                    :cur-page.sync="currentPage"
-                    :total-page="totalPage"
-                    @page-change="onPageChange">
-                </bk-paging>
+                <bk-pagination
+                    :current.sync="currentPage"
+                    :count="totalCount"
+                    :limit="15"
+                    @change="onPageChange">
+                </bk-pagination>
             </div>
         </div>
         <bk-dialog
             v-if="isDetailDialogShow"
-            :quick-close="false"
-            :has-header="true"
-            :ext-cls="'common-dialog'"
-            :title="i18n.detail"
             width="800"
             padding="20px"
-            :is-show="isDetailDialogShow"
+            ext-cls="common-dialog"
+            header-position="left"
+            :title="i18n.detail"
+            :mask-close="false"
+            :value="isDetailDialogShow"
             @cancel="isDetailDialogShow = false">
             <div slot="content" class="detail-content">
                 <pre>{{detail}}</pre>

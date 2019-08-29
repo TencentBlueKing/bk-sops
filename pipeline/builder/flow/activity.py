@@ -21,11 +21,13 @@ __all__ = [
 
 
 class ServiceActivity(Element):
-    def __init__(self, component_code=None, *args, **kwargs):
+    def __init__(self, component_code=None, failure_handler=None, *args, **kwargs):
         self.component = FancyDict({
             'code': component_code,
             'inputs': FancyDict({})
         })
+        self.failure_handler = '{module}.{name}'.format(module=failure_handler.__module__,
+                                                        name=failure_handler.__name__) if failure_handler else None
         super(ServiceActivity, self).__init__(*args, **kwargs)
 
     def type(self):
