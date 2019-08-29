@@ -78,7 +78,7 @@
                 for (const key in source.keys) {
                     detailFields.push({
                         id: key,
-                        name: source.keys[key]
+                        name: source.keys[key].name
                     })
                 }
                 
