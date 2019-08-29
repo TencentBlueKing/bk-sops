@@ -194,9 +194,9 @@
     }
     .ip-search-wrap {
         position: absolute;
-        top: -2px;
+        top: 0px;
         right: 0;
-        width: 70%;
+        width: calc(100% - 144px);
     }
     .bk-button {
         height: 32px;
@@ -284,8 +284,6 @@
         justify-content: flex-end;
         /deep/ .page-item {
             min-width: 30px;
-            height: 30px;
-            line-height: 30px;
             font-size: 12px;
         }
     }
