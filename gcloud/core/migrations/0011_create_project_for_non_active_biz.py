@@ -45,19 +45,11 @@ def forward_func(apps, schema_editor):
         biz_maintainers[cc_id].sort()
 
     for business in non_active_business:
-
-        # set first maintainer as creator
-        maintainers = biz_maintainers.get(business.cc_id)
-        if not maintainers:
-            creator = 'admin'
-        else:
-            creator = maintainers[0]
-
         projects.append(Project(
             id=business.cc_id,
             name=business.cc_name,
             time_zone=business.time_zone,
-            creator=creator,
+            creator='admin',
             desc='',
             from_cmdb=True,
             cmdb_biz_id=business.cc_id,
