@@ -36,6 +36,7 @@ from gcloud.commons.template.constants import PermNm
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
 from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.contrib.analysis.analy_items import task_flow_instance
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:
@@ -360,7 +361,7 @@ def query_task_count(request, bk_biz_id):
 
     filters = {'business__cc_id': bk_biz_id, 'is_deleted': False}
     filters.update(conditions)
-    success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
+    success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})

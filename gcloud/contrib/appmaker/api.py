@@ -24,6 +24,7 @@ from gcloud.core.decorators import check_user_perm_of_business
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.schema import APP_MAKER_PARAMS_SCHEMA
 from gcloud.core.utils import check_and_rename_params
+from gcloud.contrib.analysis.analy_items import app_maker
 
 logger = logging.getLogger("root")
 
@@ -99,7 +100,7 @@ def get_appmaker_count(request, biz_cc_id):
     if not result_dict['success']:
         return JsonResponse({'result': False, 'message': result_dict['content']})
     filters = {'is_deleted': False, 'business__cc_id': biz_cc_id}
-    success, content = AppMaker.objects.extend_classified_count(result_dict['group_by'], filters)
+    success, content = app_maker.dispatch(result_dict['group_by'], filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})

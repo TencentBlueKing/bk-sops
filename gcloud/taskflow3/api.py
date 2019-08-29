@@ -33,6 +33,7 @@ from gcloud.taskflow3.constants import TASK_CREATE_METHOD
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.decorators import check_user_perm_of_task
 from gcloud.taskflow3.context import TaskContext
+from gcloud.contrib.analysis.analy_items import task_flow_instance
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -265,7 +266,7 @@ def query_task_count(request, biz_cc_id):
 
     filters = {'business__cc_id': biz_cc_id, 'is_deleted': False}
     filters.update(conditions)
-    success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
+    success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})
     return JsonResponse({'result': True, 'data': content})

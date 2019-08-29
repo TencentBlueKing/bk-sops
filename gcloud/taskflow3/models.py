@@ -532,7 +532,6 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             groups = sorted(groups, key=lambda group: group.get(order_by))
         return total, groups
 
-
     def group_by_atom_execute(self, taskflow, page, limit):
         # 查询各标准插件被执行次数、失败率、重试次数、平均耗时（不计算子流程）
         instance_id_list = taskflow.values_list("pipeline_instance__instance_id")

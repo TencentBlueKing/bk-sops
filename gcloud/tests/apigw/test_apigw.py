@@ -23,6 +23,7 @@ from django.test import TestCase, Client
 from pipeline.exceptions import PipelineException
 
 from gcloud.core.utils import strftime_with_timezone
+from gcloud.contrib.analysis.analy_items import task_flow_instance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
@@ -650,14 +651,17 @@ class APITest(TestCase):
         self.assertTrue('message' in data)
 
     @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, '')))
-    def test_query_task_count__extend_classified_count_fail(self):
+    def test_query_task_count__dispatch_fail(self):
         response = self.client.post(path=self.QUERY_TASK_COUNT_URL.format(bk_biz_id=TEST_BIZ_CC_ID),
                                     data=json.dumps({'group_by': 'category'}),
                                     content_type='application/json')
 
-        TaskFlowInstance.objects.extend_classified_count.assert_called_once_with('category',
-                                                                                 {'business__cc_id': TEST_BIZ_CC_ID,
-                                                                                  'is_deleted': False})
+        task_flow_instance.dispatch.assert_called_once_with(
+            'category', {
+                'business__cc_id': TEST_BIZ_CC_ID,
+                'is_deleted': False
+            }
+        )
 
         data = json.loads(response.content)
         self.assertFalse(data['result'])

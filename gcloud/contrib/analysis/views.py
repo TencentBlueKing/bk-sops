@@ -120,7 +120,7 @@ def query_atom_by_group(request):
         '''args = (group_by, filters, page_index, limit)'''
         group_by = args[0]
         if group_by in [AE.atom_execute, AE.atom_instance]:
-            success, content =task_flow_instance.dispatch(*args)
+            success, content = task_flow_instance.dispatch(*args)
         else:
             success, content = task_template.dispatch(*args)
         return success, content

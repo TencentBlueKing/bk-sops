@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 from gcloud.contrib.analysis.constant import AE
 from gcloud.taskflow3.models import TaskFlowInstance
 
+
 def dispatch(group_by, filters=None, page=None, limit=None):
     """
     @summary: 根据不同group_by指派任务
