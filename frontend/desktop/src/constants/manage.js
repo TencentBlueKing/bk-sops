@@ -36,19 +36,19 @@ const SOURCE_TYPE = [
         keys: {
             service_address: {
                 name: gettext('对象存储服务地址'),
-                placeholder: '请输入'
+                placeholder: gettext('请输入')
             },
             bucket: {
                 name: gettext('Bucket'),
-                placeholder: '请输入'
+                placeholder: gettext('请输入')
             },
             access_key: {
                 name: gettext('Access Key'),
-                placeholder: '请输入'
+                placeholder: gettext('请输入')
             },
             secret_key: {
                 name: gettext('Secret Key'),
-                placeholder: '请输入'
+                placeholder: gettext('请输入')
             }
         }
     },
@@ -58,7 +58,7 @@ const SOURCE_TYPE = [
         keys: {
             path: {
                 name: gettext('服务器文件系统路径'),
-                placeholder: '请输入'
+                placeholder: gettext('请输入')
             }
         }
     }
