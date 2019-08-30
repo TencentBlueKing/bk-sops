@@ -22,7 +22,6 @@ from gcloud.core.constant import AE
 from gcloud.core.api_adapter import get_user_info
 
 logger = logging.getLogger("root")
-get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 CACHE_PREFIX = __name__.replace('.', '_')
 DEFAULT_CACHE_TIME_FOR_CC = settings.DEFAULT_CACHE_TIME_FOR_CC
@@ -57,7 +56,7 @@ def get_all_business_list(use_cache=True):
 def get_user_business_list(username, use_cache=True):
     """Get authorized business list for a exact username.
 
-    :param object request: django request object.
+    :param object username: User username
     :param bool use_cache: (Optional)
     """
     cache_key = "%s_get_user_business_list_%s" % (CACHE_PREFIX, username)

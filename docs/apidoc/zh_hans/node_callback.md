@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -24,18 +25,17 @@
 ### 请求参数示例
 
 ```
-import requests
-kwargs = {
-    "app_code": "app_code",
-    "app_secret": "app_secret",
-    "access_token": "access_token",
+{
+    "bk_app_code": "app_code",
+    "bk_app_secret": "app_secret",
+    "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd",
-    "callback_data": {"data": "data"},
+    "callback_data": {
+        "data": {}
+    }
 }
-response = requests.get("http://{stageVariables.domain}/apigw/node_callback/10/2/", kwargs)
-result = response.json()
 ```
 
 ### 返回结果示例

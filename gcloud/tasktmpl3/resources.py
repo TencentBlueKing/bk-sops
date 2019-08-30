@@ -236,7 +236,7 @@ class TemplateSchemeResource(GCloudModelResource):
 
     class Meta(GCloudModelResource.Meta):
         queryset = TemplateScheme.objects.all()
-        resource_name = 'schemes'
+        resource_name = 'scheme'
         authorization = Authorization()
         filtering = {
             'template': ALL,
@@ -255,13 +255,16 @@ class TemplateSchemeResource(GCloudModelResource):
                 logger.error(message)
                 raise InvalidFilterError(message)
             orm_filters.update({'template__template_id': template.pipeline_template.template_id})
+        elif 'pk' not in filters:
+            # 不允许请求全部执行方案
+            orm_filters.update({'unique_id': ''})
         return orm_filters
 
     def obj_create(self, bundle, **kwargs):
         try:
             template_id = bundle.data.pop('template_id')
             project_id = bundle.data.pop('project__id')
-            _ = json.loads(bundle.data['data'])  # noqa
+            json.loads(bundle.data['data'])
         except Exception as e:
             message = 'create scheme params error: %s' % e
             logger.error(message)
