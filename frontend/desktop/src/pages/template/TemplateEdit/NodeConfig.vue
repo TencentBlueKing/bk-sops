@@ -568,6 +568,17 @@
                             }
                             currentFormConfig.tag_code = key
                             currentFormConfig.attrs.name = this.subAtomConfigData.form[key].name
+
+                            if (
+                                this.subAtomConfigData.form[key].custom_type === 'input'
+                                && this.subAtomConfigData.form[key].validation !== ''
+                            ) {
+                                currentFormConfig.attrs.validation.push({
+                                    type: 'regex',
+                                    args: this.subAtomConfigData.form[key].validation,
+                                    error_message: gettext('默认值不符合正则规则：') + this.subAtomConfigData.form[key].validation
+                                })
+                            }
                             inputConfig.push(currentFormConfig)
                         }
                         // 子流程表单项的取值
@@ -989,7 +1000,7 @@
                         this.isReuseVarDialogShow = true
                     } else {
                         const variableOpts = {
-                            name, key: variableKey, source_tag, source_info, custom_type, value
+                            name, key: variableKey, source_tag, source_info, custom_type, value, validation
                         }
                         this.$set(this.inputAtomData, key, variableKey)
                         this.createVariable(variableOpts) // input arguments hook
