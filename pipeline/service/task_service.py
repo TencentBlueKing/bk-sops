@@ -80,7 +80,3 @@ def get_activity_histories(act_id):
 
 def callback(act_id, data=None):
     return adapter_api.callback(act_id, data)
-
-
-def get_single_state(act_id):
-    return adapter_api.get_single_state(act_id)

@@ -13,32 +13,35 @@
     <div class="local-draft-panel">
         <div class="local-title">
             <span> {{i18n.localCache}} </span>
+            <i class="common-icon-info draft-tooltip"
+                v-bk-tooltips="{
+                    allowHtml: true,
+                    content: '#draft-desc',
+                    placement: 'bottom-end',
+                    duration: 0,
+                    width: 400 }"></i>
+            <div id="draft-desc">
+                <div class="tips-item" style="white-space: normal;">
+                    <h4>{{ i18n.sketch }}</h4>
+                    <p>{{ i18n.draftSketch }}</p>
+                </div>
+            </div>
         </div>
         <div :class="{ 'add-draft': true, 'unfold-add-draft': newDraftShow }">
             <div class="draft-form" v-if="newDraftShow">
-                <BaseInput
-                    :placeholder="i18n.draftMessage"
+                <bk-input
                     name="draftName"
+                    class="draft-name-input"
+                    :placeholder="i18n.draftMessage"
                     v-model="newDraftName"
                     data-vv-validate-on=" "
                     v-validate="draftNameRule" />
-                <bk-button type="success" size="small" @click="onNewDraft">{{i18n.affirm}}</bk-button>
-                <bk-button size="small" @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
+                <bk-button theme="success" @click="onNewDraft">{{i18n.affirm}}</bk-button>
+                <bk-button @click="onCancelNewDraft">{{i18n.cancel}}</bk-button>
             </div>
-            <bk-button class="add-draft-btn" v-else type="default" size="small" @click="onShowDraftForm">
+            <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
                 {{ i18n.newDraft }}
             </bk-button>
-            <bk-tooltip placement="bottom-end" class="draft-tooltip">
-                <i class="bk-icon icon-info-circle"></i>
-                <div slot="content">
-                    <div class="tips-item" style="white-space: normal;">
-                        <h4>{{ i18n.sketch }}</h4>
-                        <p>
-                            {{ i18n.draftSketch }}
-                        </p>
-                    </div>
-                </div>
-            </bk-tooltip>
             <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
         </div>
         <div class="local-draft-content">
@@ -79,13 +82,11 @@
 <script>
     import '@/utils/i18n.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
         name: 'TabLocalDraft',
         components: {
-            BaseInput,
             NoData
         },
         props: ['draftArray'],
@@ -163,6 +164,11 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 @import '@/scss/mixins/scrollbar.scss';
+.tips-item {
+    & > h4 {
+        margin: 0;
+    }
+}
 .local-draft-panel {
     height: 100%;
     .local-title {
@@ -179,20 +185,9 @@
         margin: 20px;
         .draft-form {
             display: inline-block;
-            input {
+            .draft-name-input {
+                display: inline-block;
                 width: 200px;
-            }
-            .operate-btn {
-                padding: 0 5px;
-                color: $blueDefault;
-                white-space: nowrap;
-                cursor: pointer;
-                &:first-child {
-                    padding-left: 20px;
-                }
-            }
-            .operate-btn:nth-child(2) {
-                padding-left: 15px;
             }
             .base-input {
                 height: 32px;
@@ -207,50 +202,13 @@
         }
     }
     .draft-tooltip {
-        float: right;
-        margin-top: 8px;
-        .icon-info-circle {
-            color:#c4c6cc;
-            cursor: pointer;
-            &:hover {
-                color: #f4aa1a;
-            }
-        }
-        /deep/ .bk-tooltip-popper {
-            .tips-item {
-                margin-bottom: 20px;
-                &:last-child {
-                    margin-bottom: 0;
-                }
-                h4 {
-                    margin-top: 0;
-                    margin-bottom: 10px;
-                }
-                p {
-                    white-space: normal;
-                    word-wrap: break-word;
-                    word-break: break-all;
-                }
-            }
-            .tips-item-content {
-                margin-bottom: 20px;
-                &:last-child {
-                    margin-bottom: 0;
-                }
-                h4 {
-                    margin-top: 0;
-                    margin-bottom: 10px;
-                }
-                p {
-                    margin-top: -18px;
-                }
-            }
-            .bk-tooltip-arrow {
-                right: 2px;
-            }
-            .bk-tooltip-inner {
-                 margin-right: -18px;
-            }
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 6px;
+        color:#c4c6cc;
+        cursor: pointer;
+        &:hover {
+            color: #f4aa1a;
         }
     }
     .local-draft-content {
@@ -320,8 +278,11 @@
                 top: 13px;
                 right: 14px;
                 font-size: 14px;
-                color: #979ba5;
+                color: #c4c6cc;
                 cursor: pointer;
+                &:hover {
+                    color: #979ba5;
+                }
             }
         }
         .empty-draft-tip {
@@ -334,6 +295,19 @@
                 line-height: 1;
             }
         }
+        .common-icon-dark-circle-close:hover {
+            color: #cecece;
+        }
+    }
+}
+.tooltip-content {
+    margin-bottom: 20px;
+    &:last-child {
+        margin-bottom: 0;
+    }
+    h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
     }
 }
 </style>

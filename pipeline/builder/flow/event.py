@@ -15,7 +15,8 @@ from pipeline.builder.flow.base import *  # noqa
 
 __all__ = [
     'EmptyEndEvent',
-    'EmptyStartEvent'
+    'EmptyStartEvent',
+    'ExecutableEndEvent'
 ]
 
 
@@ -29,3 +30,12 @@ class EmptyEndEvent(Element):
 
     def type(self):
         return PE.EmptyEndEvent
+
+
+class ExecutableEndEvent(Element):
+    def __init__(self, type, **kwargs):
+        self._type = type
+        super(ExecutableEndEvent, self).__init__(**kwargs)
+
+    def type(self):
+        return self._type

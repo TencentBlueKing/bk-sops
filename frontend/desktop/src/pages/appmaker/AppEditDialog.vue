@@ -11,58 +11,78 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.title"
         width="800"
-        :is-show.sync="isEditDialogShow"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.title"
+        :auto-close="false"
+        :value="isEditDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content" class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+        <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
             <div class="common-form-item">
                 <label class="required">{{i18n.template}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="templateList"
-                        :selected.sync="appData.appTemplate"
+                    <bk-select
+                        v-model="appData.appTemplate"
+                        class="bk-select-inline"
                         :searchable="true"
+                        :placeholder="i18n.statusPlaceholder"
+                        :clearable="true"
                         :disabled="!isCreateNewApp"
-                        @item-selected="onSelectTemplate">
-                    </bk-selector>
+                        @selected="onSelectTemplate">
+                        <bk-option
+                            v-for="(option, index) in templateList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                     <span v-show="appTemplateEmpty" class="common-error-tip error-msg">{{i18n.templateTips}}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label class="required">{{i18n.appName}}</label>
                 <div class="common-form-content">
-                    <BaseInput
-                        name="appName"
+                    <bk-input
                         v-model="appData.appName"
-                        v-validate="appNameRule" />
+                        v-validate.disable="appNameRule"
+                        name="appName"
+                        class="bk-input-inline"
+                        :clearable="true">
+                    </bk-input>
                     <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label>{{i18n.scheme}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="schemeList"
-                        :selected.sync="appData.appScheme"
+                    <bk-select
+                        v-model="appData.appScheme"
+                        class="bk-select-inline"
                         :searchable="true"
+                        :placeholder="i18n.statusPlaceholder"
+                        :clearable="true"
                         :is-loading="schemeLoading"
-                        :allow-clear="true"
-                        @visible-toggle="onOpenScheme"
-                        @item-selected="onSelectScheme">
-                    </bk-selector>
+                        @selected="onSelectScheme">
+                        <bk-option
+                            v-for="(option, index) in schemeList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                     <i
-                        class="bk-icon icon-info-circle scheme-tooltip"
-                        v-bktooltips="{
+                        class="common-icon-info scheme-tooltip"
+                        v-bk-tooltips="{
                             content: i18n.schemeTips,
                             placements: ['left'],
+                            customClass: 'offset-left-tooltip',
                             width: 400,
-                            zIndex: 1501
-                        }"></i>
+                            zIndex: 1501 }">
+                    </i>
                 </div>
             </div>
             <div class="common-form-item">
@@ -104,13 +124,25 @@
     import { mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     export default {
         name: 'AppEditDialog',
-        components: {
-            BaseInput
+        props: {
+            'cc_id': String,
+            'isCreateNewApp': Boolean,
+            'isEditDialogShow': Boolean,
+            'currentAppData': {
+                type: Object,
+                default () {
+                    return {
+                        template_id: '',
+                        name: '',
+                        template_scheme_id: '',
+                        desc: '',
+                        logo_url: undefined
+                    }
+                }
+            }
         },
-        props: ['cc_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
         data () {
             return {
                 templateLoading: true,
@@ -119,18 +151,15 @@
                 schemeList: [],
                 appTemplateEmpty: false,
                 appData: {
-                    appTemplate: this.currentAppData ? Number(this.currentAppData.template_id) : '',
-                    appName: this.currentAppData ? this.currentAppData.name : '',
-                    appScheme: this.currentAppData ? Number(this.currentAppData.template_scheme_id) : '',
-                    appDesc: this.currentAppData ? this.currentAppData.desc : '',
+                    appTemplate: '',
+                    appName: '',
+                    appScheme: '',
+                    appDesc: '',
                     appLogo: undefined
                 },
-                logoUrl: this.currentAppData ? this.currentAppData.logo_url : '',
+                logoUrl: '',
                 isShowDefaultLogo: false,
                 isLogoEmpty: !!this.isCreateNewApp,
-                appTemplateRule: {
-                    required: true
-                },
                 appNameRule: {
                     required: true,
                     max: STRING_LENGTH.APP_NAME_MAX_LENGTH,
@@ -153,11 +182,24 @@
                 }
             }
         },
+        watch: {
+            currentAppData (val) {
+                const { template_id, name, template_scheme_id, desc, logo_url } = val
+                this.appData = {
+                    appTemplate: template_id ? Number(template_id) : '',
+                    appName: name,
+                    appScheme: template_scheme_id ? Number(template_scheme_id) : '',
+                    appDesc: desc,
+                    appLogo: undefined
+                }
+                this.logoUrl = logo_url
+                if (template_id !== '') {
+                    this.getTemplateScheme()
+                }
+            }
+        },
         created () {
             this.getTemplateList()
-            if (!this.isCreateNewApp) {
-                this.getTemplateScheme()
-            }
         },
         methods: {
             ...mapActions('templateList', [
@@ -193,16 +235,13 @@
                     errorHandler(e, this)
                 }
             },
-            onSelectTemplate (id, data) {
-                this.appData.appName = data.name
+            onSelectTemplate (id) {
+                this.appData.appTemplate = id
+                this.appData.appName = this.templateList.find(item => item.id === id).name
                 this.appTemplateEmpty = false
+                this.getTemplateScheme()
             },
-            onOpenScheme (value) {
-                if (value && this.appData.appTemplate !== '') {
-                    this.getTemplateScheme()
-                }
-            },
-            onSelectScheme (id, data) {
+            onSelectScheme (id) {
                 this.appData.appScheme = Number(id)
             },
             // logo 上传
@@ -236,6 +275,8 @@
             },
             onCancel () {
                 this.$emit('onEditCancel')
+                this.errors.clear()
+                this.appTemplateEmpty = false
             }
         }
     }
@@ -243,6 +284,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .app-edit-content {
+    padding: 30px;
     .common-form-content {
         position: relative;
         margin-right: 30px;
@@ -251,6 +293,7 @@
         position: absolute;
         right: -20px;
         top: 10px;
+        color: #c4c6cc;
         &:hover {
             color: #f4aa1a;
         }

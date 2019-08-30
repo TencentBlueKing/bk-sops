@@ -103,10 +103,6 @@ def get_state(node_id):
     return res
 
 
-def get_single_state(node_id):
-    return api.get_single_state(node_id)
-
-
 def _get_node_state(tree):
     status = []
 

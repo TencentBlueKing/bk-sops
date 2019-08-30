@@ -28,7 +28,7 @@
                 :before-upload="beforeUpload"
                 :before-remove="beforeRemove"
                 :file-list="fileValue">
-                <el-button size="small" type="primary">{{ text }}</el-button>
+                <el-button size="small" theme="primary">{{ text }}</el-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validate.message}}</span>
