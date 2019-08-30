@@ -174,7 +174,8 @@
                 'businessTimezone': state => state.businessTimezone,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
-                'atomFormConfig': state => state.atomForm.config
+                'atomFormConfig': state => state.atomForm.config,
+                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             ...mapGetters('atomList/', [
                 'singleAtomGrouped'
@@ -312,7 +313,8 @@
             ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig',
-                'clearAtomForm'
+                'clearAtomForm',
+                'setVersionMap'
             ]),
             ...mapGetters('template/', [
                 'getLocalTemplateData'
@@ -322,6 +324,7 @@
                 try {
                     const data = await this.loadSingleAtomList()
                     this.setSingleAtom(data)
+                    this.updateStoreVersionMap(data)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -405,14 +408,15 @@
             },
             async getSingleAtomConfig (location) {
                 const atomType = location.atomId
-                if ($.atoms[atomType]) {
-                    this.addSingleAtomActivities(location, $.atoms[atomType])
+                const version = this.SingleAtomVersionMap[atomType]
+                if (this.atomConfig[atomType] && this.atomConfig[atomType][version]) {
+                    this.addSingleAtomActivities(location, this.atomConfig[atomType][version])
                     return
                 }
+                // 接口获取最新配置信息
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
+                    await this.loadAtomConfig({ atomType, version })
                     this.addSingleAtomActivities(location, $.atoms[atomType])
                 } catch (e) {
                     errorHandler(e, this)
@@ -428,13 +432,13 @@
                     for (const key in constants) {
                         const form = constants[key]
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
+                        const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
 
-                        if (!this.atomFormConfig[atomType]) {
-                            await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        if (tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
+                            await this.loadAtomConfig({ atomType, classify, saveName: atom })
                         }
 
-                        const atomConfig = this.atomFormConfig[atom]
+                        const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
                         if (currentFormConfig) {
@@ -472,7 +476,6 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
-                        this.template_id = data.template_id
                         this.allowLeave = true
                         this.$router.push({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
                     }
@@ -582,9 +585,9 @@
             },
             // 校验输入参数是否满足标准插件配置文件正则校验
             validateAtomInputForm (component) {
-                const { code, data } = component
-                const config = this.atomConfig[code]
+                const { code, data, version } = component
                 if (!data) return false
+                const config = this.atomConfig[code][version]
                 if (config) {
                     const formData = {}
                     Object.keys(data).forEach(key => {
@@ -921,6 +924,14 @@
                         isSkipped: nodes[node].isSkipped
                     })
                 })
+            },
+            // 更新单原子节点当前最新版本配置
+            updateStoreVersionMap (data) {
+                const actions = {}
+                data.forEach(atom => {
+                    actions[atom.code] = atom.version
+                })
+                this.setVersionMap(actions)
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

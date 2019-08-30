@@ -303,7 +303,8 @@
                 'atomForm': state => state.atomForm.form,
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormOutput': state => state.atomForm.output,
-                'subprocessInfo': state => state.template.subprocess_info
+                'subprocessInfo': state => state.template.subprocess_info,
+                'SingleAtomVersionMap': state => state.atomForm.SingleAtomVersionMap
             }),
             /**
              * 标准插件节点、子节点列表
@@ -347,8 +348,14 @@
              */
             renderOutputData () {
                 const outputData = []
-                const outputConfig = this.getOutputConfig()
-
+                let outputConfig = []
+                if (!this.currentAtom
+                    || JSON.stringify(this.atomFormConfig) === '{}'
+                    || !this.atomFormConfig[this.currentAtom]) {
+                    outputConfig = []
+                } else {
+                    outputConfig = this.getOutputConfig()
+                }
                 outputConfig && outputConfig.forEach(item => {
                     let hook = false
                     let key = item.key
@@ -393,9 +400,16 @@
              * 输入参数表单配置项
              */
             renderInputConfig () {
-                return this.isSingleAtom
-                    ? this.getSingleAtomConfig()
-                    : this.subAtomInput
+                if (this.isSingleAtom) {
+                    if (!this.currentAtom
+                        || JSON.stringify(this.atomFormConfig) === '{}'
+                        || !this.atomFormConfig[this.currentAtom]) {
+                        return []
+                    }
+                    return this.getSingleAtomConfig()
+                } else {
+                    return this.subAtomInput
+                }
             },
             /**
              * 输入参数数据
@@ -405,6 +419,9 @@
                     hook: this.inputAtomHook,
                     value: this.inputAtomData
                 }
+            },
+            currentSingleAtomVersion () {
+                return this.isSingleAtom && this.nodeConfigData ? this.nodeConfigData.component.version || this.SingleAtomVersionMap[this.currentAtom] : ''
             }
         },
         watch: {
@@ -450,18 +467,22 @@
                 this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
-                    this.getConfig(this.nodeConfigData.version) // load node config data
+                    if (this.isSingleAtom) {
+                        this.nodeConfigData.component.version && this.getConfig(this.nodeConfigData.component.version)
+                    } else {
+                        this.getConfig(this.nodeConfigData.version) // load node config data
+                    }
                 }
             },
             /**
              * 加载标准插件配置文件或子流程表单配置
-             * @param {String} version 子流程版本
+             * @param {String} version 子流程版本/标准插件配置文件版本
              */
             getConfig (version) {
                 if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
                     || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
-                        return this.getAtomConfig(this.currentAtom)
+                        return this.getAtomConfig(this.currentAtom, version)
                     } else {
                         return this.getSubflowConfig(this.currentAtom, version)
                     }
@@ -472,16 +493,15 @@
             /**
              * 加载标准插件节点数据
              */
-            async getAtomConfig (atomType) {
-                if ($.atoms[atomType]) {
-                    this.setNodeConfigData(atomType)
+            async getAtomConfig (atomType, version) {
+                if (tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
+                    this.setNodeConfigData(atomType, version)
                     return
                 }
                 this.atomConfigLoading = true
                 try {
-                    await this.loadAtomConfig({ atomType })
-                    this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
-                    this.setNodeConfigData(atomType)
+                    await this.loadAtomConfig({ atomType, version })
+                    this.setNodeConfigData(atomType, version)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -532,13 +552,11 @@
                     for (const form of variableArray) {
                         const { key } = form
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-
-                        if (!this.atomFormConfig[atomType]) {
-                            await this.loadAtomConfig({ atomType, classify })
-                            this.setAtomConfig({ atomType: atom, configData: $.atoms[atom] })
+                        const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
+                        if (!tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
+                            await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
-
-                        const atomConfig = this.atomFormConfig[atom]
+                        const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
 
                         if (currentFormConfig) {
@@ -593,9 +611,9 @@
             /**
              * normal task node render form value
              */
-            setNodeConfigData (atomType) {
+            setNodeConfigData (atomType, version) {
                 const data = {}
-                const config = this.atomFormConfig[atomType]
+                const config = this.atomFormConfig[atomType][version]
                 if (atomType === this.activities[this.nodeId].component.code) {
                     this.nodeConfigData = tools.deepClone(this.activities[this.nodeId])
                 } else {
@@ -653,7 +671,8 @@
                 this.inputAtomData = inputFormData
             },
             getSingleAtomConfig () {
-                const config = this.atomFormConfig[this.currentAtom]
+                // 当前版本或最新版本
+                const config = this.atomFormConfig[this.currentAtom][this.currentSingleAtomVersion]
                 if (!config) {
                     return {}
                 }
@@ -665,7 +684,8 @@
                 })
             },
             getOutputConfig () {
-                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom] : this.subAtomOutput
+                const version = this.currentSingleAtomVersion
+                return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
             },
             getHookedInputVariables () {
                 const variables = []
@@ -730,6 +750,13 @@
             },
             updateActivities () {
                 const nodeData = tools.deepClone(this.nodeConfigData)
+                let version = ''
+                this.singleAtom.some(m => {
+                    if (m.code === this.currentAtom) {
+                        version = m.version
+                        return true
+                    }
+                })
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
@@ -737,6 +764,7 @@
                 nodeData.can_retry = this.isRetry
                 if (this.isSingleAtom) {
                     nodeData.error_ignorable = this.errorCouldBeIgnored
+                    nodeData.component.version = version
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
@@ -838,7 +866,8 @@
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
                 this.updateActivities()
-                this.getConfig()
+                // 如果是单原子，这里取最新版本配置
+                this.getConfig(this.SingleAtomVersionMap[id])
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
@@ -909,12 +938,16 @@
                 const formConfig = this.renderInputConfig.filter(item => {
                     return item.tag_code === tagCode
                 })[0]
-
                 const name = formConfig.attrs.name.replace(/\s/g, '')
 
                 if (this.isSingleAtom) {
+                    const version = this.activities[this.nodeId].component['version']
                     key = tagCode
-                    source_tag = this.nodeConfigData.component.code + '.' + tagCode
+                    source_tag = this.nodeConfigData.component.code
+                        + '.'
+                        + version
+                        + '.'
+                        + tagCode
                     source_info = { [this.nodeId]: [tagCode] }
                     custom_type = ''
                     value = tools.deepClone(this.inputAtomData[tagCode])

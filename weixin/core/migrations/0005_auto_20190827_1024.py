@@ -11,18 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib import admin
+from __future__ import unicode_literals
 
-from . import models
-
-
-@admin.register(models.BkWeixinUser)
-class BkWeixinUserAdmin(admin.ModelAdmin):
-    list_display = ['userid', 'name', 'date_joined']
-    search_fields = ['userid', 'name']
+from django.db import migrations
 
 
-@admin.register(models.WeixinUserSession)
-class WeixinUserSessionAdmin(admin.ModelAdmin):
-    list_display = ['bk_user_id', 'session_key', 'expired_time']
-    search_fields = ['bk_user_id', 'session_key']
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('weixin_core', '0004_weixinusersession'),
+    ]
+
+    operations = [
+        migrations.AlterModelOptions(
+            name='weixinusersession',
+            options={'verbose_name': '\u5fae\u4fe1\u7528\u6237Session\u8bb0\u5f55', 'verbose_name_plural': '\u5fae\u4fe1\u7528\u6237Session\u8bb0\u5f55'},
+        ),
+    ]

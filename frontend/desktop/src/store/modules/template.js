@@ -53,6 +53,7 @@ function generateInitActivities (location, line) {
     return {
         [location[1].id]: {
             component: {
+                version: undefined,
                 code: undefined,
                 data: undefined
             },
@@ -475,7 +476,8 @@ const template = {
                         state.activities[location.id] = {
                             component: {
                                 code: location.atomId,
-                                data: location.data
+                                data: location.data,
+                                version: location.version
                             },
                             error_ignorable: false,
                             id: location.id,
