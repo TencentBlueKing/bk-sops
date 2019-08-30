@@ -36,7 +36,7 @@
                                 </bk-option>
                             </bk-select>
                             <!-- 标准插件节点说明 -->
-                            <i class="bk-icon icon-info-circle desc-tooltip"
+                            <i class="common-icon-info desc-tooltip"
                                 v-if="atomDesc"
                                 v-bk-tooltips="{
                                     content: atomDesc,
@@ -96,7 +96,7 @@
                                     {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle"></i>
+                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info"></i>
                             <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
@@ -1205,7 +1205,7 @@
             width: 150px;
             padding-right: 11px;
         }
-        .icon-info-circle {
+        .common-icon-info {
             display: inline-block;
             vertical-align: middle;
             color: #c4c6cc;

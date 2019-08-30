@@ -29,7 +29,7 @@
                         placements: ['right'],
                         zIndex: 2002
                     }"
-                    class="bk-icon icon-info-circle">
+                    class="common-icon-info">
                 </i>
             </span>
         </div>

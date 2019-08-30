@@ -24,7 +24,7 @@
             <div class="title-background" @click="onToggleUnreferenceShow">
                 <div :class="['unreferenced-variable', { 'unreference-show': isUnrefVarShow }]"></div>
                 <span class="title">{{i18n.title}}</span>
-                <i class="bk-icon icon-info-circle desc-tooltip"
+                <i class="common-icon-info desc-tooltip"
                     v-bk-tooltips="{
                         content: i18n.executorTips,
                         width: '400',

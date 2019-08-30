@@ -23,7 +23,7 @@
                 <div class="title-wrapper">
                     <h4>{{i18n.mainSource}}</h4>
                     <i
-                        class="title-tooltip bk-icon icon-info-circle"
+                        class="title-tooltip common-icon-info"
                         v-bk-tooltips.right="i18n.sourceTip">
                     </i>
                 </div>
@@ -35,7 +35,7 @@
                 <div class="title-wrapper">
                     <h4>{{i18n.localCache}}</h4>
                     <i
-                        class="title-tooltip bk-icon icon-info-circle"
+                        class="title-tooltip common-icon-info"
                         v-bk-tooltips.right="i18n.cacheTip">
                     </i>
                 </div>
