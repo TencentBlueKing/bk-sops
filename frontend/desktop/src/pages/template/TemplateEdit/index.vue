@@ -925,11 +925,17 @@
                     })
                 })
             },
-            // 更新单原子节点当前最新版本配置
+            // 更新标准插件最新版本列表
             updateStoreVersionMap (data) {
                 const actions = {}
                 data.forEach(atom => {
-                    actions[atom.code] = atom.version
+                    const value = actions[atom.code]
+                    if (value) {
+                        if (value < atom.version || value === 'legacy') actions[atom.code] = atom.version
+                    } else {
+                        actions[atom.code] = atom.version
+                    }
+                    // actions[atom.code] = atom.version
                 })
                 this.setVersionMap(actions)
             }

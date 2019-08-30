@@ -86,16 +86,18 @@ const atomForm = {
         /**
          * 加载标准插件配置项
          * @param {String} payload.atomType 节点类型
-         * @param {String} payload.setName 自定义请求名字
+         * @param {String} payload.setName 自定义请求类型
          */
         async loadAtomConfig ({ commit, state }, payload) {
             const { atomType, classify, isMeta, saveName } = payload
             const atomClassify = classify || 'component'
-            let version = payload.version
             const setTypeName = saveName || atomType
+            let version = payload.version
             version = atomClassify === 'variable' ? 'legacy' : version
+
             await api.getAtomFormURL(atomType, atomClassify, version, isMeta).then(async response => {
                 const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+
                 commit('setAtomForm', { atomType: setTypeName, data: response.data, isMeta, version })
                 commit('setAtomOutput', { atomType: setTypeName, outputData, version })
 
