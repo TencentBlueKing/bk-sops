@@ -1,0 +1,273 @@
+@import '../../static/style/var.scss';
+/*全局*/
+a{
+    color: $blue;
+}
+
+.page-view{
+    position: absolute;
+    width: 100%;
+    top: 60px;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+/*search*/
+.bk-search{
+    background-color: #F4F7FA;
+    padding: 16px 25px;
+
+    .van-search__content{
+        background-color: rgba(142,142,147,0.12);
+        border-radius: 10px;
+
+        .van-cell{
+            padding: 6px 10px 6px 0;
+
+            .van-field__left-icon{
+                color: #8E8E93;
+            }
+        }
+    }
+}
+/*列表页*/
+.bk-block{
+    .van-cell:not(:last-child):after{
+        left: 25px;
+        right: 25px;
+        border-bottom-color: $border-color;
+        transform: scaleY(1);
+    }
+    &-title {
+        margin: 0;
+        font-weight: 400;
+        font-size: $fs-12;
+        color: #999;
+        padding: 0 25px;
+        height: 30px;
+        line-height: 30px;
+    }
+    .van-cell{
+        padding: 14px 25px;
+        align-items: center;
+        color: $text-color;
+
+        &__title{
+            overflow: hidden;
+        }
+        .bk-text{
+            font-size: $fs-16;
+            font-weight: bold;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .bk-name,.bk-time{
+            font-size: $fs-12;
+            color: #C4C6CC;
+            line-height: 18px;
+        }
+        .star-icon{
+            font-size: $fs-18;
+            color: #e1e1e1;
+            width: 40px;
+            text-align: right;
+        }
+        .collection{
+            color: #dba871;
+        }
+        .task-icon{
+            font-size: $fs-16;
+            width: 40px;
+            text-align: right;
+        }
+        .checked{
+            color: #2fca55;
+        }
+        .close{
+            color: #ea3636;
+        }
+        .more{
+            color: #3a84ff;
+        }
+        .pause{
+            color: #ff9c01;
+        }
+        .circle:before{
+            content: "";
+            width: 14px;
+            height: 14px;
+            background-color: #979ba5;
+            border-radius: 50%;
+        }
+        .van-cell__value{
+            flex: inherit;
+        }
+    }
+}
+
+/*详情页*/
+.bk-text-title{
+    font-size: $fs-12;
+    color: #999;
+    padding: 20px 25px 7px 25px;
+    margin: 0;
+    font-weight: 400;
+}
+.bk-text-list{
+    .van-cell:not(:last-child):after{
+        border-bottom-color: #F1F4F8;
+    }
+    .van-cell__title{
+        max-width: 120px;
+    }
+    .van-cell__value{
+        text-align: left;
+        color: $text-color-light;
+        .van-field__control,.van-checkbox__label,.van-radio__label{
+            color: $text-color-light;
+        }
+    }
+    .select-list .van-popup{
+        .van-cell{
+            padding: 10px 15px;
+        }
+        .van-cell:not(:last-child):after{
+            left: 15px;
+            right: 0px;
+        }
+        .van-cell__title{
+            max-width: none;
+        }
+    }
+}
+/*popup*/
+.van-overlay{
+    background-color: rgba(0, 0, 0, 0.2);
+}
+.van-picker__cancel{
+    color: #979BA5;
+}
+.van-picker__confirm{
+    color: $blue;
+}
+.van-picker-column{
+    font-size: $fs-14;
+
+    &__item{
+        color: #9FA5AB;
+    }
+    &__item--selected{
+        color: $text-color;
+    }
+}
+/*1px 边框*/
+[class*="van-hairline"]:after {
+    border-color: #E1E0E2;
+}
+/*btn*/
+.btn-group{
+    margin: 30px 25px;
+    display: flex;
+
+    .van-button{
+        border-radius: 4px;
+
+        + .van-button{
+            margin-left: 10px;
+        }
+    }
+}
+.van-button--default{
+    border-color: #C4C6CC;
+    color: $text-color;
+}
+.van-button--info{
+    background-color: $blue;
+    border-color: $blue;
+}
+/*dialog*/
+.van-dialog__message{
+    font-size: $fs-16;
+}
+.van-dialog__cancel{
+    color: #979BA5;
+}
+.van-dialog__confirm, .van-dialog__confirm:active{
+    color: $blue;
+}
+/*执行任务状态*/
+.task-status{
+    position: fixed;
+    width: 100%;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    padding: 10px;
+    text-align: center;
+    font-size: $fs-14;
+}
+.task-status.muted{
+    background: #dcdee5;
+    border-bottom-color: #d2d4dd;
+    color: #63656e;
+}
+.task-status.info{
+    background: #CFDFFB;
+    border-bottom-color: #C0D4F8;
+    color: $blue;
+}
+.task-status.warning{
+    background: #FFE8C3;
+    border-bottom-color: #E6CFAA;
+    color: #D78300;
+}
+.task-status.danger{
+    background: #F2D0D3;
+    border-bottom-color: #EFB9BE;
+    color: #EA3636;
+}
+.task-status.success{
+    background: #beeac9;
+    border-bottom-color: #7de095;
+    color: #12b93b;
+}
+/*标签栏*/
+.van-tabbar{
+    background-color: $background-color;
+
+    .van-tabbar-item__icon{
+        font-size: 22px;
+        margin-bottom: 0;
+
+        .icon-pause,.icon-pause{
+            color: $blue;
+        }
+        .icon-revoke{
+            color: #EA3636;
+        }
+        .icon-file{
+            color: #4E4E4E;
+        }
+        .disabled{
+            opacity: 0.4;
+        }
+    }
+
+    &:after{
+        border-color: #E5E5E5;
+    }
+}
+/*notify*/
+.custom-notify{
+    background: $blue;
+    line-height: 28px;
+}
+/*checkbox*/
+.van-checkbox-group,.van-radio-group{
+    .van-checkbox,.van-radio{
+        +.van-checkbox,+.van-radio{
+            margin-top: 8px;
+        }
+    }
+}

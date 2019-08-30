@@ -20,6 +20,7 @@ TASK_CREATE_METHOD = [
     ('api', _(u"API网关")),
     ('app_maker', _(u"轻应用")),
     ('periodic', _(u"周期任务")),
+    ('mobile', _(u"移动端")),
 ]
 
 # 任务引用的流程模板来源

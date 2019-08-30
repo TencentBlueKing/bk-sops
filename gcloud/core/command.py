@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 superuser command
 """
 
+from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 
@@ -28,4 +29,10 @@ def delete_cache_key(request, key):
 @check_is_superuser()
 def get_cache_key(request, key):
     data = cache.get(key)
+    return JsonResponse({'result': True, 'data': data})
+
+
+@check_is_superuser()
+def get_settings(request):
+    data = {s: getattr(settings, s) for s in dir(settings)}
     return JsonResponse({'result': True, 'data': data})
