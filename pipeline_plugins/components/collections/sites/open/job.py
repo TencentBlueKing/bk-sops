@@ -86,7 +86,7 @@ class JobService(Service):
 
             # 全局变量重载
             get_var_kwargs = {
-                "bk_biz_id": data.get_one_of_inputs('biz_cc_id'),
+                "bk_biz_id": data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id),
                 "job_instance_id": job_instance_id
             }
             global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
@@ -170,7 +170,7 @@ class JobExecuteTaskService(JobService):
         LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_result, kwargs=job_kwargs))
         if job_result['result']:
             job_instance_id = job_result['data']['job_instance_id']
-            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
             data.outputs.client = client
@@ -240,7 +240,7 @@ class JobFastPushFileService(JobService):
             job_instance_id = job_result['data']['job_instance_id']
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
-            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             data.outputs.client = client
             return True
         else:
@@ -272,7 +272,6 @@ class JobFastExecuteScriptService(JobService):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
         biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
-        data.inputs.biz_cc_id = biz_cc_id
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(
             username=executor,
