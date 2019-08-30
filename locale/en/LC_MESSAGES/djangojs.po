@@ -3429,7 +3429,7 @@ msgstr "File"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:41
 msgid "多个请用换行分隔"
-msgstr "use link breaker to separate it"
+msgstr "Multiple are separated by line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:55
 msgid "执行账户"
