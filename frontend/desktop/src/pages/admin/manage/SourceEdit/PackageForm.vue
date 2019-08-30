@@ -182,7 +182,7 @@
                                                 <bk-button
                                                     size="small"
                                                     class="delete-btn"
-                                                    :class="{ 'default-color': isOnlyoneModule }"
+                                                    :class="{ 'default-color': !isShowDelete }"
                                                     @click="onDeletePackage(index)">
                                                     {{ modulesOptName }}
                                                 </bk-button>
@@ -282,11 +282,11 @@
             isEditing () {
                 return typeof this.value.id === 'number'
             },
-            isOnlyoneModule () {
-                return this.packageValues.length <= 1
+            isShowDelete () {
+                return this.packageValues && this.packageValues.length > 1
             },
             modulesOptName () {
-                return this.isOnlyoneModule ? '--' : this.i18n.delete
+                return this.isShowDelete ? this.i18n.delete : '--'
             }
         },
         methods: {
@@ -391,7 +391,7 @@
              * 删除模块配置（只有一条时不显示删除按钮）
              */
             onDeletePackage (index) {
-                if (this.isOnlyoneModule) return
+                if (!this.isShowDelete) return
                 this.packageValues.splice(index, 1)
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
