@@ -142,3 +142,9 @@ class MockCache(object):
 
     def set(self, *args, **kwargs):
         return
+
+
+class MockSyncPackageSource(object):
+    def __init__(self, id, type):
+        self.id = id
+        self.type = MagicMock(return_value=type)

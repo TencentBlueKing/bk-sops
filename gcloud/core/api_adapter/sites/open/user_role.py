@@ -97,8 +97,3 @@ def is_user_role(username, role):
         if not action_resource['is_pass']:
             return False
     return True
-
-
-if __name__ == '__main__':
-    test_result = get_operate_user_list()
-    print repr(test_result)

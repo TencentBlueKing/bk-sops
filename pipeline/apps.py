@@ -76,6 +76,7 @@ class PipelineConfig(AppConfig):
 
     def ready(self):
         from pipeline.signals.handlers import pipeline_template_post_save_handler  # noqa
+        from pipeline.validators.handlers import post_new_end_event_register_handler  # noqa
         # init redis pool
         if hasattr(settings, 'REDIS'):
             mode = settings.REDIS.get('mode') or 'single'
