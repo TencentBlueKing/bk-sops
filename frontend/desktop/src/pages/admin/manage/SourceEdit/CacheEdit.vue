@@ -156,11 +156,4 @@
             width: 140px;
         }
     }
-    .common-error-tip {
-        position: absolute;
-        bottom: -15px;
-        left: 0;
-        font-size: 12px;
-        white-space: nowrap;
-    }
 </style>
