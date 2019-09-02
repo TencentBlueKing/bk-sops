@@ -20,6 +20,8 @@
             :common="common"
             :cc_id="cc_id"
             :instance-name="instanceName"
+            :template-source="templateSource"
+            :async-template-id="templateId"
             :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
@@ -35,7 +37,7 @@
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
-            :template_id="template_id"
+            :template_id="templateId"
             :template-source="templateSource"
             @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
@@ -82,7 +84,8 @@
                 isAllStepsFinished: false,
                 instanceName: '',
                 instanceFlow: '',
-                templateSource: ''
+                templateSource: '',
+                templateId: ''
             }
         },
         computed: {
@@ -118,7 +121,7 @@
                     }
                     this.instanceFlow = instanceData.pipeline_tree
                     this.instanceName = instanceData.name
-                    this.template_id = instanceData.template_id
+                    this.templateId = instanceData.template_id
                     this.templateSource = instanceData.template_source
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true

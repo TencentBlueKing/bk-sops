@@ -186,10 +186,10 @@
                 return this.userType !== 'functor' && this.isStartNow
             },
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
+                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'taskflow'
             },
             isPeriodicSelectShow () {
-                return this.entrance.indexOf('periodicTask') > -1
+                return this.entrance === 'periodicTask'
             }
         },
         mounted () {
