@@ -44,6 +44,8 @@
         showLabel: false, // 是否显示标准插件名称
         formEdit: true, // 是否可编辑
         formMode: true, // 是否为表单模式（查看参数时，input、textarea等不需要用表单展示）
+        formViewHidden: false, // 改表单项为非编辑状态时，是否隐藏
+        cols: 0, // 横向栅格占有的格数，总数为 12 格
         validateSet: ['required', 'custom', 'regex'] // 选择开启的校验类型，默认都开启
     }
 
@@ -125,6 +127,11 @@
                 scheme.forEach(item => {
                     const key = item.tag_code
 
+                    /** warning 前端tag结构变化数据兼容 */
+                    if (item.tag_code === 'job_task') {
+                        data[item.tag_code] = this.reloadValue(item, data)
+                    }
+
                     if (item.type === 'combine') {
                         if (!this.hooked || !this.hooked[item.tag_code]) {
                             if (!(key in data)) {
@@ -181,6 +188,11 @@
                 })
             },
             getFormValue (atom) {
+                /** warning 前端tag结构变化数据兼容 */
+                if (atom.tag_code === 'job_task') {
+                    this.value[atom.tag_code] = this.reloadValue(atom, this.value)
+                }
+
                 return this.formData[atom.tag_code]
             },
             updateForm (fieldArr, val) {
@@ -234,6 +246,19 @@
                     }
                 })
                 return isValid
+            },
+            /**
+             * 表单参数重载
+             * 前端tag结构变化数据兼容
+             */
+            reloadValue (atom, rawData) {
+                if (typeof atom.reloadValue === 'function') {
+                    const reloadValue = atom.reloadValue(rawData)
+                    if (reloadValue) {
+                        return reloadValue[atom.tag_code]
+                    }
+                }
+                return rawData[atom.tag_code]
             }
         }
     }
