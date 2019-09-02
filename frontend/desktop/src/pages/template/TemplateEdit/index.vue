@@ -85,18 +85,21 @@
                 :id-of-node-in-config-panel="idOfNodeInConfigPanel"
                 :common="common"
                 @hideConfigPanel="hideConfigPanel"
+                @globalVariableUpdate="globalVariableUpdate"
                 @onUpdateNodeInfo="onUpdateNodeInfo">
             </NodeConfig>
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
                 :business-info-loading="businessInfoLoading"
+                :is-global-variable-update="isGlobalVariableUpdate"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
                 :variable-type-list="variableTypeList"
                 :local-template-data="localTemplateData"
                 :is-click-draft="isClickDraft"
                 @toggleSettingPanel="toggleSettingPanel"
+                @globalVariableUpdate="globalVariableUpdate"
                 @onDeleteConstant="onDeleteConstant"
                 @variableDataChanged="variableDataChanged"
                 @onSelectCategory="onSelectCategory"
@@ -174,6 +177,7 @@
                 templateSaving: false,
                 createTaskSaving: false,
                 saveAndCreate: false,
+                isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
                 isSettingPanelShow: true,
@@ -690,6 +694,7 @@
              * 任务节点点击
              */
             onNodeClick (id) {
+                this.toggleSettingPanel(false)
                 const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
@@ -759,6 +764,9 @@
             onLocationMoveDone (location) {
                 this.variableDataChanged()
                 this.setLocationXY(location)
+            },
+            globalVariableUpdate (val) {
+                this.isGlobalVariableUpdate = val
             },
             onUpdateNodeInfo (id, data) {
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)

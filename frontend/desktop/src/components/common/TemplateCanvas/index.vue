@@ -229,14 +229,15 @@
                         this.$refs.jsFlow.createNode(location)
                         this.$emit('onLocationChange', 'add', location)
                     })
-                    this.$nextTick(() => {
-                        lines.forEach(line => {
+                    this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
+                    // 需要先生成节点 DOM，才能连线
+                    lines.forEach(line => {
+                        this.$emit('onLineChange', 'add', line)
+                        this.$nextTick(() => {
                             this.$refs.jsFlow.createConnector(line)
-                            this.$emit('onLineChange', 'add', line)
                         })
-                        this.$refs.jsFlow.clearNodesDragSelection()
-                        this.$refs.jsFlow.addNodesToDragSelection(selectedIds)
                     })
+                    this.$refs.jsFlow.clearNodesDragSelection()
                 }
             },
             nodeLineDeletehandler (e) {
@@ -459,13 +460,12 @@
                         id: `close_${lineId}`
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
-                    if (branchInfo) {
-                        console.log(branchInfo)
+                    if (branchInfo && Object.keys(branchInfo).length > 0) {
                         const labelName = branchInfo[lineId].evaluate
                         const labelData = {
                             type: 'Label',
                             name: `<div class="branch-condition">${labelName}</div>`,
-                            location: 0.5,
+                            location: -70,
                             cls: 'branch-condition',
                             id: `condition${lineId}`
                         }
@@ -556,6 +556,7 @@
         }
         /deep/ .jtk-overlay {
             cursor: pointer;
+            z-index: 4;
             &:not(.branch-condition) {
                 display: none;
             }
@@ -574,7 +575,6 @@
                 background: #e1f3ff;
                 border: 1px solid #c3cdd7;
                 border-radius: 2px;
-                z-index: 3;
                 cursor: pointer;
             }
         }
