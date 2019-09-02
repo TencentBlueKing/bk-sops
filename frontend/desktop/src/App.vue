@@ -14,6 +14,9 @@
         <navigator
             v-if="!hideHeader"
             :appmaker-data-loading="appmakerDataLoading" />
+        <div class="main-container">
+            <router-view v-if="isRouterAlive"></router-view>
+        </div>
         <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
@@ -198,6 +201,7 @@
 </script>
 <style lang="scss">
     @import './scss/app.scss';
+    @import '@/scss/config.scss';
     html,body {
         height:100%;
     }
@@ -205,6 +209,16 @@
         overflow: hidden;
     }
     #app {
+        width: 100%;
         height: 100%;
+        overflow-x: hidden;
+        min-width: 1320px;
+    }
+    .main-container {
+        width: 100%;
+        height: calc(100% - 50px);
+        min-width: 1320px;
+        min-height: calc(100% - 50px);
+        overflow-x: hidden;
     }
 </style>

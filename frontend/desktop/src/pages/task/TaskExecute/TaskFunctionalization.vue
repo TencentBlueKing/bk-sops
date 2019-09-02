@@ -48,7 +48,7 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
-                type="success"
+                theme="success"
                 :class="['task-claim-button', {
                     'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
                 }]"
@@ -59,26 +59,23 @@
             </bk-button>
         </div>
         <bk-dialog
-            v-if="previewDialogShow"
-            :quick-close="false"
-            :has-header="true"
+            :value="previewDialogShow"
+            :mask-close="false"
+            :header-position="'left'"
             :has-footer="false"
             :ext-cls="'common-dialog'"
             :title="i18n.taskPreview"
             width="1000"
-            padding="0px"
-            :is-show.sync="previewDialogShow"
             @cancel="onCancel">
-            <div slot="content">
-                <NodePreview
-                    ref="nodePreviewRef"
-                    :preview-data-loading="previewDataLoading"
-                    :canvas-data="formatCanvasData(previewData)"
-                    :preview-bread="previewBread"
-                    @onNodeClick="onNodeClick"
-                    @onSelectSubflow="onSelectSubflow">
-                </NodePreview>
-            </div>
+            <NodePreview
+                v-if="previewDialogShow"
+                ref="nodePreviewRef"
+                :preview-data-loading="previewDataLoading"
+                :canvas-data="formatCanvasData(previewData)"
+                :preview-bread="previewBread"
+                @onNodeClick="onNodeClick"
+                @onSelectSubflow="onSelectSubflow">
+            </NodePreview>
         </bk-dialog>
     </div>
 </template>
@@ -249,9 +246,11 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .functionalization-wrapper {
+    position: relative;
     margin: 0 40px;
     padding-top: 30px;
     width: calc(100% - 80px);
+    min-height: calc(100vh - 50px - 139px);
     background-color: #ffffff;
     @media screen and (max-width: 1300px){
         width: calc(100% - 80px);
@@ -346,6 +345,9 @@
     width: 720px;
 }
 .action-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
     height: 72px;
     line-height: 72px;
     margin: 0 -40px;
@@ -375,6 +377,7 @@
     max-width: 500px;
 }
 /deep/ .bk-dialog-body {
+    height: 420px;
     background-color: #f4f7fa;
 }
 /deep/ .pipeline-canvas{

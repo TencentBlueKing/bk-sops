@@ -10,16 +10,18 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="home-page" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <div v-if="!loading">
-            <div class="summary-info">
+    <div class="home-page">
+        <div>
+            <div class="summary-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <HomeSummary
+                    :loading="loading"
                     :project_id="project_id"
                     :summary-data="summaryData">
                 </HomeSummary>
             </div>
             <div class="main-wrapper">
                 <QuickCreateTask
+                    v-bkloading="{ isLoading: loading, opacity: 1 }"
                     :project_id="project_id"
                     :quick-task-list="quickTaskList"
                     :template-classify="templateClassify"
@@ -27,16 +29,21 @@
                     @updateQuickTaskList="updateQuickTaskList">
                 </QuickCreateTask>
                 <div class="column-panel clearfix">
-                    <div class="col-item">
+                    <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
                         <TaskFeeds
+                            v-if="!loading"
                             :top-three-task-feeds="topThreeTaskFeeds"
                             :project_id="project_id"
                             :task-operations="taskOperations"
                             :task-resource="taskResource">
                         </TaskFeeds>
                     </div>
-                    <div class="col-item">
-                        <TaskPercentChart :task-count="taskCount" :total-task="totalTask"></TaskPercentChart>
+                    <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
+                        <TaskPercentChart
+                            v-if="!loading"
+                            :task-count="taskCount"
+                            :total-task="totalTask">
+                        </TaskPercentChart>
                     </div>
                 </div>
             </div>
@@ -266,11 +273,6 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-.home-page {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteMainBg;
-}
 .summary-info {
     background: #2b74c6;
     background: linear-gradient(to bottom, #2b74ca, #289dce);
@@ -292,5 +294,9 @@
     &:nth-child(2n) {
         margin-right: 0;
     }
+}
+[v-cloak] {
+   display:none;
+
 }
 </style>
