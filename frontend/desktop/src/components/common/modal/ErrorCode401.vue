@@ -12,7 +12,7 @@
 <template>
     <div class="content-wrapper">
         <h3 class="error-title">{{ i18n.title }}</h3>
-        <bk-button type="primary" @click="onReloadLogin">{{ i18n.login }}</bk-button>
+        <bk-button theme="primary" @click="onReloadLogin">{{ i18n.login }}</bk-button>
     </div>
 </template>
 <script>

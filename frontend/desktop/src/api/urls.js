@@ -61,6 +61,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         setSleepNode: SITE_URL + 'taskflow/api/nodes/spec/timer/reset/' + PROJECT_ID + '/',
         taskCount: SITE_URL + 'taskflow/api/query_task_count/' + PROJECT_ID + '/',
         schemes: SITE_URL + 'api/v3/schemes/',
+        commonSchemes: SITE_URL + 'api/v3/common_scheme/',
         bizConfig: SITE_URL + 'config/api/biz_config/' + PROJECT_ID + '/',
         configBizExecutor: SITE_URL + 'config/api/biz_executor/' + PROJECT_ID + '/',
         appmaker: SITE_URL + 'api/v3/appmaker/',
@@ -84,6 +85,8 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         taskCreateMethod: SITE_URL + 'taskflow/api/get_task_create_method/',
         cc_search_host: SITE_URL + 'pipeline/cc_search_host/' + PROJECT_ID + '/',
         cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + PROJECT_ID + '/',
-        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + PROJECT_ID + '/'
+        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + PROJECT_ID + '/',
+        packageSource: SITE_URL + 'api/v3/package_source/',
+        syncTask: SITE_URL + 'api/v3/sync_task/'
     }
 }

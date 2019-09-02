@@ -191,6 +191,9 @@
             _get_value () {
                 return this.value
             },
+            set_loading (loading) {
+                this.loading = loading
+            },
             remoteMethod () {
                 const self = this
                 const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url

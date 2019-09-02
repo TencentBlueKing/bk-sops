@@ -41,6 +41,12 @@ const StatisticsInstance = () => import('@/pages/admin/statistics/Instance/index
 const StatisticsAtom = () => import('@/pages/admin/statistics/Atom/index.vue')
 const StatisticsAppmaker = () => import('@/pages/admin/statistics/Appmaker/index.vue')
 const CommonTemplate = () => import('@/pages/admin/common/template.vue')
+const Manage = () => import('@/pages/admin/manage/index.vue')
+const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
+const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
+const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
+const CacheEdit = () => import('@/pages/admin/manage/SourceEdit/CacheEdit.vue')
+const SourceSync = () => import('@/pages/admin/manage/SourceSync/index.vue')
 
 const FunctionHome = () => import('@/pages/functor/index.vue')
 
@@ -169,11 +175,11 @@ const routers = new VueRouter({
                         project_id: route.params.project_id,
                         step: route.params.step,
                         template_id: route.query.template_id,
-                        common: route.query.common
+                        common: route.query.common,
+                        entrance: route.query.entrance
                     }),
                     meta: { project: true }
-                }
-            ]
+                }]
         },
         {
             path: '/taskflow',
@@ -200,6 +206,7 @@ const routers = new VueRouter({
                     name: 'taskExecute',
                     props: (route) => ({
                         project_id: route.params.project_id,
+                        common: route.query.common,
                         instance_id: route.query.instance_id
                     }),
                     meta: { project: true }
@@ -310,6 +317,38 @@ const routers = new VueRouter({
                     path: 'common/template',
                     name: 'commonTemplateHome',
                     component: CommonTemplate
+                },
+                {
+                    path: 'manage/',
+                    component: Manage,
+                    children: [
+                        {
+                            path: 'source_manage/',
+                            name: 'sourceManage',
+                            component: SourceManage
+                        },
+                        {
+                            path: 'source_edit/',
+                            component: SourceEdit,
+                            children: [
+                                {
+                                    path: 'package_edit/',
+                                    name: 'packageEdit',
+                                    component: PackageEdit
+                                },
+                                {
+                                    path: 'cache_edit/',
+                                    name: 'cacheEdit',
+                                    component: CacheEdit
+                                }
+                            ]
+                        },
+                        {
+                            path: 'source_sync/',
+                            name: 'sourceSync',
+                            component: SourceSync
+                        }
+                    ]
                 }
             ]
         },

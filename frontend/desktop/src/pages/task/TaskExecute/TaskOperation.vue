@@ -12,7 +12,7 @@
 <template>
     <div class="task-operation">
         <div class="operation-header clearfix">
-            <div class="bread-crumbs-wrapper">
+            <div class="bread-crumbs-wrapper" v-if="isBreadcrumbShow">
                 <span
                     :class="['path-item', { 'name-ellipsis': nodeNav.length > 1 }]"
                     v-for="(path, index) in nodeNav"
@@ -21,11 +21,7 @@
                     <span v-if="!!index && showNodeList.includes(index) || index === 1">
                         &gt;
                     </span>
-                    <span
-                        v-if="showNodeList.includes(index)"
-                        class="node-name"
-                        :title="path.name"
-                        @click="onSelectSubflow(path.id)">
+                    <span v-if="showNodeList.includes(index)" class="node-name" :title="path.name" @click="onSelectSubflow(path.id)">
                         {{path.name}}
                     </span>
                     <span class="node-ellipsis" v-else-if="index === 1">
@@ -42,42 +38,63 @@
                                 operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn',
                                 { 'btn-permission-disable': !hasPermission(['operate'], instanceActions, instanceOperations) }
                             ]"
-                            type="default"
-                            size="mini"
+                            theme="default"
                             hide-text="true"
                             :icon="'common-icon ' + operation.icon"
                             :key="operation.action"
                             :loading="operation.loading"
                             :disabled="operation.disabled"
-                            v-bktooltips.bottom="operation.text"
+                            v-bk-tooltips="{
+                                content: operation.text,
+                                placements: ['bottom']
+                            }"
                             v-cursor="{ active: !hasPermission(['operate'], instanceActions, instanceOperations) }"
                             @click="onOperationClick(operation.action)">
                         </bk-button>
                     </template>
                 </div>
                 <div class="task-params-btns">
-                    <bk-button
-                        :class="['params-btn', {
-                            actived: nodeInfoType === 'viewParams'
-                        }]"
-                        type="default"
-                        size="mini"
-                        hide-text="true"
-                        icon="common-icon common-icon-dark-paper params-btn-icon"
-                        v-bktooltips.bottom="i18n.params"
+                    <i
+                        :class="[
+                            'params-btn',
+                            'solid-eye',
+                            'common-icon',
+                            'common-icon-solid-eye',
+                            {
+                                actived: nodeInfoType === 'viewParams'
+                            }
+                        ]"
+                        v-bk-tooltips="{
+                            content: i18n.params,
+                            placements: ['bottom']
+                        }"
                         @click="onTaskParamsClick('viewParams')">
-                    </bk-button>
-                    <bk-button
-                        :class="['params-btn', {
-                            actived: nodeInfoType === 'modifyParams'
-                        }]"
-                        type="default"
-                        size="mini"
-                        hide-text="true"
-                        icon="common-icon common-icon-edit params-btn-icon"
-                        v-bktooltips.bottom="i18n.changeParams"
+                    </i>
+                    <i
+                        :class="[
+                            'params-btn',
+                            'common-icon',
+                            'common-icon-edit',
+                            {
+                                actived: nodeInfoType === 'modifyParams'
+                            }
+                        ]"
+                        v-bk-tooltips="{
+                            content: i18n.changeParams,
+                            placements: ['bottom']
+                        }"
                         @click="onTaskParamsClick('modifyParams')">
-                    </bk-button>
+                    </i>
+                    <router-link
+                        v-if="isShowViewProcess"
+                        class="jump-tpl-page-btn common-icon-link"
+                        target="_blank"
+                        v-bk-tooltips="{
+                            content: i18n.checkFlow,
+                            placements: ['bottom']
+                        }"
+                        :to="getTplURL()">
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -102,6 +119,7 @@
             </div>
         </div>
         <transition name="slideRight">
+            <!-- 执行详情 -->
             <div class="node-info-panel" ref="nodeInfoPanel" v-if="isNodeInfoPanelShow">
                 <ViewParams
                     v-if="nodeInfoType === 'viewParams'"
@@ -141,7 +159,6 @@
             </div>
         </transition>
         <gatewaySelectDialog
-            v-if="isGatewaySelectDialogShow"
             :is-gateway-select-dialog-show="isGatewaySelectDialogShow"
             :gateway-branches="gatewayBranches"
             @onConfirm="onConfirmGatewaySelect"
@@ -156,7 +173,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapActions, mapState } from 'vuex'
     import Tooltip from 'tooltip.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
@@ -214,8 +231,8 @@
         },
         mixins: [permission],
         props: [
-            'project_id', 'instance_id', 'instanceFlow', 'instanceName',
-            'instanceActions', 'instanceOperations', 'instanceResource'
+            'project_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id',
+            'templateSource', 'instanceActions', 'instanceOperations', 'instanceResource'
         ],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
@@ -230,7 +247,8 @@
             return {
                 i18n: {
                     params: gettext('查看参数'),
-                    changeParams: gettext('修改参数')
+                    changeParams: gettext('修改参数'),
+                    checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
                 isTaskParamsShow: false,
@@ -265,8 +283,16 @@
             }
         },
         computed: {
+            ...mapState({
+                userType: state => state.userType
+            }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
+            },
+            isBreadcrumbShow () {
+                return this.completePipelineData.location.some(item => {
+                    return item.type === 'subflow'
+                })
             },
             canvasData () {
                 const { line, location, gateways } = this.pipelineData
@@ -326,6 +352,10 @@
             },
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
+            },
+            // 职能化/审计中心时,隐藏[查看流程]按钮
+            isShowViewProcess () {
+                return this.userType !== 'functor' && this.userType !== 'auditor'
             }
         },
         watch: {
@@ -751,11 +781,12 @@
             },
             handleNodeInfoPanelHide (e) {
                 const classList = e.target.classList
-                const isParamsBtn = classList.contains('params-btn-icon')
+                const isParamsBtn = classList.contains('params-btn')
                 const isTooltipBtn = classList.contains('tooltip-btn')
                 if (!this.isNodeInfoPanelShow || isParamsBtn || isTooltipBtn) {
                     return
                 }
+                console.log(1)
                 const NodeInfoPanel = document.querySelector('.node-info-panel')
                 if (NodeInfoPanel) {
                     if (!dom.nodeContains(NodeInfoPanel, e.target)) {
@@ -873,13 +904,10 @@
                     nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
                 } else {
                     const gatewayNode = gateways[curNode]
-                    if (gatewayNode && this.retrievedCovergeGateways.indexOf(gatewayNode.id) === -1) {
-                        this.retrievedCovergeGateways.push(gatewayNode.id)
-                        const outgoing = gatewayNode.outgoing
-                        const gatewayOutLine = Array.isArray(outgoing) ? outgoing : [outgoing]
-                        if (Array.isArray(gatewayOutLine)) {
+                    if (gatewayNode) {
+                        if (gatewayNode.type === 'ParallelGateway' || gatewayNode.type === 'ExclusiveGateway') {
                             const gatewayLinkedNodes = []
-                            gatewayOutLine.forEach(line => {
+                            gatewayNode.outgoing.forEach(line => {
                                 const linkedNode = activities[flows[line].target]
                                 if (linkedNode) {
                                     if (linkedNode.pipeline) {
@@ -894,6 +922,17 @@
                             gatewayLinkedNodes.forEach(node => {
                                 nodes = nodes.concat(this.retrieveLines(data, node.outgoing))
                             })
+                        } else if (gatewayNode.type === 'ConvergeGateway') {
+                            if (gatewayNode.hasRun) {
+                                gatewayNode.hasRun.push(gatewayNode.id)
+                            } else {
+                                gatewayNode.hasRun = [gatewayNode.id]
+                            }
+                            if (gatewayNode.hasRun.length === gatewayNode.incoming.length) {
+                                nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
+                            }
+                        } else {
+                            nodes = nodes.concat(this.retrieveLines(data, gatewayNode.outgoing))
                         }
                     }
                 }
@@ -922,6 +961,15 @@
                     this.isNodeInfoPanelShow = true
                     this.nodeInfoType = type
                 }
+            },
+            getTplURL () {
+                let routerData = ''
+                if (this.templateSource === 'business') {
+                    routerData = `/template/edit/${this.cc_id}/?template_id=${this.template_id}`
+                } else if (this.templateSource === 'common') {
+                    routerData = `/template/home/${this.cc_id}/?common=1&common_template=common`
+                }
+                return routerData
             },
             onToggleNodeInfoPanel () {
                 this.isNodeInfoPanelShow = false
@@ -1288,6 +1336,7 @@
                 &.is-disabled {
                     color: #ffffff; // 覆盖 bk-button important 规则
                     opacity: 0.4;
+                    cursor: no-drop;
                 }
                 &.btn-permission-disable {
                     border: 1px solid #e6e6e6;
@@ -1306,12 +1355,16 @@
             }
         }
         .task-params-btns {
-            .params-btn {
-                margin-right: 24px;
+            .params-btn, .jump-tpl-page-btn {
+                margin-right: 36px;
                 padding: 0;
                 color: #979ba5;
-                font-size: 16px;
+                font-size: 15px;
+                cursor: pointer;
                 &.actived {
+                    color: #63656e;
+                }
+                &:hover {
                     color: #63656e;
                 }
             }
@@ -1435,6 +1488,10 @@
             text-align: left;
             border: 1px solid #ebeef5;
         }
+    }
+    .bk-flow-canvas .tooltip .tooltip-inner {
+        line-height: 1;
+        box-sizing: content-box;
     }
 }
 </style>

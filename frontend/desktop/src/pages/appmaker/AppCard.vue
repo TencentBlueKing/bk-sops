@@ -11,8 +11,8 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-basic" @click.self="onGotoAppMaker">
-            <div class="logo">
+        <div class="card-basic">
+            <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
@@ -30,7 +30,7 @@
             </div>
             <div class="card-operation">
                 <span
-                    :class="['common-icon-pen', 'operate-btn', {
+                    :class="['common-icon-box-pen', 'operate-btn', {
                         'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
                     }]"
                     :title="i18n.modifier"
@@ -138,10 +138,7 @@
                     return
                 }
                 if (self === top) {
-                    this.$bkMessage({
-                        'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
-                        'theme': 'warning'
-                    })
+                    window.open(this.appData.link, '_blank')
                 } else {
                     window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
                 }
@@ -186,7 +183,7 @@
 }
 .card-basic {
     float: left;
-    width: 136px;
+    width: 40%;
     height: 100%;
     padding: 20px 15px;
     overflow: hidden;
@@ -195,6 +192,7 @@
         width: 60px;
         height: 60px;
         margin: 0 auto;
+        cursor: pointer;
         .logo-pic {
             width: 60px;
             height: 60px;
@@ -229,7 +227,6 @@
             &:hover {
                 color: $blueDefault;
             }
-
         }
     }
     &:hover {
@@ -266,16 +263,17 @@
 }
 .edit-box>li>a {
     display: block;
-    color: #63656e;
+    color: #fff;
     height: 42px;
     &:hover {
-        color: #3a84ff;
-        background: rgb#ebf4ff;
+        background: #63656e;
     }
 }
 .card-particular {
     float: left;
+    width: 60%;
     height: 100%;
+    background: #f7f9fa;
     .app-detail {
         padding: 20px;
         font-size: 12px;
@@ -305,7 +303,7 @@
         position: absolute;
         bottom: 0px;
         height: 100%;
-        width: 70%;
+        width: 60%;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;
