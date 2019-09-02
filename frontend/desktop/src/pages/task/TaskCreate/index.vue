@@ -140,7 +140,7 @@
             if (this.userType === 'functor') {
                 this.setFunctionalStep(true)
             }
-            if (this.entrance === '0') {
+            if (this.entrance === 'periodicTask') {
                 this.deletePeriodicCurrentStep()
             }
         },
