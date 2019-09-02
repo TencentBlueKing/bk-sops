@@ -563,42 +563,23 @@
              * @param {Number} template_id -模版id(可选)
              */
             getJumpUrl (name, template_id) {
+                const routerHead = this.common ? '/admin' : ''
+                let url
                 const urlMap = {
                     // 编辑按钮的跳转链接
-                    'edit': {
-                        path: `/template/edit/${this.cc_id}/`,
-                        query: ['template_id', 'common'] },
+                    'edit': `${routerHead}/template/edit/${this.cc_id}/?template_id=${template_id}`,
                     // 新建模板的跳转链接
-                    'newTemplate': {
-                        path: `/template/new/${this.cc_id}/`,
-                        query: ['common'] },
+                    'newTemplate': `${routerHead}/template/new/${this.cc_id}/`,
                     // 新建任务的跳转链接
-                    'newTask': {
-                        path: `/template/newtask/${this.cc_id}/selectnode/`,
-                        query: ['template_id', 'common'] },
+                    'newTask': `/template/newtask/${this.cc_id}/selectnode/?template_id=${template_id}`,
                     // 克隆
-                    'clone': {
-                        path: `/template/clone/${this.cc_id}/`,
-                        query: ['template_id', 'common'] }
+                    'clone': `${routerHead}/template/clone/${this.cc_id}/?template_id=${template_id}`
                 }
-                let querys = ''
-                const entrance = this.getEntrance(name)
-                urlMap[name].query.forEach(item => {
-                    if (template_id && item === 'template_id') {
-                        querys += `&template_id=${template_id}`
-                    }
-                    if ((this.common || this.common_template) && item === 'common') {
-                        querys += `&common=1`
-                    }
-                })
-                return `${urlMap[name].path}?entrance=${entrance}${querys}`
-            },
-            // 获取入口信息
-            getEntrance (name) {
-                return (new RegExp('/admin/').test(this.$route.path) ? 'admin' : 'template')
-                    + (new RegExp('/common/').test(this.$route.path) ? '_common' : '_business')
-                    + '_'
-                    + name
+                url = urlMap[name]
+                if (this.common) {
+                    url += url.indexOf('?') > -1 ? '&common=1' : '?common=1'
+                }
+                return url
             },
             getExecuteHistoryUrl (id) {
                 let url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
