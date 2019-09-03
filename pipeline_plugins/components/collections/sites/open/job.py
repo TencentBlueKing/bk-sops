@@ -86,7 +86,7 @@ class JobService(Service):
 
             # 全局变量重载
             get_var_kwargs = {
-                "bk_biz_id": data.get_one_of_inputs('biz_cc_id'),
+                "bk_biz_id": data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id),
                 "job_instance_id": job_instance_id
             }
             global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
@@ -133,7 +133,7 @@ class JobExecuteTaskService(JobService):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         original_global_var = data.get_one_of_inputs('job_global_var')
         global_vars = []
         for _value in original_global_var:
@@ -170,7 +170,7 @@ class JobExecuteTaskService(JobService):
         LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_result, kwargs=job_kwargs))
         if job_result['result']:
             job_instance_id = job_result['data']['job_instance_id']
-            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
             data.outputs.client = client
@@ -202,7 +202,7 @@ class JobFastPushFileService(JobService):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         original_source_files = data.get_one_of_inputs('job_source_files', [])
         file_source = []
         for item in original_source_files:
@@ -240,7 +240,7 @@ class JobFastPushFileService(JobService):
             job_instance_id = job_result['data']['job_instance_id']
             data.outputs.job_inst_id = job_instance_id
             data.outputs.job_inst_name = job_result['data']['job_instance_name']
-            data.outputs.job_inst_url = get_job_instance_url(data.inputs.biz_cc_id, job_instance_id)
+            data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
             data.outputs.client = client
             return True
         else:
@@ -271,10 +271,7 @@ class JobFastExecuteScriptService(JobService):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        job_script = data.get_one_of_inputs('job_script')
-
-        biz_cc_id = job_script['biz_cc_id']
-        data.inputs.biz_cc_id = biz_cc_id
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         original_ip_list = data.get_one_of_inputs('job_ip_list')
         ip_info = cc_get_ips_info_by_str(
             username=executor,
@@ -298,15 +295,15 @@ class JobFastExecuteScriptService(JobService):
                 'script_param': base64.b64encode(script_param.encode('utf-8'))
             })
 
-        script_source = job_script['job_script_source']
+        script_source = data.get_one_of_inputs('job_script_source')
         if script_source in ["general", "public"]:
             job_kwargs.update({
-                "script_id": job_script['job_script_list_%s' % script_source]
+                "script_id": data.get_one_of_inputs('job_script_list_%s' % script_source)
             })
         else:
             job_kwargs.update({
-                'script_type': job_script['job_script_type'],
-                'script_content': base64.b64encode(job_script['job_content'].encode('utf-8')),
+                'script_type': data.get_one_of_inputs('job_script_type'),
+                'script_content': base64.b64encode(data.get_one_of_inputs('job_content').encode('utf-8')),
             })
 
         job_result = client.job.fast_execute_script(job_kwargs)

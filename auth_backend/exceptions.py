@@ -18,6 +18,10 @@ class AuthBaseException(Exception):
     pass
 
 
+class AuthLookupError(AuthBaseException):
+    pass
+
+
 class AuthKeyError(AuthBaseException):
     pass
 
@@ -31,6 +35,10 @@ class AuthInterfaceEmptyError(AuthBaseException):
 
 
 class AuthBackendError(AuthBaseException):
+    pass
+
+
+class AuthOperationFailedError(AuthBaseException):
     pass
 
 

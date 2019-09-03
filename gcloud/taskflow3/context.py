@@ -31,6 +31,8 @@ class TaskContext(object):
         self.language = translation.get_language()
         self.project_id = taskflow.project.id
         self.project_name = taskflow.project.name
+        self.biz_cc_id = taskflow.project.bk_biz_id
+        self.biz_cc_name = taskflow.project.name
         self.operator = operator
         # 调用ESB接口的执行者，V3.4.X版本后和操作员一致，如无权限请前往对应系统申请
         self.executor = operator

@@ -17,6 +17,7 @@ import copy
 from auth_backend import conf
 from auth_backend import exceptions
 from auth_backend.backends import get_backend_from_config
+from auth_backend.resources.interfaces import InstanceIterableResource
 from auth_backend.resources.inspect import DummyInspect
 
 resource_type_lib = {}
@@ -67,6 +68,9 @@ class Resource(object):
         self.operations = _operations
 
         resource_type_lib[rtype] = self
+
+    def __repr__(self):
+        return '<Resource> {rtype}'.format(rtype=self.rtype)
 
     def base_info(self):
         return {
@@ -245,7 +249,9 @@ class NeverInitiateResource(Resource):
             'can not perform instance related operation on NeverInitiateResource')
 
 
-class ObjectResource(Resource):
+class ObjectResource(Resource, InstanceIterableResource):
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, resource_cls, *args, **kwargs):
         super(ObjectResource, self).__init__(*args, **kwargs)
         self.resource_cls = resource_cls
