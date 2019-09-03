@@ -111,11 +111,12 @@
                 }
             },
             hasPeriodicTask (val) {
+                const taskExecution = {
+                    step: 'taskexecute',
+                    name: gettext('任务执行')
+                }
                 if (!val) {
-                    this.stepList.push({
-                        step: 'taskexecute',
-                        name: gettext('任务执行')
-                    })
+                    this.stepList.push(taskExecution)
                 } else if (!val.periodicType) {
                     this.deletePeriodicCurrentStep()
                 } else if (val.periodicType && val.functionalType) {
@@ -124,15 +125,9 @@
                         name: gettext('职能化认领'),
                         component: 'TaskParamFill'
                     })
-                    this.stepList.push({
-                        step: 'taskexecute',
-                        name: gettext('任务执行')
-                    })
+                    this.stepList.push(taskExecution)
                 } else {
-                    this.stepList.push({
-                        step: 'taskexecute',
-                        name: gettext('任务执行')
-                    })
+                    this.stepList.push(taskExecution)
                 }
             }
         },

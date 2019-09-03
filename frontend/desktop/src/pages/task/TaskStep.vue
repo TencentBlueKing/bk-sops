@@ -54,7 +54,8 @@
             'cc_id',
             'taskStatus',
             'asyncTemplateId',
-            'templateSource'],
+            'templateSource'
+        ],
         data () {
             return {
                 i18n: {
@@ -127,8 +128,8 @@
                     'periodicTask': `/periodic/home/${this.cc_id}/`,
                     'taskflow': `/taskflow/home/${this.cc_id}/`,
                     'common': `/template/common/${this.cc_id}/`,
-                    'admin/common': '/admin/common/template/',
-                    'template/edit': `/template/edit/${this.cc_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
+                    'adminCommon': '/admin/common/template/',
+                    'templateEdit': `/template/edit/${this.cc_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
                     'functor': `/function/home/`,
                     'auditor': `/audit/home/`,
                     'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.cc_id}/`
@@ -136,36 +137,38 @@
                 const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
                 const entrance = this.$route.query.entrance || ''
                 let url = '/'
-                const userTypeMap = {
-                    maintainer: () => {
+                switch (currentUser) {
+                    case 'maintainer':
                         // 任务创建(节点选择+参数填写)
                         if (this.currentStep === 'selectnode' || this.currentStep === 'paramfill') {
+                            /**
+                             * 目前只有两种 entrance
+                             * 1、periodicTask - 周期任务新建
+                             * 2、taskflow - 任务记录新建
+                             */
+                            if (entrance === 'periodicTask' || entrance === 'taskflow') {
+                                url = backObj[entrance]
+                                break
+                            }
                             if (this.common) {
                                 url = backObj['common']
-                            } else if (entrance === 'periodicTask') {
-                                url = backObj['periodicTask']
-                            } else if (entrance === 'taskflow') {
-                                url = backObj['taskflow']
-                            } else {
-                                url = backObj['business']
+                                break
                             }
+                            url = backObj['business']
                         } else {
                             // 任务执行页面
-                            url = backObj['template/edit']
+                            url = backObj['templateEdit']
                             url += this.templateSource === 'common' ? '&common=1' : ''
                         }
-                    },
-                    functor: () => {
-                        url = backObj['functor']
-                    },
-                    auditor: () => {
-                        url = backObj['auditor']
-                    },
-                    appmaker: () => {
-                        url = backObj['appmaker']
-                    }
+                        break
+                    case 'functor':
+                    case 'auditor':
+                    case 'appmaker':
+                        url = backObj[currentUser]
+                        break
+                    default:
+                        url = '/'
                 }
-                userTypeMap[currentUser]()
                 this.$router.push(url)
             }
         }

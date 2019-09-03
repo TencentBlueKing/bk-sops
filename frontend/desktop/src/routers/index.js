@@ -274,7 +274,7 @@ const routers = new VueRouter({
                                 cc_id: route.params.cc_id,
                                 template_id: route.query.template_id,
                                 type: 'edit',
-                                common: route.query.common
+                                common: '1'
                             })
                         },
                         {
@@ -283,7 +283,7 @@ const routers = new VueRouter({
                             props: (route) => ({
                                 cc_id: route.params.cc_id,
                                 type: 'new',
-                                common: route.query.common
+                                common: '1'
                             })
                         },
                         {
@@ -293,7 +293,7 @@ const routers = new VueRouter({
                                 cc_id: route.params.cc_id,
                                 template_id: route.query.template_id,
                                 type: 'clone',
-                                common: route.query.common
+                                common: '1'
                             })
                         }]
                 },
