@@ -16,7 +16,7 @@
             <div class="list-header">
                 <bk-button
                     v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"
-                    type="primary"
+                    theme="primary"
                     :class="['create-project-btn', {
                         'btn-permission-disable': !hasPermission(['create'], projectActions, authOperations)
                     }]"
@@ -62,7 +62,7 @@
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['view'], item.auth_actions, projectOperations)
                                     }]"
-                                    type="default"
+                                    theme="default"
                                     @click="onViewProject(item)">
                                     {{i18n.view}}
                                 </bk-button>
@@ -71,7 +71,7 @@
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
-                                    type="default"
+                                    theme="default"
                                     @click="onEditProject(item)">
                                     {{i18n.edit}}
                                 </bk-button>
@@ -81,7 +81,7 @@
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
-                                    type="default"
+                                    theme="default"
                                     @click="onChangeProjectStatus(item, 'start')">
                                     {{i18n.start}}
                                 </bk-button>
@@ -91,7 +91,7 @@
                                     :class="['operate-btn', {
                                         'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
                                     }]"
-                                    type="default"
+                                    theme="default"
                                     @click="onChangeProjectStatus(item, 'stop')">
                                     {{i18n.stop}}
                                 </bk-button>
@@ -108,27 +108,31 @@
                     <div class="page-info">
                         <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
                     </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
+                    <bk-pagination
+                        :current.sync="currentPage"
+                        :count="totalCount"
+                        :limit="countPerPage"
+                        :limit-list="[15,20,30]"
+                        :show-limit="false"
+                        @change="onPageChange">
+                    </bk-pagination>
                 </div>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
         <bk-dialog
-            v-if="isProjectDialogShow"
-            :quick-close="false"
-            :has-header="true"
-            :ext-cls="'common-dialog'"
-            :title="projectDialogTitle"
-            :is-show.sync="isProjectDialogShow"
             width="600"
             padding="30px 20px"
+            class="new-task-dialog"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="projectDialogTitle"
+            :value="isProjectDialogShow"
             @confirm="onProjectConfirm"
             @cancel="onEditProjectCancel">
-            <div slot="content" class="dialog-content">
+            <div class="dialog-content">
                 <div class="common-form-item">
                     <label class="required">{{ i18n.name }}</label>
                     <div class="common-form-content">
@@ -145,12 +149,21 @@
                 <div class="common-form-item">
                     <label class="required">{{ i18n.timeZone }}</label>
                     <div class="common-form-content">
-                        <bk-selector
+                        <bk-select
+                            v-model="projectDetail.timeZone"
+                            class="bk-select-inline"
+                            :popover-width="260"
+                            :searchable="true"
                             :disabled="dialogType === 'edit'"
-                            :list="timeZoneList"
-                            :selected="projectDetail.timeZone"
-                            @item-selected="onChangeTimeZone">
-                        </bk-selector>
+                            :placeholder="i18n.statusPlaceholder"
+                            @selected="onChangeTimeZone">
+                            <bk-option
+                                v-for="(option, index) in timeZoneList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -634,6 +647,9 @@
             border: none;
             font-size: 12px;
             color: #3c96ff;
+            &.bk-button {
+                min-width: unset;
+            }
         }
         .empty-data {
             padding: 120px 0;
@@ -655,6 +671,7 @@
         }
     }
     .dialog-content {
+        padding: 20px 0;
         label {
             font-weight: normal;
         }
