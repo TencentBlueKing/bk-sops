@@ -28,6 +28,7 @@ class DjangoModelResource(ObjectResource):
     def __init__(self, id_field, auto_register=True, tomb_field=None, *args, **kwargs):
         super(DjangoModelResource, self).__init__(*args, **kwargs)
         self.auto_register = auto_register
+        # 墓碑位，用于识别应用了伪删除的模型
         self.tomb_field = tomb_field
         self.id_field = id_field
 
@@ -115,3 +116,19 @@ class DjangoModelResource(ObjectResource):
             self.id_field: instances
         }
         return self.resource_cls.objects.get(**id_filter)
+
+    def count(self):
+        if self.tomb_field:
+            return self.resource_cls.objects.filter(
+                **{'{tomb_field}'.format(tomb_field=self.tomb_field): False}).count()
+        else:
+            return self.resource_cls.objects.count()
+
+    def slice(self, start, end):
+        if self.tomb_field:
+            all_instances = self.resource_cls.objects.filter(
+                **{'{tomb_field}'.format(tomb_field=self.tomb_field): False})
+        else:
+            all_instances = self.resource_cls.objects.all()
+
+        return all_instances[start:end]

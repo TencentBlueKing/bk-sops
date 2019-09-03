@@ -74,7 +74,7 @@ class NotifyService(Service):
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         notify_type = data.get_one_of_inputs('bk_notify_type')
         receiver_info = data.get_one_of_inputs('bk_receiver_info')
