@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.exceptions import ConnectionValidateError
 from pipeline.utils.graph import Graph
-from pipeline.validators.constants import ACTIVITY_RULES
+from pipeline.validators.rules import NODE_RULES
 from pipeline.validators.utils import get_nodes_dict
 from pipeline.core.constants import PE
 
@@ -34,7 +34,7 @@ def validate_graph_connection(data):
 
     for i in nodes:
         node_type = nodes[i][PE.type]
-        rule = ACTIVITY_RULES[node_type]
+        rule = NODE_RULES[node_type]
         message = ""
         for j in nodes[i][PE.target]:
             if nodes[j][PE.type] not in rule['allowed_out']:

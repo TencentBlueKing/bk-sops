@@ -24,7 +24,7 @@
             <span class="name">{{scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: scheme.attrs.desc,
                         placements: ['right'],
                         zIndex: 2002
@@ -57,16 +57,16 @@
             @onHide="onHideForm">
         </component>
         <div class="rf-tag-hook" v-if="showHook">
-            <BaseCheckbox
-                v-bktooltips="{
+            <bk-checkbox
+                v-bk-tooltips="{
                     content: hook ? i18n.hooked : i18n.cancelHook,
                     placements: ['left'],
                     customClass: 'offset-left-tooltip',
                     zIndex: 2002
                 }"
-                :is-checked="hook"
-                @checkCallback="onHookForm">
-            </BaseCheckbox>
+                :value="hook"
+                @change="onHookForm">
+            </bk-checkbox>
         </div>
     </div>
 </template>
@@ -74,7 +74,6 @@
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import { checkDataType } from '@/utils/checkDataType.js'
-    import BaseCheckbox from '@/components/common/base/BaseCheckbox.vue'
     import FormGroup from './FormGroup.vue'
 
     // 导入 tag 文件注册为组件
@@ -113,7 +112,6 @@
     export default {
         name: 'FormItem',
         components: {
-            BaseCheckbox,
             FormGroup
         },
         props: {
@@ -178,6 +176,7 @@
                 attrs.showVarList = this.option.showVarList // 是否自动显示变量列表
                 attrs.formEdit = this.option.formEdit
                 attrs.formMode = this.option.formMode
+                attrs.validateSet = this.option.validateSet
 
                 // UI 配置项里的 formEdit 优先于标准插件配置项里的 editable 属性
                 // if ('editable' in this.option) {
@@ -228,7 +227,7 @@
                     case 'datetime':
                     case 'password':
                         valueFormat = {
-                            type: ['String', 'Number'],
+                            type: ['String', 'Number', 'Boolean'],
                             value: ''
                         }
                         break
@@ -249,7 +248,7 @@
                             }
                         } else {
                             valueFormat = {
-                                type: ['String', 'Number'],
+                                type: ['String', 'Number', 'Boolean'],
                                 value: ''
                             }
                         }
@@ -282,7 +281,7 @@
             },
             isRequired () {
                 let required = false
-                if ('validation' in this.scheme.attrs) {
+                if (this.option.showRequired === true && 'validation' in this.scheme.attrs) {
                     required = this.scheme.attrs.validation.some(item => {
                         return item.type === 'required'
                     })
@@ -302,7 +301,10 @@
                 this.$emit('onHook', this.scheme.tag_code, val)
             },
             validate (combineValue) {
-                return this.$refs.tagComponent ? this.$refs.tagComponent.validate(combineValue) : true
+                if (!this.hook) {
+                    return this.$refs.tagComponent.validate(combineValue)
+                }
+                return true
             }
         }
     }
@@ -349,7 +351,7 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 11px;
+        top: 8px;
         right: 0;
         z-index: 1;
     }
@@ -360,6 +362,10 @@
         font-size: 14px;
         word-wrap: break-word;
         word-break: break-all;
+    }
+    .el-table__empty-text{
+        line-height: 20px;
+        width: 100%;
     }
 }
 </style>

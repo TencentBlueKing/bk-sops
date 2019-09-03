@@ -233,8 +233,8 @@ WEB_PIPELINE_SCHEMA = {
                         "source_tag": {"type": "string"},
                         "name": {"type": "string", "minLength": 1, "maxLength": CONSTANT_MAX_LENGTH},
                         "custom_type": {"type": "string"},
-                        "value": {"type": ["string", "number", "array", "boolean", "object", "null"]},
-                        "source_type": {"type": "string", "enum": ["component_inputs", "component_outputs", "custom"]},
+                        "source_type": {"type": "string",
+                                        "enum": ["component_inputs", "component_outputs", "custom", "system"]},
                         "validation": {"type": "string"},
                         "source_info": {
                             "type": "object",

@@ -54,7 +54,6 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
             biz_cc_id = int(body.get('business').split('/')[-2])
         except Exception:
             pass
-
         return biz_cc_id
 
 

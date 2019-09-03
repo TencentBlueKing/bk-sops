@@ -31,6 +31,12 @@ class Object(object):
     pass
 
 
+class MockResponse(object):
+    def __init__(self, **kwargs):
+        self.content = kwargs.get('content')
+        self.ok = kwargs.get('ok', True)
+
+
 class ContextObject(object):
     def __init__(self, variables):
         self.variables = variables
@@ -60,6 +66,15 @@ class EndEventObject(IdentifyObject):
     def __init__(self, id=None):
         self.pipeline_finish = mock.MagicMock()
         super(EndEventObject, self).__init__(id=id)
+
+
+class ExecutableEndEventObject(IdentifyObject):
+    def __init__(self, id=None):
+        self.pipeline_finish = mock.MagicMock()
+        self.execute = mock.MagicMock()
+        self.data = mock.MagicMock()
+        self.data.outputs = mock.MagicMock()
+        super(ExecutableEndEventObject, self).__init__(id=id)
 
 
 class PipelineSpecObject(object):
@@ -196,6 +211,7 @@ class MockPipelineProcess(IdentifyObject):
         self.can_be_waked = mock.MagicMock(return_value=kwargs.get('can_be_waked', False))
         self.subproc_sleep_check = mock.MagicMock(return_value=kwargs.get('subproc_sleep_check_return',
                                                                           (False, [self.id])))
+        self.in_subprocess = mock.MagicMock(return_value=kwargs.get('in_subprocess_return', False))
 
     def pop_pipeline(self):
         return self.pipeline_stack.pop()

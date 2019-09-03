@@ -21,8 +21,8 @@ from django.forms.fields import BooleanField
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 
-from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed, batch_verify_or_raise_auth_failed
 from blueapps.account.decorators import login_exempt
+from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed, batch_verify_or_raise_auth_failed
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
 
@@ -32,7 +32,8 @@ from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     api_verify_perms,
     api_verify_proj_perms,
-    project_inject)
+    project_inject
+)
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
 from gcloud.core.utils import format_datetime
 from gcloud.core.permissions import project_resource
@@ -41,7 +42,7 @@ from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
-from gcloud.commons.template.utils import read_template_data_file
+from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
@@ -59,6 +60,57 @@ else:
 logger = logging.getLogger("root")
 
 
+def format_template_list_data(templates, project=None):
+    data = []
+    for tmpl in templates:
+        item = {
+            'id': tmpl.id,
+            'name': tmpl.pipeline_template.name,
+            'creator': tmpl.pipeline_template.creator,
+            'create_time': format_datetime(tmpl.pipeline_template.create_time),
+            'editor': tmpl.pipeline_template.editor,
+            'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
+            'category': tmpl.category,
+        }
+
+        if project:
+            item.update({
+                'project_id': project.id,
+                'project_name': project.name,
+                'bk_biz_id': project.bk_biz_id,
+                'bk_biz_name': project.name if project.from_cmdb else None
+            })
+
+        data.append(item)
+
+    return data
+
+
+def format_template_data(template, project=None):
+    pipeline_tree = template.pipeline_tree
+    pipeline_tree.pop('line')
+    pipeline_tree.pop('location')
+    data = {
+        'id': template.id,
+        'name': template.pipeline_template.name,
+        'creator': template.pipeline_template.creator,
+        'create_time': format_datetime(template.pipeline_template.create_time),
+        'editor': template.pipeline_template.editor,
+        'edit_time': format_datetime(template.pipeline_template.edit_time),
+        'category': template.category,
+        'pipeline_tree': pipeline_tree
+    }
+    if project:
+        data.update({
+            'project_id': project.id,
+            'project_name': project.name,
+            'bk_biz_id': project.bk_biz_id,
+            'bk_biz_name': project.name if project.from_cmdb else None
+        })
+
+    return data
+
+
 @login_exempt
 @require_GET
 @apigw_required
@@ -73,22 +125,7 @@ def get_template_list(request, project_id):
                                                                                     is_deleted=False)
     else:
         templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
-    data = [
-        {
-            'id': tmpl.id,
-            'name': tmpl.pipeline_template.name,
-            'creator': tmpl.pipeline_template.creator,
-            'create_time': format_datetime(tmpl.pipeline_template.create_time),
-            'editor': tmpl.pipeline_template.editor,
-            'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-            'category': tmpl.category,
-            'project_id': project.id,
-            'project_name': project.name,
-            'bk_biz_id': project.bk_biz_id,
-            'bk_biz_name': project.name if project.from_cmdb else None
-        } for tmpl in templates
-    ]
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({'result': True, 'data': format_template_list_data(templates, project)})
 
 
 @login_exempt
@@ -97,18 +134,8 @@ def get_template_list(request, project_id):
 @mark_request_whether_is_trust
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
-    data = [
-        {
-            'id': tmpl.id,
-            'name': tmpl.pipeline_template.name,
-            'creator': tmpl.pipeline_template.creator,
-            'create_time': format_datetime(tmpl.pipeline_template.create_time),
-            'editor': tmpl.pipeline_template.editor,
-            'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-            'category': tmpl.category,
-        } for tmpl in templates
-    ]
-    return JsonResponse({'result': True, 'data': data})
+
+    return JsonResponse({'result': True, 'data': format_template_list_data(templates)})
 
 
 @login_exempt
@@ -191,24 +218,7 @@ def get_template_info(request, template_id, project_id):
                                     instance=tmpl,
                                     status=200)
 
-    pipeline_tree = tmpl.pipeline_tree
-    pipeline_tree.pop('line')
-    pipeline_tree.pop('location')
-    data = {
-        'id': tmpl.id,
-        'name': tmpl.pipeline_template.name,
-        'creator': tmpl.pipeline_template.creator,
-        'create_time': format_datetime(tmpl.pipeline_template.create_time),
-        'editor': tmpl.pipeline_template.editor,
-        'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-        'category': tmpl.category,
-        'project_id': project.id,
-        'project_name': project.name,
-        'bk_biz_id': project.bk_biz_id,
-        'bk_biz_name': project.name if project.from_cmdb else None,
-        'pipeline_tree': pipeline_tree
-    }
-    return JsonResponse({'result': True, 'data': data})
+    return JsonResponse({'result': True, 'data': format_template_data(tmpl, project)})
 
 
 @login_exempt
@@ -834,12 +844,25 @@ def import_common_template(request):
             'message': 'you have no permission to call this api.'
         })
 
-    f = request.FILES.get('data_file', None)
-    r = read_template_data_file(f)
+    try:
+        req_data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid param format'
+        })
+
+    template_data = req_data.get('template_data', None)
+    if not template_data:
+        return JsonResponse({
+            'result': False,
+            'message': 'template data can not be none'
+        })
+    r = read_encoded_template_data(template_data)
     if not r['result']:
         return JsonResponse(r)
 
-    override = BooleanField().to_python(request.POST.get('override', False))
+    override = BooleanField().to_python(req_data.get('override', False))
 
     try:
         import_result = CommonTemplate.objects.import_templates(r['data']['template_data'], override)

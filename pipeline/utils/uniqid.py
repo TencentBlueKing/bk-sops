@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import uuid
 
+from pipeline.conf import settings
+
 
 def uniqid():
     return uuid.uuid3(
@@ -23,11 +25,9 @@ def uniqid():
 
 def node_uniqid():
     uid = uniqid()
-    node_uid = 'node%s' % uid
-    return node_uid[:-4]
+    return 'n%s' % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid
 
 
 def line_uniqid():
     uid = uniqid()
-    node_uid = 'line%s' % uid
-    return node_uid[:-4]
+    return 'l%s' % uid[1:] if settings.UUID_DIGIT_STARTS_SENSITIVE else uid

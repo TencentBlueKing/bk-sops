@@ -11,17 +11,22 @@
 */
 <template>
     <header>
-        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(homeRoute)">
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" class="header-logo" @click.native="onGoToPath(homeRoute)">
             <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
         </router-link>
-        <img v-else :src="logo" class="logo" />
+        <span v-else class="header-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
+        </span>
         <nav>
             <div class="navigator" v-if="!appmakerDataLoading">
                 <template v-for="route in routeList">
                     <div
                         v-if="route.children && route.children.length"
                         :key="route.key"
-                        :class="['nav-item', { 'active': isNavActived(route) }]">
+                        :class="['nav-item', { 'active': isNavActived(route) }]"
+                        @click="jumpToFirstPath(route)">
                         <span>{{route.name}}</span>
                         <div class="sub-nav">
                             <router-link
@@ -30,7 +35,7 @@
                                 :key="subRoute.key"
                                 :class="['sub-nav-item', { 'selected': isSubNavActived(subRoute) }]"
                                 :to="getPath(subRoute)"
-                                @click.native="onGoToPath(subRoute)">
+                                @click.native.stop="onGoToPath(subRoute)">
                                 {{subRoute.name}}
                             </router-link>
                         </div>
@@ -59,9 +64,9 @@
             <div class="user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: username,
-                        placement: 'bottom-left',
+                        placement: 'bottom-end',
                         theme: 'light',
                         zIndex: 1001
                     }">
@@ -136,6 +141,12 @@
                 name: gettext('管理员入口'),
                 children: [
                     {
+                        key: 'manage',
+                        parent: 'admin',
+                        name: gettext('后台管理'),
+                        path: '/admin/manage/source_manage/'
+                    },
+                    {
                         key: 'statistics',
                         parent: 'admin',
                         name: gettext('运营数据'),
@@ -161,9 +172,10 @@
         props: ['appmakerDataLoading'],
         data () {
             return {
-                logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
+                logo: require('../../assets/images/logo/logo_icon.svg'),
                 i18n: {
-                    help: gettext('帮助文档')
+                    help: gettext('帮助文档'),
+                    title: gettext('标准运维')
                 },
                 hasAdminPerm: false, // 是否拥有管理员入口查看权限
                 homeRoute: {
@@ -273,7 +285,7 @@
             },
             isNavActived (route) {
                 const key = route.key
-
+                const entrance = this.$route.query.entrance || ''
                 // 轻应用打开
                 if (this.view_mode === 'appmaker') {
                     if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {
@@ -289,11 +301,22 @@
                 } else if (this.userType === 'auditor') {
                     return key === 'audit'
                 }
-
+                // 管理员入口
+                if (this.userType === 'maintainer' && entrance.indexOf('admin_common') > -1 && key === 'admin') {
+                    return true
+                }
+                if (key === 'template' && entrance.indexOf('admin_common') > -1) {
+                    return false
+                }
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
             isSubNavActived (route) {
-                return new RegExp('^' + route.path).test(this.$route.path)
+                let index = route.path.indexOf('/')
+                for (let i = 0; i < 2; i++) {
+                    index = route.path.indexOf('/', index + 1)
+                }
+                const newPath = route.path.substring(0, index + 1)
+                return new RegExp('^' + newPath).test(this.$route.path)
             },
             getPath (route) {
                 /** 404 页面时，导航统一跳转到首页 */
@@ -332,6 +355,14 @@
             },
             refreshCurrentPage () {
                 this.reload()
+            },
+            /**
+             * 默认跳转到第一个子级
+             * @param {Object} route -路由对象
+             */
+            jumpToFirstPath (route) {
+                const firstPath = this.getPath(route.children[0])
+                this.$router.push(firstPath)
             }
         }
     }
@@ -344,10 +375,23 @@ header {
     height: 50px;
     font-size: 14px;
     background: #182131;
-    .logo {
+    .header-logo{
         float: left;
-        margin-top: 11px;
-        width: 110px;
+        height: 100%;
+        line-height: 50px;
+        .logo,.header-title{
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .logo {
+            width: 28px;
+            height: 28px;
+        }
+        .header-title{
+            margin-left: 6px;
+            font-size: 18px;
+            color: #979ba5;
+        }
     }
     nav {
         float: left;
@@ -360,7 +404,7 @@ header {
         min-width: 90px;
         height: 50px;
         line-height: 50px;
-        color: #979BA5;
+        color: #979ba5;;
         text-align: center;
         border-radius: 2px;
         cursor: pointer;
