@@ -95,7 +95,8 @@ class FreeAuthBackendTestCase(TestCase):
 
         utils.resource_actions_for.assert_called_once_with(resource=resource,
                                                            action_ids=self.action_ids,
-                                                           instances=[])
+                                                           instances=[],
+                                                           ignore_relate_instance_act=False)
 
     @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_perms_with_instance(self):
@@ -114,7 +115,8 @@ class FreeAuthBackendTestCase(TestCase):
 
         utils.resource_actions_for.assert_called_once_with(resource=resource,
                                                            action_ids=self.action_ids,
-                                                           instances=[instance])
+                                                           instances=[instance],
+                                                           ignore_relate_instance_act=False)
 
     @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_batch_verify_perms_with_none_instance(self):
@@ -131,7 +133,8 @@ class FreeAuthBackendTestCase(TestCase):
 
         utils.resource_actions_for.assert_called_once_with(resource=resource,
                                                            action_ids=self.action_ids,
-                                                           instances=[])
+                                                           instances=[],
+                                                           ignore_relate_instance_act=False)
 
     @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_batch_verify_perms_with_instances(self):
@@ -150,7 +153,8 @@ class FreeAuthBackendTestCase(TestCase):
 
         utils.resource_actions_for.assert_called_once_with(resource=resource,
                                                            action_ids=self.action_ids,
-                                                           instances=instances)
+                                                           instances=instances,
+                                                           ignore_relate_instance_act=False)
 
     @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR, MagicMock(return_value=[{}]))
     def test_verify_multiple_resource_perms(self):
@@ -173,10 +177,12 @@ class FreeAuthBackendTestCase(TestCase):
 
         utils.resource_actions_for.assert_has_calls([call(resource=resource_1,
                                                           action_ids=self.action_ids,
-                                                          instances=[instance_1]),
+                                                          instances=[instance_1],
+                                                          ignore_relate_instance_act=False),
                                                      call(resource=resource_2,
                                                           action_ids=self.action_ids,
-                                                          instances=None)
+                                                          instances=None,
+                                                          ignore_relate_instance_act=False)
                                                      ])
 
     def test_search_authorized_resources_raise_not_implemented(self):
@@ -221,7 +227,8 @@ class FreeAuthBackendTestCase(TestCase):
 
         utils.resource_actions_for.assert_called_once_with(resource=resource,
                                                            action_ids=self.action_ids,
-                                                           instances=[])
+                                                           instances=[],
+                                                           ignore_relate_instance_act=False)
 
     @patch(GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value='instance_id'))
     def test_search_resources_perms_principals(self):
