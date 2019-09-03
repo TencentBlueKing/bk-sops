@@ -64,3 +64,7 @@ CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT = \
 PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS = 'pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess'
 
 PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE = 'gcloud.core.permissions.project_resource.batch_register_instance'
+
+GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ID_FOR = 'gcloud.contrib.auth.backend.utils.resource_id_for'
+GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR = 'gcloud.contrib.auth.backend.utils.resource_actions_for'
+GCLOUD_CONTRIB_AUTH_BACKEND_GET_USER_MODEL = 'gcloud.contrib.auth.backend.get_user_model'
