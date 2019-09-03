@@ -76,29 +76,32 @@ class LegacyTestCase(TestCase):
             '2': resource_2,
             '3': resource_3
         }
+        conf = MagicMock()
+        conf.BATCH_REGISTER_SIZE = 100
 
         with patch(LEGACY_RESOURCE_TYPE_LIB, resource_type_lib):
-            legacy.register_legacy_instances(['1', '3', '2'])
+            with patch(CONSISTENCY_LEGACY_CONF, conf):
+                legacy.register_legacy_instances(['1', '3', '2'])
 
-            resource_1.slice.assert_not_called()
-            resource_1.batch_register_instance.assert_not_called()
+                resource_1.slice.assert_not_called()
+                resource_1.batch_register_instance.assert_not_called()
 
-            resource_2.slice.assert_has_calls([call(start=0, end=100),
-                                               call(start=100, end=200),
-                                               call(start=200, end=300),
-                                               call(start=300, end=400)])
-            resource_2.batch_register_instance.assert_has_calls([call(resource_2_slice),
-                                                                 call(resource_2_slice),
-                                                                 call(resource_2_slice),
-                                                                 call(resource_2_slice)])
+                resource_2.slice.assert_has_calls([call(start=0, end=100),
+                                                   call(start=100, end=200),
+                                                   call(start=200, end=300),
+                                                   call(start=300, end=400)])
+                resource_2.batch_register_instance.assert_has_calls([call(resource_2_slice),
+                                                                     call(resource_2_slice),
+                                                                     call(resource_2_slice),
+                                                                     call(resource_2_slice)])
 
-            resource_3.slice.assert_has_calls([call(start=0, end=100),
-                                               call(start=100, end=200),
-                                               call(start=200, end=300),
-                                               call(start=300, end=400),
-                                               call(start=400, end=500)])
-            resource_3.batch_register_instance.assert_has_calls([call(resource_3_slice),
-                                                                 call(resource_3_slice),
-                                                                 call(resource_3_slice),
-                                                                 call(resource_3_slice),
-                                                                 call(resource_3_slice)])
+                resource_3.slice.assert_has_calls([call(start=0, end=100),
+                                                   call(start=100, end=200),
+                                                   call(start=200, end=300),
+                                                   call(start=300, end=400),
+                                                   call(start=400, end=500)])
+                resource_3.batch_register_instance.assert_has_calls([call(resource_3_slice),
+                                                                     call(resource_3_slice),
+                                                                     call(resource_3_slice),
+                                                                     call(resource_3_slice),
+                                                                     call(resource_3_slice)])
