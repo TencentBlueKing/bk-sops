@@ -70,6 +70,7 @@
                                     :name="option.version">
                                 </bk-option>
                             </bk-select>
+                            <span v-show="taskVersionEmpty" class="common-error-tip error-msg">{{ i18n.version_name + i18n.typeEmptyTip}}</span>
                         </div>
                     </div>
                     <div class="form-item">
@@ -242,6 +243,7 @@
                     flow: gettext('流程模板'),
                     node_name: gettext('节点名称'),
                     version_name: gettext('插件版本'),
+                    version: gettext('版本'),
                     stage_tag: gettext('步骤名称'),
                     ignore: gettext('自动忽略'),
                     optional: gettext('是否可选'),
@@ -283,6 +285,7 @@
                 reuseVariable: {},
                 isReuseVarDialogShow: false,
                 taskTypeEmpty: false,
+                taskVersionEmpty: false,
                 reuseableVarList: [],
                 nodeId: this.idOfNodeInConfigPanel,
                 nodeName: '',
@@ -366,7 +369,7 @@
                 }
             },
             /**
-             * 标准插件节、当前节点版本列表
+             * 当前插件版本列表
              */
             currentVersionList () {
                 let list = []
@@ -835,6 +838,9 @@
                     if (!this.currentAtom) {
                         this.taskTypeEmpty = true
                     }
+                    if (!this.currentVersion) {
+                        this.taskVersionEmpty = true
+                    }
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
                     }
@@ -865,6 +871,9 @@
                         if (!this.currentAtom) {
                             this.taskTypeEmpty = true
                         }
+                        if (!this.currentVersion) {
+                            this.taskVersionEmpty = true
+                        }
                     }
                 }
             },
@@ -881,6 +890,7 @@
                     }
                 })
                 this.taskTypeEmpty = false
+                this.taskVersionEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
                         this.deleteVariable(item.key)
