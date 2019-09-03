@@ -31,7 +31,7 @@ logger = logging.getLogger('celery')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 __group_name__ = _(u"配置平台(CMDB)")
-__group_icon__ = '%scomponents/atoms/sites/%s/cc/cc.png' % (settings.STATIC_URL, settings.RUN_VER)
+__group_icon__ = '%scomponents/atoms/cc/cc.png' % settings.STATIC_URL
 
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -189,7 +189,7 @@ class CCTransferHostModuleComponent(Component):
     name = _(u"转移主机模块")
     code = 'cc_transfer_host_module'
     bound_service = CCTransferHostModuleService
-    form = '%scomponents/atoms/sites/%s/cc/cc_transfer_host_module.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_transfer_host_module.js' % settings.STATIC_URL
 
 
 class CCUpdateHostService(Service):
@@ -282,7 +282,7 @@ class CCUpdateHostComponent(Component):
     name = _(u"更新主机属性")
     code = 'cc_update_host'
     bound_service = CCUpdateHostService
-    form = '%scomponents/atoms/sites/%s/cc/cc_update_host.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_update_host.js' % settings.STATIC_URL
 
 
 class CCReplaceFaultMachineService(Service):
@@ -449,7 +449,7 @@ class CCReplaceFaultMachineComponent(Component):
     name = _(u"故障机替换")
     code = 'cc_replace_fault_machine'
     bound_service = CCReplaceFaultMachineService
-    form = '%scomponents/atoms/sites/%s/cc/cc_replace_fault_machine.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_replace_fault_machine.js' % settings.STATIC_URL
 
 
 class CCEmptySetHostsService(Service):
@@ -489,7 +489,7 @@ class CCEmptySetHostsComponent(Component):
     name = _(u"清空集群中主机")
     code = 'cc_empty_set_hosts'
     bound_service = CCEmptySetHostsService
-    form = '%scomponents/atoms/sites/%s/cc/cc_empty_set_hosts.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_empty_set_hosts.js' % settings.STATIC_URL
 
 
 class CCBatchDeleteSetService(Service):
@@ -531,7 +531,7 @@ class CCBatchDeleteSetComponent(Component):
     name = _(u"删除集群")
     code = 'cc_batch_delete_set'
     bound_service = CCBatchDeleteSetService
-    form = '%scomponents/atoms/sites/%s/cc/cc_batch_delete_set.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_batch_delete_set.js' % settings.STATIC_URL
 
 
 class CCUpdateSetServiceStatusService(Service):
@@ -574,7 +574,7 @@ class CCUpdateSetServiceStatusComponent(Component):
     name = _(u"修改集群服务状态")
     code = 'cc_update_set_service_status'
     bound_service = CCUpdateSetServiceStatusService
-    form = '%scomponents/atoms/sites/%s/cc/cc_update_set_service_status.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_update_set_service_status.js' % settings.STATIC_URL
 
 
 class CCCreateSetService(Service):
@@ -651,7 +651,7 @@ class CCCreateSetComponent(Component):
     name = _(u"创建集群")
     code = 'cc_create_set'
     bound_service = CCCreateSetService
-    form = '%scomponents/atoms/sites/%s/cc/cc_create_set.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_create_set.js' % settings.STATIC_URL
 
 
 class CCUpdateSetService(Service):
@@ -728,7 +728,7 @@ class CCUpdateSetComponent(Component):
     name = _(u"更新集群属性")
     code = 'cc_update_set'
     bound_service = CCUpdateSetService
-    form = '%scomponents/atoms/sites/%s/cc/cc_update_set.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_update_set.js' % settings.STATIC_URL
 
 
 class CCUpdateModuleService(Service):
@@ -801,7 +801,7 @@ class CCUpdateModuleComponent(Component):
     name = _(u"更新模块属性")
     code = 'cc_update_module'
     bound_service = CCUpdateModuleService
-    form = '%scomponents/atoms/sites/%s/cc/cc_update_module.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_update_module.js' % settings.STATIC_URL
 
 
 class CCTransferHostToIdleService(Service):
@@ -847,4 +847,90 @@ class CCTransferHostToIdleComponent(Component):
     name = _(u"转移主机至空闲机")
     code = 'cc_transfer_to_idle'
     bound_service = CCTransferHostToIdleService
-    form = '%scomponents/atoms/sites/%s/cc/cc_transfer_to_idle.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/cc/cc_transfer_to_idle.js' % settings.STATIC_URL
+
+
+class CmdbTransferFaultHostService(Service):
+
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
+
+        client = get_client_by_user(executor)
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        # 查询主机id
+        ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
+        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        if not host_result['result']:
+            data.set_outputs('ex_data', host_result['message'])
+            return False
+
+        transfer_params = {
+            "bk_biz_id": biz_cc_id,
+            "bk_host_id": [int(host_id) for host_id in host_result['data']]
+        }
+        transfer_result = client.cc.transfer_host_to_faultmodule(transfer_params)
+        if transfer_result['result']:
+            return True
+        else:
+            message = cc_handle_api_error('cc.transfer_host_to_fault_module',
+                                          transfer_params, transfer_result['message'])
+            data.set_outputs('ex_data', message)
+            return False
+
+    def outputs_format(self):
+        return []
+
+
+class CmdbTransferFaultHostComponent(Component):
+    name = _(u'转移主机到业务的故障机模块')
+    code = 'cmdb_transfer_fault_host'
+    bound_service = CmdbTransferFaultHostService
+    form = '%scomponents/atoms/cc/cmdb_transfer_fault_host.js' % settings.STATIC_URL
+
+
+class CmdbTransferHostResourceModuleService(Service):
+
+    def execute(self, data, parent_data):
+        executor = parent_data.get_one_of_inputs('executor')
+        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
+        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
+
+        client = get_client_by_user(executor)
+        if parent_data.get_one_of_inputs('language'):
+            setattr(client, 'language', parent_data.get_one_of_inputs('language'))
+            translation.activate(parent_data.get_one_of_inputs('language'))
+
+        # 查询主机id
+        ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
+        host_result = cc_get_host_id_by_innerip(executor, biz_cc_id, ip_list, supplier_account)
+        if not host_result['result']:
+            data.set_outputs('ex_data', host_result['message'])
+            return False
+
+        transfer_params = {
+            "bk_biz_id": biz_cc_id,
+            "bk_host_id": [int(host_id) for host_id in host_result['data']]
+        }
+        transfer_result = client.cc.transfer_host_to_resourcemodule(transfer_params)
+        if transfer_result['result']:
+            return True
+        else:
+            message = cc_handle_api_error('cc.transfer_host_to_resource_module',
+                                          transfer_params, transfer_result['message'])
+            data.set_outputs('ex_data', message)
+            return False
+
+    def outputs_format(self):
+        return []
+
+
+class CmdbTransferHostResourceModuleComponent(Component):
+    name = _(u'转移主机至资源池')
+    code = 'cmdb_transfer_host_resource'
+    bound_service = CmdbTransferHostResourceModuleService
+    form = '%scomponents/atoms/cc/cmdb_transfer_host_resource.js' % settings.STATIC_URL

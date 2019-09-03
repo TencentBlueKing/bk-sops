@@ -5,6 +5,7 @@ modify global parameters for periodic task
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -37,7 +38,9 @@ constant value
     "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
-    "constants": {"${bk_timing}": "100"},
+    "constants": {
+        "${bk_timing}": "100"
+    }
 }
 ```
 

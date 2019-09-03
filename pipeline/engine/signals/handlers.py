@@ -25,6 +25,10 @@ def pipeline_ready_handler(sender, process_id, **kwargs):
     )
 
 
+def pipeline_end_handler(sender, root_pipeline_id, **kwargs):
+    pass
+
+
 def child_process_ready_handler(sender, child_id, **kwargs):
     ProcessCeleryTask.objects.start_task(
         process_id=child_id,

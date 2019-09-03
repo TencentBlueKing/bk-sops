@@ -16,18 +16,19 @@ import ujson as json
 from django.db import transaction
 from django.contrib.auth import get_user_model
 from tastypie import fields
-from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, NotFound
 
 from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
 
 from pipeline.exceptions import PipelineException
-from pipeline.models import PipelineTemplate
+from pipeline.models import PipelineTemplate, TemplateScheme
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.permissions import common_template_resource
-from pipeline_web.parser.validator import validate_web_pipeline_tree
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
 from gcloud.webservice3.resources import GCloudModelResource
@@ -222,3 +223,71 @@ class CommonTemplateResource(GCloudModelResource):
             filters.pop('has_subprocess__exact')
 
         return filters
+
+
+class CommonTemplateSchemeResource(GCloudModelResource):
+    data = fields.CharField(
+        attribute='data',
+        use_in='detail',
+    )
+
+    class Meta(GCloudModelResource.Meta):
+        queryset = TemplateScheme.objects.all()
+        resource_name = 'common_scheme'
+        authorization = Authorization()
+        filtering = {
+            'template': ALL,
+        }
+        limit = 0
+
+    def build_filters(self, filters=None, **kwargs):
+        orm_filters = super(CommonTemplateSchemeResource, self).build_filters(filters, **kwargs)
+        if 'project__id' in filters and 'template_id' in filters:
+            template_id = filters.pop('template_id')[0]
+            project__id = filters.pop('project__id')[0]
+            template = CommonTemplate.objects.get(pk=template_id)
+            orm_filters.update({
+                'template__template_id': template.pipeline_template.template_id,
+                # 这里通过项目ID前缀隔离不同业务在同一个公共流程下的执行方案
+                'unique_id__startswith': '%s-' % project__id,
+            })
+        elif 'pk' not in filters:
+            # 不允许请求全部执行方案
+            orm_filters.update({'unique_id': ''})
+        return orm_filters
+
+    def obj_create(self, bundle, **kwargs):
+        try:
+            project_id = bundle.data.pop('project__id')
+            template_id = bundle.data.pop('template_id')
+            common_template = CommonTemplate.objects.get(pk=template_id)
+        except Exception:
+            raise BadRequest('common template does not exist')
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=common_template_resource,
+                                           action_ids=[common_template_resource.actions.edit.id],
+                                           instance=common_template)
+
+        bundle.data['name'] = name_handler(bundle.data['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
+        kwargs['unique_id'] = '%s-%s-%s' % (project_id, template_id, bundle.data['name'])
+        if TemplateScheme.objects.filter(unique_id=kwargs['unique_id']).exists():
+            raise BadRequest('common template scheme name has existed, please change the name')
+        kwargs['template'] = common_template.pipeline_template
+        return super(CommonTemplateSchemeResource, self).obj_create(bundle, **kwargs)
+
+    def obj_delete(self, bundle, **kwargs):
+        try:
+            scheme_id = kwargs['pk']
+            scheme = TemplateScheme.objects.get(pk=scheme_id)
+            common_template = CommonTemplate.objects.get(pipeline_template=scheme.template)
+        except Exception:
+            raise BadRequest('common scheme or template does not exist')
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=common_template_resource,
+                                           action_ids=[common_template_resource.actions.edit.id],
+                                           instance=common_template)
+        return super(CommonTemplateSchemeResource, self).obj_delete(bundle, **kwargs)

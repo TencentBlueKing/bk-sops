@@ -165,16 +165,28 @@ class TestEngineAPI(TestCase):
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
-    def test_revoke_pipeline__transit_success(self):
-        pipeline_model = MockPipelineModel()
+    def test_revoke_pipeline__process_is_none(self):
+        pipeline_model = MockPipelineModel(process=None)
 
         with patch(PIPELINE_PIPELINE_MODEL_GET, MagicMock(return_value=pipeline_model)):
             act_result = api.revoke_pipeline(self.pipeline_id)
 
-            self.assertTrue(act_result.result)
+            self.assertFalse(act_result.result)
 
-            pipeline_model.process.revoke_subprocess.assert_called_once()
-            pipeline_model.process.destroy_all.assert_called_once()
+    @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
+    @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
+    def test_revoke_pipeline__transit_success(self):
+        pipeline_model = MockPipelineModel()
+
+        with patch(PIPELINE_PIPELINE_MODEL_GET, MagicMock(return_value=pipeline_model)):
+            with mock.patch(PIPELINE_PROCESS_SELECT_FOR_UPDATE,
+                            mock.MagicMock(return_value=MockQuerySet(get_return=pipeline_model.process))):
+                act_result = api.revoke_pipeline(self.pipeline_id)
+
+                self.assertTrue(act_result.result)
+
+                pipeline_model.process.revoke_subprocess.assert_called_once()
+                pipeline_model.process.destroy_all.assert_called_once()
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
@@ -728,16 +740,6 @@ class TestEngineAPI(TestCase):
         with patch(PIPELINE_HISTORY_GET_HISTORY, MagicMock(return_value=self.dummy_return)):
             history = api.get_activity_histories(self.node_id)
             self.assertEqual(history, self.dummy_return)
-
-    def test_get_single_state(self):
-        s = MockStatus()
-        with patch(PIPELINE_STATUS_GET, MagicMock(return_value=s)):
-            state = api.get_single_state(self.node_id)
-            self.assertEqual(state, {'state': s.state,
-                                     'started_time': s.started_time,
-                                     'finished_time': s.archived_time,
-                                     'retry': s.retry,
-                                     'skip': s.skip})
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
