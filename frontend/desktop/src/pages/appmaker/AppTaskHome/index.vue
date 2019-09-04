@@ -257,7 +257,7 @@
                 'getInstanceStatus'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapMutations('template/', [
                 'setBusinessBaseInfo'
@@ -354,9 +354,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
-                    this.taskCategory = bizBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
-                    this.setBusinessBaseInfo(bizBasicInfo)
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
+                    this.setBusinessBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)

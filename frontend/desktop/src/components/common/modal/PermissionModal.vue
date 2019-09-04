@@ -11,17 +11,16 @@
 */
 <template>
     <bk-dialog
-        ext-cls="permission-dialog"
-        :is-show="isModalShow"
-        :title="' '"
-        :width="'600'"
+        width="600"
         padding="0 24px 40px 24px"
-        :has-header="true"
-        :has-footer="true"
-        :quick-close="false"
-        :close-icon="true"
+        ext-cls="permission-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="''"
+        :value="isModalShow"
         @cancel="onCloseDialog">
-        <div class="permission-content" slot="content">
+        <div class="permission-content">
             <div class="permission-header">
                 <span class="title-icon">
                     <img :src="lock" alt="permission-lock" class="lock-img" />
