@@ -167,7 +167,7 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            :cc_id="cc_id"
+            :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
             :create-entrance="false"
@@ -300,7 +300,7 @@
                 'deletePeriodic'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             async getPeriodicList () {
                 this.listLoading = true
@@ -332,8 +332,8 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
-                    this.taskCategory = bizBasicInfo.task_categories
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 }
