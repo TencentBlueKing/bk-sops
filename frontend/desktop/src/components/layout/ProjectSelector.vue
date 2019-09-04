@@ -17,7 +17,7 @@
             :disabled="disabled"
             :clearable="false"
             :searchable="true"
-            @select="onProjectSelect">
+            @selected="onProjectChange">
             <bk-option-group
                 v-for="(group, index) in projects"
                 :name="group.name"
@@ -109,21 +109,19 @@
                 'changeDefaultProject'
             ]),
             async onProjectChange (id, project) {
+                const projectId = id.split('-')[1]
                 try {
-                    this.setProjectId(id)
-                    await this.changeDefaultProject(id)
+                    this.setProjectId(projectId)
+                    await this.changeDefaultProject(projectId)
                     const timeZone = project.time_zone || 'Asia/Shanghai'
                     this.setTimeZone(timeZone)
                     
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
 
-                    this.$router.push({ path: `/home/${id}/` })
+                    this.$router.push({ path: `/home/${projectId}/` })
                 } catch (err) {
                     errorHandler(err, this)
                 }
-            },
-            onProjectSelect (id) {
-                this.setProjectId(id.split('-')[1])
             }
         }
     }

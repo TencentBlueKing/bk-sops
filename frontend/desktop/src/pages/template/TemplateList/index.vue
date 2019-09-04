@@ -682,6 +682,14 @@
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
             },
+            // 获取新建模板的跳转链接
+            getNewTemplateUrl () {
+                let url = `/template/new/${this.project_id}`
+                if (this.common) {
+                    url += '/?&common=1'
+                }
+                return url
+            },
             async onAuthorityConfirm (data) {
                 if (this.pending.authority) return
                 this.pending.authority = true
@@ -984,6 +992,9 @@
     .template-operate-btn {
         padding: 5px;
         color: #3c96ff;
+    }
+    .text-permission-disable {
+        padding: 5px;
     }
     .drop-icon-ellipsis {
         position: absolute;

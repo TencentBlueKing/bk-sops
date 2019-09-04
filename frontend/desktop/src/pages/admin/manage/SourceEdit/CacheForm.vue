@@ -13,7 +13,7 @@
     <div class="cache-form">
         <bk-button
             theme="default"
-            size="mini"
+            size="small"
             class="delete-btn"
             @click="onDeleteCache">
             {{i18n.delete}}
