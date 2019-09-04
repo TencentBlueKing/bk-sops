@@ -201,6 +201,7 @@
                         this.templateList = this.businessTplList
                         this.taskListPending = false
                     }
+                    this.onFiltrationTemplate()
                 } catch (e) {
                     errorHandler(e, this)
                 }
