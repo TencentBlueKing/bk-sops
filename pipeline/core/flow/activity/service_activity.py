@@ -16,7 +16,7 @@ from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.io import InputItem, OutputItem
+from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema
 from pipeline.core.flow.activity.base import Activity
 
 
@@ -28,7 +28,10 @@ class Service(object):
     InputItem = InputItem
     OutputItem = OutputItem
     interval = None
-    _result_output = OutputItem(name=_(u"执行结果"), key='_result', type='bool')
+    _result_output = OutputItem(name=_(u"执行结果"),
+                                key='_result',
+                                type='bool',
+                                schema=BooleanItemSchema(description=_(u"是否执行成功")))
 
     def __init__(self, name=None):
         self.name = name
