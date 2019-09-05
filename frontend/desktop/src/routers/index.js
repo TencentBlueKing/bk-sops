@@ -259,6 +259,45 @@ const routers = new VueRouter({
                     component: CommonTemplate
                 },
                 {
+                    path: 'template/',
+                    component: Template,
+                    children: [
+                        {
+                            path: '',
+                            component: NotFoundComponent
+                        },
+                       
+                        {
+                            path: 'edit/:cc_id?/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                template_id: route.query.template_id,
+                                type: 'edit',
+                                common: '1'
+                            })
+                        },
+                        {
+                            path: 'new/:cc_id/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                type: 'new',
+                                common: '1'
+                            })
+                        },
+                        {
+                            path: 'clone/:cc_id/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                template_id: route.query.template_id,
+                                type: 'clone',
+                                common: '1'
+                            })
+                        }]
+                },
+                {
                     path: 'manage/',
                     component: Manage,
                     children: [
