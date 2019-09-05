@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -42,7 +43,7 @@
     "name": "tasktest",
     "flow_type": "common",
     "constants": {
-        "${content}: "echo 1",
+        "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
     }

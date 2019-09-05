@@ -23,11 +23,12 @@ from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
 from tastypie.paginator import Paginator
-from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
 from tastypie.serializers import Serializer
+from tastypie.http import HttpForbidden
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
@@ -80,12 +81,42 @@ class AppSerializer(Serializer):
         return datetime.time.strftime(data, "%H:%M:%S")
 
 
+class SuperAuthorization(Authorization):
+    """
+    @summary: common authorization
+        create/update/delete: only superuser
+        read: all users
+    """
+
+    def is_superuser(self, bundle):
+        if bundle.request.user.is_superuser:
+            return True
+        raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write common flows'))
+
+    def create_list(self, object_list, bundle):
+        return []
+
+    def create_detail(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def update_list(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def update_detail(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def delete_list(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+    def delete_detail(self, object_list, bundle):
+        return self.is_superuser(bundle)
+
+
 class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
 
     def _get_business_for_user(self, user, perms):
         business_list = get_business_for_user(user, perms)
-        return business_list.exclude(status='disabled') \
-                            .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+        return business_list.exclude(status='disabled')
 
     def _get_objects_for_user(self, object_list, bundle, perms):
         user = bundle.request.user
@@ -115,11 +146,7 @@ class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
         return self._generic_read_list(object_list, bundle)
 
     def read_detail(self, object_list, bundle):
-        if bundle.obj not in self.read_list(object_list, bundle):
-            raise ImmediateHttpResponse(HttpResponseForbidden(
-                'you have no permission to read %s' % bundle.obj.__class__.__name__
-            ))
-        return True
+        return bundle.obj in self.read_list(object_list, bundle)
 
 
 class GCloudGenericAuthorization(GCloudReadOnlyAuthorization):
@@ -137,26 +164,20 @@ class GCloudGenericAuthorization(GCloudReadOnlyAuthorization):
                 bundle.obj.__class__._meta.app_label,
                 bundle.obj.__class__.__name__))
 
-        return self._get_business_for_user(
-            bundle.request.user,
-            perms=['manage_business']
-        ).filter(pk=business.pk).exists()
+        return self._get_business_for_user(bundle.request.user, perms=['manage_business']
+                                           ).filter(pk=business.pk).exists()
 
     def update_list(self, object_list, bundle):
         return self._generic_write_list(object_list, bundle)
 
     def update_detail(self, object_list, bundle):
-        if not self.update_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write flows'))
-        return True
+        return self.update_list(object_list, bundle).filter(pk=bundle.obj.pk).exists()
 
     def delete_list(self, object_list, bundle):
         return self._generic_write_list(object_list, bundle)
 
     def delete_detail(self, object_list, bundle):
-        if not self.delete_list(object_list, bundle).filter(pk=bundle.obj.pk).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to delete flows'))
-        return True
+        return self.delete_list(object_list, bundle).filter(pk=bundle.obj.pk).exists()
 
 
 class PropertyFilterPaginator(Paginator):
@@ -297,11 +318,18 @@ class GCloudModelResource(ModelResource):
         else:
             bundle.obj.delete()
 
+    def unauthorized_result(self, exception):
+        """
+        @summary：change default value 401 of tastypie to 403
+        @param exception:
+        @return:
+        """
+        raise ImmediateHttpResponse(response=HttpForbidden())
+
 
 class BusinessResource(GCloudModelResource):
     class Meta:
-        queryset = Business.objects.exclude(status='disabled') \
-                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+        queryset = Business.objects.exclude(status='disabled')
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
         authorization = GCloudReadOnlyAuthorization()
@@ -354,6 +382,7 @@ class ComponentModelResource(ModelResource):
             bundle.data['output'] = component.outputs_format()
             bundle.data['form'] = component.form
             bundle.data['desc'] = component.desc
+            bundle.data['form_is_embedded'] = component.form_is_embedded()
             # 国际化
             name = bundle.data['name'].split('-')
             bundle.data['group_name'] = _(name[0])
@@ -367,6 +396,7 @@ class ComponentModelResource(ModelResource):
         bundle.data['output'] = component.outputs_format()
         bundle.data['form'] = component.form
         bundle.data['desc'] = component.desc
+        bundle.data['form_is_embedded'] = component.form_is_embedded()
         # 国际化
         name = bundle.data['name'].split('-')
         bundle.data['group_name'] = _(name[0])

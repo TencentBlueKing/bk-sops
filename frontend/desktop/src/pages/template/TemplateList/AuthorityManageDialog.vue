@@ -11,53 +11,67 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
+        width="600"
         :ext-cls="'common-dialog'"
         :title="i18n.title"
-        width="600"
-        padding="30px"
-        :is-show.sync="isAuthorityDialogShow"
+        :header-position="'left'"
+        :mask-close="false"
+        :value="isAuthorityDialogShow"
         @confirm="onAuthorityConfirm"
         @cancel="onAuthorityCancel">
-        <div slot="content" v-bkloading="{ isLoading: loading || pending, opacity: 1 }">
+        <div class="auth-content" v-bkloading="{ isLoading: loading || pending, opacity: 1 }">
             <div class="common-form-item">
                 <label>{{i18n.createTaskAuth}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="personGroupList"
-                        :selected.sync="createdTaskPerList"
-                        :multi-select="true"
-                        :has-children="true"
-                        :searchable="true"
-                        :allow-clear="true">
-                    </bk-selector>
+                    <bk-select v-model="createdTaskPerList" searchable multiple>
+                        <bk-option-group
+                            v-for="(group, groupIndex) in personGroupList"
+                            :name="group.text"
+                            :key="groupIndex">
+                            <bk-option
+                                v-for="(option, optionIndex) in group.children"
+                                :key="optionIndex"
+                                :id="option.id"
+                                :name="option.text">
+                            </bk-option>
+                        </bk-option-group>
+                    </bk-select>
                 </div>
             </div>
             <div class="common-form-item">
                 <label>{{i18n.modifyParamsAuth}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="personGroupList"
-                        :selected.sync="modifyParamsPerList"
-                        :multi-select="true"
-                        :has-children="true"
-                        :searchable="true"
-                        :allow-clear="true">
-                    </bk-selector>
+                    <bk-select v-model="modifyParamsPerList" searchable multiple>
+                        <bk-option-group
+                            v-for="(group, groupIndex) in personGroupList"
+                            :name="group.text"
+                            :key="groupIndex">
+                            <bk-option
+                                v-for="(option, optionIndex) in group.children"
+                                :key="optionIndex"
+                                :id="option.id"
+                                :name="option.text">
+                            </bk-option>
+                        </bk-option-group>
+                    </bk-select>
                 </div>
             </div>
             <div class="common-form-item">
                 <label>{{i18n.executeTaskAuth}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="personGroupList"
-                        :selected.sync="executeTaskPerList"
-                        :multi-select="true"
-                        :has-children="true"
-                        :searchable="true"
-                        :allow-clear="true">
-                    </bk-selector>
+                    <bk-select v-model="executeTaskPerList" searchable multiple>
+                        <bk-option-group
+                            v-for="(group, groupIndex) in personGroupList"
+                            :name="group.text"
+                            :key="groupIndex">
+                            <bk-option
+                                v-for="(option, optionIndex) in group.children"
+                                :key="optionIndex"
+                                :id="option.id"
+                                :name="option.text">
+                            </bk-option>
+                        </bk-option-group>
+                    </bk-select>
                 </div>
             </div>
         </div>
@@ -85,8 +99,12 @@
                 }
             }
         },
-        created () {
-            this.loadData()
+        watch: {
+            isAuthorityDialogShow (val) {
+                if (val) {
+                    this.loadData()
+                }
+            }
         },
         methods: {
             ...mapActions('templateList/', [
@@ -100,17 +118,7 @@
                         this.loadBizPerson(),
                         this.loadTemplatePersons()
                     ]).then(values => {
-                        this.personGroupList = values[0].roles.map(item => {
-                            return {
-                                name: item.text,
-                                children: item.children.map(i => {
-                                    return {
-                                        id: i.id,
-                                        name: i.text
-                                    }
-                                })
-                            }
-                        })
+                        this.personGroupList = values[0].roles
                         this.createdTaskPerList = values[1].create_task.map(item => item.show_name)
                         this.modifyParamsPerList = values[1].fill_params.map(item => item.show_name)
                         this.executeTaskPerList = values[1].execute_task.map(item => item.show_name)
@@ -167,8 +175,12 @@
     }
 </script>
 <style lang="scss" scoped>
+.auth-content {
+    padding: 30px;
+}
 .common-form-item {
     label {
+        font-size: 12px;
         font-weight: normal;
     }
 }

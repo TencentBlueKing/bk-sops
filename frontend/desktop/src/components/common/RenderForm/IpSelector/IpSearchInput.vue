@@ -10,14 +10,17 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="ip-search-input">
-        <input
-            type="text"
+    <div :class="['ip-search-input', { 'disabled': !editable }]">
+        <bk-input
             class="search-input"
+            right-icon="bk-icon icon-search"
+            font-size="large"
             :placeholder="placeholder"
+            :disabled="!editable"
+            :clearable="true"
             v-model="keyword"
-            @input="onInputChange" />
-        <i class="bk-icon icon-search search-icon"></i>
+            @input="onInputChange">
+        </bk-input>
     </div>
 </template>
 <script>
@@ -33,6 +36,10 @@
             placeholder: {
                 type: String,
                 default: i18n.placeholder
+            },
+            editable: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
@@ -54,26 +61,6 @@
 </script>
 <style lang="scss" scoped>
 .search-input {
-    padding: 0 32px 0 10px;
-    width: 100%;
-    height: 36px;
-    line-height: 36px;
-    font-size: 14px;
-    border: 1px solid #c4c6cc;
-    border-radius: 2px;
-    outline: none;
-    &:focus {
-        border: 1px solid #3486ff;
-        & + .search-icon {
-            color: #3486ff;
-        }
-    }
-}
-.search-icon {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    color: #63656e;
     font-size: 14px;
 }
 </style>

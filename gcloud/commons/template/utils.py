@@ -27,7 +27,6 @@ from guardian.shortcuts import (
 
 from gcloud.conf import settings
 
-
 logger = logging.getLogger("root")
 
 
@@ -57,27 +56,20 @@ def assign_tmpl_perms_user(perms, users, tmpl):
         assign_perm(perm, user, tmpl)
 
 
-def read_template_data_file(f):
-    if not f:
-        return {
-            'result': False,
-            'message': 'Upload template dat file please.'
-        }
-
-    content = f.read()
+def read_encoded_template_data(content):
     try:
-        file_data = json.loads(base64.b64decode(content))
+        data = json.loads(base64.b64decode(content))
     except Exception:
         return {
             'result': False,
-            'message': 'File is corrupt'
+            'message': 'Template data is corrupt'
         }
 
     # check the validation of file
-    templates_data = file_data['template_data']
+    templates_data = data['template_data']
     digest = hashlib.md5(json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).hexdigest()
 
-    is_data_valid = (digest == file_data['digest'])
+    is_data_valid = (digest == data['digest'])
     if not is_data_valid:
         return {
             'result': False,
@@ -86,5 +78,15 @@ def read_template_data_file(f):
 
     return {
         'result': True,
-        'data': file_data
+        'data': data
     }
+
+
+def read_template_data_file(f):
+    if not f:
+        return {
+            'result': False,
+            'message': 'Upload template dat file please.'
+        }
+
+    return read_encoded_template_data(content=f.read())

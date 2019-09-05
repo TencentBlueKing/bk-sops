@@ -11,8 +11,8 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-basic" @click.self="onGotoAppMaker">
-            <div class="logo">
+        <div class="card-basic">
+            <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
@@ -29,20 +29,24 @@
                 </a>
             </div>
             <div class="card-operation">
-                <span class="common-icon-box-pen operate-btn"
+                <span
+                    class="common-icon-box-pen operate-btn"
                     :title="i18n.modifier"
                     @click.stop="onCardEdit">
                 </span>
-                <span class="common-icon-black-figure operate-btn"
+                <span
+                    class="common-icon-black-figure operate-btn"
                     :title="i18n.jurisdiction"
                     @click.stop="onOpenPermissions">
                 </span>
-                <span class="common-icon-gray-edit operate-btn"
+                <span
+                    class="common-icon-gray-edit operate-btn"
                     @mouseenter="onShowOperation"
                     @mouseleave="onHideOperation">
                 </span>
             </div>
-            <div class="edit-box-background"
+            <div
+                class="edit-box-wrapper"
                 v-if="isShowEdit"
                 @mouseenter="onShowOperation"
                 @mouseleave="onHideOperation">
@@ -74,7 +78,6 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-
     export default {
         name: 'AppCard',
         props: ['appData', 'cc_id'],
@@ -117,10 +120,7 @@
             },
             onGotoAppMaker () {
                 if (self === top) {
-                    this.$bkMessage({
-                        'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
-                        'theme': 'warning'
-                    })
+                    window.open(this.appData.link, '_blank')
                 } else {
                     window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
                 }
@@ -158,18 +158,18 @@
         }
     }
 }
-.edit-box-background {
+.edit-box-wrapper {
     position: absolute;
-    left: 111px;
-    top: 142px;
+    left: 30%;
+    top: 140px;
     z-index: 10;
-    padding-left: 6px;
+    padding-left: 12px;
     width: 102px;
     cursor: pointer;
 }
 .card-basic {
     float: left;
-    width: 136px;
+    width: 40%;
     height: 100%;
     padding: 20px 15px;
     overflow: hidden;
@@ -178,6 +178,7 @@
         width: 60px;
         height: 60px;
         margin: 0 auto;
+        cursor: pointer;
         .logo-pic {
             width: 60px;
             height: 60px;
@@ -212,7 +213,6 @@
             &:hover {
                 color: $blueDefault;
             }
-
         }
     }
     &:hover {
@@ -235,30 +235,30 @@
         .edit-operation {
             width: 96px;
             height: 42px;
-            color: #63656e;
+            color: #fff;
             font-size: 12px;
             font-weight: 400;
             line-height: 42px;
             text-align: center;
-            background: #fff;
+            background: #979ba5;
             &:hover {
-                color: #3a84ff;
-                background: #ebf4ff;
+                background: #63656e;
             }
         }
 }
 .edit-box>li>a {
     display: block;
-    color: #63656e;
+    color: #fff;
     height: 42px;
     &:hover {
-        color: #3a84ff;
-        background: rgb#ebf4ff;
+        background: #63656e;
     }
 }
 .card-particular {
     float: left;
+    width: 60%;
     height: 100%;
+    background: #f7f9fa;
     .app-detail {
         padding: 20px;
         font-size: 12px;
@@ -288,7 +288,7 @@
         position: absolute;
         bottom: 0px;
         height: 100%;
-        width: 70%;
+        width: 60%;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;
