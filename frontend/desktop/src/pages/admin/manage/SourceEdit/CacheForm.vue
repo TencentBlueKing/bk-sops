@@ -37,7 +37,7 @@
                                 v-model="name"
                                 v-validate="nameRule"
                                 @blur="updateValue">
-                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top=" errors.first('cacheName')"></i>
                         </div>
                     </td>
                 </tr>

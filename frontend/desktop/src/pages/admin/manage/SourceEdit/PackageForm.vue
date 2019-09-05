@@ -46,7 +46,7 @@
                                     :disabled="isEditing"
                                     :class="{ 'error-border': errors.first('packageName') }"
                                     @blur="onPackageNameBlur">
-                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('packageName')"></i>
                             </div>
                         </td>
                     </tr>
