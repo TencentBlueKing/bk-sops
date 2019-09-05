@@ -98,12 +98,12 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
-                                    v-model="projectList"
+                                    v-model="selectedProject"
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
-                                    @selected="onSelectedBizCcId">
+                                    @selected="onSelectProject">
                                     <bk-option
                                         v-for="(option, index) in projectList"
                                         :key="index"
@@ -302,7 +302,7 @@
                     this.loadProjectList({ limit: 0 })
                 }
                 const list = tools.deepClone(this.projectList)
-                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
+                list.unshift({ id: 'all', name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
