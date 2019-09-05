@@ -18,6 +18,8 @@ from gcloud.apigw import views
 urlpatterns = [
     url(r'^get_template_list/(?P<bk_biz_id>\d+)/$', views.get_template_list),
     url(r'^get_template_info/(?P<template_id>\d+)/(?P<bk_biz_id>\d+)/$', views.get_template_info),
+    url(r'^get_common_template_list/$', views.get_common_template_list),
+    url(r'^get_common_template_info/(?P<template_id>\d+)/$', views.get_common_template_info),
     url(r'^create_task/(?P<template_id>\d+)/(?P<bk_biz_id>\d+)/$', views.create_task),
     url(r'^start_task/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.start_task),
     url(r'^operate_task/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$', views.operate_task),

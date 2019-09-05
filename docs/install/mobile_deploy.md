@@ -1,7 +1,7 @@
 # 移动端部署
-标准运维移动端需要通过企业微信进行访问，所以需要绑定企业微信的应用访问链接到你部署的蓝鲸社区版平台。
 
 ## 企业微信管理端配置
+标准运维移动端需要通过企业微信进行访问，所以需要绑定企业微信的应用访问链接到你部署的蓝鲸社区版平台。
 
 ### 登录企业微信管理后台
 打开浏览器访问链接 `https://work.weixin.qq.com/`，使用企业微信扫码登录，注意需要使用有管理员权限的用户。
@@ -37,11 +37,47 @@
 
 ## 标准运维部署
 
+### 打包并收集前端静态资源
+
+#### 1. 安装依赖包  
+进入 frontend/mobile/，执行以下命令安装 NPM 包
+```bash
+npm install
+```
+
+#### 2. 打包前端资源
+在 frontend/mobile/ 目录下，继续执行以下命令打包前端静态资源
+```bash
+npm run build -- --SITE_URL="/o/bk_sops" --STATIC_ENV="open/prod"
+```
+
+#### 3. 收集静态资源
+回到项目根目录，执行以下命令收集前端静态资源到 static/weixin/ 目录下
+```bash
+rm -rf static/weixin/open
+mv frontend/mobile//dist/open static/weixin/
+
+rm -rf static/weixin/components
+cp -r static/components static/weixin/
+rm -rf static/weixin/variables
+cp -r static/variables static/weixin/
+```
+
+### 应用打包
+在 CentOS 机器上，通过 git 拉取你的标准运维定制版仓库代码后，在项目根目录下运行以下命令执行打包操作。
+```bash
+bash scripts/publish/build.sh
+```
+注意，该脚本会把项目依赖的 python 包都下载到生成的版本包中，请务必保证把项目依赖的 python 包都加入到 requirements.txt 文件中。
+打包完成后会在当前目录下生成一个名为 "bk_sops-当前时间串.tar.gz" 格式的文件，即版本包。
+
+
 ### 环境变量配置
 标准运维首次部署默认不开启移动端，如果需要开启移动端，需要在蓝鲸"开发者中心"配置标准运维应用的环境变量，如下图所示，其中，
 BKAPP_USE_WEIXIN(是否开启移动端)值设置为 1，BKAPP_IS_QY_WEIXIN(是否使用企业微信)值设置为 1，BKAPP_WEIXIN_APP_ID(企业ID) 的值
 设置为企业微信后台管理中"我的企业"页面的"企业ID"，BKAPP_WEIXIN_APP_SECRET(企业应用Secret) 的值设置为企业微信后台的应用管理中标准
 运维应用的 Secret，BKAPP_WEIXIN_APP_EXTERNAL_HOST(蓝鲸外网域名) 的值设置为你部署的蓝鲸外网域名 {BK_PAAS_OUTER_HOST}。
+![](../resource/img/bk_sops_envs.png)
 
 ### 重新部署
 设置标准运维应用运行时的环境变量后，需要重新部署才能生效.
