@@ -120,6 +120,11 @@
             &:after{
                 border-bottom: none;
             }
+            .van-cell__title{
+                flex: inherit;
+                display: flex;
+                align-items: center;
+            }
             .van-tag {
                 width: 60px;
                 height: 60px;
@@ -153,6 +158,7 @@
                 margin-left: 10px;
                 color: $black;
                 vertical-align: middle;
+                flex: 1;
             }
         }
     }
