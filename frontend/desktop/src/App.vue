@@ -15,7 +15,7 @@
             v-if="!hideHeader"
             :appmaker-data-loading="appmakerDataLoading" />
         <div class="main-container">
-            <router-view v-if="isRouterAlive"></router-view>
+            <router-view v-if="isRouterViewShow"></router-view>
         </div>
         <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
@@ -25,7 +25,6 @@
             ref="permissionApply"
             :permission-data="permissionData">
         </permissionApply>
-        <router-view v-if="isRouterViewShow"></router-view>
     </div>
 </template>
 <script>
