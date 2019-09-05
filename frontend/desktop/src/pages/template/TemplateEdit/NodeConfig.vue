@@ -105,8 +105,7 @@
                         <div class="form-content">
                             <bk-switcher
                                 size="min"
-                                :selected="nodeCouldBeSkipped"
-                                @change="onSkippedChange">
+                                v-model="nodeCouldBeSkipped">
                             </bk-switcher>
                         </div>
                     </div>
@@ -891,9 +890,6 @@
             },
             onErrorIngoredChange (selected) {
                 this.errorCouldBeIgnored = selected
-            },
-            onSkippedChange (selected) {
-                this.nodeCouldBeSkipped = selected
             },
             /**
              * 输入参数值更新
