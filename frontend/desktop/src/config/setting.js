@@ -27,7 +27,7 @@ export function setAtomConfigApiUrls (SITE_URL, BIZ_CC_ID) {
         template: SITE_URL + 'api/v3/template/',
         subform: SITE_URL + 'template/api/form/' + BIZ_CC_ID + '/',
         instance: SITE_URL + 'api/v3/taskflow/',
-        getConstance () {
+        getConstants () {
             return store.state.template.constants
         }
     }
