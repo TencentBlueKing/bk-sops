@@ -46,10 +46,6 @@
                 .content-instance-time {
                     display: inline-block;
                     margin-right: 80px;
-                    /deep/ .bk-selector-input {
-                        color:#3a84ff;
-                        border:none;
-                    }
                 }
                 .date-scope {
                     margin-right: 0px;
@@ -79,10 +75,6 @@
                 margin-right: 80px;
                 .icon-angle-down {
                     margin-left: 5px;
-                }
-                /deep/ .bk-selector-input {
-                    color:#3a84ff;
-                    border:none;
                 }
             }
             .content-business-picker {
@@ -183,42 +175,9 @@
                     float: left;
                     color: #313238;
                 }
-                /deep/ .bk-date-range input {
+                .bk-selector-input{
                     height: 32px;
                     line-height: 32px;
-                }
-                .bk-date-range, .bk-selector {
-                    display: inline-block;
-                    margin: 20px 0;
-                    width: 240px;
-                    .bk-selector-node {
-                        .text {
-                            height: 42px;
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        }
-                    }
-                }
-                .bk-selector-input, .bk-date-range:after {
-                    height: 32px;
-                    line-height: 32px;
-                }
-            }
-        }
-        .content-date-picker,
-        .content-business-picker {
-            .bk-date-range {
-                display: inline-block;
-                padding: 0px;
-                width: 210px;
-                input {
-                    padding: 0;
-                    border: 0px;
-                    color: #3a84ff;
-                }
-                &:after{
-                    display: none;
                 }
             }
         }

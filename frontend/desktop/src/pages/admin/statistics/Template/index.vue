@@ -692,11 +692,6 @@
     width: 260px;
     background-color: #ffffff;
 }
-.bk-date-range {
-    position: relative;
-    left: 20px;
-    border-right: 35px solid rgba(0,0,0,0);
-}
 .icon-angle-down {
     transition: all linear 0.2s;
 }
