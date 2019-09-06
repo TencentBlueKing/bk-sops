@@ -47,7 +47,7 @@
                 <div class="common-form-item">
                     <label>{{ i18n.name }}</label>
                     <div class="common-form-content">
-                        <BaseInput
+                        <bk-input
                             name="variableName"
                             v-model="varName"
                             v-validate="variableNameRule" />
@@ -57,7 +57,7 @@
                 <div class="common-form-item clearfix">
                     <label>{{ i18n.key }}</label>
                     <div class="common-form-content">
-                        <BaseInput
+                        <bk-input
                             name="variableKey"
                             v-model="varKey"
                             v-validate="variableKeyRule" />
@@ -73,12 +73,8 @@
     import { mapState } from 'vuex'
     import { Validator } from 'vee-validate'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     export default {
         name: 'ReuseVarDialog',
-        components: {
-            BaseInput
-        },
         props: ['isReuseVarDialogShow', 'reuseVariable', 'reuseableVarList'],
         data () {
             let selectedVar = ''

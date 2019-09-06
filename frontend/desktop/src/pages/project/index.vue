@@ -29,12 +29,12 @@
                         <span class="checkbox-name">{{i18n.showClosedProject}}</span>
                     </div>
                     <div class="search-input">
-                        <BaseInput
+                        <bk-input
                             v-model="searchStr"
                             class="search-input"
                             :placeholder="i18n.placeholder"
                             @input="onSearchInput">
-                        </BaseInput>
+                        </bk-input>
                         <i class="common-icon-search"></i>
                     </div>
                 </div>
@@ -136,13 +136,13 @@
                 <div class="common-form-item">
                     <label class="required">{{ i18n.name }}</label>
                     <div class="common-form-content">
-                        <BaseInput
+                        <bk-input
                             name="projectName"
                             :disabled="dialogType === 'edit'"
                             v-model="projectDetail.name"
                             data-vv-validate-on=" "
                             v-validate="nameRule">
-                        </BaseInput>
+                        </bk-input>
                         <span v-show="errors.has('projectName')" class="common-error-tip error-msg">{{ errors.first('projectName') }}</span>
                     </div>
                 </div>
@@ -206,7 +206,6 @@
     import NoData from '@/components/common/base/NoData.vue'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
@@ -216,7 +215,6 @@
         components: {
             NoData,
             BaseTitle,
-            BaseInput,
             CopyrightFooter
         },
         mixins: [permission],

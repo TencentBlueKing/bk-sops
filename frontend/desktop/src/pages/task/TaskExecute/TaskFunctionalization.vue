@@ -17,12 +17,12 @@
             <div class="common-form-item">
                 <label class="required">{{ i18n.taskName }}</label>
                 <div class="common-form-content">
-                    <BaseInput
+                    <bk-input
                         class="common-form-content-size"
                         name="taskName"
                         v-model="name"
                         v-validate="taskNameRule">
-                    </BaseInput>
+                    </bk-input>
                     <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                 </div>
             </div>
@@ -87,7 +87,6 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
     import NodePreview from '../NodePreview.vue'
 
@@ -96,7 +95,6 @@
         inject: ['reload'],
         components: {
             NoData,
-            BaseInput,
             TaskParamEdit,
             NodePreview
         },

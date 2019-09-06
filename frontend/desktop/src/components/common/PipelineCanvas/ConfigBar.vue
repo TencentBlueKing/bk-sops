@@ -20,7 +20,7 @@
                 <h3 class="canvas-name" :title="tName">{{tName}}</h3>
                 <span class="common-icon-edit" @click="onNameEditing"></span>
             </div>
-            <BaseInput
+            <bk-input
                 v-else
                 class="canvas-name-input"
                 ref="canvasNameInput"
@@ -34,7 +34,7 @@
                 @input="onInputName"
                 @blur="onInputBlur"
                 @enter="onInputBlur">
-            </BaseInput>
+            </bk-input>
             <span class="name-error common-error-tip error-msg">{{ errors.first('templateName') }}</span>
         </div>
         <div class="canvas-operation-wrapper">
@@ -66,14 +66,10 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import permission from '@/mixins/permission.js'
 
     export default {
         name: 'ConfigBar',
-        components: {
-            BaseInput
-        },
         mixins: [permission],
         props: [
             'name', 'project_id', 'template_id', 'type', 'common', 'templateSaving',
@@ -299,19 +295,10 @@
             }
         }
         .canvas-name-input {
-            padding: 4px 10px;
             max-width: 400px;
-            height: auto;
-            line-height: 12px;
-            font-size: 14px;
             overflow: hidden;
             text-overflow:ellipsis;
             white-space: nowrap;
-            border: 1px solid $commonBorderColor;
-            outline: none;
-            &:focus {
-                border-color: $blueDefault;
-            }
         }
         .name-error {
             position: absolute;

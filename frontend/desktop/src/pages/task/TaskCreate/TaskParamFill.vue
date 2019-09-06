@@ -19,12 +19,12 @@
                 <div class="common-form-item">
                     <label class="required">{{ i18n.taskName }}</label>
                     <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
-                        <BaseInput
+                        <bk-input
                             v-model="taskName"
                             v-validate="taskNameRule"
                             class="step-form-content-size"
                             name="taskName">
-                        </BaseInput>
+                        </bk-input>
                         <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
@@ -123,13 +123,11 @@
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
     import permission from '@/mixins/permission.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     export default {
         name: 'TaskParamFill',
         components: {
-            BaseInput,
             ParameterInfo,
             LoopRuleSelect
         },
