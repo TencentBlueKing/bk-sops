@@ -338,7 +338,7 @@ class TestEngineAPI(TestCase):
         # with service activity
         top_pipeline = PipelineObject(nodes={self.node_id: ServiceActivity(id=self.node_id,
                                                                            service=None,
-                                                                           can_retry=False)})
+                                                                           retryable=False)})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
@@ -349,7 +349,7 @@ class TestEngineAPI(TestCase):
 
         # with parallel gateway
         pg = ParallelGateway(id=self.node_id, converge_gateway_id=uniqid())
-        setattr(pg, 'can_retry', False)
+        setattr(pg, 'retryable', False)
         top_pipeline = PipelineObject(nodes={self.node_id: pg})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 

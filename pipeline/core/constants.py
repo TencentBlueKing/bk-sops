@@ -49,7 +49,11 @@ class PipelineElement(object):
     code = 'code'
     error_ignorable = 'error_ignorable'
     skippable = 'skippable'
-    can_retry = 'can_retry'
+    # 兼容3.3.X不规范的命名
+    skippable_old = 'isSkipped'
+    retryable = 'retryable'
+    # 兼容3.3.X不规范的命名
+    retryable_old = 'can_retry'
     timeout = 'timeout'
     loop_times = 'loop_times'
     converge_gateway_id = 'converge_gateway_id'
