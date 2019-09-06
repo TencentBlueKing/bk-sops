@@ -119,7 +119,7 @@
         </div>
         <div slot="footer" class="dialog-footer">
             <bk-button
-                type="primary"
+                theme="primary"
                 :class="{
                     'btn-permission-disable': !hasConfirmPerm
                 }"
