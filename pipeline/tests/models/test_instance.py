@@ -27,7 +27,7 @@ from pipeline.engine.models import Status, NodeRelationship
 class TestPipelineInstance(TestCase):
     def setUp(self):
         self.data = {
-            u'activities': {u'node8fe2bb234d29860981a2bc7e6077': {u'can_retry': True,
+            u'activities': {u'node8fe2bb234d29860981a2bc7e6077': {u'retryable': True,
                                                                   u'component': {u'code': u'sleep_timer',
                                                                                  u'data': {u'bk_timing': {
                                                                                      u'hook': False,
