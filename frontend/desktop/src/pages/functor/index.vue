@@ -240,7 +240,7 @@
             </div>
             <div slot="footer" class="dialog-footer">
                 <bk-button
-                    type="primary"
+                    theme="primary"
                     :class="{
                         'btn-permission-disable': !hasConfirmPerm
                     }"
@@ -248,7 +248,7 @@
                     @click="onConfirmlNewTask">
                     {{i18n.confirm}}
                 </bk-button>
-                <bk-button type="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
+                <bk-button theme="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
             </div>
         </bk-dialog>
     </div>

@@ -78,7 +78,7 @@
                                             <div class="template-item-name">{{template.name}}</div>
                                         </div>
                                         <div class="apply-permission-mask">
-                                            <bk-button type="primary" size="small">{{i18n.applyPermission}}</bk-button>
+                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>

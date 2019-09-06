@@ -17,7 +17,7 @@
                 <bk-button
                     v-show="showOperationBtn"
                     v-cursor="{ active: !hasPermission(createTplRequired, createTplActions, createTplOperations) }"
-                    type="primary"
+                    theme="primary"
                     :class="['create-template', {
                         'btn-permission-disable': !hasPermission(createTplRequired, createTplActions, createTplOperations)
                     }]"

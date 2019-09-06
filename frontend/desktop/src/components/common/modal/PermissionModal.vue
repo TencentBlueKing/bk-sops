@@ -50,8 +50,8 @@
             </div>
         </div>
         <div class="permission-footer" slot="footer">
-            <bk-button type="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
-            <bk-button type="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
+            <bk-button theme="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
+            <bk-button theme="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
         </div>
     </bk-dialog>
 </template>
@@ -146,7 +146,6 @@
         z-index: 1501;
     }
     /deep/ .permission-content {
-        margin-top: -26px;
         .permission-header {
             text-align: center;
             .lock-img {
