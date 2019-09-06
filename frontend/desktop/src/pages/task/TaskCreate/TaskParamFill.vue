@@ -186,9 +186,6 @@
             },
             isStartNowShow () {
                 return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
-            },
-            isPeriodicSelectShow () {
-                return this.entrance === 'periodicTask'
             }
         },
         mounted () {
@@ -210,7 +207,7 @@
                 'createPeriodic'
             ]),
             period () {
-                if (this.isPeriodicSelectShow) {
+                if (this.entrance === 'periodicTask') {
                     this.isStartNow = false
                 }
             },
