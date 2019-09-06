@@ -40,83 +40,39 @@
                 </div>
             </div>
             <div class="project-table-content">
-                <table class="project-table" v-bkloading="{ isLoading: loading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th width="10%">ID</th>
-                            <th width="30%">{{ i18n.projectName}}</th>
-                            <th width="40%">{{ i18n.projectDesc}}</th>
-                            <th width="10%">{{ i18n.creator }}</th>
-                            <th width="10%">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in projectList" :key="item.id">
-                            <td>{{item.id}}</td>
-                            <td><div class="project-name" :title="item.name">{{item.name}}</div></td>
-                            <td><div class="project-desc" :title="item.desc">{{item.desc || '--' }}</div></td>
-                            <td>{{item.creator}}</td>
-                            <td>
+                <bk-table
+                    :data="projectList"
+                    :pagination="pagination"
+                    v-bkloading="{ isLoading: loading, opacity: 1 }"
+                    @page-change="onPageChange">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.projectName" prop="name"></bk-table-column>
+                    <bk-table-column :label="i18n.projectDesc">
+                        <template slot-scope="props">
+                            {{props.row.desc || '--'}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <template
+                                v-for="(item, index) in OptBtnList">
                                 <bk-button
-                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, projectOperations) }"
+                                    v-if="isShowOptBtn(props.row.is_disable, item.name)"
+                                    v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions, projectOperations) }"
+                                    :key="index"
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['view'], item.auth_actions, projectOperations)
+                                        'btn-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
                                     }]"
                                     theme="default"
-                                    @click="onViewProject(item)">
-                                    {{i18n.view}}
+                                    @click="onClickOptBtn(props.row, item.name)">
+                                    {{item.text}}
                                 </bk-button>
-                                <bk-button
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
-                                    :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
-                                    }]"
-                                    theme="default"
-                                    @click="onEditProject(item)">
-                                    {{i18n.edit}}
-                                </bk-button>
-                                <bk-button
-                                    v-if="item.is_disable"
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
-                                    :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
-                                    }]"
-                                    theme="default"
-                                    @click="onChangeProjectStatus(item, 'start')">
-                                    {{i18n.start}}
-                                </bk-button>
-                                <bk-button
-                                    v-else
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
-                                    :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
-                                    }]"
-                                    theme="default"
-                                    @click="onChangeProjectStatus(item, 'stop')">
-                                    {{i18n.stop}}
-                                </bk-button>
-                            </td>
-                        </tr>
-                        <tr v-if="!projectList.length" class="empty-tr">
-                            <td colspan="4">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-pagination
-                        :current.sync="currentPage"
-                        :count="totalCount"
-                        :limit="countPerPage"
-                        :limit-list="[15,20,30]"
-                        :show-limit="false"
-                        @change="onPageChange">
-                    </bk-pagination>
-                </div>
+                            </template>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
@@ -209,7 +165,28 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
-
+    const OptBtnList = [
+        {
+            name: 'view',
+            power: 'view',
+            text: gettext('查看')
+        },
+        {
+            name: 'edit',
+            power: 'edit',
+            text: gettext('编辑')
+        },
+        {
+            name: 'start',
+            power: 'edit',
+            text: gettext('启用')
+        },
+        {
+            name: 'stop',
+            power: 'edit',
+            text: gettext('停用')
+        }
+    ]
     export default {
         name: 'ProjectHome',
         components: {
@@ -220,13 +197,12 @@
         mixins: [permission],
         data () {
             return {
+                OptBtnList,
                 searchStr: '',
                 projectList: [],
                 loading: true,
                 countPerPage: 15,
-                totalCount: 0,
                 totalPage: 1,
-                currentPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
                 isOperationDialogShow: false,
@@ -252,6 +228,13 @@
                 projectActions: [],
                 projectOperations: [],
                 projectResource: {},
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                },
                 i18n: {
                     projectManage: gettext('项目管理'),
                     createProject: gettext('新建项目'),
@@ -330,7 +313,7 @@
                 try {
                     const data = {
                         limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        offset: (this.pagination.current - 1) * this.countPerPage,
                         is_disable: this.isClosedShow
                     }
                     
@@ -340,10 +323,10 @@
                     
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
-                    this.totalCount = projectList.meta.total_count
+                    this.pagination.count = projectList.meta.total_count
                     this.projectOperations = projectList.meta.auth_operations
                     this.projectResource = projectList.meta.auth_resource
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    const totalPage = Math.ceil(this.pagination.count / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -414,11 +397,11 @@
                 }
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.getProjectList()
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getProjectList()
             },
             onProjectPermissonCheck (required, project, event) {
@@ -436,7 +419,7 @@
             },
             onClosedProjectToggle () {
                 this.isClosedShow = !this.isClosedShow
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getProjectList()
             },
             onCreateProject () {
@@ -509,6 +492,40 @@
                 const disabled = this.operationType === 'stop'
                 this.isOperationDialogShow = false
                 this.changeProject(disabled)
+            },
+            /**
+             * 是否显示操作按钮
+             * @param {Boolean} isDisable
+             * @param {String} name
+             */
+            isShowOptBtn (isDisable, name) {
+                if (name === 'view' || name === 'edit') {
+                    return true
+                }
+                if (name === 'start' && isDisable) {
+                    return true
+                }
+                if (name === 'stop' && !isDisable) {
+                    return true
+                }
+            },
+            /**
+             * 点击按钮
+             * @param {Object} item
+             * @param {String} name
+             */
+            onClickOptBtn (item, name) {
+                const _this = this
+                switch (name) {
+                    case 'view':
+                        _this.onViewProject(item)
+                        break
+                    case 'edit':
+                        _this.onEditProject(item)
+                        break
+                    default:
+                        _this.onChangeProjectStatus(item, name)
+                }
             }
         }
     }
@@ -604,68 +621,17 @@
             }
         }
     }
-    .project-table {
-        width: 100%;
+    .operate-btn {
+        margin-right: 5px;
+        padding: 0;
+        height: auto;
+        line-height: 1;
+        background: transparent;
+        border: none;
         font-size: 12px;
-        border: 1px solid #dddddd;
-        border-collapse: collapse;
-        background: #ffffff;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
-        }
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #dddddd;
-            &:first-child {
-                padding-left: 20px;
-            }
-        }
-        th {
-            background: #fafafa;
-        }
-        .empty-tr td {
-            padding: 10px;
-        }
-        .project-name,
-        .project-desc {
-            max-width: 100%;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        .operate-btn {
-            margin-right: 5px;
-            padding: 0;
-            height: auto;
-            line-height: 1;
-            background: transparent;
-            border: none;
-            font-size: 12px;
-            color: #3c96ff;
-            &.bk-button {
-                min-width: unset;
-            }
-        }
-        .empty-data {
-            padding: 120px 0;
-        }
-    }
-    .panagation {
-        padding: 10px 20px;
-        text-align: right;
-        border: 1px solid #dde4eb;
-        border-top: none;
-        background: #ffff;
-        .page-info {
-            float: left;
-            line-height: 36px;
-            font-size: 12px;
-        }
-        .bk-page {
-            display: inline-block;
+        color: #3c96ff;
+        &.bk-button {
+            min-width: unset;
         }
     }
     .dialog-content {
