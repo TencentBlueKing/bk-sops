@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="quick-create-task-content">
+    <div v-bkloading="{ isLoading: collectLoading || templateDetailLoading, opacity: 1 }" class="quick-create-task-content">
         <h3 class="title">{{i18n.myTasks}}</h3>
         <div v-if="listData.length" class="clearfix">
             <ul class="task-list">
@@ -47,7 +47,7 @@
                 <p>{{i18n.addTasks}}</p>
             </div>
         </div>
-        <div class="task-empty" v-else>
+        <div class="task-empty" v-else-if="!listData.length && !templateDetailLoading">
             <NoData>
                 <p>{{i18n.addTips1}}<button class="empty-to-add" @click="onSelectTemplate">{{i18n.addTips2 }}</button></p>
             </NoData>
@@ -82,10 +82,11 @@
             SelectTemplateDialog
         },
         mixins: [permission],
-        props: ['quickTaskList', 'project_id', 'templateClassify', 'totalTemplate'],
+        props: ['quickTaskList', 'project_id', 'templateClassify', 'totalTemplate', 'collectLoading'],
         data () {
             return {
                 isSelectTemplateDialogShow: false,
+                templateDetailLoading: true,
                 submitting: false,
                 i18n: {
                     myTasks: gettext('快速新建任务'),
@@ -124,6 +125,7 @@
             ]),
             async getTemplateDetail () {
                 if (this.quickTaskList.length === 0) {
+                    this.templateDetailLoading = false
                     return
                 }
                 try {

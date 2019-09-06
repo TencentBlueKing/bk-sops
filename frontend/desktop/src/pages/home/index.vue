@@ -21,7 +21,7 @@
             </div>
             <div class="main-wrapper">
                 <QuickCreateTask
-                    v-bkloading="{ isLoading: loading, opacity: 1 }"
+                    :collect-loading="loading"
                     :project_id="project_id"
                     :quick-task-list="quickTaskList"
                     :template-classify="templateClassify"
