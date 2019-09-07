@@ -107,6 +107,13 @@ class TestPipelineInstance(TestCase):
 
         PipelineTemplate.objects.unfold_subprocess.assert_not_called()
 
+    def test_create_instance__without_template(self):
+        self.instance_4 = PipelineInstance.objects.create_instance(template=None, exec_data=self.data,
+                                                                   creator=self.creator, instance_id='4')
+        self.assertIsNone(self.instance_4.template)
+        self.assertIsNone(self.instance_4.snapshot)
+        self.assertIsNotNone(self.instance_4.execution_snapshot)
+
     def test_set_started(self):
         PipelineInstance.objects.set_started(self.instance.instance_id, self.creator)
         self.instance.refresh_from_db()
