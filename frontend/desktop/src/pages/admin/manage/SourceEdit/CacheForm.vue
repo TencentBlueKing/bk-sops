@@ -37,7 +37,7 @@
                                 v-model="name"
                                 v-validate="nameRule"
                                 @blur="updateValue">
-                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top=" errors.first('cacheName')"></i>
                         </div>
                     </td>
                 </tr>
@@ -123,7 +123,7 @@
 <script>
     import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { PACKAGE_NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'CacheForm',
@@ -164,7 +164,7 @@
                 nameRule: {
                     required: true,
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
+                    regex: PACKAGE_NAME_REG
                 },
                 valueRule: {
                     required: true
