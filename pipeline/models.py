@@ -536,6 +536,7 @@ class InstanceManager(models.Manager):
         TreeInfo.objects.create()
         if template is not None:
             kwargs['template'] = template
+            kwargs['snapshot_id'] = template.snapshot.id
         kwargs['instance_id'] = instance_id
         kwargs['execution_snapshot_id'] = exec_snapshot.id
         return self.create(**kwargs)
