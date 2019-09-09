@@ -136,17 +136,17 @@
             </div>
         </bk-dialog>
         <bk-dialog
-            v-if="isOperationDialogShow"
-            :quick-close="false"
-            :has-header="true"
-            :ext-cls="'common-dialog'"
-            :title="projectStatusTitle"
-            :is-show="isOperationDialogShow"
             width="400"
             padding="30px"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="projectStatusTitle"
+            :value="isOperationDialogShow"
             @confirm="onChangeStatusConfirm"
             @cancel="isOperationDialogShow = false">
-            <div slot="content" class="operation-dialog-tips">
+            <div class="operation-dialog-tips">
                 {{i18n.confirm}}{{operationType === 'start' ? i18n.start : i18n.stop}}{{i18n.project}}:{{projectDetail.name}}?
             </div>
         </bk-dialog>
@@ -473,6 +473,7 @@
             },
             onChangeProjectStatus (project, type) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
+                    console.log('dsadsa')
                     this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
                     return
                 }
@@ -507,7 +508,7 @@
                 }
             },
             /**
-             * 点击按钮
+             * 操作按钮点击
              * @param {Object} item
              * @param {String} name
              */
@@ -601,5 +602,6 @@
     }
     .operation-dialog-tips {
         word-break: break-all;
+        padding: 20px;
     }
 </style>
