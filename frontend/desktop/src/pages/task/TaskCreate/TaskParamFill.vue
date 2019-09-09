@@ -29,7 +29,7 @@
                     </div>
                 </div>
                 <div
-                    v-if="isStartNowShow"
+                    v-if="!isStartNowShow"
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
@@ -184,8 +184,9 @@
             isTaskTypeShow () {
                 return this.userType !== 'functor' && this.isStartNow
             },
+            // 不显示【执行计划】的情况
             isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'periodicTask' && this.entrance !== 'taskflow'
+                return this.common || this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
