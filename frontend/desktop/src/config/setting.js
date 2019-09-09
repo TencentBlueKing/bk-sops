@@ -10,6 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import bus from '@/utils/bus.js'
+import store from '@/store/index.js'
 
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
@@ -25,7 +26,10 @@ export function setAtomConfigApiUrls (SITE_URL, BIZ_CC_ID) {
         variable: SITE_URL + 'api/v3/variable/',
         template: SITE_URL + 'api/v3/template/',
         subform: SITE_URL + 'template/api/form/' + BIZ_CC_ID + '/',
-        instance: SITE_URL + 'api/v3/taskflow/'
+        instance: SITE_URL + 'api/v3/taskflow/',
+        getConstants () {
+            return store.state.template.constants
+        }
     }
 }
 
