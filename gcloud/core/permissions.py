@@ -32,6 +32,7 @@ project_resource = DjangoModelResource(
         Action(id='edit', name=_(u"编辑"), is_instance_related=True),
         Action(id='create_template', name=_(u"新建流程"), is_instance_related=True),
         Action(id='use_common_template', name=_(u"使用公共流程"), is_instance_related=True),
+        Action(id='fast_create_task', name=_(u"快速新建一次性任务"), is_instance_related=True),
     ],
     operations=[
         {
@@ -53,6 +54,10 @@ project_resource = DjangoModelResource(
         {
             'operate_id': 'use_common_template',
             'actions_id': ['view', 'use_common_template']
+        },
+        {
+            'operate_id': 'fast_create_task',
+            'actions_id': ['view', 'fast_create_task']
         }
     ],
     resource_cls=Project,

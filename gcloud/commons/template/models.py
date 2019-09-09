@@ -30,7 +30,7 @@ from gcloud.core.utils import convert_readable_username
 
 def replace_template_id(template_model, pipeline_data, reverse=False):
     activities = pipeline_data[PE.activities]
-    for act_id, act in activities.iteritems():
+    for act_id, act in activities.items():
         if act['type'] == PE.SubProcess:
             if not reverse:
                 act['template_id'] = template_model.objects.get(pk=act['template_id']).pipeline_template.template_id

@@ -66,7 +66,8 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.constants import (
     TASK_CREATE_METHOD,
     TEMPLATE_SOURCE,
-    PROJECT
+    PROJECT,
+    ONETIME
 )
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.contrib.appmaker.models import AppMaker
@@ -109,7 +110,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
 
         pipeline_instance = PipelineInstance.objects.create_instance(
-            template.pipeline_template,
+            template.pipeline_template if template else None,
             pipeline_tree,
             spread=True,
             **pipeline_template_data
@@ -766,7 +767,7 @@ class TaskFlowInstance(models.Model):
                                           on_delete=models.SET_NULL)
     category = models.CharField(_(u"任务类型，继承自模板"), choices=TASK_CATEGORY,
                                 max_length=255, default='Other')
-    template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255)
+    template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255, blank=True)
     template_source = models.CharField(_(u"流程模板来源"), max_length=32,
                                        choices=TEMPLATE_SOURCE,
                                        default=PROJECT)
@@ -851,7 +852,9 @@ class TaskFlowInstance(models.Model):
 
     @property
     def template(self):
-        if self.template_source == PROJECT:
+        if self.template_source == ONETIME:
+            return None
+        elif self.template_source == PROJECT:
             return TaskTemplate.objects.get(pk=self.template_id)
         else:
             return CommonTemplate.objects.get(pk=self.template_id)
@@ -862,7 +865,7 @@ class TaskFlowInstance(models.Model):
 
     @property
     def subprocess_info(self):
-        return self.pipeline_instance.template.subprocess_version_info
+        return self.pipeline_instance.template.subprocess_version_info if self.template else {}
 
     @property
     def raw_state(self):
@@ -885,7 +888,7 @@ class TaskFlowInstance(models.Model):
         status_tree['start_time'] = format_datetime(status_tree.pop('started_time'))
         status_tree['finish_time'] = format_datetime(status_tree.pop('archived_time'))
         child_status = []
-        for identifier_code, child_tree in status_tree['children'].iteritems():
+        for identifier_code, child_tree in status_tree['children'].items():
             TaskFlowInstance.format_pipeline_status(child_tree)
             child_status.append(child_tree['state'])
 
@@ -1153,7 +1156,7 @@ class TaskFlowInstance(models.Model):
     def reset_pipeline_instance_data(self, constants, name):
         exec_data = self.pipeline_tree
         try:
-            for key, value in constants.iteritems():
+            for key, value in constants.items():
                 if key in exec_data['constants']:
                     exec_data['constants'][key]['value'] = value
             self.pipeline_instance.set_execution_data(exec_data)

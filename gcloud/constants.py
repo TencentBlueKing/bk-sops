@@ -14,3 +14,4 @@ specific language governing permissions and limitations under the License.
 PROJECT = 'project'
 BUSINESS = 'business'
 COMMON = 'common'
+ONETIME = 'onetime'
