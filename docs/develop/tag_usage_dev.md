@@ -1,33 +1,47 @@
 ## 概述
 
-标准插件在前端页面通过加载配置文件，渲染生成对应的表单组合项。配置文件可自定义表单类型、默认值、校验规则等属性，另外还可以给表单添加注册或监听事件函数属性，使表单项之间具有事件交互的能力。
+标准插件的表单项渲染和事件交互，基于事先定义好的 Tag 组件。一个 Tag 组件可以理解为一种类型的表单封装(如 input、textarea、table、upload 等），通过在原生表单元素或者特定业务组件上扩展属性和方法，为标准插件的开发和使用提供了便利。标准插件一般包含一个或者多个 Tag 组件，前端页面加载标准插件配置文件，读取每个表单项的 type 字段，渲染生成对应类型的表单。
 
-## 如何使用
+## 如何使用 Tag 组件
 
-## Tag组件属性、方法
+Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 `type` 字段，传入该类 Tag 支持的属性和方法即可在前端页面渲染出对应的表单项，通过 Tag 组件之间的组合，也可以构造出复杂的表单交互。
 
-formMixins 函数定义了一些 Tag 组件公共的属性和方法，在添加 Tag 组件调用该方法来混入，可以避免编写重复的声明。
+目前标准运维系统内置的 Tag 组件包含：
 
-公共属性分为继承属性和非继承属性，继承属性在 Tag 组件里会被定义为 props 属性，目前只有 value 属性，非继承属性会被转换为 data 属性，它的值不会动态更新。属性的值，优先取标准插件配置文件里定义的值，若配置项没有对应属性的默认值。
+- button
+- checkbox
+- datatable
+- datetime
+- input
+- int
+- ipSelector
+- password
+- radio
+- select
+- text
+- textarea
+- tree
+- upload
 
-Tag 组件的私有属性在添加组件时定义，属性的取值和公共属性一致，优先取标准插件配置文件里的值，若配置项没有对应属性则取默认值。
+## Tag 组件属性、方法
 
-**配置文件里定义的表单项属性，只有在 Tag 组件里声明过，才能够被组件正确的拿到。**
+在标准插件配置项中定义好 Tag 组件的类型后，可以通过传入自定义的属性值，满足不同标准插件的需求，例如 `TagSelect` 组件可以通过配置 `multiple` 属性来区分下拉框为单选还是多选，`TagUpload` 组件可以通过配置 `remote_data_init` 属性来自定义加载数据后的处理逻辑。
+
+不同的标准插件在前端页面渲染时，存在一些公共的交互逻辑，包括表单项名称、是否隐藏、是否可勾选、是否校验等。由于 Tag 组件内部封装的原生表单或者特定业务场景的类型差异，不同 Tag 组件之间所支持的属性也会存在差异，这类属性为 Tag 组件的私有属性， 比如 `TagUpload` 组件的 `remote_data_init` 属性。
+
+**配置文件里定义的表单项属性和方法，只有在 Tag 组件里声明过，才能够被组件正确的拿到。**
 
 ### 公共属性列表
 
-- `tagCode`，每个表单项的 id，每个标准插件配置文件里需唯一
 - `name`，表单项名称，在页面上控制 label 的显示
 - `hookable`，是否可勾选为全局变量
 - `validation`，表单项的校验规则
-- `default`，表单项的默认值
+- `default`，表单项的默认值，不同的 Tag 组件支持的数据类型存在差异
 - `hidden`，是否隐藏
-- `formEdit`，是否可编辑
-- `formMode`，是否为表单模式
-- `parentValue`，父组件的值
 - `value`，表单组件的值，需要在 Tag 里手动定义，并作为调用 `getFormMixins` 函数的参数传入
 
 
+另外为了增加标准插件的交互能力， Tag 组件也封装了部分公共方法，支持开发者在标准插件配置项的事件回调里进行调用。
 
 ### 公共方法列表
 
@@ -41,27 +55,93 @@ Tag 组件的私有属性在添加组件时定义，属性的取值和公共属�
 - `_set_value`，设置表单值
 
 
-### 当前Tag组件支持的私有属性(value 除外)
+### 系统内置 Tag 组件
 
-|组件|属性|
-|--------|--------|
-|tagCheckbox|items|
-|tagDatatable|columns、editable、value、add_btn、empty_text、remote_url、remote_data_init|
-|tagDatetime|placeholder|
-|tagInput|placeholder|
-|tagInt|placeholder|
-|TagPassword|--|
-|TagRadio|items|
-|TagSelect|items、multiple、multiple_limit、remote、remote_url、remote_data_init、placeholder、empty_text|
-|tagText|--|
-|TagTree|placeholder|
-|tagCheckbox|items、expanded_keys、show_checkbox、default_expand_all、remote、remote_url、remote_data_init|
-|TagTree|url、multiple、headers、auto_upload、limit、placeholder、text|
+**1. TagButton**
+  - `title`，按钮文字
+  - `type`，按钮类型
+  - `icon`，icon 类名, 取值参考 [element-ui icon](https://element.eleme.cn/#/zh-CN/component/icon)
+  - `size`，尺寸
+  - `plain`，是否为朴素按钮
+  - `round`，是否为圆角按钮
+  - `circle`， 是否为圆形按钮
+
+**2. TagCheckbox**
+  - `item`，提供选择的多选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+  - `value`，选中的值
+
+**3. TagDatatable**
+  - `columns`，表格列的配置项， eg: [{tag config}]
+  - `editable`，是否显示编辑、删除按钮列
+  - `add_btn`， 是否显示添加按钮
+  - `empty_text`，无数据提示
+  - `remote_url`，表格数据远程加载，支持 url 和方法
+  - `remote_data_init`，加载数据后的处理函数
+  - `value`，表格的值
+
+**4. TagDatetime**
+- `placeholder`，占位文本
+- `value`，时间值
+
+**5. TagInput**
+- `placeholder`，占位文本
+- `value`，输入框值
+
+**6. TagInt**
+- `placeholder`，占位文本
+- `value`，整数输入框值
+
+**7. TagIpSelector**
+- `isMultiple`，ip 选择器是否为多选（同时选择静态、动态 ip）
+- `value`，选择的 ip 值
+
+**8. TagPassword**
+- `value`，密码值
+
+**9. TagRadio**
+- `items`，提供选择的单选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+- `value`，选中的值
+
+**10. TagSelect**
+- `items`: 提供选择的下拉框选项， eg:[{text: '微信', value: 'weixin'}, {text: '邮件', value: 'mail'}]
+- `multiple`，是否为多选
+- `remote`，是否开远程加载
+- `remote_data_init`，远程加载后的数据处理函数
+- `placeholder`，占位文本
+- `empty_text`，无数据提示
+-  `value`， 选中的值
+
+**11. TagText**
+- `value`，文本的值
+
+**12. TagTextarea**
+- `placeholder`，占位文本
+- `value`，文本框的值
+
+**13. TagTree**
+- `items`，提供选择的可选项,
+- `expanded_keys`，默认展开的节点的 key 的数组
+- `show_checkbox`，节点是否可被选择
+- `default_expand_all`， 是否默认全部展开
+- `remote`， 是否开启远程加载
+- `remote_url`， 远程加载 url
+- `remote_data_init`，远程加载后的数据处理函数
+- `value`，选中的值
+
+**14. TagUpload**
+- `url`， 服务器 url
+- `multiple`，是否支持多个上传
+- `headers`，http 请求头
+- `auto_upload`，是否开启自动上传，默认为手动，选择文件后需要手动点击上传
+- `limit`，上传文件个数
+- `placeholder`，占位文本
+- `text`，上传按钮的文字
+- `value`，上传的文件
 
 
-## 如何添加Tag组件
+## 如何添加 Tag 组件
 
-## 标准插件渲染逻辑
+### 标准插件渲染逻辑
 
 标准插件表单项的渲染由 RenderForm 组件分发，RenderForm 基于 Vue 封装，利用了数据双向绑定的提供的便利，实现了表单项取值与根组件的自定义 v-model，调用组件时只需传入对应的配置项 props，就可以实现父组件与 RenderForm 内部组件的数据自动同步。
 
@@ -77,7 +157,13 @@ RenderForm 组件的结构：
 
 ![图片描述](../resource/img/renderform_flow.png)
 
-## 添加Tag组件步骤
+formMixins 函数定义了一些 Tag 组件公共的属性和方法，在添加 Tag 组件调用该方法来混入，可以避免编写重复的声明。
+
+公共属性分为继承属性和非继承属性，继承属性在 Tag 组件里会被定义为 props 属性，目前只有 value 属性，非继承属性会被转换为 data 属性，它的值不会动态更新。属性的值，优先取标准插件配置文件里定义的值，若配置项没有对应属性的默认值。
+
+Tag 组件的私有属性在添加组件时定义，属性的取值和公共属性一致，优先取标准插件配置文件里的值，若配置项没有对应属性则取默认值。
+
+### 添加 Tag 组件步骤
 
 添加 Tag 组件只需要在前端项目的`src/components/tags/`目录里增加一个单文件的 vue 组件，文件名称格式为`Tagxxx`，`xxx`为 Tag 组件的名称，命名遵循驼峰规则且保证在项目所有`Tag`里是唯一的。webpack 在打包是会查找该目录下的文件，自动引入并注册到 `FormItem` 组件里。模版最外层元素建议增加一个 `tag-xxx`的 `class` 名称，`xxx` 表示 Tag 的名称。
 
