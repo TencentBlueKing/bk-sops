@@ -111,7 +111,7 @@
                     const { key, custom_type, source_tag } = variable
                     const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     const version = custom_type ? 'legacy' : source_tag.split('.')[1]
-                    if (!tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
+                    if (!tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
                         this.isConfigLoading = true
                         await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                     }
@@ -163,7 +163,7 @@
                         const sourceTag = variable.source_tag
                         const [atomType, version, tagCode, form] = sourceTag.split('.')
                         const atomVersion = form.custom_type ? 'legacy' : version
-                        if (!tools.isKeyExists(`${atomType}.${atomVersion}`, this.atomFormConfig)) {
+                        if (!tools.isKeyExists(`${atomType}>>${atomVersion}`, this.atomFormConfig)) {
                             this.loadAtomConfig({ atomType, atomVersion })
                         }
                         const atomConfig = this.atomFormConfig[atomType]

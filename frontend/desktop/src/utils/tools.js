@@ -150,7 +150,7 @@ const tools = {
         if (!object) {
             return false
         }
-        const pathList = path.split('.')
+        const pathList = path.split('>>')
         let obj = object
         for (const i in pathList) {
             const key = pathList[i]

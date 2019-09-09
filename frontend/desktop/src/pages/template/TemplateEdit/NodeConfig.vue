@@ -468,9 +468,11 @@
              * 输入参数数据
              */
             renderInputData () {
+                const hook = this.inputAtomHook
+                const value = this.inputAtomData
                 return {
-                    hook: this.inputAtomHook,
-                    value: this.inputAtomData
+                    hook,
+                    value
                 }
             }
         },
@@ -548,7 +550,7 @@
              * 加载标准插件节点数据
              */
             async getAtomConfig (atomType, version) {
-                if (tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
+                if (tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
                     this.setNodeConfigData(atomType, version)
                     return
                 }
@@ -607,7 +609,7 @@
                         const { key } = form
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
-                        if (!tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
+                        if (!tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
                         const atomConfig = this.atomFormConfig[atom][version]
@@ -916,9 +918,9 @@
                     })
                     nodeName = data.name.replace(/\s/g, '')
                     this.subAtomConfigData.form = {}
-                    this.inputAtomHook = {}
-                    this.inputAtomData = {}
                 }
+                this.inputAtomHook = {}
+                this.inputAtomData = {}
                 this.nodeName = nodeName
                 this.nodeConfigData.name = nodeName
                 this.updateActivities()
@@ -935,6 +937,8 @@
             onVersionSelect (id) {
                 this.isAtomChanged = true
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
+                this.inputAtomHook = {}
+                this.inputAtomData = {}
                 this.updateActivities()
                 this.getConfig(id)
                 this.$nextTick(() => {

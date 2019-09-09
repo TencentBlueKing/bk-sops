@@ -358,7 +358,7 @@
                     classify = 'component'
                     version = tagStr.split('.')[1]
                 }
-                if (tools.isKeyExists(`${atom}.${version}`, this.atomFormConfig)) {
+                if (tools.isKeyExists(`${atom}>>${version}`, this.atomFormConfig)) {
                     this.getRenderConfig()
                     return
                 }
