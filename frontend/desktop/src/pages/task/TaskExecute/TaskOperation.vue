@@ -965,9 +965,9 @@
             getTplURL () {
                 let routerData = ''
                 if (this.templateSource === 'business') {
-                    routerData = `/template/edit/${this.cc_id}/?template_id=${this.template_id}`
+                    routerData = `/template/edit/${this.project_id}/?template_id=${this.template_id}`
                 } else if (this.templateSource === 'common') {
-                    routerData = `/template/home/${this.cc_id}/?common=1&common_template=common`
+                    routerData = `/template/home/${this.project_id}/?common=1&common_template=common`
                 }
                 return routerData
             },
