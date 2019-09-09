@@ -41,7 +41,7 @@ export default {
         },
 
         getSchemeList ({ commit, state, rootState }) {
-            const url = `${global.getMobileUrlPrefix().schemes}?biz_cc_id=${rootState.bizId}&template__template_id=${state.id}`
+            const url = `${global.getMobileUrlPrefix().schemes}?biz_cc_id=${rootState.bizId}&template_id=${state.id}`
             return http.get(url).then(response => {
                 const data = response.objects || []
                 data.map(o => {
