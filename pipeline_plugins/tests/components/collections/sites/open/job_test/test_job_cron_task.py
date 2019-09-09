@@ -97,7 +97,8 @@ SAVE_CRON_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': 'save_cron fail'}
+        outputs={'ex_data': u'调用作业平台(JOB)接口job.save_cron返回失败, params={"bk_biz_id": 1, "bk_job_id": 1, '
+                            '"cron_expression": "0 0/5 * * * ?", "cron_name": "job_cron_name"}, error=save_cron fail'}
     ),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -166,7 +167,8 @@ UPDATE_CRON_STATUS_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             'cron_id': 1,
-            'ex_data': u'新建定时任务成功但是启动失败：update_cron_status fail',
+            'ex_data': u'新建定时任务成功但是启动失败：调用作业平台(JOB)接口job.update_cron_status返回失败, '
+                       u'params={"bk_biz_id": 1, "cron_status": 1, "cron_id": 1}, error=update_cron_status fail',
             'status': u'暂停'
         }
     ),

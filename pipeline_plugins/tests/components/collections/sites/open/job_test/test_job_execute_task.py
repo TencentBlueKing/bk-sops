@@ -119,6 +119,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'executor_token',
+        'biz_cc_id': 1,
     },
     execute_assertion=ExecuteAssertion(
         success=False,
@@ -172,6 +173,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'executor_token',
+        'biz_cc_id': 1,
     },
     execute_assertion=ExecuteAssertion(
         success=True,
@@ -238,6 +240,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'executor_token',
+        'biz_cc_id': 1,
     },
     execute_assertion=ExecuteAssertion(
         success=True,
@@ -310,6 +313,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'executor_token',
+        'biz_cc_id': 1,
     },
     execute_assertion=ExecuteAssertion(
         success=True,
@@ -388,6 +392,7 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'executor_token',
+        'biz_cc_id': 1,
     },
     execute_assertion=ExecuteAssertion(
         success=True,
@@ -465,6 +470,7 @@ INVALID_IP_CASE = ComponentTestCase(
     },
     parent_data={
         'executor': 'executor_token',
+        'biz_cc_id': 1,
     },
     execute_assertion=ExecuteAssertion(
         success=False,
