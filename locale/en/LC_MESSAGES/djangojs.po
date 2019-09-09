@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-09 19:58+0800\n"
+"POT-Creation-Date: 2019-09-09 21:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -142,7 +142,7 @@ msgstr "0 means Sunday, 6 means Saturday"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:254
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:88
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:168
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:167
 msgid "task-zh"
 msgstr "task-en"
 
@@ -758,8 +758,6 @@ msgstr "Executing"
 #: frontend/desktop/src/pages/task/TaskList/index.vue:450
 #: frontend/mobile/src/views/task/canvas.vue:89
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:90
-#: static/components/atoms/job/job_cron_task.js:90
-#: static/weixin/components/atoms/job/job_cron_task.js:90
 msgid "暂停"
 msgstr "Suspend"
 
@@ -1137,7 +1135,7 @@ msgid "请输入 test 之间的数"
 msgstr "Please enter a number between test"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheEdit.vue:63
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:144
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:143
 msgid "上一步"
 msgstr "Previous"
 
@@ -1165,7 +1163,6 @@ msgstr "Name"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:111
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableEdit.vue:184
 #: pipeline_plugins/variables/static/variables/select.js:54
-#: static/variables/select.js:54 static/weixin/variables/select.js:54
 msgid "类型"
 msgstr "Type"
 
@@ -1174,8 +1171,6 @@ msgstr "Type"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/LocalCache.vue:67
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:67
-#: static/components/atoms/job/job_execute_task.js:67
-#: static/weixin/components/atoms/job/job_execute_task.js:118
 msgid "描述"
 msgstr "Desc"
 
@@ -1205,7 +1200,7 @@ msgid "本地缓存"
 msgstr " Local Cache"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageEdit.vue:59
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:145
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:144
 #: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:132
 msgid "下一步"
 msgstr "Next"
@@ -1549,7 +1544,7 @@ msgstr "Flow Name"
 #: frontend/desktop/src/pages/appmaker/AppTaskHome/index.vue:174
 #: frontend/desktop/src/pages/audit/index.vue:203
 #: frontend/desktop/src/pages/functor/index.vue:247
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:139
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:138
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:104
 #: frontend/desktop/src/pages/task/TaskList/TaskCloneDialog.vue:55
 #: frontend/desktop/src/pages/task/TaskList/index.vue:283
@@ -1632,20 +1627,6 @@ msgid "流程引用"
 msgstr "Flow Reference"
 
 #: frontend/desktop/src/pages/admin/statistics/Template/index.vue:222
-#: static/weixin/components/atoms/bk/notify.js:18
-#: static/weixin/components/atoms/cc/cc_batch_delete_set.js:18
-#: static/weixin/components/atoms/cc/cc_create_set.js:18
-#: static/weixin/components/atoms/cc/cc_empty_set_hosts.js:18
-#: static/weixin/components/atoms/cc/cc_replace_fault_machine.js:18
-#: static/weixin/components/atoms/cc/cc_transfer_host_module.js:18
-#: static/weixin/components/atoms/cc/cc_transfer_to_idle.js:18
-#: static/weixin/components/atoms/cc/cc_update_host.js:18
-#: static/weixin/components/atoms/cc/cc_update_module.js:18
-#: static/weixin/components/atoms/cc/cc_update_set.js:18
-#: static/weixin/components/atoms/cc/cc_update_set_service_status.js:18
-#: static/weixin/components/atoms/job/job_execute_task.js:18
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:18
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:18
 msgid "业务"
 msgstr "Business"
 
@@ -1866,8 +1847,6 @@ msgstr "Are you sure to delete this APP?"
 
 #: frontend/desktop/src/pages/appmaker/index.vue:189
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:41
-#: static/components/atoms/cc/cc_update_set_service_status.js:41
-#: static/weixin/components/atoms/cc/cc_update_set_service_status.js:89
 msgid "关闭"
 msgstr "Close"
 
@@ -2092,7 +2071,7 @@ msgid "周期规则"
 msgstr "Corntab"
 
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:81
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:143
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:142
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:105
 #: frontend/mobile/src/views/task/create.vue:157
 #: frontend/mobile/src/views/task/detail.vue:50
@@ -2139,8 +2118,6 @@ msgstr "Last run at"
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:207
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:238
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:91
-#: static/components/atoms/job/job_cron_task.js:91
-#: static/weixin/components/atoms/job/job_cron_task.js:91
 msgid "启动"
 msgstr "Activate"
 
@@ -2169,38 +2146,38 @@ msgstr "Show Unreferenced Variables"
 msgid "在编辑流程模板时，可以通过变量引擎支持的语法引用全局变量，未引用的变量不可编辑"
 msgstr "When editing a flow template, global variables can be referenced by the syntax supported by the variable engine. Unreferenced variables are not editable"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:138
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:137
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:103
 #: frontend/mobile/src/views/task/create.vue:160
 #: frontend/mobile/src/views/task/detail.vue:48
 msgid "任务信息"
 msgstr "Task Info"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:140
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:139
 msgid "流程类型"
 msgstr "Flow Type"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:141
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:140
 msgid "默认任务流程"
 msgstr "Default Flow"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:142
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:141
 msgid "职能化任务流程"
 msgstr "Functional Flow"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:146
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:145
 msgid "立即执行"
 msgstr "Immediately"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:147
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:146
 msgid "周期执行"
 msgstr "Periodically"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:148
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:147
 msgid "周期表达式"
 msgstr "Crontab"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:149
+#: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:148
 msgid "执行计划"
 msgstr "Execution Plan"
 
@@ -2291,8 +2268,6 @@ msgstr "Name"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:174
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:59
-#: static/components/atoms/job/job_execute_task.js:59
-#: static/weixin/components/atoms/job/job_execute_task.js:110
 msgid "参数值"
 msgstr "Value"
 
@@ -2607,8 +2582,6 @@ msgstr "Whether To Reuse Variable"
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:198
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:82
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:36
-#: static/components/atoms/job/job_execute_task.js:36
-#: static/weixin/components/atoms/job/job_execute_task.js:87
 msgid "全局变量"
 msgstr "Global Variable"
 
@@ -2714,8 +2687,6 @@ msgstr "Reset template"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:84
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:18
-#: static/components/atoms/bk/notify.js:18
-#: static/weixin/components/atoms/bk/notify.js:38
 msgid "通知方式"
 msgstr "Notification Method"
 
@@ -2726,10 +2697,6 @@ msgstr "Timeout(s) "
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:86
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:48
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:55
-#: static/components/atoms/bk/notify.js:48
-#: static/components/atoms/bk/notify.js:55
-#: static/weixin/components/atoms/bk/notify.js:68
-#: static/weixin/components/atoms/bk/notify.js:75
 msgid "通知分组"
 msgstr "Notification Group"
 
@@ -2739,7 +2706,6 @@ msgstr "Description"
 
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableEdit.vue:180
 #: pipeline_plugins/variables/static/variables/select.js:69
-#: static/variables/select.js:69 static/weixin/variables/select.js:69
 msgid "默认值"
 msgstr "Default"
 
@@ -3143,15 +3109,11 @@ msgstr "Auto Ignored"
 
 #: frontend/mobile/src/views/task/timing.vue:39
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:19
-#: static/components/atoms/bk/timer.js:19
-#: static/weixin/components/atoms/bk/timer.js:19
 msgid "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"
 msgstr "Seconds(s) or Datetime(%Y-%m-%d %H:%M:%S)"
 
 #: frontend/mobile/src/views/task/timing.vue:42
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:18
-#: static/components/atoms/bk/timer.js:18
-#: static/weixin/components/atoms/bk/timer.js:18
 msgid "定时时间"
 msgstr "Timing"
 
@@ -3164,98 +3126,66 @@ msgid "收藏"
 msgstr "Collect"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http.js:18
-#: static/components/atoms/bk/http.js:18
-#: static/weixin/components/atoms/bk/http.js:18
 msgid "请求方式"
 msgstr "Method"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http.js:55
-#: static/components/atoms/bk/http.js:55
-#: static/weixin/components/atoms/bk/http.js:55
 msgid "请输入正确的 URL"
 msgstr "Input a valid url please"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:21
-#: static/components/atoms/bk/notify.js:21
-#: static/weixin/components/atoms/bk/notify.js:41
 msgid "微信"
 msgstr "Wechat"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:22
-#: static/components/atoms/bk/notify.js:22
-#: static/weixin/components/atoms/bk/notify.js:42
 msgid "邮件"
 msgstr "Email"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:23
-#: static/components/atoms/bk/notify.js:23
-#: static/weixin/components/atoms/bk/notify.js:43
 msgid "短信"
 msgstr "SMS"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:36
-#: static/components/atoms/bk/notify.js:36
-#: static/weixin/components/atoms/bk/notify.js:56
 msgid "请至少选择一种通知方式"
 msgstr "Please select one notify method at lease"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:57
-#: static/components/atoms/bk/notify.js:57
-#: static/weixin/components/atoms/bk/notify.js:77
 msgid "运维人员"
 msgstr "Maintainer"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:58
-#: static/components/atoms/bk/notify.js:58
-#: static/weixin/components/atoms/bk/notify.js:78
 msgid "产品人员"
 msgstr "Productor"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:59
-#: static/components/atoms/bk/notify.js:59
-#: static/weixin/components/atoms/bk/notify.js:79
 msgid "开发人员"
 msgstr "Developer"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:60
-#: static/components/atoms/bk/notify.js:60
-#: static/weixin/components/atoms/bk/notify.js:80
 msgid "测试人员"
 msgstr "Tester"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:82
-#: static/components/atoms/bk/notify.js:82
-#: static/weixin/components/atoms/bk/notify.js:102
 msgid "附加人员"
 msgstr "More Receivers"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:83
-#: static/components/atoms/bk/notify.js:83
-#: static/weixin/components/atoms/bk/notify.js:103
 msgid "填写用户名，多个用户名用 , 分隔"
 msgstr "Enter username, multiple are separated by [,]"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:98
-#: static/components/atoms/bk/notify.js:98
-#: static/weixin/components/atoms/bk/notify.js:118
 msgid "通知分组与附加人员不可同时为空"
 msgstr "Notification Group and More Receivers cannot be empty at the same time"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:113
-#: static/components/atoms/bk/notify.js:113
-#: static/weixin/components/atoms/bk/notify.js:133
 msgid "通知主题"
 msgstr "Title"
 
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:126
-#: static/components/atoms/bk/notify.js:126
-#: static/weixin/components/atoms/bk/notify.js:146
 msgid "通知内容"
 msgstr "Content"
 
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:27
-#: static/components/atoms/bk/timer.js:27
-#: static/weixin/components/atoms/bk/timer.js:27
 msgid "请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)"
 msgstr "Fill in seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
 
@@ -3263,50 +3193,30 @@ msgstr "Fill in seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_empty_set_hosts.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:18
-#: static/components/atoms/cc/cc_batch_delete_set.js:18
-#: static/components/atoms/cc/cc_empty_set_hosts.js:18
-#: static/components/atoms/cc/cc_update_set.js:18
-#: static/components/atoms/cc/cc_update_set_service_status.js:18
-#: static/weixin/components/atoms/cc/cc_batch_delete_set.js:38
-#: static/weixin/components/atoms/cc/cc_empty_set_hosts.js:38
-#: static/weixin/components/atoms/cc/cc_update_set.js:38
-#: static/weixin/components/atoms/cc/cc_update_set_service_status.js:38
 msgid "集群"
 msgstr "Set"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:18
-#: static/components/atoms/cc/cc_create_set.js:18
-#: static/weixin/components/atoms/cc/cc_create_set.js:38
 msgid "父实例"
 msgstr "Parent Instance"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_create_set.js:37
-#: static/components/atoms/cc/cc_create_set.js:37
-#: static/weixin/components/atoms/cc/cc_create_set.js:85
 msgid "集群信息"
 msgstr "Set Instance"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:18
-#: static/components/atoms/cc/cc_replace_fault_machine.js:18
-#: static/weixin/components/atoms/cc/cc_replace_fault_machine.js:38
 msgid "主机详情"
 msgstr "Host Detail"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:19
-#: static/components/atoms/cc/cc_replace_fault_machine.js:19
-#: static/weixin/components/atoms/cc/cc_replace_fault_machine.js:39
 msgid "请至少添加一条数据"
 msgstr "Please add one at least"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:27
-#: static/components/atoms/cc/cc_replace_fault_machine.js:27
-#: static/weixin/components/atoms/cc/cc_replace_fault_machine.js:47
 msgid "故障机IP"
 msgstr "Fault Host IP"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_replace_fault_machine.js:40
-#: static/components/atoms/cc/cc_replace_fault_machine.js:40
-#: static/weixin/components/atoms/cc/cc_replace_fault_machine.js:60
 msgid "替换机IP"
 msgstr "Replacement Host IP"
 
@@ -3315,16 +3225,6 @@ msgstr "Replacement Host IP"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:18
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:18
-#: static/components/atoms/cc/cc_transfer_host_module.js:18
-#: static/components/atoms/cc/cc_transfer_to_idle.js:18
-#: static/components/atoms/cc/cc_update_host.js:18
-#: static/components/atoms/cc/cmdb_transfer_fault_host.js:18
-#: static/components/atoms/cc/cmdb_transfer_host_resource.js:18
-#: static/weixin/components/atoms/cc/cc_transfer_host_module.js:86
-#: static/weixin/components/atoms/cc/cc_transfer_to_idle.js:38
-#: static/weixin/components/atoms/cc/cc_update_host.js:86
-#: static/weixin/components/atoms/cc/cmdb_transfer_fault_host.js:18
-#: static/weixin/components/atoms/cc/cmdb_transfer_host_resource.js:18
 msgid "主机内网IP"
 msgstr "Host Inner IP"
 
@@ -3333,241 +3233,147 @@ msgstr "Host Inner IP"
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:19
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_fault_host.js:19
 #: pipeline_plugins/components/static/components/atoms/cc/cmdb_transfer_host_resource.js:19
-#: static/components/atoms/cc/cc_transfer_host_module.js:19
-#: static/components/atoms/cc/cc_transfer_to_idle.js:19
-#: static/components/atoms/cc/cc_update_host.js:19
-#: static/components/atoms/cc/cmdb_transfer_fault_host.js:19
-#: static/components/atoms/cc/cmdb_transfer_host_resource.js:19
-#: static/weixin/components/atoms/cc/cc_transfer_host_module.js:87
-#: static/weixin/components/atoms/cc/cc_transfer_to_idle.js:39
-#: static/weixin/components/atoms/cc/cc_update_host.js:87
-#: static/weixin/components/atoms/cc/cmdb_transfer_fault_host.js:19
-#: static/weixin/components/atoms/cc/cmdb_transfer_host_resource.js:19
 msgid "请输入主机内网IP，多个用换行符分隔"
 msgstr "Please enter host inner IP, multiple are separated by Line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:32
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:18
-#: static/components/atoms/cc/cc_transfer_host_module.js:32
-#: static/components/atoms/cc/cc_update_module.js:18
-#: static/weixin/components/atoms/cc/cc_transfer_host_module.js:38
-#: static/weixin/components/atoms/cc/cc_update_module.js:38
 msgid "模块"
 msgstr "Module"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:51
-#: static/components/atoms/cc/cc_transfer_host_module.js:51
-#: static/weixin/components/atoms/cc/cc_transfer_host_module.js:100
 msgid "转移方式"
 msgstr "Transfer Type"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:54
-#: static/components/atoms/cc/cc_transfer_host_module.js:54
-#: static/weixin/components/atoms/cc/cc_transfer_host_module.js:103
 msgid "覆盖"
 msgstr "cover"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_transfer_host_module.js:55
-#: static/components/atoms/cc/cc_transfer_host_module.js:55
-#: static/weixin/components/atoms/cc/cc_transfer_host_module.js:104
 msgid "追加"
 msgstr "increment"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:32
-#: static/components/atoms/cc/cc_update_host.js:32
-#: static/weixin/components/atoms/cc/cc_update_host.js:38
 msgid "主机属性"
 msgstr "Host Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:33
-#: static/components/atoms/cc/cc_update_host.js:33
-#: static/weixin/components/atoms/cc/cc_update_host.js:39
 msgid "请选择需要更新的主机属性"
 msgstr "Please select a host attribute to update"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:51
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:56
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:56
-#: static/components/atoms/cc/cc_update_host.js:51
-#: static/components/atoms/cc/cc_update_module.js:56
-#: static/components/atoms/cc/cc_update_set.js:56
-#: static/weixin/components/atoms/cc/cc_update_host.js:100
-#: static/weixin/components/atoms/cc/cc_update_module.js:134
-#: static/weixin/components/atoms/cc/cc_update_set.js:134
 msgid "属性值"
 msgstr "Attribute Value"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_host.js:52
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:57
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:57
-#: static/components/atoms/cc/cc_update_host.js:52
-#: static/components/atoms/cc/cc_update_module.js:57
-#: static/components/atoms/cc/cc_update_set.js:57
-#: static/weixin/components/atoms/cc/cc_update_host.js:101
-#: static/weixin/components/atoms/cc/cc_update_module.js:135
-#: static/weixin/components/atoms/cc/cc_update_set.js:135
 msgid "请输入更新后的属性值"
 msgstr "Please enter a new attribute value"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:37
-#: static/components/atoms/cc/cc_update_module.js:37
-#: static/weixin/components/atoms/cc/cc_update_module.js:86
 msgid "模块属性"
 msgstr "Module Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_module.js:38
-#: static/components/atoms/cc/cc_update_module.js:38
-#: static/weixin/components/atoms/cc/cc_update_module.js:87
 msgid "请选择需要更新的模块属性"
 msgstr "Please select a module attribute to update"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:37
-#: static/components/atoms/cc/cc_update_set.js:37
-#: static/weixin/components/atoms/cc/cc_update_set.js:86
 msgid "集群属性"
 msgstr "Set Attribute"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set.js:38
-#: static/components/atoms/cc/cc_update_set.js:38
-#: static/weixin/components/atoms/cc/cc_update_set.js:87
 msgid "请选择需要更新的集群属性"
 msgstr "Please select a set attribute to update"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:37
-#: static/components/atoms/cc/cc_update_set_service_status.js:37
-#: static/weixin/components/atoms/cc/cc_update_set_service_status.js:85
 msgid "服务状态"
 msgstr "Service Status"
 
 #: pipeline_plugins/components/static/components/atoms/cc/cc_update_set_service_status.js:40
-#: static/components/atoms/cc/cc_update_set_service_status.js:40
-#: static/weixin/components/atoms/cc/cc_update_set_service_status.js:88
 msgid "开放"
 msgstr "Open"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:18
-#: static/components/atoms/job/job_cron_task.js:18
-#: static/components/atoms/job/job_execute_task.js:18
-#: static/weixin/components/atoms/job/job_cron_task.js:18
-#: static/weixin/components/atoms/job/job_execute_task.js:38
 msgid "作业模板"
 msgstr "Job"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:36
-#: static/components/atoms/job/job_cron_task.js:36
-#: static/weixin/components/atoms/job/job_cron_task.js:36
 msgid "定时作业名称"
 msgstr "Job Name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:38
-#: static/components/atoms/job/job_cron_task.js:38
-#: static/weixin/components/atoms/job/job_cron_task.js:38
 msgid "请填写定时作业名称"
 msgstr "Please enter timed job name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:73
-#: static/components/atoms/job/job_cron_task.js:73
-#: static/weixin/components/atoms/job/job_cron_task.js:73
 msgid "定时规则"
 msgstr "Timing Rules"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:75
-#: static/components/atoms/job/job_cron_task.js:75
-#: static/weixin/components/atoms/job/job_cron_task.js:75
 msgid "Crontab定时规则，各字段含义为：秒 分 时 日 月 周 年（可选），如: 0 0/5 * * * ? 表示每5分钟执行一次，0 0 12 * * ? 2015 表示2015年每天中午12点触发"
 msgstr "Crontab rules, the meaning of each field is: second minute hour day month week year(optional).For example: 0 0/5 * * * ? means to execute every 5 minutes, 0 0 12 * * ? 2015 means trigger every day at 12 noon in 2015"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:87
-#: static/components/atoms/job/job_cron_task.js:87
-#: static/weixin/components/atoms/job/job_cron_task.js:87
 msgid "定时作业状态"
 msgstr "Timing Status"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:38
-#: static/components/atoms/job/job_execute_task.js:38
-#: static/weixin/components/atoms/job/job_execute_task.js:89
 msgid "没选中作业模板或当前作业模板全局变量为空"
 msgstr "No job selected or global variable are empty"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:44
-#: static/components/atoms/job/job_execute_task.js:44
-#: static/weixin/components/atoms/job/job_execute_task.js:95
 msgid "参数名称"
 msgstr "Name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:51
-#: static/components/atoms/job/job_execute_task.js:51
-#: static/weixin/components/atoms/job/job_execute_task.js:102
 msgid "参数类型"
 msgstr "Type"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:18
-#: static/components/atoms/job/job_fast_execute_script.js:18
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:38
 msgid "脚本来源"
 msgstr "Script Source"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:21
-#: static/components/atoms/job/job_fast_execute_script.js:21
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:41
 msgid "手工录入"
 msgstr "Manual"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:22
-#: static/components/atoms/job/job_fast_execute_script.js:22
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:42
 msgid "业务脚本"
 msgstr "Business Script"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:23
-#: static/components/atoms/job/job_fast_execute_script.js:23
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:43
 msgid "公共脚本"
 msgstr "Common Script"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:46
-#: static/components/atoms/job/job_fast_execute_script.js:46
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:66
 msgid "脚本类型"
 msgstr "Script Type"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:70
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:74
-#: static/components/atoms/job/job_fast_execute_script.js:70
-#: static/components/atoms/job/job_fast_execute_script.js:74
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:90
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:94
 msgid "请选择脚本类型"
 msgstr "Choose script Type"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:100
-#: static/components/atoms/job/job_fast_execute_script.js:100
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:120
 msgid "脚本内容"
 msgstr "Script Content"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:102
-#: static/components/atoms/job/job_fast_execute_script.js:102
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:122
 msgid "填写执行脚本内容"
 msgstr "Please enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:117
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:121
-#: static/components/atoms/job/job_fast_execute_script.js:117
-#: static/components/atoms/job/job_fast_execute_script.js:121
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:137
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:141
 msgid "请输入脚本内容"
 msgstr "Please input script content"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:147
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:198
-#: static/components/atoms/job/job_fast_execute_script.js:147
-#: static/components/atoms/job/job_fast_execute_script.js:198
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:167
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:243
 msgid "脚本列表"
 msgstr "Script List"
 
@@ -3575,489 +3381,163 @@ msgstr "Script List"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:172
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:219
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:223
-#: static/components/atoms/job/job_fast_execute_script.js:168
-#: static/components/atoms/job/job_fast_execute_script.js:172
-#: static/components/atoms/job/job_fast_execute_script.js:219
-#: static/components/atoms/job/job_fast_execute_script.js:223
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:194
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:198
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:270
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:274
 msgid "请选择脚本"
 msgstr "Choose script please"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:249
-#: static/components/atoms/job/job_fast_execute_script.js:249
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:320
 msgid "脚本参数"
 msgstr "Script Parameter"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:250
-#: static/components/atoms/job/job_fast_execute_script.js:250
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:321
 msgid "可为空"
 msgstr "Empty is valid"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:258
-#: static/components/atoms/job/job_fast_execute_script.js:258
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:329
 msgid "超时时间"
 msgstr "Timeout(s) "
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:259
-#: static/components/atoms/job/job_fast_execute_script.js:259
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:330
 msgid "单位为秒，为空时使用 JOB 默认值"
 msgstr "The unit is second, empty is valid, defaulted as same with JOB"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:271
-#: static/components/atoms/job/job_fast_execute_script.js:271
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:342
 msgid "请输入数字"
 msgstr "Please enter a number"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:283
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:78
-#: static/components/atoms/job/job_fast_execute_script.js:283
-#: static/components/atoms/job/job_fast_push_file.js:78
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:354
-#: static/weixin/components/atoms/job/job_fast_push_file.js:78
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:98
 msgid "目标IP"
 msgstr "Target IP"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:284
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:79
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
-#: static/components/atoms/job/job_fast_execute_script.js:284
-#: static/components/atoms/job/job_fast_push_file.js:79
-#: static/variables/sites/open/var_ip_picker.js:77
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:355
-#: static/weixin/components/atoms/job/job_fast_push_file.js:79
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:99
-#: static/weixin/variables/sites/open/var_ip_picker.js:77
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
 msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the input LAN IP are unique in the business on Configuration System"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:297
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:92
-#: static/components/atoms/job/job_fast_execute_script.js:297
-#: static/components/atoms/job/job_fast_push_file.js:92
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:368
-#: static/weixin/components/atoms/job/job_fast_push_file.js:92
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:112
 msgid "目标账户"
 msgstr "Target Account"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:298
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:93
-#: static/components/atoms/job/job_fast_execute_script.js:298
-#: static/components/atoms/job/job_fast_push_file.js:93
-#: static/weixin/components/atoms/job/job_fast_execute_script.js:369
-#: static/weixin/components/atoms/job/job_fast_push_file.js:93
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:113
 msgid "请输入在蓝鲸作业平台上注册的账户名"
 msgstr "Please enter the account name"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:18
-#: static/components/atoms/job/job_fast_push_file.js:18
-#: static/weixin/components/atoms/job/job_fast_push_file.js:18
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:38
 msgid "源文件"
 msgstr "Source File"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:26
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:76
-#: static/components/atoms/job/job_fast_push_file.js:26
-#: static/variables/sites/open/var_ip_picker.js:76
-#: static/weixin/components/atoms/job/job_fast_push_file.js:26
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:46
-#: static/weixin/variables/sites/open/var_ip_picker.js:76
 msgid "IP"
 msgstr "IP"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:40
-#: static/components/atoms/job/job_fast_push_file.js:40
-#: static/weixin/components/atoms/job/job_fast_push_file.js:40
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:60
 msgid "文件路径"
 msgstr "File"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:41
-#: static/components/atoms/job/job_fast_push_file.js:41
-#: static/weixin/components/atoms/job/job_fast_push_file.js:41
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:61
 msgid "多个请用换行分隔"
 msgstr "Multiple are separated by line breaks"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:55
-#: static/components/atoms/job/job_fast_push_file.js:55
-#: static/weixin/components/atoms/job/job_fast_push_file.js:55
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:75
 msgid "执行账户"
 msgstr "Account"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:106
-#: static/components/atoms/job/job_fast_push_file.js:106
-#: static/weixin/components/atoms/job/job_fast_push_file.js:106
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:126
 msgid "目标路径"
 msgstr "Target Path"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:107
-#: static/components/atoms/job/job_fast_push_file.js:107
-#: static/weixin/components/atoms/job/job_fast_push_file.js:107
-#: static/weixin/components/atoms/sites/open/job/job_fast_push_file.js:127
 msgid "请输入绝对路径"
 msgstr "Please enter absolute path"
 
 #: pipeline_plugins/variables/static/variables/datetime.js:18
-#: static/variables/datetime.js:18 static/weixin/variables/datetime.js:18
 msgid "日期时间"
 msgstr "Datetime"
 
 #: pipeline_plugins/variables/static/variables/input.js:18
-#: static/variables/input.js:18 static/weixin/variables/input.js:18
 msgid "输入框"
 msgstr "Input"
 
 #: pipeline_plugins/variables/static/variables/int.js:18
-#: static/variables/int.js:18 static/weixin/variables/int.js:18
 msgid "整数"
 msgstr "Integer"
 
 #: pipeline_plugins/variables/static/variables/password.js:18
-#: static/variables/password.js:18 static/weixin/variables/password.js:18
 msgid "密码"
 msgstr "Password"
 
 #: pipeline_plugins/variables/static/variables/select.js:18
 #: pipeline_plugins/variables/static/variables/select.js:119
-#: static/variables/select.js:18 static/variables/select.js:119
-#: static/weixin/variables/select.js:18 static/weixin/variables/select.js:119
 msgid "下拉框"
 msgstr "Select"
 
 #: pipeline_plugins/variables/static/variables/select.js:25
-#: static/variables/select.js:25 static/weixin/variables/select.js:25
 msgid "数据源"
 msgstr "Data source"
 
 #: pipeline_plugins/variables/static/variables/select.js:27
-#: static/variables/select.js:27 static/weixin/variables/select.js:27
 msgid "自定义"
 msgstr "custom"
 
 #: pipeline_plugins/variables/static/variables/select.js:27
-#: static/variables/select.js:27 static/weixin/variables/select.js:27
 msgid "远程数据源"
 msgstr "remote"
 
 #: pipeline_plugins/variables/static/variables/select.js:40
-#: static/variables/select.js:40 static/weixin/variables/select.js:40
 msgid "选项"
 msgstr "Type"
 
 #: pipeline_plugins/variables/static/variables/select.js:42
-#: static/variables/select.js:42 static/weixin/variables/select.js:42
 msgid "请输入数据源信息，自定义数据源格式为 [{\"text\": \"\", \"value\": \"\"}...]，若是远程数据源则填写返回该格式数据的 URL"
 msgstr "Please enter data source, custom data should be like [{\"text\": \"\", \"value\": \"\"}...], remote data requires a url that returns the format data."
 
 #: pipeline_plugins/variables/static/variables/select.js:56
-#: static/variables/select.js:56 static/weixin/variables/select.js:56
 msgid "单选"
 msgstr "single"
 
 #: pipeline_plugins/variables/static/variables/select.js:56
-#: static/variables/select.js:56 static/weixin/variables/select.js:56
 msgid "多选"
 msgstr "multiple"
 
 #: pipeline_plugins/variables/static/variables/select.js:70
-#: static/variables/select.js:70 static/weixin/variables/select.js:70
 msgid "请输入下拉框的默认值，单选为 value 的格式，多选为 value,value,... 的格式"
 msgstr "Please enter the default value, \"value\" format if single, \"value, value...\" format if multiple"
 
 #: pipeline_plugins/variables/static/variables/select.js:94
 #: pipeline_plugins/variables/static/variables/select.js:98
-#: static/variables/select.js:94 static/variables/select.js:98
-#: static/weixin/variables/select.js:94 static/weixin/variables/select.js:98
 msgid "非法下拉框数据源，请检查您的配置"
 msgstr "Data source is invalid, please check the config"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_cmdb_ip_selector.js:18
-#: static/variables/sites/open/var_cmdb_ip_selector.js:18
-#: static/weixin/variables/sites/open/var_cmdb_ip_selector.js:18
 msgid "选择服务器"
 msgstr "IP"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:42
-#: static/variables/sites/open/var_ip_picker.js:42
-#: static/weixin/variables/sites/open/var_ip_picker.js:42
 msgid "填参方式"
 msgstr "Method"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:44
-#: static/variables/sites/open/var_ip_picker.js:44
-#: static/weixin/variables/sites/open/var_ip_picker.js:44
 msgid "自定义输入"
 msgstr "Custom Enter"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:45
-#: static/variables/sites/open/var_ip_picker.js:45
-#: static/weixin/variables/sites/open/var_ip_picker.js:45
 msgid "通过配置平台拓扑获取"
 msgstr "Select from CMDB topology"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:110
-#: static/variables/sites/open/var_ip_picker.js:110
-#: static/weixin/variables/sites/open/var_ip_picker.js:110
 msgid "拓扑树"
 msgstr "Topology"
 
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:177
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:228
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:235
-#: static/variables/sites/open/var_ip_picker.js:177
-#: static/variables/sites/open/var_ip_picker.js:228
-#: static/variables/sites/open/var_ip_picker.js:235
-#: static/weixin/variables/sites/open/var_ip_picker.js:179
-#: static/weixin/variables/sites/open/var_ip_picker.js:232
-#: static/weixin/variables/sites/open/var_ip_picker.js:239
 msgid "请求后台接口异常:"
 msgstr "Server API error:"
 
 #: pipeline_plugins/variables/static/variables/textarea.js:18
-#: static/variables/textarea.js:18 static/weixin/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
-
-#: static/admin/js/SelectFilter2.js:47
-#, javascript-format
-msgid "Available %s"
-msgstr "Available %s"
-
-#: static/admin/js/SelectFilter2.js:53
-#, javascript-format
-msgid "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
-msgstr "This is the list of available %s. You may choose some by selecting them in the box below and then clicking the \"Choose\" arrow between the two boxes."
-
-#: static/admin/js/SelectFilter2.js:69
-#, javascript-format
-msgid "Type into this box to filter down the list of available %s."
-msgstr "Type into this box to filter down the list of available %s."
-
-#: static/admin/js/SelectFilter2.js:74
-msgid "Filter"
-msgstr "Filter"
-
-#: static/admin/js/SelectFilter2.js:78
-msgid "Choose all"
-msgstr "Choose all"
-
-#: static/admin/js/SelectFilter2.js:78
-#, javascript-format
-msgid "Click to choose all %s at once."
-msgstr "Click to choose all %s at once."
-
-#: static/admin/js/SelectFilter2.js:84
-msgid "Choose"
-msgstr "Choose"
-
-#: static/admin/js/SelectFilter2.js:86
-msgid "Remove"
-msgstr "Remove"
-
-#: static/admin/js/SelectFilter2.js:92
-#, javascript-format
-msgid "Chosen %s"
-msgstr "Chosen %s"
-
-#: static/admin/js/SelectFilter2.js:98
-#, javascript-format
-msgid "This is the list of chosen %s. You may remove some by selecting them in the box below and then clicking the \"Remove\" arrow between the two boxes."
-msgstr "This is the list of chosen %s. You may remove some by selecting them in the box below and then clicking the \"Remove\" arrow between the two boxes."
-
-#: static/admin/js/SelectFilter2.js:108
-msgid "Remove all"
-msgstr "Remove all"
-
-#: static/admin/js/SelectFilter2.js:108
-#, javascript-format
-msgid "Click to remove all chosen %s at once."
-msgstr "Click to remove all chosen %s at once."
-
-#: static/admin/js/actions.js:48 static/admin/js/actions.min.js:2
-msgid "%(sel)s of %(cnt)s selected"
-msgid_plural "%(sel)s of %(cnt)s selected"
-msgstr[0] "%(sel)s of %(cnt)s selected"
-msgstr[1] "%(sel)s of %(cnt)s selected"
-
-#: static/admin/js/actions.js:117 static/admin/js/actions.min.js:4
-msgid "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
-msgstr "You have unsaved changes on individual editable fields. If you run an action, your unsaved changes will be lost."
-
-#: static/admin/js/actions.js:129 static/admin/js/actions.min.js:5
-msgid "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
-msgstr "You have selected an action, but you haven't saved your changes to individual fields yet. Please click OK to save. You'll need to re-run the action."
-
-#: static/admin/js/actions.js:131 static/admin/js/actions.min.js:5
-msgid "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
-msgstr "You have selected an action, and you haven't made any changes on individual fields. You're probably looking for the Go button rather than the Save button."
-
-#: static/admin/js/admin/DateTimeShortcuts.js:74
-#, javascript-format
-msgid "Note: You are %s hour ahead of server time."
-msgid_plural "Note: You are %s hours ahead of server time."
-msgstr[0] "Note: You are %s hour ahead of server time."
-msgstr[1] "Note: You are %s hours ahead of server time."
-
-#: static/admin/js/admin/DateTimeShortcuts.js:82
-#, javascript-format
-msgid "Note: You are %s hour behind server time."
-msgid_plural "Note: You are %s hours behind server time."
-msgstr[0] "Note: You are %s hour behind server time."
-msgstr[1] "Note: You are %s hour behind server time."
-
-#: static/admin/js/admin/DateTimeShortcuts.js:109
-#: static/admin/js/admin/DateTimeShortcuts.js:160
-msgid "Now"
-msgstr "Now"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:127
-msgid "Choose a Time"
-msgstr "Choose a Time"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:157
-msgid "Choose a time"
-msgstr "Choose a time"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:165
-msgid "Midnight"
-msgstr "Midnight"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:170
-msgid "6 a.m."
-msgstr "6 a.m."
-
-#: static/admin/js/admin/DateTimeShortcuts.js:175
-msgid "Noon"
-msgstr "Noon"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:180
-msgid "6 p.m."
-msgstr "6 p.m"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:188
-#: static/admin/js/admin/DateTimeShortcuts.js:348
-msgid "Cancel"
-msgstr "Cancel"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:253
-#: static/admin/js/admin/DateTimeShortcuts.js:333
-msgid "Today"
-msgstr "Today"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:270
-msgid "Choose a Date"
-msgstr "Choose a Date"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:327
-msgid "Yesterday"
-msgstr "Yesterday"
-
-#: static/admin/js/admin/DateTimeShortcuts.js:339
-msgid "Tomorrow"
-msgstr "Tomorrow"
-
-#: static/admin/js/calendar.js:12
-msgid "January"
-msgstr "January"
-
-#: static/admin/js/calendar.js:13
-msgid "February"
-msgstr "February"
-
-#: static/admin/js/calendar.js:14
-msgid "March"
-msgstr "March"
-
-#: static/admin/js/calendar.js:15
-msgid "April"
-msgstr "April"
-
-#: static/admin/js/calendar.js:16
-msgid "May"
-msgstr "May"
-
-#: static/admin/js/calendar.js:17
-msgid "June"
-msgstr "June"
-
-#: static/admin/js/calendar.js:18
-msgid "July"
-msgstr "July"
-
-#: static/admin/js/calendar.js:19
-msgid "August"
-msgstr "August"
-
-#: static/admin/js/calendar.js:20
-msgid "September"
-msgstr "September"
-
-#: static/admin/js/calendar.js:21
-msgid "October"
-msgstr "October"
-
-#: static/admin/js/calendar.js:22
-msgid "November"
-msgstr "November"
-
-#: static/admin/js/calendar.js:23
-msgid "December"
-msgstr "December"
-
-#: static/admin/js/calendar.js:26
-msgctxt "one letter Sunday"
-msgid "S"
-msgstr "S"
-
-#: static/admin/js/calendar.js:27
-msgctxt "one letter Monday"
-msgid "M"
-msgstr "M"
-
-#: static/admin/js/calendar.js:28
-msgctxt "one letter Tuesday"
-msgid "T"
-msgstr "T"
-
-#: static/admin/js/calendar.js:29
-msgctxt "one letter Wednesday"
-msgid "W"
-msgstr "W"
-
-#: static/admin/js/calendar.js:30
-msgctxt "one letter Thursday"
-msgid "T"
-msgstr "T"
-
-#: static/admin/js/calendar.js:31
-msgctxt "one letter Friday"
-msgid "F"
-msgstr "F"
-
-#: static/admin/js/calendar.js:32
-msgctxt "one letter Saturday"
-msgid "S"
-msgstr "S"
-
-#: static/admin/js/collapse.js:10 static/admin/js/collapse.js:21
-#: static/admin/js/collapse.min.js:1
-msgid "Show"
-msgstr "Show"
-
-#: static/admin/js/collapse.js:18 static/admin/js/collapse.min.js:1
-msgid "Hide"
-msgstr "Hide"
