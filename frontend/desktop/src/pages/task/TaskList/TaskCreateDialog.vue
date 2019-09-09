@@ -105,7 +105,7 @@
         components: {
             NoData
         },
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'cc_id', 'taskCategory', 'createEntrance', 'dialogTitle'],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'createEntrance', 'dialogTitle'],
         data () {
             return {
                 i18n: {
@@ -256,7 +256,7 @@
                     this.selectError = true
                     return
                 }
-                let url = `/template/newtask/${this.cc_id}/selectnode/?template_id=${this.selectedId}`
+                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${this.selectedId}`
                 if (this.selectedTplType === this.templateType[1].name) {
                     url += '&common=1'
                 }
