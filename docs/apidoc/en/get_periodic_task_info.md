@@ -266,11 +266,11 @@ Query periodic task detail
 |  constants      |    dict    |  global variables, details are described below    |
 |  outputs      |    list    |    outputs info, indicate outputs field of global variables|
 
-#### data.form.KEY, data.pipeline_tree.constants.KEY
+#### data.form KEY, data.pipeline_tree.constants KEY
 
 KEY, the format is like ${key}
 
-#### data.form.VALUE, data.pipeline_tree.constants.VALUE
+#### data.form VALUE, data.pipeline_tree.constants VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|

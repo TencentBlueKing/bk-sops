@@ -21,11 +21,11 @@
 |   bk_biz_id    |   string     |   是   |  模板所属业务ID |
 |   constants    |   dict     |   否   | 任务全局参数，详细信息见下面说明 |
 
-#### constants.KEY
+#### constants KEY
 
 变量 KEY，${key} 格式
 
-#### constants.VALUE
+#### constants VALUE
 
 变量值
 
@@ -79,10 +79,10 @@
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
 
-#### data.KEY
+#### data KEY
 全局变量 KEY，${key} 格式
 
-#### data.VALUE
+#### data VALUE
 
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |

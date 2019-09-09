@@ -194,7 +194,7 @@ Query common flow template details
 |-----------|----------|-----------|
 |  id            |    int       |      flow template ID             |
 |  name          |    string    |      flow template name            |
-|  category      |    string    |      flow type，the value is described below    |
+|  category      |    string    |      flow template type, the value is described below    |
 |  creator       |    string    |      person who created this flow template      |
 |  create_time   |    string    |      datetime when this flow template created   |
 |  editor        |    string or null | person who edited this flow template last |
@@ -225,11 +225,11 @@ Query common flow template details
 |  constants      |    dict    |  global variables, details are described below    |
 |  outputs      |    list    |    outputs info, indicate outputs field of global variables|
 
-#### data.pipeline_tree.constants.KEY
+#### data.pipeline_tree.constants KEY
 
 KEY, the format is like ${key}
 
-#### data.pipeline_tree.constants.VALUE
+#### data.pipeline_tree.constants VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|

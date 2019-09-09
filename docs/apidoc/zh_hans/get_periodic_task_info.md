@@ -263,11 +263,11 @@
 |  constants      |    dict    |  全局变量信息，详情见下面    |
 |  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
 
-#### data.form.KEY, data.pipeline_tree.constants.KEY
+#### data.form KEY, data.pipeline_tree.constants KEY
 
 全局变量 KEY，${key} 格式
 
-#### data.form.VALUE, data.pipeline_tree.constants.VALUE
+#### data.form VALUE, data.pipeline_tree.constants VALUE
 
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |

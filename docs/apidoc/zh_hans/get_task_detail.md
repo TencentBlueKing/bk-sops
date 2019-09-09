@@ -137,8 +137,8 @@
                         }
                     },
                     "stage_name": "步骤1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": false,
                     "id": "node9b5ae13799d63e179f0ce3088b62",
@@ -154,8 +154,8 @@
                         "data": {}
                     },
                     "stage_name": "步骤1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": true,
                     "id": "node880ded556c6c3c269be3cedc64b6",
@@ -300,12 +300,12 @@
 |  task_url     |    str     |    任务实例链接     |
 |  pipeline_tree     |    dict     |    任务实例树     |
 
-#### data.constants.KEY
+#### data.constants KEY
 
 全局变量 KEY，${key} 格式
 
 
-#### data.constants.VALUE
+#### data.constants VALUE
 |   字段   |  类型  |           描述             |
 | ------------ | ---------- | ------------------------------ |
 |  key      |    string    |      同 KEY     |
