@@ -29,13 +29,12 @@
                     </div>
                 </div>
                 <div
-                    v-if="isStartNowShow"
+                    v-if="!isExecuteSchemeHide"
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                v-if="!isPeriodicSelectShow"
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
                                 {{ i18n.startNow }}
@@ -185,11 +184,9 @@
             isTaskTypeShow () {
                 return this.userType !== 'functor' && this.isStartNow
             },
-            isStartNowShow () {
-                return !this.common && this.viewMode === 'app' && this.userType !== 'functor' && this.entrance !== 'taskflow'
-            },
-            isPeriodicSelectShow () {
-                return this.entrance === 'periodicTask'
+            // 不显示【执行计划】的情况
+            isExecuteSchemeHide () {
+                return this.common || this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -211,7 +208,7 @@
                 'createPeriodic'
             ]),
             period () {
-                if (this.isPeriodicSelectShow) {
+                if (this.entrance === 'periodicTask') {
                     this.isStartNow = false
                 }
             },
