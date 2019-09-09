@@ -23,10 +23,9 @@ from django.views.decorators.csrf import csrf_exempt
 
 from blueapps.account.decorators import login_exempt
 from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed, batch_verify_or_raise_auth_failed
-from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
-from gcloud.taskflow3.utils import draw_pipeline_automatic
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.conf import settings
 from gcloud.constants import PROJECT, BUSINESS, ONETIME
@@ -37,8 +36,10 @@ from gcloud.apigw.decorators import (
     project_inject
 )
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
+from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
 from gcloud.core.utils import format_datetime, name_handler, pipeline_node_name_handle
 from gcloud.core.permissions import project_resource
+from gcloud.taskflow3.utils import draw_pipeline_automatic
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.periodictask.models import PeriodicTask
@@ -48,7 +49,6 @@ from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
-from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:
