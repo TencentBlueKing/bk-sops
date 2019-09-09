@@ -27,7 +27,7 @@ from pipeline.engine.models import Status, NodeRelationship
 class TestPipelineInstance(TestCase):
     def setUp(self):
         self.data = {
-            u'activities': {u'node8fe2bb234d29860981a2bc7e6077': {u'can_retry': True,
+            u'activities': {u'node8fe2bb234d29860981a2bc7e6077': {u'retryable': True,
                                                                   u'component': {u'code': u'sleep_timer',
                                                                                  u'data': {u'bk_timing': {
                                                                                      u'hook': False,
@@ -106,6 +106,13 @@ class TestPipelineInstance(TestCase):
                                                  creator=self.creator, instance_id='1', spread=True)
 
         PipelineTemplate.objects.unfold_subprocess.assert_not_called()
+
+    def test_create_instance__without_template(self):
+        self.instance_4 = PipelineInstance.objects.create_instance(template=None, exec_data=self.data,
+                                                                   creator=self.creator, instance_id='4')
+        self.assertIsNone(self.instance_4.template)
+        self.assertIsNone(self.instance_4.snapshot)
+        self.assertIsNotNone(self.instance_4.execution_snapshot)
 
     def test_set_started(self):
         PipelineInstance.objects.set_started(self.instance.instance_id, self.creator)

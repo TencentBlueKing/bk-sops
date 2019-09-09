@@ -28,7 +28,7 @@ def get_signature(method, path, app_secret, params=None, data=None):
         kwargs['data'] = data
     kwargs = '&'.join([
         '%s=%s' % (k, v)
-        for k, v in sorted(kwargs.iteritems(), key=lambda x: x[0])
+        for k, v in sorted(kwargs.items(), key=lambda x: x[0])
     ])
     orignal = '%s%s?%s' % (method, path, kwargs)
     signature = base64.b64encode(hmac.new(str(app_secret), orignal, hashlib.sha1).digest())

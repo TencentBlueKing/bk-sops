@@ -167,7 +167,7 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
             # 统计流程标准插件个数，子流程个数，网关个数
             instance_id = instance.instance_id
             # 获取pipeline_tree
-            pipeline_tree = instance.data
+            pipeline_tree = instance.execution_data
             # 初始化插入值
             atom_total = 0
             subprocess_total = 0
