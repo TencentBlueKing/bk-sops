@@ -24,23 +24,21 @@
                     {{i18n.createProject}}
                 </bk-button>
                 <div class="filter-area">
-                    <div class="switch-status" @click="onClosedProjectToggle">
-                        <span :class="['checkbox', { checked: isClosedShow }]"></span>
-                        <span class="checkbox-name">{{i18n.showClosedProject}}</span>
-                    </div>
+                    <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{i18n.showClosedProject}}</bk-checkbox>
                     <div class="search-input">
                         <bk-input
                             v-model="searchStr"
                             class="search-input"
+                            :right-icon="'bk-icon icon-search'"
                             :placeholder="i18n.placeholder"
                             @input="onSearchInput">
                         </bk-input>
-                        <i class="common-icon-search"></i>
                     </div>
                 </div>
             </div>
             <div class="project-table-content">
                 <bk-table
+                    class="project-table"
                     :data="projectList"
                     :pagination="pagination"
                     v-bkloading="{ isLoading: loading, opacity: 1 }"
@@ -418,7 +416,6 @@
                 }
             },
             onClosedProjectToggle () {
-                this.isClosedShow = !this.isClosedShow
                 this.pagination.current = 1
                 this.getProjectList()
             },
@@ -564,62 +561,10 @@
         .search-input {
             position: relative;
             width: 360px;
-            input {
-                height: 32px;
-                padding: 0 32px 0 10px;
-                font-size: 14px;
-                color: #666666;
-                border: 1px solid #c3cdd7;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                }
-            }
         }
-        .common-icon-search {
-            position: absolute;
-            right: 15px;
-            top: 8px;
-            color: #63656e;
-        }
-        .switch-status {
-            font-size: 14px;
-            cursor: pointer;
-            .checkbox {
-                display: inline-block;
-                position: relative;
-                width: 14px;
-                height: 14px;
-                color: $whiteDefault;
-                border: 1px solid $formBorderColor;
-                border-radius: 2px;
-                text-align: center;
-                vertical-align: -2px;
-                &:hover {
-                    border-color: $greyDark;
-                }
-                &.checked {
-                    background: $blueDefault;
-                    border-color: $blueDefault;
-                    &::after {
-                        content: "";
-                        position: absolute;
-                        left: 2px;
-                        top: 2px;
-                        height: 4px;
-                        width: 8px;
-                        border-left: 1px solid;
-                        border-bottom: 1px solid;
-                        border-color: $whiteDefault;
-                        transform: rotate(-45deg);
-                    }
-                }
-            }
-        }
+    }
+    .project-table {
+        background-color: #ffffff;
     }
     .operate-btn {
         margin-right: 5px;
