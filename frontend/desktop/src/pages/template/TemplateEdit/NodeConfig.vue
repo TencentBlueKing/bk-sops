@@ -54,6 +54,25 @@
                             <span v-show="taskTypeEmpty" class="common-error-tip error-msg">{{ atomNameType + i18n.typeEmptyTip}}</span>
                         </div>
                     </div>
+                    <div v-show="isSingleAtom" class="form-item">
+                        <label class="required">{{ i18n.version_name }}</label>
+                        <div class="form-content">
+                            <bk-select
+                                v-model="currentVersion"
+                                class="node-select"
+                                :searchable="true"
+                                :clearable="false"
+                                @selected="onVersionSelect">
+                                <bk-option
+                                    v-for="(option, index) in currentVersionList"
+                                    :key="index"
+                                    :id="option.version"
+                                    :name="option.version">
+                                </bk-option>
+                            </bk-select>
+                            <span v-show="taskVersionEmpty" class="common-error-tip error-msg">{{ i18n.version_name + i18n.typeEmptyTip}}</span>
+                        </div>
+                    </div>
                     <div class="form-item">
                         <label class="required">{{ i18n.node_name }}</label>
                         <div class="form-content">
@@ -223,6 +242,8 @@
                     baseInfo: gettext('基础信息'),
                     flow: gettext('流程模板'),
                     node_name: gettext('节点名称'),
+                    version_name: gettext('插件版本'),
+                    version: gettext('版本'),
                     stage_tag: gettext('步骤名称'),
                     ignore: gettext('自动忽略'),
                     optional: gettext('是否可选'),
@@ -264,11 +285,13 @@
                 reuseVariable: {},
                 isReuseVarDialogShow: false,
                 taskTypeEmpty: false,
+                taskVersionEmpty: false,
                 reuseableVarList: [],
                 nodeId: this.idOfNodeInConfigPanel,
                 nodeName: '',
                 stageName: gettext('步骤1'),
                 currentAtom: '',
+                currentVersion: '',
                 subAtomInput: [],
                 subAtomOutput: [],
                 renderInputOption: {
@@ -311,12 +334,29 @@
              */
             atomList () {
                 if (this.isSingleAtom) {
-                    return this.singleAtom.map(item => {
-                        return {
-                            id: item.code,
-                            name: item.group_name + '-' + item.name
+                    const setGroup = []
+                    const atomVersionGroup = []
+                    this.singleAtom.forEach(atom => {
+                        const code = atom.code
+                        const index = setGroup.indexOf(code)
+                        if (index > -1) {
+                            const group = atomVersionGroup[index]
+                            if (group.version < atom.version || group.version === 'legacy') {
+                                group.version = atom.version
+                            }
+                            group.list.push(atom)
+                        } else {
+                            const item = {
+                                id: code,
+                                name: atom.group_name + '-' + atom.name,
+                                list: [atom],
+                                version: atom.version
+                            }
+                            setGroup.push(code)
+                            atomVersionGroup.push(item)
                         }
                     })
+                    return atomVersionGroup
                 } else {
                     return this.subAtom.filter(item => {
                         return item.template_id !== Number(this.template_id)
@@ -327,6 +367,19 @@
                         }
                     })
                 }
+            },
+            /**
+             * 当前插件版本列表
+             */
+            currentVersionList () {
+                let list = []
+                this.atomList.some(atoms => {
+                    if (atoms.id === this.currentAtom) {
+                        list = atoms.list
+                        return true
+                    }
+                })
+                return list
             },
             /**
              * 标准插件节点描述
@@ -419,9 +472,6 @@
                     hook: this.inputAtomHook,
                     value: this.inputAtomData
                 }
-            },
-            currentSingleAtomVersion () {
-                return this.isSingleAtom && this.nodeConfigData ? this.nodeConfigData.component.version || this.SingleAtomVersionMap[this.currentAtom] : ''
             }
         },
         watch: {
@@ -468,7 +518,11 @@
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
                     if (this.isSingleAtom) {
-                        this.nodeConfigData.component.version && this.getConfig(this.nodeConfigData.component.version)
+                        const version = this.nodeConfigData.component.version
+                        if (version) {
+                            this.getConfig(this.nodeConfigData.component.version)
+                            this.currentVersion = version
+                        }
                     } else {
                         this.getConfig(this.nodeConfigData.version) // load node config data
                     }
@@ -672,7 +726,7 @@
             },
             getSingleAtomConfig () {
                 // 当前版本或最新版本
-                const config = this.atomFormConfig[this.currentAtom][this.currentSingleAtomVersion]
+                const config = this.atomFormConfig[this.currentAtom][this.currentVersion]
                 if (!config) {
                     return {}
                 }
@@ -684,7 +738,7 @@
                 })
             },
             getOutputConfig () {
-                const version = this.currentSingleAtomVersion
+                const version = this.currentVersion
                 return this.isSingleAtom ? this.atomFormOutput[this.currentAtom][version] : this.subAtomOutput
             },
             getHookedInputVariables () {
@@ -750,13 +804,6 @@
             },
             updateActivities () {
                 const nodeData = tools.deepClone(this.nodeConfigData)
-                let version = ''
-                this.singleAtom.some(m => {
-                    if (m.code === this.currentAtom) {
-                        version = m.version
-                        return true
-                    }
-                })
                 nodeData.name = this.nodeName
                 nodeData.stage_name = this.stageName
                 nodeData.optional = this.nodeCouldBeSkipped
@@ -764,7 +811,7 @@
                 nodeData.can_retry = this.isRetry
                 if (this.isSingleAtom) {
                     nodeData.error_ignorable = this.errorCouldBeIgnored
-                    nodeData.component.version = version
+                    nodeData.component.version = this.currentVersion
                     for (const key in this.inputAtomData) {
                         nodeData.component.data[key] = {
                             hook: this.inputAtomHook[key] || false,
@@ -790,6 +837,9 @@
                     let formValid = true
                     if (!this.currentAtom) {
                         this.taskTypeEmpty = true
+                    }
+                    if (!this.currentVersion) {
+                        this.taskVersionEmpty = true
                     }
                     if (this.$refs.renderForm) {
                         formValid = this.$refs.renderForm.validate()
@@ -821,6 +871,9 @@
                         if (!this.currentAtom) {
                             this.taskTypeEmpty = true
                         }
+                        if (!this.currentVersion) {
+                            this.taskVersionEmpty = true
+                        }
                     }
                 }
             },
@@ -837,6 +890,7 @@
                     }
                 })
                 this.taskTypeEmpty = false
+                this.taskVersionEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
                         this.deleteVariable(item.key)
@@ -845,11 +899,13 @@
             },
             onAtomSelect (id, data) {
                 this.isAtomChanged = true
+                const currentAtomlastVeriosn = this.SingleAtomVersionMap[id]
                 let nodeName
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.currentAtom = id
                 if (this.isSingleAtom) {
                     nodeName = data.name.split('-').slice(1).join().replace(/\s/g, '')
+                    this.currentVersion = currentAtomlastVeriosn
                 } else {
                     // 切换子流程时，去掉节点小红点、刷新按钮、节点过期设为 false
                     this.$emit('onUpdateNodeInfo', this.idOfNodeInConfigPanel, { hasUpdated: false })
@@ -867,7 +923,20 @@
                 this.nodeConfigData.name = nodeName
                 this.updateActivities()
                 // 如果是单原子，这里取最新版本配置
-                this.getConfig(this.SingleAtomVersionMap[id])
+                this.getConfig(currentAtomlastVeriosn)
+                this.$nextTick(() => {
+                    this.isAtomChanged = false
+                })
+            },
+            /**
+             * 版本选择
+             * @param {String} is version
+             */
+            onVersionSelect (id) {
+                this.isAtomChanged = true
+                this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
+                this.updateActivities()
+                this.getConfig(id)
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
