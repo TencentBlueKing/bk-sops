@@ -215,7 +215,7 @@
             'idOfNodeInConfigPanel',
             'template_id',
             'common',
-            'cc_id'
+            'project_id'
         ],
         data () {
             return {
@@ -845,7 +845,7 @@
             },
             onJumpToProcess (index) {
                 const item = this.atomList[index].id
-                const { href } = this.$router.resolve({ path: `/template/edit/${this.cc_id}/?template_id=${item}` })
+                const { href } = this.$router.resolve({ path: `/template/edit/${this.project_id}/?template_id=${item}` })
                 window.open(href, '_blank')
             },
             /**
