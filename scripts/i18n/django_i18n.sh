@@ -18,7 +18,7 @@ pybabel extract -F babel.cfg --copyright-holder=blueking . -o django.pot || exit
 # pybabel init -i django.pot -D django -d locale -l en --no-wrap
 # pybabel init -i django.pot -D django -d locale -l zh_hans --no-wrap
 pybabel update -i django.pot -d locale -D django --no-wrap || exit 1
-django-admin makemessages -d djangojs -e vue,js -i '*node_modules*' --no-wrap || exit 1
+django-admin makemessages -d djangojs -e vue,js -i '*node_modules*' -i '*dist*' --no-wrap || exit 1
 
 # 避免手动翻译被注释
 #sed -i -e 's/#~ //g' $WORK_PATH/locale/en/LC_MESSAGES/djangojs.po
