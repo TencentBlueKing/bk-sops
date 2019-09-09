@@ -24,11 +24,11 @@
 |   constants    |   dict     |   否   | 任务全局参数，详细信息见下面说明 |
 |   exclude_task_nodes_id    |   list     |   否   |  跳过执行的节点ID列表 |
 
-#### constants.KEY
+#### constants KEY
 
 变量 KEY，${key} 格式
 
-#### constants.VALUE
+#### constants VALUE
 
 变量值
 
@@ -258,11 +258,11 @@
 |  constants      |    dict    |  全局变量信息，详情见下面    |
 |  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
 
-#### data.form.KEY, data.pipeline_tree.constants.KEY
+#### data.form KEY, data.pipeline_tree.constants KEY
 
 全局变量 KEY，${key} 格式
 
-#### data.form.VALUE, data.pipeline_tree.constants.VALUE
+#### data.form VALUE, data.pipeline_tree.constants VALUE
 
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |
