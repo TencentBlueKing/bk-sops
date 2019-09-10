@@ -92,9 +92,11 @@ class JobService(Service):
             global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
 
             if not global_var_result['result']:
-                data.outputs.ex_data = job_handle_api_error('job.get_job_instance_global_var_value',
-                                                            get_var_kwargs,
-                                                            global_var_result)
+                message = job_handle_api_error('job.get_job_instance_global_var_value',
+                                               get_var_kwargs,
+                                               global_var_result)
+                self.logger.error(message)
+                data.outputs.ex_data = message
                 self.finish_schedule()
                 return False
 
@@ -176,7 +178,9 @@ class JobExecuteTaskService(JobService):
             data.outputs.client = client
             return True
         else:
-            data.outputs.ex_data = job_handle_api_error('job.execute_job', job_kwargs, job_result)
+            message = job_handle_api_error('job.execute_job', job_kwargs, job_result)
+            self.logger.error(message)
+            data.outputs.ex_data = message
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -244,9 +248,9 @@ class JobFastPushFileService(JobService):
             data.outputs.client = client
             return True
         else:
-            data.outputs.ex_data = job_handle_api_error('job.fast_push_file',
-                                                        job_kwargs,
-                                                        job_result)
+            message = job_handle_api_error('job.fast_push_file', job_kwargs, job_result)
+            self.logger.error(message)
+            data.outputs.ex_data = message
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -316,9 +320,9 @@ class JobFastExecuteScriptService(JobService):
             data.outputs.client = client
             return True
         else:
-            data.outputs.ex_data = job_handle_api_error('job.fast_execute_script',
-                                                        job_kwargs,
-                                                        job_result)
+            message = job_handle_api_error('job.fast_execute_script', job_kwargs, job_result)
+            self.logger.error(message)
+            data.outputs.ex_data = message
             return False
 
     def schedule(self, data, parent_data, callback_data=None):
@@ -358,7 +362,9 @@ class JobCronTaskService(Service):
         job_save_result = client.job.save_cron(job_kwargs)
         LOGGER.info('job_result: {result}, job_kwargs: {kwargs}'.format(result=job_save_result, kwargs=job_kwargs))
         if not job_save_result['result']:
-            data.outputs.ex_data = job_save_result['message']
+            message = job_handle_api_error('job.save_cron', job_kwargs, job_save_result)
+            self.logger.error(message)
+            data.outputs.ex_data = message
             return False
 
         data.outputs.cron_id = job_save_result['data']['cron_id']
@@ -375,7 +381,10 @@ class JobCronTaskService(Service):
             if job_update_result['result']:
                 data.outputs.status = _(u'启动')
             else:
-                data.outputs.ex_data = _(u'新建定时任务成功但是启动失败：{error}').format(error=job_update_result['message'])
+                message = _(u'新建定时任务成功但是启动失败：{error}').format(
+                    error=job_handle_api_error('job.update_cron_status', job_update_cron_kwargs, job_update_result))
+                self.logger.error(message)
+                data.outputs.ex_data = message
                 return False
 
         return True
