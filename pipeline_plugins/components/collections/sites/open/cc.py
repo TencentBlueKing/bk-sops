@@ -178,6 +178,7 @@ class CCTransferHostModuleService(Service):
             return True
         else:
             message = cc_handle_api_error('cc.transfer_host_module', cc_kwargs, cc_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -271,6 +272,7 @@ class CCUpdateHostService(Service):
             return True
         else:
             message = cc_handle_api_error('cc.update_host', cc_kwargs, cc_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -306,10 +308,8 @@ class CCReplaceFaultMachineService(Service):
         }
         search_attr_result = client.cc.search_object_attribute(search_attr_kwargs)
         if not search_attr_result['result']:
-            message = cc_handle_api_error('cc.search_object_attribute',
-                                          search_attr_kwargs,
-                                          search_attr_result)
-            logger.error(message)
+            message = cc_handle_api_error('cc.search_object_attribute', search_attr_kwargs, search_attr_result)
+            self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
@@ -345,10 +345,8 @@ class CCReplaceFaultMachineService(Service):
         hosts_result = client.cc.search_host(search_kwargs)
 
         if not hosts_result['result']:
-            message = cc_handle_api_error('cc.search_host',
-                                          search_attr_kwargs,
-                                          hosts_result)
-            logger.error(message)
+            message = cc_handle_api_error('cc.search_host', search_attr_kwargs, hosts_result)
+            self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
@@ -391,10 +389,8 @@ class CCReplaceFaultMachineService(Service):
         update_result = client.cc.batch_update_inst(batch_update_kwargs)
 
         if not update_result['result']:
-            message = cc_handle_api_error('cc.batch_update_inst',
-                                          batch_update_kwargs,
-                                          update_result)
-            logger.error(message)
+            message = cc_handle_api_error('cc.batch_update_inst', batch_update_kwargs, update_result)
+            self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
@@ -409,6 +405,7 @@ class CCReplaceFaultMachineService(Service):
             message = cc_handle_api_error('cc.transfer_host_to_faultmodule',
                                           fault_transfer_kwargs,
                                           fault_transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -430,10 +427,8 @@ class CCReplaceFaultMachineService(Service):
         for kwargs in transfer_kwargs_list:
             transfer_result = client.cc.transfer_host_module(kwargs)
             if not transfer_result['result']:
-                message = cc_handle_api_error('cc.transfer_host_module',
-                                              kwargs,
-                                              transfer_result)
-                logger.error(message)
+                message = cc_handle_api_error('cc.transfer_host_module', kwargs, transfer_result)
+                self.logger.error(message)
                 data.outputs.ex_data = u"{msg}\n{success}".format(
                     msg=message,
                     success=_(u"成功替换的机器: %s") % ','.join(success))
@@ -474,9 +469,8 @@ class CCEmptySetHostsService(Service):
             }
             cc_result = client.cc.transfer_sethost_to_idle_module(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.transfer_sethost_to_idle_module',
-                                              cc_kwargs,
-                                              cc_result)
+                message = cc_handle_api_error('cc.transfer_sethost_to_idle_module', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -516,9 +510,8 @@ class CCBatchDeleteSetService(Service):
         }
         cc_result = client.cc.batch_delete_set(cc_kwargs)
         if not cc_result['result']:
-            message = cc_handle_api_error('cc.batch_delete_set',
-                                          cc_kwargs,
-                                          cc_result)
+            message = cc_handle_api_error('cc.batch_delete_set', cc_kwargs, cc_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
         return True
@@ -559,9 +552,8 @@ class CCUpdateSetServiceStatusService(Service):
             }
             cc_result = client.cc.update_set(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_set',
-                                              cc_kwargs,
-                                              cc_result)
+                message = cc_handle_api_error('cc.update_set', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -636,9 +628,8 @@ class CCCreateSetService(Service):
 
                 cc_result = client.cc.create_set(cc_kwargs)
                 if not cc_result['result']:
-                    message = cc_handle_api_error('cc.create_set',
-                                                  cc_kwargs,
-                                                  cc_result)
+                    message = cc_handle_api_error('cc.create_set', cc_kwargs, cc_result)
+                    self.logger.error(message)
                     data.set_outputs('ex_data', message)
                     return False
         return True
@@ -713,9 +704,8 @@ class CCUpdateSetService(Service):
             }
             cc_result = client.cc.update_set(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_set',
-                                              cc_kwargs,
-                                              cc_result)
+                message = cc_handle_api_error('cc.update_set', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -749,9 +739,8 @@ class CCUpdateModuleService(Service):
         }
         tree_data = client.cc.search_biz_inst_topo(kwargs)
         if not tree_data['result']:
-            message = cc_handle_api_error('cc.search_biz_inst_topo',
-                                          kwargs,
-                                          tree_data)
+            message = cc_handle_api_error('cc.search_biz_inst_topo', kwargs, tree_data)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -786,9 +775,8 @@ class CCUpdateModuleService(Service):
             }
             cc_result = client.cc.update_module(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_module',
-                                              cc_kwargs,
-                                              cc_result)
+                message = cc_handle_api_error('cc.update_module', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
@@ -836,6 +824,7 @@ class CCTransferHostToIdleService(Service):
             return True
         else:
             message = cc_handle_api_error('cc.transfer_host_to_idlemodule', transfer_kwargs, transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -877,8 +866,8 @@ class CmdbTransferFaultHostService(Service):
         if transfer_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_to_fault_module',
-                                          transfer_params, transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_fault_module', transfer_params, transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -920,8 +909,8 @@ class CmdbTransferHostResourceModuleService(Service):
         if transfer_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_to_resource_module',
-                                          transfer_params, transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_resource_module', transfer_params, transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
