@@ -18,6 +18,7 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 from pipeline_plugins.components.utils import (
     get_ip_by_regex,
@@ -145,6 +146,31 @@ def cc_format_tree_mode_id(front_id_list):
 
 class CCTransferHostModuleService(Service):
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'主机内网 IP'),
+                           key='cc_host_ip',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'待转移的主机内网 IP，以 "," 分隔'))),
+            self.InputItem(name=_(u'模块 ID'),
+                           key='cc_module_select',
+                           type='array',
+                           schema=ArrayItemSchema(description=_(u'转移目标模块 ID 列表'),
+                                                  item_schema=IntItemSchema(description=_(u'模块 ID')))),
+            self.InputItem(name=_(u'转移方式'),
+                           key='cc_is_increment',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'主机转移方式，覆盖(false)或追加(true)'),
+                                                   enum=['false', 'true'])),
+        ]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
 
@@ -182,9 +208,6 @@ class CCTransferHostModuleService(Service):
             data.set_outputs('ex_data', message)
             return False
 
-    def outputs_format(self):
-        return []
-
 
 class CCTransferHostModuleComponent(Component):
     name = _(u"转移主机模块")
@@ -194,6 +217,28 @@ class CCTransferHostModuleComponent(Component):
 
 
 class CCUpdateHostService(Service):
+
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'主机内网 IP'),
+                           key='cc_host_ip',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'待转移的主机内网 IP，以 "," 分隔'))),
+            self.InputItem(name=_(u'主机属性'),
+                           key='cc_host_property',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'待修改主机属性'))),
+            self.InputItem(name=_(u'主机属性值'),
+                           key='cc_host_prop_value',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'更新后的属性值')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -276,9 +321,6 @@ class CCUpdateHostService(Service):
             data.set_outputs('ex_data', message)
             return False
 
-    def outputs_format(self):
-        return []
-
 
 class CCUpdateHostComponent(Component):
     name = _(u"更新主机属性")
@@ -288,6 +330,28 @@ class CCUpdateHostComponent(Component):
 
 
 class CCReplaceFaultMachineService(Service):
+
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'主机替换信息'),
+                           key='cc_host_replace_detail',
+                           type='object',
+                           schema=ArrayItemSchema(description=_(u'主机替换信息'),
+                                                  item_schema=ObjectItemSchema(
+                                                      description=_(u'替换机与被替换机信息'),
+                                                      property_schemas={
+                                                          'cc_fault_ip': StringItemSchema(
+                                                              description=_(u'故障机 内网IP')),
+                                                          'cc_new_ip': StringItemSchema(
+                                                              description=_(u'替换机 内网IP'))
+                                                      })))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -436,9 +500,6 @@ class CCReplaceFaultMachineService(Service):
 
             success.append(host_id_to_ip[kwargs['bk_host_id'][0]])
 
-    def outputs_format(self):
-        return []
-
 
 class CCReplaceFaultMachineComponent(Component):
     name = _(u"故障机替换")
@@ -448,6 +509,21 @@ class CCReplaceFaultMachineComponent(Component):
 
 
 class CCEmptySetHostsService(Service):
+
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'集群列表'),
+                           key='cc_set_select',
+                           type='array',
+                           schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
+                                                  item_schema=IntItemSchema(description=_(u'集群 ID'))))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -475,9 +551,6 @@ class CCEmptySetHostsService(Service):
                 return False
         return True
 
-    def outputs_format(self):
-        return []
-
 
 class CCEmptySetHostsComponent(Component):
     name = _(u"清空集群中主机")
@@ -487,6 +560,20 @@ class CCEmptySetHostsComponent(Component):
 
 
 class CCBatchDeleteSetService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'集群列表'),
+                               key='cc_set_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'集群 ID'))))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -516,9 +603,6 @@ class CCBatchDeleteSetService(Service):
             return False
         return True
 
-    def outputs_format(self):
-        return []
-
 
 class CCBatchDeleteSetComponent(Component):
     name = _(u"删除集群")
@@ -528,6 +612,25 @@ class CCBatchDeleteSetComponent(Component):
 
 
 class CCUpdateSetServiceStatusService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'集群列表'),
+                               key='cc_set_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'集群 ID')))),
+                self.InputItem(name=_(u'服务状态'),
+                               key='cc_set_status',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'集群服务器状态，开放(1)，关闭(2)'),
+                                                       enum=['1', '2']))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -558,9 +661,6 @@ class CCUpdateSetServiceStatusService(Service):
                 return False
         return True
 
-    def outputs_format(self):
-        return []
-
 
 class CCUpdateSetServiceStatusComponent(Component):
     name = _(u"修改集群服务状态")
@@ -570,6 +670,26 @@ class CCUpdateSetServiceStatusComponent(Component):
 
 
 class CCCreateSetService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'父实例'),
+                               key='cc_set_parent_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'父实例 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'实例 ID')))),
+                self.InputItem(name=_(u'集群信息'),
+                               key='cc_set_info',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'新集群信息对象列表'),
+                                                      item_schema=ObjectItemSchema(description=_(u'集群信息描述对象'),
+                                                                                   property_schemas={})))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -634,9 +754,6 @@ class CCCreateSetService(Service):
                     return False
         return True
 
-    def outputs_format(self):
-        return []
-
 
 class CCCreateSetComponent(Component):
     name = _(u"创建集群")
@@ -646,6 +763,28 @@ class CCCreateSetComponent(Component):
 
 
 class CCUpdateSetService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'集群列表'),
+                               key='cc_set_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'集群 ID')))),
+                self.InputItem(name=_(u'集群属性'),
+                               key='cc_set_property',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'需要修改的集群属性'))),
+                self.InputItem(name=_(u'属性值'),
+                               key='cc_set_prop_value',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'集群属性更新后的值')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -710,9 +849,6 @@ class CCUpdateSetService(Service):
                 return False
         return True
 
-    def outputs_format(self):
-        return []
-
 
 class CCUpdateSetComponent(Component):
     name = _(u"更新集群属性")
@@ -722,6 +858,28 @@ class CCUpdateSetComponent(Component):
 
 
 class CCUpdateModuleService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'模块'),
+                               key='cc_module_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'模块 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'模块 ID')))),
+                self.InputItem(name=_(u'模块属性'),
+                               key='cc_module_property',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'需要修改的模块属性'))),
+                self.InputItem(name=_(u'属性值'),
+                               key='cc_module_prop_value',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'模块属性更新后的值')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -781,9 +939,6 @@ class CCUpdateModuleService(Service):
                 return False
         return True
 
-    def outputs_format(self):
-        return []
-
 
 class CCUpdateModuleComponent(Component):
     name = _(u"更新模块属性")
@@ -793,6 +948,19 @@ class CCUpdateModuleComponent(Component):
 
 
 class CCTransferHostToIdleService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'主机 IP'),
+                               key='cc_host_ip',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'转移到空闲机的主机内网 IP，多个以 "," 分隔')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -828,9 +996,6 @@ class CCTransferHostToIdleService(Service):
             data.set_outputs('ex_data', message)
             return False
 
-    def outputs_format(self):
-        return []
-
 
 class CCTransferHostToIdleComponent(Component):
     name = _(u"转移主机至空闲机")
@@ -840,6 +1005,19 @@ class CCTransferHostToIdleComponent(Component):
 
 
 class CmdbTransferFaultHostService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'主机 IP'),
+                               key='cc_host_ip',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'转移到故障机的主机内网 IP，多个以 "," 分隔')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -871,9 +1049,6 @@ class CmdbTransferFaultHostService(Service):
             data.set_outputs('ex_data', message)
             return False
 
-    def outputs_format(self):
-        return []
-
 
 class CmdbTransferFaultHostComponent(Component):
     name = _(u'转移主机到业务的故障机模块')
@@ -883,6 +1058,19 @@ class CmdbTransferFaultHostComponent(Component):
 
 
 class CmdbTransferHostResourceModuleService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'主机 IP'),
+                               key='cc_host_ip',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'转移到资源池的主机内网 IP，多个以 "," 分隔')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -913,9 +1101,6 @@ class CmdbTransferHostResourceModuleService(Service):
             self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
-
-    def outputs_format(self):
-        return []
 
 
 class CmdbTransferHostResourceModuleComponent(Component):

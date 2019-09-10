@@ -44,6 +44,7 @@ from pipeline_plugins.components.utils import (
 )
 
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
@@ -121,12 +122,42 @@ class JobService(Service):
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'JOB任务ID'), key='job_inst_id', type='int'),
-            self.OutputItem(name=_(u'JOB任务链接'), key='job_inst_url', type='str')
-        ]
+            self.OutputItem(name=_(u'JOB任务ID'),
+                            key='job_inst_id',
+                            type='int',
+                            schema=IntItemSchema(description=_(u'提交的任务在 JOB 平台的实例 ID'))),
+            self.OutputItem(name=_(u'JOB任务链接'),
+                            key='job_inst_url',
+                            type='string',
+                            schema=StringItemSchema(description=_(u'提交的任务在 JOB 平台的 URL')))]
 
 
 class JobExecuteTaskService(JobService):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'作业模板 ID'),
+                               key='job_task_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'需要执行的 JOB 作业模板 ID'))),
+                self.InputItem(name=_(u'全局变量'),
+                               key='job_global_var',
+                               type='array',
+                               schema=ArrayItemSchema(
+                                   description=_(u'作业模板执行所需的全局变量列表'),
+                                   item_schema=ObjectItemSchema(
+                                       description=_(u'全局变量'),
+                                       property_schemas={
+                                           'type': IntItemSchema(description=_(u'变量类型，字符串(1) IP(2)')),
+                                           'name': StringItemSchema(description=_(u'变量名')),
+                                           'value': StringItemSchema(description=_(u'变量值'))})))]
+
+    def outputs_format(self):
+        return super(JobExecuteTaskService, self).outputs_format()
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
         client = get_client_by_user(executor)
@@ -186,9 +217,6 @@ class JobExecuteTaskService(JobService):
     def schedule(self, data, parent_data, callback_data=None):
         return super(JobExecuteTaskService, self).schedule(data, parent_data, callback_data)
 
-    def outputs_format(self):
-        return super(JobExecuteTaskService, self).outputs_format()
-
 
 class JobExecuteTaskComponent(Component):
     name = _(u'执行作业')
@@ -198,6 +226,32 @@ class JobExecuteTaskComponent(Component):
 
 
 class JobFastPushFileService(JobService):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'源文件'),
+                               key='job_source_files',
+                               type='array',
+                               schema=ArrayItemSchema(
+                                   description=_(u'待分发文件列表'),
+                                   item_schema=ObjectItemSchema(
+                                       description=_(u'待分发文件信息'),
+                                       property_schemas={
+                                           'ip': StringItemSchema(description=_(u'机器 IP')),
+                                           'files': StringItemSchema(description=_(u'文件路径')),
+                                           'account': StringItemSchema(description=_(u'执行账户'))}))),
+                self.InputItem(name=_(u'目标 IP'),
+                               key='job_ip_list',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'文件分发目标机器 IP，多个以 "," 分隔'))),
+                self.InputItem(name=_(u'目标账户'),
+                               key='job_account',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'文件分发目标机器账户'))),
+                self.InputItem(name=_(u'目标路径'),
+                               key='job_target_path',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'文件分发目标路径')))]
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
         client = get_client_by_user(executor)
@@ -268,6 +322,60 @@ class JobFastPushFileComponent(Component):
 
 
 class JobFastExecuteScriptService(JobService):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'脚本来源'),
+                               key='job_script_source',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'待执行的脚本来源，手动(manual)，业务脚本(general)，公共脚本(public)'),
+                                   enum=['manual', 'general', 'public'])),
+                self.InputItem(name=_(u'脚本类型'),
+                               key='job_script_type',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)'
+                                                 u'，仅在脚本来源为手动时生效'),
+                                   enum=['1', '2', '3', '4', '5'])),
+                self.InputItem(name=_(u'脚本内容'),
+                               key='job_content',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'待执行的脚本内容，仅在脚本来源为手动时生效'))),
+                self.InputItem(name=_(u'公共脚本'),
+                               key='job_script_list_public',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'待执行的公共脚本 ID，仅在脚本来源为公共脚本时生效'))),
+                self.InputItem(name=_(u'业务脚本'),
+                               key='job_script_list_general',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'待执行的业务脚本 ID，仅在脚本来源为业务脚本时生效'))),
+                self.InputItem(name=_(u'脚本执行参数'),
+                               key='job_script_param',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'脚本执行参数'))),
+                self.InputItem(name=_(u'目标 IP'),
+                               key='job_ip_list',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'执行脚本的目标机器 IP，多个以 "," 分隔'))),
+                self.InputItem(name=_(u'目标账户'),
+                               key='job_account',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'执行脚本的目标机器账户'))),
+                ]
+
+    def outputs_format(self):
+        return super(JobFastExecuteScriptService, self).outputs_format()
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
         client = get_client_by_user(executor)
@@ -328,9 +436,6 @@ class JobFastExecuteScriptService(JobService):
     def schedule(self, data, parent_data, callback_data=None):
         return super(JobFastExecuteScriptService, self).schedule(data, parent_data, callback_data)
 
-    def outputs_format(self):
-        return super(JobFastExecuteScriptService, self).outputs_format()
-
 
 class JobFastExecuteScriptComponent(Component):
     name = _(u'快速执行脚本')
@@ -340,6 +445,40 @@ class JobFastExecuteScriptComponent(Component):
 
 
 class JobCronTaskService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'定时作业名称'),
+                               key='job_cron_name',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'待创建的定时作业名称'))),
+                self.InputItem(name=_(u'定时规则'),
+                               key='job_cron_expression',
+                               type='string',
+                               schema=StringItemSchema(
+                                   description=_(u'待创建的定时作业定时规则'))),
+                self.InputItem(name=_(u'定时作业状态'),
+                               key='job_cron_status',
+                               type='string',
+                               schema=IntItemSchema(
+                                   description=_(u'待创建的定时作业状态，暂停(1) 启动(2)'),
+                                   enum=[1, 2]))]
+
+    def outputs_format(self):
+        return [
+            self.OutputItem(name=_(u'定时作业ID'),
+                            key='cron_id',
+                            type='int',
+                            schema=IntItemSchema(description=_(u'成功创建的定时作业 Id'))),
+            self.OutputItem(name=_(u'定时作业状态'),
+                            key='status',
+                            type='string',
+                            schema=StringItemSchema(description=_(u'成功创建的定时作业状态')))]
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
         biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
@@ -388,12 +527,6 @@ class JobCronTaskService(Service):
                 return False
 
         return True
-
-    def outputs_format(self):
-        return [
-            self.OutputItem(name=_(u'定时作业ID'), key='cron_id', type='int'),
-            self.OutputItem(name=_(u'定时作业状态'), key='status', type='string'),
-        ]
 
 
 class JobCronTaskComponent(Component):

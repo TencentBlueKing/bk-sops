@@ -16,32 +16,66 @@ from copy import deepcopy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline.core.flow.base import FlowNode
-from collections import namedtuple
+from pipeline.core.flow.io import InputItem, OutputItem, BooleanItemSchema
+from pipeline.core.flow.activity.base import Activity
 
 
-def _empty_method(data, parent_data):
-    return
-
-
-class Activity(FlowNode):
+class Service(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, id, name=None, data=None, failure_handler=None):
-        super(Activity, self).__init__(id, name, data)
-        self._failure_handler = failure_handler or _empty_method
+    schedule_result_attr = '__schedule_finish__'
+    schedule_determine_attr = '__need_schedule__'
+    InputItem = InputItem
+    OutputItem = OutputItem
+    interval = None
+    _result_output = OutputItem(name=_(u"执行结果"),
+                                key='_result',
+                                type='bool',
+                                schema=BooleanItemSchema(description=_(u"是否执行成功")))
 
-    def next(self):
-        return self.outgoing.unique_one().target
+    def __init__(self, name=None):
+        self.name = name
+        self.interval = deepcopy(self.interval)
 
-    def failure_handler(self, parent_data):
-        return self._failure_handler(data=self.data, parent_data=parent_data)
+    @abstractmethod
+    def execute(self, data, parent_data):
+        # get params from data
+        pass
 
-    def skip(self):
-        raise NotImplementedError()
+    def outputs_format(self):
+        return []
 
-    def prepare_rerun_data(self):
-        raise NotImplementedError()
+    def inputs_format(self):
+        return []
+
+    def inputs(self):
+        return self.inputs_format()
+
+    def outputs(self):
+        custom_format = self.outputs_format()
+        assert isinstance(custom_format, list)
+        custom_format.append(self._result_output)
+        return custom_format
+
+    def need_schedule(self):
+        return getattr(self, Service.schedule_determine_attr, False)
+
+    def schedule(self, data, parent_data, callback_data=None):
+        return True
+
+    def finish_schedule(self):
+        setattr(self, self.schedule_result_attr, True)
+
+    def is_schedule_finished(self):
+        return getattr(self, self.schedule_result_attr, False)
+
+    def __getstate__(self):
+        if 'logger' in self.__dict__:
+            del self.__dict__['logger']
+        return self.__dict__
+
+    def clean_status(self):
+        setattr(self, self.schedule_result_attr, False)
 
 
 class ServiceActivity(Activity):
@@ -145,83 +179,6 @@ class ServiceActivity(Activity):
 
         if 'timeout' not in state:
             self.timeout = None
-
-
-class SubProcess(Activity):
-    def __init__(self, id, pipeline, name=None):
-        super(SubProcess, self).__init__(id, name, pipeline.data)
-        self.pipeline = pipeline
-        self._prepared_inputs = self.pipeline.data.inputs_copy()
-        self._prepared_outputs = self.pipeline.data.outputs_copy()
-
-    def prepare_rerun_data(self):
-        self.data.override_inputs(deepcopy(self._prepared_inputs))
-        self.data.override_outputs(deepcopy(self._prepared_outputs))
-
-    def __setstate__(self, state):
-        for attr, obj in state.items():
-            setattr(self, attr, obj)
-
-        if '_prepared_inputs' not in state:
-            self._prepared_inputs = self.pipeline.data.inputs_copy()
-
-        if '_prepared_outputs' not in state:
-            self._prepared_outputs = self.pipeline.data.outputs_copy()
-
-
-class Service(object):
-    __metaclass__ = ABCMeta
-
-    ScheduleResultAttr = '__schedule_finish__'
-    ScheduleDetermineAttr = '__need_schedule__'
-    InputItem = namedtuple('InputItem', 'name key type required')
-    OutputItem = namedtuple('OutputItem', 'name key type')
-    interval = None
-    _result_output = OutputItem(name=_(u"执行结果"), key='_result', type='bool')
-
-    def __init__(self, name=None):
-        self.name = name
-        self.interval = deepcopy(getattr(type(self), 'interval'))
-
-    @abstractmethod
-    def execute(self, data, parent_data):
-        # get params from data
-        pass
-
-    def outputs_format(self):
-        return []
-
-    def inputs_format(self):
-        return []
-
-    def inputs(self):
-        return self.inputs_format()
-
-    def outputs(self):
-        custom_format = self.outputs_format()
-        assert isinstance(custom_format, list)
-        custom_format.append(self._result_output)
-        return custom_format
-
-    def need_schedule(self):
-        return getattr(self, Service.ScheduleDetermineAttr, False)
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return True
-
-    def finish_schedule(self):
-        setattr(self, self.ScheduleResultAttr, True)
-
-    def is_schedule_finished(self):
-        return getattr(self, self.ScheduleResultAttr, False)
-
-    def __getstate__(self):
-        if 'logger' in self.__dict__:
-            del self.__dict__['logger']
-        return self.__dict__
-
-    def clean_status(self):
-        setattr(self, self.ScheduleResultAttr, False)
 
 
 class AbstractIntervalGenerator(object):
