@@ -90,14 +90,8 @@
             },
             currentProject () {
                 const project_id = this.project_id
-                let id
-                this.projectList.forEach(item => {
-                    if (Number(item.id) === Number(project_id)) {
-                        id = item.from_cmdb ? '1-' + project_id : '2-' + project_id
-                        return true
-                    }
-                })
-                return id
+                const activeItem = Array.prototype.find.call(this.projectList, item => Number(item.id) === Number(project_id)) || {}
+                return activeItem.from_cmdb ? '1-' + project_id : '2-' + project_id
             }
         },
         methods: {

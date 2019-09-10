@@ -77,7 +77,6 @@
         <bk-dialog
             width="600"
             padding="30px 20px"
-            class="new-task-dialog"
             ext-cls="common-dialog"
             :theme="'primary'"
             :mask-close="false"
