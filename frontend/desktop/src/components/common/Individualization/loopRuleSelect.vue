@@ -61,10 +61,7 @@
                             </bk-input>
                             {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
-                            <i
-                                v-if="item.key === 'week'"
-                                v-bk-tooltips="i18n.monthTips"
-                                class="bk-icon icon-info-circle month-tips top-start"></i>
+                            <i v-if="item.key === 'week'" v-bk-tooltips="i18n.monthTips" class="common-icon-info month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
                             <div
                                 v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
@@ -86,9 +83,7 @@
                         </div>
                         <div class="expression">
                             {{ i18n.expression }} {{ expressionShowText }}
-                            <span
-                                class="clear-selected"
-                                @click.stop="clearRule">
+                            <span class="clear-selected" @click.stop="clearRule">
                                 {{ i18n.clearSelected }}
                             </span>
                         </div>
@@ -106,7 +101,7 @@
                     class="step-form-content-size" />
             </div>
         </div>
-        <i class="bk-icon icon-info-circle rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
+        <i class="common-icon-info rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
             <img class="ui-img" :src="periodicCronImg">

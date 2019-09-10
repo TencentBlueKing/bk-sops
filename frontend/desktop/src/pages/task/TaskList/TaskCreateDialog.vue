@@ -201,6 +201,7 @@
                         this.templateList = this.businessTplList
                         this.taskListPending = false
                     }
+                    this.onFiltrationTemplate()
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -260,7 +261,7 @@
                     url += '&common=1'
                 }
                 if (this.createEntrance === false) {
-                    url += '&entrance=periodicTask_new'
+                    url += '&entrance=periodicTask'
                 } else if (this.createEntrance === true) {
                     url += '&entrance=taskflow'
                 }
