@@ -414,12 +414,15 @@
                     let key = item.key
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        if (constant.source_type === 'component_outputs'
-                            && constant.source_info[this.nodeId]
-                            && constant.source_info[this.nodeId].indexOf(key) > -1
-                        ) {
-                            hook = true
-                            key = cKey
+                        for (const version in constant) {
+                            const item = constant[version]
+                            if (item.source_type === 'component_outputs'
+                                && item.source_info[this.nodeId]
+                                && item.source_info[this.nodeId].indexOf(key) > -1
+                            ) {
+                                hook = true
+                                key = cKey
+                            }
                         }
                     }
                     outputData.push({
@@ -434,15 +437,18 @@
                 if (this.currentAtom === 'job_execute_task') {
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        if ((this.nodeId in constant.source_info)
-                            && constant.source_type === 'component_outputs'
-                            && outputData.findIndex(item => item.key === cKey) === -1
-                        ) {
-                            outputData.push({
-                                name: constant.name,
-                                key: cKey,
-                                hook: true
-                            })
+                        for (const version in constant) {
+                            const item = constant[version]
+                            if ((this.nodeId in item.source_info)
+                                && constant.source_type === 'component_outputs'
+                                && outputData.findIndex(item => item.key === cKey) === -1
+                            ) {
+                                outputData.push({
+                                    name: constant.name,
+                                    key: cKey,
+                                    hook: true
+                                })
+                            }
                         }
                     }
                 }
@@ -752,7 +758,8 @@
                             variableKey,
                             formKey: key,
                             id: this.nodeId,
-                            tagCode: varKeyReg.test(key) ? key.match(varKeyReg)[1] : key
+                            tagCode: varKeyReg.test(key) ? key.match(varKeyReg)[1] : key,
+                            version: this.getVariableVersion(variableKey)
                         })
                     }
                 }
@@ -764,14 +771,16 @@
             iskeyInSourceInfo (key, tagCode) {
                 for (const cKey in this.constants) {
                     const constant = this.constants[cKey]
-                    const sourceInfo = constant.source_info[this.nodeId]
-
-                    if (
-                        constant.source_type === 'component_inputs'
-                        && sourceInfo
-                        && (sourceInfo.indexOf(tagCode) > -1 || sourceInfo.indexOf(key) > -1)
-                    ) {
-                        return true
+                    for (const version in constant) {
+                        const item = constant[version]
+                        const sourceInfo = item.source_info[this.nodeId]
+                        if (
+                            item.source_type === 'component_inputs'
+                            && sourceInfo
+                            && (sourceInfo.indexOf(tagCode) > -1 || sourceInfo.indexOf(key) > -1)
+                        ) {
+                            return true
+                        }
                     }
                 }
                 return false
@@ -885,17 +894,18 @@
             clearHookedVaribles (hookedInputs, outputs) {
                 hookedInputs.forEach(item => {
                     const { id, variableKey, formKey } = item
-                    const variable = this.constants[variableKey]
-                    this.setVariableSourceInfo({ type: 'delete', id, key: variableKey, tagCode: formKey })
+                    const version = item.version || ''
+                    const variable = this.constants[variableKey][version]
+                    this.setVariableSourceInfo({ type: 'delete', id, key: variableKey, tagCode: formKey, version })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable(variableKey)
+                        this.deleteVariable({ key: variableKey, version })
                     }
                 })
                 this.taskTypeEmpty = false
                 this.taskVersionEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
-                        this.deleteVariable(item.key)
+                        this.deleteVariable({ key: item.key, version: item.version })
                     }
                 })
             },
@@ -934,13 +944,13 @@
              * 版本选择
              * @param {String} is version
              */
-            onVersionSelect (id) {
+            onVersionSelect (newId) {
                 this.isAtomChanged = true
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.inputAtomHook = {}
                 this.inputAtomData = {}
                 this.updateActivities()
-                this.getConfig(id)
+                this.getConfig(newId)
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
@@ -975,7 +985,8 @@
                                     variableKey: key,
                                     formKey: key,
                                     id: this.nodeId,
-                                    tagCode: key
+                                    tagCode: key,
+                                    version: this.getVariableVersion(oldInputAtomHook[key])
                                 }
                             ]
                             this.clearHookedVaribles(variable, [])
@@ -1003,6 +1014,22 @@
             onInputDataChange (val) {
                 this.inputAtomData = val
             },
+            /**
+             * 获取勾选 tag 的版本
+             * @description
+             * 1. [标准插件]勾选 取当前插件版本
+             * 2.[子流程]勾选对应 tag 版本取原始 tag 版本 || 没有设置为 legacy
+             * @param {String} variableKey key
+             */
+            getVariableVersion (variableKey) {
+                if (this.isSingleAtom) {
+                    return this.currentVersion
+                }
+                return (this.subAtomConfigData.form[variableKey]
+                    ? this.subAtomConfigData.form[variableKey].version
+                    : this.subAtomConfigData.outputs[variableKey].version)
+                    || 'legacy'
+            },
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
                 let key, source_tag, source_info, custom_type, value, validation
@@ -1012,13 +1039,10 @@
                     return item.tag_code === tagCode
                 })[0]
                 const name = formConfig.attrs.name.replace(/\s/g, '')
-
+                const variableVersion = this.getVariableVersion(variableKey)
                 if (this.isSingleAtom) {
-                    const version = this.activities[this.nodeId].component['version']
                     key = tagCode
                     source_tag = this.nodeConfigData.component.code
-                        + '.'
-                        + version
                         + '.'
                         + tagCode
                     source_info = { [this.nodeId]: [tagCode] }
@@ -1031,6 +1055,7 @@
                     source_info = { [this.nodeId]: [variableKey] }
                     custom_type = variable.custom_type
                     value = tools.deepClone(this.inputAtomData[key])
+                    
                     if (formConfig.type === 'combine') {
                         source_tag = variable.source_tag.split('.')[0] + '.' + variableKey
                     } else {
@@ -1044,7 +1069,7 @@
                     const variableList = []
                     if (!source_tag) { // custom variable not include ip selector
                         const variableOpts = {
-                            name, key: variableKey, source_info, custom_type, value, validation
+                            name, key: variableKey, source_info, custom_type, value, validation, version: variableVersion
                         }
                         this.$set(this.inputAtomData, key, variableKey)
                         this.createVariable(variableOpts)
@@ -1052,13 +1077,16 @@
                     }
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        const sTag = constant.source_tag
-                        if (sTag) {
-                            const tCode = sTag.split('.')[1]
-                            tCode === tagCode && variableList.push({
-                                name: `${constant.name}(${constant.key})`,
-                                id: constant.key
-                            })
+                        for (const version in constant) {
+                            const item = constant[version]
+                            const sTag = item.source_tag
+                            if (sTag) {
+                                const tCode = sTag.split('.')[1]
+                                tCode === tagCode && variableList.push({
+                                    name: `${item.name}(${item.key})`,
+                                    id: item.key
+                                })
+                            }
                         }
                     }
                     const isKeyUsedInConstants = variableKey in this.constants
@@ -1073,31 +1101,29 @@
                         this.isReuseVarDialogShow = true
                     } else {
                         const variableOpts = {
-                            name, key: variableKey, source_tag, source_info, custom_type, value, validation
+                            name, key: variableKey, source_tag, source_info, custom_type, value, validation, version: variableVersion
                         }
                         this.$set(this.inputAtomData, key, variableKey)
                         this.createVariable(variableOpts) // input arguments hook
                     }
                 } else { // cancel hook
                     variableKey = this.inputAtomData[key] // variable key
-                    const variable = this.constants[variableKey]
-                    if (!variable) {
+                    if (!tools.isKeyExists(`${variableKey}>>${variableVersion}`, this.constants)) {
                         return
                     }
-
+                    const variable = this.constants[variableKey][variableVersion]
                     const formKey = this.isSingleAtom ? tagCode : key // input arguments form item key
                     this.inputAtomHook[formKey] = val
-                    this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)
-                    this.setVariableSourceInfo({ type: 'delete', id: this.nodeId, key: variableKey, tagCode: formKey })
+                    this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey][variableVersion].value)
+                    this.setVariableSourceInfo({ type: 'delete', id: this.nodeId, key: variableKey, tagCode: formKey, version: variableVersion })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable(variableKey)
+                        this.deleteVariable({ key: variableKey, version: variableVersion })
                     }
                 }
             },
             onOutputHookChange (name, key, checked) {
                 if (checked) {
                     const variableKey = this.generateRandomKey(key)
-
                     const variableOpts = {
                         name,
                         key: variableKey,
@@ -1107,7 +1133,8 @@
                         },
                         source_tag: '',
                         custom_type: '',
-                        show_type: 'hide'
+                        show_type: 'hide',
+                        version: this.getVariableVersion(variableKey)
                     }
                     this.renderOutputData.some(item => {
                         if (item.key === key) {
@@ -1117,9 +1144,10 @@
                     })
                     this.createVariable(variableOpts)
                 } else {
-                    const constant = this.constants[key]
+                    const version = this.getVariableVersion(key)
+                    const constant = this.constants[key][version]
                     if (constant) {
-                        this.deleteVariable(key)
+                        this.deleteVariable({ key, version })
                     }
                 }
             },
@@ -1139,7 +1167,8 @@
                     show_type: 'show',
                     source_type: 'component_inputs',
                     validation: '',
-                    index: len
+                    index: len,
+                    version: 'legacy'
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))

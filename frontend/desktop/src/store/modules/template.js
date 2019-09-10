@@ -275,17 +275,24 @@ const template = {
         },
         // 增加全局变量
         addVariable (state, variable) {
-            Vue.set(state.constants, variable.key, variable)
+            const action = state.constants[variable.key] || {}
+            const version = variable.version || 'legacy'
+            action[version] = variable
+            Vue.set(state.constants, variable.key, action)
         },
         // 编辑全局变量
         editVariable (state, payload) {
             const { key, variable } = payload
-            Vue.delete(state.constants, key)
-            Vue.set(state.constants, variable.key, variable)
+            const version = variable.version
+            // 测试完删除
+            if (!version) console.error(payload, 'no version')
+            Vue.delete(state.constants[key], version)
+            Vue.set(state.constants[key], version, variable)
         },
         // 删除全局变量
-        deleteVariable (state, key) {
-            const constant = state.constants[key]
+        deleteVariable (state, payload) {
+            const { key, version } = payload
+            const constant = state.constants[key][version]
             const { source_info } = constant
 
             for (const id in source_info) {
@@ -311,8 +318,8 @@ const template = {
         },
         // 配置全局变量 source_info 字段
         setVariableSourceInfo (state, payload) {
-            const { type, id, key, tagCode } = payload
-            const constant = state.constants[key]
+            const { type, id, key, tagCode, version } = payload
+            const constant = state.constants[key][version]
             if (!constant) return
             const sourceInfo = constant.source_info
             if (type === 'add') {
@@ -560,13 +567,15 @@ const template = {
                 })
                 for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
-                    const sourceInfo = constant.source_info
-
-                    if (sourceInfo && sourceInfo[location.id]) {
-                        if (Object.keys(sourceInfo).length > 1) {
-                            Vue.delete(sourceInfo, location.id)
-                        } else {
-                            Vue.delete(state.constants, constant.key)
+                    for (const version in constant) {
+                        const item = constant[version]
+                        const sourceInfo = item.source_info
+                        if (sourceInfo && sourceInfo[location.id]) {
+                            if (Object.keys(sourceInfo).length > 1) {
+                                Vue.delete(sourceInfo, location.id)
+                            } else {
+                                Vue.delete(state.item, item.key)
+                            }
                         }
                     }
                 }

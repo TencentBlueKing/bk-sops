@@ -275,8 +275,10 @@
             getConstantsArray () {
                 const arrayList = []
                 for (const cKey in this.constants) {
-                    const constant = tools.deepClone(this.constants[cKey])
-                    arrayList.push(constant)
+                    const item = tools.deepClone(this.constants[cKey])
+                    for (const version in item) {
+                        arrayList.push(item[version])
+                    }
                 }
                 const sortedList = arrayList.sort((a, b) => a.index - b.index)
                 return sortedList
@@ -367,6 +369,7 @@
             onConfirm () {
                 const key = this.deleteVarKey
                 const index = this.deleteVarIndex
+                const version = this.constantsArray.find(item => item.key === key).version
                 this.$emit('onDeleteConstant', key)
                 const len = this.constantsArray.length
                 if (len > 1) {
@@ -376,7 +379,7 @@
                         this.editVariable({ key: item.key, variable: item })
                     })
                 }
-                this.deleteVariable(key)
+                this.deleteVariable({ key, version })
                 this.$emit('variableDataChanged')
                 this.deleteConfirmDialogShow = false
             },

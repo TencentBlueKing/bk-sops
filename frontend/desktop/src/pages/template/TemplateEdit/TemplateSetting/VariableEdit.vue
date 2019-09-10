@@ -531,9 +531,9 @@
                     this.theEditingData.value = varValue['customVariable']
                     
                     this.$emit('onChangeEdit', false)
-
                     if (this.isNewVariable) { // 新增变量
                         variable.index = constantsLength
+                        variable.version = 'legacy'
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })
