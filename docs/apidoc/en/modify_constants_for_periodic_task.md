@@ -21,11 +21,11 @@ modify global parameters for periodic task
 |   bk_biz_id    |   string     |   YES   |  business ID |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
 
-#### constants.KEY
+#### constants KEY
 
 constant KEY, the format is like ${key}
 
-#### constants.VALUE
+#### constants VALUE
 
 constant value
 
@@ -79,11 +79,11 @@ constant value
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
 
-#### data.KEY
+#### data KEY
 
 KEY, the format is like ${key}
 
-#### data.VALUE
+#### data VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
