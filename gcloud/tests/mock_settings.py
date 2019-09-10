@@ -50,6 +50,9 @@ APIGW_DECORATOR_CHECK_WHITE_LIST = 'gcloud.apigw.decorators.check_white_apps'
 APIGW_DECORATOR_GET_USER_MODEL = 'gcloud.apigw.decorators.get_user_model'
 APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
 
+APIGW_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.ComponentModel.objects.filter'
+APIGW_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.ComponentLibrary.get_component_class'
+
 MAIN_PACKAGE_SOURCE_GET = 'gcloud.external_plugins.models.main_source.MainPackageSource.objects.get'
 
 ROOT_PACKAGES_CREATE_PACKAGES_FOR_SOURCE = \
