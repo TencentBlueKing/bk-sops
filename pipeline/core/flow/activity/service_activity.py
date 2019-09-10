@@ -91,13 +91,13 @@ class ServiceActivity(Activity):
                  error_ignorable=False,
                  failure_handler=None,
                  skippable=True,
-                 can_retry=True,
+                 retryable=True,
                  timeout=None):
         super(ServiceActivity, self).__init__(id, name, data, failure_handler)
         self.service = service
         self.error_ignorable = error_ignorable
         self.skippable = skippable
-        self.can_retry = can_retry
+        self.retryable = retryable
         self.timeout = timeout
 
         if data:

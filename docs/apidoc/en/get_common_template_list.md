@@ -69,7 +69,7 @@ None
 |-----------|----------|-----------|
 |  id            |    int       |      flow template ID             |
 |  name          |    string    |      flow template name            |
-|  category      |    string    |      template type，the value is described below    |
+|  category      |    string    |      flow template type，the value is described below    |
 |  creator       |    string    |      person who created this flow template      |
 |  create_time   |    string    |      datetime when this flow template created   |
 |  editor        |    string or null | person who edited this flow template last |

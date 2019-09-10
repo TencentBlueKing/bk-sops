@@ -21,7 +21,7 @@ from pipeline.component_framework.models import ComponentModel
 class Command(BaseCommand):
     def handle(self, *args, **options):
 
-        for component_code, component_cls in ComponentLibrary.components.iteritems():
+        for component_code, component_cls in ComponentLibrary.components.items():
 
             if isinstance(component_cls, type) and issubclass(component_cls, Component):
 

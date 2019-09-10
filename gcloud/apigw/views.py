@@ -25,9 +25,10 @@ from blueapps.account.decorators import login_exempt
 from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed, batch_verify_or_raise_auth_failed
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
+from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.constants import PROJECT, BUSINESS
 from gcloud.conf import settings
+from gcloud.constants import PROJECT, BUSINESS, ONETIME
 from gcloud.apigw.decorators import (
     mark_request_whether_is_trust,
     api_verify_perms,
@@ -35,8 +36,10 @@ from gcloud.apigw.decorators import (
     project_inject
 )
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
-from gcloud.core.utils import format_datetime
+from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
+from gcloud.core.utils import format_datetime, name_handler, pipeline_node_name_handle
 from gcloud.core.permissions import project_resource
+from gcloud.taskflow3.utils import draw_pipeline_automatic
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.periodictask.models import PeriodicTask
@@ -233,7 +236,7 @@ def create_task(request, template_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     project = request.project
@@ -366,7 +369,7 @@ def operate_task(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
     action = params.get('action')
     username = request.user.username
@@ -437,7 +440,7 @@ def query_task_count(request, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
     project = request.project
     conditions = params.get('conditions', {})
@@ -539,7 +542,7 @@ def create_periodic_task(request, template_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     logger.info(
@@ -614,7 +617,7 @@ def set_periodic_task_enabled(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     enabled = params.get('enabled', False)
@@ -651,7 +654,7 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     project = request.project
@@ -698,7 +701,7 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     constants = params.get('constants', {})
@@ -811,7 +814,7 @@ def node_callback(request, task_id, project_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     project = request.project
@@ -849,7 +852,7 @@ def import_common_template(request):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     template_data = req_data.get('template_data', None)
@@ -874,3 +877,99 @@ def import_common_template(request):
         })
 
     return JsonResponse(import_result)
+
+
+@login_exempt
+@csrf_exempt
+@require_POST
+@apigw_required
+@mark_request_whether_is_trust
+@project_inject
+def fast_create_task(request, project_id):
+    try:
+        params = json.loads(request.body)
+    except Exception:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid json format'
+        })
+
+    project = request.project
+    logger.info('apigw fast_create_task info, project_id: {project_id}, params: {params}'.format(
+        project_id=project.id,
+        params=params))
+
+    if not request.is_trust:
+        perms_tuples = [(project_resource, [project_resource.actions.fast_create_task.id], project)]
+        batch_verify_or_raise_auth_failed(principal_type='user',
+                                          principal_id=request.user.username,
+                                          perms_tuples=perms_tuples,
+                                          status=200)
+
+    # validate pipeline tree
+    try:
+        pipeline_tree = params['pipeline_tree']
+        pipeline_node_name_handle(pipeline_tree)
+        pipeline_tree.setdefault('gateways', {})
+        pipeline_tree.setdefault('constants', {})
+        pipeline_tree.setdefault('outputs', [])
+        draw_pipeline_automatic(pipeline_tree)
+        validate_web_pipeline_tree(pipeline_tree)
+    except Exception as e:
+        message = u'invalid param pipeline_tree: %s' % e.message
+        logger.exception(message)
+        return JsonResponse({
+            'result': False,
+            'message': message
+        })
+
+    try:
+        pipeline_instance_kwargs = {
+            'name': name_handler(params['name'], TASK_NAME_MAX_LENGTH),
+            'creator': request.user.username,
+            'pipeline_tree': pipeline_tree,
+            'description': params.get('description', '')
+        }
+    except (KeyError, ValueError) as e:
+        return JsonResponse({
+            'result': False,
+            'message': u'invalid params: %s' % e.message
+        })
+
+    try:
+        pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(
+            template=None,
+            **pipeline_instance_kwargs
+        )
+    except PipelineException as e:
+        message = u'create pipeline instance error: %s' % e.message
+        logger.exception(message)
+        return JsonResponse({
+            'result': False,
+            'message': message
+        })
+
+    taskflow_kwargs = {
+        'project': project,
+        'pipeline_instance': pipeline_instance,
+        'template_source': ONETIME,
+        'create_method': 'api',
+    }
+    if params.get('category') in [cate[0] for cate in TASK_CATEGORY]:
+        taskflow_kwargs['category'] = params['category']
+    # 职能化任务，新建后进入职能化认领阶段
+    if params.get('flow_type', 'common') == 'common_func':
+        taskflow_kwargs['flow_type'] = 'common_func'
+        taskflow_kwargs['current_flow'] = 'func_claim'
+    # 常规流程，新建后即可执行
+    else:
+        taskflow_kwargs['flow_type'] = 'common'
+        taskflow_kwargs['current_flow'] = 'execute_task'
+    task = TaskFlowInstance.objects.create(**taskflow_kwargs)
+    return JsonResponse({
+        'result': True,
+        'data': {
+            'task_id': task.id,
+            'task_url': task.url,
+            'pipeline_tree': task.pipeline_tree
+        }})
