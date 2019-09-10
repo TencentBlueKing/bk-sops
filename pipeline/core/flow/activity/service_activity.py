@@ -23,8 +23,8 @@ from pipeline.core.flow.activity.base import Activity
 class Service(object):
     __metaclass__ = ABCMeta
 
-    ScheduleResultAttr = '__schedule_finish__'
-    ScheduleDetermineAttr = '__need_schedule__'
+    schedule_result_attr = '__schedule_finish__'
+    schedule_determine_attr = '__need_schedule__'
     InputItem = InputItem
     OutputItem = OutputItem
     interval = None
@@ -35,7 +35,7 @@ class Service(object):
 
     def __init__(self, name=None):
         self.name = name
-        self.interval = deepcopy(getattr(type(self), 'interval'))
+        self.interval = deepcopy(self.interval)
 
     @abstractmethod
     def execute(self, data, parent_data):
@@ -58,16 +58,16 @@ class Service(object):
         return custom_format
 
     def need_schedule(self):
-        return getattr(self, Service.ScheduleDetermineAttr, False)
+        return getattr(self, Service.schedule_determine_attr, False)
 
     def schedule(self, data, parent_data, callback_data=None):
         return True
 
     def finish_schedule(self):
-        setattr(self, self.ScheduleResultAttr, True)
+        setattr(self, self.schedule_result_attr, True)
 
     def is_schedule_finished(self):
-        return getattr(self, self.ScheduleResultAttr, False)
+        return getattr(self, self.schedule_result_attr, False)
 
     def __getstate__(self):
         if 'logger' in self.__dict__:
@@ -75,7 +75,7 @@ class Service(object):
         return self.__dict__
 
     def clean_status(self):
-        setattr(self, self.ScheduleResultAttr, False)
+        setattr(self, self.schedule_result_attr, False)
 
 
 class ServiceActivity(Activity):
