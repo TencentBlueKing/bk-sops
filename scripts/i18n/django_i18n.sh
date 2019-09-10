@@ -9,9 +9,9 @@ for item in `find $WORK_PATH/frontend/desktop/src -name "*.vue" ! -path "*IpSele
     grep "i18n.js" $item || exit 1
 done
 
-mkdir -p  ~/Temp/gcloud_open/
-mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/
-rm -rf $WORK_PATH/frontend/desktop/static/
+mkdir -p  ~/Temp/gcloud_open/ || exit 1
+mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/ || exit 1
+rm -rf $WORK_PATH/frontend/desktop/static/ || exit 1
 
 pybabel extract -F babel.cfg --copyright-holder=blueking . -o django.pot || exit 1
 # first time
