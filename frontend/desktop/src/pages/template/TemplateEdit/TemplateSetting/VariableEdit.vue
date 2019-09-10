@@ -215,11 +215,6 @@
                     regex: /(^\${[a-zA-Z_]\w*}$)|(^[a-zA-Z_]\w*$)/, // 合法变量key正则，eg:${fsdf_f32sd},fsdf_f32sd
                     keyRepeat: true
                 },
-                // 默认值校验规则（按照用户编辑的合法正则表达式校验）
-                defaultValueRule: {
-                    required: theEditingData.show_type === 'hide',
-                    customValueCheck: true
-                },
                 // 正则校验规则
                 validationRule: {
                     validReg: true
@@ -264,9 +259,6 @@
                 } else {
                     return custom_type
                 }
-            },
-            validateSet () {
-                return this.theEditingData.show_type ? VALIDATE_SET.slice(1) : VALIDATE_SET
             }
         },
         watch: {
@@ -275,18 +267,6 @@
                     this.theEditingData = tools.deepClone(val)
                 },
                 deep: true
-            },
-            'theEditingData.show_type' (val) {
-                if (val === 'hide') {
-                    this.defaultValueRule = {
-                        required: true,
-                        customValueCheck: true
-                    }
-                } else {
-                    this.defaultValueRule = {
-                        customValueCheck: true
-                    }
-                }
             }
         },
         created () {
@@ -406,7 +386,7 @@
                 if (custom_type === 'input' && this.theEditingData.validation !== '') {
                     config.attrs.validation.push({
                         type: 'regex',
-                        args: this.theEditingData.validation,
+                        args: this.getInputDefaultValueValidation(),
                         error_message: gettext('默认值不符合正则规则')
                     })
                 }
@@ -417,7 +397,22 @@
                 }
             },
             getValidateSet () {
-                return this.theEditingData.show_type === 'show' ? VALIDATE_SET.slice(1) : VALIDATE_SET
+                const { show_type, custom_type } = this.theEditingData
+
+                // 隐藏状态下，默认值为必填项
+                // 输入框显示类型为隐藏时，按照正则规则校验，去掉必填项校验
+                if (show_type === 'show' || (show_type === 'hide' && custom_type === 'input')) {
+                    return VALIDATE_SET.slice(1)
+                } else {
+                    return VALIDATE_SET
+                }
+            },
+            getInputDefaultValueValidation () {
+                let validation = this.theEditingData.validation
+                if (this.theEditingData.show_type === 'show') {
+                    validation = `(^$)|(${validation})`
+                }
+                return validation
             },
             /**
              * 切换变量类型
@@ -453,12 +448,22 @@
                 this.theEditingData.show_type = showType
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
+
+                if (this.theEditingData.custom_type === 'input' && this.theEditingData.validation !== '') {
+                    const config = tools.deepClone(this.renderConfig[0])
+                    const regValidate = config.attrs.validation.find(item => item.type === 'regex')
+                    regValidate.args = this.getInputDefaultValueValidation()
+                    this.$set(this.renderConfig, 0, config)
+                    this.$nextTick(() => {
+                        this.$refs.renderForm.validate()
+                    })
+                }
             },
             onBlurValidation () {
                 const config = tools.deepClone(this.renderConfig[0])
                 const regValidate = config.attrs.validation.find(item => item.type === 'regex')
                 if (!this.errors.has('valueValidation')) {
-                    regValidate.args = this.theEditingData.validation
+                    regValidate.args = this.getInputDefaultValueValidation()
                 } else {
                     regValidate.args = ''
                 }

@@ -213,18 +213,16 @@
                     }
                 })
                 if (this.common) {
-                    url += '?common=1'
+                    url = '/admin/common/template/'
                 }
                 return url
             },
             goToTaskUrl () {
-                const entrance = this.$route.query.entrance
                 this.$router.push({
                     path: `/template/newtask/${this.project_id}/selectnode/`,
                     query: {
                         template_id: this.template_id,
-                        common: this.common ? '1' : undefined,
-                        entrance: entrance || undefined
+                        common: this.common ? '1' : undefined
                     }
                 })
             },
@@ -324,7 +322,6 @@
         top: 14px;
         right: 20px;
         .canvas-btn {
-            min-width: 90px;
             &:not(:last-child) {
                 margin-right: 10px;
             }
