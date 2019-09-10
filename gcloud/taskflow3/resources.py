@@ -28,9 +28,8 @@ from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
-from pipeline_web.exceptions import ParserException
 
-from gcloud.core.utils import name_handler
+from gcloud.core.utils import name_handler, pipeline_node_name_handle
 from gcloud.core.constant import TASK_NAME_MAX_LENGTH
 from gcloud.core.permissions import project_resource
 from gcloud.commons.template.models import CommonTemplate
@@ -44,7 +43,6 @@ from gcloud.webservice3.resources import (
     GCloudModelResource,
     ProjectResource,
 )
-from gcloud.core.utils import pipeline_node_name_handle
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.permissions import mini_app_resource
 
@@ -134,8 +132,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
     subprocess_info = fields.DictField(
         attribute='subprocess_info',
         use_in='detail',
-        readonly=True
-    )
+        readonly=True)
 
     class Meta(GCloudModelResource.Meta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
@@ -188,8 +185,6 @@ class TaskFlowInstanceResource(GCloudModelResource):
             validate_web_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'])
         except PipelineException as e:
             raise BadRequest(e.message)
-        except ParserException as e:
-            raise BadRequest(e.message)
 
         if template_source == PROJECT:
             try:
@@ -238,7 +233,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                                                      perms_tuples=perms_tuples)
 
         try:
-            pipeline_instance = model.objects.__class__.create_pipeline_instance(
+            pipeline_instance = model.objects.create_pipeline_instance(
                 template,
                 **pipeline_instance_kwargs
             )

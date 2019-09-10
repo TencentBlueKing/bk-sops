@@ -19,13 +19,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('log', '0004_auto_20180814_1555'),
+        ('taskflow3', '0010_auto_20190827_1943'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='logentry',
-            name='id',
-            field=models.BigAutoField(primary_key=True, serialize=False, verbose_name='ID'),
+            model_name='taskflowinstance',
+            name='template_id',
+            field=models.CharField(blank=True, max_length=255, verbose_name='\u521b\u5efa\u4efb\u52a1\u6240\u7528\u7684\u6a21\u677fID'),
+        ),
+        migrations.AlterField(
+            model_name='taskflowinstance',
+            name='template_source',
+            field=models.CharField(choices=[(b'project', '\u9879\u76ee\u6d41\u7a0b'), (b'common', '\u516c\u5171\u6d41\u7a0b'), (b'onetime', '\u4e00\u6b21\u6027\u4efb\u52a1')], default=b'project', max_length=32, verbose_name='\u6d41\u7a0b\u6a21\u677f\u6765\u6e90'),
         ),
     ]

@@ -28,4 +28,5 @@ TASK_CREATE_METHOD = [
 TEMPLATE_SOURCE = [
     (PROJECT, _(u"项目流程")),
     (COMMON, _(u"公共流程")),
+    (ONETIME, _(u"一次性任务")),
 ]
