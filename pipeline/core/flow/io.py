@@ -12,27 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import abc
+from collections import Mapping
 
 
-class InputItem(object):
-    def __init__(self, name, key, type, required=True, schema=None):
-        self.name = name
-        self.key = key
-        self.type = type
-        self.required = required
-        self.schema = schema
+class DataItem(object):
+    __metaclass__ = abc.ABCMeta
 
-    def as_dict(self):
-        return {
-            'name': self.name,
-            'key': self.key,
-            'type': self.type,
-            'required': self.required,
-            'schema': self.schema.as_dict() if self.schema else {}
-        }
-
-
-class OutputItem(object):
     def __init__(self, name, key, type, schema=None):
         self.name = name
         self.key = key
@@ -46,6 +31,21 @@ class OutputItem(object):
             'type': self.type,
             'schema': self.schema.as_dict() if self.schema else {}
         }
+
+
+class InputItem(DataItem):
+    def __init__(self, required=True, *args, **kwargs):
+        self.required = required
+        super(InputItem, self).__init__(*args, **kwargs)
+
+    def as_dict(self):
+        base = super(InputItem, self).as_dict()
+        base['required'] = self.required
+        return base
+
+
+class OutputItem(DataItem):
+    pass
 
 
 class ItemSchema(object):
@@ -98,6 +98,8 @@ class BooleanItemSchema(SimpleItemSchema):
 
 class ArrayItemSchema(ItemSchema):
     def __init__(self, item_schema, *args, **kwargs):
+        if not isinstance(item_schema, ItemSchema):
+            raise TypeError('item_schema of ArrayItemSchema must be subclass of ItemSchema')
         self.item_schema = item_schema
         super(ArrayItemSchema, self).__init__(*args, **kwargs)
 
@@ -113,6 +115,12 @@ class ArrayItemSchema(ItemSchema):
 
 class ObjectItemSchema(ItemSchema):
     def __init__(self, property_schemas, *args, **kwargs):
+        if not isinstance(property_schemas, Mapping):
+            raise TypeError('property_schemas of ObjectItemSchema must be Mapping type')
+
+        if not all([isinstance(value, ItemSchema) for value in property_schemas.values()]):
+            raise TypeError('value in property_schemas of ObjectItemSchema must be subclass of ItemSchema')
+
         self.property_schemas = property_schemas
         super(ObjectItemSchema, self).__init__(*args, **kwargs)
 
