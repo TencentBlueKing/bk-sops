@@ -127,30 +127,20 @@
                 })
             },
             getHomeUrl () {
+                // 普通流程
                 let url = `/template/home/${this.cc_id}/`
-                const entrance = this.$route.query.entrance || ''
-                const actions = [
-                    { key: 'template_business', url: `/template/home/${this.cc_id}/` },
-                    { key: 'admin_common', url: '/admin/common/template/' }
-                ]
-                actions.forEach(action => {
-                    if (entrance.indexOf(action.key) > -1) {
-                        url = action.url
-                    }
-                })
+                // 公共流程
                 if (this.common) {
-                    url += '?common=1'
+                    url = '/admin/common/template/'
                 }
                 return url
             },
             goToTaskUrl () {
-                const entrance = this.$route.query.entrance
                 this.$router.push({
                     path: `/template/newtask/${this.cc_id}/selectnode/`,
                     query: {
                         template_id: this.template_id,
-                        common: this.common ? '1' : undefined,
-                        entrance: entrance || undefined
+                        common: this.common ? '1' : undefined
                     }
                 })
             },
