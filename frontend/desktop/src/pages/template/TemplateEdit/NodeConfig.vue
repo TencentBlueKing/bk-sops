@@ -900,14 +900,14 @@
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
                 let key, source_tag, source_info, custom_type, value, validation
-                // 变量 key 值
-                let variableKey = /^\$\{[\w]*\}$/.test(tagCode) ? tagCode : '${' + tagCode + '}'
+                // 变量 key 值，统一格式为 ${xxx}
+                let variableKey = varKeyReg.test(tagCode) ? tagCode : '${' + tagCode + '}'
                 const formConfig = this.renderInputConfig.filter(item => {
                     return item.tag_code === tagCode
                 })[0]
 
                 const name = formConfig.attrs.name.replace(/\s/g, '')
-
+                
                 if (this.isSingleAtom) {
                     key = tagCode
                     source_tag = this.nodeConfigData.component.code + '.' + tagCode
@@ -919,12 +919,10 @@
                     key = variableKey
                     tagCode = tagCode.match(varKeyReg)[1]
                     source_info = { [this.nodeId]: [variableKey] }
+                    source_tag = variable.source_tag
                     custom_type = variable.custom_type
                     value = tools.deepClone(this.inputAtomData[key])
-                    if (formConfig.type === 'combine') {
-                        source_tag = variable.source_tag.split('.')[0] + '.' + variableKey
-                    } else {
-                        source_tag = variable.source_tag
+                    if (formConfig.type !== 'combine') {
                         validation = variable.validation
                     }
                 }
