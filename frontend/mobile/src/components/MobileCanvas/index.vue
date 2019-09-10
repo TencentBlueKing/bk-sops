@@ -121,7 +121,7 @@
         background: #e1f3ff;
         border: 1px solid #c3cdd7;
         border-radius: 2px;
-        z-index: 3;
+        z-index: 1;
         cursor: pointer;
     }
 
