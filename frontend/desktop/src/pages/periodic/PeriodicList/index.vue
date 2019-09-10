@@ -80,7 +80,7 @@
                             <router-link
                                 class="periodic-name"
                                 :title="props.row.task_template_name"
-                                :to="`/template/edit/${cc_id}/?template_id=${props.row.template_id}&entrance=periodicTask_view`">
+                                :to="`/template/edit/${cc_id}/?template_id=${props.row.template_id}`">
                                 {{props.row.task_template_name}}
                             </router-link>
                         </template>

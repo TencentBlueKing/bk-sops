@@ -45,7 +45,17 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'taskStatus', 'template_id'],
+        props: [
+            'list',
+            'currentStep',
+            'allFinished',
+            'common',
+            'instanceName',
+            'cc_id',
+            'taskStatus',
+            'asyncTemplateId',
+            'templateSource'
+        ],
         data () {
             return {
                 i18n: {
@@ -113,71 +123,53 @@
              * 目的：返回到【节点选择】上一个页面
              */
             getHomeUrl () {
-                const userType = this.userType // 用户类型
-                const path = this.$route.fullPath
-                const entrance = this.$route.query.entrance || '' // 入口参数
-                const ccId = this.$route.params.cc_id
-                let url = '/'
-                const isCommon = this.common && userType === 'maintainer'
-                // 不是从编辑模版页面进入的 entrance 列表
-                const unFromEditList = ['periodicTask_new', 'taskflow', '_newTask']
-                const isNotFromEdit = unFromEditList.some(item => entrance.indexOf(item) > -1)
-                if (!isNotFromEdit && userType === 'maintainer') {
-                    url = `/template/edit/${ccId}/`
-                    this.goToOriginPath(url, entrance, isCommon, true, true)
-                    return false
+                const backObj = {
+                    'business': `/template/home/${this.cc_id}/`,
+                    'periodicTask': `/periodic/home/${this.cc_id}/`,
+                    'taskflow': `/taskflow/home/${this.cc_id}/`,
+                    'common': `/template/common/${this.cc_id}/`,
+                    'adminCommon': '/admin/common/template/',
+                    'templateEdit': `/template/edit/${this.cc_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
+                    'functor': `/function/home/`,
+                    'auditor': `/audit/home/`,
+                    'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.cc_id}/`
                 }
-
-                const actions = [
-                    // 编辑模板
-                    { userType: 'maintainer', path: '/template/edit/', url: `/periodic/home/${this.cc_id}/` },
-                    // 周期任务-新建
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'periodicTask', url: `/periodic/home/${this.cc_id}/` },
-                    // 任务记录-查看/克隆
-                    { userType: 'maintainer', path: '/taskflow/execute/', url: `/taskflow/home/${this.cc_id}/` },
-                    // 任务记录-新建
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'taskflow', url: `/taskflow/home/${this.cc_id}/` },
-                    // 流程模版-公共流程
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_common', url: `/template/common/${this.cc_id}/` },
-                    // 流程模版-业务流程
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_business', url: `/template/home/${this.cc_id}/` },
-                    // maintainer 默认
-                    { userType: 'maintainer', path: 'default', url: `/template/home/${this.cc_id}/` },
-                    // 职能化
-                    { userType: 'functor', url: `/function/home/` },
-                    // 审计员
-                    { userType: 'auditor', url: `/audit/home/` },
-                    // 轻应用
-                    { view_mode: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${ccId}/` }
-                ]
-                actions.forEach(key => {
-                    const flag_view_mode = key.view_mode ? key.view_mode === this.view_mode : true
-                    const flag_userType = key.userType ? key.userType === userType : true
-                    const flag_path = key.path ? new RegExp(key.path).test(path) : true
-                    const flag_entrance = key.entrance ? entrance.indexOf(key.entrance) > -1 : true
-                    if (flag_view_mode && flag_userType && flag_path && flag_entrance) {
-                        url = key.url
-                    }
-                })
-                this.goToOriginPath(url, entrance, isCommon, false, false)
-            },
-            /**
-             * 跳转到原始页面
-             * @param {string} url -路由地址
-             * @param {string} entrance -入口
-             * @param {boolean} isAddTemplateId -是否加 template_id 参数
-             * @param {boolean} isAddEntrance -是否加 entrance 参数
-             */
-            goToOriginPath (url, entrance, isCommon, isAddTemplateId = true, isAddEntrance = true) {
-                this.$router.push({
-                    path: url,
-                    query: {
-                        template_id: isAddTemplateId ? this.template_id : undefined,
-                        common_template: isCommon ? this.common : undefined,
-                        common: isCommon ? '1' : undefined,
-                        entrance: isAddEntrance && entrance ? entrance : undefined
-                    }
-                })
+                const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
+                const entrance = this.$route.query.entrance || ''
+                let url = '/'
+                switch (currentUser) {
+                    case 'maintainer':
+                        // 任务创建(节点选择+参数填写)
+                        if (this.currentStep === 'selectnode' || this.currentStep === 'paramfill') {
+                            /**
+                             * 目前只有两种 entrance
+                             * 1、periodicTask - 周期任务新建
+                             * 2、taskflow - 任务记录新建
+                             */
+                            if (entrance === 'periodicTask' || entrance === 'taskflow') {
+                                url = backObj[entrance]
+                                break
+                            }
+                            if (this.common) {
+                                url = backObj['common']
+                                break
+                            }
+                            url = backObj['business']
+                        } else {
+                            // 任务执行页面
+                            url = backObj['templateEdit']
+                            url += this.templateSource === 'common' ? '&common=1' : ''
+                        }
+                        break
+                    case 'functor':
+                    case 'auditor':
+                    case 'appmaker':
+                        url = backObj[currentUser]
+                        break
+                    default:
+                        url = '/'
+                }
+                this.$router.push(url)
             }
         }
     }
