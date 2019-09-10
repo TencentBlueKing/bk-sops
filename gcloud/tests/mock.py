@@ -64,7 +64,7 @@ class MockBaseTemplate(object):
         self.category = kwargs.get('category', 'category')
         self.pipeline_template = kwargs.get('pipeline_template', MockPipelineTemplate())
         self.pipeline_tree = kwargs.get('pipeline_tree',
-                                        {'line': 'line', 'location': 'location', 'activities': []})
+                                        {'line': 'line', 'location': 'location', 'activities': [], 'constants': {}})
         self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
 
 
@@ -148,3 +148,24 @@ class MockSyncPackageSource(object):
     def __init__(self, id, type):
         self.id = id
         self.type = MagicMock(return_value=type)
+
+
+class MockComponentModel(object):
+    def __init__(self, code):
+        self.code = code
+
+
+class MockComponent(object):
+    def __init__(self, inputs, outputs, desc, code, name, group_name):
+        self.inputs = inputs
+        self.outputs = outputs
+        self.desc = desc
+        self.code = code
+        self.name = name
+        self.group_name = group_name
+
+    def inputs_format(self):
+        return self.inputs
+
+    def outputs_format(self):
+        return self.outputs
