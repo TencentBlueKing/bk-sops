@@ -43,7 +43,7 @@
                 theme="primary"
                 :loading="createTaskSaving"
                 @click="onSaveTemplate(true)">
-                {{i18n.saveAndCreateTask}}
+                {{createTaskBtnText}}
             </bk-button>
             <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>
         </div>
@@ -67,6 +67,10 @@
             },
             name: {
                 type: String,
+                default: ''
+            },
+            template_id: {
+                type: [String, Number],
                 default: ''
             },
             cc_id: {
@@ -118,7 +122,7 @@
                 return this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone'
             },
             createTaskBtnText () {
-                return this.isSaveAndCreateTaskType ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+                return this.isSaveAndCreateTaskType ? this.i18n.saveAndCreateTask : this.i18n.createTask
             }
         },
         watch: {
@@ -195,7 +199,6 @@
 <style lang="scss" scoped>
     .template-header-wrapper {
         display: flex;
-        align-items: center;
         justify-content: space-between;
         align-items: center;
         padding: 0 20px;

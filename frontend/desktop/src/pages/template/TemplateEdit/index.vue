@@ -12,33 +12,6 @@
 <template>
     <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
-            <!-- <PipelineCanvas
-                ref="pipelineCanvas"
-                :single-atom-list-loading="singleAtomListLoading"
-                :sub-atom-list-loading="subAtomListLoading"
-                :is-template-data-changed="isTemplateDataChanged"
-                :template-saving="templateSaving"
-                :create-task-saving="createTaskSaving"
-                :canvas-data="canvasData"
-                :name="name"
-                :cc_id="cc_id"
-                :type="type"
-                :common="common"
-                :template_id="template_id"
-                :atom-type-list="atomTypeList"
-                :search-atom-result="searchAtomResult"
-                @onChangeName="onChangeName"
-                @onSaveTemplate="onSaveTemplate"
-                @onSearchAtom="onSearchAtom"
-                @onBackToList="onBackToList"
-                @onNodeClick="onNodeClick"
-                @onLabelBlur="onLabelBlur"
-                @onLocationChange="onLocationChange"
-                @onLineChange="onLineChange"
-                @onLocationMoveDone="onLocationMoveDone"
-                @onNewDraft="onNewDraft"
-                @onReplaceLineAndLocation="onReplaceLineAndLocation">
-            </PipelineCanvas> -->
             <TemplateHeader
                 :name="name"
                 :cc_id="cc_id"
@@ -65,6 +38,7 @@
                 :template_id="template_id"
                 :canvas-data="canvasData"
                 @onNodeClick="onNodeClick"
+                @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
