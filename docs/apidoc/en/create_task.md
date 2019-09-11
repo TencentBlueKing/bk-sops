@@ -24,6 +24,7 @@ Create a task with a flow template
 |   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow. Default is common |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
 |   exclude_task_nodes_id | list |   NO   |  nodes id not be executed, which are set ignore in flow |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 #### constants KEY
 
