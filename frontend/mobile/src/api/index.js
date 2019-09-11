@@ -12,9 +12,10 @@ import cookie from 'cookie'
 import CachedPromise from './cached-promise'
 import RequestQueue from './request-queue'
 import { bus } from '../common/bus'
+
 // axios 实例
 const axiosInstance = axios.create({
-    xsrfCookieName: 'bk_sops_csrftoken',
+    xsrfCookieName: global.APP_CODE + '_csrftoken',
     xsrfHeaderName: 'X-CSRFToken',
     withCredentials: true,
     'X-Requested-With': 'XMLHttpRequest'

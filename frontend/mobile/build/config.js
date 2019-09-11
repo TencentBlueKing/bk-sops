@@ -48,29 +48,19 @@ export default {
     },
     dev: {
         env: devEnv,
-        host: 'dev.paas-ce51.cloud.yovole.com',
+        host: '{BK_PAAS_URL}',
         port: 9001,
         assetsSubDirectory: 'static',
         assetsPublicPath: '/',
         proxyTable: {
-            '/weixin': { // 需要代理的路径
-                target: 'http://dev.paas-ce51.cloud.yovole.com:8000', // 目标服务器host
+            '/ajax': { // 需要代理的路径
+                target: 'http://{BK_PAAS_URL}', // 目标服务器host
                 secure: false,
                 pathRewrite: {
-                    '^/weixin': '/weixin'
+                    '^/ajax': ''
                 },
                 headers: {
-                    referer: 'paas-ce51.cloud.yovole.com' // 目标服务器host
-                }
-            },
-            '/static/weixin': { // 需要代理的路径
-                target: 'http://dev.paas-ce51.cloud.yovole.com:8000', // 目标服务器host
-                secure: false,
-                pathRewrite: {
-                    '^/static/weixin': '/static'
-                },
-                headers: {
-                    referer: 'paas-ce51.cloud.yovole.com' // 目标服务器host
+                    referer: '{BK_PAAS_URL}' // 目标服务器host
                 }
             }
         },
