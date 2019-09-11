@@ -214,7 +214,7 @@
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
             :common="common"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
             :create-entrance="true"
@@ -513,9 +513,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
-                    this.taskCategory = bizBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
-                    this.setProjectBaseInfo(bizBasicInfo)
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
+                    this.setProjectBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
