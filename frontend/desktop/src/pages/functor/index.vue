@@ -240,7 +240,7 @@
             </div>
             <div slot="footer" class="dialog-footer">
                 <bk-button
-                    type="primary"
+                    theme="primary"
                     :class="{
                         'btn-permission-disable': !hasConfirmPerm
                     }"
@@ -248,7 +248,7 @@
                     @click="onConfirmlNewTask">
                     {{i18n.confirm}}
                 </bk-button>
-                <bk-button type="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
+                <bk-button theme="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
             </div>
         </bk-dialog>
     </div>
@@ -696,17 +696,6 @@
                 height: 32px;
                 line-height: 32px;
             }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-selector-icon.clear-icon {
-                top:6px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
             input::-webkit-input-placeholder{
                 color: $formBorderColor;
             }
@@ -719,7 +708,7 @@
             input:-ms-input-placeholder {
                 color: $formBorderColor;
             }
-            input,.bk-selector,.bk-date-range {
+            input{
                 min-width: 260px;
             }
             .search-input {
@@ -742,10 +731,6 @@
             }
             .bk-selector-search-item > input {
                 min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
             }
         }
         .query-button {

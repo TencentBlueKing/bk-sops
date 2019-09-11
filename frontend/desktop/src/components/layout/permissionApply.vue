@@ -8,12 +8,12 @@
             <p>{{permissionContent}}</p>
             <div class="operation-btns">
                 <bk-button
-                    type="primary"
+                    theme="primary"
                     @click="applyBtnClick">
                     {{i18n.apply}}
                 </bk-button>
                 <bk-button
-                    type="default"
+                    theme="default"
                     v-if="permissionData.type === 'project' && viewMode !== 'appmaker'"
                     v-cursor="{ active: !hasProjectPermission }"
                     :class="{

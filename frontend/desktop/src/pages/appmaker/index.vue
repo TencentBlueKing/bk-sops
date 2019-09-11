@@ -491,21 +491,11 @@
                 input:-ms-input-placeholder {
                     color: $formBorderColor;
                 }
-                input, .bk-selector, .bk-date-range {
+                input{
                     min-width: 260px;
                 }
                 .bk-selector-search-item > input {
                     min-width: 249px;
-                }
-                .bk-date-range {
-                    display: inline-block;
-                    width: 260px;
-                    height: 32px;
-                    line-height: 32px;
-                }
-                /deep/ .bk-date-range input {
-                    height: 32px;
-                    line-height: 32px;
                 }
                 .search-input {
                     width: 260px;

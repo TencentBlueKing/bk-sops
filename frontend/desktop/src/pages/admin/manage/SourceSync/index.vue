@@ -47,7 +47,7 @@
                         <td>
                             <bk-button
                                 theme="default"
-                                size="mini"
+                                size="small"
                                 class="view-detail"
                                 @click="onViewDetailClick(item)">
                                 {{i18n.viewDetail}}

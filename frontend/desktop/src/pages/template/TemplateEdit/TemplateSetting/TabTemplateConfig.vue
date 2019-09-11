@@ -47,7 +47,7 @@
         <div class="common-form-item hide">
             <label>{{ i18n.timeout }}</label>
             <div class="common-form-content">
-                <BaseInput :value="timeout" @input="onChangeTimeout" />
+                <bk-input :value="timeout" @input="onChangeTimeout" />
             </div>
         </div>
         <div class="common-form-item">
@@ -69,12 +69,8 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     export default {
         name: 'TabTemplateConfig',
-        components: {
-            BaseInput
-        },
         props: ['projectInfoLoading', 'isTemplateConfigValid'],
         data () {
             return {

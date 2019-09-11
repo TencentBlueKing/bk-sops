@@ -26,8 +26,8 @@
                                 <bk-option
                                     v-for="(option, index) in allProjectList"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -98,18 +98,17 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
-                                    v-model="projectList"
+                                    v-model="selectedProject"
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
+                                    @selected="onSelectProject">
                                     <bk-option
                                         v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -303,7 +302,7 @@
                     this.loadProjectList({ limit: 0 })
                 }
                 const list = tools.deepClone(this.projectList)
-                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
+                list.unshift({ id: 'all', name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
