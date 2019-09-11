@@ -138,7 +138,7 @@
             // 手动提交
             onSubmit () {
                 if (typeof this.submit === 'function') {
-                    this.submit.call(this)
+                    this.submit()
                 } else {
                     this.$refs.upload.submit()
                 }
