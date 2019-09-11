@@ -20,6 +20,7 @@ Query individual flow template details of the business
 | bk_biz_id     | string     |   YES   |  the business ID   |
 | template_id   | string     |   YES   |  the template ID       |
 | template_source | string   |   NO    | source of flow，default value is business. business: from business, common: from common flow |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
