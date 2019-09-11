@@ -972,7 +972,7 @@ def fast_create_task(request, project_id):
 @apigw_required
 @mark_request_whether_is_trust
 @project_inject
-def get_component_list(request, project_id):
+def get_plugin_list(request, project_id):
     components = ComponentModel.objects.filter(status=True)
 
     data = []
@@ -980,7 +980,7 @@ def get_component_list(request, project_id):
         comp = ComponentLibrary.get_component_class(comp_model.code)
         data.append({
             'inputs': comp.inputs_format(),
-            'output': comp.outputs_format(),
+            'outputs': comp.outputs_format(),
             'desc': comp.desc,
             'code': comp.code,
             'name': comp.name,

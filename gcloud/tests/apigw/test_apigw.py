@@ -92,7 +92,7 @@ class APITest(TestCase):
         cls.GET_TASK_NODE_DETAIL = '/apigw/get_task_node_detail/{task_id}/{project_id}/'
         cls.NODE_CALLBACK = '/apigw/node_callback/{task_id}/{project_id}/'
         cls.IMPORT_COMMON_FLOW = '/apigw/import_common_template/'
-        cls.GET_COMPONENT_LIST_URL = '/apigw/get_component_list/{project_id}/'
+        cls.GET_PLUGIN_LIST_URL = '/apigw/get_plugin_list/{project_id}/'
 
         super(APITest, cls).setUpClass()
 
@@ -1344,14 +1344,14 @@ class APITest(TestCase):
             with mock.patch(APIGW_COMPONENT_LIBRARY_GET_COMPONENT_CLS, MagicMock(return_value=comp)):
                 assert_data = [{
                     'inputs': comp.inputs_format(),
-                    'output': comp.outputs_format(),
+                    'outputs': comp.outputs_format(),
                     'desc': comp.desc,
                     'code': comp.code,
                     'name': comp.name,
                     'group_name': comp.group_name
                 }]
 
-                response = self.client.get(path=self.GET_COMPONENT_LIST_URL.format(project_id=TEST_PROJECT_ID))
+                response = self.client.get(path=self.GET_PLUGIN_LIST_URL.format(project_id=TEST_PROJECT_ID))
 
                 self.assertEqual(response.status_code, 200)
 
