@@ -49,6 +49,7 @@
 - [API使用说明](docs/apidoc/readme.md)
 - [标准插件远程加载](docs/features/remote_plugins.md)
 - [变量引擎](docs/features/variables_engine.md)
+- [移动端使用说明](docs/features/mobile.md)
 
 
 ## Version plan

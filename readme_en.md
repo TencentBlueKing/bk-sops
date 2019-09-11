@@ -57,6 +57,7 @@ If you want to know more about the above features, please refer to the
 - [API Documents](docs/apidoc/readme.md)
 - [Standard Plugin Remote Importing](docs/features/remote_plugins.md)
 - [Variables Engine](docs/features/variables_engine.md)
+- [Mobile Documents](docs/features/mobile.md)
 
 
 ## Version plan
