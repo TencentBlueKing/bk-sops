@@ -13,7 +13,7 @@
     <js-flow
         ref="jsFlow"
         selector="entry-item"
-        :class="{ 'tool-wrapper-telescopic': showNodeMenu }"
+        :class="['canvas-wrapper', { 'tool-wrapper-telescopic': showNodeMenu }]"
         :data="flowData"
         :show-palette="showPalette"
         :show-tool="showTool"
@@ -30,17 +30,16 @@
         @onOverlayClick="onOverlayClick"
         @onFrameSelectEnd="onFrameSelectEnd"
         @onCloseFrameSelect="onCloseFrameSelect">
-        <template
-            v-slot:palettePanel>
-            <palettePanel
+        <template v-slot:palettePanel>
+            <palette-panel
                 :atom-type-list="atomTypeList"
                 :is-disable-start-point="isDisableStartPoint"
                 :is-disable-end-point="isDisableEndPoint"
                 @updateNodeMenuState="updateNodeMenuState">
-            </palettePanel>
+            </palette-panel>
         </template>
         <template v-slot:toolPanel>
-            <toolPanel
+            <tool-panel
                 :is-selection-open="isSelectionOpen"
                 :is-show-select-all-tool="isShowSelectAllTool"
                 :is-select-all-tool-disabled="isSelectAllToolDisabled"
@@ -52,7 +51,7 @@
                 @onOpenFrameSelect="onOpenFrameSelect"
                 @onFormatPosition="onFormatPosition"
                 @onToggleAllNode="onToggleAllNode">
-            </toolPanel>
+            </tool-panel>
         </template>
         <template v-slot:nodeTemplate="{ node }">
             <node-template
@@ -175,11 +174,15 @@
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
+            if (this.editable) {
+                this.$el.addEventListener('click', this.branchConditionEditHandler)
+            }
         },
         beforeDestroy () {
-            this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler, false)
-            document.removeEventListener('keydown', this.nodeLinePastehandler, false)
-            document.removeEventListener('keydown', this.nodeLineDeletehandler, false)
+            this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
+            document.removeEventListener('keydown', this.nodeLinePastehandler)
+            document.removeEventListener('keydown', this.nodeLineDeletehandler)
+            this.$el.removeEventListener('click', this.branchConditionEditHandler)
         },
         methods: {
             onZoomIn () {
@@ -199,15 +202,15 @@
                 this.selectedNodes = nodes
                 this.isSelectionOpen = false
                 this.selectionOriginPos = { x, y }
-                this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler, false)
-                document.addEventListener('keydown', this.nodeLinePastehandler, false)
-                document.addEventListener('keydown', this.nodeLineDeletehandler, { capture: false, once: true })
+                this.$refs.jsFlow.$el.addEventListener('mousemove', this.pasteMousePosHandler)
+                document.addEventListener('keydown', this.nodeLinePastehandler)
+                document.addEventListener('keydown', this.nodeLineDeletehandler, { once: true })
             },
             onCloseFrameSelect () {
                 this.selectedNodes = []
-                this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler, false)
-                document.removeEventListener('keydown', this.pasteMousePosHandler, false)
-                document.removeEventListener('keydown', this.nodeLinePastehandler, false)
+                this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
+                document.removeEventListener('keydown', this.pasteMousePosHandler)
+                document.removeEventListener('keydown', this.nodeLinePastehandler)
             },
             pasteMousePosHandler (e) {
                 this.pasteMousePos = {
@@ -326,6 +329,26 @@
                         theme: 'success'
                     })
                 })
+            },
+            branchConditionEditHandler (e) {
+                const $branchEl = e.target
+                if ($branchEl.classList.contains('branch-condition')) {
+                    $branchEl.classList.add('editing')
+                    $branchEl.addEventListener('blur', this.branchConditionBlurHandler, { once: true })
+                }
+            },
+            branchConditionBlurHandler (e) {
+                const $branchEl = e.target
+                const lineId = $branchEl.dataset.lineid
+                const nodeId = $branchEl.dataset.nodeid
+                const value = $branchEl.textContent
+                const labelData = {
+                    id: lineId,
+                    nodeId,
+                    name: value
+                }
+                $branchEl.classList.remove('editing')
+                this.$emit('onLabelBlur', labelData)
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
@@ -464,7 +487,11 @@
                         const labelName = branchInfo[lineId].evaluate
                         const labelData = {
                             type: 'Label',
-                            name: `<div class="branch-condition">${labelName}</div>`,
+                            name: `<div class="branch-condition"
+                                    contentEditable=${this.editable ? 'plaintext-only' : 'false'}
+                                    title="${labelName}"
+                                    data-lineid="${lineId}"
+                                    data-nodeid="${line.sourceId}">${labelName}</div>`,
                             location: -70,
                             cls: 'branch-condition',
                             id: `condition${lineId}`
@@ -526,17 +553,14 @@
         }
     }
 </script>
-<style lang="scss" scoped>
-    .jsflow {
+<style lang="scss">
+    .canvas-wrapper.jsflow {
         border: none;
         background: #e1e4e8;
-        /deep/ .adding-node {
-            z-index: 4;
-        }
-        /depp/ .palette-panel-wrap {
+        .palette-panel-wrap {
             border-right: 1px solid #cacedb;
         }
-        /deep/ .tool-panel-wrap {
+        .tool-panel-wrap {
             top: 20px;
             left: 80px;
             padding: 7px 0;
@@ -547,14 +571,17 @@
             transition: all 0.5s ease;
             user-select: none;
         }
-        /deep/ .jtk-endpoint {
+        .jtk-endpoint {
             z-index: 1;
             cursor: pointer;
         }
-        /deep/ .jsflow-node {
+        .jsflow-node {
             z-index: 3;
+            &.adding-node {
+                z-index: 6;
+            }
         }
-        /deep/ .jtk-overlay {
+        .jtk-overlay {
             cursor: pointer;
             z-index: 4;
             &:not(.branch-condition) {
@@ -575,16 +602,26 @@
                 background: #e1f3ff;
                 border: 1px solid #c3cdd7;
                 border-radius: 2px;
+                outline: none;
                 cursor: pointer;
+                &:focus,
+                &:hover {
+                    border-color: #3a84ff;
+                }
+                &:not(.editing) {
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
             }
         }
         &.editable {
-            /deep/ .jtk-overlay.jtk-hover {
+            .jtk-overlay.jtk-hover {
                 display: inline-block;
             }
         }
         &.tool-wrapper-telescopic {
-            /deep/ .tool-panel-wrap {
+            .tool-panel-wrap {
                 top: 20px;
                 left: 380px;
                 z-index: 5;
