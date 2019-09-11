@@ -39,7 +39,7 @@ from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE
 from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
 from gcloud.core.utils import format_datetime, name_handler, pipeline_node_name_handle
 from gcloud.core.permissions import project_resource
-from gcloud.taskflow3.utils import draw_pipeline_automatic
+from gcloud.taskflow3.drawing import draw_pipeline_automatic
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.periodictask.models import PeriodicTask

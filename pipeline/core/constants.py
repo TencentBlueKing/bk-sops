@@ -41,6 +41,7 @@ class PipelineElement(object):
     component = 'component'
     evaluate = 'evaluate'
     name = 'name'
+    stage_name = 'stage_name'
     failure_handler = 'failure_handler'
     inputs = 'inputs'
     outputs = 'outputs'
@@ -66,9 +67,6 @@ class PipelineElement(object):
     plain = 'plain'
     splice = 'splice'
     lazy = 'lazy'
-
-    location = 'location'
-    line = 'line'
 
 
 PE = PipelineElement()
