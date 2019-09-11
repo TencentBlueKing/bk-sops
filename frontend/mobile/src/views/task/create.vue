@@ -257,7 +257,9 @@
                             template_source: 'business'
                         }
                         const pipelineTree = await this.getPreviewTaskTree(params)
-                        pipelineTree.constants = this.templateConstants
+                        Object.keys(this.templateConstants).forEach(k => {
+                            pipelineTree.constants[k].value = this.templateConstants[k].value
+                        })
                         const data = {
                             'name': this.taskName,
                             'description': '',
