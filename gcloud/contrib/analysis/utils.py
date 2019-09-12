@@ -18,7 +18,7 @@ import logging
 
 from django.utils import timezone
 
-from gcloud.contrib.analysis.constant import AE
+from gcloud.core.constant import AE
 from pipeline.component_framework.models import ComponentModel
 
 logger = logging.getLogger("root")
@@ -64,7 +64,7 @@ def get_component_dict():
     return component_dict
 
 
-def check_and_rename_params(conditions, group_by, group_by_check=AE.dict_element()):
+def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
     """
     检验参数是否正确
     :param conditions:参数是一个dict

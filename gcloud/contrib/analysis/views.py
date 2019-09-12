@@ -15,7 +15,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
 
-from gcloud.contrib.analysis.constant import AE
+from gcloud.core.constant import AE
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.decorators import check_is_superuser
 from gcloud.core.utils import check_and_rename_params
@@ -119,7 +119,11 @@ def query_atom_by_group(request):
     def execute_task(*args):
         '''args = (group_by, filters, page_index, limit)'''
         group_by = args[0]
-        if group_by in [AE.atom_execute, AE.atom_instance]:
+        if group_by in [
+            AE.atom_execute, AE.atom_instance, AE.atom_execute_times,
+            AE.atom_execute_fail_times, AE.atom_avg_execute_time,
+            AE.atom_fail_percent
+        ]:
             success, content = task_flow_instance.dispatch(*args)
         else:
             success, content = task_template.dispatch(*args)

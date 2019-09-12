@@ -502,7 +502,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             "name",
             "create_time",
             "edit_time",
-            "editor",
+            "creator",
             "business__cc_id",
             "business__cc_name",
             "task_template__category"
@@ -516,7 +516,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 'templateId': code,
                 'createTime': format_datetime(data.get('create_time')),
                 'editTime': format_datetime(data.get('edit_time')),
-                'editor': data.get('editor'),
+                'creator': data.get('creator'),
                 'templateName': data.get('name'),
                 'businessId': data.get('business__cc_id'),
                 'businessName': data.get('business__cc_name'),
@@ -532,11 +532,133 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             groups = sorted(groups, key=lambda group: group.get(order_by))
         return total, groups
 
-    def group_by_atom_execute(self, taskflow, page, limit):
-        # 查询各标准插件被执行次数、失败率、重试次数、平均耗时（不计算子流程）
+    def group_by_atom_execute_times(self, taskflow):
+        # 查询各标准插件被执行次数
+        # 获得标准插件dict列表
+        component_dict = ComponentModel.objects.get_component_dict()
+        component_list = ComponentModel.objects.filter(status=True).values("code")
+
         instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
         # 获得标准插件
         component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
+        component_data = component.values('component_code').annotate(
+            execute_times=Count('component_code')).order_by('component_code')
+        total = component_list.count()
+        execute_data = {}
+        for component in component_data:
+            value = component['execute_times']
+            execute_data[component['component_code']] = value
+
+        groups = []
+        for data in component_list:
+            code = data.get('code')
+            groups.append({
+                'code': code,
+                'name': component_dict.get(code, None),
+                'value': execute_data.get(code, 0)
+            })
+        return total, groups
+
+    def group_by_atom_execute_fail_times(self, taskflow):
+        # 查询各标准插件重试次数
+        component_dict = ComponentModel.objects.get_component_dict()
+        component_list = ComponentModel.objects.filter(status=True).values("code")
+
+        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+        # 获得标准插件
+        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
+        component_data = component.values('component_code').annotate(
+            execute_times=Count('component_code')).order_by('component_code')
+        component_success_data = component.filter(is_retry=False).values('component_code').annotate(
+            success_times=Count('component_code')).order_by('component_code')
+        # 用于计算所有标准插件的成功列表
+        success_component_dict = {}
+        for data in component_success_data:
+            success_component_dict[data['component_code']] = data['success_times']
+        total = component_list.count()
+        execute_data = {}
+        for component in component_data:
+            value = component['execute_times'] - success_component_dict.get(component['component_code'], 0)
+            execute_data[component['component_code']] = value
+
+        groups = []
+        for data in component_list:
+            code = data.get('code')
+            groups.append({
+                'code': code,
+                'name': component_dict.get(code, None),
+                'value': execute_data.get(code, 0)
+            })
+        return total, groups
+
+    def group_by_atom_avg_execute_time(self, taskflow):
+        # 查询各标准插件被执行次数
+        # 获得标准插件dict列表
+        component_dict = ComponentModel.objects.get_component_dict()
+        component_list = ComponentModel.objects.filter(status=True).values("code")
+
+        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+        # 获得标准插件
+        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
+        component_data = component.values('component_code').annotate(
+            avg_execute_time=Avg('elapsed_time')).order_by('component_code')
+        total = component_list.count()
+        execute_data = {}
+        for component in component_data:
+            value = component['avg_execute_time']
+            execute_data[component['component_code']] = value
+
+        groups = []
+        for data in component_list:
+            code = data.get('code')
+            groups.append({
+                'code': code,
+                'name': component_dict.get(code, None),
+                'value': execute_data.get(code, 0)
+            })
+        return total, groups
+
+    def group_by_atom_fail_percent(self, taskflow):
+        # 查询各标准插件重试次数
+        component_dict = ComponentModel.objects.get_component_dict()
+        component_list = ComponentModel.objects.filter(status=True).values("code")
+
+        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+        # 获得标准插件
+        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
+        component_data = component.values('component_code').annotate(
+            execute_times=Count('component_code')).order_by('component_code')
+        component_success_data = component.filter(is_retry=False).values('component_code').annotate(
+            success_times=Count('component_code')).order_by('component_code')
+        # 用于计算所有标准插件的成功列表
+        success_component_dict = {}
+        for data in component_success_data:
+            success_component_dict[data['component_code']] = data['success_times']
+        total = component_list.count()
+        execute_data = {}
+        for component in component_data:
+            execute_times = component['execute_times']
+            failed_times = execute_times - success_component_dict.get(component['component_code'], 0)
+            failed_times_percent = '%.2f %%' % (failed_times / 1.0 / execute_times * 100)
+            execute_data[component['component_code']] = failed_times_percent
+
+        groups = []
+        for data in component_list:
+            code = data.get('code')
+            groups.append({
+                'code': code,
+                'name': component_dict.get(code, None),
+                'value': execute_data.get(code, 0)
+            })
+        return total, groups
+
+    def group_by_atom_execute(self, taskflow):
+        # 查询各标准插件被执行次数、失败率、重试次数、平均耗时（不计算子流程）
+        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+
+        # 获得标准插件
+        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
+
         component_data = component.values('component_code').annotate(
             execute_times=Count('component_code'),
             avg_execute_time=Avg('elapsed_time')).order_by('component_code')
@@ -556,11 +678,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             group_name = _(name[0])
             name = _(name[1])
             component_dict[bundle.code] = '%s-%s' % (group_name, name)
-        for data in component_data[(page - 1) * limit: page * limit]:
+        for data in component_data:
             code = data.get('component_code')
             execute_times = data.get('execute_times')
             failed_times = execute_times - success_component_dict.get(code, 0)
-            failed_times_percent = '%.2f %%' % (failed_times / 1.0 / execute_times * 100)
+            failed_times_percent = '%.2f' % (failed_times / 1.0 / execute_times * 100)
             groups.append({
                 'componentName': component_dict[code],
                 'executeTimes': execute_times,
@@ -581,9 +703,20 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         # 获取到组件code对应的instance_id_list
         instance_id_list = ComponentExecuteData.objects.filter(is_sub=False)
         # 对code进行二次查找
-        instance_id_list = instance_id_list.filter(component_code=component_code).distinct().values_list(
-            "instance_id")
-        taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list).values(
+        if component_code:
+            instance_id_list = instance_id_list.filter(component_code=component_code).distinct().values_list(
+                "instance_id")
+        else:
+            instance_id_list = instance_id_list.values_list("instance_id")
+        taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
+        # 获得总数
+        total = taskflow_list.count()
+        order_by = filters.get("order_by", '-templateId')
+        if order_by == '-instanceId':
+            taskflow_list = taskflow_list.order_by('-id')
+        if order_by == 'instanceId':
+            taskflow_list = taskflow_list.order_by('id')
+        taskflow_list = taskflow_list.values(
             'id',
             'business__cc_id',
             'business__cc_name',
@@ -591,10 +724,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             'category',
             'pipeline_instance__create_time',
             'pipeline_instance__creator'
-        )
-        # 获得总数
-        total = taskflow_list.count()
-        taskflow_list = taskflow_list[(page - 1) * limit: page * limit]
+        )[(page - 1) * limit: page * limit]
         groups = []
         # 循环信息
         for data in taskflow_list:
@@ -682,7 +812,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         total = instance_id_list.count()
 
         # 排序
-        order_by = filters.get("order_by", "instanceId")
+        order_by = filters.get("order_by", "-instanceId")
         component_list = instance_id_list.annotate(execute_time=Sum('elapsed_time')).order_by()
         # 使用驼峰转下划线进行转换order_by
         component_list = component_list.order_by(camel_case_to_underscore_naming(order_by))
@@ -691,7 +821,6 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         component_dict = {}
         instance_list = [tuples[0] for tuples in component_list]
         for component in component_list:
-            print component
             component_dict[component[0]] = component[1]
         taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_list).values(
             'id',

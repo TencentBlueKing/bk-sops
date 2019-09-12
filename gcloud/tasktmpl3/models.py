@@ -22,6 +22,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentInTemplate, TemplateInPipeline
+from pipeline.contrib.periodic_task.models import PeriodicTask
 from pipeline.models import PipelineInstance, TemplateRelationship
 from pipeline.parser.utils import replace_all_id
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
@@ -229,12 +230,11 @@ class TaskTemplateManager(BaseTemplateManager):
             "component_code").annotate(
             value=Count("component_code")).order_by()
         components_dict = {}
-        total = 0
+        total = component_list.count()
         for component in other_component_list:
             value = component["value"]
             components_dict[component["component_code"]] = value
             # 总数不能通过查询获得，需要通过循环计数
-            total += value
         groups = []
         # 循环聚合信息
         for data in component_list:
@@ -262,14 +262,19 @@ class TaskTemplateManager(BaseTemplateManager):
             template_id_list = ComponentInTemplate.objects.all().values_list("template_id")
         template_list = tasktmpl.filter(pipeline_template__template_id__in=template_id_list)
         total = template_list.count()
+        order_by = filters.get("order_by", '-templateId')
+        if order_by == '-templateId':
+            template_list = template_list.order_by('-id')
+        if order_by == 'templateId':
+            template_list = template_list.order_by('id')
         template_list = template_list.values(
             "id",
             "business__cc_id",
             "business__cc_name",
             "pipeline_template__name",
             "category",
-            "pipeline_template__edit_time",
-            "pipeline_template__editor"
+            "pipeline_template__create_time",
+            "pipeline_template__creator"
         )[(page - 1) * limit:page * limit]
         groups = []
         # 循环聚合信息
@@ -280,8 +285,8 @@ class TaskTemplateManager(BaseTemplateManager):
                 'businessName': data.get("business__cc_name"),
                 'templateName': data.get("pipeline_template__name"),
                 'category': category_dict[data.get("category")],  # 需要将code转为名称
-                "editTime": format_datetime(data.get("pipeline_template__edit_time")),
-                "editor": data.get("pipeline_template__editor")
+                "createTime": format_datetime(data.get("pipeline_template__create_time")),
+                "creator": data.get("pipeline_template__creator")
             })
         return total, groups
 
@@ -385,20 +390,55 @@ class TaskTemplateManager(BaseTemplateManager):
 
         # 排序
         template_id_list = tasktmpl.values("pipeline_template__template_id")
+        id_list = tasktmpl.values("pipeline_template__id", "pipeline_template__template_id")
         template_pipeline_data = TemplateInPipeline.objects.filter(template_id__in=template_id_list)
+        relationship_list = TemplateRelationship.objects.filter(descendant_template_id__in=template_id_list).values(
+            "descendant_template_id").annotate(relationship_total=Count("descendant_template_id"))
+        template_id_map = {template['pipeline_template__id']: template['pipeline_template__template_id'] for template in id_list}
+        taskflow_list = PipelineInstance.objects.filter(template_id__in=template_id_map.keys()).values(
+            "template_id").annotate(instance_total=Count("template_id")).order_by()
+        periodic_list = PeriodicTask.objects.filter(template__template_id__in=template_id_list).values(
+            "template__template_id").annotate(periodic_total=Count("template__id"))
+
         order_by = filters.get("order_by", "-templateId")
         # 使用驼峰转下划线进行转换order_by
         camel_order_by = camel_case_to_underscore_naming(order_by)
         # 排列获取分页后的数据
-        pipeline_data = template_pipeline_data.order_by(camel_order_by)[(page - 1) * limit:page * limit]
-        template_id_list = [template.template_id for template in pipeline_data]
+        if order_by in ['relationshipTotal', '-relationshipTotal']:
+            filtered_relationship_list = relationship_list.order_by(camel_order_by)[(page - 1) * limit:page * limit]
+            template_id_list = [template.template_id for template in filtered_relationship_list]
+        elif order_by in ['instanceTotal', '-instanceTotal']:
+            filtered_taskflow_list = taskflow_list.order_by(camel_order_by)[(page - 1) * limit:page * limit]
+            template_id_list = [template_id_map[template["template_id"]] for template in filtered_taskflow_list]
+        elif order_by in ['periodicTotal', '-periodicTotal']:
+            filtered_periodic_list = periodic_list.order_by(camel_order_by)[(page - 1) * limit:page * limit]
+            template_id_list = [template["template__template_id"] for template in filtered_periodic_list]
+        else:
+            filtered_pipeline_data = template_pipeline_data.order_by(camel_order_by)[(page - 1) * limit:page * limit]
+            template_id_list = [template.template_id for template in filtered_pipeline_data]
         tasktmpl = tasktmpl.filter(pipeline_template__template_id__in=template_id_list)
 
         pipeline_dict = {}
+        pipeline_data = template_pipeline_data.filter(template_id__in=template_id_list)
         for pipeline in pipeline_data:
             pipeline_dict[pipeline.template_id] = {"atom_total": pipeline.atom_total,
                                                    "subprocess_total": pipeline.subprocess_total,
                                                    "gateways_total": pipeline.gateways_total}
+        relationship_dict = {}
+        relationship_list = relationship_list.filter(descendant_template_id__in=template_id_list)
+        for relationship in relationship_list:
+            relationship_dict[relationship["descendant_template_id"]] = relationship["relationship_total"]
+
+        taskflow_dict = {}
+        taskflow_list = taskflow_list.filter(template__template_id__in=template_id_list)
+        for taskflow in taskflow_list:
+            taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
+
+        periodic_dict = {}
+        periodic_list = periodic_list.filter(template__template_id__in=template_id_list)
+        for periodic_task in periodic_list:
+            periodic_dict[periodic_task["template__template_id"]] = periodic_task["periodic_total"]
+
         # 需要循环执行计算相关节点
         for template in tasktmpl:
             pipeline_template = template.pipeline_template
@@ -415,7 +455,10 @@ class TaskTemplateManager(BaseTemplateManager):
                 "creator": pipeline_template.creator,
                 "atomTotal": pipeline_dict[pipeline_template_id]["atom_total"],
                 "subprocessTotal": pipeline_dict[pipeline_template_id]["subprocess_total"],
-                "gatewaysTotal": pipeline_dict[pipeline_template_id]["gateways_total"]
+                "gatewaysTotal": pipeline_dict[pipeline_template_id]["gateways_total"],
+                "relationshipTotal": relationship_dict.get(pipeline_template_id, 0),
+                "instanceTotal": taskflow_dict.get(pipeline_template_id, 0),
+                "periodicTotal": periodic_dict.get(pipeline_template_id, 0)
             })
         if order_by[0] == "-":
             # 需要去除负号

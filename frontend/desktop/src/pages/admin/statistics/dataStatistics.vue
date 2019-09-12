@@ -20,7 +20,7 @@
                 :class="[dimension.value ? 'chart-statistics-chart' : 'chart-statistics-normal']"
                 :style="{ width: `${dimension.value ? dealProcess(dimension.value, totalValue) : 0.3}%` }">
             </div>
-            <div class="chart-statistics-num">{{dimension.value}} / {{getPercentage(dimension.value)}}%</div>
+            <div class="chart-statistics-num">{{dimension.value}}</div>
         </div>
     </div>
 </template>
@@ -69,9 +69,6 @@
             }
         },
         methods: {
-            getPercentage (value) {
-                return (value / this.totalValue * 100).toFixed(2)
-            },
             dealProcess (value, totalValue) {
                 let result = value / totalValue * 60
                 if (result > 0 && result < 0.06) {

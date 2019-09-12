@@ -14,7 +14,7 @@
         <div class="content-wrap">
             <div class="content-dimesion" v-bkloading="{ isLoading: isAppLicationLoading, opacity: 1 }">
                 <div class="clearfix">
-                    <div class="content-title">{{i18n.category}}</div>
+                    <div class="content-title">{{i18n.appmakerCategory}}</div>
                     <div class="content-date">
                         <div class="content-date-business">
                             <bk-select
@@ -22,6 +22,7 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
+                                :placeholder="i18n.businessPlaceholder"
                                 @selected="onAppMakerCategory"
                                 @clear="onClearAppMakerCategory">
                                 <bk-option
@@ -38,7 +39,7 @@
             </div>
             <div class="content-wrap-right" v-bkloading="{ isLoading: isCategoryLoading, opacity: 1 }">
                 <div class="clearfix">
-                    <div class="content-title">{{i18n.ownBusiness}}</div>
+                    <div class="content-title">{{i18n.appmakerBusiness}}</div>
                     <div class="content-statistics">
                         <div class="content-business">
                             <bk-select
@@ -46,7 +47,7 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
-                                :placeholder="i18n.choice"
+                                :placeholder="i18n.categoryPlaceholder"
                                 @selected="onAppMakerBizCcid"
                                 @clear="onClearAppMakerBizCcid">
                                 <bk-option
@@ -74,7 +75,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.businessPlaceholder"
                                     @clear="onClearBizCcId"
                                     @selected="onSelectedBizCcId">
                                     <bk-option
@@ -92,7 +93,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.categoryPlaceholder"
                                     @clear="onClearCategory"
                                     @selected="onSelectedCategory">
                                     <bk-option
@@ -123,7 +124,7 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import DataStatistics from '../dataStatistics/index.vue'
+    import DataStatistics from './dataStatistics.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
@@ -131,20 +132,23 @@
 
     const i18n = {
         ownBusiness: gettext('所属业务'),
+        appmakerBusiness: gettext('分业务统计'),
         applicationTime: gettext('轻应用创建时间'),
         applicationDetails: gettext('轻应用详情'),
-        choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceCategory: gettext('分类'),
+        choiceBusiness: gettext('所属业务'),
         choiceTime: gettext('选择时间'),
-        choice: gettext('请选择'),
+        categoryPlaceholder: gettext('请选择类别'),
+        businessPlaceholder: gettext('请选择业务'),
         atom: gettext('标准插件'),
         choiceAllCategory: gettext('全部分类'),
         choiceAllBusiness: gettext('全部业务'),
         templateName: gettext('轻应用名称'),
         createTime: gettext('创建时间'),
         editTime: gettext('更新时间'),
-        editor: gettext('更新人'),
+        creator: gettext('创建人'),
         category: gettext('分类'),
+        appmakerCategory: gettext('分类统计'),
         instanceTotal: gettext('创建任务数')
     }
 
@@ -215,29 +219,21 @@
                         align: 'center' // 对其格式，可选（right，left，center）
                     },
                     {
-                        prop: 'createTime',
-                        label: i18n.createTime,
+                        prop: 'category',
+                        label: i18n.category,
                         align: 'center'
                     },
                     {
-                        prop: 'editTime',
-                        label: i18n.editTime,
+                        prop: 'creator',
+                        label: i18n.creator,
                         align: 'center',
                         formatter: (row, column, cellValue) => {
-                            return `<span>${row.editTime || '--'}</span>`
+                            return `<span>${row.creator || '--'}</span>`
                         }
                     },
                     {
-                        prop: 'editor',
-                        label: i18n.editor,
-                        align: 'center',
-                        formatter: (row, column, cellValue) => {
-                            return `<span>${row.editor || '--'}</span>`
-                        }
-                    },
-                    {
-                        prop: 'category',
-                        label: i18n.category,
+                        prop: 'createTime',
+                        label: i18n.createTime,
                         align: 'center'
                     },
                     {

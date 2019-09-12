@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from gcloud.contrib.analysis.constant import AE
+from gcloud.core.constant import AE
 from gcloud.taskflow3.models import TaskFlowInstance
 
 
@@ -48,7 +48,23 @@ def dispatch(group_by, filters=None, page=None, limit=None):
 
     # 查询各标准插件被执行次数、失败率、重试次数、平均耗时（不计算子流程）
     elif group_by == AE.atom_execute:
-        total, groups = taskFlowInstanceManager.group_by_atom_execute(taskflow, page, limit)
+        total, groups = taskFlowInstanceManager.group_by_atom_execute(taskflow)
+
+    # 查询各标准插件被执行次数
+    elif group_by == AE.atom_execute_times:
+        total, groups = taskFlowInstanceManager.group_by_atom_execute_times(taskflow)
+
+    # 查询各标准插件失败次数
+    elif group_by == AE.atom_execute_fail_times:
+        total, groups = taskFlowInstanceManager.group_by_atom_execute_fail_times(taskflow)
+
+    # 查询各标准插件失败率
+    elif group_by == AE.atom_fail_percent:
+        total, groups = taskFlowInstanceManager.group_by_atom_fail_percent(taskflow)
+
+    # 查询各标准插件平均耗时（不计算子流程）
+    elif group_by == AE.atom_avg_execute_time:
+        total, groups = taskFlowInstanceManager.group_by_atom_avg_execute_time(taskflow)
 
     # 被引用的任务实例列表
     elif group_by == AE.atom_instance:
