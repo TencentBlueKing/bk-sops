@@ -22,6 +22,7 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
+                                :placeholder="i18n.businessPlaceholder"
                                 @selected="onInstanceCategory"
                                 @clear="onClearInstanceCategory">
                                 <bk-option
@@ -38,7 +39,7 @@
             </div>
             <div class="content-wrap-right" v-bkloading="{ isLoading: isBuinsessLoading, opacity: 1 }">
                 <div class="clearfix">
-                    <div class="content-title">{{i18n.ownBusiness}}</div>
+                    <div class="content-title">{{i18n.taskBusiness}}</div>
                     <div class="content-statistics">
                         <div class="content-business">
                             <bk-select
@@ -46,7 +47,7 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
-                                :placeholder="i18n.choice"
+                                :placeholder="i18n.categoryPlaceholder"
                                 @selected="onInstanceBizCcId"
                                 @clear="onClearInstanceBizCcId">
                                 <bk-option
@@ -73,7 +74,7 @@
                             class="bk-select-inline"
                             :popover-width="260"
                             :searchable="true"
-                            :placeholder="i18n.choice"
+                            :placeholder="i18n.businessPlaceholder"
                             @selected="onChangeTimeTypeBusiness"
                             @clear="onClearTimeTypeBusiness">
                             <bk-option
@@ -91,7 +92,7 @@
                             class="bk-select-inline"
                             :popover-width="260"
                             :searchable="true"
-                            :placeholder="i18n.choice"
+                            :placeholder="i18n.categoryPlaceholder"
                             @selected="onChangeTimeTypeCategory"
                             @clear="onClearTimeTypeCategory">
                             <bk-option
@@ -107,8 +108,9 @@
                         <bk-select
                             v-model="choiceDate"
                             class="bk-select-date-scope"
-                            :popover-width="260"
+                            :popover-width="80"
                             :placeholder="i18n.choice"
+                            :clearable="false"
                             @selected="onChangeTimeType">
                             <bk-option
                                 v-for="(option, index) in taskDimensionArray"
@@ -134,7 +136,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.businessPlaceholder"
                                     @clear="onClearBizCcId"
                                     @selected="onSelectedBizCcId">
                                     <bk-option
@@ -152,7 +154,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.categoryPlaceholder"
                                     @clear="onClearCategory"
                                     @selected="onSelectedCategory">
                                     <bk-option
@@ -187,7 +189,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.businessPlaceholder"
                                     @clear="onClearBizCcId"
                                     @selected="onSelectedBizCcId">
                                     <bk-option
@@ -205,7 +207,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.categoryPlaceholder"
                                     @clear="onClearCategory"
                                     @selected="onSelectedCategory">
                                     <bk-option
@@ -223,6 +225,7 @@
                             :pagination="detailsPagination"
                             :columns="detailsColumns"
                             :loading="isDetailsLoading"
+                            @handleSortChange="detailsHandleSortChange"
                             @handleSizeChange="onDetailsHandleSizeChange"
                             @handleIndexChange="onDetailsHandleIndexChange">
                         </data-table-pagination>
@@ -235,24 +238,26 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import DataStatistics from '../dataStatistics/index.vue'
-    import VerticalBarChart from '../verticalBarChart/index.vue'
+    import DataStatistics from './dataStatistics.vue'
+    import VerticalBarChart from './verticalBarChart.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     const i18n = {
-        taskCategory: gettext('任务分类'),
+        taskCategory: gettext('分类统计'),
+        taskBusiness: gettext('分业务统计'),
         ownBusiness: gettext('所属业务'),
         taskDetail: gettext('任务详情'),
-        executionName: gettext('执行耗时'),
+        executionName: gettext('归档任务耗时'),
         timeLimit: gettext('时间范围'),
-        choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
-        instanceTime: gettext('时间维度'),
+        choiceCategory: gettext('分类'),
+        choiceBusiness: gettext('所属业务'),
+        instanceTime: gettext('分时间统计'),
         day: gettext('天'),
-        choice: gettext('请选择'),
+        categoryPlaceholder: gettext('请选择类别'),
+        businessPlaceholder: gettext('请选择业务'),
         choiceAllCategory: gettext('全部分类'),
         choiceAllBusiness: gettext('全部业务'),
         instanceName: gettext('任务名称'),
@@ -263,7 +268,8 @@
         gatewaysTotal: gettext('网关数'),
         category: gettext('分类'),
         month: gettext('月'),
-        executeTime: gettext('耗时(秒)')
+        executeTime: gettext('耗时(秒)'),
+        instanceId: gettext('任务ID')
     }
 
     export default {
@@ -307,6 +313,12 @@
                 },
                 nodeColumns: [
                     {
+                        prop: 'instanceId',
+                        label: i18n.instanceId,
+                        sortable: 'custom',
+                        align: 'center'
+                    },
+                    {
                         prop: 'instanceName',
                         label: i18n.instanceName,
                         width: '285',
@@ -321,8 +333,8 @@
                         align: 'center' // 对其格式，可选（right，left，center）
                     },
                     {
-                        prop: 'createTime',
-                        label: i18n.createTime,
+                        prop: 'category',
+                        label: i18n.category,
                         align: 'center'
                     },
                     {
@@ -331,9 +343,10 @@
                         align: 'center'
                     },
                     {
-                        prop: 'category',
-                        label: i18n.category,
-                        align: 'center'
+                        prop: 'createTime',
+                        label: i18n.createTime,
+                        align: 'center',
+                        width: 210
                     },
                     {
                         prop: 'atomTotal',
@@ -375,6 +388,12 @@
                 ],
                 detailsColumns: [
                     {
+                        prop: 'instanceId',
+                        label: i18n.instanceId,
+                        sortable: 'custom',
+                        align: 'center'
+                    },
+                    {
                         prop: 'instanceName',
                         label: i18n.instanceName,
                         title: 'instanceName',
@@ -393,13 +412,19 @@
                         align: 'center'
                     },
                     {
-                        prop: 'executeTime',
-                        label: i18n.executeTime,
+                        prop: 'creator',
+                        label: i18n.creator,
                         align: 'center'
                     },
                     {
-                        prop: 'creator',
-                        label: i18n.creator,
+                        prop: 'createTime',
+                        label: i18n.createTime,
+                        align: 'center'
+                    },
+                    {
+                        prop: 'executeTime',
+                        label: i18n.executeTime,
+                        sortable: 'custom',
                         align: 'center'
                     }
                 ],

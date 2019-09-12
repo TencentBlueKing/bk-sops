@@ -22,6 +22,7 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
+                                :placeholder="i18n.businessPlaceholder"
                                 @selected="onTemplateCategory"
                                 @clear="onClearTemplateCategory">
                                 <bk-option
@@ -46,7 +47,7 @@
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
-                                :placeholder="i18n.choice"
+                                :placeholder="i18n.categoryPlaceholder"
                                 @selected="onTemplateBizCcId"
                                 @clear="onClearTemplateBizCcId">
                                 <bk-option
@@ -74,7 +75,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.businessPlaceholder"
                                     @clear="onClearBizCcId"
                                     @selected="onSelectedBizCcId">
                                     <bk-option
@@ -92,7 +93,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.categoryPlaceholder"
                                     @clear="onClearCategory"
                                     @selected="onSelectedCategory">
                                     <bk-option
@@ -117,41 +118,6 @@
                         </data-table-pagination>
                     </div>
                 </bk-tab-panel>
-                <bk-tab-panel name="processReference" :label="i18n.cite">
-                    <div class="content-wrap-detail">
-                        <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-select
-                                    v-model="selectedCcId"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.choice"
-                                    @change="onTemplateByCiteData"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
-                                    <bk-option
-                                        v-for="(option, index) in allBusinessList"
-                                        :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                        </div>
-                        <data-table-pagination
-                            :data="citeData"
-                            :total="citeTotal"
-                            :pagination="citePagination"
-                            :columns="citeColumns"
-                            :loading="isReferLoading"
-                            @handleSortChange="onCiteSortChange"
-                            @handleSizeChange="onCiteSizeChange"
-                            @handleIndexChange="onCiteHandleIndexChange">
-                        </data-table-pagination>
-                    </div>
-                </bk-tab-panel>
             </bk-tab>
         </div>
     </div>
@@ -160,22 +126,23 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import DataStatistics from '../dataStatistics/index.vue'
+    import DataStatistics from './dataStatistics.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     const i18n = {
-        flowCategory: gettext('流程分类'),
-        flowBusiness: gettext('所属业务'),
-        choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        flowCategory: gettext('分类统计'),
+        flowBusiness: gettext('分业务统计'),
+        choiceCategory: gettext('分类'),
+        choiceBusiness: gettext('所属业务'),
         timeLimit: gettext('时间范围'),
         node: gettext('流程详情'),
         prop: gettext('所属业务'),
         cite: gettext('流程引用'),
-        choice: gettext('请选择'),
+        categoryPlaceholder: gettext('请选择类别'),
+        businessPlaceholder: gettext('请选择业务'),
         choiceAllCategory: gettext('全部分类'),
         choiceAllBusiness: gettext('全部业务'),
         templateName: gettext('流程名称'),
@@ -189,7 +156,9 @@
         history: gettext('执行历史'),
         appmakerTotal: gettext('创建轻应用数'),
         relationshipTotal: gettext('被引用为子流程数'),
-        instanceTotal: gettext('创建任务数')
+        instanceTotal: gettext('创建任务数'),
+        periodicTotal: gettext('创建周期任务数'),
+        templateId: gettext('流程ID')
     }
 
     export default {
@@ -216,9 +185,7 @@
                 category: undefined,
                 classiFicationArray: [],
                 taskStatistArray: [],
-                citeData: [],
                 nodeData: [],
-                nodeTotal: 0,
                 nodePageIndex: 1,
                 nodeLimit: 15, // 每页数量
                 nodeOrderBy: '-templateId',
@@ -232,12 +199,13 @@
                 citeTotal: 0,
                 citePageIndex: 1,
                 citeLimit: 15,
-                citePagination: {
-                    limit: this.citeLimit,
-                    pageIndex: this.citePageIndex,
-                    pageArray: this.dataTablePageArray // 公共js文件获取
-                },
                 nodeColumns: [
+                    {
+                        prop: 'templateId',
+                        label: i18n.templateId,
+                        sortable: 'custom',
+                        align: 'center'
+                    },
                     {
                         prop: 'templateName',
                         label: i18n.templateName,
@@ -258,10 +226,22 @@
                         align: 'center'
                     },
                     {
+                        prop: 'creator',
+                        label: i18n.creator,
+                        align: 'center'
+                    },
+                    {
+                        prop: 'createTime',
+                        label: i18n.createTime,
+                        align: 'center',
+                        width: 220
+                    },
+                    {
                         prop: 'atomTotal',
                         label: i18n.atomTotal,
                         sortable: 'custom',
-                        align: 'center'
+                        align: 'center',
+                        width: 120
                     },
                     {
                         prop: 'subprocessTotal',
@@ -276,15 +256,25 @@
                         align: 'center'
                     },
                     {
-                        prop: 'creator',
-                        label: i18n.creator,
-                        align: 'center'
+                        prop: 'instanceTotal',
+                        label: i18n.instanceTotal,
+                        align: 'center',
+                        sortable: 'custom',
+                        width: 120
                     },
                     {
-                        prop: 'createTime',
-                        label: i18n.createTime,
+                        prop: 'relationshipTotal',
+                        label: i18n.relationshipTotal,
                         align: 'center',
-                        width: 220
+                        sortable: 'custom',
+                        width: 160
+                    },
+                    {
+                        prop: 'periodicTotal',
+                        label: i18n.periodicTotal,
+                        align: 'center',
+                        sortable: 'custom',
+                        width: 150
                     }
                 ],
                 nodeOperates: {
@@ -303,39 +293,6 @@
                 },
                 total: 0,
                 ficationTotal: 0,
-                citeColumns: [
-                    {
-                        prop: 'templateName',
-                        label: i18n.templateName,
-                        width: 285,
-                        formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}template/edit/${row.businessId}/?template_id=${row.templateId}">${row.templateName}</a>`
-                        }
-                    },
-                    {
-                        prop: 'templateId',
-                        label: 'ID',
-                        align: 'center'
-                    },
-                    {
-                        prop: 'appmakerTotal',
-                        label: i18n.appmakerTotal,
-                        align: 'center',
-                        sortable: 'custom'
-                    },
-                    {
-                        prop: 'relationshipTotal',
-                        label: i18n.relationshipTotal,
-                        align: 'center',
-                        sortable: 'custom'
-                    },
-                    {
-                        prop: 'instanceTotal',
-                        label: i18n.instanceTotal,
-                        align: 'center',
-                        sortable: 'custom'
-                    }
-                ],
                 selectedCcId: '',
                 businessSelected: '',
                 categorySelected: '',
@@ -370,7 +327,6 @@
                 this.onTemplateCategory(null)
                 this.onTemplateBizCcId(null)
                 this.onTemplateNode(val)
-                this.onTemplateByCiteData(val)
             }
         },
         created () {
@@ -500,55 +456,7 @@
                         this.nodeTotal = templateData.data.total
                         this.isDetailLoading = false
                         break
-                    case 'template_cite':
-                        this.citeData = templateData.data.groups
-                        this.citeTotal = templateData.data.total
-                        this.isReferLoading = false
-                        break
                 }
-            },
-            onTemplateByCiteData (value) {
-                if (this.tabName !== 'processReference') {
-                    // 防止不同界面进行触发接口调用
-                    return
-                }
-                if (Array.isArray(value)) {
-                    this.resetPageIndex()
-                }
-                this.isReferLoading = true
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'template_cite',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
-                        category: this.category,
-                        order_by: this.citeOrderBy
-                    }),
-                    pageIndex: this.citePageIndex,
-                    limit: this.citeLimit
-                }
-                try {
-                    this.templateTableData(data)
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            // 流程引用的排序
-            onCiteSortChange (column, prop, order) {
-                order = column[0].order === 'ascending' ? '' : '-'
-                this.citeOrderBy = column[0].prop ? order + column[0].prop : '-templateId'
-                this.onTemplateByCiteData()
-            },
-            onCiteSizeChange (limit) {
-                this.citePageIndex = 1
-                this.citeLimit = limit
-                this.onTemplateByCiteData()
-            },
-            onCiteHandleIndexChange (pageIndex) {
-                this.citePageIndex = pageIndex
-                this.onTemplateByCiteData()
             },
             onNodeSortChange (column, prop, order) {
                 order = column[0].order === 'ascending' ? '' : '-'
@@ -566,11 +474,7 @@
             },
             onChangeTabPanel (name) {
                 this.tabName = name
-                if (name === 'processDetails') {
-                    this.onTemplateNode()
-                } else {
-                    this.onTemplateByCiteData()
-                }
+                this.onTemplateNode()
             },
             onInstanceHandleView (index, row) {
                 window.open(this.site_url + 'taskflow/home/' + row.businessId + '/?template_id=' + row.templateId)

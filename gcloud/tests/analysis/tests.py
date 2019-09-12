@@ -43,7 +43,7 @@ from gcloud.contrib.analysis.views import (
     query_appmaker_by_group,
     query_instance_by_group,
 )
-from gcloud.contrib.analysis.constant import AE
+from gcloud.core.constant import AE
 
 
 class Analysis(TestCase):

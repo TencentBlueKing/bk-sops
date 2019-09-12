@@ -18,10 +18,27 @@
                     <div class="content-date">
                         <div class="content-date-business">
                             <bk-select
+                                v-model="sortingSelected"
+                                class="bk-select-inline"
+                                :placeholder="i18n.sortingPlaceholder"
+                                :popover-width="260"
+                                :clearable="false"
+                                @selected="onSortingSelected">
+                                <bk-option
+                                    v-for="(option, index) in sortingList"
+                                    :key="index"
+                                    :id="option.key"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
+                        </div>
+                        <div class="content-date-business">
+                            <bk-select
                                 v-model="businessSelected"
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
+                                :placeholder="i18n.businessPlaceholder"
                                 @selected="onAtomCiteData"
                                 @clear="onClearAtomCiteData">
                                 <bk-option
@@ -49,7 +66,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.atomPlaceholder"
                                     @clear="onClearAtom"
                                     @selected="onSelectedAtom">
                                     <bk-option
@@ -67,7 +84,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.businessPlaceholder"
                                     @clear="onClearBizCcId"
                                     @selected="onSelectedBizCcId">
                                     <bk-option
@@ -85,7 +102,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.categoryPlaceholder"
                                     @clear="onClearCategory"
                                     @selected="onSelectedCategory">
                                     <bk-option
@@ -104,59 +121,9 @@
                             :pagination="templatePagination"
                             :columns="templateColumns"
                             :loading="isTemplateLoading"
+                            @handleSortChange="templateHandleSortChange"
                             @handleSizeChange="onTemplateHandleSizeChange"
                             @handleIndexChange="onTemplateHandleIndexChange">
-                        </data-table-pagination>
-                    </div>
-                </bk-tab-panel>
-                <bk-tab-panel name="executionTime" :label="i18n.executionTime">
-                    <div class="content-wrap-detail">
-                        <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-select
-                                    v-model="selectedCcId"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.choice"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
-                                    <bk-option
-                                        v-for="(option, index) in allBusinessList"
-                                        :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceCategory}}</label>
-                                <bk-select
-                                    v-model="selectedCategory"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.choice"
-                                    @clear="onClearCategory"
-                                    @selected="onSelectedCategory">
-                                    <bk-option
-                                        v-for="(option, index) in categorys"
-                                        :key="index"
-                                        :id="option.value"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                        </div>
-                        <data-table-pagination
-                            :data="executeData"
-                            :total="executeTotal"
-                            :columns="executeColumns"
-                            :pagination="executePagination"
-                            :loading="isExecutionLoading"
-                            @handleSizeChange="onExecuteHandleSizeChange"
-                            @handleIndexChange="onExecuteHandleIndexChange">
                         </data-table-pagination>
                     </div>
                 </bk-tab-panel>
@@ -170,7 +137,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.atomPlaceholder"
                                     @clear="onClearAtom"
                                     @selected="onSelectedAtom">
                                     <bk-option
@@ -188,7 +155,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.businessPlaceholder"
                                     @clear="onClearBizCcId"
                                     @selected="onSelectedBizCcId">
                                     <bk-option
@@ -206,7 +173,7 @@
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
-                                    :placeholder="i18n.choice"
+                                    :placeholder="i18n.categoryPlaceholder"
                                     @clear="onClearCategory"
                                     @selected="onSelectedCategory">
                                     <bk-option
@@ -225,6 +192,7 @@
                             :pagination="instancePagination"
                             :columns="instanceColumns"
                             :loading="isInstanceLoading"
+                            @handleSortChange="instanceHandleSortChange"
                             @handleSizeChange="onInstanceHandleSizeChange"
                             @handleIndexChange="onInstanceHandleIndexChange">
                         </data-table-pagination>
@@ -237,33 +205,34 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import DataStatistics from '../dataStatistics/index.vue'
+    import DataStatistics from './dataStatistics.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     const i18n = {
-        numberCitations: gettext('引用次数'),
-        processDetail: gettext('流程详情'),
+        numberCitations: gettext('排序统计'),
+        processDetail: gettext('流程引用详情'),
         executionTime: gettext('执行耗时'),
-        taskDetail: gettext('任务详情'),
+        taskDetail: gettext('任务执行详情'),
         timeLimit: gettext('时间范围'),
         taskStartTime: gettext('任务开始时间'),
-        choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
-        choice: gettext('请选择'),
+        choiceCategory: gettext('分类'),
+        choiceBusiness: gettext('所属业务'),
+        categoryPlaceholder: gettext('请选择类别'),
+        businessPlaceholder: gettext('请选择业务'),
+        sortingPlaceholder: gettext('请选择排序维度'),
+        atomPlaceholder: gettext('请选择插件'),
         atom: gettext('标准插件'),
         choiceAllCategory: gettext('全部分类'),
         choiceAllBusiness: gettext('全部业务'),
         templateName: gettext('流程名称'),
         businessName: gettext('所属业务'),
-        editTime: gettext('更新时间'),
-        editor: gettext('更新人'),
-        category: gettext('分类'),
-        instanceName: gettext('任务名称'),
         createTime: gettext('创建时间'),
         creator: gettext('创建人'),
+        category: gettext('分类'),
+        instanceName: gettext('任务名称'),
         atomTotal: gettext('标准插件数'),
         subprocessTotal: gettext('子流程数'),
         gatewaysTotal: gettext('网关数'),
@@ -271,8 +240,23 @@
         executeTimes: gettext('执行次数'),
         failedTimes: gettext('失败次数'),
         avgExecuteTime: gettext('平均执行耗时(秒)'),
-        failedTimesPercent: gettext('失败率')
+        failedTimesPercent: gettext('失败率'),
+        templateId: gettext('流程ID'),
+        instanceId: gettext('任务ID'),
+        atomExecuteTimes: gettext('任务执行次数(次)'),
+        atomExecuteFailTimes: gettext('执行失败次数(次)'),
+        atomAvgExecuteTime: gettext('执行平均耗时(秒)'),
+        atomFailPercent: gettext('执行失败率(%)'),
+        atomCite: gettext('流程引用次数(次)')
     }
+
+    const sortingList = [
+        { key: 'atom_cite', name: i18n.atomCite },
+        { key: 'atom_execute_times', name: i18n.atomExecuteTimes },
+        { key: 'atom_execute_fail_times', name: i18n.atomExecuteFailTimes },
+        { key: 'atom_avg_execute_time', name: i18n.atomAvgExecuteTime },
+        { key: 'atom_fail_percent', name: i18n.atomFailPercent }
+    ]
 
     export default {
         name: 'StatisticsAtom',
@@ -284,6 +268,7 @@
         props: ['timeRange'],
         data () {
             return {
+                test_map: { 'a': 'b' },
                 i18n: i18n,
                 bizCcId: undefined,
                 category: undefined,
@@ -292,7 +277,6 @@
                 datePickerRefShow: false,
                 isTemplateLoading: true,
                 isCitationLoading: true,
-                isExecutionLoading: true,
                 isInstanceLoading: true,
                 time: [0, 0],
                 taskPlotData: [],
@@ -306,7 +290,15 @@
                     pageIndex: this.templatePageIndex,
                     pageArray: this.dataTablePageArray
                 },
+                sortingList: sortingList,
+                sortingSelected: sortingList[0].key,
                 templateColumns: [
+                    {
+                        prop: 'templateId',
+                        label: i18n.templateId,
+                        sortable: 'custom',
+                        align: 'center'
+                    },
                     {
                         prop: 'templateName', // 识别id
                         label: i18n.templateName, // 表头显示名称
@@ -322,21 +314,21 @@
                         align: 'center'// 对其格式，可选（right，left，center）
                     },
                     {
-                        prop: 'editTime',
-                        label: i18n.editTime,
+                        prop: 'category',
+                        label: i18n.category,
                         align: 'center'
                     },
                     {
-                        prop: 'editor',
-                        label: i18n.editor,
+                        prop: 'creator',
+                        label: i18n.creator,
                         align: 'center',
                         formatter: (row, column, cellValue) => {
-                            return `<span>${row.editor || '--'}</span>`
+                            return `<span>${row.creator || '--'}</span>`
                         }
                     },
                     {
-                        prop: 'category',
-                        label: i18n.category,
+                        prop: 'createTime',
+                        label: i18n.createTime,
                         align: 'center'
                     }
                 ],
@@ -347,89 +339,10 @@
                     pageIndex: this.nodePageIndex,
                     pageArray: this.dataTablePageArray // 公共js文件获取
                 },
-                nodeColumns: [
-                    {
-                        prop: 'instanceName',
-                        label: i18n.instanceName,
-                        width: '285',
-                        title: 'instanceName',
-                        formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.businessId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
-                        }
-                    },
-                    {
-                        prop: 'businessName', // 识别id
-                        label: i18n.businessName, // 表头显示名称
-                        align: 'center' // 对其格式，可选（right，left，center）
-                    },
-                    {
-                        prop: 'createTime',
-                        label: i18n.createTime,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'creator',
-                        label: i18n.creator,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'category',
-                        label: i18n.category,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'atomTotal',
-                        label: i18n.atomTotal,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'subprocessTotal',
-                        label: i18n.subprocessTotal,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'gatewaysTotal',
-                        label: i18n.gatewaysTotal,
-                        align: 'center'
-                    }
-                ],
                 atom: '',
                 components: [],
-                executeData: [],
-                executeTotal: 0,
                 executePageIndex: 1,
                 executeLimit: 15,
-                executePagination: {
-                    limit: this.executeLimit,
-                    pageIndex: this.executePageIndex,
-                    pageArray: this.dataTablePageArray
-                },
-                executeColumns: [
-                    {
-                        prop: 'componentName',
-                        label: i18n.componentName
-                    },
-                    {
-                        prop: 'executeTimes',
-                        label: i18n.executeTimes,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'failedTimes',
-                        label: i18n.failedTimes,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'avgExecuteTime',
-                        label: i18n.avgExecuteTime,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'failedTimesPercent',
-                        label: i18n.failedTimesPercent,
-                        align: 'center'
-                    }
-                ],
                 instanceData: [],
                 instanceTotal: 0,
                 taskTotal: 0,
@@ -441,6 +354,12 @@
                     pageArray: this.dataTablePageArray
                 },
                 instanceColumns: [
+                    {
+                        prop: 'instanceId',
+                        label: i18n.instanceId,
+                        sortable: 'custom',
+                        align: 'center'
+                    },
                     {
                         prop: 'instanceName',
                         label: i18n.instanceName,
@@ -454,8 +373,8 @@
                         align: 'center'
                     },
                     {
-                        prop: 'createTime',
-                        label: i18n.createTime,
+                        prop: 'category',
+                        label: i18n.category,
                         align: 'center'
                     },
                     {
@@ -464,8 +383,8 @@
                         align: 'center'
                     },
                     {
-                        prop: 'category',
-                        label: i18n.category,
+                        prop: 'createTime',
+                        label: i18n.createTime,
                         align: 'center'
                     }
                 ],
@@ -474,7 +393,9 @@
                 selectedAtom: '',
                 choiceBusiness: undefined,
                 endDateMax: '',
-                businessSelected: ''
+                businessSelected: '',
+                templateOrderBy: '',
+                instanceOrderBy: ''
             }
         },
         computed: {
@@ -505,7 +426,6 @@
             timeRange: function (val) {
                 this.onAtomCiteData(null)
                 this.onAtomTemplateData()
-                this.onAtomExecuteData()
                 this.onAtomInstanceData()
             }
         },
@@ -538,15 +458,6 @@
                 this.templatePageIndex = pageIndex
                 this.onAtomTemplateData()
             },
-            onExecuteHandleSizeChange (limit) {
-                this.executePageIndex = 1
-                this.executeLimit = limit
-                this.onAtomExecuteData()
-            },
-            onExecuteHandleIndexChange (pageIndex) {
-                this.executePageIndex = pageIndex
-                this.onAtomExecuteData()
-            },
             onInstanceHandleSizeChange (limit) {
                 this.instancePageIndex = 1
                 this.instanceLimit = limit
@@ -554,6 +465,16 @@
             },
             onInstanceHandleIndexChange (pageIndex) {
                 this.instancePageIndex = pageIndex
+                this.onAtomInstanceData()
+            },
+            templateHandleSortChange (column, prop, order) {
+                order = column[0].order === 'ascending' ? '' : '-'
+                this.templateOrderBy = column[0].prop ? order + column[0].prop : '-templateId'
+                this.onAtomTemplateData()
+            },
+            instanceHandleSortChange (column, prop, order) {
+                order = column[0].order === 'ascending' ? '' : '-'
+                this.instanceOrderBy = column[0].prop ? order + column[0].prop : '-instanceId'
                 this.onAtomInstanceData()
             },
             onAtomCiteData (business, name) {
@@ -571,7 +492,7 @@
                 }
                 const time = this.getUTCTime(this.timeRange)
                 const data = {
-                    group_by: 'atom_cite',
+                    group_by: this.sortingSelected,
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
@@ -583,8 +504,12 @@
             onClearAtomCiteData () {
                 this.onAtomCiteData()
             },
+            onSortingSelected (value) {
+                this.sortingSelected = value
+                this.onAtomCiteData(null)
+            },
             onAtomTemplateData (value) {
-                if (this.tabName !== 'processDetails' || this.atom === '') {
+                if (this.tabName !== 'processDetails') {
                     // 防止不同界面进行触发接口调用
                     // 防止标准插件数据未获取就发送数据
                     return
@@ -601,37 +526,11 @@
                         finish_time: time[1],
                         biz_cc_id: this.bizCcId,
                         category: this.category,
-                        component_code: this.atom
+                        component_code: this.atom,
+                        order_by: this.templateOrderBy
                     }),
                     pageIndex: this.templatePageIndex,
                     limit: this.templateLimit
-                }
-                try {
-                    this.atomTableData(data)
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            onAtomExecuteData (value) {
-                if (this.tabName !== 'executionTime') {
-                    // 防止不同界面进行触发接口调用
-                    return
-                }
-                if (value) {
-                    this.resetPageIndex()
-                }
-                this.isExecutionLoading = true
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'atom_execute',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
-                        category: this.category
-                    }),
-                    pageIndex: this.executePageIndex,
-                    limit: this.executeLimit
                 }
                 try {
                     this.atomTableData(data)
@@ -647,11 +546,6 @@
                             this.templateData = templateData.data.groups
                             this.templateTotal = templateData.data.total
                             this.isTemplateLoading = false
-                            break
-                        case 'atom_execute':
-                            this.executeData = templateData.data.groups
-                            this.executeTotal = templateData.data.total
-                            this.isExecutionLoading = false
                             break
                         case 'atom_instance':
                             this.instanceData = templateData.data.groups
@@ -692,7 +586,8 @@
                         finish_time: time[1],
                         biz_cc_id: this.bizCcId,
                         category: this.category,
-                        component_code: this.atom
+                        component_code: this.atom,
+                        order_by: this.instanceOrderBy
                     }),
                     pageIndex: this.instancePageIndex,
                     limit: this.instanceLimit
@@ -706,8 +601,6 @@
             async getComponentList () {
                 try {
                     this.components = await this.loadSingleAtomList()
-                    this.atom = this.components[0].code
-                    this.selectedAtom = this.atom
                     this.onAtomTemplateData(null)
                 } catch (e) {
                     errorHandler(e, this)
@@ -718,9 +611,6 @@
                 switch (name) {
                     case 'processDetails' :
                         this.onAtomTemplateData()
-                        break
-                    case 'executionTime' :
-                        this.onAtomExecuteData()
                         break
                     case 'taskDetails':
                         this.onAtomInstanceData()
@@ -776,10 +666,6 @@
                     case 'processDetails':
                         this.templatePageIndex = 1
                         this.templatePagination.pageIndex = 1
-                        break
-                    case 'exectionTime':
-                        this.executePageIndex = 1
-                        this.executePagination.pageIndex = 1
                         break
                     case 'taskDetails':
                         this.instancePageIndex = 1
