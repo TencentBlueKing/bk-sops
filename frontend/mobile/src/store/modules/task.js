@@ -60,8 +60,7 @@ export default {
         },
 
         instanceNodeResume ({ commit, rootState }, params) {
-            params.callback = 'resume'
-            const data = qs.stringify(params)
+            params.data = JSON.stringify({ callback: 'resume' })
             const url = `${global.getMobileUrlPrefix(rootState.bizId).pauseNodeResume}`
             return http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' } }).then(response => response)
         },
