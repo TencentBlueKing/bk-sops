@@ -23,6 +23,7 @@
 |   flow_type   |   string   |   否   |  任务流程类型，common: 常规流程，common_func：职能化流程，默认值为common |
 |   description |   string   |   否   |  任务描述         |
 |   category    |   string   |   否   |  任务分类，详细信息请见下面说明 |
+| scope | string | 否 | project_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 project_id 的项目|
 
 #### category
 
@@ -146,6 +147,7 @@
 
 ```
 {
+    "project_id": "1",
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",

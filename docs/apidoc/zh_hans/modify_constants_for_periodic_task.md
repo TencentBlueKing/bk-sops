@@ -20,6 +20,7 @@
 |   task_id    |   string     |   是   |  周期任务ID |
 |   bk_biz_id    |   string     |   是   |  模板所属业务ID |
 |   constants    |   dict     |   否   | 任务全局参数，详细信息见下面说明 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 #### constants KEY
 

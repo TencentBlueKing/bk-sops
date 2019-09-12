@@ -92,6 +92,7 @@ class APITest(TestCase):
         cls.GET_TASK_NODE_DETAIL = '/apigw/get_task_node_detail/{task_id}/{project_id}/'
         cls.NODE_CALLBACK = '/apigw/node_callback/{task_id}/{project_id}/'
         cls.IMPORT_COMMON_FLOW = '/apigw/import_common_template/'
+        cls.GET_PLUGIN_LIST_URL = '/apigw/get_plugin_list/{project_id}/'
 
         super(APITest, cls).setUpClass()
 
@@ -158,7 +159,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
         with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[]))):
@@ -168,7 +169,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
@@ -211,7 +212,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
         with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(filter_result=[]))):
@@ -222,7 +223,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
@@ -259,7 +260,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(assert_data, data['data'])
 
     @mock.patch(TASKTEMPLATE_SELECT_RELATE,
@@ -312,7 +313,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(assert_data, data['data'])
 
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE,
@@ -376,7 +377,7 @@ class APITest(TestCase):
 
                 data = json.loads(response.content)
 
-                self.assertTrue(data['result'])
+                self.assertTrue(data['result'], msg=data)
                 self.assertEqual(data['data'], assert_data)
 
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.reset_mock()
@@ -420,7 +421,7 @@ class APITest(TestCase):
 
                 data = json.loads(response.content)
 
-                self.assertTrue(data['result'])
+                self.assertTrue(data['result'], msg=data)
                 self.assertEqual(data['data'], assert_data)
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
@@ -631,7 +632,7 @@ class APITest(TestCase):
                                                                             project_id=TEST_PROJECT_ID))
 
             data = json.loads(response.content)
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], TEST_DATA)
 
     def test_get_task_status__raise(self):
@@ -661,7 +662,7 @@ class APITest(TestCase):
             TaskFlowInstance.format_pipeline_status.assert_called_once_with(TEST_DATA)
 
             data = json.loads(response.content)
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], TEST_DATA)
 
     @mock.patch(APIGW_VIEW_PIPELINE_API_GET_STATUS_TREE, MagicMock(return_value=TEST_DATA))
@@ -696,7 +697,7 @@ class APITest(TestCase):
                                     content_type='application/json')
 
         data = json.loads(response.content)
-        self.assertTrue(data['result'])
+        self.assertTrue(data['result'], msg=data)
         self.assertEqual(data['data'], TEST_DATA)
 
     def test_query_task_count__conditions_is_not_dict(self):
@@ -762,7 +763,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
@@ -790,7 +791,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
@@ -856,7 +857,7 @@ class APITest(TestCase):
 
                         replace_template_id_mock.assert_called_once_with(TaskTemplate, template.pipeline_tree)
 
-                        self.assertTrue(data['result'])
+                        self.assertTrue(data['result'], msg=data)
                         self.assertEqual(data['data'], assert_data)
 
     @mock.patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist()))
@@ -952,7 +953,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], {
                 'enabled': task.enabled
             })
@@ -989,7 +990,7 @@ class APITest(TestCase):
 
                 data = json.loads(response.content)
 
-                self.assertTrue(data['result'])
+                self.assertTrue(data['result'], msg=data)
                 self.assertEqual(data['data'], {'cron': task.cron})
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
@@ -1050,7 +1051,7 @@ class APITest(TestCase):
 
                 data = json.loads(response.content)
 
-                self.assertTrue(data['result'])
+                self.assertTrue(data['result'], msg=data)
                 self.assertEqual(data['data'], task.modify_constants.return_value)
 
     @mock.patch(PERIODIC_TASK_GET, MagicMock(side_effect=PeriodicTask.DoesNotExist))
@@ -1094,7 +1095,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
     @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
@@ -1123,7 +1124,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
             mock_taskflow.get_node_detail.assert_called_once_with(TEST_NODE_ID,
                                                                   TEST_USERNAME,
@@ -1170,7 +1171,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             mock_instance.callback.assert_called_once_with(TEST_NODE_ID, TEST_CALLBACK_DATA)
 
     @mock.patch(TASKINSTANCE_GET, MagicMock(side_effect=TaskFlowInstance.DoesNotExist()))
@@ -1261,7 +1262,7 @@ class APITest(TestCase):
 
         data = json.loads(response.content)
 
-        self.assertTrue(data['result'])
+        self.assertTrue(data['result'], msg=data)
         self.assertEqual(data['message'], 'token')
 
         CommonTemplate.objects.import_templates.assert_called_once_with('token', True)
@@ -1295,7 +1296,7 @@ class APITest(TestCase):
 
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(data['data'], assert_data)
 
     def test_get_common_template_info(self):
@@ -1319,7 +1320,42 @@ class APITest(TestCase):
 
             response = self.client.get(path=self.GET_COMMON_TEMPLATE_INFO_URL.format(template_id=TEST_TEMPLATE_ID))
 
+            self.assertEqual(response.status_code, 200)
+
             data = json.loads(response.content)
 
-            self.assertTrue(data['result'])
+            self.assertTrue(data['result'], msg=data)
             self.assertEqual(assert_data, data['data'])
+
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
+                                                                name=TEST_PROJECT_NAME,
+                                                                bk_biz_id=TEST_BIZ_CC_ID,
+                                                                from_cmdb=True)))
+    def test_get_component_list(self):
+        comp_model = MockComponentModel(code='code_token')
+        comp = MockComponent(inputs='inputs_token',
+                             outputs='outputs_token',
+                             desc='desc_token',
+                             code='code_token',
+                             name='name_token',
+                             group_name='group_name')
+
+        with mock.patch(APIGW_COMPONENT_MODEL_FILTER, MagicMock(return_value=[comp_model])):
+            with mock.patch(APIGW_COMPONENT_LIBRARY_GET_COMPONENT_CLS, MagicMock(return_value=comp)):
+                assert_data = [{
+                    'inputs': comp.inputs_format(),
+                    'outputs': comp.outputs_format(),
+                    'desc': comp.desc,
+                    'code': comp.code,
+                    'name': comp.name,
+                    'group_name': comp.group_name
+                }]
+
+                response = self.client.get(path=self.GET_PLUGIN_LIST_URL.format(project_id=TEST_PROJECT_ID))
+
+                self.assertEqual(response.status_code, 200)
+
+                data = json.loads(response.content)
+
+                self.assertTrue(data['result'], msg=data)
+                self.assertEqual(data['data'], assert_data)

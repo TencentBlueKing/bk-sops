@@ -22,6 +22,7 @@
 |   node_id        | string     | 是         | 节点 ID                        |
 |   component_code| string     | 否         | 标准插件编码，请求标准插件执行详情必填 |
 |   subprocess_stack| string   | 否         | 子流程堆栈，json 格式的列表    |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 
