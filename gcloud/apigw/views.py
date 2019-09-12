@@ -26,6 +26,8 @@ from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed, batch_ve
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.validator import validate_web_pipeline_tree
+from pipeline.component_framework.library import ComponentLibrary
+from pipeline.component_framework.models import ComponentModel
 
 from gcloud.conf import settings
 from gcloud.constants import PROJECT, BUSINESS, ONETIME
@@ -47,6 +49,7 @@ from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
 from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
+from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 
@@ -93,6 +96,8 @@ def format_template_data(template, project=None):
     pipeline_tree = template.pipeline_tree
     pipeline_tree.pop('line')
     pipeline_tree.pop('location')
+    varschema.add_schema_for_input_vars(pipeline_tree)
+
     data = {
         'id': template.id,
         'name': template.pipeline_template.name,
@@ -129,55 +134,6 @@ def get_template_list(request, project_id):
     else:
         templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
     return JsonResponse({'result': True, 'data': format_template_list_data(templates, project)})
-
-
-@login_exempt
-@require_GET
-@apigw_required
-@mark_request_whether_is_trust
-def get_common_template_list(request):
-    templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
-
-    return JsonResponse({'result': True, 'data': format_template_list_data(templates)})
-
-
-@login_exempt
-@require_GET
-@apigw_required
-@mark_request_whether_is_trust
-def get_common_template_info(request, template_id):
-    try:
-        tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
-        auth_resource = common_template_resource
-    except CommonTemplate.DoesNotExist:
-        result = {
-            'result': False,
-            'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
-        }
-        return JsonResponse(result)
-
-    if not request.is_trust:
-        verify_or_raise_auth_failed(principal_type='user',
-                                    principal_id=request.user.username,
-                                    resource=auth_resource,
-                                    action_ids=[auth_resource.actions.view.id],
-                                    instance=tmpl,
-                                    status=200)
-
-    pipeline_tree = tmpl.pipeline_tree
-    pipeline_tree.pop('line')
-    pipeline_tree.pop('location')
-    data = {
-        'id': tmpl.id,
-        'name': tmpl.pipeline_template.name,
-        'creator': tmpl.pipeline_template.creator,
-        'create_time': format_datetime(tmpl.pipeline_template.create_time),
-        'editor': tmpl.pipeline_template.editor,
-        'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
-        'category': tmpl.category,
-        'pipeline_tree': pipeline_tree
-    }
-    return JsonResponse({'result': True, 'data': data})
 
 
 @login_exempt
@@ -222,6 +178,42 @@ def get_template_info(request, template_id, project_id):
                                     status=200)
 
     return JsonResponse({'result': True, 'data': format_template_data(tmpl, project)})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+@mark_request_whether_is_trust
+def get_common_template_list(request):
+    templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
+
+    return JsonResponse({'result': True, 'data': format_template_list_data(templates)})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+@mark_request_whether_is_trust
+def get_common_template_info(request, template_id):
+    try:
+        tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
+        auth_resource = common_template_resource
+    except CommonTemplate.DoesNotExist:
+        result = {
+            'result': False,
+            'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+        }
+        return JsonResponse(result)
+
+    if not request.is_trust:
+        verify_or_raise_auth_failed(principal_type='user',
+                                    principal_id=request.user.username,
+                                    resource=auth_resource,
+                                    action_ids=[auth_resource.actions.view.id],
+                                    instance=tmpl,
+                                    status=200)
+
+    return JsonResponse({'result': True, 'data': format_template_data(template=tmpl)})
 
 
 @login_exempt
@@ -973,3 +965,26 @@ def fast_create_task(request, project_id):
             'task_url': task.url,
             'pipeline_tree': task.pipeline_tree
         }})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+@mark_request_whether_is_trust
+@project_inject
+def get_plugin_list(request, project_id):
+    components = ComponentModel.objects.filter(status=True)
+
+    data = []
+    for comp_model in components:
+        comp = ComponentLibrary.get_component_class(comp_model.code)
+        data.append({
+            'inputs': comp.inputs_format(),
+            'outputs': comp.outputs_format(),
+            'desc': comp.desc,
+            'code': comp.code,
+            'name': comp.name,
+            'group_name': comp.group_name
+        })
+
+    return JsonResponse({'result': True, 'data': data})
