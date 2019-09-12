@@ -143,7 +143,7 @@ const tools = {
     },
     /**
      * 判断对象多级属性是否存在
-     * @param {String} path 路径（obj.a.b）
+     * @param {String} path 路径（obj>>a>>b）
      * @param {Object} object 对象
      */
     isKeyExists (path, object) {

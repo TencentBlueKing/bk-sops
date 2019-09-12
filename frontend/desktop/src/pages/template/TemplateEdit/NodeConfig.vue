@@ -414,15 +414,12 @@
                     let key = item.key
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        for (const version in constant) {
-                            const item = constant[version]
-                            if (item.source_type === 'component_outputs'
-                                && item.source_info[this.nodeId]
-                                && item.source_info[this.nodeId].indexOf(key) > -1
-                            ) {
-                                hook = true
-                                key = cKey
-                            }
+                        if (constant.source_type === 'component_outputs'
+                            && constant.source_info[this.nodeId]
+                            && constant.source_info[this.nodeId].indexOf(key) > -1
+                        ) {
+                            hook = true
+                            key = cKey
                         }
                     }
                     outputData.push({
@@ -437,22 +434,18 @@
                 if (this.currentAtom === 'job_execute_task') {
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        for (const version in constant) {
-                            const item = constant[version]
-                            if ((this.nodeId in item.source_info)
-                                && constant.source_type === 'component_outputs'
-                                && outputData.findIndex(item => item.key === cKey) === -1
-                            ) {
-                                outputData.push({
-                                    name: constant.name,
-                                    key: cKey,
-                                    hook: true
-                                })
-                            }
+                        if ((this.nodeId in constant.source_info)
+                            && constant.source_type === 'component_outputs'
+                            && outputData.findIndex(item => item.key === cKey) === -1
+                        ) {
+                            outputData.push({
+                                name: constant.name,
+                                key: cKey,
+                                hook: true
+                            })
                         }
                     }
                 }
-
                 return outputData
             },
             /**
@@ -526,7 +519,8 @@
                 if (this.nodeConfigData) {
                     this.getNodeFormData() // get template activity information
                     if (this.isSingleAtom) {
-                        const version = this.nodeConfigData.component.version
+                        const component = this.nodeConfigData.component
+                        const version = component.version || this.SingleAtomVersionMap[component.code]
                         if (version) {
                             this.getConfig(this.nodeConfigData.component.version)
                             this.currentVersion = version
@@ -614,7 +608,8 @@
                     for (const form of variableArray) {
                         const { key } = form
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-                        const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
+                        // 全局变量版本
+                        const version = form.version || 'legacy'
                         if (!tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
@@ -771,16 +766,13 @@
             iskeyInSourceInfo (key, tagCode) {
                 for (const cKey in this.constants) {
                     const constant = this.constants[cKey]
-                    for (const version in constant) {
-                        const item = constant[version]
-                        const sourceInfo = item.source_info[this.nodeId]
-                        if (
-                            item.source_type === 'component_inputs'
-                            && sourceInfo
-                            && (sourceInfo.indexOf(tagCode) > -1 || sourceInfo.indexOf(key) > -1)
-                        ) {
-                            return true
-                        }
+                    const sourceInfo = constant.source_info
+                    if (
+                        constant.source_type === 'component_inputs'
+                        && sourceInfo
+                        && (sourceInfo.indexOf(tagCode) > -1 || sourceInfo.indexOf(key) > -1)
+                    ) {
+                        return true
                     }
                 }
                 return false
@@ -894,18 +886,17 @@
             clearHookedVaribles (hookedInputs, outputs) {
                 hookedInputs.forEach(item => {
                     const { id, variableKey, formKey } = item
-                    const version = item.version || ''
-                    const variable = this.constants[variableKey][version]
-                    this.setVariableSourceInfo({ type: 'delete', id, key: variableKey, tagCode: formKey, version })
+                    const variable = this.constants[variableKey]
+                    this.setVariableSourceInfo({ type: 'delete', id, key: variableKey, tagCode: formKey })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable({ key: variableKey, version })
+                        this.deleteVariable(variableKey)
                     }
                 })
                 this.taskTypeEmpty = false
                 this.taskVersionEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
-                        this.deleteVariable({ key: item.key, version: item.version })
+                        this.deleteVariable(item.key)
                     }
                 })
             },
@@ -942,15 +933,15 @@
             },
             /**
              * 版本选择
-             * @param {String} is version
+             * @param {String} id version
              */
-            onVersionSelect (newId) {
+            onVersionSelect (id) {
                 this.isAtomChanged = true
                 this.clearHookedVaribles(this.getHookedInputVariables(), this.renderOutputData)
                 this.inputAtomHook = {}
                 this.inputAtomData = {}
                 this.updateActivities()
-                this.getConfig(newId)
+                this.getConfig(id)
                 this.$nextTick(() => {
                     this.isAtomChanged = false
                 })
@@ -1077,16 +1068,13 @@
                     }
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
-                        for (const version in constant) {
-                            const item = constant[version]
-                            const sTag = item.source_tag
-                            if (sTag) {
-                                const tCode = sTag.split('.')[1]
-                                tCode === tagCode && variableList.push({
-                                    name: `${item.name}(${item.key})`,
-                                    id: item.key
-                                })
-                            }
+                        const sTag = constant.source_tag
+                        if (sTag) {
+                            const tCode = sTag.split('.')[1]
+                            tCode === tagCode && variableList.push({
+                                name: `${constant.name}(${constant.key})`,
+                                id: constant.key
+                            })
                         }
                     }
                     const isKeyUsedInConstants = variableKey in this.constants
@@ -1108,16 +1096,16 @@
                     }
                 } else { // cancel hook
                     variableKey = this.inputAtomData[key] // variable key
-                    if (!tools.isKeyExists(`${variableKey}>>${variableVersion}`, this.constants)) {
+                    const variable = this.constants[variableKey]
+                    if (!variable) {
                         return
                     }
-                    const variable = this.constants[variableKey][variableVersion]
                     const formKey = this.isSingleAtom ? tagCode : key // input arguments form item key
                     this.inputAtomHook[formKey] = val
-                    this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey][variableVersion].value)
-                    this.setVariableSourceInfo({ type: 'delete', id: this.nodeId, key: variableKey, tagCode: formKey, version: variableVersion })
+                    this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)
+                    this.setVariableSourceInfo({ type: 'delete', id: this.nodeId, key: variableKey, tagCode: formKey })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable({ key: variableKey, version: variableVersion })
+                        this.deleteVariable(variableKey)
                     }
                 }
             },
@@ -1144,10 +1132,9 @@
                     })
                     this.createVariable(variableOpts)
                 } else {
-                    const version = this.getVariableVersion(key)
-                    const constant = this.constants[key][version]
+                    const constant = this.constants[key]
                     if (constant) {
-                        this.deleteVariable({ key, version })
+                        this.deleteVariable(key)
                     }
                 }
             },

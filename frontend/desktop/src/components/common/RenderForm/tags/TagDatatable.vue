@@ -320,21 +320,16 @@
                     oldVal.forEach(item => {
                         if (typeof item.type === 'number' && item.type !== 2) {
                             let variableKey
-                            let version
                             Object.keys(this.constants).some(key => {
                                 const cst = this.constants[key]
-                                for (const versit in cst) {
-                                    const itm = cst[version]
-                                    const sourceInfo = itm.source_info[this.nodeId]
-                                    if (sourceInfo && sourceInfo.indexOf(item.key)) {
-                                        variableKey = key
-                                        version = versit
-                                        return true
-                                    }
+                                const sourceInfo = cst.source_info[this.nodeId]
+                                if (sourceInfo && sourceInfo.indexOf(item.key)) {
+                                    variableKey = key
+                                    return true
                                 }
                             })
 
-                            variableKey && this.deleteVariable({ variableKey, version })
+                            variableKey && this.deleteVariable(variableKey)
                         }
                     })
                 }

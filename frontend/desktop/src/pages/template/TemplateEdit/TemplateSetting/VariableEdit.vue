@@ -259,6 +259,9 @@
                 } else {
                     return custom_type
                 }
+            },
+            version () {
+                return this.isNewVariable ? 'legacy' : this.variableData.version
             }
         },
         watch: {
@@ -348,24 +351,26 @@
                 const atom = tagStr.split('.')[0] || custom_type
                 const isMeta = this.varType === 'meta' ? 1 : 0
                 let classify = ''
-                let version = ''
 
-                // 如果是插件取最新版本，变量没有版本区分，定义版本为 legacy
                 if (this.theEditingData.custom_type) {
                     classify = 'variable'
-                    version = 'legacy'
                 } else {
                     classify = 'component'
-                    version = tagStr.split('.')[1]
                 }
-                if (tools.isKeyExists(`${atom}>>${version}`, this.atomFormConfig)) {
+                if (tools.isKeyExists(`${atom}>>${this.version}`, this.atomFormConfig)) {
                     this.getRenderConfig()
                     return
                 }
                 this.atomConfigLoading = true
                 
                 try {
-                    await this.loadAtomConfig({ atomType: this.atomType, classify, isMeta: isMeta, version, saveName: atom })
+                    await this.loadAtomConfig({
+                        classify,
+                        isMeta: isMeta,
+                        atomType: this.atomType,
+                        version: this.version,
+                        saveName: atom
+                    })
                     this.getRenderConfig()
                 } catch (e) {
                     errorHandler(e, this)
@@ -376,19 +381,14 @@
             getRenderConfig () {
                 const { source_tag, custom_type } = this.theEditingData
                 const tagStr = this.metaTag || source_tag
-                const tagList = tagStr.split('.')
-                let atom, version, tag
+                let [atom, tag] = tagStr.split('.')
                 // 兼容旧数据自定义变量勾选为输入参数 source_tag 为空
                 if (custom_type) {
-                    atom = tagList[0] || custom_type
-                    tag = tagList[1] || custom_type
-                    version = 'legacy'
-                } else {
-                    atom = tagList[0] || custom_type
-                    tag = tagList[2] || custom_type
-                    version = tagList[1]
+                    atom = atom || custom_type
+                    tag = tag || custom_type
                 }
-                const atomConfig = this.atomFormConfig[atom][version]
+
+                const atomConfig = this.atomFormConfig[atom][this.version]
                 const config = tools.deepClone(atomFilter.formFilter(tag, atomConfig))
                 config.tag_code = 'customVariable'
                 if (custom_type === 'input' && this.theEditingData.validation !== '') {

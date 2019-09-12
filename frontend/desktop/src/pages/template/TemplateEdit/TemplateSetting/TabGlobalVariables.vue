@@ -275,10 +275,8 @@
             getConstantsArray () {
                 const arrayList = []
                 for (const cKey in this.constants) {
-                    const item = tools.deepClone(this.constants[cKey])
-                    for (const version in item) {
-                        arrayList.push(item[version])
-                    }
+                    const constant = tools.deepClone(this.constants[cKey])
+                    arrayList.push(constant)
                 }
                 const sortedList = arrayList.sort((a, b) => a.index - b.index)
                 return sortedList
@@ -299,13 +297,15 @@
             /**
              * 编辑变量
              * @param {String} key 变量key值
+             * @param {String} version 变量版本
              */
-            onEditVariable (key) {
+            onEditVariable (key, version) {
                 if (key === this.theKeyOfEditing && this.isVariableEditing) {
                     this.onChangeEdit(false)
                 } else {
                     this.onChangeEdit(true)
                     this.theKeyOfEditing = key
+                    this.theVersionOfEditing = version
                 }
 
                 this.$emit('variableDataChanged')
@@ -369,7 +369,6 @@
             onConfirm () {
                 const key = this.deleteVarKey
                 const index = this.deleteVarIndex
-                const version = this.constantsArray.find(item => item.key === key).version
                 this.$emit('onDeleteConstant', key)
                 const len = this.constantsArray.length
                 if (len > 1) {
@@ -379,7 +378,7 @@
                         this.editVariable({ key: item.key, variable: item })
                     })
                 }
-                this.deleteVariable({ key, version })
+                this.deleteVariable(key)
                 this.$emit('variableDataChanged')
                 this.deleteConfirmDialogShow = false
             },
