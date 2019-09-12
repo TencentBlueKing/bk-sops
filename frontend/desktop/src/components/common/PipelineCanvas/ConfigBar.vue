@@ -46,6 +46,7 @@
                 {{ i18n.save }}
             </bk-button>
             <bk-button
+                v-if="isShowNewTask"
                 theme="primary"
                 class="canvas-btn"
                 :loading="createTaskSaving"
@@ -100,6 +101,9 @@
             },
             createTaskBtnText () {
                 return this.isSaveAndCreateTaskType ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+            },
+            isShowNewTask () {
+                return !this.common
             }
         },
         watch: {
