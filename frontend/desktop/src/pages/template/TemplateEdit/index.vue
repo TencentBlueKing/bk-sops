@@ -14,16 +14,20 @@
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
             <TemplateHeader
                 :name="name"
-                :cc_id="cc_id"
+                :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"
                 :is-template-data-changed="isTemplateDataChanged"
                 :template-saving="templateSaving"
                 :create-task-saving="createTaskSaving"
+                :tpl-resource="tplResource"
+                :tpl-actions="tplActions"
+                :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
                 @onNewDraft="onNewDraft"
-                @onSaveTemplate="onSaveTemplate">
+                @onSaveTemplate="onSaveTemplate"
+                @onBackToList="onBackToList">
             </TemplateHeader>
             <TemplateCanvas
                 ref="templateCanvas"
@@ -32,7 +36,7 @@
                 :sub-atom-list-loading="subAtomListLoading"
                 :atom-type-list="atomTypeList"
                 :name="name"
-                :cc_id="cc_id"
+                :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"
@@ -49,7 +53,7 @@
             </div>
             <NodeConfig
                 ref="nodeConfig"
-                :cc_id="cc_id"
+                :project_id="project_id"
                 v-show="isNodeConfigPanelShow"
                 :template_id="template_id"
                 :single-atom="singleAtom"
@@ -65,8 +69,8 @@
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
-                :business-info-loading="businessInfoLoading"
                 :is-global-variable-update="isGlobalVariableUpdate"
+                :project-info-loading="projectInfoLoading"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
                 :variable-type-list="variableTypeList"
@@ -113,7 +117,6 @@
     import NodeConfig from './NodeConfig.vue'
     import draft from '@/utils/draft.js'
     import { STRING_LENGTH } from '@/constants/index.js'
-    import { setAtomConfigApiUrls } from '@/config/setting.js'
 
     const i18n = {
         templateEdit: gettext('流程编辑'),
@@ -138,7 +141,7 @@
             NodeConfig,
             TemplateSetting
         },
-        props: ['cc_id', 'template_id', 'type', 'common'],
+        props: ['project_id', 'template_id', 'type', 'common'],
         data () {
             return {
                 i18n,
@@ -146,7 +149,7 @@
                 exception: {},
                 singleAtomListLoading: false,
                 subAtomListLoading: false,
-                businessInfoLoading: false,
+                projectInfoLoading: false,
                 templateDataLoading: false,
                 templateSaving: false,
                 createTaskSaving: false,
@@ -169,7 +172,10 @@
                 templateUUID: uuid(),
                 localTemplateData: null,
                 isClickDraft: false,
-                entrance: this.$route.query.entrance
+                entrance: this.$route.query.entrance,
+                tplOperations: [],
+                tplActions: [],
+                tplResource: {}
             }
         },
         computed: {
@@ -184,13 +190,15 @@
                 'lines': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
-                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
-                'businessTimezone': state => state.businessTimezone,
                 'username': state => state.username,
                 'site_url': state => state.site_url,
                 'atomFormConfig': state => state.atomForm.config
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             ...mapGetters('atomList/', [
                 'singleAtomGrouped'
@@ -249,40 +257,36 @@
             }
         },
         created () {
-            if (this.common) {
-                this.defaultCCId = this.cc_id
-                setAtomConfigApiUrls(this.site_url, 0)
-            }
             this.initTemplateData()
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
-                const name = 'new' + moment.tz(this.businessTimezone).format('YYYYMMDDHHmmss')
+                const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
             }
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
-                draft.copyAndReplaceDraft(this.username, this.cc_id, this.template_id, this.templateUUID)
-                this.draftArray = draft.getDraftArray(this.username, this.cc_id, this.templateUUID)
+                draft.copyAndReplaceDraft(this.username, this.project_id, this.template_id, this.templateUUID)
+                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
             } else {
                 // 先执行一次获取本地缓存
-                this.draftArray = draft.getDraftArray(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
             }
             // 五分钟进行存储本地缓存
             const fiveMinutes = 1000 * 60 * 5
             this.intervalSaveTemplate = setInterval(() => {
-                draft.addDraft(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
+                draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData())
             }, fiveMinutes)
 
             // 五分钟多5秒 为了用于存储本地缓存过程的时间消耗
             const fiveMinutesAndFiveSeconds = fiveMinutes + 5000
             this.intervalGetDraftArray = setInterval(() => {
-                this.draftArray = draft.getDraftArray(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
             }, fiveMinutesAndFiveSeconds)
         },
         mounted () {
             this.getSingleAtomList()
-            this.getBusinessBaseInfo()
+            this.getProjectBaseInfo()
             this.getCustomVarCollection()
         },
         beforeDestroy () {
@@ -294,7 +298,7 @@
                 'loadSubAtomList'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo',
+                'loadProjectBaseInfo',
                 'loadTemplateData',
                 'saveTemplateData',
                 'loadCommonTemplateData',
@@ -312,7 +316,7 @@
             ...mapMutations('template/', [
                 'initTemplateData',
                 'resetTemplateData',
-                'setBusinessBaseInfo',
+                'setProjectBaseInfo',
                 'setTemplateName',
                 'setTemplateData',
                 'setLocation',
@@ -344,13 +348,13 @@
                     this.singleAtomListLoading = false
                 }
             },
-            async getBusinessBaseInfo () {
-                this.businessInfoLoading = true
+            async getProjectBaseInfo () {
+                this.projectInfoLoading = true
                 try {
-                    const data = await this.loadBusinessBaseInfo()
-                    this.setBusinessBaseInfo(data)
+                    const data = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(data)
                     const subAtomData = {
-                        ccId: this.cc_id,
+                        project_id: this.project_id,
                         common: this.common,
                         templateId: this.template_id
                     }
@@ -358,7 +362,7 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.businessInfoLoading = false
+                    this.projectInfoLoading = false
                 }
             },
             async getSubAtomList (subAtomData) {
@@ -409,6 +413,9 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
+                    this.tplOperations = templateData.auth_operations
+                    this.tplActions = templateData.auth_actions
+                    this.tplResource = templateData.auth_resource
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
@@ -477,10 +484,13 @@
                 }
 
                 try {
-                    const data = await this.saveTemplateData({ 'templateId': template_id, 'ccId': this.cc_id, 'common': this.common })
+                    const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    this.tplActions = data.auth_actions
+                    this.tplOperations = data.auth_operations
+                    this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
-                        draft.draftReplace(this.username, this.cc_id, data.template_id, this.templateUUID)
+                        draft.draftReplace(this.username, this.project_id, data.template_id, this.templateUUID)
                     }
                     this.$bkMessage({
                         message: i18n.saved,
@@ -488,9 +498,8 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
-                        this.template_id = data.template_id
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.cc_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
+                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -521,7 +530,7 @@
                 const primaryData = this.subAtom
                 const groups = []
                 const atomGrouped = []
-                this.businessBaseInfo.task_categories.forEach(item => {
+                this.projectBaseInfo.task_categories.forEach(item => {
                     groups.push(item.value)
                     atomGrouped.push({
                         type: item.value,
@@ -766,7 +775,7 @@
             // 跳转到节点选择页面
             goToTaskUrl (template_id) {
                 this.$router.push({
-                    path: `/template/newtask/${this.cc_id}/selectnode/`,
+                    path: `/template/newtask/${this.project_id}/selectnode/`,
                     query: {
                         template_id,
                         common: this.common ? '1' : undefined,
@@ -838,7 +847,7 @@
                 }
             },
             onBackToList () {
-                this.$router.push({ path: `/template/home/${this.cc_id}/` })
+                this.$router.push({ path: `/template/home/${this.project_id}/` })
             },
             onLeaveConfirm () {
                 this.allowLeave = true
@@ -863,19 +872,19 @@
                     })
                 }
                 // 删除后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
             },
             // 模板替换
             onReplaceTemplate (data) {
                 const { templateData, type } = data
                 if (type === 'replace') {
                     const nowTemplateSerializable = JSON.stringify(this.getLocalTemplateData())
-                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID()))
+                    const lastDraft = JSON.parse(draft.getLastDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID()))
                     const lastTemplate = lastDraft['template']
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replace_save)
+                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replace_save)
                     }
                     this.$bkMessage({
                         'message': i18n.replace_success,
@@ -885,7 +894,7 @@
                 this.templateDataLoading = true
                 this.replaceTemplate(templateData)
                 // 替换后后刷新
-                this.draftArray = draft.getDraftArray(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID())
+                this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
                 this.$nextTick(() => {
                     this.templateDataLoading = false
                     this.$nextTick(() => {
@@ -899,13 +908,13 @@
             onNewDraft (message, isMessage = true) {
                 // 创建本地缓存
                 if (this.type === 'clone') {
-                    draft.addDraft(this.username, this.cc_id, this.templateUUID, this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.project_id, this.templateUUID, this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.cc_id, this.templateUUID)
+                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.templateUUID)
                 } else {
-                    draft.addDraft(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
+                    draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), message)
                     // 创建后后刷新
-                    this.draftArray = draft.getDraftArray(this.username, this.cc_id, this.getTemplateIdOrTemplateUUID())
+                    this.draftArray = draft.getDraftArray(this.username, this.project_id, this.getTemplateIdOrTemplateUUID())
                 }
                 if (isMessage) {
                     this.$bkMessage({
@@ -951,10 +960,7 @@
                 const template_id = this.getTemplateIdOrTemplateUUID()
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
-                    draft.deleteAllDraftByUUID(this.username, this.cc_id, this.templateUUID)
-                }
-                if (this.common) {
-                    to.params.cc_id = this.defaultCCId
+                    draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
                 }
                 this.clearAtomForm()
                 next()

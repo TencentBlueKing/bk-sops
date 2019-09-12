@@ -72,6 +72,8 @@ INSTALLED_APPS += (
     'pipeline_plugins.components',
     'pipeline_plugins.variables',
     'data_migration',
+    'auth_backend',
+    'auth_backend.contrib.consistency',
     'weixin.core',
     'weixin',
 )
@@ -109,6 +111,8 @@ MIDDLEWARE += (
     'gcloud.core.middlewares.UnauthorizedMiddleware',
     'gcloud.core.middlewares.GCloudPermissionMiddleware',
     'gcloud.core.middlewares.TimezoneMiddleware',
+    'gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware',
+    'auth_backend.plugins.middlewares.AuthFailedExceptionMiddleware',
 )
 
 MIDDLEWARE = ('weixin.core.middlewares.WeixinProxyPatchMiddleware',) + MIDDLEWARE
@@ -265,6 +269,29 @@ BK_JOB_HOST = os.environ.get('BK_JOB_HOST')
 # ESB 默认版本配置 '' or 'v2'
 DEFAULT_BK_API_VER = 'v2'
 
+# IAM权限中心配置
+BK_IAM_SYSTEM_ID = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', APP_CODE)
+BK_IAM_SYSTEM_NAME = os.getenv('BKAPP_BK_IAM_SYSTEM_NAME', u"标准运维")
+BK_IAM_SYSTEM_DESC = ''
+BK_IAM_QUERY_INTERFACE = ''
+BK_IAM_RELATED_SCOPE_TYPES = 'system'
+BK_IAM_SYSTEM_MANAGERS = 'admin'
+BK_IAM_SYSTEM_CREATOR = 'admin'
+BK_IAM_HOST = os.getenv('BK_IAM_HOST', '')
+AUTH_BACKEND_CLS = os.getenv('BKAPP_AUTH_BACKEND_CLS', 'auth_backend.backends.bkiam.BKIAMBackend')
+BK_IAM_APP_CODE = os.getenv('BKAPP_BK_IAM_SYSTEM_ID', 'bk_iam_app')
+
+BK_IAM_PERM_TEMPLATES = 'config.perms.bk_iam_perm_templates'
+
+AUTH_LEGACY_RESOURCES = [
+    'project',
+    'common_flow',
+    'flow',
+    'mini_app',
+    'periodic_task',
+    'task'
+]
+
 # tastypie 配置
 TASTYPIE_DEFAULT_FORMATS = ['json']
 
@@ -300,6 +327,8 @@ ENABLE_EXAMPLE_COMPONENTS = False
 UUID_DIGIT_STARTS_SENSITIVE = True
 
 from pipeline.celery.settings import *  # noqa
+
+SYSTEM_USE_API_ACCOUNT = 'admin'
 
 # VER settings
 ver_settings = importlib.import_module('config.sites.%s.ver_settings' % OPEN_VER)

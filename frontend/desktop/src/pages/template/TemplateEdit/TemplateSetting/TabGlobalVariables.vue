@@ -224,7 +224,7 @@
         },
         computed: {
             ...mapState({
-                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
                 'timeout': state => state.template.time_out

@@ -12,7 +12,7 @@
 <template>
     <div class="task-feeds-content">
         <h3 class="title">{{i18n.feeds}}</h3>
-        <router-link class="view-more-task" :to="`/taskflow/home/${cc_id}/`">{{i18n.viewMore}}</router-link>
+        <router-link class="view-more-task" :to="`/taskflow/home/${project_id}/`">{{i18n.viewMore}}</router-link>
         <div v-if="topThreeTaskFeeds.length" class="feed-container">
             <ul class="feed-list">
                 <li v-for="(item, index) in topThreeTaskFeeds" :key="item.id" class="feed-item">
@@ -31,7 +31,19 @@
                     <div class="action-detail">
                         [{{item.finish_time || item.create_time}}]{{item.name}}, {{i18n.time}} {{getLastTime(item)}}
                     </div>
-                    <router-link class="goto-task-detail" :to="`/taskflow/execute/${cc_id}/?instance_id=${item.id}`">{{i18n.detail}}</router-link>
+                    <a
+                        v-if="!hasPermission(['view'], item.auth_actions, taskOperations)"
+                        v-cursor
+                        class="text-permission-disable"
+                        @click="onTaskPermissonCheck(['view'], item, $event)">
+                        {{i18n.detail}}
+                    </a>
+                    <router-link
+                        v-else
+                        class="goto-task-detail"
+                        :to="`/taskflow/execute/${project_id}/?instance_id=${item.id}`">
+                        {{i18n.detail}}
+                    </router-link>
                 </li>
                 <li class="feed-item feed-end">
                     <div class="item-mark-icon">
@@ -51,17 +63,20 @@
     import NoData from '@/components/common/base/NoData.vue'
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'TaskFeeds',
         components: {
             NoData
         },
-        props: ['topThreeTaskFeeds', 'cc_id'],
+        mixins: [permission],
+        props: ['topThreeTaskFeeds', 'project_id', 'taskOperations', 'taskResource'],
         data () {
             return {
                 feedsStatus: this.getTaskStatus(),
                 i18n: {
-                    feeds: gettext('业务动态'),
+                    feeds: gettext('项目动态'),
                     viewMore: gettext('查看更多'),
                     detail: gettext('查看详情'),
                     time: gettext('耗时')
@@ -89,26 +104,31 @@
             getTaskStatus () {
                 return this.topThreeTaskFeeds.map((item, index) => {
                     const status = {}
-                    if (item.is_finished) {
-                        status.cls = 'finished'
-                        status.icon = 'bk-icon icon-check-circle-shape'
-                        status.text = gettext('完成')
-                    } else if (item.is_started) {
-                        status.cls = 'execute'
-                        status.icon = 'common-icon-loading'
-                        this.getExecuteDetail(item, index)
+                    if (item.auth_actions.indexOf('view') === -1) {
+                        status.text = '--'
                     } else {
-                        status.cls = 'created'
-                        status.icon = 'common-icon-dark-circle-shape'
-                        status.text = gettext('未执行')
+                        if (item.is_finished) {
+                            status.cls = 'finished'
+                            status.icon = 'bk-icon icon-check-circle-shape'
+                            status.text = gettext('完成')
+                        } else if (item.is_started) {
+                            status.cls = 'execute'
+                            status.icon = 'common-icon-loading'
+                            this.getExecuteDetail(item, index)
+                        } else {
+                            status.cls = 'created'
+                            status.icon = 'common-icon-dark-circle-shape'
+                            status.text = gettext('未执行')
+                        }
                     }
+                    
                     return status
                 })
             },
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)
@@ -152,6 +172,16 @@
                 } catch (e) {
                     errorHandler(e, this)
                 }
+            },
+            /**
+             * 单个任务操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} task 任务数据对象
+             * @params {Object} event 事件对象
+             */
+            onTaskPermissonCheck (required, task, event) {
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
+                event.preventDefault()
             }
         }
     }
@@ -226,7 +256,6 @@
         right: 0;
         top: 6px;
         font-size: 12px;
-        color: $yellowDefault;
         &.created {
             color: #979ba5;
         }

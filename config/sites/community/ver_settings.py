@@ -11,8 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-REMOTE_ANALYSIS_URL = ''
-REMOTE_API_URL = ''
+import os
+
+from config import BK_PAAS_HOST as _BK_PAAS_HOST
+
+REMOTE_ANALYSIS_URL = '%s/console/static/js/analysis.min.js' % os.environ.get('BK_PAAS_HOST', _BK_PAAS_HOST)
+REMOTE_API_URL = '%s/console/static/bk_api/api.js' % os.environ.get('BK_PAAS_HOST', _BK_PAAS_HOST)
 
 ESB_SDK_NAME = 'packages.blueking.component'
 ESB_AUTH_COMPONENT_SYSTEM = 'bk_login'

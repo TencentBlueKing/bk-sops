@@ -109,8 +109,8 @@ Query a task or task node execution status
 | REVOKED   | revoked   |
 | FINISHED  | finished  |  
 
-#### data.children.KEY
+#### data.children KEY
 the unique ID of a task node
 
-#### data.children.VALUE
+#### data.children VALUE
 the detail of a task node, the format is same with data

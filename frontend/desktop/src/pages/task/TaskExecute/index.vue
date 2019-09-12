@@ -18,25 +18,31 @@
             :current-step="currentStep"
             :task-status="'TaskExecute'"
             :common="common"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :instance-name="instanceName"
             :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
             v-if="isFunctional && !loading"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :instance_id="instance_id"
             :instance-name="instanceName"
-            :instance-flow="instanceFlow">
+            :instance-flow="instanceFlow"
+            :instance-actions="instanceActions"
+            :instance-operations="instanceOperations"
+            :instance-resource="instanceResource">
         </TaskFunctionalization>
         <TaskOperation
             v-if="!isFunctional && !loading"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
             :template_id="template_id"
             :template-source="templateSource"
+            :instance-actions="instanceActions"
+            :instance-operations="instanceOperations"
+            :instance-resource="instanceResource"
             @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
     </div>
@@ -69,7 +75,7 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['cc_id', 'instance_id', 'common'],
+        props: ['project_id', 'instance_id', 'common'],
         data () {
             return {
                 taskDataLoading: true,
@@ -82,7 +88,10 @@
                 isAllStepsFinished: false,
                 instanceName: '',
                 instanceFlow: '',
-                templateSource: ''
+                templateSource: '',
+                instanceActions: [],
+                instanceOperations: [],
+                instanceResource: {}
             }
         },
         computed: {
@@ -120,6 +129,9 @@
                     this.instanceName = instanceData.name
                     this.template_id = instanceData.template_id
                     this.templateSource = instanceData.template_source
+                    this.instanceActions = instanceData.auth_actions
+                    this.instanceOperations = instanceData.auth_operations
+                    this.instanceResource = instanceData.auth_resource
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true
                     }

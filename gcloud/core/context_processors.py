@@ -20,7 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from gcloud.conf import settings
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
-from gcloud.core.models import UserBusiness
+from gcloud.core.project import get_default_project_for_user
 
 logger = logging.getLogger("root")
 
@@ -47,7 +47,8 @@ def mysetting(request):
     is_superuser = int(request.user.is_superuser)
     is_functor = int(is_user_functor(request))
     is_auditor = int(is_user_auditor(request))
-    business_timezone = request.session.get('blueking_timezone', settings.TIME_ZONE)
+    default_project = get_default_project_for_user(request.user.username)
+    project_timezone = request.session.get('blueking_timezone', settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
     ctx = {
         'MEDIA_URL': settings.MEDIA_URL,  # MEDIA_URL
@@ -86,14 +87,8 @@ def mysetting(request):
         'IS_SUPERUSER': is_superuser,
         'IS_FUNCTOR': is_functor,
         'IS_AUDITOR': is_auditor,
-        'BUSINESS_TIMEZONE': business_timezone
+        'PROJECT_TIMEZONE': project_timezone,
+        'DEFAULT_PROJECT_ID': default_project.id if default_project else ''
     }
-    # 管理员入口，需要设置默认业务，否则无法访问业务相关页面
-    if cur_pos == 'admin':
-        try:
-            obj = UserBusiness.objects.get(user=request.user.username)
-            biz_cc_id = obj.default_buss
-        except UserBusiness.DoesNotExist:
-            biz_cc_id = 0
-        ctx['biz_cc_id'] = biz_cc_id
+
     return ctx

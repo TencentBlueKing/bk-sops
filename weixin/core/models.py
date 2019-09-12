@@ -15,10 +15,6 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 
-from .utils import uniqid
-
-BK_WEIXIN_USER_LIFE_DAYS = 7
-
 
 class BkWeixinUserManager(models.Manager):
     def create_user(self, userid, **extra_fields):
@@ -67,12 +63,12 @@ class BkWeixinUser(models.Model):
     # (1)weixin.core.models.BkWeixinUserManager.get_update_or_create_user里update_fields
     # (2)weixin.core.api.QyWeiXinApi.get_user_info_for_account返回需要的字段
 
-    objects = BkWeixinUserManager()
-
     class Meta:
         db_table = 'bk_weixin_user'
         verbose_name = _(u"微信用户")
         verbose_name_plural = _(u"微信用户")
+
+    objects = BkWeixinUserManager()
 
     def is_authenticated(self):
         """
@@ -80,55 +76,3 @@ class BkWeixinUser(models.Model):
         authenticated in templates.
         """
         return True
-
-
-class WeixinUserSessionManager(models.Manager):
-    def get_or_create_user_session(self, bk_user_id):
-        """
-        @summary：每次登陆刷新session_key
-        @param bk_user_id:
-        @return:
-        """
-        try:
-            bk_user_session = self.get(bk_user_id=bk_user_id)
-        except self.model.DoesNotExist:
-            bk_user_session = self.create(
-                bk_user_id=bk_user_id,
-                session_key=uniqid(),
-                expired_time=timezone.now() + timezone.timedelta(days=BK_WEIXIN_USER_LIFE_DAYS)
-            )
-            return True, bk_user_session
-
-        bk_user_session.session_key = uniqid()
-        bk_user_session.expired_time = timezone.now() + timezone.timedelta(days=BK_WEIXIN_USER_LIFE_DAYS)
-        bk_user_session.save()
-        return False, bk_user_session
-
-    def check_session_key(self, session_key):
-        """
-        @summary：检查当前session_key是否有效
-        @param session_key:
-        @return: 无效返回 False，有效返回 bk_user_id
-        """
-        try:
-            bk_user_session = self.get(session_key=session_key)
-        except self.model.DoesNotExist:
-            return False
-        if bk_user_session.expired_time < timezone.now():
-            return False
-        return bk_user_session.bk_user_id
-
-
-class WeixinUserSession(models.Model):
-    """
-    @summary: 自定义过期时长的Session记录
-    """
-    bk_user_id = models.CharField(_(u"[企业]微信用户唯一标识(公众号openid/企业微信userid)"), max_length=128, unique=True)
-    session_key = models.CharField(_(u"有效的session key"), max_length=32, unique=True)
-    expired_time = models.DateTimeField(_(u"过期时间"))
-
-    objects = WeixinUserSessionManager()
-
-    class Meta:
-        verbose_name = _(u"微信用户Session记录")
-        verbose_name_plural = _(u"微信用户Session记录")

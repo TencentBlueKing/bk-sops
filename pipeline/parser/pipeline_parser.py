@@ -146,8 +146,8 @@ class PipelineParser(object):
                                         name=act[PE.name],
                                         data=data,
                                         error_ignorable=act.get(PE.error_ignorable, False),
-                                        skippable=act.get(PE.skippable, True),
-                                        can_retry=act.get(PE.can_retry, True),
+                                        skippable=act.get(PE.skippable) or act.get(PE.skippable_old, True),
+                                        retryable=act.get(PE.retryable) or act.get(PE.retryable_old, True),
                                         timeout=act.get(PE.timeout),
                                         failure_handler=failure_handler))
             elif act[PE.type] == PE.SubProcess:

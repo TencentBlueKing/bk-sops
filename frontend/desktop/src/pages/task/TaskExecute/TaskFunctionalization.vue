@@ -17,12 +17,12 @@
             <div class="common-form-item">
                 <label class="required">{{ i18n.taskName }}</label>
                 <div class="common-form-content">
-                    <BaseInput
+                    <bk-input
                         class="common-form-content-size"
                         name="taskName"
                         v-model="name"
                         v-validate="taskNameRule">
-                    </BaseInput>
+                    </bk-input>
                     <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                 </div>
             </div>
@@ -48,9 +48,12 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
-                class="task-claim-button"
                 theme="success"
+                :class="['task-claim-button', {
+                    'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
+                }]"
                 :loading="isSubmit"
+                v-cursor="{ active: !hasPermission(['claim'], instanceActions, instanceOperations) }"
                 @click="onTaskClaim">
                 {{ i18n.claim }}
             </bk-button>
@@ -82,8 +85,8 @@
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
     import NodePreview from '../NodePreview.vue'
 
@@ -92,11 +95,14 @@
         inject: ['reload'],
         components: {
             NoData,
-            BaseInput,
             TaskParamEdit,
             NodePreview
         },
-        props: ['cc_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        mixins: [permission],
+        props: [
+            'project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName',
+            'instanceActions', 'instanceOperations', 'instanceResource'
+        ],
         data () {
             return {
                 i18n: {
@@ -159,6 +165,17 @@
             },
             onTaskClaim () {
                 if (this.isSubmit) return
+
+                if (!this.hasPermission(['claim'], this.instanceActions, this.instanceOperations)) {
+                    const resourceData = {
+                        name: this.instanceName,
+                        id: this.instance_id,
+                        auth_actions: this.instanceActions
+                    }
+                    this.applyForPermission(['claim'], resourceData, this.instanceOperations, this.instanceResource)
+                    return
+                }
+
                 this.isSubmit = true
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) return
@@ -172,6 +189,7 @@
                     const data = {
                         name: this.name,
                         instance_id: this.instance_id,
+                        project_id: this.project_id,
                         constants: JSON.stringify(formData)
                     }
                     try {

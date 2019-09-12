@@ -260,7 +260,7 @@
                     module: gettext('模块配置'),
                     placeholder: gettext('请输入'),
                     importPlaceholder: gettext('请输入模块绝对路径，如a.b.c，多个用,分隔'),
-                    subModule: gettext('根模块'),
+                    subModule: gettext('子模块名称'),
                     version: gettext('版本'),
                     importModule: gettext('导入模块'),
                     operation: gettext('操作'),
@@ -297,7 +297,7 @@
                     })
                     detailValues[key] = ''
                 }
-
+                
                 return [detailFields, detailValues]
             },
             /**
@@ -530,7 +530,7 @@
                     font-family: "SimSun";
                 }
             }
-
+            
         }
         .td-with-input {
             &:hover{

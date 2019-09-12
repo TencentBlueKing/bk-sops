@@ -21,9 +21,12 @@ from pipeline_plugins.cmdb_ip_picker.utils import get_ip_picker_result
 from pipeline_plugins.components.utils import (
     cc_get_ips_info_by_str,
     cc_get_inner_ip_by_module_id,
+    supplier_account_for_project
 )
 from pipeline_plugins.components.utils.common import ip_re
 from pipeline.core.data.var import LazyVariable
+
+from gcloud.core.models import Project
 
 logger = logging.getLogger('root')
 
@@ -38,17 +41,19 @@ class VarIpPickerVariable(LazyVariable):
     def get_value(self):
         var_ip_picker = self.value
         username = self.pipeline_data['executor']
-        biz_cc_id = self.pipeline_data['biz_cc_id']
+        project_id = self.pipeline_data['project_id']
+        project = Project.objects.get(id=project_id)
+        bk_biz_id = project.bk_biz_id if project.from_cmdb else ''
+        bk_supplier_account = supplier_account_for_project(project_id)
 
         produce_method = var_ip_picker['var_ip_method']
         if produce_method == 'custom':
             custom_value = var_ip_picker['var_ip_custom_value']
-            data = cc_get_ips_info_by_str(username, biz_cc_id, custom_value)
+            data = cc_get_ips_info_by_str(username, bk_biz_id, custom_value)
             ip_list = data['ip_result']
             data = ','.join([ip['InnerIP'] for ip in ip_list])
         else:
             ip_pattern = re.compile(ip_re)
-            supplier_account = self.pipeline_data['biz_supplier_account']
             module_id_list = var_ip_picker['var_ip_tree']
             module_inst_id_list = []
             tree_ip_list = []
@@ -65,8 +70,8 @@ class VarIpPickerVariable(LazyVariable):
                     logger.warning('ip_picker module ip transit failed: {origin}'.format(origin=custom_id))
 
             # query cc to get module's ip list and filter tree_ip_list
-            host_list = cc_get_inner_ip_by_module_id(username, biz_cc_id, module_inst_id_list, supplier_account)
-            cc_ip_list = cc_get_ips_info_by_str(username, biz_cc_id, ','.join(tree_ip_list))['ip_result']
+            host_list = cc_get_inner_ip_by_module_id(username, bk_biz_id, module_inst_id_list, bk_supplier_account)
+            cc_ip_list = cc_get_ips_info_by_str(username, bk_biz_id, ','.join(tree_ip_list))['ip_result']
             select_ip = set()
 
             for host_info in host_list:
@@ -89,8 +94,10 @@ class VarCmdbIpSelector(LazyVariable):
 
     def get_value(self):
         username = self.pipeline_data['executor']
-        bk_biz_id = self.pipeline_data['biz_cc_id']
-        bk_supplier_account = self.pipeline_data['biz_supplier_account']
+        project_id = self.pipeline_data['project_id']
+        project = Project.objects.get(id=project_id)
+        bk_biz_id = project.bk_biz_id if project.from_cmdb else ''
+        bk_supplier_account = supplier_account_for_project(project_id)
 
         ip_selector = self.value
         ip_result = get_ip_picker_result(username, bk_biz_id, bk_supplier_account, ip_selector)
