@@ -394,7 +394,8 @@ class TaskTemplateManager(BaseTemplateManager):
         template_pipeline_data = TemplateInPipeline.objects.filter(template_id__in=template_id_list)
         relationship_list = TemplateRelationship.objects.filter(descendant_template_id__in=template_id_list).values(
             "descendant_template_id").annotate(relationship_total=Count("descendant_template_id"))
-        template_id_map = {template['pipeline_template__id']: template['pipeline_template__template_id'] for template in id_list}
+        template_id_map = {template['pipeline_template__id']: template['pipeline_template__template_id']
+                           for template in id_list}
         taskflow_list = PipelineInstance.objects.filter(template_id__in=template_id_map.keys()).values(
             "template_id").annotate(instance_total=Count("template_id")).order_by()
         periodic_list = PeriodicTask.objects.filter(template__template_id__in=template_id_list).values(
