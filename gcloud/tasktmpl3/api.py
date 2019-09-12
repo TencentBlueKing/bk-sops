@@ -35,6 +35,7 @@ from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.drawing import draw_pipeline_automatic
 from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
@@ -378,3 +379,26 @@ def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
                     for var in act_comp['data']['job_global_var']['value']:
                         if 'id' in var:
                             var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
+
+
+@require_POST
+def draw_pipeline(request):
+    """
+    @summary：自动排版画布
+    @param request:
+    @return:
+    """
+    try:
+        pipeline_tree = json.loads(request.POST.get('pipeline_tree'))
+    except Exception as e:
+        message = 'json loads pipeline_tree error: %s' % e
+        logger.exception(e)
+        return JsonResponse({'result': False, 'message': message})
+    canvas_width = int(request.POST.get('canvas_width', 0))
+    try:
+        draw_pipeline_automatic(pipeline_tree, canvas_width=canvas_width)
+    except Exception as e:
+        message = 'draw pipeline_tree error: %s' % e
+        logger.exception(e)
+        return JsonResponse({'result': False, 'message': message})
+    return JsonResponse({'result': True, 'data': {'pipeline_tree': pipeline_tree}})
