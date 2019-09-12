@@ -684,7 +684,8 @@
                         data
                     })
                 }
-                this.getNodeFormData()
+                // 暂时注释
+                // this.getNodeFormData()
                 this.$nextTick(() => {
                     this.updateActivities()
                     this.markInvalidForm()
@@ -1066,19 +1067,24 @@
                         this.createVariable(variableOpts)
                         return
                     }
+                    // 获取全局变量中已有的 key + version 相同项列表
                     for (const cKey in this.constants) {
                         const constant = this.constants[cKey]
+                        const sVersion = constant.version
                         const sTag = constant.source_tag
                         if (sTag) {
                             const tCode = sTag.split('.')[1]
-                            tCode === tagCode && variableList.push({
+                            tCode === tagCode && sVersion === variableVersion && variableList.push({
                                 name: `${constant.name}(${constant.key})`,
                                 id: constant.key
                             })
                         }
                     }
                     const isKeyUsedInConstants = variableKey in this.constants
-
+                    /**
+                     * 复用变量（全局变量中有key + version 都相同的项）
+                     * 新建变量（全局变量中有key相同version不同的项）
+                     */
                     if (variableList.length) { // input arguments include ip selector have same soure_tag
                         this.reuseVariable = { name, key, source_tag, source_info, value, useNewKey: false }
                         this.reuseableVarList = variableList

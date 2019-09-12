@@ -47,7 +47,30 @@
         min-height: 36px;
     }
 }
-
+.common-form-block-item {
+    padding: 0 20px;
+    margin-bottom: 20px;
+    @include clearfix;
+    &:last-child {
+        margin-bottom: 0;
+    }
+    &>label {
+        margin-bottom: 8px;
+        display: block;
+        font-size: 14px;
+        font-weight: bold;
+        color: #666666;
+        text-align: left;
+        &.required:after {
+            content: '*';
+            position: absolute;
+            top: 0px;
+            right: -10px;
+            color: #ff2602;
+            font-family: "SimSun";
+        }
+    }
+}
 .common-dialog .bk-dialog {
     .bk-dialog-tool {
         min-height: 20px;
