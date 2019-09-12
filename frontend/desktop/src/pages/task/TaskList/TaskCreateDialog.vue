@@ -16,7 +16,7 @@
                 <div class="filtrate-wrapper">
                     <div class="task-search flow-types">
                         <bk-select
-                            v-if="createEntrance"
+                            v-if="type === 'normal'"
                             v-model="selectedTplType"
                             class="bk-select-inline"
                             :popover-width="260"
@@ -26,7 +26,7 @@
                             <bk-option
                                 v-for="(option, index) in templateType"
                                 :key="index"
-                                :id="option.name"
+                                :id="option.id"
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
@@ -34,14 +34,15 @@
                     <div class="task-search">
                         <bk-select
                             v-model="selectedTplCategory"
-                            :popover-width="260"
                             class="bk-select-inline"
+                            :popover-width="260"
                             :disabled="!categoryListPending"
+                            :clearable="false"
                             @selected="onChooseTplCategory">
                             <bk-option
                                 v-for="(option, index) in templateCategories"
                                 :key="index"
-                                :id="option.name"
+                                :id="option.value"
                                 :name="option.name">
                             </bk-option>
                         </bk-select>
@@ -73,11 +74,20 @@
                                         v-for="template in item.children"
                                         :key="template.id"
                                         :title="template.name"
-                                        :class="['task-item', { 'task-item-selected': selectedId === template.id }]"
+                                        :class="[
+                                            'task-item',
+                                            {
+                                                'task-item-selected': selectedId === template.id,
+                                                'permission-disable': !hasPermission(action, template.auth_actions, operations)
+                                            }
+                                        ]"
                                         @click="onSelectTask(template)">
                                         <div class="task-item-icon">{{template.name.substr(0,1).toUpperCase()}}</div>
                                         <div class="task-item-name-box">
                                             <div class="task-item-name">{{template.name}}</div>
+                                        </div>
+                                        <div class="apply-permission-mask">
+                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>
@@ -99,13 +109,16 @@
     import toolsUtils from '@/utils/tools.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
+
     export default {
         name: 'TaskCreateDialog',
         components: {
             NoData
         },
-        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'createEntrance', 'dialogTitle'],
+        mixins: [permission],
+        props: ['isNewTaskDialogShow', 'businessInfoLoading', 'common', 'project_id', 'taskCategory', 'type', 'dialogTitle'],
         data () {
             return {
                 i18n: {
@@ -115,7 +128,8 @@
                     confirm: gettext('确认'),
                     cancel: gettext('取消'),
                     errorInfo: gettext('请选择流程模版'),
-                    allType: gettext('全部分类')
+                    allType: gettext('全部分类'),
+                    applyPermission: gettext('申请权限')
                 },
                 selectedId: '',
                 taskListPending: true,
@@ -126,25 +140,29 @@
                 templateList: [],
                 templateType: [
                     {
-                        id: 'BusinessProcess',
+                        id: 'businessProcess',
                         name: gettext('业务流程')
                     },
                     {
-                        id: 'PublicProcess',
+                        id: 'publicProcess',
                         name: gettext('公共流程')
                     }
                 ],
-                selectedTplType: gettext('业务流程'),
-                selectedTplCategory: gettext('全部分类'),
+                selectedTplType: 'businessProcess',
+                selectedTplCategory: 'all',
                 searchWord: '',
-                nowTypeList: []
+                nowTypeList: [],
+                tplOperations: [],
+                tplResource: {},
+                commonTplOperations: [],
+                commonTplResource: {}
             }
         },
         computed: {
             templateCategories () {
                 const list = toolsUtils.deepClone(this.taskCategory)
                 list.unshift({ value: 'all', name: gettext('全部分类') })
-                return list.map(m => ({ id: m.value || m.id, name: m.name }))
+                return list.map(m => ({ value: m.value, name: m.name }))
             },
             categoryListPending () {
                 return this.taskCategory.length !== 0 && this.taskListPending === false
@@ -154,6 +172,15 @@
             },
             title () {
                 return this.dialogTitle || this.i18n.title
+            },
+            operations () {
+                return this.selectedTplType === 'businessProcess' ? this.tplOperations : this.commonTplOperations
+            },
+            resource () {
+                return this.selectedTplType === 'businessProcess' ? this.tplResource : this.commonTplResource
+            },
+            action () {
+                return this.type === 'normal' ? ['create_task'] : ['create_periodic_task']
             }
         },
         watch: {
@@ -177,13 +204,17 @@
             async getTaskData () {
                 this.taskListPending = true
                 try {
-                    if (this.createEntrance === true) {
+                    if (this.type === 'normal') {
                         Promise.all([
                             this.getBusinessData(),
                             this.getcommonData()
                         ]).then(values => {
-                            const businessList = values[0]
-                            const commonList = values[1]
+                            const businessList = values[0].objects
+                            const commonList = values[1].objects
+                            this.tplOperations = values[0].meta.auth_operations
+                            this.tplResource = values[0].meta.auth_resource
+                            this.commonTplOperations = values[1].meta.auth_operations
+                            this.commonTplResource = values[1].meta.auth_resource
                             this.businessTplList = this.getGroupedList(businessList)
                             this.commonTplList = this.getGroupedList(commonList)
                             this.templateList = this.businessTplList
@@ -197,6 +228,8 @@
                         }
                         const respData = await this.loadTemplateList(data)
                         const list = respData.objects
+                        this.tplOperations = respData.meta.auth_operations
+                        this.tplResource = respData.meta.auth_resource
                         this.businessTplList = this.getGroupedList(list)
                         this.templateList = this.businessTplList
                         this.taskListPending = false
@@ -207,12 +240,9 @@
                 }
             },
             async getBusinessData () {
-                const data = {
-                    common: this.common
-                }
                 try {
-                    const respData = await this.loadTemplateList(data)
-                    return respData.objects
+                    const respData = await this.loadTemplateList()
+                    return respData
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -223,7 +253,7 @@
                 }
                 try {
                     const respData = await this.loadTemplateList(data)
-                    return respData.objects
+                    return respData
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -234,6 +264,7 @@
                 this.taskCategory.forEach(item => {
                     groups.push(item.name)
                     atomGrouped.push({
+                        id: item.value,
                         name: item.name,
                         children: []
                     })
@@ -244,7 +275,8 @@
                     if (index > -1) {
                         atomGrouped[index].children.push({
                             id: item.id,
-                            name: item.name
+                            name: item.name,
+                            auth_actions: item.auth_actions
                         })
                     }
                 })
@@ -257,23 +289,28 @@
                     return
                 }
                 let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${this.selectedId}`
-                if (this.selectedTplType === this.templateType[1].name) {
+                if (this.selectedTplType === 'publicProcess') {
                     url += '&common=1'
                 }
-                if (this.createEntrance === false) {
+                if (this.type === 'periodic') {
                     url += '&entrance=periodicTask_new'
-                } else if (this.createEntrance === true) {
+                } else {
                     url += '&entrance=taskflow'
                 }
                 this.$router.push(url)
             },
             onCancel () {
                 this.selectedId = ''
+                this.selectError = false
                 this.$emit('onCreateTaskCancel')
             },
             onSelectTask (template) {
-                this.selectError = false
-                this.selectedId = template.id
+                if (this.hasPermission(this.action, template.auth_actions, this.operations)) {
+                    this.selectError = false
+                    this.selectedId = template.id
+                } else {
+                    this.applyForPermission(this.action, template, this.operations, this.resource)
+                }
             },
             searchInputhandler () {
                 const list = toolsUtils.deepClone(this.nowTypeList)
@@ -291,13 +328,13 @@
                 this.onFiltrationTemplate()
             },
             onFiltrationTemplate () {
-                const list = this.selectedTplType === this.templateType[0].name ? this.businessTplList : this.commonTplList
+                const list = this.selectedTplType === 'businessProcess' ? this.businessTplList : this.commonTplList
                 const sourceList = toolsUtils.deepClone(list)
                 let filteredList = []
-                if (this.selectedTplCategory === this.i18n.allType) {
+                if (this.selectedTplCategory === 'all') {
                     filteredList = sourceList
                 } else {
-                    filteredList = sourceList.filter(item => item.name === this.selectedTplCategory)
+                    filteredList = sourceList.filter(item => item.id === this.selectedTplCategory)
                 }
                 this.templateList = filteredList
                 this.nowTypeList = filteredList
@@ -362,12 +399,14 @@
         width: 260px;
     }
     .task-item {
+        position: relative;
         display: inline-block;
         margin-left: 15px;
         margin-bottom: 5px;
         width: 260px;
         cursor: pointer;
         background: #dcdee5;
+        border: 1px solid #c4c6cc;
         border-radius: 2px;
         overflow: hidden;
         &:nth-child(3n + 1) {
@@ -383,7 +422,6 @@
             color: #ffffff;
             font-size: 28px;
             overflow: hidden;
-            border-radius: 4px 0 0 4px;
         }
         .task-item-name {
             color: #313238;
@@ -393,8 +431,41 @@
                 background: #dcdee5
             }
         }
-        &:hover {
-            color: $blueDefault;
+        .apply-permission-mask {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        &.permission-disable {
+            background: #f7f7f7;
+            border: 1px solid #dcdee5;
+            .task-item-icon {
+                color: #dcdee5;
+                background: #f7f7f7;
+                border-right: 1px solid #dcdee5;
+            }
+            .task-item-name {
+                color: #c4c6cc;
+                &:after {
+                    background: #f7f7f7;
+                }
+            }
+            .apply-permission-mask {
+                padding: 12px 0;
+                background: rgba(255, 255, 255, 0.6);
+                text-align: center;
+            }
+            .bk-button {
+                width: 80px;
+                height: 32px;
+                line-height: 30px;
+            }
+            &:hover .apply-permission-mask {
+                display: block;
+            }
         }
     }
     .task-item-name-box {
