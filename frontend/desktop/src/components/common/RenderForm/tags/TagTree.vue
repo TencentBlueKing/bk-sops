@@ -102,8 +102,7 @@
                     children: 'children',
                     disabled: true
                 },
-                loading: false,
-                remote_cache: null
+                loading: false
             }
         },
         mounted () {
@@ -131,7 +130,7 @@
                 this.expanded_keys.pop(data.id)
             },
             remoteMethod () {
-                const $this = this
+                const self = this
 
                 const remote_url = typeof this.remote_url === 'function' ? this.remote_url() : this.remote_url
                 if (!remote_url) return
@@ -139,37 +138,26 @@
                 this.loading = true
 
                 // 请求远程数据
-                if (this.remote_cache === null && remote_url) {
-                    $.ajax({
-                        url: remote_url,
-                        method: 'GET',
-                        success: function (res) {
-                            let treeData = $this.remote_data_init(res)
-                            // 表单为展示模式时，去掉未被选中的数据项
-                            if (!$this.editable || !$this.formMode) {
-                                treeData = $this.filterTreeItem(treeData)
-                            }
-                            $this.remote_cache = treeData
-
-                            if ($this.remote_cache !== null) {
-                                $this.items = $this.remote_cache
-                                $this.$refs.tree && $this.$refs.tree.setCheckedKeys($this.value)
-                            } else {
-                                $this.items = []
-                            }
-
-                            $this.loading = false
-                        },
-                        error: function () {
-                            $this.empty_text = gettext('请求数据失败')
-                            $this.loading = false
+                $.ajax({
+                    url: remote_url,
+                    method: 'GET',
+                    success: function (res) {
+                        let treeData = self.remote_data_init(res)
+                        // 表单为展示模式时，去掉未被选中的数据项
+                        if (!self.editable || !self.formMode) {
+                            treeData = self.filterTreeItem(treeData)
                         }
-                    })
-                } else {
-                    this.items = this.remote_cache
-                    this.$refs.tree.setCheckedKeys(this.value)
-                    this.loading = false
-                }
+
+                        self.items = treeData
+                        self.$refs.tree.setCheckedKeys(self.value)
+
+                        self.loading = false
+                    },
+                    error: function () {
+                        self.empty_text = gettext('请求数据失败')
+                        self.loading = false
+                    }
+                })
             },
             filterTreeItem (data) {
                 return data.filter(item => {

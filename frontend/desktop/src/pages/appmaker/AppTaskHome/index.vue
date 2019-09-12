@@ -106,10 +106,19 @@
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                :title="props.row.name"
+                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                {{props.row.name}}
+                            </a>
                             <router-link
+                                v-else
                                 class="task-name"
                                 :title="props.row.name"
-                                :to="`/appmaker/${props.row.create_info}/execute/${props.row.business.cc_id}/?instance_id=${props.row.id}`">
+                                :to="`/appmaker/${props.row.create_info}/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
                                 {{props.row.name}}
                             </router-link>
                         </template>
@@ -156,6 +165,8 @@
     import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'appmakerTaskHome',
         components: {
@@ -164,7 +175,8 @@
             AdvanceSearch,
             NoData
         },
-        props: ['cc_id', 'app_id'],
+        mixins: [permission],
+        props: ['project_id', 'app_id'],
         data () {
             return {
                 i18n: {
@@ -222,7 +234,9 @@
                     { 'id': 'nonExecution', 'name': gettext('未执行') },
                     { 'id': 'runing', 'name': gettext('未完成') },
                     { 'id': 'finished', 'name': gettext('完成') }
-                ]
+                ],
+                taskOperations: [],
+                taskResource: {}
             }
         },
         computed: {
@@ -243,7 +257,7 @@
                 'getInstanceStatus'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapMutations('template/', [
                 'setBusinessBaseInfo'
@@ -272,6 +286,8 @@
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.objects
                     this.appmakerList = list
+                    this.taskOperations = appmakerListData.meta.auth_operations
+                    this.taskResource = appmakerListData.meta.auth_resource
                     this.pagination.count = appmakerListData.meta.total_count
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
@@ -296,7 +312,7 @@
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)
@@ -338,9 +354,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
-                    this.taskCategory = bizBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
-                    this.setBusinessBaseInfo(bizBasicInfo)
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
+                    this.setBusinessBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -399,8 +415,11 @@
                 this.isStarted = undefined
                 this.isFinished = undefined
                 this.getAppmakerList()
+            },
+            onTaskPermissonCheck (task, event) {
+                this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
+                event.preventDefault()
             }
-
         }
     }
 </script>

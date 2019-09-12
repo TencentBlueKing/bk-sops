@@ -109,8 +109,8 @@
 | REVOKED   | 已终止   |
 | FINISHED  | 已完成   |  
 
-#### data.children.KEY
+#### data.children KEY
 任务节点执行态ID
 
-#### data.children.VALUE
+#### data.children VALUE
 同 data 格式

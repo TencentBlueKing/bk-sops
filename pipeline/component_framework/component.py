@@ -26,13 +26,13 @@ class Component(object):
     @classmethod
     def outputs_format(cls):
         outputs = cls.bound_service().outputs()
-        outputs = map(lambda oi: oi._asdict(), outputs)
+        outputs = map(lambda oi: oi.as_dict(), outputs)
         return outputs
 
     @classmethod
     def inputs_format(cls):
         inputs = cls.bound_service().inputs()
-        inputs = map(lambda ii: ii._asdict(), inputs)
+        inputs = map(lambda ii: ii.as_dict(), inputs)
         return inputs
 
     @classmethod

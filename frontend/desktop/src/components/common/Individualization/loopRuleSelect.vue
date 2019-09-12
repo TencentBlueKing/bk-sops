@@ -41,9 +41,7 @@
                             <bk-radio :value="1">{{ autoWay.appoint.name }}</bk-radio>
                         </bk-radio-group>
                         <!-- 循环生成 -->
-                        <div
-                            v-if="item.radio === 0"
-                            class="loop-select-bd">
+                        <div v-if="item.radio === 0" class="loop-select-bd">
                             {{ item.key !== 'week' ? autoWay.loop.start : autoWay.loop.startWeek }}
                             <bk-input
                                 v-model.number="item.loop.start"
@@ -61,21 +59,17 @@
                             </bk-input>
                             {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
-                            <i
-                                v-if="item.key === 'week'"
+                            <i v-if="item.key === 'week'"
                                 v-bk-tooltips="i18n.monthTips"
                                 class="bk-icon icon-info-circle month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
-                            <div
-                                v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
+                            <div v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
                                 class="local-error-tip error-msg">
                                 {{ errors.first(item.key + 'Rule') || errors.first('interval') }}
                             </div>
                         </div>
                         <!-- 指定 -->
-                        <div
-                            v-else
-                            class="appoint-select-bd">
+                        <div v-else class="appoint-select-bd">
                             <bk-checkbox
                                 v-for="(box, i) in item.checkboxList"
                                 :key="i"
@@ -86,9 +80,7 @@
                         </div>
                         <div class="expression">
                             {{ i18n.expression }} {{ expressionShowText }}
-                            <span
-                                class="clear-selected"
-                                @click.stop="clearRule">
+                            <span class="clear-selected" @click.stop="clearRule">
                                 {{ i18n.clearSelected }}
                             </span>
                         </div>
@@ -96,14 +88,14 @@
                 </bk-tab-panel>
             </bk-tab>
             <!-- 手动输入 -->
-            <div
-                v-show="currentWay === 'manualInput'"
-                class="hand-input">
-                <BaseInput
-                    v-model="periodicCron"
-                    v-validate="{ required: true, cronRlue: true }"
+            <div v-show="currentWay === 'manualInput'" class="hand-input">
+                <bk-input
+                    :clearable="true"
                     name="periodicCron"
-                    class="step-form-content-size" />
+                    class="step-form-content-size"
+                    v-model="periodicCron"
+                    v-validate="{ required: true, cronRlue: true }">
+                </bk-input>
             </div>
         </div>
         <i class="bk-icon icon-info-circle rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
@@ -112,8 +104,7 @@
             <img class="ui-img" :src="periodicCronImg">
         </div>
         <!-- 手动输入错误提示 -->
-        <span
-            v-show="errors.has('periodicCron') && currentWay === 'manualInput'"
+        <span v-show="errors.has('periodicCron') && currentWay === 'manualInput'"
             class="common-error-tip error-msg">
             {{ errors.first('periodicCron') }}
         </span>
@@ -122,7 +113,6 @@
 <script>
     import '@/utils/i18n.js'
     import { PERIODIC_REG } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     const autoRuleList = [
         {
             key: 'min',
@@ -225,9 +215,6 @@
     }
     export default {
         name: 'loopRuleSelect',
-        components: {
-            BaseInput
-        },
         filters: {
             addZero (v, k) {
                 return k === 'week' ? v : (v < 10 ? '0' + v : v)
@@ -562,11 +549,7 @@ $bgBlue: #3a84ff;
         white-space: nowrap;
         .rule-btn {
             width: 50%;
-            border: 1px solid $commonBorderColor;
             border-radius: 0;
-        }
-        .manual-input-btn {
-            margin-left: -5px;
         }
         .active-btn {
             background-color: $blueBtnBg;

@@ -24,10 +24,10 @@
                                 :searchable="true"
                                 @selected="onAtomCiteData">
                                 <bk-option
-                                    v-for="(option, index) in businessList"
+                                    v-for="(option, index) in allProjectList"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -82,18 +82,18 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
-                                    v-model="selectedCcId"
+                                    v-model="selectedProjectId"
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @selected="onSelectProject">
                                     <bk-option
-                                        v-for="(option, index) in allBusinessList"
+                                        v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -144,18 +144,18 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
-                                    v-model="selectedCcId"
+                                    v-model="selectedProjectId"
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @selected="onSelectProject">
                                     <bk-option
-                                        v-for="(option, index) in allBusinessList"
+                                        v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -223,18 +223,18 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
-                                    v-model="selectedCcId"
+                                    v-model="selectedProjectId"
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @selected="onSelectProject">
                                     <bk-option
-                                        v-for="(option, index) in allBusinessList"
+                                        v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -291,13 +291,13 @@
         timeLimit: gettext('时间范围'),
         taskStartTime: gettext('任务开始时间'),
         choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceBusiness: gettext('选择项目'),
         choice: gettext('请选择'),
         atom: gettext('标准插件'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         templateName: gettext('流程名称'),
-        businessName: gettext('所属业务'),
+        businessName: gettext('所属项目'),
         editTime: gettext('更新时间'),
         editor: gettext('更新人'),
         category: gettext('分类'),
@@ -324,7 +324,7 @@
         data () {
             return {
                 i18n: i18n,
-                bizCcId: undefined,
+                projectId: undefined,
                 category: undefined,
                 choiceBusinessName: '',
                 isDropdownShow: false,
@@ -509,7 +509,7 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: '',
+                selectedProjectId: '',
                 selectedCategory: '',
                 selectedAtom: '',
                 choiceBusiness: undefined,
@@ -521,16 +521,18 @@
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
                 categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
+            ...mapState('project', {
+                projectList: state => state.projectList
+            }),
+            allProjectList () {
+                if (this.projectList.length === 0) {
+                    this.loadProjectList({ limit: 0 })
                 }
-                const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
+                const list = tools.deepClone(this.projectList)
+                list.unshift({ id: 'all', name: i18n.choiceAllBusiness })
                 return list
             },
             componentsList () {
@@ -562,8 +564,10 @@
                 'loadSingleAtomList'
             ]),
             ...mapActions([
-                'getBizList',
                 'getCategorys'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             onTemplateHandleSizeChange (limit) {
                 this.templatePageIndex = 1
@@ -611,7 +615,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        project_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
                     })
                 }
                 this.atomData(data)
@@ -633,7 +637,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         component_code: this.atom
                     }),
@@ -662,7 +666,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category
                     }),
                     pageIndex: this.executePageIndex,
@@ -726,7 +730,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         component_code: this.atom
                     }),
@@ -787,11 +791,11 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectProject (id) {
+                if (this.projectId === id) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = id
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
@@ -803,9 +807,9 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onClearBizCcId () {
-                this.selectedCcId = ''
-                this.bizCcId = undefined
+            onClearProject () {
+                this.selectedProjectId = -1
+                this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },

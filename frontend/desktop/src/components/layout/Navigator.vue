@@ -11,7 +11,7 @@
 */
 <template>
     <header>
-        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" class="header-logo" @click.native="onGoToPath(businessHomeRoute)">
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" class="header-logo" @click.native="onGoToPath(homeRoute)">
             <img :src="logo" class="logo" />
             <span class="header-title">{{i18n.title}}</span>
         </router-link>
@@ -53,7 +53,7 @@
             </div>
         </nav>
         <div class="header-right clearfix">
-            <BizSelector v-if="showHeaderRight" :disabled="disabled"></BizSelector>
+            <ProjectSelector v-if="showHeaderRight" :disabled="disabled"></ProjectSelector>
             <div class="help-doc">
                 <a
                     class="common-icon-dark-circle-question"
@@ -78,7 +78,8 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
-    import BizSelector from './BizSelector.vue'
+    import ProjectSelector from './ProjectSelector.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -105,7 +106,7 @@
                 children: [
                     {
                         key: 'template',
-                        name: gettext('业务流程'),
+                        name: gettext('项目流程'),
                         path: '/template/home/'
                     },
                     {
@@ -126,14 +127,14 @@
                 name: gettext('任务记录')
             },
             {
-                key: 'config',
-                path: '/config/home/',
-                name: gettext('业务配置')
-            },
-            {
                 key: 'appmaker',
                 path: '/appmaker/home/',
                 name: gettext('轻应用')
+            },
+            {
+                key: 'project',
+                path: '/project/home/',
+                name: gettext('项目管理')
             },
             {
                 key: 'admin',
@@ -166,7 +167,7 @@
         inject: ['reload'],
         name: 'Navigator',
         components: {
-            BizSelector
+            ProjectSelector
         },
         props: ['appmakerDataLoading'],
         data () {
@@ -176,9 +177,10 @@
                     help: gettext('帮助文档'),
                     title: gettext('标准运维')
                 },
-                businessHomeRoute: {
-                    key: 'business',
-                    path: '/business/home/'
+                hasAdminPerm: false, // 是否拥有管理员入口查看权限
+                homeRoute: {
+                    key: 'home',
+                    path: '/home/'
                 }
             }
         },
@@ -187,24 +189,28 @@
                 site_url: state => state.site_url,
                 username: state => state.username,
                 userType: state => state.userType,
-                cc_id: state => state.cc_id,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
-                bizList: state => state.bizList,
-                templateId: state => state.templateId,
                 notFoundPage: state => state.notFoundPage,
                 isSuperUser: state => state.isSuperUser
             }),
+            ...mapState('project', {
+                projectList: state => state.projectList,
+                project_id: state => state.project_id
+            }),
+            ...mapState('appmaker', {
+                appmakerTemplateId: state => state.appmakerTemplateId
+            }),
             showHeaderRight () {
-                return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.bizList.length
+                return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
             },
             routeList () {
                 if (this.view_mode === 'appmaker') {
                     return [
                         {
                             key: 'appmakerTaskCreate',
-                            path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode`,
-                            query: { template_id: this.template_id },
+                            path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode`,
+                            query: { template_id: this.appmakerTemplateId },
                             name: gettext('新建任务')
                         },
                         {
@@ -217,7 +223,7 @@
                     let routes = ROUTE_LIST[`${this.userType}_router_list`]
 
                     // 非管理员用户去掉管理员入口
-                    if (!this.isSuperUser) {
+                    if (!this.hasAdminPerm) {
                         routes = routes.filter(item => item.key !== 'admin')
                     }
                     return routes
@@ -241,18 +247,42 @@
             this.initHome()
         },
         methods: {
-            initHome () {
-                if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.getBizList()
-                }
-            },
             ...mapActions([
-                'getBizList',
-                'changeDefaultBiz'
+                'queryUserPermission'
+            ]),
+            ...mapActions('project', [
+                'loadProjectList'
             ]),
             ...mapMutations([
                 'setBizId'
             ]),
+            ...mapMutations('project', [
+                'setProjectPerm'
+            ]),
+            async initHome () {
+                if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
+                    this.getAdminPerm()
+                    const res = await this.loadProjectList({ limit: 0 })
+                    this.setProjectPerm(res.meta)
+                }
+            },
+            async getAdminPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'admin_operate',
+                        action_ids: JSON.stringify(['view'])
+                    })
+    
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'view' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.hasAdminPerm = true
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
             isNavActived (route) {
                 const key = route.key
                 const entrance = this.$route.query.entrance || ''
@@ -300,11 +330,16 @@
 
                 let path
                 if (route.key === 'appmakerTaskCreate') {
-                    path = `${route.path}?template_id=${this.templateId}`
-                } else if (this.userType !== 'maintainer' || route.parent === 'admin') {
+                    path = `${route.path}?template_id=${this.appmakerTemplateId}`
+                } else if (
+                    this.userType !== 'maintainer'
+                    || route.key === 'project'
+                    || route.parent === 'admin'
+                    || (isNaN(this.project_id) || this.project_id === '')
+                ) {
                     path = `${route.path}`
                 } else {
-                    path = { path: `${route.path}${this.cc_id}/`, query: route.query }
+                    path = { path: `${route.path}${this.project_id}/`, query: route.query }
                 }
                 return path
             },
@@ -442,6 +477,9 @@ header {
                 display: inline-block;
                 margin-top: 17px;
             }
+        }
+        /deep/ .bk-select.is-disabled {
+            background: none;
         }
     }
 }

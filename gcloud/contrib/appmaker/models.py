@@ -22,6 +22,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
 
+from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
+
 from gcloud.conf import settings
 from gcloud.core.api_adapter import (
     create_maker_app,
@@ -31,7 +33,7 @@ from gcloud.core.api_adapter import (
     get_app_logo_url,
 )
 from gcloud.core.constant import AE
-from gcloud.core.models import Business
+from gcloud.core.models import Project
 from gcloud.core.utils import (
     convert_readable_username,
     name_handler,
@@ -39,6 +41,7 @@ from gcloud.core.utils import (
     timestamp_to_datetime
 )
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.permissions import task_template_resource
 
 logger = logging.getLogger("root")
 
@@ -48,10 +51,10 @@ APPMAKER_REGEX = re.compile(r'^category|create_time|creator_name|editor_name|'
 
 class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
-    def save_app_maker(self, biz_cc_id, app_params, fake=False):
+    def save_app_maker(self, project_id, app_params, fake=False):
         """
         @summary:
-        @param biz_cc_id: 业务ID
+        @param project_id: 项目 ID
         @param app_params: App maker参数
         @param fake: 为True则不会真正调用API创建轻应用
         @return:
@@ -63,18 +66,25 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         template_id = app_params['template_id']
         app_params['name'] = name_handler(app_params['name'], 20)
         app_params['desc'] = name_handler(app_params.get('desc', ''), 30)
-        biz = Business.objects.get(cc_id=biz_cc_id)
+        proj = Project.objects.get(id=project_id)
         try:
             task_template = TaskTemplate.objects.get(pk=template_id,
-                                                     business__cc_id=biz_cc_id,
+                                                     project_id=project_id,
                                                      is_deleted=False)
         except TaskTemplate.DoesNotExist:
             return False, _(u"保存失败，引用的流程模板不存在！")
 
         # create appmaker
+        from gcloud.contrib.appmaker.permissions import mini_app_resource
         if not app_id:
+            verify_or_raise_auth_failed(principal_type='user',
+                                        principal_id=app_params['username'],
+                                        resource=task_template_resource,
+                                        action_ids=[task_template_resource.actions.create_mini_app.id],
+                                        instance=task_template)
+
             fields = {
-                'business': biz,
+                'project': proj,
                 'name': app_params['name'],
                 'code': '',
                 'desc': app_params['desc'],
@@ -92,10 +102,10 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
             # update app link
             app_id = app_maker_obj.id
-            app_link = '{appmaker_prefix}{app_id}/newtask/{biz_cc_id}/selectnode/?template_id={template_id}'.format(
+            app_link = '{appmaker_prefix}{app_id}/newtask/{project_id}/selectnode/?template_id={template_id}'.format(
                 appmaker_prefix=app_params['link_prefix'],
                 app_id=app_id,
-                biz_cc_id=biz_cc_id,
+                project_id=project_id,
                 template_id=template_id
             )
             app_maker_obj.link = app_link
@@ -127,12 +137,18 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             try:
                 app_maker_obj = AppMaker.objects.get(
                     id=app_id,
-                    business__cc_id=biz_cc_id,
+                    project_id=project_id,
                     task_template__id=template_id,
                     is_deleted=False
                 )
             except AppMaker.DoesNotExist:
                 return False, _(u"保存失败，当前操作的轻应用不存在或已删除！")
+
+            verify_or_raise_auth_failed(principal_type='user',
+                                        principal_id=app_params['username'],
+                                        resource=mini_app_resource,
+                                        action_ids=[mini_app_resource.actions.edit.id],
+                                        instance=app_maker_obj)
 
             app_code = app_maker_obj.code
             creator = app_maker_obj.creator
@@ -172,17 +188,17 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
         return True, app_maker_obj
 
-    def del_app_maker(self, biz_cc_id, app_id, fake=False):
+    def del_app_maker(self, project_id, app_id, fake=False):
         """
         @param app_id:
-        @param biz_cc_id:
+        @param project_id:
         @param fake:
         @return:
         """
         try:
             app_maker_obj = AppMaker.objects.get(
                 id=app_id,
-                business__cc_id=biz_cc_id,
+                project_id=project_id,
                 is_deleted=False
             )
         except AppMaker.DoesNotExist:
@@ -242,16 +258,16 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         except Exception as e:
             message = u"query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
             return False, message
-        if group_by == AE.business__cc_id:
+        if group_by == AE.project_id:
             # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
             total = appmaker.count()
-            appmaker_list = appmaker.values(AE.business__cc_id, AE.business__cc_name).annotate(
+            appmaker_list = appmaker.values(AE.project_id, AE.project__name).annotate(
                 value=Count(group_by)).order_by()
             groups = []
             for data in appmaker_list:
                 groups.append({
-                    'code': data.get(AE.business__cc_id),
-                    'name': data.get(AE.business__cc_name),
+                    'code': data.get(AE.project_id),
+                    'name': data.get(AE.project__name),
                     'value': data.get('value', 0)
                 })
         elif group_by == AE.category:
@@ -280,7 +296,7 @@ class AppMaker(models.Model):
     """
     APP maker的基本信息
     """
-    business = models.ForeignKey(Business, verbose_name=_(u"所属业务"))
+    project = models.ForeignKey(Project, verbose_name=_(u"所属项目"), null=True, on_delete=models.SET_NULL)
     name = models.CharField(_(u"APP名称"), max_length=255)
     code = models.CharField(_(u"APP编码"), max_length=255)
     info = models.CharField(_(u"APP基本信息"), max_length=255, null=True)
@@ -314,7 +330,7 @@ class AppMaker(models.Model):
         return self.task_template.category
 
     def __unicode__(self):
-        return u'%s_%s' % (self.business, self.name)
+        return u'%s_%s' % (self.project, self.name)
 
     class Meta:
         verbose_name = _(u"轻应用 AppMaker")

@@ -45,7 +45,7 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'cc_id', 'taskStatus', 'template_id'],
+        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'project_id', 'taskStatus', 'template_id'],
         data () {
             return {
                 i18n: {
@@ -116,39 +116,39 @@
                 const userType = this.userType // 用户类型
                 const path = this.$route.fullPath
                 const entrance = this.$route.query.entrance || '' // 入口参数
-                const ccId = this.$route.params.cc_id
+                const projectId = this.$route.params.project_id
                 let url = '/'
                 const isCommon = this.common && userType === 'maintainer'
                 // 不是从编辑模版页面进入的 entrance 列表
                 const unFromEditList = ['periodicTask_new', 'taskflow', '_newTask']
                 const isNotFromEdit = unFromEditList.some(item => entrance.indexOf(item) > -1)
                 if (!isNotFromEdit && userType === 'maintainer') {
-                    url = `/template/edit/${ccId}/`
+                    url = `/template/edit/${projectId}/`
                     this.goToOriginPath(url, entrance, isCommon, true, true)
                     return false
                 }
 
                 const actions = [
                     // 编辑模板
-                    { userType: 'maintainer', path: '/template/edit/', url: `/periodic/home/${this.cc_id}/` },
+                    { userType: 'maintainer', path: '/template/edit/', url: `/periodic/home/${this.project_id}/` },
                     // 周期任务-新建
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'periodicTask', url: `/periodic/home/${this.cc_id}/` },
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'periodicTask', url: `/periodic/home/${this.project_id}/` },
                     // 任务记录-查看/克隆
-                    { userType: 'maintainer', path: '/taskflow/execute/', url: `/taskflow/home/${this.cc_id}/` },
+                    { userType: 'maintainer', path: '/taskflow/execute/', url: `/taskflow/home/${this.project_id}/` },
                     // 任务记录-新建
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'taskflow', url: `/taskflow/home/${this.cc_id}/` },
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'taskflow', url: `/taskflow/home/${this.project_id}/` },
                     // 流程模版-公共流程
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_common', url: `/template/common/${this.cc_id}/` },
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_common', url: `/template/common/${this.project_id}/` },
                     // 流程模版-业务流程
-                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_business', url: `/template/home/${this.cc_id}/` },
+                    { userType: 'maintainer', path: '/template/newtask/', entrance: 'template_business', url: `/template/home/${this.project_id}/` },
                     // maintainer 默认
-                    { userType: 'maintainer', path: 'default', url: `/template/home/${this.cc_id}/` },
+                    { userType: 'maintainer', path: 'default', url: `/template/home/${this.project_id}/` },
                     // 职能化
                     { userType: 'functor', url: `/function/home/` },
                     // 审计员
                     { userType: 'auditor', url: `/audit/home/` },
                     // 轻应用
-                    { view_mode: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${ccId}/` }
+                    { view_mode: 'appmaker', url: `/appmaker/${this.$route.params.app_id}/task_home/${projectId}/` }
                 ]
                 actions.forEach(key => {
                     const flag_view_mode = key.view_mode ? key.view_mode === this.view_mode : true

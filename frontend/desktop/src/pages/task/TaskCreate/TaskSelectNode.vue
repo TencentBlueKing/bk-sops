@@ -44,7 +44,16 @@
                         <bk-button @click="onCancelScheme">{{i18n.actionCancel}}</bk-button>
                         <span v-if="errors.has('schemeName')" class="common-error-tip error-msg">{{ errors.first('schemeName') }}</span>
                     </div>
-                    <bk-button theme="primary" v-else :class="['save-scheme-btn', { 'disabled-btn': isPreviewMode }]" @click="onShowSchemeDialog">{{ i18n.newSchema }}</bk-button>
+                    <bk-button
+                        v-else
+                        theme="primary"
+                        :class="['save-scheme-btn', {
+                            'disabled-btn': isPreviewMode,
+                            'btn-permission-disable': !hasPermission(['create_scheme'], tplActions, tplOperations)
+                        }]"
+                        @click="onShowSchemeDialog">
+                        {{ i18n.newSchema }}
+                    </bk-button>
                 </div>
                 <div class="scheme-content">
                     <ul class="schemeList">
@@ -115,13 +124,16 @@
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
     import formatPositionUtils from '@/utils/formatPosition.js'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'TaskSelectNode',
         components: {
             TemplateCanvas,
             NodePreview
         },
-        props: ['cc_id', 'template_id', 'common', 'excludeNode', 'entrance'],
+        mixins: [permission],
+        props: ['project_id', 'template_id', 'common', 'excludeNode', 'entrance'],
         data () {
             return {
                 i18n: {
@@ -166,7 +178,10 @@
                 isPreview: false,
                 lastSelectSchema: '',
                 isAllSelected: true,
-                taskActionShow: false
+                taskActionShow: false,
+                tplActions: [],
+                tplOperations: [],
+                tplResource: []
             }
         },
         computed: {
@@ -230,9 +245,12 @@
                     }
                     const selectedNodes = []
                     const templateData = await this.loadTemplateData(data)
+                    this.tplActions = templateData.auth_actions
+                    this.tplOperations = templateData.auth_operations
+                    this.tplResource = templateData.auth_resource
                     this.version = templateData.version
                     this.taskName = templateData.name
-                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id, 'isCommon': this.isCommonProcess })
+                    const schemeData = await this.loadTaskScheme({ 'project_id': this.project_id, 'template_id': this.template_id, 'isCommon': this.isCommonProcess })
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
                         const schemeId = Number(appmakerData.template_scheme_id)
@@ -311,6 +329,15 @@
              * 创建任务方案弹窗
              */
             onShowSchemeDialog () {
+                if (!this.hasPermission(['create_scheme'], this.tplActions, this.tplOperations)) {
+                    const resourceData = {
+                        name: this.taskName,
+                        id: this.template_id,
+                        auth_actions: this.tplActions
+                    }
+                    this.applyForPermission(['create_scheme'], resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
                 if (!this.isPreviewMode) {
                     this.taskActionShow = true
                 }
@@ -343,7 +370,7 @@
                     this.schemeName = this.schemeName.trim()
                     const selectedNodes = this.selectedNodes.slice()
                     const scheme = {
-                        cc_id: this.cc_id,
+                        project_id: this.project_id,
                         template_id: this.template_id,
                         name: this.schemeName,
                         data: JSON.stringify(selectedNodes),
@@ -352,7 +379,7 @@
                     try {
                         const newScheme = await this.createTaskScheme(scheme)
                         const schemeData = await this.loadTaskScheme({
-                            'cc_id': this.cc_id,
+                            'project_id': this.project_id,
                             'template_id': this.template_id,
                             'isCommon': this.isCommonProcess
                         })
@@ -407,11 +434,21 @@
              * 删除方案
              */
             async onDeleteScheme (id) {
+                if (!this.hasPermission(['delete_scheme'], this.tplActions, this.tplOperations)) {
+                    const resourceData = {
+                        name: this.taskName,
+                        id: this.template_id,
+                        auth_actions: this.tplActions
+                    }
+                    this.applyForPermission(['delete_scheme'], resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
+
                 if (this.isDelete) return
                 this.isDelete = true
                 try {
                     await this.deleteTaskScheme({ id: id, isCommon: this.isCommonProcess })
-                    const schemeData = await this.loadTaskScheme({ 'cc_id': this.cc_id, 'template_id': this.template_id, isCommon: this.isCommonProcess })
+                    const schemeData = await this.loadTaskScheme({ 'project_id': this.project_id, 'template_id': this.template_id, isCommon: this.isCommonProcess })
                     this.setTaskScheme(schemeData)
                     this.$bkMessage({
                         message: gettext('方案删除成功'),
@@ -440,13 +477,13 @@
                     this.loading = false
                     if (this.viewMode === 'appmaker') {
                         if (this.common) {
-                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/paramfill/`, query: { 'template_id': this.template_id, common: this.common } })
+                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`, query: { 'template_id': this.template_id, common: this.common } })
                         } else {
-                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/paramfill/`, query: { 'template_id': this.template_id } })
+                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`, query: { 'template_id': this.template_id } })
                         }
                     } else {
                         this.$router.push({
-                            path: `/template/newtask/${this.cc_id}/paramfill/`,
+                            path: `/template/newtask/${this.project_id}/paramfill/`,
                             query: {
                                 template_id: this.template_id,
                                 common: this.common || undefined,
@@ -701,6 +738,9 @@
     overflow: hidden;
     /deep/ .jsflow .tool-panel-wrap {
         left: 40px;
+    }
+    .node-preview-wrapper {
+        height: 100%;
     }
 }
 .node-select-scheme {

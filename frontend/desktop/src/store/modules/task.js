@@ -23,8 +23,8 @@ const task = {
     },
     actions: {
         loadTaskScheme ({ commit }, payload) {
-            const { cc_id, template_id, isCommon } = payload
-            return api.getTaskScheme({ cc_id, template_id, isCommon }).then(response => response.data.objects)
+            const { project_id, template_id, isCommon } = payload
+            return api.getTaskScheme({ project_id, template_id, isCommon }).then(response => response.data.objects)
         },
         createTaskScheme ({ commit }, payload) {
             return api.createTaskScheme(payload).then(response => response.data)

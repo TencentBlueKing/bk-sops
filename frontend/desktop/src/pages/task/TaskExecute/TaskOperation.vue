@@ -33,7 +33,11 @@
                 <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
                     <template v-for="operation in taskOperationBtns">
                         <bk-button
-                            :class="['operation-btn', operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn']"
+                            :class="[
+                                'operation-btn',
+                                operation.action === 'revoke' ? 'revoke-btn' : 'execute-btn',
+                                { 'btn-permission-disable': !hasPermission(['operate'], instanceActions, instanceOperations) }
+                            ]"
                             theme="default"
                             hide-text="true"
                             :icon="'common-icon ' + operation.icon"
@@ -44,6 +48,7 @@
                                 content: operation.text,
                                 placements: ['bottom']
                             }"
+                            v-cursor="{ active: !hasPermission(['operate'], instanceActions, instanceOperations) }"
                             @click="onOperationClick(operation.action)">
                         </bk-button>
                     </template>
@@ -131,6 +136,10 @@
                 <ModifyParams
                     v-if="nodeInfoType === 'modifyParams'"
                     :params-can-be-modify="paramsCanBeModify"
+                    :instance-actions="instanceActions"
+                    :instance-resource="instanceResource"
+                    :instance-operations="instanceOperations"
+                    :instance-name="instanceName"
                     :instance_id="instance_id">
                 </ModifyParams>
                 <ExecuteInfo
@@ -181,6 +190,7 @@
     import ModifyTime from './ModifyTime.vue'
     import gatewaySelectDialog from './GatewaySelectDialog.vue'
     import revokeDialog from './revokeDialog.vue'
+    import permission from '@/mixins/permission.js'
 
     const TASK_OPERATIONS = {
         execute: {
@@ -223,7 +233,11 @@
             gatewaySelectDialog,
             revokeDialog
         },
-        props: ['cc_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id', 'templateSource'],
+        mixins: [permission],
+        props: [
+            'project_id', 'instance_id', 'instanceFlow', 'instanceName', 'template_id',
+            'templateSource', 'instanceActions', 'instanceOperations', 'instanceResource'
+        ],
         data () {
             const pipelineData = JSON.parse(this.instanceFlow)
             const path = []
@@ -381,7 +395,11 @@
             async loadTaskStatus () {
                 const data = {
                     instance_id: this.taskId,
-                    cc_id: this.cc_id
+                    project_id: this.project_id
+                }
+                if (this.selectedFlowPath.length > 1) {
+                    data.instance_id = this.instance_id
+                    data.subprocess_id = this.taskId
                 }
                 try {
                     this.$emit('taskStatusLoadChange', true)
@@ -778,9 +796,9 @@
             getTplURL () {
                 let routerData = ''
                 if (this.templateSource === 'business') {
-                    routerData = `/template/edit/${this.cc_id}/?template_id=${this.template_id}`
+                    routerData = `/template/edit/${this.project_id}/?template_id=${this.template_id}`
                 } else if (this.templateSource === 'common') {
-                    routerData = `/template/home/${this.cc_id}/?common=1&common_template=common`
+                    routerData = `/template/home/${this.project_id}/?common=1&common_template=common`
                 }
                 return routerData
             },
@@ -793,6 +811,17 @@
                 if (this.pending.task || !this.getOptBtnIsClickable(action)) {
                     return
                 }
+
+                if (!this.hasPermission(['operate'], this.instanceActions, this.instanceOperations)) {
+                    const resourceData = {
+                        name: this.instanceName,
+                        id: this.instance_id,
+                        auth_actions: this.instanceActions
+                    }
+                    this.applyForPermission(['operate'], resourceData, this.instanceOperations, this.instanceResource)
+                    return
+                }
+
                 if (action === 'revoke') {
                     this.isRevokeDialogShow = true
                     return
@@ -927,9 +956,9 @@
                     nodeActivities = this.completePipelineData
                     this.nodeSwitching = true
                     this.pipelineData = nodeActivities
+                    this.selectedFlowPath = nodePath
                     this.cancelTaskStatusTimer()
                     this.updateTaskStatus(this.instance_id)
-                    this.selectedFlowPath = nodePath
                     this.treeNodeConfig = {}
                 }
             },
@@ -1120,23 +1149,29 @@
                 height: 32px;
                 line-height: 32px;
                 font-size: 14px;
+                &.btn-permission-disable {
+                    background: transparent !important;
+                }
             }
             .execute-btn {
                 width: 140px;
                 color: #ffffff;
-                background: #2dcb56 !important; // 覆盖 bk-button important 规则
+                background: #2dcb56; // 覆盖 bk-button important 规则
                 &:hover {
-                    background: #1f9c40 !important; // 覆盖 bk-button important 规则
+                    background: #1f9c40; // 覆盖 bk-button important 规则
                 }
                 &.is-disabled {
-                    color: #ffffff !important; // 覆盖 bk-button important 规则
+                    color: #ffffff; // 覆盖 bk-button important 规则
                     opacity: 0.4;
                     cursor: no-drop;
+                }
+                &.btn-permission-disable {
+                    border: 1px solid #e6e6e6;
                 }
             }
             .revoke-btn {
                 padding: 0;
-                background: transparent !important; // 覆盖 bk-button important 规则
+                background: transparent; // 覆盖 bk-button important 规则
                 color: #ea3636;
                 &:hover {
                     color: #c32929;

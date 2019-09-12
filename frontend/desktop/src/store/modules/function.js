@@ -22,16 +22,6 @@ const functionTask = {
             return api.getFunctionTaskList(data).then(
                 response => response.data
             )
-        },
-        loadFunctionBusinessList ({ commit }) {
-            return api.loadFunctionBusinessList().then(
-                response => response.data
-            )
-        },
-        loadFunctionTemplateList ({ commit }, cc_id) {
-            return api.loadFunctionTemplateList(cc_id).then(
-                response => response.data
-            )
         }
     }
 }

@@ -24,7 +24,7 @@ from gcloud.tests.mock_settings import *  # noqa
 from gcloud.taskflow3 import api
 
 
-TEST_BIZ_CC_ID = '2'  # do not change this to non number
+TEST_PROJECT_ID = '2'  # do not change this to non number
 TEST_ID_LIST = [node_uniqid() for i in range(10)]
 TEST_PIPELINE_TREE = {
     'id': TEST_ID_LIST[0],
@@ -150,47 +150,47 @@ class APITest(TestCase):
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
             data1 = {
-                'template_source': 'business',
+                'template_source': 'project',
                 'template_id': 1,
                 'version': 'test_version',
                 'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[3]
             }
-            result = api.preview_task_tree(MockRequest('POST', data1), TEST_BIZ_CC_ID)
+            result = api.preview_task_tree(MockRequest('POST', data1), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
             self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key1}'])
 
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
             data2 = {
-                'template_source': 'business',
+                'template_source': 'project',
                 'template_id': 1,
                 'version': 'test_version',
                 'exclude_task_nodes_id': '["%s"]' % TEST_ID_LIST[4]
             }
-            result = api.preview_task_tree(MockRequest('POST', data2), TEST_BIZ_CC_ID)
+            result = api.preview_task_tree(MockRequest('POST', data2), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
             self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key2}'])
 
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
             data3 = {
-                'template_source': 'business',
+                'template_source': 'project',
                 'template_id': 1,
                 'version': 'test_version',
                 'exclude_task_nodes_id': '[]'
             }
-            result = api.preview_task_tree(MockRequest('POST', data3), TEST_BIZ_CC_ID)
+            result = api.preview_task_tree(MockRequest('POST', data3), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
             self.assertEquals(result['data']['constants_not_referred'].keys(), [])
 
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
             data4 = {
-                'template_source': 'business',
+                'template_source': 'project',
                 'template_id': 1,
                 'version': 'test_version',
                 'exclude_task_nodes_id': '["%s", "%s"]' % (TEST_ID_LIST[3], TEST_ID_LIST[4])
             }
-            result = api.preview_task_tree(MockRequest('POST', data4), TEST_BIZ_CC_ID)
+            result = api.preview_task_tree(MockRequest('POST', data4), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
             self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key1}', '${custom_key2}'])

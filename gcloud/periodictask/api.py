@@ -11,30 +11,33 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.http import JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from gcloud.utils.forms import post_form_validator
-from gcloud.core.models import Business
+from auth_backend.plugins.decorators import verify_perms
+
+from blueapps.utils.view_decorators import post_form_validator, model_instance_inject
+from gcloud.core.models import Project
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.core.decorators import check_user_perm_of_business
+from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
                                     PeriodicTaskEnabledSetForm,
                                     PeriodicTaskConstantsModifyForm)
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
 @post_form_validator(PeriodicTaskEnabledSetForm)
-def set_enabled_for_periodic_task(request, biz_cc_id, task_id):
+@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
+    'id': 'task_id',
+    'project_id': 'project_id'
+})
+@verify_perms(auth_resource=periodic_task_resource,
+              resource_get={'from': 'kwargs', 'key': 'task_id'},
+              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
+def set_enabled_for_periodic_task(request, project_id, task_id):
     enabled = request.form.clean()['enabled']
 
-    try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=biz_cc_id)
-    except PeriodicTask.DoesNotExist:
-        return HttpResponseForbidden()
-
-    task.set_enabled(enabled)
+    request.task.set_enabled(enabled)
 
     return JsonResponse({
         'result': True,
@@ -43,19 +46,22 @@ def set_enabled_for_periodic_task(request, biz_cc_id, task_id):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
 @post_form_validator(PeriodicTaskCronModifyForm)
-def modify_cron(request, biz_cc_id, task_id):
+@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
+    'id': 'task_id',
+    'project_id': 'project_id'
+})
+@model_instance_inject(model_cls=Project, inject_attr='project', field_maps={
+    'id': 'project_id'
+})
+@verify_perms(auth_resource=periodic_task_resource,
+              resource_get={'from': 'kwargs', 'key': 'task_id'},
+              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
+def modify_cron(request, project_id, task_id):
     cron = request.form.clean()['cron']
 
     try:
-        tz = Business.objects.get(cc_id=biz_cc_id).time_zone
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=biz_cc_id)
-    except PeriodicTask.DoesNotExist:
-        return HttpResponseForbidden()
-
-    try:
-        task.modify_cron(cron, tz)
+        request.task.modify_cron(cron, request.project.time_zone)
     except Exception as e:
         return JsonResponse({
             'result': False,
@@ -69,18 +75,19 @@ def modify_cron(request, biz_cc_id, task_id):
 
 
 @require_POST
-@check_user_perm_of_business('manage_business')
 @post_form_validator(PeriodicTaskConstantsModifyForm)
-def modify_constants(request, biz_cc_id, task_id):
+@model_instance_inject(model_cls=PeriodicTask, inject_attr='task', field_maps={
+    'id': 'task_id',
+    'project_id': 'project_id'
+})
+@verify_perms(auth_resource=periodic_task_resource,
+              resource_get={'from': 'kwargs', 'key': 'task_id'},
+              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
+def modify_constants(request, project_id, task_id):
     constants = request.form.clean()['constants']
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=biz_cc_id)
-    except PeriodicTask.DoesNotExist:
-        return HttpResponseForbidden()
-
-    try:
-        new_constants = task.modify_constants(constants)
+        new_constants = request.task.modify_constants(constants)
     except Exception as e:
         return JsonResponse({
             'result': False,

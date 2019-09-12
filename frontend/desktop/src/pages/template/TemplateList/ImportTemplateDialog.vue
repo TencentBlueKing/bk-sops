@@ -156,7 +156,7 @@
                     uploadProcess: gettext('上传了'),
                     process: gettext('条流程'),
                     showConflicts: gettext('只显示冲突项'),
-                    override: gettext('导入的流程会沿用文件中的流程ID，当前业务下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前业务下，则无法进行覆盖操作）'),
+                    override: gettext('导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）'),
                     createNew: gettext('导入的流程会使用新的流程ID，不会对现有的流程造成影响'),
                     templateFileEmpty: gettext('模板文件上传为空'),
                     templateFileError: gettext('模板上传内容不合法，请重新选择文件'),
@@ -173,8 +173,10 @@
         },
         computed: {
             ...mapState({
-                'site_url': state => state.site_url,
-                'cc_id': state => state.cc_id
+                'site_url': state => state.site_url
+            }),
+            ...mapState('project', {
+                'project_id': state => state.project_id
             }),
             exportConflict () {
                 return this.overrideList.length ? this.i18n.replaceSubmit : this.i18n.replaceWithoutConflict
