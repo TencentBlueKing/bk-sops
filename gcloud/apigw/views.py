@@ -41,17 +41,17 @@ from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE
 from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
 from gcloud.core.utils import format_datetime, name_handler, pipeline_node_name_handle
 from gcloud.core.permissions import project_resource
-from gcloud.taskflow3.drawing import draw_pipeline_automatic
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
 from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3 import varschema
+from gcloud.tasktmpl3.drawing import draw_pipeline_automatic
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.permissions import taskflow_resource
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:

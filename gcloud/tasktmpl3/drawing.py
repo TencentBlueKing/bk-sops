@@ -18,7 +18,7 @@ START_X = 60
 START_Y = 100
 EVENT_OR_GATEWAY_SHIFT_Y = 15
 SHIFT_X = 180
-SHIFT_Y = 100
+SHIFT_Y = 120
 
 PIPELINE_ELEMENT_TO_WEB = {
     PE.ServiceActivity: 'tasknode',
@@ -114,7 +114,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
                 location += branch_location
                 line += branch_line
 
-        # 非收个分支，和网关的顺序流连线改为 Bottom
+        # 非首个分支，和网关的顺序流连线改为 Bottom
         if flow_index != 0:
             line[-1]['target']['arrow'] = 'Bottom'
 
@@ -146,7 +146,8 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
     next_node = all_nodes[current_flow[PE.target]]
     next_x += SHIFT_X
 
-    return location, line, next_node, next_x, next_y
+    branch_max_y = next_y - SHIFT_Y
+    return location, line, next_node, next_x, branch_max_y
 
 
 def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVAS_WIDTH):
@@ -158,6 +159,8 @@ def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_w
     @param canvas_width: 画布最大宽度
     @return:
     """
+    if canvas_width == 0:
+        canvas_width = CANVAS_WIDTH
 
     all_nodes = {}
     all_nodes.update(pipeline['activities'])
@@ -192,7 +195,18 @@ def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_w
         }
     }]
 
+    branch_max_height = [next_y]
     while next_node[PE.type] != PE.EmptyEndEvent:
+        # 宽度超出画布，换行处理
+        if next_x > canvas_width - SHIFT_X:
+            next_x = start_x
+            next_y = max(branch_max_height) + SHIFT_Y
+            # 换行的 line 设置最优折线比例，也就是下折线高度为 0.5 * SHIFT_Y
+            line[-1]['midpoint'] = 1 - SHIFT_Y * 0.5 / (next_y - branch_max_height[0])
+            branch_max_height = [next_y]
+        # 重置为当前行第一个节点的 y 轴
+        else:
+            next_y = branch_max_height[0]
         if next_node[PE.type] in [PE.ServiceActivity, PE.SubProcess]:
             # 把 next_node 加入 location，把 next_flow 加入line，然后把 next_node 设置为下一个节点
             location.append({
@@ -225,6 +239,7 @@ def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_w
                 next_x, next_y, next_node, pipeline, all_nodes)
             location += branch_location
             line += branch_line
+            branch_max_height.append(next_y)
 
     # 最后加入结束节点
     location.append({
@@ -233,7 +248,7 @@ def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_w
         'name': next_node[PE.name],
         'status': '',
         'x': next_x,
-        'y': start_y + EVENT_OR_GATEWAY_SHIFT_Y,
+        'y': branch_max_height[0] + EVENT_OR_GATEWAY_SHIFT_Y,
     })
 
     pipeline.update({

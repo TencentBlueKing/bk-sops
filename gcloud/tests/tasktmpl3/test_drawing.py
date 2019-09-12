@@ -15,7 +15,7 @@ from __future__ import absolute_import
 
 from django.test import TestCase
 
-from gcloud.taskflow3.drawing import (
+from gcloud.tasktmpl3.drawing import (
     draw_pipeline_automatic,
     START_X,
     START_Y,
