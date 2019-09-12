@@ -167,10 +167,10 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
+            type="periodic"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
-            :create-entrance="false"
             :task-category="taskCategory"
             :dialog-title="i18n.dialogTitle"
             @onCreateTaskCancel="onCreateTaskCancel">
