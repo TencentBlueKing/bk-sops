@@ -228,7 +228,7 @@
                 this.isShowMode = false
                 this.$nextTick(() => {
                     this.$refs.canvasNameInput.focus()
-                    this.$refs.canvasNameInput.select()
+                    this.$refs.canvasNameInput.$el.getElementsByClassName('bk-form-input')[0].select()
                 })
             },
             onInputBlur () {
