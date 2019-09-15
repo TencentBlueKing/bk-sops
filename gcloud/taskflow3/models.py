@@ -652,46 +652,6 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             })
         return total, groups
 
-    def group_by_atom_execute(self, taskflow):
-        # 查询各标准插件被执行次数、失败率、重试次数、平均耗时（不计算子流程）
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
-
-        # 获得标准插件
-        component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list)
-
-        component_data = component.values('component_code').annotate(
-            execute_times=Count('component_code'),
-            avg_execute_time=Avg('elapsed_time')).order_by('component_code')
-        # 统计次数
-        total = component_data.count()
-        component_success_data = component.filter(is_retry=False).values('component_code').annotate(
-            success_times=Count('component_code')
-        ).order_by('component_code')
-        # 用于计算所有标准插件的成功列表
-        success_component_dict = {}
-        for data in component_success_data:
-            success_component_dict[data['component_code']] = data['success_times']
-        groups = []
-        component_dict = {}
-        for bundle in ComponentModel.objects.all():
-            name = bundle.name.split('-')
-            group_name = _(name[0])
-            name = _(name[1])
-            component_dict[bundle.code] = '%s-%s' % (group_name, name)
-        for data in component_data:
-            code = data.get('component_code')
-            execute_times = data.get('execute_times')
-            failed_times = execute_times - success_component_dict.get(code, 0)
-            failed_times_percent = '%.2f' % (failed_times / 1.0 / execute_times * 100)
-            groups.append({
-                'componentName': component_dict[code],
-                'executeTimes': execute_times,
-                'avgExecuteTime': '%.2f' % data.get('avg_execute_time', 0),
-                'failedTimes': failed_times,
-                'failedTimesPercent': failed_times_percent
-            })
-        return total, groups
-
     def group_by_atom_instance(self, taskflow, filters, page, limit):
         # 被引用的任务实例列表
 

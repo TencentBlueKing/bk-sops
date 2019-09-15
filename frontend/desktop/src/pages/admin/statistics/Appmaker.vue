@@ -286,6 +286,7 @@
             this.choiceCategoryName = this.i18n.choiceAllCategory
             this.onAppMakerCategory(null)
             this.onAppMakerBizCcid(null)
+            this.onAppMakerInstance()
         },
         methods: {
             ...mapActions('appmaker/', [

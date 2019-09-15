@@ -11,23 +11,27 @@
 */
 <!--封装的分页 table-->
 <template>
-    <div class="table" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <el-table
-            id="DataTablePagination"
-            ref="mutipleTable"
+    <div class="table">
+        <bk-table
+            v-bkloading="{ isLoading: loading, opacity: 1 }"
             :data="data"
-            :stripe="options.stripe"
-            :border="options.border"
-            :empty-text="i18n.emptyNoData"
+            :pagination="{
+                'current': tableCurrentPagination.pageIndex,
+                'limit': tableCurrentPagination.limit,
+                'limit-list': tableCurrentPagination.pageArray,
+                'count': total,
+                'show-limit': false
+            }"
             @sort-change="handleSortChange"
-            @selection-change="handleSelectionChange">
+            @page-change="handleIndexChange"
+        >
             <!--选择框-->
-            <el-table-column v-if="options.mutiSelect" type="selection" style="width: 55px;">
-            </el-table-column>
+            <bk-table-column v-if="options.mutiSelect" type="selection" style="width: 55px;">
+            </bk-table-column>
             <!--选择框end-->
             <!--数据列-->
             <template v-for="(column, index) in columns">
-                <el-table-column :key="index" :prop="column.prop" :filters="column.filters" :filter-method="column.handleFilter" :label="column.label" :align="column.align" :width="column.width" :sortable="column.sortable" :min-width="column.minWidth">
+                <bk-table-column :key="index" :prop="column.prop" :filters="column.filters" :filter-method="column.handleFilter" :label="column.label" :align="column.align" :width="column.width" :sortable="column.sortable" :min-width="column.minWidth">
                     <template slot-scope="scope">
                         <template v-if="!column.render">
                             <template v-if="column.router">
@@ -45,40 +49,27 @@
                             <expand-dom :column="column" :row="scope.row" :render="column.render" :index="index"></expand-dom>
                         </template>
                     </template>
-                </el-table-column>
+                </bk-table-column>
             </template>
             <!--数据列end-->
 
             <!--按钮操作组-->
-            <el-table-column ref="fixedColumn" :label="i18n.operate" align="center" :width="operates.width" :fixed="operates.fixed"
+            <bk-table-column ref="fixedColumn" :label="i18n.operate" align="center" :width="operates.width" :fixed="operates.fixed"
                 v-if="operates.isShow && operates.data.filter(_x => _x.show === true).length > 0">
                 <template slot-scope="scope">
                     <div class="operate-group">
                         <template v-for="(btn, key) in operates.data">
                             <div class="item" :style="{ flex: operates.flex }" :key="key" v-if="btn.show">
-                                <el-button :class="btn.cls" :type="btn.type" size="mini" :icon="btn.icon" :disabled="btn.disabled"
+                                <bk-button :class="btn.cls" :type="btn.type" size="mini" :icon="btn.icon" :disabled="btn.disabled"
                                     :plain="btn.plain" @click.native.prevent="btn.method(key,scope.row)">{{ btn.label }}
-                                </el-button>
+                                </bk-button>
                             </div>
                         </template>
                     </div>
                 </template>
-            </el-table-column>
+            </bk-table-column>
             <!--按钮操作组end-->
-        </el-table>
-        <!--分页-->
-        <div class="panagation" v-if="pagination">
-            <bk-pagination
-                v-if="pagination"
-                class=""
-                :current="tableCurrentPagination.pageIndex"
-                :limit="tableCurrentPagination.limit"
-                :limit-list="tableCurrentPagination.pageArray"
-                :count="total"
-                @change="handleIndexChange"
-                @limit-change="handleSizeChange">
-            </bk-pagination>
-        </div>
+        </bk-table>
     <!--分页end-->
     </div>
 </template>
@@ -132,9 +123,9 @@
                 // width：列宽，默认为自适应
                 // sortable：是否启用排序功能，默认为false
                 // formatter: (row, column, cellValue) => {return;}格式化函数
-                // render: (h, params) => {return h('el-tag'),{
+                // render: (h, params) => {return h('bk-tag'),{
                 //      props: {}
-                // }, '显示文字'} //el-tag是标签，如h1,p标签等  显示文字可以通过对应函数再获取
+                // }, '显示文字'} //bk-tag是标签，如h1,p标签等  显示文字可以通过对应函数再获取
                 type: Array,
                 default () {
                     return []
@@ -253,12 +244,6 @@
                     this.$emit('handleIndexChange', this.tableCurrentPagination.pageIndex)
                 }
             },
-            // 多行选中
-            handleSelectionChange (val) {
-                // 将选择的 val 加入至 multipleSelection 中
-                this.multipleSelection = val
-                this.$emit('handleSelectionChange', val)
-            },
             handleSortChange (column, prop, order) {
                 this.$emit('handleSortChange', [column, prop, order])
             },
@@ -276,32 +261,9 @@
 
 <style lang="scss">
 .table {
-    .el-pagination {
-      float: right;
-      margin: 20px;
-    }
-    .el-table__header-wrapper, .el-table__fixed-header-wrapper {
-      thead {
-        tr {
-          th {
-            color: #333333;
-          }
-        }
-      }
-    }
-    .el-table__row{
-      td {
-        color: #63656e;
-      }
-    }
-    .el-table-column--selection .cell {
+    .bk-table-column--selection .cell {
       padding: 0;
       text-align: center;
-    }
-    .el-table__fixed-right {
-      bottom: 0 !important;
-      right: 6px !important;
-      z-index: 1004;
     }
     .operate-group {
       display: flex;
@@ -350,12 +312,6 @@
 }
 .column-name {
     color: #3a84ff !important;
-}
-.el-pagination button, .el-pagination span:not([class*=suffix]) {
-    vertical-align: unset;
-}
-.el-pager, .el-pager li{
-    vertical-align: unset;
 }
 .panagation {
     padding: 10px 20px;

@@ -315,6 +315,7 @@
                     {
                         prop: 'instanceId',
                         label: i18n.instanceId,
+                        width: '100',
                         sortable: 'custom',
                         align: 'center'
                     },
@@ -390,6 +391,7 @@
                     {
                         prop: 'instanceId',
                         label: i18n.instanceId,
+                        width: '100',
                         sortable: 'custom',
                         align: 'center'
                     },
@@ -484,6 +486,7 @@
             this.onInstanceCategory(null)
             this.onInstanceBizCcId()
             this.onInstanceTime()
+            this.onInstanceNode()
         },
         methods: {
             ...mapActions('task/', [

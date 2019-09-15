@@ -246,7 +246,7 @@
         atomExecuteTimes: gettext('任务执行次数(次)'),
         atomExecuteFailTimes: gettext('执行失败次数(次)'),
         atomAvgExecuteTime: gettext('执行平均耗时(秒)'),
-        atomFailPercent: gettext('执行失败率(%)'),
+        atomFailPercent: gettext('执行失败率'),
         atomCite: gettext('流程引用次数(次)')
     }
 
@@ -296,6 +296,7 @@
                     {
                         prop: 'templateId',
                         label: i18n.templateId,
+                        width: '100',
                         sortable: 'custom',
                         align: 'center'
                     },
@@ -357,6 +358,7 @@
                     {
                         prop: 'instanceId',
                         label: i18n.instanceId,
+                        width: '100',
                         sortable: 'custom',
                         align: 'center'
                     },
