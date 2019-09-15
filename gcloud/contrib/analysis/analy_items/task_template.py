@@ -54,10 +54,6 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     elif group_by == AE.atom_execute:
         total, groups = taskTemplateManager.group_by_atom_execute(tasktmpl, filters, page, limit)
 
-    # 按起始时间、业务（可选）、类型（可选）查询各流程模板被引用为子流程个数、创建轻应用个数、创建任务实例个数
-    elif group_by == AE.template_cite:
-        total, groups = taskTemplateManager.group_by_template_cite(tasktmpl, filters, page, limit)
-
     # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
     elif group_by == AE.template_node:
         total, groups = taskTemplateManager.group_by_template_node(tasktmpl, filters, page, limit)

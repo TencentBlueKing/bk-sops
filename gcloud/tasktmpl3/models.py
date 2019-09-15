@@ -324,64 +324,27 @@ class TaskTemplateManager(BaseTemplateManager):
             })
         return total, groups
 
-    def group_by_template_cite(self, tasktmpl, filters, page, limit):
-        # 按起始时间、业务（可选）、类型（可选）查询各流程模板被引用为子流程个数、创建轻应用个数、创建任务实例个数
-        template_list = tasktmpl
-        id_list = template_list.values("pipeline_template__id", "id")[(page - 1) * limit:page * limit]
-        template_id_map = {template['pipeline_template__id']: template['id'] for template in id_list}
-        t_id_list = [x[0] for x in
-                     template_list.values_list("pipeline_template__template_id")[(page - 1) * limit:page * limit]]
-        appmaker_list = template_list.values("id", "appmaker").annotate(appmaker_total=Count("appmaker")).order_by(
-            "-id")
-        taskflow_list = PipelineInstance.objects.filter(template_id__in=template_id_map.keys()).values(
-            "template_id").annotate(
-            instance_total=Count("template_id")).order_by()
-        relationship_list = TemplateRelationship.objects.filter(descendant_template_id__in=t_id_list).values(
-            "descendant_template_id").annotate(
-            relationship_total=Count("descendant_template_id")).order_by()
-        # 排序
-        order_by = filters.get("order_by", "-templateId")
-        # 使用驼峰转下划线进行转换order_by
-        camel_order_by = camel_case_to_underscore_naming(order_by)
-        if order_by == "appmakerTotal":
-            appmaker_list = appmaker_list.order_by(camel_order_by)
-        elif order_by == "instanceTotal":
-            taskflow_list = taskflow_list.order_by(camel_order_by)
-        elif order_by == "relationshipTotal":
-            relationship_list = relationship_list.order_by(camel_order_by)
-        appmaker_list = appmaker_list[(page - 1) * limit:page * limit]
-        relationship_list = relationship_list
-        # 获得对应的dict数据
-        appmaker_dict = {}
-        for appmaker in appmaker_list:
-            appmaker_dict[appmaker["id"]] = appmaker["appmaker_total"]
-        taskflow_dict = {}
-        for taskflow in taskflow_list:
-            taskflow_dict[template_id_map[taskflow["template_id"]]] = taskflow["instance_total"]
-        relationship_dict = {}
-        for relationship in relationship_list:
-            relationship_dict[relationship["descendant_template_id"]] = relationship["relationship_total"]
-        groups = []
-        for template in template_list[(page - 1) * limit:page * limit]:
-            template_id = template.id
-            groups.append({
-                'templateId': template.id,
-                'templateName': template.name,
-                'businessId': template.business.cc_id,
-                'appmakerTotal': appmaker_dict.get(template_id, 0),
-                'relationshipTotal': relationship_dict.get(template.pipeline_template.template_id, 0),
-                'instanceTotal': taskflow_dict.get(template_id, 0)
-            })
-        total = template_list.count()
-        if order_by[0] == "-":
-            # 需要去除负号
-            order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: -group.get(order_by))
+    def _group_by_template_node_sorting(self, filtered_list, filtered_id_list, order_by, page, limit):
+        other_template = TemplateInPipeline.objects.exclude(template_id__in=filtered_id_list)
+        other_template_id_list = [template.template_id for template in other_template]
+        if order_by[0] == '-':
+            # 倒序则把未创建任务的流程放在数组后面
+            filtered_count = filtered_list.count()
+            range = page * limit - filtered_count if page * limit > filtered_count else 0
+            other_template_id_list = other_template_id_list[:range]
+            template_id_list = filtered_id_list + other_template_id_list
+            template_id_list = template_id_list[(page - 1) * limit:page * limit]
         else:
-            groups = sorted(groups, key=lambda group: group.get(order_by))
-        return total, groups
+            # 正序则把未创建任务的流程放在数组前面
+            other_count = other_template.count()
+            range = page * limit - other_count if page * limit > other_count else 0
+            filtered_id_list = filtered_id_list[:range]
+            template_id_list = other_template_id_list + filtered_id_list
+            template_id_list = template_id_list[(page - 1) * limit:page * limit]
+        return template_id_list
 
     def group_by_template_node(self, tasktmpl, filters, page, limit):
+        # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
         total = tasktmpl.count()
         groups = []
 
@@ -398,6 +361,7 @@ class TaskTemplateManager(BaseTemplateManager):
                            for template in id_list}
         taskflow_list = PipelineInstance.objects.filter(template_id__in=template_id_map.keys()).values(
             "template_id").annotate(instance_total=Count("template_id")).order_by()
+
         periodic_list = PeriodicTask.objects.filter(template__template_id__in=template_id_list).values(
             "template__template_id").annotate(periodic_total=Count("template__id"))
 
@@ -406,14 +370,23 @@ class TaskTemplateManager(BaseTemplateManager):
         camel_order_by = camel_case_to_underscore_naming(order_by)
         # 排列获取分页后的数据
         if order_by in ['relationshipTotal', '-relationshipTotal']:
-            filtered_relationship_list = relationship_list.order_by(camel_order_by)[(page - 1) * limit:page * limit]
-            template_id_list = [template.template_id for template in filtered_relationship_list]
+            # 计算流程被引用为子流程的数量
+            filtered_relationship_list = relationship_list.order_by(camel_order_by)
+            filtered_id_list = [template.template_id for template in filtered_relationship_list]
+            template_id_list = self._group_by_template_node_sorting(
+                filtered_relationship_list, filtered_id_list, order_by, page, limit)
         elif order_by in ['instanceTotal', '-instanceTotal']:
-            filtered_taskflow_list = taskflow_list.order_by(camel_order_by)[(page - 1) * limit:page * limit]
-            template_id_list = [template_id_map[template["template_id"]] for template in filtered_taskflow_list]
+            # 计算流程创建的任务数
+            filtered_taskflow_list = taskflow_list.order_by(camel_order_by)
+            filtered_id_list = [template_id_map[template["template_id"]] for template in filtered_taskflow_list]
+            template_id_list = self._group_by_template_node_sorting(
+                filtered_taskflow_list, filtered_id_list, order_by, page, limit)
         elif order_by in ['periodicTotal', '-periodicTotal']:
+            # 计算流程创建的周期任务数
             filtered_periodic_list = periodic_list.order_by(camel_order_by)[(page - 1) * limit:page * limit]
-            template_id_list = [template["template__template_id"] for template in filtered_periodic_list]
+            filtered_id_list = [template["template__template_id"] for template in filtered_periodic_list]
+            template_id_list = self._group_by_template_node_sorting(
+                filtered_periodic_list, filtered_id_list, order_by, page, limit)
         else:
             filtered_pipeline_data = template_pipeline_data.order_by(camel_order_by)[(page - 1) * limit:page * limit]
             template_id_list = [template.template_id for template in filtered_pipeline_data]

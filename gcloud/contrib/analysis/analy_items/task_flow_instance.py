@@ -46,10 +46,6 @@ def dispatch(group_by, filters=None, page=None, limit=None):
     elif group_by == AE.appmaker_instance:
         total, groups = taskFlowInstanceManager.group_by_appmaker_instance(taskflow, filters, page, limit)
 
-    # 查询各标准插件被执行次数、失败率、重试次数、平均耗时（不计算子流程）
-    elif group_by == AE.atom_execute:
-        total, groups = taskFlowInstanceManager.group_by_atom_execute(taskflow)
-
     # 查询各标准插件被执行次数
     elif group_by == AE.atom_execute_times:
         total, groups = taskFlowInstanceManager.group_by_atom_execute_times(taskflow)

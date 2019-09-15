@@ -110,7 +110,6 @@
                             :total="nodeTotal"
                             :pagination="nodePagination"
                             :columns="nodeColumns"
-                            :operates="nodeOperates"
                             :loading="isDetailLoading"
                             @handleSortChange="onNodeSortChange"
                             @handleSizeChange="onNodeHandleSizeChange"
@@ -203,6 +202,7 @@
                     {
                         prop: 'templateId',
                         label: i18n.templateId,
+                        width: '100',
                         sortable: 'custom',
                         align: 'center'
                     },
@@ -277,20 +277,6 @@
                         width: 150
                     }
                 ],
-                nodeOperates: {
-                    width: 160,
-                    isShow: true,
-                    data: [
-                        {
-                            label: i18n.history,
-                            show: true,
-                            cls: 'bk-button btn-size-mini ',
-                            method: (index, row) => {
-                                this.onInstanceHandleView(index, row)
-                            }
-                        }
-                    ]
-                },
                 total: 0,
                 ficationTotal: 0,
                 selectedCcId: '',
@@ -298,7 +284,8 @@
                 categorySelected: '',
                 selectedCategory: '',
                 choiceBusiness: '',
-                choiceCategory: undefined
+                choiceCategory: undefined,
+                nodeTotal: 0
             }
         },
         computed: {
