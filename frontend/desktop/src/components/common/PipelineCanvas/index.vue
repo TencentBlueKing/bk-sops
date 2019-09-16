@@ -494,7 +494,7 @@
                 this.zoomRadio = 1
             },
             formatPositionHandler () {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeNumValida(this.canvasData)
                 // 判断是否结构完整
                 if (!validateMessage.result) {
                     this.$bkMessage({
@@ -577,7 +577,7 @@
                 this.$emit('onChangeName', name)
             },
             onSaveTemplate (saveAndCreate) {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                const validateMessage = validatePipeline.isNodeNumValida(this.canvasData)
                 if (!validateMessage.result) {
                     this.$bkMessage({
                         message: validateMessage.message,

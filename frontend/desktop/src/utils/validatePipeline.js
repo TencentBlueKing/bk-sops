@@ -10,6 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 import { NODE_DICT } from '@/constants/index.js'
+import validator, { pipelineTreeSchema } from '@/constants/pipelineTreeSchema.js'
 
 const NODE_RULE = {
     'startpoint': {
@@ -162,10 +163,10 @@ const validatePipeline = {
         return this.getMessage()
     },
     /**
-     * 校验有没有空节点
+     * 画布节点数目校验
      * @param {Object} data
      */
-    isDataValid (data) {
+    isNodeNumValida (data) {
         let message
         let branchAndParallelGateways = 0
         let convergegateways = 0
@@ -222,6 +223,12 @@ const validatePipeline = {
         }
 
         return this.getMessage()
+    },
+    /**
+     * 画布pipeline_tree数据校验
+     */
+    isPipelineDataValid (data) {
+        return validator.validate(data, pipelineTreeSchema)
     },
     getMessage (result = true, message = '') {
         return { result, message }

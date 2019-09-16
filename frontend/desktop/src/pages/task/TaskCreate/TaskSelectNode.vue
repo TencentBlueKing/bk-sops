@@ -227,8 +227,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData',
-                'saveTemplateData'
+                'loadTemplateData'
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme',
