@@ -11,49 +11,9 @@
 */
 <template>
     <div class="content-box">
-        <div class="content-wrap">
-            <div class="content-dimesion atom-statistics atom-content" v-bkloading="{ isLoading: isCitationLoading, opacity: 1 }">
-                <div class="clearfix">
-                    <div class="content-title">{{i18n.numberCitations}}</div>
-                    <div class="content-date">
-                        <div class="content-date-business">
-                            <bk-select
-                                v-model="sortingSelected"
-                                class="bk-select-inline"
-                                :placeholder="i18n.sortingPlaceholder"
-                                :popover-width="260"
-                                :clearable="false"
-                                @selected="onSortingSelected">
-                                <bk-option
-                                    v-for="(option, index) in sortingList"
-                                    :key="index"
-                                    :id="option.key"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                        <div class="content-date-business">
-                            <bk-select
-                                v-model="businessSelected"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.businessPlaceholder"
-                                @selected="onAtomCiteData"
-                                @clear="onClearAtomCiteData">
-                                <bk-option
-                                    v-for="(option, index) in businessList"
-                                    :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                    </div>
-                </div>
-                <data-statistics :dimension-list="taskPlotData" :total-value="taskTotal"></data-statistics>
-            </div>
-        </div>
+        <chart-card
+            :charts="charts"
+        ></chart-card>
         <div class="content-process-detail">
             <bk-tab :type="'card'" :active="tabName" @tab-change="onChangeTabPanel">
                 <bk-tab-panel name="processDetails" :label="i18n.processDetail">
@@ -205,7 +165,7 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import DataStatistics from './dataStatistics.vue'
+    import ChartCard from '../common/ChartCard'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
@@ -261,7 +221,7 @@
     export default {
         name: 'StatisticsAtom',
         components: {
-            DataStatistics,
+            ChartCard,
             DataTablePagination
         },
         mixins: [AnalysisMixins],
@@ -422,6 +382,45 @@
                     })
                 }
                 return []
+            },
+            charts () {
+                const charts = [
+                    {
+                        selects: [
+                            {
+                                model: this.sortingSelected,
+                                placeholder: this.i18n.sortingPlaceholder,
+                                clearable: false,
+                                searchable: false,
+                                onSelected: this.onSortingSelected,
+                                onClear: () => {},
+                                options: this.sortingList,
+                                option: {
+                                    key: 'key',
+                                    name: 'name'
+                                }
+                            },
+                            {
+                                model: this.businessSelected,
+                                placeholder: this.i18n.businessPlaceholder,
+                                clearable: true,
+                                searchable: true,
+                                onSelected: this.onAtomCiteData,
+                                onClear: this.onClearAtomCiteData,
+                                options: this.businessList,
+                                option: {
+                                    key: 'cc_id',
+                                    name: 'cc_name'
+                                }
+                            }
+                        ],
+                        title: this.i18n.numberCitations,
+                        dimensionList: this.taskPlotData,
+                        totalValue: this.taskTotal,
+                        isLoading: this.isCitationLoading
+                    }
+                ]
+                return charts
             }
         },
         watch: {
