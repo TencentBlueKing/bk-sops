@@ -887,12 +887,6 @@
                     border-color: $blueDefault;
                 }
             }
-            .ommon-icon-search {
-                position: relative;
-                right: 15px;
-                top: 11px;
-                color:#dddddd;
-            }
             .search-input.placeholder {
                 color: $formBorderColor;
             }
@@ -926,12 +920,6 @@
     .template-search {
         height: 156px;
         background: #fff;
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
     }
     .template-advanced-search {
         float: right;
@@ -971,12 +959,12 @@
             overflow: visible;
         }
     }
+    .template-operation > .text-permission-disable {
+        padding: 5px;
+    }
     .template-operate-btn {
         padding: 5px;
         color: #3c96ff;
-    }
-    .text-permission-disable {
-        padding: 5px;
     }
     .drop-icon-ellipsis {
         position: absolute;

@@ -9,28 +9,30 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-const dom = {
-    nodeContains (root, el) {
-        if (root.compareDocumentPosition) {
-            return root === el || !!(root.compareDocumentPosition(el) & 16)
+<template>
+    <div :class="['circle-node', 'start-point', node.status ? node.status.toLowerCase() : '']">
+        <div class="circle-node-text">
+            {{ i18n.start }}
+        </div>
+    </div>
+</template>
+<script>
+    export default {
+        name: 'StartPoint',
+        props: {
+            node: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        },
+        data () {
+            return {
+                i18n: {
+                    start: gettext('开始')
+                }
+            }
         }
-        if (root.contains && el.nodeType === 1) {
-            return root.contains(el) && root !== el
-        }
-        while ((el = el.parentNode)) {
-            if (el === root) return true
-        }
-        return false
-    },
-    parentClsContains (cls, el) {
-        if (el.classList.contains(cls)) {
-            return true
-        }
-        while ((el = el.parentNode)) {
-            if (el.classList && el.classList.contains(cls)) return true
-        }
-        return false
     }
-}
-
-export default dom
+</script>

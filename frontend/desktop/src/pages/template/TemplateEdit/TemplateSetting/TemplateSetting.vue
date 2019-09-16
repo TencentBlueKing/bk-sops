@@ -11,19 +11,24 @@
 */
 <template>
     <div class="setting-area-wrap">
-        <div :class="['setting-tab-wrap', { 'vertical-fold': !showPanel }]">
+        <div class="setting-tab-wrap">
             <div class="setting-panel-tab" @click="onTemplateSettingShow('globalVariableTab')">
-                <div :class="['setting-menu-icon', { 'activeTab': activeTab === 'globalVariableTab' }]">
+                <div :class="[
+                    'setting-menu-icon',
+                    {
+                        'active-tab': activeTab === 'globalVariableTab',
+                        'update': isGlobalVariableUpdate
+                    }]">
                     <i class="common-icon-square-code" :title="i18n.globalVariable"></i>
                 </div>
             </div>
             <div class="setting-panel-tab" @click="onTemplateSettingShow('templateConfigTab')">
-                <div :class="['setting-menu-icon', { 'activeTab': activeTab === 'templateConfigTab' }]">
+                <div :class="['setting-menu-icon', { 'active-tab': activeTab === 'templateConfigTab' }]">
                     <i class="common-icon-square-attribute" :title="i18n.basicInformation"></i>
                 </div>
             </div>
             <div class="setting-panel-tab" @click="onTemplateSettingShow('localDraftTab')">
-                <div :class="['setting-menu-icon', { 'activeTab': activeTab === 'localDraftTab' }]">
+                <div :class="['setting-menu-icon', { 'active-tab': activeTab === 'localDraftTab' }]">
                     <i class="common-icon-clock-reload" :title="i18n.localCache"></i>
                 </div>
             </div>
@@ -75,7 +80,16 @@
             TabTemplateConfig,
             TabLocalDraft
         },
-        props: ['projectInfoLoading', 'isTemplateConfigValid', 'isSettingPanelShow', 'draftArray', 'variableTypeList', 'isClickDraft'],
+        props: [
+            'projectInfoLoading',
+            'businessInfoLoading',
+            'isGlobalVariableUpdate',
+            'isTemplateConfigValid',
+            'isSettingPanelShow',
+            'draftArray',
+            'variableTypeList',
+            'isClickDraft'
+        ],
         data () {
             return {
                 i18n: {
@@ -118,6 +132,9 @@
         watch: {
             isSettingPanelShow (val) {
                 this.showPanel = val
+                if (!val) {
+                    this.activeTab = undefined
+                }
             }
         },
         methods: {
@@ -175,12 +192,12 @@
             },
             onTemplateSettingShow (val) {
                 if (this.activeTab === val) {
-                    this.activeTab = undefined
                     this.togglePanel(false)
                 } else {
                     this.activeTab = val
                     this.togglePanel(true)
                 }
+                this.$emit('globalVariableUpdate', false)
             }
         }
     }
@@ -206,9 +223,6 @@
     border-left: 1px solid $commonBorderColor;
     border-bottom: 1px solid $commonBorderColor;
     z-index: 1;
-    &.vertical-fold {
-        height: 217px;
-    }
     .setting-panel-tab {
         padding: 15px 11px;
         color: #546a9e;
@@ -223,9 +237,19 @@
             line-height: 32px;
             text-align: center;
             border-radius: 2px;
-            &.activeTab {
+            &.active-tab {
                 background: #525f77;
                 color: #ffffff;
+            }
+            &.update:after {
+                content: '';
+                position: absolute;
+                top: -6px;
+                right: -6px;
+                height: 8px;
+                width: 8px;
+                border-radius: 50%;
+                background: #ff5757;
             }
         }
     }
