@@ -10,6 +10,8 @@
 * specific language governing permissions and limitations under the License.
 */
 import '@/utils/i18n.js'
+import { mapState } from 'vuex'
+import tools from '@/utils/tools.js'
 export const AnalysisMixins = {
     data () {
         return {
@@ -22,7 +24,35 @@ export const AnalysisMixins = {
                 filter: false, // 是否支持数据过滤功能
                 action: true, // 是否支持表格操作功能
                 border: true // 是否支持外边框
+            },
+            category: undefined,
+            bizCcId: undefined,
+            selectedCcId: '',
+            choiceCategory: '',
+            choiceBusiness: '',
+            selectedCategory: '',
+            businessSelected: '',
+            categorySelected: ''
+        }
+    },
+    computed: {
+        ...mapState({
+            allBusinessList: state => state.allBusinessList,
+            categorys: state => state.categorys
+        }),
+        businessList () {
+            if (this.allBusinessList.length === 0) {
+                this.getBizList(1)
             }
+            const list = tools.deepClone(this.allBusinessList)
+            return list
+        },
+        categoryList () {
+            if (this.categorys.length === 0) {
+                this.getCategorys()
+            }
+            const list = tools.deepClone(this.categorys)
+            return list
         }
     },
     mounted () {
@@ -37,6 +67,42 @@ export const AnalysisMixins = {
             time[0] = new Date(time[0]).setHours(0, 0, 0) // 将创建时间设置为0点0分0秒
             time[1] = new Date(time[1]).setHours(0, 0, 0) // 将创建时间设置为0点0分0秒
             return time
+        },
+        onSelectedCategory (name, value) {
+            if (this.category === name) {
+                return
+            }
+            this.selectedCategory = name
+            this.category = name
+            this.resetPageIndex()
+            this.onChangeTabPanel(this.tabName)
+        },
+        onSelectedBizCcId (name, value) {
+            if (this.bizCcId === name) {
+                return
+            }
+            this.selectedCcId = name
+            this.bizCcId = name
+            this.resetPageIndex()
+            this.onChangeTabPanel(this.tabName)
+        },
+        onClearBizCcId () {
+            this.selectedCcId = ''
+            this.bizCcId = undefined
+            this.resetPageIndex()
+            this.onChangeTabPanel(this.tabName)
+        },
+        onClearCategory () {
+            this.selectedCategory = ''
+            this.category = undefined
+            this.resetPageIndex()
+            this.onChangeTabPanel(this.tabName)
+        },
+        resetPageIndex () {
+            return null
+        },
+        onChangeTabPanel (name) {
+            return name
         }
     }
 }

@@ -14,161 +14,17 @@
         <chart-card
             :charts="charts"
         ></chart-card>
-        <div class="content-process-detail">
-            <bk-tab :type="'card'" :active="tabName" @tab-change="onChangeTabPanel">
-                <bk-tab-panel name="processDetails" :label="i18n.processDetail">
-                    <div class="content-wrap-detail">
-                        <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.atom}}</label>
-                                <bk-select
-                                    v-model="selectedAtom"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.atomPlaceholder"
-                                    @clear="onClearAtom"
-                                    @selected="onSelectedAtom">
-                                    <bk-option
-                                        v-for="(option, index) in componentsList"
-                                        :key="index"
-                                        :id="option.code"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-select
-                                    v-model="selectedCcId"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.businessPlaceholder"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
-                                    <bk-option
-                                        v-for="(option, index) in allBusinessList"
-                                        :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceCategory}}</label>
-                                <bk-select
-                                    v-model="selectedCategory"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.categoryPlaceholder"
-                                    @clear="onClearCategory"
-                                    @selected="onSelectedCategory">
-                                    <bk-option
-                                        v-for="(option, index) in categorys"
-                                        :key="index"
-                                        :id="option.value"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                        </div>
-                        <data-table-pagination
-                            :data="templateData"
-                            :total="templateTotal"
-                            :options="dataTableOptions"
-                            :pagination="templatePagination"
-                            :columns="templateColumns"
-                            :loading="isTemplateLoading"
-                            @handleSortChange="templateHandleSortChange"
-                            @handleSizeChange="onTemplateHandleSizeChange"
-                            @handleIndexChange="onTemplateHandleIndexChange">
-                        </data-table-pagination>
-                    </div>
-                </bk-tab-panel>
-                <bk-tab-panel name="taskDetails" :label="i18n.taskDetail">
-                    <div class="content-wrap-detail">
-                        <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.atom}}</label>
-                                <bk-select
-                                    v-model="selectedAtom"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.atomPlaceholder"
-                                    @clear="onClearAtom"
-                                    @selected="onSelectedAtom">
-                                    <bk-option
-                                        v-for="(option, index) in componentsList"
-                                        :key="index"
-                                        :id="option.code"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-select
-                                    v-model="selectedCcId"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.businessPlaceholder"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
-                                    <bk-option
-                                        v-for="(option, index) in allBusinessList"
-                                        :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceCategory}}</label>
-                                <bk-select
-                                    v-model="selectedCategory"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.categoryPlaceholder"
-                                    @clear="onClearCategory"
-                                    @selected="onSelectedCategory">
-                                    <bk-option
-                                        v-for="(option, index) in categorys"
-                                        :key="index"
-                                        :id="option.value"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                        </div>
-                        <data-table-pagination
-                            :data="instanceData"
-                            :total="instanceTotal"
-                            :options="dataTableOptions"
-                            :pagination="instancePagination"
-                            :columns="instanceColumns"
-                            :loading="isInstanceLoading"
-                            @handleSortChange="instanceHandleSortChange"
-                            @handleSizeChange="onInstanceHandleSizeChange"
-                            @handleIndexChange="onInstanceHandleIndexChange">
-                        </data-table-pagination>
-                    </div>
-                </bk-tab-panel>
-            </bk-tab>
-        </div>
+        <table-panel
+            :tabpanels="tabPanels"
+        ></table-panel>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import tools from '@/utils/tools.js'
     import ChartCard from '../common/ChartCard'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
-    import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
+    import TablePanel from '../common/TablePanel'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     const i18n = {
@@ -222,7 +78,7 @@
         name: 'StatisticsAtom',
         components: {
             ChartCard,
-            DataTablePagination
+            TablePanel
         },
         mixins: [AnalysisMixins],
         props: ['timeRange'],
@@ -230,8 +86,6 @@
             return {
                 test_map: { 'a': 'b' },
                 i18n: i18n,
-                bizCcId: undefined,
-                category: undefined,
                 choiceBusinessName: '',
                 isDropdownShow: false,
                 datePickerRefShow: false,
@@ -350,29 +204,16 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: '',
-                selectedCategory: '',
                 selectedAtom: '',
-                choiceBusiness: undefined,
                 endDateMax: '',
-                businessSelected: '',
                 templateOrderBy: '',
                 instanceOrderBy: ''
             }
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
-                categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
-                }
-                const list = tools.deepClone(this.allBusinessList)
-                return list
-            },
             componentsList () {
                 // 选择器组件不支持拼接的字段，需要转换
                 if (this.components) {
@@ -421,6 +262,127 @@
                     }
                 ]
                 return charts
+            },
+            tabPanels () {
+                const tabPanels = {
+                    onTabChange: this.onChangeTabPanel,
+                    active: this.tabName,
+                    panels: [
+                        {
+                            selects: [
+                                {
+                                    label: this.i18n.atom,
+                                    model: this.selectedAtom,
+                                    placeholder: this.i18n.atomPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedAtom,
+                                    onClear: this.onClearAtom,
+                                    options: this.componentsList,
+                                    option: {
+                                        key: 'code',
+                                        name: 'name'
+                                    }
+                                },
+                                {
+                                    label: this.i18n.choiceBusiness,
+                                    model: this.selectedCcId,
+                                    placeholder: this.i18n.businessPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedBizCcId,
+                                    onClear: this.onClearBizCcId,
+                                    options: this.allBusinessList,
+                                    option: {
+                                        key: 'cc_id',
+                                        name: 'cc_name'
+                                    }
+                                },
+                                {
+                                    label: this.i18n.choiceCategory,
+                                    model: this.selectedCategory,
+                                    placeholder: this.i18n.categoryPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedCategory,
+                                    onClear: this.onClearCategory,
+                                    options: this.categorys,
+                                    option: {
+                                        key: 'value',
+                                        name: 'name'
+                                    }
+                                }
+                            ],
+                            name: 'processDetails',
+                            label: this.i18n.processDetail,
+                            data: this.templateData,
+                            total: this.templateTotal,
+                            pagination: this.templatePagination,
+                            columns: this.templateColumns,
+                            loading: this.isTemplateLoading,
+                            handleSortChange: this.templateHandleSortChange,
+                            handleSizeChange: this.onTemplateHandleSizeChange,
+                            handleIndexChange: this.onTemplateHandleIndexChange
+                        },
+                        {
+                            selects: [
+                                {
+                                    label: this.i18n.atom,
+                                    model: this.selectedAtom,
+                                    placeholder: this.i18n.atomPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedAtom,
+                                    onClear: this.onClearAtom,
+                                    options: this.componentsList,
+                                    option: {
+                                        key: 'code',
+                                        name: 'name'
+                                    }
+                                },
+                                {
+                                    label: this.i18n.choiceBusiness,
+                                    model: this.selectedCcId,
+                                    placeholder: this.i18n.businessPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedBizCcId,
+                                    onClear: this.onClearBizCcId,
+                                    options: this.allBusinessList,
+                                    option: {
+                                        key: 'cc_id',
+                                        name: 'cc_name'
+                                    }
+                                },
+                                {
+                                    label: this.i18n.choiceCategory,
+                                    model: this.selectedCategory,
+                                    placeholder: this.i18n.categoryPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedCategory,
+                                    onClear: this.onClearCategory,
+                                    options: this.categorys,
+                                    option: {
+                                        key: 'value',
+                                        name: 'name'
+                                    }
+                                }
+                            ],
+                            name: 'taskDetails',
+                            label: this.i18n.taskDetail,
+                            data: this.instanceData,
+                            total: this.instanceTotal,
+                            pagination: this.instancePagination,
+                            columns: this.instanceColumns,
+                            loading: this.isInstanceLoading,
+                            handleSortChange: this.instanceHandleSortChange,
+                            handleSizeChange: this.onInstanceHandleSizeChange,
+                            handleIndexChange: this.onInstanceHandleIndexChange
+                        }
+                    ]
+                }
+                return tabPanels
             }
         },
         watch: {
@@ -620,39 +582,12 @@
             },
             onShutTimeSelector () {
             },
-            onSelectedCategory (name, value) {
-                if (this.category === name) {
-                    return
-                }
-                this.category = name
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
-            },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
-                    return
-                }
-                this.bizCcId = name
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
-            },
             onSelectedAtom (name, value) {
                 if (this.atom === name) {
                     return
                 }
+                this.selectedAtom = name
                 this.atom = name
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
-            },
-            onClearBizCcId () {
-                this.selectedCcId = ''
-                this.bizCcId = undefined
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
-            },
-            onClearCategory () {
-                this.selectedCategory = ''
-                this.category = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
@@ -678,16 +613,6 @@
 </script>
 
 <style lang="scss">
-.content-box {
-    .content-wrap {
-        .content-dimesion.atom-statistics.atom-content {
-            width: 100%;
-            .chart-statistics-tool .tool-name {
-                width: 250px;
-            }
-        }
-    }
-}
 .bk-select-inline,.bk-input-inline {
     display: inline-block;
     width: 260px;

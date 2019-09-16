@@ -14,71 +14,17 @@
         <chart-card
             :charts="charts"
         ></chart-card>
-        <div class="content-process-detail">
-            <bk-tab :type="'card'" :active="'applicationDetails'">
-                <bk-tab-panel name="applicationDetails" :label="i18n.applicationDetails">
-                    <div class="content-wrap-detail">
-                        <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-select
-                                    v-model="selectedCcId"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.businessPlaceholder"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
-                                    <bk-option
-                                        v-for="(option, index) in allBusinessList"
-                                        :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceCategory}}</label>
-                                <bk-select
-                                    v-model="selectedCategory"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.categoryPlaceholder"
-                                    @clear="onClearCategory"
-                                    @selected="onSelectedCategory">
-                                    <bk-option
-                                        v-for="(option, index) in categorys"
-                                        :key="index"
-                                        :id="option.value"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                        </div>
-                        <data-table-pagination
-                            :data="appmakerData"
-                            :total="appmakerTotal"
-                            :columns="appmakerColumns"
-                            :pagination="appmakerPagination"
-                            :loading="isAppmakerLoading"
-                            @handleSortChange="onAppmakerHandleSort"
-                            @handleSizeChange="onAppmakerHandleSizeChange"
-                            @handleIndexChange="onAppmakerHandleIndexChange">
-                        </data-table-pagination>
-                    </div>
-                </bk-tab-panel>
-            </bk-tab>
-        </div>
+        <table-panel
+            :tabpanels="tabPanels"
+        ></table-panel>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import tools from '@/utils/tools.js'
     import ChartCard from '../common/ChartCard'
+    import TablePanel from '../common/TablePanel'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
-    import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     const i18n = {
@@ -107,15 +53,13 @@
         name: 'StatisticsAppmaker',
         components: {
             ChartCard,
-            DataTablePagination
+            TablePanel
         },
         mixins: [AnalysisMixins],
         props: ['timeRange'],
         data () {
             return {
                 i18n: i18n,
-                bizCcId: undefined,
-                category: undefined,
                 choiceBusinessName: '',
                 choiceCategoryName: '',
                 isDropdownShow: false,
@@ -194,36 +138,14 @@
                         align: 'center'
                     }
                 ],
-                selectedCcId: '',
-                selectedCategory: '',
-                choiceBusiness: undefined,
-                choiceCategory: undefined,
                 endDateMax: '',
-                appmakerOrderBy: '-templateId',
-                businessSelected: '',
-                categorySelected: ''
+                appmakerOrderBy: '-templateId'
             }
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
-                categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
-                }
-                const list = tools.deepClone(this.allBusinessList)
-                return list
-            },
-            categoryList () {
-                if (this.categorys.length === 0) {
-                    this.getCategorys()
-                }
-                const list = tools.deepClone(this.categorys)
-                return list
-            },
             charts () {
                 const charts = [
                     {
@@ -270,6 +192,57 @@
                     }
                 ]
                 return charts
+            },
+            tabPanels () {
+                const tabPanels = {
+                    onTabChange: () => {},
+                    active: 'applicationDetails',
+                    panels: [
+                        {
+                            selects: [
+                                {
+                                    label: this.i18n.choiceBusiness,
+                                    model: this.selectedCcId,
+                                    placeholder: this.i18n.businessPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedBizCcId,
+                                    onClear: this.onClearBizCcId,
+                                    options: this.allBusinessList,
+                                    option: {
+                                        key: 'cc_id',
+                                        name: 'cc_name'
+                                    }
+                                },
+                                {
+                                    label: this.i18n.choiceCategory,
+                                    model: this.selectedCategory,
+                                    placeholder: this.i18n.categoryPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedCategory,
+                                    onClear: this.onClearCategory,
+                                    options: this.categorys,
+                                    option: {
+                                        key: 'value',
+                                        name: 'name'
+                                    }
+                                }
+                            ],
+                            name: 'applicationDetails',
+                            label: this.i18n.applicationDetails,
+                            data: this.appmakerData,
+                            total: this.appmakerTotal,
+                            pagination: this.appmakerPagination,
+                            columns: this.appmakerColumns,
+                            loading: this.isAppmakerLoading,
+                            handleSortChange: this.onAppmakerHandleSort,
+                            handleSizeChange: this.onAppmakerHandleSizeChange,
+                            handleIndexChange: this.onAppmakerHandleIndexChange
+                        }
+                    ]
+                }
+                return tabPanels
             }
         },
         watch: {
@@ -426,32 +399,8 @@
                 }
                 this.appMakerInstanceData(data)
             },
-            onSelectedCategory (name, value) {
-                if (this.category === name) {
-                    return
-                }
-                this.category = name
-                this.resetPageIndex()
-                this.onAppMakerInstance()
-            },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
-                    return
-                }
-                this.bizCcId = name
-                this.resetPageIndex()
-                this.onAppMakerInstance()
-            },
-            onClearBizCcId () {
-                this.selectedCcId = ''
-                this.bizCcId = undefined
-                this.resetPageIndex()
-                this.onAppMakerInstance()
-            },
-            onClearCategory () {
-                this.selectedCategory = ''
-                this.category = undefined
-                this.resetPageIndex()
+            onChangeTabPanel (name) {
+                this.tabName = name
                 this.onAppMakerInstance()
             },
             resetPageIndex () {

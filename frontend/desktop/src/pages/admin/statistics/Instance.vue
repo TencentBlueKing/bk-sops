@@ -75,125 +75,18 @@
             </div>
             <vertical-bar-chart :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></vertical-bar-chart>
         </div>
-        <div class="content-process-detail">
-            <bk-tab :type="'card'" :active="tabName" @tab-change="onChangeTabPanel">
-                <bk-tab-panel name="taskDetails" :label="i18n.taskDetail">
-                    <div class="content-wrap-detail">
-                        <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-select
-                                    v-model="selectedCcId"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.businessPlaceholder"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
-                                    <bk-option
-                                        v-for="(option, index) in allBusinessList"
-                                        :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceCategory}}</label>
-                                <bk-select
-                                    v-model="selectedCategory"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.categoryPlaceholder"
-                                    @clear="onClearCategory"
-                                    @selected="onSelectedCategory">
-                                    <bk-option
-                                        v-for="(option, index) in categorys"
-                                        :key="index"
-                                        :id="option.value"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                        </div>
-                        <data-table-pagination
-                            :data="nodeData"
-                            :total="nodeTotal"
-                            :options="dataTableOptions"
-                            :pagination="nodePagination"
-                            :columns="nodeColumns"
-                            :loading="isNodeLoading"
-                            @handleSortChange="onNodeSortChange"
-                            @handleSizeChange="onNodeHandleSizeChange"
-                            @handleIndexChange="onNodeHandleIndexChange">
-                        </data-table-pagination>
-                    </div>
-                </bk-tab-panel>
-                <bk-tab-panel name="exectionTime" :label="i18n.executionName">
-                    <div class="content-wrap-detail">
-                        <div class="content-wrap-from">
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-select
-                                    v-model="selectedCcId"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.businessPlaceholder"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
-                                    <bk-option
-                                        v-for="(option, index) in allBusinessList"
-                                        :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                            <div class="content-wrap-select">
-                                <label class="content-detail-label">{{i18n.choiceCategory}}</label>
-                                <bk-select
-                                    v-model="selectedCategory"
-                                    class="bk-select-inline"
-                                    :popover-width="260"
-                                    :searchable="true"
-                                    :placeholder="i18n.categoryPlaceholder"
-                                    @clear="onClearCategory"
-                                    @selected="onSelectedCategory">
-                                    <bk-option
-                                        v-for="(option, index) in categorys"
-                                        :key="index"
-                                        :id="option.value"
-                                        :name="option.name">
-                                    </bk-option>
-                                </bk-select>
-                            </div>
-                        </div>
-                        <data-table-pagination
-                            :data="detailsData"
-                            :total="detailsTotal"
-                            :pagination="detailsPagination"
-                            :columns="detailsColumns"
-                            :loading="isDetailsLoading"
-                            @handleSortChange="detailsHandleSortChange"
-                            @handleSizeChange="onDetailsHandleSizeChange"
-                            @handleIndexChange="onDetailsHandleIndexChange">
-                        </data-table-pagination>
-                    </div>
-                </bk-tab-panel>
-            </bk-tab>
-        </div>
+        <table-panel
+            :tabpanels="tabPanels"
+        ></table-panel>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import tools from '@/utils/tools.js'
     import ChartCard from '../common/ChartCard'
     import VerticalBarChart from './verticalBarChart.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
-    import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
+    import TablePanel from '../common/TablePanel'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     const i18n = {
@@ -228,15 +121,13 @@
         components: {
             ChartCard,
             VerticalBarChart,
-            DataTablePagination
+            TablePanel
         },
         mixins: [AnalysisMixins],
         props: ['timeRange'],
         data () {
             return {
                 i18n: i18n,
-                bizCcId: undefined,
-                category: undefined,
                 datePickerRefShow: false,
                 businessPickerRefShow: false,
                 isDropdownShow: false,
@@ -382,10 +273,6 @@
                     }
                 ],
                 instanceType: 'day',
-                selectedCcId: '',
-                selectedCategory: '',
-                choiceBusiness: undefined,
-                choiceCategory: '',
                 endDateMax: '',
                 choiceTimeTypeName: '',
                 choiceTimeType: 'day',
@@ -395,33 +282,15 @@
                 choiceTimeTypeBusiness: undefined,
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
-                businessSelected: '',
                 timeBusinessSelected: '',
-                categorySelected: '',
                 choiceDate: 'day',
                 timeCategorySelected: ''
             }
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
-                categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
-                }
-                const list = tools.deepClone(this.allBusinessList)
-                return list
-            },
-            categoryList () {
-                if (this.categorys.length === 0) {
-                    this.getCategorys()
-                }
-                const list = tools.deepClone(this.categorys)
-                return list
-            },
             charts () {
                 const charts = [
                     {
@@ -468,6 +337,99 @@
                     }
                 ]
                 return charts
+            },
+            tabPanels () {
+                const tabPanels = {
+                    onTabChange: this.onChangeTabPanel,
+                    active: this.tabName,
+                    panels: [
+                        {
+                            selects: [
+                                {
+                                    label: this.i18n.choiceBusiness,
+                                    model: this.selectedCcId,
+                                    placeholder: this.i18n.businessPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedBizCcId,
+                                    onClear: this.onClearBizCcId,
+                                    options: this.allBusinessList,
+                                    option: {
+                                        key: 'cc_id',
+                                        name: 'cc_name'
+                                    }
+                                },
+                                {
+                                    label: this.i18n.choiceCategory,
+                                    model: this.selectedCategory,
+                                    placeholder: this.i18n.categoryPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedCategory,
+                                    onClear: this.onClearCategory,
+                                    options: this.categorys,
+                                    option: {
+                                        key: 'value',
+                                        name: 'name'
+                                    }
+                                }
+                            ],
+                            name: 'taskDetails',
+                            label: this.i18n.taskDetail,
+                            data: this.nodeData,
+                            total: this.nodeTotal,
+                            pagination: this.nodePagination,
+                            columns: this.nodeColumns,
+                            loading: this.isNodeLoading,
+                            handleSortChange: this.onNodeSortChange,
+                            handleSizeChange: this.onNodeHandleSizeChange,
+                            handleIndexChange: this.onNodeHandleIndexChange
+                        },
+                        {
+                            selects: [
+                                {
+                                    label: this.i18n.choiceBusiness,
+                                    model: this.selectedCcId,
+                                    placeholder: this.i18n.businessPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedBizCcId,
+                                    onClear: this.onClearBizCcId,
+                                    options: this.allBusinessList,
+                                    option: {
+                                        key: 'cc_id',
+                                        name: 'cc_name'
+                                    }
+                                },
+                                {
+                                    label: this.i18n.choiceCategory,
+                                    model: this.selectedCategory,
+                                    placeholder: this.i18n.categoryPlaceholder,
+                                    clearable: true,
+                                    searchable: true,
+                                    onSelected: this.onSelectedCategory,
+                                    onClear: this.onClearCategory,
+                                    options: this.categorys,
+                                    option: {
+                                        key: 'value',
+                                        name: 'name'
+                                    }
+                                }
+                            ],
+                            name: 'exectionTime',
+                            label: this.i18n.executionName,
+                            data: this.detailsData,
+                            total: this.detailsTotal,
+                            pagination: this.detailsPagination,
+                            columns: this.detailsColumns,
+                            loading: this.isDetailsLoading,
+                            handleSortChange: this.detailsHandleSortChange,
+                            handleSizeChange: this.onDetailsHandleSizeChange,
+                            handleIndexChange: this.onDetailsHandleIndexChange
+                        }
+                    ]
+                }
+                return tabPanels
             }
         },
         watch: {
@@ -708,34 +670,6 @@
                 } else {
                     this.onInstanceDetailsData()
                 }
-            },
-            onSelectedCategory (name, value) {
-                if (this.category === name) {
-                    return
-                }
-                this.category = name
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
-            },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
-                    return
-                }
-                this.bizCcId = name
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
-            },
-            onClearBizCcId () {
-                this.selectedCcId = ''
-                this.bizCcId = undefined
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
-            },
-            onClearCategory () {
-                this.selectedCategory = ''
-                this.category = undefined
-                this.resetPageIndex()
-                this.onChangeTabPanel(this.tabName)
             },
             resetPageIndex () {
                 switch (this.tabName) {
