@@ -787,15 +787,16 @@ const template = {
                 pipelineTree: JSON.stringify(fullCanvasData),
                 common
             }
-            if (!validatePipeline.isPipelineDataValid(fullCanvasData).valid) {
+            const validateResult = validatePipeline.isPipelineDataValid(fullCanvasData)
+            if (!validateResult.valid) {
                 return new Promise((resolve, reject) => {
                     const info = {
                         message: gettext('画布数据字段错误，请检查节点连线')
                     }
+                    console.error('pipeline_tree_data_error:', validateResult.errors)
                     reject(info)
                 })
             }
-
             return api.saveTemplate(data).then(response => {
                 return response.data
             })

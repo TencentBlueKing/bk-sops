@@ -1,12 +1,12 @@
-import { TEMPLATE_NODE_NAME_MAX_LENGTH } from './index.js'
+import { STRING_LENGTH } from './index.js'
 import { Validator } from 'jsonschema'
 
 const NODE_ID_REG = '^node[0-9a-z]{28}$'
 const LINE_ID_REG = '^line[0-9a-z]{28}$'
-const VAR_KEY_REG = '^\$\{(\w+)\}$'
+const VAR_KEY_REG = '^\\$\\{(\\w+)\\}$'
 
 const serviceActivity = {
-    id: '/serviceActivity',
+    id: '/ServiceActivity',
     title: '普通任务节点字段',
     type: 'object',
     properties: {
@@ -17,7 +17,7 @@ const serviceActivity = {
         name: {
             type: 'string',
             minLenth: 1,
-            maxLength: TEMPLATE_NODE_NAME_MAX_LENGTH
+            maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
         },
         incoming: {
             type: 'string',
@@ -52,7 +52,7 @@ const serviceActivity = {
 }
 
 const subProcess = {
-    id: '/subProcess',
+    id: '/SubProcess',
     title: '子流程任务节点字段',
     type: 'object',
     properties: {
@@ -63,7 +63,7 @@ const subProcess = {
         name: {
             type: 'string',
             minLenth: 1,
-            maxLength: TEMPLATE_NODE_NAME_MAX_LENGTH
+            maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
         },
         incoming: {
             type: 'string',
@@ -88,7 +88,7 @@ const subProcess = {
 }
 
 const constantItem = {
-    id: '/constantItem',
+    id: '/ConstantItem',
     title: '全局变量字段',
     type: 'object',
     properties: {
@@ -117,7 +117,7 @@ const constantItem = {
         source_info: {
             type: 'object',
             patternProperties: {
-                NODE_ID_REG: {
+                [NODE_ID_REG]: {
                     type: 'array'
                 }
             }
@@ -127,7 +127,7 @@ const constantItem = {
 }
 
 const flowItem = {
-    id: '/flowItem',
+    id: '/FlowItem',
     title: 'flow item',
     type: 'object',
     properties: {
@@ -151,20 +151,21 @@ const flowItem = {
 }
 
 const exclusiveGateway = {
-    id: '/exclusiveGateway',
+    id: '/ExclusiveGateway',
     title: '分支网关节点字段',
     type: 'object',
     properties: {
         conditions: {
             type: 'object',
             patternProperties: {
-                LINE_ID_REG: {
+                [LINE_ID_REG]: {
                     type: 'object',
                     properties: {
                         evaluate: {
                             type: 'string'
                         }
-                    }
+                    },
+                    required: ['evaluate']
                 }
             }
         },
@@ -186,13 +187,16 @@ const exclusiveGateway = {
                 pattern: LINE_ID_REG
             }
         },
-        type: 'ExclusiveGateway'
+        type: {
+            type: 'string',
+            const: 'ExclusiveGateway'
+        }
     },
     required: ['conditions', 'id', 'incoming', 'name', 'outgoing', 'type']
 }
 
 const parallelGateway = {
-    id: '/parallelGateway',
+    id: '/ParallelGateway',
     title: '并行网关节点字段',
     type: 'object',
     properties: {
@@ -214,13 +218,16 @@ const parallelGateway = {
                 pattern: LINE_ID_REG
             }
         },
-        type: 'ParallelGateway'
+        type: {
+            type: 'string',
+            const: 'ParallelGateway'
+        }
     },
     required: ['id', 'incoming', 'name', 'outgoing', 'type']
 }
 
 const convergeGateway = {
-    id: '/convergeGateway',
+    id: '/ConvergeGateway',
     title: '汇聚网关节点字段',
     type: 'object',
     properties: {
@@ -242,13 +249,16 @@ const convergeGateway = {
             type: 'string',
             pattern: LINE_ID_REG
         },
-        type: 'ConvergeGateway'
+        type: {
+            type: 'string',
+            const: 'ConvergeGateway'
+        }
     },
     required: ['id', 'incoming', 'name', 'outgoing', 'type']
 }
 
 const lineItem = {
-    id: '/lineItem',
+    id: '/LineItem',
     type: 'object',
     properties: {
         id: {
@@ -286,7 +296,7 @@ const lineItem = {
 }
 
 const locationItem = {
-    id: '/locationItem',
+    id: '/LocationItem',
     title: '任务节点字段',
     type: 'object',
     properties: {
@@ -308,72 +318,70 @@ const locationItem = {
 }
 
 const activitiesFieldSchema = {
-    id: '/activitiesFieldSchema',
-    type: 'Array',
+    id: '/ActivitiesFieldSchema',
+    type: 'object',
     patternProperties: {
-        NODE_ID_REG: {
-            type: 'object',
-            oneOf: [
-                { $ref: '/serviceActivity' },
-                { $ref: '/subProcess' }
+        [NODE_ID_REG]: {
+            anyOf: [
+                { $ref: '/ServiceActivity' },
+                { $ref: '/SubProcess' }
             ]
         }
     }
 }
 
 const constantsFieldSchema = {
-    id: '/constantsFieldSchema',
+    id: '/ConstantsFieldSchema',
     type: 'object',
     patternProperties: {
         [VAR_KEY_REG]: {
-            $ref: '/constantItem'
+            $ref: '/ConstantItem'
         }
     }
 }
 
 const flowsFieldSchema = {
-    id: '/flowsFieldSchema',
+    id: '/FlowsFieldSchema',
     type: 'object',
     patternProperties: {
-        LINE_ID_REG: {
-            $ref: '/flowItem'
+        [LINE_ID_REG]: {
+            $ref: '/FlowItem'
         }
     }
 }
 
 const gatewayFieldSchema = {
-    id: '/gatewayFieldSchema',
+    id: '/GatewayFieldSchema',
     type: 'object',
     patternProperties: {
-        NODE_ID_REG: {
-            type: 'object',
-            oneOf: [
-                { $ref: '/exclusiveGateway' },
-                { $ref: '/parallelGateway' },
-                { $ref: '/convergeGateway' }
+        [NODE_ID_REG]: {
+            anyOf: [
+                { $ref: '/ExclusiveGateway' },
+                { $ref: '/ParallelGateway' },
+                { $ref: '/ConvergeGateway' }
             ]
         }
     }
 }
 
 const linesFieldSchema = {
-    id: '/linesFieldSchema',
+    id: '/LinesFieldSchema',
     type: 'array',
     items: {
-        $ref: '/lineItem'
+        $ref: '/LineItem'
     }
 }
 
 const locationFieldSchema = {
-    id: '/locationFieldSchema',
+    id: '/LocationFieldSchema',
     type: 'array',
     items: {
-        $ref: '/locationItem'
+        $ref: '/LocationItem'
     }
 }
 
 const endEventSchema = {
-    id: '/endEventSchema',
+    id: '/EndEventSchema',
     title: '结束节点字段',
     type: 'object',
     properties: {
@@ -401,7 +409,7 @@ const endEventSchema = {
 }
 
 const startEventSchema = {
-    id: '/startEventSchema',
+    id: '/StartEventSchema',
     title: '开始节点字段',
     type: 'object',
     properties: {
@@ -429,7 +437,7 @@ const startEventSchema = {
 }
 
 const outputsFieldSchema = {
-    id: '/outputsFieldSchema',
+    id: '/OutputsFieldSchema',
     title: '变量输出字段',
     type: 'array',
     items: {
@@ -443,31 +451,31 @@ export const pipelineTreeSchema = {
     title: 'pipeline_tree字段',
     properties: {
         activities: {
-            $ref: '/activitiesFieldSchema'
+            $ref: '/ActivitiesFieldSchema'
         },
         constants: {
-            $ref: '/constantsFieldSchema'
+            $ref: '/ConstantsFieldSchema'
         },
         flows: {
-            $ref: '/flowsFieldSchema'
+            $ref: '/FlowsFieldSchema'
         },
         gateways: {
-            $ref: '/gatewayFieldSchema'
+            $ref: '/GatewayFieldSchema'
         },
         line: {
-            $ref: '/linesFieldSchema'
+            $ref: '/LinesFieldSchema'
         },
         location: {
-            $ref: '/locationFieldSchema'
+            $ref: 'LocationFieldSchema'
         },
         end_event: {
-            $ref: '/endEventSchema'
+            $ref: '/EndEventSchema'
         },
         start_event: {
-            $ref: '/startEventSchema'
+            $ref: '/StartEventSchema'
         },
         outputs: {
-            $ref: '/outputsFieldSchema'
+            $ref: '/OutputsFieldSchema'
         }
     },
     required: ['activities', 'constants', 'flows', 'gateways', 'line', 'location', 'end_event', 'start_event', 'outputs']
@@ -475,23 +483,23 @@ export const pipelineTreeSchema = {
 
 const schemaValidator = new Validator()
 
-schemaValidator.addSchema(serviceActivity, '/serviceActivity')
-schemaValidator.addSchema(subProcess, '/subProcess')
-schemaValidator.addSchema(constantItem, '/constantItem')
-schemaValidator.addSchema(flowItem, '/flowItem')
-schemaValidator.addSchema(parallelGateway, '/parallelGateway')
-schemaValidator.addSchema(convergeGateway, '/convergeGateway')
-schemaValidator.addSchema(exclusiveGateway, '/exclusiveGateway')
-schemaValidator.addSchema(lineItem, '/lineItem')
-schemaValidator.addSchema(locationItem, '/locationItem')
-schemaValidator.addSchema(activitiesFieldSchema, '/activitiesFieldSchema')
-schemaValidator.addSchema(constantsFieldSchema, '/constantsFieldSchema')
-schemaValidator.addSchema(flowsFieldSchema, '/flowsFieldSchema')
-schemaValidator.addSchema(gatewayFieldSchema, '/gatewayFieldSchema')
-schemaValidator.addSchema(linesFieldSchema, '/linesFieldSchema')
-schemaValidator.addSchema(locationFieldSchema, '/locationFieldSchema')
-schemaValidator.addSchema(endEventSchema, '/endEventSchema')
-schemaValidator.addSchema(startEventSchema, '/startEventSchema')
-schemaValidator.addSchema(outputsFieldSchema, '/outputsFieldSchema')
+schemaValidator.addSchema(serviceActivity, '/ServiceActivity')
+schemaValidator.addSchema(subProcess, '/SubProcess')
+schemaValidator.addSchema(constantItem, '/ConstantItem')
+schemaValidator.addSchema(flowItem, '/FlowItem')
+schemaValidator.addSchema(parallelGateway, '/ParallelGateway')
+schemaValidator.addSchema(convergeGateway, '/ConvergeGateway')
+schemaValidator.addSchema(exclusiveGateway, '/ExclusiveGateway')
+schemaValidator.addSchema(lineItem, '/LineItem')
+schemaValidator.addSchema(locationItem, '/LocationItem')
+schemaValidator.addSchema(activitiesFieldSchema, '/ActivitiesFieldSchema')
+schemaValidator.addSchema(constantsFieldSchema, '/ConstantsFieldSchema')
+schemaValidator.addSchema(flowsFieldSchema, '/FlowsFieldSchema')
+schemaValidator.addSchema(gatewayFieldSchema, '/GatewayFieldSchema')
+schemaValidator.addSchema(linesFieldSchema, '/LinesFieldSchema')
+schemaValidator.addSchema(locationFieldSchema, '/LocationFieldSchema')
+schemaValidator.addSchema(endEventSchema, '/EndEventSchema')
+schemaValidator.addSchema(startEventSchema, '/StartEventSchema')
+schemaValidator.addSchema(outputsFieldSchema, '/OutputsFieldSchema')
 
 export default schemaValidator
