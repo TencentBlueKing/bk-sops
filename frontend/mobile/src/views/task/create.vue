@@ -227,6 +227,7 @@
                 this.schemes = response
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
                 this.scheme = this.columns[this.defaultSchemaIndex]
+                this.excludeTaskNodes = this.$store.state.excludeTaskNodes
             },
             fillTemplateData (response) {
                 this.templateData = response
