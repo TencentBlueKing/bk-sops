@@ -12,36 +12,45 @@
 <template>
     <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
-            <PipelineCanvas
-                ref="pipelineCanvas"
-                :single-atom-list-loading="singleAtomListLoading"
-                :sub-atom-list-loading="subAtomListLoading"
-                :is-template-data-changed="isTemplateDataChanged"
-                :template-saving="templateSaving"
-                :create-task-saving="createTaskSaving"
-                :canvas-data="canvasData"
+            <TemplateHeader
                 :name="name"
                 :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"
-                :atom-type-list="atomTypeList"
-                :search-atom-result="searchAtomResult"
+                :is-template-data-changed="isTemplateDataChanged"
+                :template-saving="templateSaving"
+                :create-task-saving="createTaskSaving"
                 :tpl-resource="tplResource"
                 :tpl-actions="tplActions"
                 :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
+                @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate"
-                @onSearchAtom="onSearchAtom"
-                @onBackToList="onBackToList"
+                @onBackToList="onBackToList">
+            </TemplateHeader>
+            <TemplateCanvas
+                ref="templateCanvas"
+                class="template-canvas"
+                :single-atom-list-loading="singleAtomListLoading"
+                :sub-atom-list-loading="subAtomListLoading"
+                :atom-type-list="atomTypeList"
+                :name="name"
+                :project_id="project_id"
+                :type="type"
+                :common="common"
+                :template_id="template_id"
+                :canvas-data="canvasData"
                 @onNodeClick="onNodeClick"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
-                @onNewDraft="onNewDraft"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
-            </PipelineCanvas>
+            </TemplateCanvas>
+            <div class="atom-node">
+                <span class="atom-number">{{i18n.added}} {{Object.keys(activities).length}} {{i18n.node}}</span>
+            </div>
             <NodeConfig
                 ref="nodeConfig"
                 :project_id="project_id"
@@ -54,11 +63,13 @@
                 :id-of-node-in-config-panel="idOfNodeInConfigPanel"
                 :common="common"
                 @hideConfigPanel="hideConfigPanel"
+                @globalVariableUpdate="globalVariableUpdate"
                 @onUpdateNodeInfo="onUpdateNodeInfo">
             </NodeConfig>
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
+                :is-global-variable-update="isGlobalVariableUpdate"
                 :project-info-loading="projectInfoLoading"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
@@ -66,6 +77,7 @@
                 :local-template-data="localTemplateData"
                 :is-click-draft="isClickDraft"
                 @toggleSettingPanel="toggleSettingPanel"
+                @globalVariableUpdate="globalVariableUpdate"
                 @onDeleteConstant="onDeleteConstant"
                 @variableDataChanged="variableDataChanged"
                 @onSelectCategory="onSelectCategory"
@@ -99,7 +111,8 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
+    import TemplateHeader from './TemplateHeader.vue'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
     import NodeConfig from './NodeConfig.vue'
     import draft from '@/utils/draft.js'
@@ -115,13 +128,16 @@
         delete_fail: gettext('该本地缓存不存在，删除失败'),
         replace_success: gettext('替换流程成功'),
         add_cache: gettext('新增流程本地缓存成功'),
-        replace_save: gettext('替换流程自动保存')
+        replace_save: gettext('替换流程自动保存'),
+        added: gettext('已添加'),
+        node: gettext('个任务节点')
     }
 
     export default {
         name: 'TemplateEdit',
         components: {
-            PipelineCanvas,
+            TemplateHeader,
+            TemplateCanvas,
             NodeConfig,
             TemplateSetting
         },
@@ -138,6 +154,7 @@
                 templateSaving: false,
                 createTaskSaving: false,
                 saveAndCreate: false,
+                isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
                 isSettingPanelShow: true,
@@ -660,6 +677,7 @@
              * 任务节点点击
              */
             onNodeClick (id) {
+                this.toggleSettingPanel(false)
                 const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
@@ -730,8 +748,11 @@
                 this.variableDataChanged()
                 this.setLocationXY(location)
             },
+            globalVariableUpdate (val) {
+                this.isGlobalVariableUpdate = val
+            },
             onUpdateNodeInfo (id, data) {
-                this.$refs.pipelineCanvas.onUpdateNodeInfo(id, data)
+                this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             onDeleteConstant (key) {
                 this.variableDataChanged()
@@ -957,8 +978,25 @@
         height: 100%;
         overflow: hidden;
     }
+    .atom-node {
+        position: absolute;
+        top: 86px;
+        left: 50%;
+        padding: 2px 9px;
+        border-radius: 1px;
+        transform: translateX(-50%);
+        background: rgba(225, 228, 232, 0.95);
+        z-index: 4;
+        .atom-number {
+            color: #a9b2bd;
+            font-size: 14px;
+        }
+    }
     .pipeline-canvas-wrapper {
         height: 100%;
+    }
+    .template-canvas {
+        height: calc(100% - 60px);
     }
     .leave-tips {
         padding: 30px;
