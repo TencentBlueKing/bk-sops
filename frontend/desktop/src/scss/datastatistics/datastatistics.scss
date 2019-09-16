@@ -32,7 +32,7 @@
             }
         }
         .content-task-wrap {
-            top: 20px;
+            margin-top: 20px;
             width: 100%;
             background-color: $whiteDefault;
             box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.06);
@@ -74,7 +74,7 @@
                 font-size: 14px;
                 color: #3a84ff;
             }
-            .content-business {
+            .content-date-business {
                 display: inline-block;
                 margin-right: 20px;
                 .icon-angle-down {
@@ -171,7 +171,7 @@
             }
             .content-wrap-from {
                 min-width: 1320px;
-                height: 76px;
+                height: 55px;
                 display: flex;
                 flex-wrap: wrap;
             }

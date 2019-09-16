@@ -11,58 +11,9 @@
 */
 <template>
     <div class="content-box">
-        <div class="content-wrap">
-            <div class="content-dimesion" v-bkloading="{ isLoading: isInstanceLoading, opacity: 1 }">
-                <div class="clearfix">
-                    <div class="content-title">{{i18n.taskCategory}}</div>
-                    <div class="content-date">
-                        <div class="content-date-business">
-                            <bk-select
-                                v-model="businessSelected"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.businessPlaceholder"
-                                @selected="onInstanceCategory"
-                                @clear="onClearInstanceCategory">
-                                <bk-option
-                                    v-for="(option, index) in businessList"
-                                    :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                    </div>
-                </div>
-                <data-statistics :dimension-list="taskPlotData" :total-value="taskTotal"></data-statistics>
-            </div>
-            <div class="content-wrap-right" v-bkloading="{ isLoading: isBuinsessLoading, opacity: 1 }">
-                <div class="clearfix">
-                    <div class="content-title">{{i18n.taskBusiness}}</div>
-                    <div class="content-statistics">
-                        <div class="content-business">
-                            <bk-select
-                                v-model="selectedCcId"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.categoryPlaceholder"
-                                @selected="onInstanceBizCcId"
-                                @clear="onClearInstanceBizCcId">
-                                <bk-option
-                                    v-for="(option, index) in categoryList"
-                                    :key="index"
-                                    :id="option.value"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                    </div>
-                </div>
-                <data-statistics :dimension-list="ownBusinessData" :total-value="ownBusinessTotal"></data-statistics>
-            </div>
-        </div>
+        <chart-card
+            :charts="charts"
+        ></chart-card>
         <div class="content-task-wrap" v-bkloading="{ isLoading: isInstanceTypeLoading, opacity: 1 }">
             <div class="clearfix">
                 <div class="content-title">{{i18n.instanceTime}}</div>
@@ -238,7 +189,7 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import DataStatistics from './dataStatistics.vue'
+    import ChartCard from '../common/ChartCard'
     import VerticalBarChart from './verticalBarChart.vue'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
@@ -275,7 +226,7 @@
     export default {
         name: 'StatisticsInstance',
         components: {
-            DataStatistics,
+            ChartCard,
             VerticalBarChart,
             DataTablePagination
         },
@@ -470,6 +421,53 @@
                 }
                 const list = tools.deepClone(this.categorys)
                 return list
+            },
+            charts () {
+                const charts = [
+                    {
+                        selects: [
+                            {
+                                model: this.businessSelected,
+                                placeholder: this.i18n.businessPlaceholder,
+                                clearable: true,
+                                searchable: true,
+                                onSelected: this.onInstanceCategory,
+                                onClear: this.onClearInstanceCategory,
+                                options: this.businessList,
+                                option: {
+                                    key: 'cc_id',
+                                    name: 'cc_name'
+                                }
+                            }
+                        ],
+                        title: this.i18n.taskCategory,
+                        dimensionList: this.taskPlotData,
+                        totalValue: this.taskTotal,
+                        isLoading: this.isInstanceLoading
+                    },
+                    {
+                        selects: [
+                            {
+                                model: this.categorySelected,
+                                placeholder: this.i18n.categoryPlaceholder,
+                                clearable: true,
+                                searchable: true,
+                                onSelected: this.onInstanceBizCcId,
+                                onClear: this.onClearInstanceBizCcId,
+                                options: this.categoryList,
+                                option: {
+                                    key: 'value',
+                                    name: 'name'
+                                }
+                            }
+                        ],
+                        title: this.i18n.taskBusiness,
+                        dimensionList: this.ownBusinessData,
+                        totalValue: this.ownBusinessTotal,
+                        isLoading: this.isBuinsessLoading
+                    }
+                ]
+                return charts
             }
         },
         watch: {
@@ -562,7 +560,7 @@
                 this.statisticsBizCcId(data)
             },
             onClearInstanceBizCcId () {
-                this.onInstanceBizCcId()
+                this.onInstanceBizCcId('')
             },
             onInstanceNode (value) {
                 if (this.tabName !== 'taskDetails') {

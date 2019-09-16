@@ -11,58 +11,9 @@
 */
 <template>
     <div class="content-box">
-        <div class="content-wrap">
-            <div class="content-dimesion" v-bkloading="{ isLoading: isAppLicationLoading, opacity: 1 }">
-                <div class="clearfix">
-                    <div class="content-title">{{i18n.appmakerCategory}}</div>
-                    <div class="content-date">
-                        <div class="content-date-business">
-                            <bk-select
-                                v-model="businessSelected"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.businessPlaceholder"
-                                @selected="onAppMakerCategory"
-                                @clear="onClearAppMakerCategory">
-                                <bk-option
-                                    v-for="(option, index) in businessList"
-                                    :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                    </div>
-                </div>
-                <data-statistics :dimension-list="taskPlotData" :total-value="taskToatal"></data-statistics>
-            </div>
-            <div class="content-wrap-right" v-bkloading="{ isLoading: isCategoryLoading, opacity: 1 }">
-                <div class="clearfix">
-                    <div class="content-title">{{i18n.appmakerBusiness}}</div>
-                    <div class="content-statistics">
-                        <div class="content-business">
-                            <bk-select
-                                v-model="categorySelected"
-                                class="bk-select-inline"
-                                :popover-width="260"
-                                :searchable="true"
-                                :placeholder="i18n.categoryPlaceholder"
-                                @selected="onAppMakerBizCcid"
-                                @clear="onClearAppMakerBizCcid">
-                                <bk-option
-                                    v-for="(option, index) in categoryList"
-                                    :key="index"
-                                    :id="option.value"
-                                    :name="option.name">
-                                </bk-option>
-                            </bk-select>
-                        </div>
-                    </div>
-                </div>
-                <data-statistics :dimension-list="ownBusinessData" :total-value="businessTotal"></data-statistics>
-            </div>
-        </div>
+        <chart-card
+            :charts="charts"
+        ></chart-card>
         <div class="content-process-detail">
             <bk-tab :type="'card'" :active="'applicationDetails'">
                 <bk-tab-panel name="applicationDetails" :label="i18n.applicationDetails">
@@ -124,7 +75,7 @@
 <script>
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
-    import DataStatistics from './dataStatistics.vue'
+    import ChartCard from '../common/ChartCard'
     import { mapActions, mapState } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
@@ -155,7 +106,7 @@
     export default {
         name: 'StatisticsAppmaker',
         components: {
-            DataStatistics,
+            ChartCard,
             DataTablePagination
         },
         mixins: [AnalysisMixins],
@@ -272,6 +223,53 @@
                 }
                 const list = tools.deepClone(this.categorys)
                 return list
+            },
+            charts () {
+                const charts = [
+                    {
+                        selects: [
+                            {
+                                model: this.businessSelected,
+                                placeholder: this.i18n.businessPlaceholder,
+                                clearable: true,
+                                searchable: true,
+                                onSelected: this.onAppMakerCategory,
+                                onClear: this.onClearAppMakerCategory,
+                                options: this.businessList,
+                                option: {
+                                    key: 'cc_id',
+                                    name: 'cc_name'
+                                }
+                            }
+                        ],
+                        title: this.i18n.appmakerCategory,
+                        dimensionList: this.taskPlotData,
+                        totalValue: this.taskToatal,
+                        isLoading: this.isAppLicationLoading
+                    },
+                    {
+                        selects: [
+                            {
+                                model: this.categorySelected,
+                                placeholder: this.i18n.categoryPlaceholder,
+                                clearable: true,
+                                searchable: true,
+                                onSelected: this.onAppMakerBizCcid,
+                                onClear: this.onClearAppMakerBizCcid,
+                                options: this.categoryList,
+                                option: {
+                                    key: 'value',
+                                    name: 'name'
+                                }
+                            }
+                        ],
+                        title: this.i18n.appmakerBusiness,
+                        dimensionList: this.ownBusinessData,
+                        totalValue: this.businessTotal,
+                        isLoading: this.isCategoryLoading
+                    }
+                ]
+                return charts
             }
         },
         watch: {
