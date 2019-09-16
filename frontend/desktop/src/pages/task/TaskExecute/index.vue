@@ -17,6 +17,7 @@
             :list="stepList"
             :current-step="currentStep"
             :task-status="'TaskExecute'"
+            :is-functional="isFunctional"
             :common="common"
             :cc_id="cc_id"
             :instance-name="instanceName"

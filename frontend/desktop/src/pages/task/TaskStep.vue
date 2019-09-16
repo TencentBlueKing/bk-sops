@@ -53,8 +53,9 @@
             'instanceName',
             'cc_id',
             'taskStatus',
-            'asyncTemplateId',
-            'templateSource'
+            'templateSource',
+            'template_id',
+            'isFunctional'
         ],
         data () {
             return {
@@ -142,11 +143,12 @@
                         // 任务创建(节点选择+参数填写)
                         if (this.currentStep === 'selectnode' || this.currentStep === 'paramfill') {
                             /**
-                             * 目前只有两种 entrance
+                             * entrance
                              * 1、periodicTask - 周期任务新建
                              * 2、taskflow - 任务记录新建
+                             * 3、templateEdit - 模版编辑
                              */
-                            if (entrance === 'periodicTask' || entrance === 'taskflow') {
+                            if (entrance === 'periodicTask' || entrance === 'taskflow' || entrance === 'templateEdit') {
                                 url = backObj[entrance]
                                 break
                             }
@@ -154,11 +156,13 @@
                                 url = backObj['common']
                                 break
                             }
+                            if (this.isFunctional) {
+                                url = backObj['taskflow']
+                            }
                             url = backObj['business']
                         } else {
                             // 任务执行页面
-                            url = backObj['templateEdit']
-                            url += this.templateSource === 'common' ? '&common=1' : ''
+                            url = backObj['taskflow']
                         }
                         break
                     case 'functor':
