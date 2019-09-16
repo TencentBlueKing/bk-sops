@@ -44,7 +44,7 @@
                 </div>
             </div>
             <div class="create-new-variable" v-show="isCreateVar">
-                <p class="new-notice">{{i18n.newNotic}}</p>
+                <p class="new-var-notice">{{i18n.newVarNotice}}</p>
                 <div class="common-form-block-item">
                     <label>{{ i18n.name }}</label>
                     <div class="common-form-content">
@@ -92,7 +92,7 @@
                     new: gettext('新建变量'),
                     name: gettext('变量名称'),
                     key: gettext('变量KEY'),
-                    newNotic: gettext('已存在相同Key且版本不同的变量，请新建变量')
+                    newVarNotice: gettext('已存在相同Key且版本不同的变量，请新建变量')
                 },
                 selectedVar,
                 isCreateVar: this.reuseVariable.useNewKey,
@@ -214,7 +214,7 @@
             margin-top: 6px;
         }
     }
-    .new-notice {
+    .new-var-notice {
         margin-bottom: 10px;
         padding: 0 20px;
         font-size: 14px;
