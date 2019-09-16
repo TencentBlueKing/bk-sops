@@ -17,6 +17,7 @@ import time
 
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY, PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.gateway import ExclusiveGateway, ParallelGateway
 from pipeline.engine.core.api import workers
@@ -84,16 +85,22 @@ def _worker_check(func):
 
 @_worker_check
 @_frozen_check
-def start_pipeline(pipeline_instance, check_workers=True):
+def start_pipeline(pipeline_instance, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
     """
     start a pipeline
     :param pipeline_instance:
+    :param priority:
     :return:
     """
 
+    if priority > PIPELINE_MAX_PRIORITY or priority < PIPELINE_MIN_PRIORITY:
+        raise exceptions.InvalidOperationException('pipeline priority must between [{min}, {max}]'.format(
+            min=PIPELINE_MIN_PRIORITY, max=PIPELINE_MAX_PRIORITY
+        ))
+
     Status.objects.prepare_for_pipeline(pipeline_instance)
     process = PipelineProcess.objects.prepare_for_pipeline(pipeline_instance)
-    PipelineModel.objects.prepare_for_pipeline(pipeline_instance, process)
+    PipelineModel.objects.prepare_for_pipeline(pipeline_instance, process, priority)
 
     PipelineModel.objects.pipeline_ready(process_id=process.id)
 
