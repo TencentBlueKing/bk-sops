@@ -26,6 +26,6 @@ def get_user_info(username):
     auth = getattr(client, settings.ESB_AUTH_COMPONENT_SYSTEM)
     _get_user_info = getattr(auth, settings.ESB_AUTH_GET_USER_INFO)
     user_info = _get_user_info({})
-    if user_info['result']:
+    if 'data' in user_info:
         user_info['data']['bk_supplier_account'] = 0
     return user_info
