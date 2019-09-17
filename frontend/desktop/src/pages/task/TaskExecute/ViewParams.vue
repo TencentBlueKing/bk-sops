@@ -39,7 +39,7 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import tools from '@/utils/tools.js'
+    import atomFilter from '@/utils/atomFilter.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import NodeTree from './NodeTree.vue'
@@ -130,7 +130,7 @@
                 }
             },
             async getNodeConfig (type, version) {
-                if (tools.isKeyExists(`${type}.${version}`, this.atomFormConfig)) {
+                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
                     return this.atomFormConfig[type][version]
                 } else {
                     try {

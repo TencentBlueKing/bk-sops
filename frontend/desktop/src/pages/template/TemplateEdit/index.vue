@@ -432,12 +432,11 @@
                     for (const key in constants) {
                         const form = constants[key]
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
-                        const version = form.custom_type ? 'legacy' : form.source_tag.split('.')[1]
-
-                        if (tools.isKeyExists(`${atomType}.${version}`, this.atomFormConfig)) {
+                        // 全局变量版本
+                        const version = form.version || 'legacy'
+                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify, saveName: atom })
                         }
-
                         const atomConfig = this.atomFormConfig[atom][version]
                         let currentFormConfig = tools.deepClone(atomFilter.formFilter(tagCode, atomConfig))
                         
