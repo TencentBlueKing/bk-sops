@@ -28,6 +28,9 @@ from auth_backend.plugins.shortcuts import (
     verify_or_return_insufficient_perms
 )
 
+from pipeline_web.drawing import CANVAS_WIDTH
+from pipeline_web.drawing import draw_pipeline as draw_pipeline_tree
+
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.core.models import Project
@@ -35,7 +38,6 @@ from gcloud.core.utils import time_now_str, check_and_rename_params
 from gcloud.commons.template.utils import read_template_data_file
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.tasktmpl3.drawing import draw_pipeline_automatic
 from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
@@ -394,9 +396,9 @@ def draw_pipeline(request):
         message = 'json loads pipeline_tree error: %s' % e
         logger.exception(e)
         return JsonResponse({'result': False, 'message': message})
-    canvas_width = int(request.POST.get('canvas_width', 0))
+    canvas_width = int(request.POST.get('canvas_width', CANVAS_WIDTH))
     try:
-        draw_pipeline_automatic(pipeline_tree, canvas_width=canvas_width)
+        draw_pipeline_tree(pipeline_tree, canvas_width=canvas_width)
     except Exception as e:
         message = 'draw pipeline_tree error: %s' % e
         logger.exception(e)

@@ -15,8 +15,8 @@ from __future__ import absolute_import
 
 from django.test import TestCase
 
-from gcloud.tasktmpl3.drawing import (
-    draw_pipeline_automatic,
+from pipeline_web.drawing import (
+    draw_pipeline,
     START_X,
     START_Y,
     EVENT_OR_GATEWAY_SHIFT_Y,
@@ -26,7 +26,7 @@ from gcloud.tasktmpl3.drawing import (
 
 
 class DrawingTest(TestCase):
-    def test_draw_pipeline_automatic_without_gateways(self):
+    def test_draw_pipeline_without_gateways(self):
         pipeline_tree = {
             'activities': {
                 'node28b5acddd6ddd48c8d7728b48931': {
@@ -270,7 +270,7 @@ class DrawingTest(TestCase):
                 }
             }
         ]
-        draw_pipeline_automatic(pipeline_tree, START_X, START_Y)
+        draw_pipeline(pipeline_tree, START_X, START_Y)
         self.assertEquals(pipeline_tree['location'], location)
         self.assertEquals(pipeline_tree['line'], line)
 
@@ -728,6 +728,6 @@ class DrawingTest(TestCase):
                 }
             }
         ]
-        draw_pipeline_automatic(pipeline_tree, START_X, START_Y)
+        draw_pipeline(pipeline_tree, START_X, START_Y)
         self.assertEquals(pipeline_tree['location'], location)
         self.assertEquals(pipeline_tree['line'], line)
