@@ -86,7 +86,7 @@ class JWTClient(object):
             self.error_message = error.message
 
     def __unicode__(self):
-        return '<%s, %s>' % (self.headers, self.payload)
+        return '<{headers}, {payload}>'.format(headers=self.headers, payload=self.payload)
 
 
 def jwt_invalid_view(request):
