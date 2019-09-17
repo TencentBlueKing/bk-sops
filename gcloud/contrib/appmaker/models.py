@@ -181,11 +181,10 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             if not app_logo_result['result']:
                 logger.warning(u"AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,
                                                                             app_logo_result['message']))
+            # update app maker info
+            app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
 
-        # update app maker info
-        app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
         app_maker_obj.save()
-
         return True, app_maker_obj
 
     def del_app_maker(self, project_id, app_id, fake=False):
