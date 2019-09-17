@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import json
 import logging
-import sys
 
 import jsonschema
 from django.http import JsonResponse
@@ -53,15 +52,10 @@ from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 
-if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
-    try:
-        from bkoauth.decorators import apigw_required
-    except ImportError:
-        def apigw_required(func):
-            return func
-else:
-    def apigw_required(func):
-        return func
+try:
+    from bkoauth.decorators import apigw_required
+except ImportError:
+    from packages.bkoauth.decorators import apigw_required
 
 logger = logging.getLogger("root")
 
@@ -291,7 +285,7 @@ def create_task(request, template_id, project_id):
         message = 'task params is invalid: %s' % e
         return JsonResponse({'result': False, 'message': message})
 
-    app_code = request.jwt.app.app_code if hasattr(request, 'jwt') else request.META.get('HTTP_BK_APP_CODE')
+    app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = 'app_code cannot be empty, make sure api gateway has sent correct params'
         return JsonResponse({'result': False, 'message': message})
