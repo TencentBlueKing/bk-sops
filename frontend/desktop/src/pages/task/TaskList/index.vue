@@ -213,11 +213,11 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
+            type="normal"
             :common="common"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
-            :create-entrance="true"
             :task-category="taskCategory"
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
@@ -514,7 +514,7 @@
             async getBizBaseInfo () {
                 try {
                     const projectBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
+                    this.taskCategory = projectBasicInfo.task_categories
                     this.setProjectBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
