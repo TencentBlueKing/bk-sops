@@ -297,13 +297,15 @@
             /**
              * 编辑变量
              * @param {String} key 变量key值
+             * @param {String} version 变量版本
              */
-            onEditVariable (key) {
+            onEditVariable (key, version) {
                 if (key === this.theKeyOfEditing && this.isVariableEditing) {
                     this.onChangeEdit(false)
                 } else {
                     this.onChangeEdit(true)
                     this.theKeyOfEditing = key
+                    this.theVersionOfEditing = version
                 }
 
                 this.$emit('variableDataChanged')

@@ -17,7 +17,7 @@
         :header-position="'left'"
         :title="title"
         :value="isReuseVarDialogShow"
-        width="600"
+        width="480"
         @confirm="onConfirm($event)"
         @cancel="onCancel">
         <div class="reuse-variable-dialog">
@@ -44,7 +44,8 @@
                 </div>
             </div>
             <div class="create-new-variable" v-show="isCreateVar">
-                <div class="common-form-item">
+                <p class="new-var-notice">{{i18n.newVarNotice}}</p>
+                <div class="common-form-block-item">
                     <label>{{ i18n.name }}</label>
                     <div class="common-form-content">
                         <bk-input
@@ -54,7 +55,7 @@
                         <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
                     </div>
                 </div>
-                <div class="common-form-item clearfix">
+                <div class="common-form-block-item clearfix">
                     <label>{{ i18n.key }}</label>
                     <div class="common-form-content">
                         <bk-input
@@ -86,7 +87,8 @@
                     reuse: gettext('复用变量'),
                     new: gettext('新建变量'),
                     name: gettext('变量名称'),
-                    key: gettext('变量KEY')
+                    key: gettext('变量KEY'),
+                    newVarNotice: gettext('已存在相同Key且版本不同的变量，请新建变量')
                 },
                 selectedVar,
                 isCreateVar: this.reuseVariable.useNewKey,
@@ -115,7 +117,7 @@
             },
             title () {
                 if (this.reuseVariable.useNewKey) {
-                    return gettext('变量KEY已存在，请创建新变量')
+                    return gettext('创建新变量')
                 }
                 return gettext('是否复用变量')
             }
@@ -207,6 +209,12 @@
         .create-var-switcher {
             margin-top: 6px;
         }
+    }
+    .new-var-notice {
+        margin-bottom: 10px;
+        padding: 0 20px;
+        font-size: 14px;
+        color: #ea3636;
     }
 }
 

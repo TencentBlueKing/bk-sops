@@ -561,7 +561,6 @@ const template = {
                 for (const cKey in state.constants) {
                     const constant = state.constants[cKey]
                     const sourceInfo = constant.source_info
-
                     if (sourceInfo && sourceInfo[location.id]) {
                         if (Object.keys(sourceInfo).length > 1) {
                             Vue.delete(sourceInfo, location.id)
