@@ -52,6 +52,7 @@
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
+                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
                             <bk-input
                                 v-model.number="item.loop.inter"
                                 v-validate="{ required: true, integer: true }"
@@ -530,6 +531,7 @@ $bgBlue: #3a84ff;
 .bk-form-checkbox {
     margin-top: 20px;
     margin-right: 22px;
+    min-width: 40px;
 }
 .rule-tips {
     position: absolute;
