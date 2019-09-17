@@ -27,7 +27,7 @@ class ServiceActivity(Element):
                  error_ignorable=False,
                  timeout=None,
                  skippable=True,
-                 can_retry=True,
+                 retryable=True,
                  *args, **kwargs):
         self.component = FancyDict({
             'code': component_code,
@@ -38,7 +38,7 @@ class ServiceActivity(Element):
         self.error_ignorable = error_ignorable
         self.timeout = timeout
         self.skippable = skippable
-        self.can_retry = can_retry
+        self.retryable = retryable
         super(ServiceActivity, self).__init__(*args, **kwargs)
 
     def type(self):
