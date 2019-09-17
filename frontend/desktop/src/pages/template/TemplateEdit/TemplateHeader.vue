@@ -205,7 +205,6 @@
                 const { resourceData, operations, actions, resource } = this.getPermissionData()
                 const required = saveAndCreate ? this.saveAndCreateRequiredPerm : this.saveRequiredPerm
                 if (!this.hasPermission(required, actions, operations)) {
-                    debugger
                     this.applyForPermission(required, resourceData, operations, resource)
                     return
                 }
