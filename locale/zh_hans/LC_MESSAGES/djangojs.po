@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-09 21:43+0800\n"
+"POT-Creation-Date: 2019-09-17 18:32+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -73,8 +73,8 @@ msgid "从星期"
 msgstr "从星期"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:205
-msgid "开始,每隔"
-msgstr "开始,每隔"
+msgid "开始，每隔"
+msgstr "开始，每隔"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:206
 msgid "执行一次"
@@ -147,33 +147,33 @@ msgstr "0 表示星期天，6 表示星期六"
 msgid "task-zh"
 msgstr "task-zh"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:77
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:78
 #: frontend/desktop/src/components/common/PipelineCanvas/MenuBar.vue:152
 msgid "请输入名称"
 msgstr "请输入名称"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:78
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:79
 #: frontend/desktop/src/pages/home/HomeSummary.vue:93
 msgid "新建流程"
 msgstr "新建流程"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:79
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:80
 msgid "编辑流程"
 msgstr "编辑流程"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:80
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:81
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:112
-#: frontend/desktop/src/pages/task/TaskStep.vue:62
+#: frontend/desktop/src/pages/task/TaskStep.vue:63
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:289
 #: frontend/mobile/src/views/task/create.vue:153
 msgid "新建任务"
 msgstr "新建任务"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:81
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:82
 msgid "保存并新建任务"
 msgstr "保存并新建任务"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:82
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:83
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:148
 #: frontend/desktop/src/pages/config/index.vue:71
 #: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:129
@@ -183,8 +183,8 @@ msgstr "保存并新建任务"
 msgid "保存"
 msgstr "保存"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:83
-#: frontend/desktop/src/pages/task/TaskStep.vue:64
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:84
+#: frontend/desktop/src/pages/task/TaskStep.vue:65
 msgid "返回"
 msgstr "返回"
 
@@ -2215,25 +2215,25 @@ msgid "方案删除成功"
 msgstr "方案删除成功"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:53
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:56
+#: frontend/desktop/src/pages/task/TaskExecute/index.vue:57
 msgid "节点选择"
 msgstr "节点选择"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:58
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:60
+#: frontend/desktop/src/pages/task/TaskExecute/index.vue:61
 msgid "参数填写"
 msgstr "参数填写"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:63
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:116
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:64
-#: frontend/desktop/src/pages/task/TaskStep.vue:63
+#: frontend/desktop/src/pages/task/TaskExecute/index.vue:65
+#: frontend/desktop/src/pages/task/TaskStep.vue:64
 msgid "任务执行"
 msgstr "任务执行"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:125
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:146
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:108
+#: frontend/desktop/src/pages/task/TaskExecute/index.vue:109
 msgid "职能化认领"
 msgstr "职能化认领"
 
@@ -2552,7 +2552,7 @@ msgstr "未选择失败处理方式，标准插件节点如果执行失败，会
 msgid "默认值不符合正则规则："
 msgstr "默认值不符合正则规则："
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1050
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1048
 msgid "变量KEY已存在"
 msgstr "变量KEY已存在"
 
@@ -2770,11 +2770,11 @@ msgstr "新增流程本地缓存成功"
 msgid "替换流程自动保存"
 msgstr "替换流程自动保存"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:366
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:365
 msgid "普通变量"
 msgstr "普通变量"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:370
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:369
 msgid "元变量"
 msgstr "元变量"
 
