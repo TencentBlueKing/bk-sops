@@ -145,6 +145,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
+    import atomFilter from '@/utils/atomFilter.js'
     import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -289,7 +290,7 @@
                 }
             },
             async getNodeConfig (type, version) {
-                if (tools.isKeyExists(type, version, this.atomFormConfig)) {
+                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
                     return this.atomFormConfig[type][version]
                 } else {
                     try {

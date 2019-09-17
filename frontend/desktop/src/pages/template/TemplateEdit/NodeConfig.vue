@@ -550,7 +550,7 @@
              * 加载标准插件节点数据
              */
             async getAtomConfig (atomType, version) {
-                if (tools.isKeyExists(atomType, version, this.atomFormConfig)) {
+                if (atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                     this.setNodeConfigData(atomType, version)
                     return
                 }
@@ -610,7 +610,7 @@
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
-                        if (!tools.isKeyExists(atomType, version, this.atomFormConfig)) {
+                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
                         const atomConfig = this.atomFormConfig[atom][version]

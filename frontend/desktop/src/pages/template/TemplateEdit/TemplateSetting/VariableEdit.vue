@@ -357,7 +357,7 @@
                 } else {
                     classify = 'component'
                 }
-                if (tools.isKeyExists(atom, this.version, this.atomFormConfig)) {
+                if (atomFilter.isConfigExists(atom, this.version, this.atomFormConfig)) {
                     this.getRenderConfig()
                     return
                 }

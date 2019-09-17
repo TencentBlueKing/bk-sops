@@ -140,15 +140,6 @@ const tools = {
         } else {
             return '--'
         }
-    },
-    /**
-     * 判断 atom 配置文件是否存在
-     * @param {String} atomType 插件类型
-     * @param {String} version 插件版本
-     * @param {Object} atomFormConfig 所有配置
-     */
-    isKeyExists (atomType, version, atomFormConfig) {
-        return atomFormConfig[atomType] && atomFormConfig[atomType][version]
     }
 }
 
