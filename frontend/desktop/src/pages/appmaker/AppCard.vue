@@ -13,7 +13,7 @@
     <div class="card-wrapper">
         <div class="card-basic">
             <div class="logo" @click="onGotoAppMaker">
-                <div v-if="isShowDefaultLogo" class="default-logo">
+                <div v-if="isShowDefaultLogo || !appData.logo_url" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
                 <div v-else>
