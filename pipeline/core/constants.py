@@ -23,6 +23,10 @@ class PipelineElement(object):
     EmptyStartEvent = 'EmptyStartEvent'
     EmptyEndEvent = 'EmptyEndEvent'
 
+    TaskNodes = {ServiceActivity, LoopServiceActivity, SubProcess}
+    BranchGateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway}
+    Gateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway, ConvergeGateway}
+
     pipeline = 'pipeline'
     id = 'id'
     type = 'type'

@@ -22,6 +22,7 @@ SHIFT_Y = 120
 
 PIPELINE_ELEMENT_TO_WEB = {
     PE.ServiceActivity: 'tasknode',
+    PE.SubProcess: 'subflow',
     PE.EmptyStartEvent: 'startpoint',
     PE.EmptyEndEvent: 'endpoint',
     PE.ExclusiveGateway: 'branchgateway',
@@ -81,7 +82,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
 
         # 当前分支绘制，直到遇到 start_gateway 匹配的汇聚网关
         while next_node[PE.type] != PE.ConvergeGateway:
-            if next_node[PE.type] in [PE.ServiceActivity, PE.SubProcess]:
+            if next_node[PE.type] in PE.TaskNodes:
                 # 把 next_node 加入 location，把 next_flow 加入line，然后把 next_node 设置为下一个节点
                 location.append({
                     'id': next_node[PE.id],
@@ -106,7 +107,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
                 })
                 next_x += SHIFT_X
                 next_node = all_nodes[current_flow[PE.target]]
-            elif next_node[PE.type] in [PE.ParallelGateway, PE.ExclusiveGateway]:
+            elif next_node[PE.type] in PE.BranchGateways:
                 # 把并行/分支网关和配对的汇聚网关之间的节点加入 location（包含网关）、line（包含汇聚网关下一个节点）
                 # 然后把 next_node 设置为汇聚网关下一个节点
                 branch_location, branch_line, next_node, next_x, next_y = draw_branch_group(
@@ -150,7 +151,7 @@ def draw_branch_group(start_x, start_y, start_gateway, pipeline, all_nodes):
     return location, line, next_node, next_x, branch_max_y
 
 
-def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVAS_WIDTH):
+def draw_pipeline(pipeline, start_x=START_X, start_y=START_Y, canvas_width=CANVAS_WIDTH):
     """
     @summary：将后台 pipeline tree 转换成带前端 location、line 画布信息的数据
     @param pipeline: 后台流程树
@@ -159,9 +160,6 @@ def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_w
     @param canvas_width: 画布最大宽度
     @return:
     """
-    if canvas_width == 0:
-        canvas_width = CANVAS_WIDTH
-
     all_nodes = {}
     all_nodes.update(pipeline['activities'])
     all_nodes.update(pipeline['gateways'])
@@ -207,7 +205,7 @@ def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_w
         # 重置为当前行第一个节点的 y 轴
         else:
             next_y = branch_max_height[0]
-        if next_node[PE.type] in [PE.ServiceActivity, PE.SubProcess]:
+        if next_node[PE.type] in PE.TaskNodes:
             # 把 next_node 加入 location，把 next_flow 加入line，然后把 next_node 设置为下一个节点
             location.append({
                 'id': next_node[PE.id],
@@ -232,7 +230,7 @@ def draw_pipeline_automatic(pipeline, start_x=START_X, start_y=START_Y, canvas_w
             })
             next_x += SHIFT_X
             next_node = all_nodes[current_flow[PE.target]]
-        elif next_node[PE.type] in [PE.ParallelGateway, PE.ExclusiveGateway]:
+        elif next_node[PE.type] in PE.BranchGateways:
             # 把并行/分支网关和配对的汇聚网关之间的节点加入 location（包含网关）、line（包含汇聚网关下一个节点）
             # 然后把 next_node 设置为汇聚网关下一个节点
             branch_location, branch_line, next_node, next_x, next_y = draw_branch_group(

@@ -28,6 +28,7 @@ from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
+from pipeline_web.drawing import draw_pipeline
 
 from gcloud.conf import settings
 from gcloud.constants import PROJECT, BUSINESS, ONETIME
@@ -47,7 +48,6 @@ from gcloud.commons.template.models import CommonTemplate, replace_template_id
 from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3 import varschema
-from gcloud.tasktmpl3.drawing import draw_pipeline_automatic
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -898,14 +898,13 @@ def fast_create_task(request, project_id):
                                           perms_tuples=perms_tuples,
                                           status=200)
 
-    # validate pipeline tree
     try:
         pipeline_tree = params['pipeline_tree']
         pipeline_node_name_handle(pipeline_tree)
         pipeline_tree.setdefault('gateways', {})
         pipeline_tree.setdefault('constants', {})
         pipeline_tree.setdefault('outputs', [])
-        draw_pipeline_automatic(pipeline_tree)
+        draw_pipeline(pipeline_tree)
         validate_web_pipeline_tree(pipeline_tree)
     except Exception as e:
         message = u'invalid param pipeline_tree: %s' % e.message
