@@ -146,7 +146,7 @@ def __grow(tree, elem):
             PE.error_ignorable: elem.error_ignorable,
             PE.timeout: elem.timeout,
             PE.skippable: elem.skippable,
-            PE.can_retry: elem.can_retry,
+            PE.retryable: elem.retryable,
             PE.component: elem.component_dict(),
             PE.optional: False,
             PE.failure_handler: elem.failure_handler
