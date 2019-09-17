@@ -158,6 +158,7 @@
                             }
                             if (this.isFunctional) {
                                 url = backObj['taskflow']
+                                break
                             }
                             url = backObj['business']
                         } else {
