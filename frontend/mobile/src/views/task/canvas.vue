@@ -468,7 +468,7 @@
             },
             async nodeResume (node) {
                 try {
-                    const response = await this.instanceNodeResume({ id: this.taskId, nodeId: node.id })
+                    const response = await this.instanceNodeResume({ instance_id: this.taskId, node_id: node.id })
                     if (response.result) {
                         this.setTaskStatusTimer()
                     } else {

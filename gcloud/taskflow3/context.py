@@ -27,9 +27,9 @@ class TaskContext(object):
     """
     prefix = '_system'
 
-    def __init__(self, taskflow):
+    def __init__(self, taskflow, operator=''):
         # 执行任务的操作员
-        operator = taskflow.executor
+        operator = operator or taskflow.executor
         biz_cc_id = taskflow.business.cc_id
         # 调用蓝鲸API网关的执行者，一般是业务运维
         executor, _ = get_biz_maintainer_info(biz_cc_id, operator, use_in_context=True)
