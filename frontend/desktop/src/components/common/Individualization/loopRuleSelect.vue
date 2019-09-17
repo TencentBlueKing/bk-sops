@@ -52,6 +52,7 @@
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
+                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
                             <bk-input
                                 v-model.number="item.loop.inter"
                                 v-validate="{ required: true, integer: true }"
@@ -202,7 +203,7 @@
             name: gettext('循环'),
             start: gettext('从第'),
             startWeek: gettext('从星期'),
-            center: gettext('开始,每隔'),
+            center: gettext('开始，每隔'),
             end: gettext('执行一次')
         },
         'appoint': {
@@ -530,6 +531,7 @@ $bgBlue: #3a84ff;
 .bk-form-checkbox {
     margin-top: 20px;
     margin-right: 22px;
+    min-width: 40px;
 }
 .rule-tips {
     position: absolute;

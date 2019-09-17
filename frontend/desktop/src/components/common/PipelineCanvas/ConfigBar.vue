@@ -46,6 +46,7 @@
                 {{ i18n.save }}
             </bk-button>
             <bk-button
+                v-if="isShowNewTask"
                 theme="primary"
                 class="canvas-btn"
                 :loading="createTaskSaving"
@@ -100,6 +101,9 @@
             },
             createTaskBtnText () {
                 return this.isSaveAndCreateTaskType ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+            },
+            isShowNewTask () {
+                return !this.common
             }
         },
         watch: {
@@ -140,7 +144,8 @@
                     path: `/template/newtask/${this.cc_id}/selectnode/`,
                     query: {
                         template_id: this.template_id,
-                        common: this.common ? '1' : undefined
+                        common: this.common ? '1' : undefined,
+                        entrance: 'templateEdit'
                     }
                 })
             },
