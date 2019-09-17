@@ -144,7 +144,8 @@
                     path: `/template/newtask/${this.cc_id}/selectnode/`,
                     query: {
                         template_id: this.template_id,
-                        common: this.common ? '1' : undefined
+                        common: this.common ? '1' : undefined,
+                        entrance: 'templateEdit'
                     }
                 })
             },
