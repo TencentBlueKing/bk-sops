@@ -11,24 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .apis.bk_login import CollectionsBkLogin
-from .apis.bk_paas import CollectionsBkPaas
-from .apis.cc import CollectionsCC
-from .apis.cmsi import CollectionsCMSI
-from .apis.gse import CollectionsGSE
-from .apis.job import CollectionsJOB
-from .apis.sops import CollectionsSOPS
-from .apis.esb import CollectionsEsb
+from functools import wraps
+
+from django.utils.decorators import available_attrs
+
+from .jwt_client import JWTClient, jwt_invalid_view
 
 
-# Available components
-AVAILABLE_COLLECTIONS = {
-    'bk_login': CollectionsBkLogin,
-    'bk_paas': CollectionsBkPaas,
-    'cc': CollectionsCC,
-    'cmsi': CollectionsCMSI,
-    'gse': CollectionsGSE,
-    'job': CollectionsJOB,
-    'sops': CollectionsSOPS,
-    'esb': CollectionsEsb,
-}
+def apigw_required(view_func):
+    """apigw装饰器
+    """
+    @wraps(view_func, assigned=available_attrs(view_func))
+    def _wrapped_view(request, *args, **kwargs):
+        request.jwt = JWTClient(request)
+        if not request.jwt.is_valid:
+            return jwt_invalid_view(request)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
