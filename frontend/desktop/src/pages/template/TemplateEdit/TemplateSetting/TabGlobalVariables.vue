@@ -494,7 +494,6 @@ $localBorderColor: #d8e2e7;
             float: left;
             height: 40px;
             line-height: 40px;
-            font-size: 14px;
         }
     }
     .variable-list {
