@@ -40,92 +40,9 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - `hidden`：是否隐藏
 - `value`：表单组件的值，需要在 Tag 里手动定义，并作为调用 `getFormMixins` 函数的参数传入
 
-## 官方 Tag 组件的私有属性说明
-
-**1. TagButton**
-  - `title`：按钮文字
-  - `type`：按钮类型
-  - `icon`：icon 类名, 取值参考 [element-ui icon](https://element.eleme.cn/#/zh-CN/component/icon)
-  - `size`：尺寸
-  - `plain`：是否为朴素按钮
-  - `round`：是否为圆角按钮
-  - `circle`： 是否为圆形按钮
-
-**2. TagCheckbox**
-  - `item`：提供选择的多选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
-  - `value`：选中的值
-
-**3. TagDatatable**
-  - `columns`：表格列的配置项， eg: [{tag config}]
-  - `editable`：是否显示编辑、删除按钮列
-  - `add_btn`： 是否显示添加按钮
-  - `empty_text`：无数据提示
-  - `remote_url`：表格数据远程加载，支持 url 和方法
-  - `remote_data_init`：加载数据后的处理函数
-  - `value`：表格的值
-
-**4. TagDatetime**
-- `placeholder`：占位文本
-- `value`：时间值
-
-**5. TagInput**
-- `placeholder`：占位文本
-- `value`：输入框值
-
-**6. TagInt**
-- `placeholder`：占位文本
-- `value`：整数输入框值
-
-**7. TagIpSelector**
-- `isMultiple`：ip 选择器是否为多选（同时选择静态、动态 ip）
-- `value`：选择的 ip 值
-
-**8. TagPassword**
-- `value`：密码值
-
-**9. TagRadio**
-- `items`：提供选择的单选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
-- `value`：选中的值
-
-**10. TagSelect**
-- `items`：提供选择的下拉框选项， eg:[{text: '微信', value: 'weixin'}, {text: '邮件', value: 'mail'}]
-- `multiple`：是否为多选
-- `remote`：是否开远程加载
-- `remote_data_init`：远程加载后的数据处理函数
-- `placeholder`：占位文本
-- `empty_text`：无数据提示
--  `value`： 选中的值
-
-**11. TagText**
-- `value`：文本的值
-
-**12. TagTextarea**
-- `placeholder`：占位文本
-- `value`：文本框的值
-
-**13. TagTree**
-- `items`：提供选择的可选项,
-- `expanded_keys`：默认展开的节点的 key 的数组
-- `show_checkbox`：节点是否可被选择
-- `default_expand_all`： 是否默认全部展开
-- `remote`： 是否开启远程加载
-- `remote_url`： 远程加载 url
-- `remote_data_init`：远程加载后的数据处理函数
-- `value`：选中的值
-
-**14. TagUpload**
-- `url`： 服务器 url
-- `multiple`：是否支持多个上传
-- `headers`：http 请求头
-- `auto_upload`：是否开启自动上传，默认为手动，选择文件后需要手动点击上传
-- `limit`：上传文件个数
-- `placeholder`：占位文本
-- `text`：上传按钮的文字
-- `value`：上传的文件
-
-另外为了增加标准插件的能力，Tag 组件也封装了部分公共方法，支持开发者在标准插件配置项的事件回调里进行调用，例如隐藏表单、获取上级表单组件、获取当前表单值等。
-
 ## 公共方法列表
+
+为了增加标准插件的能力，Tag 组件也封装了部分公共方法，支持开发者在标准插件配置项的事件回调里进行调用，例如隐藏表单、获取上级表单组件、获取当前表单值等。
 
 - `updateForm`：触发`change`事件更新表单值，并调用校验函数，参数为 `value`
 - `validate`：校验函数
@@ -136,6 +53,245 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 - `get_child`：获取表单实例，参数为子表单的 tag_code，支持 RenderForm 或 RenderGroup 组件调用
 - `_get_value`：获取表单值
 - `_set_value`：设置表单值
+
+## 官方 Tag 组件说明
+
+### 1. TagButton
+
+按钮，一般由其他 Tag 组件监听按钮的 `click` 事件, 用来实现 Tag 组件间的交互。
+
+**属性**
+
+  - `title`：按钮文字
+  - `type`：按钮类型
+  - `icon`：icon 类名, 取值参考 [element-ui icon](https://element.eleme.cn/#/zh-CN/component/icon)
+  - `size`：尺寸
+  - `plain`：是否为朴素按钮
+  - `round`：是否为圆角按钮
+  - `circle`： 是否为圆形按钮
+
+**方法**
+
+*none*
+
+## 2. TagCheckbox
+
+多选框，通过配置项传入可选项，提供给使用者选择。
+
+**属性**
+
+  - `item`：提供选择的多选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+  - `value`：选中的值
+
+**方法**
+
+*none*
+
+### 3. TagDatatable**
+
+表格，用来展示多条并列数据，支持远程加载数据、单独添加数据、数据编辑。
+
+**属性**
+
+  - `columns`：表格列的配置项， eg: [{tag config}]
+  - `editable`：是否显示编辑、删除按钮列
+  - `add_btn`： 是否显示添加按钮
+  - `empty_text`：无数据提示
+  - `remote_url`：表格数据远程加载，支持 url 和方法
+  - `remote_data_init`：加载数据后的处理函数
+  - `value`：表格的值
+
+**方法**
+
+  - `validateSubCom`：校验表格内的数据是否符合规则（规则由对应的列的标准插件配置项指定）
+  - `set_loading`：传入布尔类型参数来设置表格是否为 loading 状态
+  - `remoteMethod`：远程加载数据
+
+### 4. TagDatetime
+
+日期时间选择器。
+
+**属性**
+
+  - `placeholder`：占位文本
+  - `value`：时间值
+
+**方法**
+
+*none*
+
+### 5. TagInput
+
+文本框，一般用来输入单行文本。
+
+**属性**
+  - `placeholder`：占位文本
+  - `value`：文本框值
+
+**方法**
+
+*none*
+
+### 6. TagInt
+
+整数输入框，用来输入正整数。
+
+**属性**
+
+  - `placeholder`：占位文本
+  - `value`：整数输入框值
+
+**方法**
+
+*none*
+
+### 7. TagIpSelector
+
+ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
+
+**属性**
+
+  - `isMultiple`：ip 选择器是否为多选（单选为选择静态或者动态 ip，多选为同时选择静态、动态 ip）
+  - `value`：选择的 ip 值
+
+**方法**
+
+*none*
+
+
+### 8. TagPassword
+
+密码输入框。
+
+**属性**
+
+- `value`：密码值
+
+**方法**
+
+*none*
+
+### 9. TagRadio
+
+单选框，通过配置项传入可选项，提供给使用者选择。
+
+**属性**
+
+  - `items`：提供选择的单选项，eg: [{name: '微信', value: 'weixin'}, {name: '邮件', value: 'mail}]
+  - `value`：选中的值
+
+**方法**
+
+*none*
+
+### 10. TagSelect
+
+下拉框，通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
+
+**属性**
+
+  - `items`：提供选择的下拉框选项， eg:[{text: '微信', value: 'weixin'}, {text: '邮件', value: 'mail'}]
+  - `multiple`：是否为多选
+  - `remote`：是否开远程加载
+  - `remote_data_init`：远程加载后的数据处理函数
+  - `placeholder`：占位文本
+  - `empty_text`：无数据提示
+  - `value`： 选中的值
+
+**方法**
+
+  - `set_loading`：传入布尔类型参数来设置下拉框是否为 loading 状态
+  - `remoteMethod`：远程加载数据
+
+### 11. TagText
+
+文本组件，不可编辑，一般用来展示文本信息。
+
+**属性**
+
+  - `value`：文本的值
+
+**方法**
+
+*none*
+
+### 12. TagTextarea
+
+多行文本框。
+
+**属性**
+
+  - `placeholder`：占位文本
+  - `value`：文本框的值
+
+**方法**
+
+*none*
+
+### 13. TagTree
+
+树形选择组件，一般用来多个分组层级数据的选择。通过配置项传入可选项，提供给使用者选择，选项支持远程加载。
+
+**属性**
+
+  - `items`：提供选择的可选项，eg:
+  ```js
+  [
+    {
+      label: '通知方式',
+      children: [
+        {
+          label: '信息',
+          children: [
+            { label: '短信' },
+            { label: '企业微信' },
+            { label: '微信' }
+          ]
+        },
+        { label: '语音' }
+      ]
+    },
+    {
+      label: '通知分组',
+      children: [
+        { label: '运维人员' },
+        { label: '产品人员' },
+        { label: '开发人员' },
+        { label: '测试人员' }
+      ]
+    }
+  ]
+  ```
+  - `expanded_keys`：默认展开的节点的 key 的数组
+  - `show_checkbox`：节点是否可被选择
+  - `default_expand_all`： 是否默认全部展开
+  - `remote`： 是否开启远程加载
+  - `remote_url`： 远程加载 url
+  - `remote_data_init`：远程加载后的数据处理函数
+  - `value`：选中的值
+
+**方法**
+  - `remoteMethod`：远程加载数据
+
+
+**14. TagUpload**
+
+上传组件。
+
+**属性**
+
+  - `url`： 服务器 url
+  - `multiple`：是否支持多个上传
+  - `headers`：http 请求头
+  - `auto_upload`：是否开启自动上传，默认不开启为手动模式，选择文件后需要手动点击上传
+  - `submit`：自定义上传方法
+  - `limit`：上传文件个数
+  - `placeholder`：占位文本
+  - `text`：上传按钮的文字
+  - `value`：上传的文件
+
+**方法**
+  - `onSubmit`：手动上传按钮点击时间回调，默认开始执行上传，若配置项传入 `submit` 属性，则执行该方法
 
 # Tag 组件间的交互
 
