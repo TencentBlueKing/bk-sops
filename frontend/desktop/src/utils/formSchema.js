@@ -29,22 +29,26 @@ const SCHEMA_CONFIG = {
 
 // 过滤 tag 属性
 const formSchema = {
-    get (tagCode, oldConfig) {
+    /**
+     * 获取 form_schema
+     * @param {String} tagCode tag_code
+     * @param {Object} oldConfig 原始配置
+     */
+    getSchema (tagCode, oldConfig) {
         const { type, attrs } = oldConfig.filter(m => m.tag_code === tagCode)[0]
         const currTagFilterList = SCHEMA_CONFIG[type]
-        if (!currTagFilterList) return oldConfig
-        
         const newAttrs = {}
+
+        if (!currTagFilterList) return { type, attrs }
         Object.keys(attrs).forEach(key => {
             if (currTagFilterList.indexOf(key) === -1) {
                 newAttrs[key] = attrs[key]
             }
         })
-        const formSchema = {
+        return {
             type,
             attrs: newAttrs
         }
-        return formSchema
     }
 }
 

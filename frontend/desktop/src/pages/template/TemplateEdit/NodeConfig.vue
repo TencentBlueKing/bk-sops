@@ -1098,10 +1098,13 @@
                         const variableOpts = {
                             name, key: variableKey, source_tag, source_info, custom_type, value, validation, version: variableVersion
                         }
-                        variableOpts.form_schema = formSchema.get(
-                            custom_type,
-                            this.atomFormConfig[custom_type][variableVersion]
+                        // 全局变量添加 form_schema
+                        const atomType = source_tag.split('.')[0]
+                        variableOpts.form_schema = formSchema.getSchema(
+                            tagCode,
+                            this.atomFormConfig[atomType][variableVersion]
                         )
+
                         this.$set(this.inputAtomData, key, variableKey)
                         this.createVariable(variableOpts) // input arguments hook
                     }
@@ -1193,6 +1196,14 @@
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
                     const variableOpts = { name, key: varKey, source_tag, source_info, value }
+                    // 全局变量添加 form_schema
+                    const atomType = source_tag.split('.')[0]
+                    const version = this.getVariableVersion(key)
+                    variableOpts.form_schema = formSchema.getSchema(
+                        key,
+                        this.atomFormConfig[atomType][version]
+                    )
+                    
                     this.createVariable(variableOpts)
                 } else {
                     this.$set(this.inputAtomHook, varKey, true)
