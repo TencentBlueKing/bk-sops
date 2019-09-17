@@ -87,10 +87,10 @@ PERIOD_TASK_NAME_MAX_LENGTH = 50
 
 # 数据分析相关内容
 class AnalysisElement(object):
-    # 常量池
+    id = 'id'
     category = 'category'
-    business__cc_name = 'business__cc_name'
-    business__cc_id = 'business__cc_id'
+    project__name = 'project__name'
+    project_id = 'project_id'
     state = 'status'
     atom_cite = 'atom_cite'
     atom_template = 'atom_template'
@@ -107,9 +107,12 @@ class AnalysisElement(object):
     biz_cc_id = 'biz_cc_id'
     order_by = 'order_by'
     instance_time = 'instance_time'
+    pipeline_template__name = 'pipeline_template__name'
+    pipeline_template__editor = 'pipeline_template__editor'
+    pipeline_template__edit_time = 'pipeline_template__edit_time'
     type = 'type'
     group_list = ['category',
-                  'biz_cc_id',
+                  'project_id',
                   'atom_template',
                   'atom_execute',
                   'atom_instance',

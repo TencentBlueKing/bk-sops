@@ -35,18 +35,18 @@
             return {
                 i18n: {
                     sorry: gettext('对不起，您没有当前操作需要的的权限'),
-                    contact1: gettext('1.联系业务运维为您添加'),
+                    contact1: gettext('1.联系项目运维为您添加'),
                     cc_system: gettext('配置平台'),
-                    cc_roles: gettext('对应业务的角色，如运维人员、开发人员、产品人员、测试人员'),
-                    contact2: gettext('2.联系业务运维为您添加需要操作的流程模板的权限'),
+                    cc_roles: gettext('对应项目的角色，如运维人员、开发人员、产品人员、测试人员'),
+                    contact2: gettext('2.联系项目运维为您添加需要操作的流程模板的权限'),
                     goto: gettext('3.或者前往'),
-                    create_biz: gettext('创建属于自己的业务')
+                    create_biz: gettext('创建属于自己的项目')
                 }
             }
         },
         methods: {
             onGotoCC () {
-                window.PAAS_API.open_other_app('bk_cc')
+                window.PAAS_API.open_other_app('bk_cmdb')
             }
         }
     }

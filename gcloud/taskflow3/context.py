@@ -16,8 +16,6 @@ import logging
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.core.utils import get_biz_maintainer_info
-
 logger = logging.getLogger("root")
 
 
@@ -27,19 +25,17 @@ class TaskContext(object):
     """
     prefix = '_system'
 
-    def __init__(self, taskflow):
+    def __init__(self, taskflow, username):
         # 执行任务的操作员
-        operator = taskflow.executor
-        biz_cc_id = taskflow.business.cc_id
-        # 调用蓝鲸API网关的执行者，一般是业务运维
-        executor, _ = get_biz_maintainer_info(biz_cc_id, operator, use_in_context=True)
-
+        operator = taskflow.executor or username
         self.language = translation.get_language()
-        self.biz_cc_id = biz_cc_id
-        self.biz_cc_name = taskflow.business.cc_name
-        self.biz_supplier_account = taskflow.business.cc_owner
+        self.project_id = taskflow.project.id
+        self.project_name = taskflow.project.name
+        self.biz_cc_id = taskflow.project.bk_biz_id
+        self.biz_cc_name = taskflow.project.name
         self.operator = operator
-        self.executor = executor
+        # 调用ESB接口的执行者，V3.4.X版本后和操作员一致，如无权限请前往对应系统申请
+        self.executor = operator
         self.task_id = taskflow.id
         self.task_name = taskflow.pipeline_instance.name
 

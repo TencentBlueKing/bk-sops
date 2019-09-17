@@ -22,20 +22,36 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 
 from blueapps.account.decorators import login_exempt
+from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed, batch_verify_or_raise_auth_failed
 from pipeline.exceptions import PipelineException
 from pipeline.engine import api as pipeline_api
+from pipeline_web.parser.validator import validate_web_pipeline_tree
+from pipeline.component_framework.library import ComponentLibrary
+from pipeline.component_framework.models import ComponentModel
 
 from gcloud.conf import settings
-from gcloud.apigw.decorators import api_check_user_perm_of_business, api_check_user_perm_of_task, check_white_apps
+from gcloud.constants import PROJECT, BUSINESS, ONETIME
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    api_verify_perms,
+    api_verify_proj_perms,
+    project_inject
+)
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE_TASK_PARAMS
-from gcloud.core.models import Business
-from gcloud.core.utils import strftime_with_timezone
+from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
+from gcloud.core.utils import format_datetime, name_handler, pipeline_node_name_handle
+from gcloud.core.permissions import project_resource
+from gcloud.taskflow3.utils import draw_pipeline_automatic
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.periodictask.models import PeriodicTask
-from gcloud.commons.template.constants import PermNm
+from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
 from gcloud.commons.template.utils import read_encoded_template_data
+from gcloud.commons.template.permissions import common_template_resource
+from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.permissions import task_template_resource
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:
@@ -50,45 +66,55 @@ else:
 logger = logging.getLogger("root")
 
 
-def format_template_list_data(templates, biz=None):
+def format_template_list_data(templates, project=None):
     data = []
     for tmpl in templates:
         item = {
             'id': tmpl.id,
             'name': tmpl.pipeline_template.name,
             'creator': tmpl.pipeline_template.creator,
-            'create_time': strftime_with_timezone(tmpl.pipeline_template.create_time),
+            'create_time': format_datetime(tmpl.pipeline_template.create_time),
             'editor': tmpl.pipeline_template.editor,
-            'edit_time': strftime_with_timezone(tmpl.pipeline_template.edit_time),
+            'edit_time': format_datetime(tmpl.pipeline_template.edit_time),
             'category': tmpl.category,
         }
 
-        if biz:
-            item.update({'bk_biz_id': biz.cc_id,
-                         'bk_biz_name': biz.cc_name})
+        if project:
+            item.update({
+                'project_id': project.id,
+                'project_name': project.name,
+                'bk_biz_id': project.bk_biz_id,
+                'bk_biz_name': project.name if project.from_cmdb else None
+            })
 
         data.append(item)
 
     return data
 
 
-def format_template_data(template, biz=None):
+def format_template_data(template, project=None):
     pipeline_tree = template.pipeline_tree
     pipeline_tree.pop('line')
     pipeline_tree.pop('location')
+    varschema.add_schema_for_input_vars(pipeline_tree)
+
     data = {
         'id': template.id,
         'name': template.pipeline_template.name,
         'creator': template.pipeline_template.creator,
-        'create_time': strftime_with_timezone(template.pipeline_template.create_time),
+        'create_time': format_datetime(template.pipeline_template.create_time),
         'editor': template.pipeline_template.editor,
-        'edit_time': strftime_with_timezone(template.pipeline_template.edit_time),
+        'edit_time': format_datetime(template.pipeline_template.edit_time),
         'category': template.category,
         'pipeline_tree': pipeline_tree
     }
-    if biz:
-        data.update({'bk_biz_id': biz.cc_id,
-                     'bk_biz_name': biz.cc_name})
+    if project:
+        data.update({
+            'project_id': project.id,
+            'project_name': project.name,
+            'bk_biz_id': project.bk_biz_id,
+            'bk_biz_name': project.name if project.from_cmdb else None
+        })
 
     return data
 
@@ -96,20 +122,68 @@ def format_template_data(template, biz=None):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_template_list(request, bk_biz_id):
-    template_source = request.GET.get('template_source', 'business')
-    biz = Business.objects.get(cc_id=bk_biz_id)
-    if template_source == 'business':
-        templates = TaskTemplate.objects.select_related('pipeline_template').filter(business=biz, is_deleted=False)
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
+def get_template_list(request, project_id):
+    template_source = request.GET.get('template_source', PROJECT)
+    project = request.project
+    if template_source in {BUSINESS, PROJECT}:
+        templates = TaskTemplate.objects.select_related('pipeline_template').filter(project_id=project.id,
+                                                                                    is_deleted=False)
     else:
         templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
-    return JsonResponse({'result': True, 'data': format_template_list_data(templates, biz)})
+    return JsonResponse({'result': True, 'data': format_template_list_data(templates, project)})
 
 
 @login_exempt
 @require_GET
 @apigw_required
+@mark_request_whether_is_trust
+@project_inject
+def get_template_info(request, template_id, project_id):
+    project = request.project
+    template_source = request.GET.get('template_source', PROJECT)
+    if template_source in {BUSINESS, PROJECT}:
+        try:
+            tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
+                                                                                project_id=project.id,
+                                                                                is_deleted=False)
+            auth_resource = task_template_resource
+        except TaskTemplate.DoesNotExist:
+            result = {
+                'result': False,
+                'message': 'template[id={template_id}] of project[project_id={project_id}, biz_id={biz_id}] '
+                           'does not exist'.format(template_id=template_id,
+                                                   project_id=project.id,
+                                                   biz_id=project.bk_biz_id)}
+            return JsonResponse(result)
+    else:
+        try:
+            tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
+            auth_resource = common_template_resource
+        except CommonTemplate.DoesNotExist:
+            result = {
+                'result': False,
+                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
+            }
+            return JsonResponse(result)
+
+    if not request.is_trust:
+        verify_or_raise_auth_failed(principal_type='user',
+                                    principal_id=request.user.username,
+                                    resource=auth_resource,
+                                    action_ids=[auth_resource.actions.view.id],
+                                    instance=tmpl,
+                                    status=200)
+
+    return JsonResponse({'result': True, 'data': format_template_data(tmpl, project)})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+@mark_request_whether_is_trust
 def get_common_template_list(request):
     templates = CommonTemplate.objects.select_related('pipeline_template').filter(is_deleted=False)
 
@@ -119,42 +193,11 @@ def get_common_template_list(request):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_template_info(request, template_id, bk_biz_id):
-    biz = Business.objects.get(cc_id=bk_biz_id)
-    template_source = request.GET.get('template_source', 'business')
-    if template_source == 'business':
-        try:
-            tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                business__cc_id=bk_biz_id,
-                                                                                is_deleted=False)
-        except TaskTemplate.DoesNotExist:
-            result = {
-                'result': False,
-                'message': 'template[id={template_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
-                    template_id=template_id,
-                    bk_biz_id=bk_biz_id)
-            }
-            return JsonResponse(result)
-    else:
-        try:
-            tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
-        except CommonTemplate.DoesNotExist:
-            result = {
-                'result': False,
-                'message': 'common template[id={template_id}] does not exist'.format(template_id=template_id)
-            }
-            return JsonResponse(result)
-
-    return JsonResponse({'result': True, 'data': format_template_data(tmpl, biz)})
-
-
-@login_exempt
-@require_GET
-@apigw_required
+@mark_request_whether_is_trust
 def get_common_template_info(request, template_id):
     try:
         tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id, is_deleted=False)
+        auth_resource = common_template_resource
     except CommonTemplate.DoesNotExist:
         result = {
             'result': False,
@@ -162,46 +205,75 @@ def get_common_template_info(request, template_id):
         }
         return JsonResponse(result)
 
-    return JsonResponse({'result': True, 'data': format_template_data(tmpl)})
+    if not request.is_trust:
+        verify_or_raise_auth_failed(principal_type='user',
+                                    principal_id=request.user.username,
+                                    resource=auth_resource,
+                                    action_ids=[auth_resource.actions.view.id],
+                                    instance=tmpl,
+                                    status=200)
+
+    return JsonResponse({'result': True, 'data': format_template_data(template=tmpl)})
 
 
 @login_exempt
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.CREATE_TASK_PERM_NAME)
-def create_task(request, template_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+def create_task(request, template_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
-    logger.info('apigw create_task info, template_id: {template_id}, bk_biz_id: {bk_biz_id}, params: {params}'.format(
+
+    project = request.project
+    template_source = params.get('template_source', PROJECT)
+
+    logger.info('apigw create_task info, template_id: {template_id}, project_id: {project_id}, params: {params}'.format(
         template_id=template_id,
-        bk_biz_id=bk_biz_id,
+        project_id=project.id,
         params=params))
-    biz = Business.objects.get(cc_id=bk_biz_id)
-    template_source = params.get('template_source', 'business')
-    if template_source == 'business':
+
+    # 兼容老版本的接口调用
+    if template_source in {BUSINESS, PROJECT}:
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                business=biz,
+                                                                                project_id=project.id,
                                                                                 is_deleted=False)
+
+            if not request.is_trust:
+                verify_or_raise_auth_failed(principal_type='user',
+                                            principal_id=request.user.username,
+                                            resource=task_template_resource,
+                                            action_ids=[task_template_resource.actions.create_task.id],
+                                            instance=tmpl,
+                                            status=200)
         except TaskTemplate.DoesNotExist:
             result = {
                 'result': False,
-                'message': 'template[id={template_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
-                    template_id=template_id,
-                    bk_biz_id=bk_biz_id)
-            }
+                'message': 'template[id={template_id}] of project[project_id={project_id} , biz_id{biz_id}] '
+                           'does not exist'.format(template_id=template_id,
+                                                   project_id=project.id,
+                                                   biz_id=project.bk_biz_id)}
             return JsonResponse(result)
     else:
         try:
             tmpl = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                   is_deleted=False)
+
+            if not request.is_trust:
+                perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
+                                (common_template_resource, [common_template_resource.actions.create_task.id], tmpl)]
+                batch_verify_or_raise_auth_failed(principal_type='user',
+                                                  principal_id=request.user.username,
+                                                  perms_tuples=perms_tuples,
+                                                  status=200)
+
         except CommonTemplate.DoesNotExist:
             result = {
                 'result': False,
@@ -239,7 +311,7 @@ def create_task(request, template_id, bk_biz_id):
         return JsonResponse({'result': False, 'message': data})
 
     task = TaskFlowInstance.objects.create(
-        business=biz,
+        project=project,
         pipeline_instance=data,
         category=tmpl.category,
         template_id=template_id,
@@ -261,11 +333,15 @@ def create_task(request, template_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
-def start_task(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(taskflow_resource,
+                  [taskflow_resource.actions.operate],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def start_task(request, task_id, project_id):
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=bk_biz_id)
+    project = request.project
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id)
     ctx = task.task_action('start', username)
     return JsonResponse(ctx)
 
@@ -274,19 +350,23 @@ def start_task(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-@api_check_user_perm_of_task(PermNm.EXECUTE_TASK_PERM_NAME)
-def operate_task(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(taskflow_resource,
+                  [taskflow_resource.actions.operate],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def operate_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
     action = params.get('action')
     username = request.user.username
-    task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=bk_biz_id, is_deleted=False)
+    project = request.project
+    task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
     ctx = task.task_action(action, username)
     return JsonResponse(ctx)
 
@@ -294,10 +374,15 @@ def operate_task(request, task_id, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_task_status(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(taskflow_resource,
+                  [taskflow_resource.actions.view],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def get_task_status(request, task_id, project_id):
+    project = request.project
     try:
-        task = TaskFlowInstance.objects.get(pk=task_id, business__cc_id=bk_biz_id, is_deleted=False)
+        task = TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
         task_status = task.get_status()
         result = {
             'result': True,
@@ -332,12 +417,14 @@ def get_task_status(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def query_task_count(request, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
+def query_task_count(request, project_id):
     """
     @summary: 按照不同维度统计业务任务总数
     @param request:
-    @param bk_biz_id:
+    @param project_id:
     @return:
     """
     try:
@@ -345,8 +432,9 @@ def query_task_count(request, bk_biz_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
+    project = request.project
     conditions = params.get('conditions', {})
     group_by = params.get('group_by')
     if not isinstance(conditions, dict):
@@ -358,7 +446,7 @@ def query_task_count(request, bk_biz_id):
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
 
-    filters = {'business__cc_id': bk_biz_id, 'is_deleted': False}
+    filters = {'project_id': project.id, 'is_deleted': False}
     filters.update(conditions)
     success, content = TaskFlowInstance.objects.extend_classified_count(group_by, filters)
     if not success:
@@ -374,7 +462,7 @@ def info_data_from_period_task(task, detail=True):
         'creator': task.creator,
         'cron': task.cron,
         'enabled': task.enabled,
-        'last_run_at': strftime_with_timezone(task.last_run_at),
+        'last_run_at': format_datetime(task.last_run_at),
         'total_run_count': task.total_run_count,
     }
 
@@ -388,9 +476,12 @@ def info_data_from_period_task(task, detail=True):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_periodic_task_list(request, bk_biz_id):
-    task_list = PeriodicTask.objects.filter(business__cc_id=bk_biz_id)
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
+def get_periodic_task_list(request, project_id):
+    project = request.project
+    task_list = PeriodicTask.objects.filter(project_id=project.id)
     data = []
     for task in task_list:
         data.append(info_data_from_period_task(task, detail=False))
@@ -401,10 +492,13 @@ def get_periodic_task_list(request, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_periodic_task_info(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_proj_perms([project_resource.actions.view])
+def get_periodic_task_info(request, task_id, project_id):
+    project = request.project
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -419,10 +513,16 @@ def get_periodic_task_info(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def create_periodic_task(request, template_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(task_template_resource,
+                  [task_template_resource.actions.create_periodic_task],
+                  get_kwargs={'template_id': 'id', 'project_id': 'project_id'})
+def create_periodic_task(request, template_id, project_id):
+    project = request.project
+
     try:
-        template = TaskTemplate.objects.get(pk=template_id, business__cc_id=bk_biz_id, is_deleted=False)
+        template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
     except TaskTemplate.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -434,15 +534,14 @@ def create_periodic_task(request, template_id, bk_biz_id):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     logger.info(
-        'apigw create_periodic_task info, template_id: {template_id}, bk_biz_id: {bk_biz_id}, params: {params}'.format(
-            template_id=template_id,
-            bk_biz_id=bk_biz_id,
-            params=params
-        ))
+        'apigw create_periodic_task info, '
+        'template_id: {template_id}, project_id: {project_id}, params: {params}'.format(template_id=template_id,
+                                                                                        project_id=project.id,
+                                                                                        params=params))
 
     try:
         params.setdefault('constants', {})
@@ -465,7 +564,6 @@ def create_periodic_task(request, template_id, bk_biz_id):
         if key in pipeline_tree['constants']:
             pipeline_tree['constants'][key]['value'] = val
 
-    business = Business.objects.get(cc_id=bk_biz_id)
     name = params['name']
     cron = params['cron']
 
@@ -477,7 +575,7 @@ def create_periodic_task(request, template_id, bk_biz_id):
 
     try:
         task = PeriodicTask.objects.create(
-            business=business,
+            project=project,
             template=template,
             name=name,
             cron=cron,
@@ -499,20 +597,25 @@ def create_periodic_task(request, template_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def set_periodic_task_enabled(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(periodic_task_resource,
+                  [periodic_task_resource.actions.edit],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def set_periodic_task_enabled(request, task_id, project_id):
+    project = request.project
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     enabled = params.get('enabled', False)
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -532,21 +635,26 @@ def set_periodic_task_enabled(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def modify_cron_for_periodic_task(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(periodic_task_resource,
+                  [periodic_task_resource.actions.edit],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def modify_cron_for_periodic_task(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
+    project = request.project
     cron = params.get('cron', {})
-    tz = Business.objects.get(cc_id=bk_biz_id).time_zone
+    tz = project.time_zone
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -573,20 +681,25 @@ def modify_cron_for_periodic_task(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def modify_constants_for_periodic_task(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(periodic_task_resource,
+                  [periodic_task_resource.actions.edit],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def modify_constants_for_periodic_task(request, task_id, project_id):
+    project = request.project
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     constants = params.get('constants', {})
 
     try:
-        task = PeriodicTask.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = PeriodicTask.objects.get(id=task_id, project_id=project.id)
     except PeriodicTask.DoesNotExist:
         return JsonResponse({
             'result': False,
@@ -610,20 +723,27 @@ def modify_constants_for_periodic_task(request, task_id, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_task_detail(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(taskflow_resource,
+                  [taskflow_resource.actions.view],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def get_task_detail(request, task_id, project_id):
     """
     @summary: 获取任务详细信息
     @param request:
     @param task_id:
+    @param project_id:
     @return:
     """
+    project = request.project
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
             task_id=task_id,
-            bk_biz_id=bk_biz_id)
+            project_id=project.id,
+            biz_id=project.bk_biz_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -634,20 +754,27 @@ def get_task_detail(request, task_id, bk_biz_id):
 @login_exempt
 @require_GET
 @apigw_required
-@api_check_user_perm_of_business('view_business')
-def get_task_node_detail(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(taskflow_resource,
+                  [taskflow_resource.actions.view],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def get_task_node_detail(request, task_id, project_id):
     """
     @summary: 获取节点输入输出
     @param request:
-    @param bk_biz_id:
+    @param task_id:
+    @param project_id:
     @return:
     """
+    project = request.project
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
             task_id=task_id,
-            bk_biz_id=bk_biz_id)
+            project_id=project.id,
+            biz_id=project.bk_biz_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -661,9 +788,7 @@ def get_task_node_detail(request, task_id, bk_biz_id):
             'result': False,
             'message': 'subprocess_stack is not a valid array json'
         })
-    result = task.get_node_detail(node_id=node_id,
-                                  component_code=component_code,
-                                  subprocess_stack=subprocess_stack)
+    result = task.get_node_detail(node_id, request.user.username, component_code, subprocess_stack)
     return JsonResponse(result)
 
 
@@ -671,22 +796,29 @@ def get_task_node_detail(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
-@api_check_user_perm_of_business('manage_business')
-def node_callback(request, task_id, bk_biz_id):
+@mark_request_whether_is_trust
+@project_inject
+@api_verify_perms(taskflow_resource,
+                  [taskflow_resource.actions.operate],
+                  get_kwargs={'task_id': 'id', 'project_id': 'project_id'})
+def node_callback(request, task_id, project_id):
     try:
         params = json.loads(request.body)
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
+    project = request.project
+
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, business__cc_id=bk_biz_id)
+        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
     except TaskFlowInstance.DoesNotExist:
-        message = 'task[id={task_id}] of business[bk_biz_id={bk_biz_id}] does not exist'.format(
+        message = 'task[id={task_id}] of project[project_id={project_id, biz_id{biz_id}}] does not exist'.format(
             task_id=task_id,
-            bk_biz_id=bk_biz_id)
+            project_id=project.id,
+            biz_id=project.bk_biz_id)
         logger.exception(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -700,8 +832,9 @@ def node_callback(request, task_id, bk_biz_id):
 @csrf_exempt
 @require_POST
 @apigw_required
+@mark_request_whether_is_trust
 def import_common_template(request):
-    if not check_white_apps(request):
+    if not request.is_trust:
         return JsonResponse({
             'result': False,
             'message': 'you have no permission to call this api.'
@@ -712,7 +845,7 @@ def import_common_template(request):
     except Exception:
         return JsonResponse({
             'result': False,
-            'message': 'invalid param format'
+            'message': 'invalid json format'
         })
 
     template_data = req_data.get('template_data', None)
@@ -737,3 +870,122 @@ def import_common_template(request):
         })
 
     return JsonResponse(import_result)
+
+
+@login_exempt
+@csrf_exempt
+@require_POST
+@apigw_required
+@mark_request_whether_is_trust
+@project_inject
+def fast_create_task(request, project_id):
+    try:
+        params = json.loads(request.body)
+    except Exception:
+        return JsonResponse({
+            'result': False,
+            'message': 'invalid json format'
+        })
+
+    project = request.project
+    logger.info('apigw fast_create_task info, project_id: {project_id}, params: {params}'.format(
+        project_id=project.id,
+        params=params))
+
+    if not request.is_trust:
+        perms_tuples = [(project_resource, [project_resource.actions.fast_create_task.id], project)]
+        batch_verify_or_raise_auth_failed(principal_type='user',
+                                          principal_id=request.user.username,
+                                          perms_tuples=perms_tuples,
+                                          status=200)
+
+    # validate pipeline tree
+    try:
+        pipeline_tree = params['pipeline_tree']
+        pipeline_node_name_handle(pipeline_tree)
+        pipeline_tree.setdefault('gateways', {})
+        pipeline_tree.setdefault('constants', {})
+        pipeline_tree.setdefault('outputs', [])
+        draw_pipeline_automatic(pipeline_tree)
+        validate_web_pipeline_tree(pipeline_tree)
+    except Exception as e:
+        message = u'invalid param pipeline_tree: %s' % e.message
+        logger.exception(message)
+        return JsonResponse({
+            'result': False,
+            'message': message
+        })
+
+    try:
+        pipeline_instance_kwargs = {
+            'name': name_handler(params['name'], TASK_NAME_MAX_LENGTH),
+            'creator': request.user.username,
+            'pipeline_tree': pipeline_tree,
+            'description': params.get('description', '')
+        }
+    except (KeyError, ValueError) as e:
+        return JsonResponse({
+            'result': False,
+            'message': u'invalid params: %s' % e.message
+        })
+
+    try:
+        pipeline_instance = TaskFlowInstance.objects.create_pipeline_instance(
+            template=None,
+            **pipeline_instance_kwargs
+        )
+    except PipelineException as e:
+        message = u'create pipeline instance error: %s' % e.message
+        logger.exception(message)
+        return JsonResponse({
+            'result': False,
+            'message': message
+        })
+
+    taskflow_kwargs = {
+        'project': project,
+        'pipeline_instance': pipeline_instance,
+        'template_source': ONETIME,
+        'create_method': 'api',
+    }
+    if params.get('category') in [cate[0] for cate in TASK_CATEGORY]:
+        taskflow_kwargs['category'] = params['category']
+    # 职能化任务，新建后进入职能化认领阶段
+    if params.get('flow_type', 'common') == 'common_func':
+        taskflow_kwargs['flow_type'] = 'common_func'
+        taskflow_kwargs['current_flow'] = 'func_claim'
+    # 常规流程，新建后即可执行
+    else:
+        taskflow_kwargs['flow_type'] = 'common'
+        taskflow_kwargs['current_flow'] = 'execute_task'
+    task = TaskFlowInstance.objects.create(**taskflow_kwargs)
+    return JsonResponse({
+        'result': True,
+        'data': {
+            'task_id': task.id,
+            'task_url': task.url,
+            'pipeline_tree': task.pipeline_tree
+        }})
+
+
+@login_exempt
+@require_GET
+@apigw_required
+@mark_request_whether_is_trust
+@project_inject
+def get_plugin_list(request, project_id):
+    components = ComponentModel.objects.filter(status=True)
+
+    data = []
+    for comp_model in components:
+        comp = ComponentLibrary.get_component_class(comp_model.code)
+        data.append({
+            'inputs': comp.inputs_format(),
+            'outputs': comp.outputs_format(),
+            'desc': comp.desc,
+            'code': comp.code,
+            'name': comp.name,
+            'group_name': comp.group_name
+        })
+
+    return JsonResponse({'result': True, 'data': data})

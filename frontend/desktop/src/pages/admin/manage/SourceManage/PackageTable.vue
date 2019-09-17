@@ -111,7 +111,7 @@
                     importedPlugin: gettext('已导入插件'),
                     rootModule: gettext('根模块'),
                     version: gettext('版本'),
-                    importedModule: gettext('导入模块'),
+                    importedModule: gettext('已导入模块'),
                     pluginName: gettext('插件名'),
                     clsName: gettext('类名'),
                     moduleBelong: gettext('所属模块')
@@ -134,7 +134,7 @@
                         name: source.keys[key]
                     })
                 }
-
+                
                 return detailFields
             }
         }

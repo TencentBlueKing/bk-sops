@@ -12,6 +12,26 @@
 (function () {
     $.atoms.bk_notify = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: true,
+                remote: true,
+                remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: $.context.project.from_cmdb,
+                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            }
+        },
+        {
             tag_code: "bk_notify_type",
             type: "checkbox",
             attrs: {

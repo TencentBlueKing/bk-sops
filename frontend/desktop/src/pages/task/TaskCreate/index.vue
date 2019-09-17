@@ -15,7 +15,7 @@
         'fill-height': currentStep === 'selectnode'
     }">
         <TaskStep
-            :cc_id="cc_id"
+            :project_id="project_id"
             :list="stepList"
             :common="common"
             :template_id="template_id"
@@ -26,7 +26,7 @@
             :ref="currentComponent"
             :is="currentComponent"
             :current-step="currentStep"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :common="common"
             :entrance="entrance"
             :template_id="template_id"
@@ -70,7 +70,7 @@
             TaskSelectNode,
             TaskParamFill
         },
-        props: ['template_id', 'cc_id', 'step', 'common', 'entrance'],
+        props: ['template_id', 'project_id', 'step', 'common', 'entrance'],
         data () {
             return {
                 stepList: STEP_DICT.slice(),

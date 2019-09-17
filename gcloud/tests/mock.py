@@ -14,16 +14,16 @@ specific language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
 import mock  # noqa
-from mock import MagicMock, patch  # noqa
+from mock import MagicMock, patch, call  # noqa
 
 from django.utils.timezone import now
 
 
 class MockRequest(object):
-    def __init__(self, method, data):
+    def __init__(self, method, data, username='a_user'):
         self.method = method
         setattr(self, method, data)
-        self.user = MagicMock()
+        self.user = MagicMock(username=username)
 
 
 class MockJsonResponse(object):
@@ -35,6 +35,15 @@ class MockBusiness(object):
     def __init__(self, **kwargs):
         self.cc_id = kwargs.get('cc_id', 'cc_id')
         self.cc_name = kwargs.get('cc_name', 'cc_name')
+        self.time_zone = kwargs.get('time_zone', 'time_zone')
+
+
+class MockProject(object):
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('project_id', 1)
+        self.name = kwargs.get('name', 'name')
+        self.bk_biz_id = kwargs.get('bk_biz_id', 'bk_biz_id')
+        self.from_cmdb = kwargs.get('from_cmdb', False)
         self.time_zone = kwargs.get('time_zone', 'time_zone')
 
 
@@ -55,7 +64,7 @@ class MockBaseTemplate(object):
         self.category = kwargs.get('category', 'category')
         self.pipeline_template = kwargs.get('pipeline_template', MockPipelineTemplate())
         self.pipeline_tree = kwargs.get('pipeline_tree',
-                                        {'line': 'line', 'location': 'location', 'activities': []})
+                                        {'line': 'line', 'location': 'location', 'activities': [], 'constants': {}})
         self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
 
 
@@ -99,20 +108,64 @@ class MockPeriodicTask(object):
         self.pipeline_tree = kwargs.get('pipeline_tre', 'pipeline_tree')
 
         self.set_enabled = MagicMock()
-        self.modify_cron = MagicMock()
-        self.modify_constants = MagicMock(return_value=kwargs.get('modify_constants_result'))
+        self.modify_cron = MagicMock(**{'side_effect': kwargs.get('modify_cron_raise')})
+        self.modify_constants = MagicMock(**{'return_value': kwargs.get('modify_constants_return'),
+                                             'side_effect': kwargs.get('modify_constants_raise')})
+
+
+class MockPipelinePeriodicTaskHistory(object):
+    def __init__(self, **kwargs):
+        self.start_success = kwargs.get('start_success', True)
+        self.periodic_task = kwargs.get('periodic_task', MagicMock())
+        self.pipeline_instance = kwargs.get('pipeline_instance', MagicMock())
+        self.ex_data = kwargs.get('ex_data', 'ex_data')
+        self.start_at = kwargs.get('start_at', 'start_at')
 
 
 class MockQuerySet(object):
     def __init__(self,
                  get_result=None,
                  get_raise=None,
-                 filter_result=None):
+                 filter_result=None,
+                 exist_return=True):
         self.get = MagicMock(return_value=get_result) if get_result else MagicMock(side_effect=get_raise)
         self.filter = MagicMock(return_value=filter_result)
+        self.exist = MagicMock(return_value=exist_return)
+
+
+class MockCache(object):
+    def __init__(self, get_return):
+        self.get_return = get_return
+
+    def get(self, key):
+        return self.get_return
+
+    def set(self, *args, **kwargs):
+        return
 
 
 class MockSyncPackageSource(object):
     def __init__(self, id, type):
         self.id = id
         self.type = MagicMock(return_value=type)
+
+
+class MockComponentModel(object):
+    def __init__(self, code):
+        self.code = code
+
+
+class MockComponent(object):
+    def __init__(self, inputs, outputs, desc, code, name, group_name):
+        self.inputs = inputs
+        self.outputs = outputs
+        self.desc = desc
+        self.code = code
+        self.name = name
+        self.group_name = group_name
+
+    def inputs_format(self):
+        return self.inputs
+
+    def outputs_format(self):
+        return self.outputs

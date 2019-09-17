@@ -20,6 +20,7 @@ Query individual flow template details of the business
 | bk_biz_id     | string     |   YES   |  the business ID   |
 | template_id   | string     |   YES   |  the template ID       |
 | template_source | string   |   NO    | source of flow，default value is business. business: from business, common: from common flow |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
@@ -202,7 +203,7 @@ Query individual flow template details of the business
 |  bk_biz_name   |    string    |      the business name    |
 |  id            |    int       |      flow template ID             |
 |  name          |    string    |      flow template name            |
-|  category      |    string    |      flow type，the value is described below    |
+|  category      |    string    |      flow template type, the value is described below    |
 |  creator       |    string    |      person who created this flow template      |
 |  create_time   |    string    |      datetime when this flow template created   |
 |  editor        |    string or null | person who edited this flow template last |
@@ -233,11 +234,11 @@ Query individual flow template details of the business
 |  constants      |    dict    |  global variables, details are described below    |
 |  outputs      |    list    |    outputs info, indicate outputs field of global variables|
 
-#### data.pipeline_tree.constants.KEY
+#### data.pipeline_tree.constants KEY
 
 KEY, the format is like ${key}
 
-#### data.pipeline_tree.constants.VALUE
+#### data.pipeline_tree.constants VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
@@ -245,7 +246,7 @@ KEY, the format is like ${key}
 |  name      |    string    |     name    |
 |  index      |    int    |       display order at the front end   |
 |  desc      |    string    |     description   |
-|  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters   |
+|  source_type  | string   |      source of variable, custom mean manual variable, component_inputs means variables comes from task node inputs parameters, component_outputs means variables comes from task node outputs parameters |
 |  custom_type  | string   |      custom type, which is not empty when source_type is custom,  the value is input ,or textarea, or datetime, or int |
 |  source_tag   | string   |      source tag and standard plugin info, which is not empty when source_type is  component_inputs or component_outputs  |
 |  source_info | dict    |        source info about task node ID  |

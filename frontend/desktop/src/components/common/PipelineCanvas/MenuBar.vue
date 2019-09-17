@@ -64,7 +64,9 @@
                                     <template slot="content">
                                         <div
                                             v-for="atom in item.list"
-                                            class="atom-item node-source"
+                                            :class="['atom-item', {
+                                                'node-source': activeNodeType === 'tasknode' ? true : atom.auth_actions.includes('view')
+                                            }]"
                                             :title="atom.name"
                                             :key="activeNodeType === 'tasknode' ? atom.tag_code : atom.id"
                                             :data-atomid="activeNodeType === 'tasknode' ? atom.code : atom.template_id"
@@ -407,19 +409,23 @@
         float: left;
         margin-right: 8px;
         margin-bottom: 10px;
-        background: $whiteNodeBg;
+        color: #cccccc;
         border: 1px solid $commonBorderColor;
         overflow: hidden;
-        cursor: move;
         &:nth-child(2n) {
             margin-right: 0;
         }
-        &:hover {
-            background: $blueDashBg;
-            border-color: $blueDefault;
-            .name-wrapper p{
-                &:after {
-                    background: $blueDashBg;
+        &.node-source {
+            color: #666666;
+            background: $whiteNodeBg;
+            cursor: move;
+            &:hover {
+                background: $blueDashBg;
+                border-color: $blueDefault;
+                .name-wrapper p{
+                    &:after {
+                        background: $blueDashBg;
+                    }
                 }
             }
         }
@@ -432,7 +438,7 @@
             p {
                 @include multiLineEllipsis($lineHeight: 1.2em, $lineCount: 2, $bgColor: #fafafa);
                 font-size: 12px;
-                color: $greyDefault;
+                // color: $greyDefault;
                 text-align: center;
                 word-break: break-all;
                 &:before {

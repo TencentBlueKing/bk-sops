@@ -15,10 +15,16 @@
             v-if="!hideHeader"
             :appmaker-data-loading="appmakerDataLoading" />
         <div class="main-container">
-            <router-view v-if="isRouterAlive"></router-view>
+            <router-view v-if="isRouterViewShow"></router-view>
         </div>
         <UserLoginModal ref="userLogin"></UserLoginModal>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
+        <PermissionModal ref="permissionModal"></PermissionModal>
+        <permissionApply
+            v-if="permissinApplyShow"
+            ref="permissionApply"
+            :permission-data="permissionData">
+        </permissionApply>
     </div>
 </template>
 <script>
@@ -26,17 +32,24 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import { setAtomConfigApiUrls } from '@/config/setting.js'
+    import permission from '@/mixins/permission.js'
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
+    import PermissionModal from '@/components/common/modal/PermissionModal.vue'
     import Navigator from '@/components/layout/Navigator.vue'
+    import permissionApply from '@/components/layout/permissionApply.vue'
 
     export default {
         name: 'App',
         components: {
             Navigator,
             UserLoginModal,
-            ErrorCodeModal
+            ErrorCodeModal,
+            permissionApply,
+            PermissionModal
         },
+        mixins: [permission],
         provide () {
             return {
                 reload: this.reload
@@ -44,18 +57,61 @@
         },
         data () {
             return {
-                isRouterAlive: true,
-                appmakerDataLoading: false // 轻应用加载 app 详情
+                permissinApplyShow: false,
+                permissionData: {
+                    type: 'project', // 无权限类型: project、other
+                    permission: []
+                },
+                isRouterAlive: false,
+                appmakerDataLoading: false // 轻应用加载 app 详情,
             }
         },
         computed: {
             ...mapState({
                 'hideHeader': state => state.hideHeader,
                 'viewMode': state => state.view_mode,
-                'appId': state => state.app_id
-            })
+                'appId': state => state.app_id,
+                'site_url': state => state.site_url
+            }),
+            ...mapState('project', {
+                'project_id': state => state.project_id
+            }),
+            isRouterViewShow () {
+                return !this.permissinApplyShow && this.isRouterAlive
+            }
+        },
+        watch: {
+            '$route' (val) {
+                this.handleRouteChange()
+            }
         },
         created () {
+            bus.$on('showLoginModal', src => {
+                this.$refs.userLogin.show(src)
+            })
+            bus.$on('showErrorModal', (type, responseText, title) => {
+                this.$refs.errorModal.show(type, responseText, title)
+            })
+            bus.$on('togglePermissionApplyPage', (show, type, permission) => {
+                this.permissinApplyShow = show
+                this.permissionData = {
+                    type,
+                    permission
+                }
+                if (!show) {
+                    this.isRouterAlive = true
+                }
+            })
+            bus.$on('showPermissionModal', data => {
+                this.$refs.permissionModal.show(data)
+            })
+            bus.$on('showMessage', info => {
+                this.$bkMessage({
+                    message: info.message,
+                    theme: info.theme || 'error'
+                })
+            })
+
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示
              */
@@ -65,41 +121,72 @@
                     theme: type
                 })
             }
-
-            if (this.viewMode === 'appmaker') {
-                this.getAppmakerDetail()
-            }
         },
         mounted () {
-            bus.$on('showLoginModal', (src) => {
-                this.$refs.userLogin.show(src)
-            })
-            bus.$on('showErrorModal', (type, responseText, title) => {
-                this.$refs.errorModal.show(type, responseText, title)
-            })
-            bus.$on('showMessage', (info) => {
-                this.$bkMessage({
-                    message: info.message,
-                    theme: info.theme || 'error'
-                })
-            })
+            this.initData()
         },
         methods: {
             ...mapActions('appmaker/', [
                 'loadAppmakerDetail'
             ]),
-            ...mapMutations([
-                'setTemplateId'
+            ...mapActions('project', [
+                'loadProjectDetail'
             ]),
+            ...mapMutations('appmaker/', [
+                'setAppmakerTemplateId',
+                'setAppmakerDetail'
+            ]),
+            ...mapMutations('project', [
+                'setProjectName',
+                'setProjectActions'
+            ]),
+            initData () {
+                if (this.$route.meta.project && this.project_id !== '' && !isNaN(this.project_id)) {
+                    this.getProjectDetail()
+                }
+                if (this.viewMode === 'appmaker') {
+                    this.getAppmakerDetail()
+                }
+            },
+            async getProjectDetail () {
+                try {
+                    const projectDetail = await this.loadProjectDetail(this.project_id)
+                    this.setProjectName(projectDetail.name)
+                    this.setProjectActions(projectDetail.auth_actions)
+                    setAtomConfigApiUrls(this.site_url, projectDetail)
+                    if (this.$route.name === 'templateEdit' && this.$route.query.common) {
+                        $.context.biz_binding = false
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
             async getAppmakerDetail () {
                 this.appmakerDataLoading = true
                 try {
-                    const data = await this.loadAppmakerDetail(this.appId)
-                    this.setTemplateId(data.template_id)
+                    const res = await this.loadAppmakerDetail(this.appId)
+                    this.setAppmakerDetail(res)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.appmakerDataLoading = false
+                }
+            },
+            handleRouteChange () {
+                this.isRouterAlive = true
+                if (!this.$route.meta.project) {
+                    this.permissinApplyShow = false
+                    $.context.biz_binding = false
+                } else {
+                    if (this.project_id !== '' && !isNaN(this.project_id)) {
+                        this.permissinApplyShow = false
+                        this.getProjectDetail()
+                    } else { // 需要项目id页面，id为空是显示无权限页面，申请按钮跳转到项目管理页面
+                        this.permissinApplyShow = true
+                    }
+                }
+                if (this.$route.query.template_id !== undefined) {
+                    this.setAppmakerTemplateId(this.$route.query.template_id)
                 }
             },
             reload () {
@@ -116,6 +203,9 @@
     @import '@/scss/config.scss';
     html,body {
         height:100%;
+    }
+    body.bk-dialog-shown {
+        overflow: hidden;
     }
     #app {
         width: 100%;

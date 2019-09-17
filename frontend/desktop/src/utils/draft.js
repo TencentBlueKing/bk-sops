@@ -13,7 +13,7 @@ import '@/utils/i18n.js'
 import moment from 'moment'
 const draft = {
     // 添加本地缓存
-    addDraft (username, ccId, templateId, templateData, message = gettext('自动保存')) {
+    addDraft (username, projectId, templateId, templateData, message = gettext('自动保存')) {
         // 防止无法进行存储本地缓存 大约96KB左右的多余空间
         const minDraftLength = 100000
         // 本地缓存剩余大小
@@ -36,11 +36,11 @@ const draft = {
         // 数据
         const descriptionData = { 'time': localTime, 'message': message }
         // 存储数据
-        const key = [username, ccId, templateId, timestamp].join('_')
+        const key = [username, projectId, templateId, timestamp].join('_')
         // 超过50个本地缓存需要进行删除
         let draftNumber = 0
         const localStorageLength = localStorage.length
-        const regex = this.getKeyRegex(username, ccId, templateId)
+        const regex = this.getKeyRegex(username, projectId, templateId)
         for (let index = localStorageLength - 1; index >= 0; index--) {
             const key = localStorage.key(index)
             // 获取key字段的所有切割信息
@@ -67,8 +67,8 @@ const draft = {
         }
     },
     // 用于替换第一次创建模板id为 uuid 的id
-    draftReplace (username, ccId, templateId, templateUUID) {
-        const regex = this.getKeyRegex(username, ccId, templateUUID)
+    draftReplace (username, projectId, templateId, templateUUID) {
+        const regex = this.getKeyRegex(username, projectId, templateUUID)
         for (const key in localStorage) {
             // 获取key字段的所有切割信息
             const keyArray = key.split('_')
@@ -87,8 +87,8 @@ const draft = {
         }
     },
     // 获取当前本地缓存
-    getDraftArray (username, ccId, templateId) {
-        const regex = this.getKeyRegex(username, ccId, templateId)
+    getDraftArray (username, projectId, templateId) {
+        const regex = this.getKeyRegex(username, projectId, templateId)
         const draftArray = []
         const localStorageLength = localStorage.length
         for (let index = localStorageLength - 1; index >= 0; index--) {
@@ -105,8 +105,8 @@ const draft = {
         return draftArray
     },
     // 删除没有template_id 的模板
-    deleteAllDraftByUUID (username, ccId, uuid) {
-        const regex = this.getKeyRegex(username, ccId, uuid)
+    deleteAllDraftByUUID (username, projectId, uuid) {
+        const regex = this.getKeyRegex(username, projectId, uuid)
         const localStorageLength = localStorage.length
         for (let index = localStorageLength - 1; index >= 0; index--) {
             const key = localStorage.key(index)
@@ -117,8 +117,8 @@ const draft = {
         }
     },
     // 复制并替换本地缓存（模板克隆时使用）
-    copyAndReplaceDraft (username, ccId, templateId, uuid) {
-        const regex = this.getKeyRegex(username, ccId, templateId)
+    copyAndReplaceDraft (username, projectId, templateId, uuid) {
+        const regex = this.getKeyRegex(username, projectId, templateId)
         for (const key in localStorage) {
             // 获取key字段的所有切割信息
             const keyArray = key.split('_')
@@ -133,10 +133,10 @@ const draft = {
         }
     },
     // 获取最近的一个本地缓存
-    getLastDraft (username, ccId, templateId) {
+    getLastDraft (username, projectId, templateId) {
         const localStorageLength = localStorage.length
         // 动态生成正则表达式
-        const regex = this.getKeyRegex(username, ccId, templateId)
+        const regex = this.getKeyRegex(username, projectId, templateId)
         let lastTime = 0
         let lastKey = ''
         for (let index = localStorageLength - 1; index >= 0; index--) {
@@ -152,8 +152,8 @@ const draft = {
         return localStorage[lastKey]
     },
     // 获得正则表达式
-    getKeyRegex (username, ccId, templateId) {
-        return new RegExp('^' + username + '_' + ccId + '_' + templateId + '_')
+    getKeyRegex (username, projectId, templateId) {
+        return new RegExp('^' + username + '_' + projectId + '_' + templateId + '_')
     }
 }
 

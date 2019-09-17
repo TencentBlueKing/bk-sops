@@ -26,6 +26,7 @@
                     <div class="business-selector">
                         <bk-select
                             v-model="filterCondition.classifyId"
+                            class="bk-select-inline"
                             :clearable="false"
                             :disabled="exportPending"
                             @change="onSelectClassify">
@@ -66,12 +67,18 @@
                                         :title="template.name"
                                         :class="[
                                             'template-item',
-                                            { 'template-item-selected': getTplIndexInSelected(template) > -1 }
+                                            {
+                                                'template-item-selected': getTplIndexInSelected(template) > -1,
+                                                'permission-disable': !hasPermission(['export'], template.auth_actions, tplOperations)
+                                            }
                                         ]"
                                         @click="onSelectTemplate(template)">
                                         <div class="template-item-icon">{{getTemplateIcon(template)}}</div>
                                         <div class="item-name-box">
                                             <div class="template-item-name">{{template.name}}</div>
+                                        </div>
+                                        <div class="apply-permission-mask">
+                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>
@@ -115,12 +122,15 @@
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'ExportTemplateDialog',
         components: {
             NoData
         },
-        props: ['isExportDialogShow', 'businessInfoLoading', 'common', 'pending'],
+        mixins: [permission],
+        props: ['isExportDialogShow', 'businessInfoLoading', 'projectInfoLoading', 'common', 'pending'],
         data () {
             return {
                 exportPending: false,
@@ -131,6 +141,8 @@
                 searchList: [],
                 selectedTemplates: [],
                 selectError: false,
+                tplOperations: [],
+                tplResource: {},
                 i18n: {
                     title: gettext('导出流程'),
                     choose: gettext('选择流程'),
@@ -142,7 +154,8 @@
                     selectAll: gettext('全选'),
                     delete: gettext('删除'),
                     allCategories: gettext('全部分类'),
-                    errorInfo: gettext('请选择流程模版')
+                    errorInfo: gettext('请选择流程模版'),
+                    applyPermission: gettext('申请权限')
                 },
                 templateEmpty: false,
                 selectedTaskCategory: '',
@@ -166,13 +179,13 @@
         },
         computed: {
             ...mapState({
-                'businessBaseInfo': state => state.template.businessBaseInfo
+                'projectBaseInfo': state => state.template.projectBaseInfo
             }),
             taskCategories () {
-                if (this.businessBaseInfo.task_categories && this.businessBaseInfo.task_categories.length === 0) {
+                if (this.projectBaseInfo.task_categories && this.projectBaseInfo.task_categories.length === 0) {
                     this.getCategorys()
                 }
-                const list = toolsUtils.deepClone(this.businessBaseInfo.task_categories || [])
+                const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
             }
@@ -202,6 +215,8 @@
                     }
                     const respData = await this.loadTemplateList(data)
                     const list = respData.objects
+                    this.tplOperations = respData.meta.auth_operations
+                    this.tplResource = respData.meta.auth_resource
                     this.templateList = this.getGroupedList(list)
                     this.templateInPanel = this.templateList.slice(0)
                 } catch (e) {
@@ -214,7 +229,7 @@
             getGroupedList (list) {
                 const groups = []
                 const atomGrouped = []
-                this.businessBaseInfo.task_categories.forEach(item => {
+                this.projectBaseInfo.task_categories.forEach(item => {
                     groups.push(item.value)
                     atomGrouped.push({
                         name: item.name,
@@ -226,10 +241,7 @@
                     const type = item.category
                     const index = groups.indexOf(type)
                     if (index > -1) {
-                        atomGrouped[index].children.push({
-                            id: item.id,
-                            name: item.name
-                        })
+                        atomGrouped[index].children.push(item)
                     }
                 })
                 const listGroup = atomGrouped.filter(item => item.children.length)
@@ -285,14 +297,18 @@
                 })
             },
             onSelectTemplate (template) {
-                this.selectError = false
-                const tplIndex = this.getTplIndexInSelected(template)
-                if (tplIndex > -1) {
-                    this.selectedTemplates.splice(tplIndex, 1)
-                    this.isTplInPanelAllSelected = false
+                if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
+                    this.selectError = false
+                    const tplIndex = this.getTplIndexInSelected(template)
+                    if (tplIndex > -1) {
+                        this.selectedTemplates.splice(tplIndex, 1)
+                        this.isTplInPanelAllSelected = false
+                    } else {
+                        this.selectedTemplates.push(template)
+                        this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+                    }
                 } else {
-                    this.selectedTemplates.push(template)
-                    this.isTplInPanelAllSelected = this.getTplIsAllSelected()
+                    this.applyForPermission(['export'], template, this.tplOperations, this.tplResource)
                 }
             },
             deleteTemplate (template) {
@@ -307,14 +323,16 @@
 
                 this.templateInPanel.forEach(group => {
                     group.children.forEach(template => {
-                        const tplIndex = this.getTplIndexInSelected(template)
-                        if (this.isTplInPanelAllSelected) {
-                            if (tplIndex > -1) {
-                                this.selectedTemplates.splice(tplIndex, 1)
-                            }
-                        } else {
-                            if (tplIndex === -1) {
-                                this.selectedTemplates.push(template)
+                        if (this.hasPermission(['export'], template.auth_actions, this.tplOperations)) {
+                            const tplIndex = this.getTplIndexInSelected(template)
+                            if (this.isTplInPanelAllSelected) {
+                                if (tplIndex > -1) {
+                                    this.selectedTemplates.splice(tplIndex, 1)
+                                }
+                            } else {
+                                if (tplIndex === -1) {
+                                    this.selectedTemplates.push(template)
+                                }
                             }
                         }
                     })
@@ -361,15 +379,21 @@
     .search-wrapper {
         padding: 0 18px 0 20px;
     }
-    .business-selector {
+    .project-selector {
         position: absolute;
         top: 20px;
         width: 255px;
         height: 32px;
     }
+    .business-selector {
+        width: 260px;
+        display: inline-block;
+        vertical-align: top;
+    }
     .template-search {
-        margin-left: 265px;
-        margin-bottom: 20px;
+        width: 250px;
+        display: inline-block;
+        vertical-align: top;
     }
     .template-wrapper {
         float: left;
@@ -394,6 +418,7 @@
         }
     }
     .template-item {
+        position: relative;
         display: inline-block;
         margin: 0 0 7px 10px;
         width: 252px;
@@ -422,8 +447,41 @@
                 background: #dcdee5
             }
         }
+        .apply-permission-mask {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
         &:nth-child(2n) {
             margin-right: 0;
+        }
+        &.permission-disable {
+            background: #f7f7f7;
+            border: 1px solid #dcdee5;
+            .template-item-icon {
+                color: #dcdee5;
+                background: #f7f7f7;
+                border-right: 1px solid #dcdee5;
+            }
+            .template-item-name {
+                color: #c4c6cc;
+            }
+            .apply-permission-mask {
+                padding: 12px 0;
+                background: rgba(255, 255, 255, 0.6);
+                text-align: center;
+            }
+            .bk-button {
+                width: 80px;
+                height: 32px;
+                line-height: 30px;
+            }
+            &:hover .apply-permission-mask {
+                display: block;
+            }
         }
     }
     .item-name-box {

@@ -21,12 +21,12 @@
         // 用户身份： 审计员
         var IS_AUDITOR = Number('{{IS_AUDITOR}}');
         // 当前时区
-        var BUSINESS_TIMEZONE = '{{BUSINESS_TIMEZONE}}'
+        var TIMEZONE = '{{PROJECT_TIMEZONE}}';
         /* 局部变量 */
-        // 业务首页会返回 biz_cc_id
-        var BIZ_CC_ID = '{{biz_cc_id |default:"0"}}';
+        // 首页会返回默认项目ID
+        var DEFAULT_PROJECT_ID = '{{ DEFAULT_PROJECT_ID | default:"" }}';
         // APP 内打开或者轻应用内打开
-        var VIEW_MODE = '{{view_mode |default:"app"}}';
+        var VIEW_MODE = '{{view_mode | default:"app"}}';
         // 轻应打开时的轻应用ID
         var APP_ID = '{{app_id | default:"0"}}';
         // 是否开启导入 V1 模板的入口

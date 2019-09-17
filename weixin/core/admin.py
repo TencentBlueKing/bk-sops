@@ -20,9 +20,3 @@ from . import models
 class BkWeixinUserAdmin(admin.ModelAdmin):
     list_display = ['userid', 'name', 'date_joined']
     search_fields = ['userid', 'name']
-
-
-@admin.register(models.WeixinUserSession)
-class WeixinUserSessionAdmin(admin.ModelAdmin):
-    list_display = ['bk_user_id', 'session_key', 'expired_time']
-    search_fields = ['bk_user_id', 'session_key']

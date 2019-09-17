@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.constants import *  # noqa
 
 # 任务流程创建方式
 TASK_CREATE_METHOD = [
@@ -25,6 +26,7 @@ TASK_CREATE_METHOD = [
 
 # 任务引用的流程模板来源
 TEMPLATE_SOURCE = [
-    ('business', _(u"业务流程")),
-    ('common', _(u"公共流程")),
+    (PROJECT, _(u"项目流程")),
+    (COMMON, _(u"公共流程")),
+    (ONETIME, _(u"一次性任务")),
 ]

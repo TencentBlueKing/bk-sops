@@ -15,14 +15,14 @@
             <div class="summary-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
                 <HomeSummary
                     :loading="loading"
-                    :cc_id="cc_id"
+                    :project_id="project_id"
                     :summary-data="summaryData">
                 </HomeSummary>
             </div>
             <div class="main-wrapper">
                 <QuickCreateTask
-                    v-bkloading="{ isLoading: loading, opacity: 1 }"
-                    :cc_id="cc_id"
+                    :collect-loading="loading"
+                    :project_id="project_id"
                     :quick-task-list="quickTaskList"
                     :template-classify="templateClassify"
                     :total-template="totalTemplate"
@@ -33,7 +33,9 @@
                         <TaskFeeds
                             v-if="!loading"
                             :top-three-task-feeds="topThreeTaskFeeds"
-                            :cc_id="cc_id">
+                            :project_id="project_id"
+                            :task-operations="taskOperations"
+                            :task-resource="taskResource">
                         </TaskFeeds>
                     </div>
                     <div class="col-item" v-bkloading="{ isLoading: loading, opacity: 1 }">
@@ -68,7 +70,7 @@
             TaskFeeds,
             TaskPercentChart
         },
-        props: ['cc_id', 'template_id'],
+        props: ['project_id', 'template_id'],
         data () {
             return {
                 loading: true,
@@ -82,11 +84,13 @@
                 taskCount: [],
                 totalTask: 0,
                 templateClassify: [],
-                totalTemplate: 0
+                totalTemplate: 0,
+                taskOperations: [],
+                taskResource: {}
             }
         },
         watch: {
-            'cc_id' (val) {
+            'project_id' (val) {
                 this.getData()
             }
         },
@@ -143,6 +147,8 @@
                         limit: 3
                     }
                     const taskTop3Data = await this.loadTaskList(query)
+                    this.taskOperations = taskTop3Data.meta.auth_operations
+                    this.taskResource = taskTop3Data.meta.auth_resource
                     return taskTop3Data.objects
                 } catch (e) {
                     errorHandler(e, this)

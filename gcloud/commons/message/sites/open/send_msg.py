@@ -14,13 +14,14 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
-from gcloud.core.utils import get_client_by_user_and_biz_id
+from gcloud.conf import settings
 
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 logger = logging.getLogger("root")
 
 
 def send_message(biz_cc_id, executor, notify_type, receivers, title, content):
-    client = get_client_by_user_and_biz_id(executor, biz_cc_id)
+    client = get_client_by_user(executor)
     if 'weixin' in notify_type:
         kwargs = {
             'receiver__username': receivers,

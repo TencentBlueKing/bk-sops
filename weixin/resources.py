@@ -15,7 +15,6 @@ from django.http.response import HttpResponseForbidden
 from tastypie.authorization import ReadOnlyAuthorization
 
 from gcloud.webservice3.resources import (
-    GCloudReadOnlyAuthorization,
     BusinessResource,
     VariableModelResource,
     ComponentModelResource
@@ -29,12 +28,12 @@ from gcloud.taskflow3.resources import TaskFlowInstanceResource
 
 class WxBusinessResource(BusinessResource):
     class Meta(BusinessResource.Meta):
-        authorization = GCloudReadOnlyAuthorization()
+        authorization = ReadOnlyAuthorization()
 
 
 class WxTaskTemplateResource(TaskTemplateResource):
     class Meta(TaskTemplateResource.Meta):
-        authorization = GCloudReadOnlyAuthorization()
+        authorization = ReadOnlyAuthorization()
 
 
 class WxTaskFlowInstanceResource(TaskFlowInstanceResource):

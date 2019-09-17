@@ -18,16 +18,16 @@
                     <div class="content-date">
                         <div class="content-date-business">
                             <bk-select
-                                v-model="businessSelected"
+                                v-model="taskProjectSelected"
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
                                 @selected="onInstanceCategory">
                                 <bk-option
-                                    v-for="(option, index) in businessList"
+                                    v-for="(option, index) in allProjectList"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -51,12 +51,12 @@
                     <div class="content-statistics">
                         <div class="content-business">
                             <bk-select
-                                v-model="selectedCcId"
+                                v-model="taskCategorySelected"
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
                                 :placeholder="i18n.choice"
-                                @selected="onInstanceBizCcId">
+                                @selected="onSelectCategory">
                                 <bk-option
                                     v-for="(option, index) in categoryList"
                                     :key="index"
@@ -87,17 +87,17 @@
                     <div class="content-instance-time">
                         <!--业务选择-->
                         <bk-select
-                            v-model="timeBusinessSelected"
+                            v-model="timeProjectSelected"
                             class="bk-select-inline"
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.choice"
                             @selected="onChangeTimeTypeBusiness">
                             <bk-option
-                                v-for="(option, index) in businessList"
+                                v-for="(option, index) in allProjectList"
                                 :key="index"
-                                :id="option.cc_id"
-                                :name="option.cc_name">
+                                :id="option.id"
+                                :name="option.name">
                             </bk-option>
                         </bk-select>
                     </div>
@@ -167,18 +167,18 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
-                                    v-model="selectedCcId"
+                                    v-model="selectedProject"
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @selected="onSelectProject">
                                     <bk-option
-                                        v-for="(option, index) in allBusinessList"
+                                        v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -230,18 +230,18 @@
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
                                 <bk-select
-                                    v-model="selectedCcId"
+                                    v-model="selectedProject"
                                     class="bk-select-inline"
                                     :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
-                                    @clear="onClearBizCcId"
-                                    @selected="onSelectedBizCcId">
+                                    @clear="onClearProject"
+                                    @selected="onSelectProject">
                                     <bk-option
-                                        v-for="(option, index) in allBusinessList"
+                                        v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -292,17 +292,17 @@
 
     const i18n = {
         taskCategory: gettext('任务分类'),
-        ownBusiness: gettext('所属业务'),
+        ownBusiness: gettext('所属项目'),
         taskDetail: gettext('任务详情'),
         executionName: gettext('执行耗时'),
         timeLimit: gettext('时间范围'),
         choiceCategory: gettext('选择分类'),
-        choiceBusiness: gettext('选择业务'),
+        choiceBusiness: gettext('选择项目'),
         instanceTime: gettext('时间维度'),
         day: gettext('天'),
         choice: gettext('请选择'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         instanceName: gettext('任务名称'),
         createTime: gettext('创建时间'),
         creator: gettext('创建人'),
@@ -325,7 +325,7 @@
         data () {
             return {
                 i18n: i18n,
-                bizCcId: undefined,
+                projectId: undefined,
                 category: undefined,
                 datePickerRefShow: false,
                 businessPickerRefShow: false,
@@ -452,7 +452,7 @@
                     }
                 ],
                 instanceType: 'day',
-                selectedCcId: '',
+                selectedProject: '',
                 selectedCategory: '',
                 categoryTime: [],
                 choiceBusiness: undefined,
@@ -469,9 +469,9 @@
                 timeTypeTime: [],
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
-                businessSelected: 'all',
-                timeBusinessSelected: 'all',
-                categorySelected: 'all',
+                taskProjectSelected: 'all',
+                timeProjectSelected: 'all',
+                taskCategorySelected: 'all',
                 choiceDate: 'day',
                 showClassifyDatePanel: '',
                 showBusinessDatePanel: '',
@@ -480,16 +480,18 @@
         },
         computed: {
             ...mapState({
-                allBusinessList: state => state.allBusinessList,
                 categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            businessList () {
-                if (this.allBusinessList.length === 0) {
-                    this.getBizList(1)
+            ...mapState('project', {
+                projectList: state => state.projectList
+            }),
+            allProjectList () {
+                if (this.projectList.length === 0) {
+                    this.loadProjectList({ limit: 0 })
                 }
-                const list = tools.deepClone(this.allBusinessList)
-                list.unshift({ cc_id: 'all', cc_name: i18n.choiceAllBusiness })
+                const list = tools.deepClone(this.projectList)
+                list.unshift({ id: 'all', name: i18n.choiceAllBusiness })
                 return list
             },
             categoryList () {
@@ -513,8 +515,10 @@
                 'queryInstanceData'
             ]),
             ...mapActions([
-                'getBizList',
                 'getCategorys'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             onNodeHandleSizeChange (limit) {
                 this.nodePageIndex = 1
@@ -549,12 +553,12 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
+                        project_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
                     })
                 }
                 this.statisticsCategory(data)
             },
-            onInstanceBizCcId (category) {
+            onSelectCategory (category) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -569,14 +573,14 @@
                 }
                 const time = this.getUTCTime([this.businessTime[0], this.businessTime[1]])
                 const data = {
-                    group_by: 'biz_cc_id',
+                    group_by: 'project_id',
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
                         category: this.choiceCategory === 'all' ? '' : this.choiceCategory
                     })
                 }
-                this.statisticsBizCcId(data)
+                this.statisticsProjectData(data)
             },
             onInstanceNode (value) {
                 if (this.tabName !== 'taskDetails') {
@@ -594,7 +598,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         order_by: this.nodeOrderBy
                     }),
@@ -618,7 +622,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceTimeTypeBusiness === 'all' ? '' : this.choiceTimeTypeBusiness,
+                        project_id: this.choiceTimeTypeBusiness === 'all' ? '' : this.choiceTimeTypeBusiness,
                         category: this.choiceTimeTypeCategory === 'all' ? '' : this.choiceTimeTypeCategory,
                         type: this.choiceTimeType
                     })
@@ -644,7 +648,7 @@
                     errorHandler(e, this)
                 }
             },
-            async statisticsBizCcId (data) {
+            async statisticsProjectData (data) {
                 this.isBuinsessLoading = true
                 try {
                     const templateData = await this.queryInstanceData(data)
@@ -710,7 +714,7 @@
                         conditions: JSON.stringify({
                             create_time: time[0],
                             finish_time: time[1],
-                            biz_cc_id: this.bizCcId,
+                            project_id: this.projectId,
                             category: this.category,
                             order_by: this.detailsOrderBy
                         }),
@@ -766,17 +770,17 @@
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectProject (id) {
+                if (this.projectId === id) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = id
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onClearBizCcId () {
-                this.selectedCcId = ''
-                this.bizCcId = undefined
+            onClearProject () {
+                this.selectedProject = ''
+                this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
@@ -796,7 +800,7 @@
                 if (value) {
                     this.businessTime = value
                 }
-                this.onInstanceBizCcId(null)
+                this.onSelectCategory(null)
             },
             resetPageIndex () {
                 switch (this.tabName) {
@@ -868,11 +872,6 @@
     display: inline-block;
     width: 260px;
     background-color: #ffffff;
-}
-.bk-date-range {
-    position: relative;
-    left: 20px;
-    border-right: 35px solid rgba(0,0,0,0);
 }
 .content-date-picker {
     vertical-align: top;

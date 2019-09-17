@@ -12,30 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
-import functools
 
 from django import forms
-from django.http.response import JsonResponse
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext_lazy as _
-
-
-def post_form_validator(form_cls):
-    def decorate(func):
-        @functools.wraps(func)
-        def wrapper(request, *args, **kwargs):
-            form = form_cls(request.POST)
-            if not form.is_valid():
-                return JsonResponse(status=400, data={
-                    'result': False,
-                    'message': form.errors
-                })
-            setattr(request, 'form', form)
-            return func(request, *args, **kwargs)
-
-        return wrapper
-
-    return decorate
 
 
 class JsonField(forms.CharField):

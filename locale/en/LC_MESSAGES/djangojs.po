@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-08-28 19:51+0800\n"
+"POT-Creation-Date: 2019-08-23 09:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -164,7 +164,6 @@ msgstr "Edit Flow"
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:112
 #: frontend/desktop/src/pages/task/TaskStep.vue:52
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:289
-#: frontend/mobile/src/views/task/create.vue:153
 msgid "新建任务"
 msgstr "NewTask"
 
@@ -295,7 +294,6 @@ msgstr "Please enter the name of topology instances, multiple are separated by L
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:180
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:269
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:87
-#: frontend/mobile/src/main.js:107
 msgid "必填项"
 msgstr "Required"
 
@@ -438,8 +436,6 @@ msgstr "Host"
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableEdit.vue:187
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:161
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:169
-#: frontend/mobile/src/views/task/reset.vue:79
-#: frontend/mobile/src/views/task/timing.vue:40
 msgid "取消"
 msgstr "Cancel"
 
@@ -486,18 +482,14 @@ msgstr "Requesting table titles failed, please config columns"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatetime.vue:36
 #: frontend/desktop/src/components/tags/TagTestDatetime.vue:35
-#: frontend/mobile/src/views/task/create.vue:159
 msgid "请选择日期时间"
 msgstr "Please select a datetime"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagPassword.vue:50
-#: frontend/mobile/src/components/VantForm/VantPassword.vue:55
 msgid "要修改密码请点击后重新输入密码"
 msgstr "Please enter a new password when modifying"
 
 #: frontend/desktop/src/components/common/RenderForm/tags/TagSelect.vue:108
-#: frontend/mobile/src/views/task/create.vue:152
-#: frontend/mobile/src/views/task/detail.vue:51
 msgid "加载中"
 msgstr "Loading"
 
@@ -601,8 +593,6 @@ msgstr "System error occurred"
 #: frontend/desktop/src/components/common/modal/ErrorCode500.vue:28
 #: frontend/desktop/src/utils/errorHandler.js:44
 #: frontend/desktop/src/utils/errorHandler.js:49
-#: frontend/mobile/src/utils/errorHandler.js:45
-#: frontend/mobile/src/utils/errorHandler.js:50
 msgid "系统出现异常, 请记录下错误场景并与开发人员联系, 谢谢!"
 msgstr "System error occurred. Please record error scenario and contact developer, thanks!"
 
@@ -719,7 +709,6 @@ msgstr "Prompt"
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:103
 #: frontend/desktop/src/pages/task/TaskList/index.vue:324
 #: frontend/desktop/src/pages/task/TaskList/index.vue:421
-#: frontend/mobile/src/views/task/canvas.vue:87
 msgid "未执行"
 msgstr "Created"
 
@@ -732,7 +721,6 @@ msgstr "Created"
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:181
 #: frontend/desktop/src/pages/task/TaskList/index.vue:311
 #: frontend/desktop/src/pages/task/TaskList/index.vue:446
-#: frontend/mobile/src/views/task/canvas.vue:88
 msgid "执行中"
 msgstr "Executing"
 
@@ -748,7 +736,6 @@ msgstr "Executing"
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:712
 #: frontend/desktop/src/pages/task/TaskList/index.vue:312
 #: frontend/desktop/src/pages/task/TaskList/index.vue:450
-#: frontend/mobile/src/views/task/canvas.vue:89
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:90
 msgid "暂停"
 msgstr "Suspend"
@@ -758,7 +745,6 @@ msgstr "Suspend"
 #: frontend/desktop/src/pages/audit/index.vue:361
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:133
 #: frontend/desktop/src/pages/task/TaskList/index.vue:454
-#: frontend/mobile/src/views/task/canvas.vue:90
 msgid "节点暂停"
 msgstr "Node Suspended"
 
@@ -768,7 +754,6 @@ msgstr "Node Suspended"
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:138
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:183
 #: frontend/desktop/src/pages/task/TaskList/index.vue:458
-#: frontend/mobile/src/views/task/canvas.vue:91
 msgid "失败"
 msgstr "Failed"
 
@@ -785,7 +770,6 @@ msgstr "Failed"
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:184
 #: frontend/desktop/src/pages/task/TaskList/index.vue:326
 #: frontend/desktop/src/pages/task/TaskList/index.vue:415
-#: frontend/mobile/src/views/task/canvas.vue:92
 msgid "完成"
 msgstr "Finished"
 
@@ -795,7 +779,6 @@ msgstr "Finished"
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:143
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:200
 #: frontend/desktop/src/pages/task/TaskList/index.vue:462
-#: frontend/mobile/src/views/task/canvas.vue:93
 msgid "撤销"
 msgstr "Revoke"
 
@@ -859,27 +842,27 @@ msgstr "please enter branch name"
 msgid "S3"
 msgstr "S3"
 
-#: frontend/desktop/src/constants/manage.js:38
+#: frontend/desktop/src/constants/manage.js:37
 msgid "对象存储服务地址"
 msgstr "Service Address"
 
-#: frontend/desktop/src/constants/manage.js:42
+#: frontend/desktop/src/constants/manage.js:38
 msgid "Bucket"
 msgstr "Bucket"
 
-#: frontend/desktop/src/constants/manage.js:46
+#: frontend/desktop/src/constants/manage.js:39
 msgid "Access Key"
 msgstr "Access Key"
 
-#: frontend/desktop/src/constants/manage.js:50
+#: frontend/desktop/src/constants/manage.js:40
 msgid "Secret Key"
 msgstr "Secret Key"
 
-#: frontend/desktop/src/constants/manage.js:57
+#: frontend/desktop/src/constants/manage.js:45
 msgid "文件系统"
 msgstr "FileSystem"
 
-#: frontend/desktop/src/constants/manage.js:60
+#: frontend/desktop/src/constants/manage.js:47
 msgid "服务器文件系统路径"
 msgstr "FileSystem Path"
 
@@ -981,7 +964,7 @@ msgstr "Default does not match validation"
 msgid "正则校验不是合法的正则表达式"
 msgstr "Regular validation invalid"
 
-#: frontend/desktop/src/main.js:118 frontend/mobile/src/main.js:111
+#: frontend/desktop/src/main.js:118
 msgid "任务名称不能为空"
 msgstr "Task name cannot be empty"
 
@@ -1214,9 +1197,8 @@ msgid "请输入模块绝对路径，如a.b.c，多个用,分隔"
 msgstr "Absolute path, multiple are separated by ,"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:263
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
-msgid "根模块"
-msgstr "Root Module"
+msgid "子模块名称"
+msgstr "Sub Module Name"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:264
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:113
@@ -1224,7 +1206,6 @@ msgid "版本"
 msgstr "Version"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:265
-#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:114
 msgid "导入模块"
 msgstr "Modules Importing"
 
@@ -1244,6 +1225,14 @@ msgstr "Service Address"
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:111
 msgid "已导入插件"
 msgstr "Plugins Imported"
+
+#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:112
+msgid "根模块"
+msgstr "Root Module"
+
+#: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:114
+msgid "已导入模块"
+msgstr "Modules Imported"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:115
 msgid "插件名"
@@ -1278,7 +1267,7 @@ msgid "远程插件包源"
 msgstr " Remote Plugins Package Source"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:79
-msgid "远程插件包存储源，可以配置多个，注意插件包根模块名称不能冲突"
+msgid "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
 msgstr "Remote plugins package source can be multiple, but root module name cannot be same"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:80
@@ -1291,13 +1280,11 @@ msgstr "Sync To Local Cache"
 
 #: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:117
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:166
-#: frontend/mobile/src/views/task/nodes.vue:106
 msgid "开始时间"
 msgstr "Date Started"
 
 #: frontend/desktop/src/pages/admin/manage/SourceSync/index.vue:118
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:167
-#: frontend/mobile/src/views/task/nodes.vue:107
 msgid "结束时间"
 msgstr "Date Finished"
 
@@ -1535,8 +1522,6 @@ msgstr "Flow Name"
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:104
 #: frontend/desktop/src/pages/task/TaskList/TaskCloneDialog.vue:55
 #: frontend/desktop/src/pages/task/TaskList/index.vue:283
-#: frontend/mobile/src/views/task/create.vue:154
-#: frontend/mobile/src/views/task/detail.vue:49
 msgid "任务名称"
 msgstr "Task Name"
 
@@ -1943,7 +1928,6 @@ msgid "进入"
 msgstr "Enter"
 
 #: frontend/desktop/src/pages/home/HomeSummary.vue:92
-#: frontend/mobile/src/views/task/reset.vue:77
 msgid "执行任务"
 msgstr "Execution Task"
 
@@ -2060,8 +2044,6 @@ msgstr "Corntab"
 #: frontend/desktop/src/pages/periodic/PeriodicList/ModifyPeriodicDialog.vue:81
 #: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:142
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:105
-#: frontend/mobile/src/views/task/create.vue:157
-#: frontend/mobile/src/views/task/detail.vue:50
 msgid "参数信息"
 msgstr "Parameters"
 
@@ -2135,8 +2117,6 @@ msgstr "When editing a flow template, global variables can be referenced by the 
 
 #: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:137
 #: frontend/desktop/src/pages/task/TaskExecute/TaskFunctionalization.vue:103
-#: frontend/mobile/src/views/task/create.vue:160
-#: frontend/mobile/src/views/task/detail.vue:48
 msgid "任务信息"
 msgstr "Task Info"
 
@@ -2226,12 +2206,10 @@ msgid "职能化认领"
 msgstr "Functional Claiming"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:165
-#: frontend/mobile/src/views/task/nodes.vue:105
 msgid "执行信息"
 msgstr "Execution Info"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:169
-#: frontend/mobile/src/views/task/nodes.vue:109
 msgid "失败后跳过"
 msgstr "Skipped"
 
@@ -2241,13 +2219,11 @@ msgstr "Auto Ignored"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:171
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:229
-#: frontend/mobile/src/views/task/nodes.vue:114
 msgid "输入参数"
 msgstr "Input Parameters"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:172
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:230
-#: frontend/mobile/src/views/task/nodes.vue:115
 msgid "输出参数"
 msgstr "Output Parameters"
 
@@ -2261,12 +2237,10 @@ msgid "参数值"
 msgstr "Value"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:175
-#: frontend/mobile/src/views/task/nodes.vue:116
 msgid "异常信息"
 msgstr "Exceptions"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:176
-#: frontend/mobile/src/views/task/nodes.vue:117
 msgid "执行记录"
 msgstr "Execution History"
 
@@ -2279,7 +2253,6 @@ msgstr "Index"
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:154
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:304
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:344
-#: frontend/mobile/src/views/task/nodes.vue:110
 msgid "是"
 msgstr "Yes"
 
@@ -2287,12 +2260,10 @@ msgstr "Yes"
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:155
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:305
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:345
-#: frontend/mobile/src/views/task/nodes.vue:111
 msgid "否"
 msgstr "No"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ExecuteInfo.vue:180
-#: frontend/mobile/src/views/task/nodes.vue:113
 msgid "重试次数"
 msgstr "Number of retries"
 
@@ -2318,8 +2289,6 @@ msgstr "Reset Timing"
 
 #: frontend/desktop/src/pages/task/TaskExecute/ModifyTime.vue:50
 #: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:50
-#: frontend/mobile/src/views/task/reset.vue:80
-#: frontend/mobile/src/views/task/timing.vue:41
 msgid "确定"
 msgstr "OK"
 
@@ -2329,13 +2298,10 @@ msgstr "Updated successfully"
 
 #: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:49
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:673
-#: frontend/mobile/src/views/task/canvas.vue:119
 msgid "重试"
 msgstr "Retry"
 
 #: frontend/desktop/src/pages/task/TaskExecute/RetryNode.vue:139
-#: frontend/mobile/src/views/task/canvas.vue:125
-#: frontend/mobile/src/views/task/reset.vue:78
 msgid "重试成功"
 msgstr "Retried successfully"
 
@@ -2354,7 +2320,6 @@ msgstr "Execution"
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:195
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:706
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:718
-#: frontend/mobile/src/views/task/canvas.vue:126
 msgid "继续"
 msgstr "Continue"
 
@@ -2379,7 +2344,6 @@ msgid "任务暂停成功"
 msgstr "Task suspended"
 
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:468
-#: frontend/mobile/src/views/task/canvas.vue:293
 msgid "任务继续成功"
 msgstr "Task Continued"
 
@@ -2389,7 +2353,6 @@ msgstr "Task Revoked"
 
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:508
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:531
-#: frontend/mobile/src/views/task/canvas.vue:123
 msgid "跳过成功"
 msgstr "Skip successfully"
 
@@ -2399,7 +2362,6 @@ msgstr "Continued successfully"
 
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:674
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:700
-#: frontend/mobile/src/views/task/canvas.vue:120
 msgid "跳过"
 msgstr "Skip"
 
@@ -2408,7 +2370,6 @@ msgid "流程模板中该标准插件节点未配置失败处理方式，不可�
 msgstr "There is not failure process set to this node when editing flow, you can not operate"
 
 #: frontend/desktop/src/pages/task/TaskExecute/TaskOperation.vue:694
-#: frontend/mobile/src/views/task/canvas.vue:122
 msgid "修改时间"
 msgstr "Reset Timer"
 
@@ -2887,7 +2848,6 @@ msgid "请选择来源"
 msgstr "Choose source please"
 
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:318
-#: frontend/mobile/src/views/template/index.vue:81
 msgid "搜索流程名称"
 msgstr "Search by flow name"
 
@@ -2900,39 +2860,31 @@ msgid "自动保存"
 msgstr "Automatic saved"
 
 #: frontend/desktop/src/utils/errorHandler.js:24
-#: frontend/mobile/src/utils/errorHandler.js:25
 msgid "当前访问的页面不存在"
 msgstr "Page not found"
 
 #: frontend/desktop/src/utils/errorHandler.js:29
-#: frontend/mobile/src/utils/errorHandler.js:30
 msgid "sorry，您没有访问权限!"
 msgstr "sorry, you have no access permissions!"
 
 #: frontend/desktop/src/utils/errorHandler.js:34
 #: frontend/desktop/src/utils/errorHandler.js:39
-#: frontend/mobile/src/utils/errorHandler.js:35
-#: frontend/mobile/src/utils/errorHandler.js:40
 msgid "Sorry，您的权限不足!"
 msgstr "Sorry, you have no permissions"
 
 #: frontend/desktop/src/utils/tools.js:132
-#: frontend/mobile/src/utils/tools.js:14
 msgid " 秒"
 msgstr " Second"
 
 #: frontend/desktop/src/utils/tools.js:134
-#: frontend/mobile/src/utils/tools.js:16
 msgid " 分"
 msgstr " Minute"
 
 #: frontend/desktop/src/utils/tools.js:136
-#: frontend/mobile/src/utils/tools.js:18
 msgid " 小时"
 msgstr " Hour"
 
 #: frontend/desktop/src/utils/tools.js:138
-#: frontend/mobile/src/utils/tools.js:20
 msgid " 天"
 msgstr " Day"
 
@@ -2991,128 +2943,6 @@ msgstr "Please add a task node"
 #: frontend/desktop/src/utils/validatePipeline.js:220
 msgid "并行网关、分支网关个数和汇聚网关个数必须一致，并且必须配对使用"
 msgstr "The sum of Parallel and Exclusive Gateway must be same with sum of Converge Gateway, and must be paired"
-
-#: frontend/mobile/src/components/NoData/index.vue:18
-#: frontend/mobile/src/views/task/detail.vue:47
-msgid "暂无数据"
-msgstr "No data"
-
-#: frontend/mobile/src/main.js:112
-msgid "任务名称包含非法字符"
-msgstr "Task name contains invalid characters "
-
-#: frontend/mobile/src/main.js:113
-msgid "任务名称长度不能超过50个字符"
-msgstr "Length of name cannot be larger than 50 "
-
-#: frontend/mobile/src/main.js:116
-msgid "输入值不满足校验规则"
-msgstr "Input does not match validation"
-
-#: frontend/mobile/src/views/home/index.vue:46
-#: frontend/mobile/src/views/task/list.vue:79
-#: frontend/mobile/src/views/template/index.vue:80
-msgid "请求失败，点击重新加载"
-msgstr "Request failed, click to reload"
-
-#: frontend/mobile/src/views/home/index.vue:47
-#: frontend/mobile/src/views/task/list.vue:80
-#: frontend/mobile/src/views/template/index.vue:79
-msgid "没有更多了"
-msgstr "No more"
-
-#: frontend/mobile/src/views/task/canvas.vue:118
-msgid "执行详情"
-msgstr "Execution Detail"
-
-#: frontend/mobile/src/views/task/canvas.vue:121
-msgid "查看子流程"
-msgstr "View subprocess"
-
-#: frontend/mobile/src/views/task/canvas.vue:124
-msgid "跳过失败"
-msgstr "Skip failed"
-
-#: frontend/mobile/src/views/task/canvas.vue:127
-msgid "开始执行任务失败"
-msgstr "Execution task failed"
-
-#: frontend/mobile/src/views/task/canvas.vue:128
-#: frontend/mobile/src/views/task/nodes.vue:104
-#: frontend/mobile/src/views/task/reset.vue:81
-#: frontend/mobile/src/views/template/preview.vue:29
-msgid "加载中..."
-msgstr "Loading..."
-
-#: frontend/mobile/src/views/task/canvas.vue:257
-msgid "撤销成功"
-msgstr "Task revoked"
-
-#: frontend/mobile/src/views/task/canvas.vue:278
-msgid "暂停成功"
-msgstr "Task suspended"
-
-#: frontend/mobile/src/views/task/canvas.vue:305
-msgid "撤销任务?"
-msgstr "Revoked task?"
-
-#: frontend/mobile/src/views/task/create.vue:123
-msgid "执行所有节点"
-msgstr "Execution all nodes"
-
-#: frontend/mobile/src/views/task/create.vue:155
-msgid "方案"
-msgstr "Execution Scheme"
-
-#: frontend/mobile/src/views/task/create.vue:156
-msgid "预览流程图"
-msgstr "Preview"
-
-#: frontend/mobile/src/views/task/create.vue:158
-msgid "输入参数值"
-msgstr "Input Parameters"
-
-#: frontend/mobile/src/views/task/create.vue:161
-msgid "添加收藏成功"
-msgstr "Collect successfully"
-
-#: frontend/mobile/src/views/task/create.vue:162
-msgid "取消收藏成功"
-msgstr "Cancel collection successfully"
-
-#: frontend/mobile/src/views/task/list.vue:78
-msgid "搜索任务名称"
-msgstr "Search task name"
-
-#: frontend/mobile/src/views/task/list.vue:81
-msgid "至"
-msgstr " to "
-
-#: frontend/mobile/src/views/task/nodes.vue:108
-msgid "耗时(S)"
-msgstr "Time-consuming(s)"
-
-#: frontend/mobile/src/views/task/nodes.vue:112
-msgid "失败后自动忽略"
-msgstr "Auto Ignored"
-
-#: frontend/mobile/src/views/task/timing.vue:39
-#: pipeline_plugins/components/static/components/atoms/bk/timer.js:19
-msgid "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"
-msgstr "Seconds(s) or Datetime(%Y-%m-%d %H:%M:%S)"
-
-#: frontend/mobile/src/views/task/timing.vue:42
-#: pipeline_plugins/components/static/components/atoms/bk/timer.js:18
-msgid "定时时间"
-msgstr "Timing"
-
-#: frontend/mobile/src/views/task/timing.vue:75
-msgid "修改定时时间成功"
-msgstr "Reset timing successfully"
-
-#: frontend/mobile/src/views/template/index.vue:78
-msgid "收藏"
-msgstr "Collect"
 
 #: pipeline_plugins/components/static/components/atoms/bk/http.js:18
 msgid "请求方式"
@@ -3173,6 +3003,14 @@ msgstr "Title"
 #: pipeline_plugins/components/static/components/atoms/bk/notify.js:126
 msgid "通知内容"
 msgstr "Content"
+
+#: pipeline_plugins/components/static/components/atoms/bk/timer.js:18
+msgid "定时时间"
+msgstr "Timing"
+
+#: pipeline_plugins/components/static/components/atoms/bk/timer.js:19
+msgid "秒(s) 或 时间(%Y-%m-%d %H:%M:%S)"
+msgstr "Seconds(s) or Datetime(%Y-%m-%d %H:%M:%S)"
 
 #: pipeline_plugins/components/static/components/atoms/bk/timer.js:27
 msgid "请填写秒(s)且不超过8位数或时间(%Y-%m-%d %H:%M:%S)"
@@ -3531,12 +3369,6 @@ msgstr "Server API error:"
 msgid "文本框"
 msgstr "Textarea"
 
-#~ msgid "子模块名称"
-#~ msgstr "Sub Module Name"
-
-#~ msgid "已导入模块"
-#~ msgstr "Modules Imported"
-
 #~ msgid " 无数据 "
 #~ msgstr " No Data "
 
@@ -3560,6 +3392,9 @@ msgstr "Textarea"
 
 #~ msgid "logo-zh"
 #~ msgstr "logo-en"
+
+#~ msgid "执行详情"
+#~ msgstr "Execution Detail"
 
 #~ msgid "外链不支持打开轻应用，请在蓝鲸市场中打开此链接"
 #~ msgstr "Mini-APP cannot be opened outside Blueking desktop, please open it in Blueking App market"

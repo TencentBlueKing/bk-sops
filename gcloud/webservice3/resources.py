@@ -11,249 +11,62 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import datetime
 import logging
 
-from django.utils import timezone
+from django import forms
 from django.db.models import Q
-from django.forms.fields import BooleanField
 from django.utils.translation import ugettext_lazy as _
-from django.http.response import HttpResponseForbidden
-from guardian.shortcuts import get_objects_for_user
 from haystack.query import SearchQuerySet
 from tastypie import fields
-from tastypie.paginator import Paginator
-from tastypie.authorization import ReadOnlyAuthorization, Authorization
+from tastypie.validation import FormValidation
 from tastypie.constants import ALL
 from tastypie.exceptions import NotFound, ImmediateHttpResponse
 from tastypie.resources import ModelResource
-from tastypie.serializers import Serializer
+from tastypie.exceptions import BadRequest
+from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.http import HttpForbidden
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.resources import BkSaaSLabeledDataResourceMixin
 
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
 from pipeline.variable_framework.models import VariableModel
 from pipeline.component_framework.constants import LEGACY_PLUGINS_VERSION
 from gcloud import exceptions
-from gcloud.core.models import Business
+from gcloud.core.models import Business, Project
 from gcloud.core.utils import (
     name_handler,
     prepare_user_business,
 )
 from gcloud.core.api_adapter import is_user_functor, is_user_auditor
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
+from gcloud.core.permissions import project_resource
+from gcloud.webservice3.serializers import AppSerializer
 
 logger = logging.getLogger('root')
 
 
-def pipeline_node_name_handle(pipeline_tree):
-    for value in pipeline_tree.values():
-        if isinstance(value, dict):
-            for info in value.values():
-                if isinstance(info, dict) and 'name' in info:
-                    info['name'] = name_handler(info['name'],
-                                                TEMPLATE_NODE_NAME_MAX_LENGTH)
-            if 'name' in value:
-                value['name'] = name_handler(value['name'],
-                                             TEMPLATE_NODE_NAME_MAX_LENGTH)
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict) and 'name' in item:
-                    item['name'] = name_handler(item['name'],
-                                                TEMPLATE_NODE_NAME_MAX_LENGTH)
-
-
-def get_business_for_user(user, perms):
-    return get_objects_for_user(user, perms, Business, any_perm=True)
-
-
-class AppSerializer(Serializer):
-
-    def format_datetime(self, data):
-        # translate to time in local timezone
-        if timezone.is_aware(data):
-            data = timezone.localtime(data)
-        return data.strftime("%Y-%m-%d %H:%M:%S %z")
-
-    def format_date(self, data):
-        return data.strftime("%Y-%m-%d")
-
-    def format_time(self, data):
-        return datetime.time.strftime(data, "%H:%M:%S")
-
-
-class SuperAuthorization(Authorization):
-    """
-    @summary: common authorization
-        create/update/delete: only superuser
-        read: all users
-    """
-
-    def is_superuser(self, bundle):
-        if bundle.request.user.is_superuser:
-            return True
-        raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write common flows'))
-
-    def create_list(self, object_list, bundle):
-        return []
-
-    def create_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-
-class GCloudReadOnlyAuthorization(ReadOnlyAuthorization):
-
-    def _get_business_for_user(self, user, perms):
-        business_list = get_business_for_user(user, perms)
-        return business_list.exclude(status='disabled')
-
-    def _get_objects_for_user(self, object_list, bundle, perms):
-        user = bundle.request.user
-
-        if isinstance(bundle.obj, Business):
-            return object_list.filter(
-                pk__in=self._get_business_for_user(user, perms)
-            )
-        elif hasattr(bundle.obj, 'business_id'):
-            return object_list.filter(
-                business_id__in=self._get_business_for_user(user, perms)
-            )
-        else:
-            raise exceptions.BadResourceClass("Model %s.%s need foreign key 'business'" % (
-                bundle.obj.__class__._meta.app_label,
-                bundle.obj.__class__.__name__))
-
-    def _generic_read_list(self, object_list, bundle):
-        perms = ['view_business', 'manage_business']
-        return self._get_objects_for_user(object_list, bundle, perms)
-
-    def _generic_write_list(self, object_list, bundle):
-        perms = ['manage_business']
-        return self._get_objects_for_user(object_list, bundle, perms)
-
-    def read_list(self, object_list, bundle):
-        return self._generic_read_list(object_list, bundle)
-
-    def read_detail(self, object_list, bundle):
-        return bundle.obj in self.read_list(object_list, bundle)
-
-
-class GCloudGenericAuthorization(GCloudReadOnlyAuthorization):
-
-    def create_list(self, object_list, bundle):
-        return []
-
-    def create_detail(self, object_list, bundle):
-        if isinstance(bundle.obj, Business):
-            business = bundle.obj
-        elif hasattr(bundle.obj, 'business'):
-            business = getattr(bundle.obj, 'business')
-        else:
-            raise exceptions.BadResourceClass("Model %s.%s need foreign key 'business'" % (
-                bundle.obj.__class__._meta.app_label,
-                bundle.obj.__class__.__name__))
-
-        return self._get_business_for_user(bundle.request.user, perms=['manage_business']
-                                           ).filter(pk=business.pk).exists()
-
-    def update_list(self, object_list, bundle):
-        return self._generic_write_list(object_list, bundle)
-
-    def update_detail(self, object_list, bundle):
-        return self.update_list(object_list, bundle).filter(pk=bundle.obj.pk).exists()
-
-    def delete_list(self, object_list, bundle):
-        return self._generic_write_list(object_list, bundle)
-
-    def delete_detail(self, object_list, bundle):
-        return self.delete_list(object_list, bundle).filter(pk=bundle.obj.pk).exists()
-
-
-class PropertyFilterPaginator(Paginator):
-
-    def properties(self):
-        raise NotImplementedError()
-
-    def filter_objects(self, filter_items):
-        if not filter_items:
-            return
-
-        filtered = []
-
-        for obj in self.objects:
-
-            for item in filter_items:
-                if getattr(obj, item['p']) != item['v']:
-                    break
-            else:
-                filtered.append(obj)
-
-        setattr(self, '_objects', self.objects)
-        self.objects = filtered
-
-    def page(self):
-        """
-        Generates all pertinent data about the requested page.
-
-        Handles getting the correct ``limit`` & ``offset``, then slices off
-        the correct set of results and returns all pertinent metadata.
-        """
-        limit = self.get_limit()
-        offset = self.get_offset()
-
-        # do property filter work before page
-        filter_items = []
-        for prop, field in self.properties().items():
-            if prop in self.request_data:
-                filter_items.append({'p': prop,
-                                     'v': field.to_python(self.request_data[prop])})
-
-        self.filter_objects(filter_items)
-
-        # count after filter
-        count = self.get_count()
-
-        objects = self.get_slice(limit, offset)
-        meta = {
-            'offset': offset,
-            'limit': limit,
-            'total_count': count,
-        }
-
-        if limit:
-            meta['previous'] = self.get_previous(limit, offset)
-            meta['next'] = self.get_next(limit, offset, count)
-
-        return {
-            self.collection_name: objects,
-            'meta': meta,
-        }
-
-
-class TemplateFilterPaginator(PropertyFilterPaginator):
-    def properties(self):
-        return {'subprocess_has_update': BooleanField(),
-                'has_subprocess': BooleanField()}
-
-
-class GCloudModelResource(ModelResource):
+class GCloudModelResource(BkSaaSLabeledDataResourceMixin, ModelResource):
     login_exempt = False
 
+    def wrap_view(self, view):
+        view = super(GCloudModelResource, self).wrap_view(view)
+        setattr(view, "login_exempt", self.login_exempt)
+        return view
+
     def determine_format(self, request):
-        u"""强制指定返回数据格式为json"""
+        """
+        @summary: 强制指定返回数据格式为json
+        """
         return "application/json"
+
+    def unauthorized_result(self, exception):
+        """
+        @summary: return 403 if operation is forbidden, while default of tastypie is 401
+        @return:
+        """
+        raise ImmediateHttpResponse(response=HttpForbidden())
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
         if filters is None:
@@ -290,11 +103,6 @@ class GCloudModelResource(ModelResource):
         queryset = super(GCloudModelResource, self).apply_filters(request, applicable_filters)
         return queryset.filter(query) if query else queryset
 
-    def wrap_view(self, view):
-        view = super(GCloudModelResource, self).wrap_view(view)
-        setattr(view, "login_exempt", self.login_exempt)
-        return view
-
     def obj_delete(self, bundle, **kwargs):
         """
         A ORM-specific implementation of ``obj_delete``.
@@ -319,63 +127,86 @@ class GCloudModelResource(ModelResource):
         else:
             bundle.obj.delete()
 
-    def unauthorized_result(self, exception):
-        """
-        @summary：change default value 401 of tastypie to 403
-        @param exception:
-        @return:
-        """
-        raise ImmediateHttpResponse(response=HttpForbidden())
+    class Meta:
+        serializer = AppSerializer()
+        always_return_data = True
+        limit = 0
 
 
 class BusinessResource(GCloudModelResource):
-    class Meta:
-        queryset = Business.objects.exclude(status='disabled')
-        list_allowed_methods = ['get']
-        detail_allowed_methods = ['get']
-        authorization = GCloudReadOnlyAuthorization()
+    class Meta(GCloudModelResource.Meta):
+        queryset = Business.objects.exclude(status='disabled') \
+                                   .exclude(life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")])
+        authorization = ReadOnlyAuthorization()
         resource_name = 'business'
         detail_uri_name = 'cc_id'
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             "cc_id": ALL,
             "cc_name": ALL,
             "cc_owner": ALL,
             "cc_company": ALL,
         }
-        limit = 0
-
-    def get_object_list(self, request):
-        if is_user_functor(request) or is_user_auditor(request):
-            return super(BusinessResource, self).get_object_list(request)
-        all_flag = request.GET.get('all', '0')
-        if request.user.is_superuser and str(all_flag) == '1':
-            return super(BusinessResource, self).get_object_list(request)
-        try:
-            # fetch business from CMDB
-            biz_list = prepare_user_business(request)
-        except Exception as e:
-            logger.error(u'get business list[username=%s] from CMDB raise error: %s' % (request.user.username, e))
-            return super(BusinessResource, self).get_object_list(request)
-        cc_id_list = [biz.cc_id for biz in biz_list]
-        return super(BusinessResource, self).get_object_list(request).filter(cc_id__in=cc_id_list)
 
 
-class ComponentModelResource(ModelResource):
+class ProjectForm(forms.Form):
+    name = forms.CharField(max_length=256)
+    desc = forms.CharField(max_length=512, required=False)
+
+
+class ProjectResource(GCloudModelResource):
+    create_at = fields.DateTimeField(attribute='create_at', readonly=True)
+    from_cmdb = fields.BooleanField(attribute='from_cmdb', readonly=True)
+    bk_biz_id = fields.IntegerField(attribute='bk_biz_id', readonly=True)
+
+    ALLOW_UPDATE_FIELD = ['desc', 'is_disable']
+
+    class Meta(GCloudModelResource.Meta):
+        queryset = Project.objects.all().order_by('-id')
+        validation = FormValidation(form_class=ProjectForm)
+        resource_name = 'project'
+        auth_resource = project_resource
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit')
+        filtering = {
+            "id": ALL,
+            "name": ALL,
+            "creator": ALL,
+            "from_cmdb": ALL,
+            "bk_biz_id": ALL,
+            "is_disable": ALL,
+        }
+        q_fields = ['id', 'name', 'desc', 'creator']
+
+    def obj_create(self, bundle, **kwargs):
+        bundle.data['creator'] = bundle.request.user.username
+        return super(ProjectResource, self).obj_create(bundle, **kwargs)
+
+    def obj_update(self, bundle, skip_errors=False, **kwargs):
+        update_data = {}
+        for field in self.ALLOW_UPDATE_FIELD:
+            update_data[field] = bundle.data.get(field, getattr(bundle.obj, field))
+
+        bundle.data = update_data
+
+        return super(ProjectResource, self).obj_update(bundle, skip_errors, **kwargs)
+
+    def obj_delete(self, bundle, **kwargs):
+        raise BadRequest("can not delete project")
+
+
+class ComponentModelResource(GCloudModelResource):
     group_icon = fields.CharField(
         attribute='group_icon',
         readonly=True,
         null=True)
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = ComponentModel.objects.filter(status=True).order_by('name')
         resource_name = 'component'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
-        ordering = ['name']
         authorization = ReadOnlyAuthorization()
-        limit = 0
 
     def build_filters(self, filters=None, ignore_bad_filters=False):
         orm_filters = super(ComponentModelResource, self).build_filters(filters=filters,
@@ -404,6 +235,7 @@ class ComponentModelResource(ModelResource):
         return data
 
     def alter_detail_data_to_serialize(self, request, data):
+        data = super(ComponentModelResource, self).alter_detail_data_to_serialize(request, data)
         bundle = data
         component = ComponentLibrary.get_component_class(bundle.data['code'], bundle.data['version'])
         bundle.data['output'] = component.outputs_format()
@@ -418,7 +250,7 @@ class ComponentModelResource(ModelResource):
         return data
 
 
-class VariableModelResource(ModelResource):
+class VariableModelResource(GCloudModelResource):
     name = fields.CharField(
         attribute='name',
         readonly=True,
@@ -440,11 +272,9 @@ class VariableModelResource(ModelResource):
         readonly=True,
         null=True)
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = VariableModel.objects.filter(status=True)
         resource_name = 'variable'
         excludes = ['status', 'id']
         detail_uri_name = 'code'
-        ordering = ['id']
         authorization = ReadOnlyAuthorization()
-        limit = 0

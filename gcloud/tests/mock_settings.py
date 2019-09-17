@@ -13,8 +13,13 @@ specific language governing permissions and limitations under the License.
 
 BUSINESS_GET = 'gcloud.core.models.Business.objects.get'
 
+PROJECT_GET = 'gcloud.core.models.Project.objects.get'
+PROJECT_FILTER = 'gcloud.core.models.Project.objects.filter'
+
 TASKTEMPLATE_SELECT_RELATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.select_related'
 TASKTEMPLATE_GET = 'gcloud.tasktmpl3.models.TaskTemplate.objects.get'
+TASKTEMPLATE_CREATE_PIPELINE_TEMPLATE = 'gcloud.tasktmpl3.models.TaskTemplate.objects.create_pipeline_template'
+TASKTEMPLATE_MODEL = 'gcloud.tasktmpl3.models.TaskTemplate.objects.model'
 
 COMMONTEMPLATE_SELECT_RELATE = 'gcloud.commons.template.models.CommonTemplate.objects.select_related'
 COMMONTEMPLATE_IMPORT_TEMPLATES = 'gcloud.commons.template.models.CommonTemplate.objects.import_templates'
@@ -33,16 +38,20 @@ TASKINSTANCE_HAS_NODE = 'gcloud.taskflow3.models.TaskFlowInstance.has_node'
 PERIODIC_TASK_FILTER = 'gcloud.periodictask.models.PeriodicTask.objects.filter'
 PERIODIC_TASK_GET = 'gcloud.periodictask.models.PeriodicTask.objects.get'
 PERIODIC_TASK_CREATE = 'gcloud.periodictask.models.PeriodicTask.objects.create'
+PERIODIC_TASK_PIPELINE_PERIODIC_TASK_CREATE_TASK = 'gcloud.periodictask.models.PipelinePeriodicTask.objects.create_task'
+
+PERIODIC_TASK_HISTORY_CREATE = 'gcloud.periodictask.models.PeriodicTaskHistory.objects.create'
 
 APIGW_BIZ_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_business'
 APIGW_TASK_PERM_DECORATOR = 'gcloud.apigw.decorators.api_check_user_perm_of_task'
 APIGW_VIEW_JSON_SCHEMA_VALIDATE = 'gcloud.apigw.views.jsonschema.validate'
-APIGW_VIEW_CHECK_WHITE_LIST = 'gcloud.apigw.views.check_white_apps'
 APIGW_VIEW_PIPELINE_API_GET_STATUS_TREE = 'gcloud.apigw.views.pipeline_api.get_status_tree'
 APIGW_DECORATOR_CHECK_WHITE_LIST = 'gcloud.apigw.decorators.check_white_apps'
 APIGW_DECORATOR_GET_USER_MODEL = 'gcloud.apigw.decorators.get_user_model'
-APIGW_DECORATOR_PREPARE_USER_BUSINESS = 'gcloud.apigw.decorators.prepare_user_business'
 APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
+
+APIGW_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.ComponentModel.objects.filter'
+APIGW_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.ComponentLibrary.get_component_class'
 
 MAIN_PACKAGE_SOURCE_GET = 'gcloud.external_plugins.models.main_source.MainPackageSource.objects.get'
 
@@ -56,3 +65,20 @@ GIT_REPO_SOURCE_GET = 'gcloud.external_plugins.models.sync_source.GitRepoSyncSou
 
 APIGW_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.read_encoded_template_data'
 APIGW_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.replace_template_id'
+
+CORE_PROJECT_GET_USER_BUSINESS_LIST = 'gcloud.core.project.get_user_business_list'
+
+CORE_MODEL_BUSINESS_UPDATE_OR_CREATE = 'gcloud.core.models.Business.objects.update_or_create'
+
+CORE_MODEL_PROJECT_SYNC_PROJECT = 'gcloud.core.models.Project.objects.sync_project_from_cmdb_business'
+
+CORE_MODEL_USER_DEFAULT_PROJECT_INIT_USER_DEFAULT_PROJECT = \
+    'gcloud.core.models.UserDefaultProject.objects.init_user_default_project'
+
+PIPELINE_TEMPLATE_WEB_WRAPPER_UNFOLD_SUBPROCESS = 'pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess'
+
+PROJECT_RESOURCE_BATCH_REGISTER_INSTANCE = 'gcloud.core.permissions.project_resource.batch_register_instance'
+
+GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ID_FOR = 'gcloud.contrib.auth.backend.utils.resource_id_for'
+GCLOUD_CONTRIB_AUTH_BACKEND_UTILS_RESOURCE_ACTIONS_FOR = 'gcloud.contrib.auth.backend.utils.resource_actions_for'
+GCLOUD_CONTRIB_AUTH_BACKEND_GET_USER_MODEL = 'gcloud.contrib.auth.backend.get_user_model'

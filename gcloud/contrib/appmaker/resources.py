@@ -11,27 +11,34 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.http.response import HttpResponseForbidden
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse
+from tastypie.exceptions import BadRequest
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 
 from gcloud.conf import settings
 from gcloud.tasktmpl3.resources import TaskTemplateResource
 from gcloud.webservice3.resources import (
-    get_business_for_user,
     GCloudModelResource,
-    BusinessResource,
-    AppSerializer,
-    GCloudGenericAuthorization,
+    ProjectResource,
 )
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.appmaker.permissions import mini_app_resource
+
+
+class OnlyDeleteDetailAuthorization(BkSaaSLooseAuthorization):
+    def create_detail(self, object_list, bundle):
+        return False
+
+    def update_detail(self, object_list, bundle):
+        return False
 
 
 class AppMakerResource(GCloudModelResource):
-    business = fields.ForeignKey(
-        BusinessResource,
-        'business',
+    project = fields.ForeignKey(
+        ProjectResource,
+        'project',
         full=True
     )
     creator_name = fields.CharField(
@@ -69,15 +76,15 @@ class AppMakerResource(GCloudModelResource):
         null=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = AppMaker.objects.filter(is_deleted=False)
         resource_name = 'appmaker'
-        excludes = []
-        authorization = GCloudGenericAuthorization()
-        always_return_data = True
-        serializer = AppSerializer()
+        auth_resource = mini_app_resource
+        authorization = OnlyDeleteDetailAuthorization(auth_resource=auth_resource,
+                                                      read_action_id='view',
+                                                      update_action_id='edit')
         filtering = {
-            "business": ALL_WITH_RELATIONS,
+            "project": ALL_WITH_RELATIONS,
             "template": ALL_WITH_RELATIONS,
             "name": ALL,
             "creator": ALL,
@@ -85,7 +92,6 @@ class AppMakerResource(GCloudModelResource):
             'create_time': ['gte', 'lte'],
             'edit_time': ['gte', 'lte'],
         }
-        limit = 0
 
     def obj_delete(self, bundle, **kwargs):
         try:
@@ -93,10 +99,7 @@ class AppMakerResource(GCloudModelResource):
             appmaker = AppMaker.objects.get(pk=appmaker_id)
         except Exception:
             raise BadRequest('appmaker[id=%s] does not exist' % appmaker_id)
-        biz_cc_id = appmaker.business.cc_id
-        business = get_business_for_user(bundle.request.user, ['manage_business'])
-        if not business.filter(cc_id=biz_cc_id).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permissions to delete appmaker'))
+        project_id = appmaker.project.id
 
         if settings.IS_LOCAL:
             fake = True
@@ -104,7 +107,7 @@ class AppMakerResource(GCloudModelResource):
             fake = False
 
         result, data = AppMaker.objects.del_app_maker(
-            biz_cc_id, appmaker_id, fake
+            project_id, appmaker_id, fake
         )
         if not result:
             raise BadRequest(data)
