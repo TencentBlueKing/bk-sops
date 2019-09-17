@@ -203,6 +203,7 @@
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
     import atomFilter from '@/utils/atomFilter.js'
+    import formSchema from '@/utils/formSchema.js'
     import { random4 } from '@/utils/uuid.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -1097,6 +1098,10 @@
                         const variableOpts = {
                             name, key: variableKey, source_tag, source_info, custom_type, value, validation, version: variableVersion
                         }
+                        variableOpts.form_schema = formSchema.get(
+                            custom_type,
+                            this.atomFormConfig[custom_type][variableVersion]
+                        )
                         this.$set(this.inputAtomData, key, variableKey)
                         this.createVariable(variableOpts) // input arguments hook
                     }

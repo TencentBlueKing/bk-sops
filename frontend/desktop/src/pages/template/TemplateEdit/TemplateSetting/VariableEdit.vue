@@ -153,6 +153,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
+    import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import VariableEditDialog from './VariableEditDialog.vue'
 
@@ -534,6 +535,10 @@
                     if (this.isNewVariable) { // 新增变量
                         variable.index = constantsLength
                         variable.version = 'legacy'
+                        variable.form_schema = formSchema.get(
+                            variable.custom_type,
+                            this.atomFormConfig[variable.custom_type][variable.version]
+                        )
                         this.addVariable(tools.deepClone(variable))
                     } else { // 编辑变量
                         this.editVariable({ key: this.variableData.key, variable })
