@@ -142,24 +142,13 @@ const tools = {
         }
     },
     /**
-     * 判断对象多级属性是否存在
-     * @param {String} path 路径（obj>>a>>b）
-     * @param {Object} object 对象
+     * 判断 atom 配置文件是否存在
+     * @param {String} atomType 插件类型
+     * @param {Object} version 插件版本
+     * @param {Object} atomFormConfig 所有配置
      */
-    isKeyExists (path, object) {
-        if (!object) {
-            return false
-        }
-        const pathList = path.split('>>')
-        let obj = object
-        for (const i in pathList) {
-            const key = pathList[i]
-            if (!obj[key]) {
-                return false
-            }
-            obj = obj[key]
-        }
-        return true
+    isKeyExists (atomType, version, atomFormConfig) {
+        return atomFormConfig[atomType] && atomFormConfig[atomType][version]
     }
 }
 

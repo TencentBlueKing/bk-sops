@@ -434,7 +434,7 @@
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
-                        if (!tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
+                        if (!tools.isKeyExists(atomType, version, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify, saveName: atom })
                         }
                         const atomConfig = this.atomFormConfig[atom][version]

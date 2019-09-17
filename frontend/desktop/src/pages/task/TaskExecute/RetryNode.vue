@@ -107,7 +107,7 @@
                 }
             },
             async getNodeConfig (type, version) {
-                if (tools.isKeyExists(`${type}>>${version}`, this.atomFormConfig)) {
+                if (tools.isKeyExists(type, version, this.atomFormConfig)) {
                     return this.atomFormConfig[type][version]
                 } else {
                     try {
