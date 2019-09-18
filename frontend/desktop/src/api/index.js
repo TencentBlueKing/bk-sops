@@ -455,6 +455,20 @@ const api = {
         }
         return request(opts)
     },
+    getLayoutedPipeline (data) {
+        const { width, pipelineTree } = data
+        const prefixUrl = this.getPrefix('templateAutoDraw')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                canvas_width: width,
+                pipeline_tree: pipelineTree
+            }
+        }
+        return request(opts)
+    },
     /**
      * 获取任务列表
      * @param {Object} data 筛选条件
