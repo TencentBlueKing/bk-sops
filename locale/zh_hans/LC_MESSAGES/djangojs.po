@@ -147,32 +147,32 @@ msgstr "0 表示星期天，6 表示星期六"
 msgid "task-zh"
 msgstr "task-zh"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:78
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:77
 #: frontend/desktop/src/components/common/PipelineCanvas/MenuBar.vue:152
 msgid "请输入名称"
 msgstr "请输入名称"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:79
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:78
 #: frontend/desktop/src/pages/home/HomeSummary.vue:93
 msgid "新建流程"
 msgstr "新建流程"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:80
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:79
 msgid "编辑流程"
 msgstr "编辑流程"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:81
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:80
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:112
 #: frontend/desktop/src/pages/task/TaskStep.vue:52
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:289
 msgid "新建任务"
 msgstr "新建任务"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:82
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:81
 msgid "保存并新建任务"
 msgstr "保存并新建任务"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:83
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:82
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:148
 #: frontend/desktop/src/pages/config/index.vue:71
 #: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:129
@@ -2720,11 +2720,11 @@ msgstr "新增流程本地缓存成功"
 msgid "替换流程自动保存"
 msgstr "替换流程自动保存"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:365
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:366
 msgid "普通变量"
 msgstr "普通变量"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:369
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:370
 msgid "元变量"
 msgstr "元变量"
 
