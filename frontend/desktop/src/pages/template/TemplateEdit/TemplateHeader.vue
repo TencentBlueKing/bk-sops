@@ -10,34 +10,29 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper">
-        <div class="config-title-wrapper">
-            <span class="title-border">|</span>
-            <span class="title-text">{{templateTitle}}</span>
-        </div>
-        <div class="config-name-wrapper">
+    <div class="template-header-wrapper">
+        <base-title class="template-title" :title="title"></base-title>
+        <div class="template-name-input">
             <div class="name-show-mode" v-if="isShowMode">
                 <h3 class="canvas-name" :title="tName">{{tName}}</h3>
                 <span class="common-icon-edit" @click="onNameEditing"></span>
             </div>
-            <BaseInput
+            <bk-input
                 v-else
-                class="canvas-name-input"
                 ref="canvasNameInput"
-                :title="tName"
-                v-model="tName"
-                :placeholder="i18n.placeholder"
                 v-validate="templateNameRule"
                 data-vv-name="templateName"
                 :name="'templateName'"
                 :has-error="errors.has('templateName')"
+                :value="name"
+                :placeholder="i18n.placeholder"
                 @input="onInputName"
-                @blur="onInputBlur"
-                @enter="onInputBlur">
-            </BaseInput>
+                @enter="onInputBlur"
+                @blur="onInputBlur">
+            </bk-input>
             <span class="name-error common-error-tip error-msg">{{ errors.first('templateName') }}</span>
         </div>
-        <div class="canvas-operation-wrapper">
+        <div class="button-area">
             <bk-button
                 theme="primary"
                 :class="['save-canvas', {
@@ -46,7 +41,7 @@
                 :loading="templateSaving"
                 v-cursor="{ active: !isSaveBtnEnable }"
                 @click="onSaveTemplate(false)">
-                {{ i18n.save }}
+                {{i18n.save}}
             </bk-button>
             <bk-button
                 v-if="isShowNewTask"
@@ -57,9 +52,9 @@
                 :loading="createTaskSaving"
                 v-cursor="{ active: !isSaveAndCreateBtnEnable }"
                 @click="onSaveTemplate(true)">
-                {{ createTaskBtnText }}
+                {{createTaskBtnText}}
             </bk-button>
-            <router-link class="bk-button bk-default canvas-btn" :to="getHomeUrl()">{{ i18n.return }}</router-link>
+            <router-link class="bk-button bk-default" :to="getHomeUrl()">{{i18n.back}}</router-link>
         </div>
     </div>
 </template>
@@ -67,37 +62,85 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import permission from '@/mixins/permission.js'
+    import BaseTitle from '@/components/common/base/BaseTitle.vue'
 
     export default {
-        name: 'ConfigBar',
+        name: 'TemplateHeader',
         components: {
-            BaseInput
+            BaseTitle
         },
         mixins: [permission],
-        props: [
-            'name', 'project_id', 'template_id', 'type', 'common', 'templateSaving',
-            'createTaskSaving', 'isTemplateDataChanged', 'tplResource', 'tplActions', 'tplOperations'
-        ],
+        props: {
+            type: {
+                type: String,
+                default: 'edit'
+            },
+            name: {
+                type: String,
+                default: ''
+            },
+            template_id: {
+                type: [String, Number],
+                default: ''
+            },
+            project_id: {
+                type: [String, Number],
+                default: ''
+            },
+            common: {
+                type: String,
+                default: ''
+            },
+            templateSaving: {
+                type: Boolean,
+                default: false
+            },
+            createTaskSaving: {
+                type: Boolean,
+                default: false
+            },
+            isTemplateDataChanged: {
+                type: Boolean,
+                default: false
+            },
+            tplResource: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            tplActions: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplOperations: {
+                type: Array,
+                default () {
+                    return []
+                }
+            }
+        },
         data () {
             return {
-                i18n: {
-                    placeholder: gettext('请输入名称'),
-                    NewProcess: gettext('新建流程'),
-                    editProcess: gettext('编辑流程'),
-                    addTask: gettext('新建任务'),
-                    saveTplAndcreateTask: gettext('保存并新建任务'),
-                    save: gettext('保存'),
-                    return: gettext('返回')
-                },
                 tName: this.name.trim(),
                 templateNameRule: {
                     required: true,
                     max: STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH,
                     regex: NAME_REG
                 },
-                isShowMode: true
+                isShowMode: true,
+                i18n: {
+                    placeholder: gettext('请输入名称'),
+                    create: gettext('新建流程'),
+                    edit: gettext('编辑流程'),
+                    save: gettext('保存'),
+                    createTask: gettext('新建任务'),
+                    saveAndCreateTask: gettext('保存并新建任务'),
+                    back: gettext('返回')
+                }
             }
         },
         computed: {
@@ -106,14 +149,14 @@
                 'authOperations': state => state.authOperations,
                 'authResource': state => state.authResource
             }),
-            templateTitle () {
-                return this.$route.query.template_id === undefined ? this.i18n.NewProcess : this.i18n.editProcess
+            title () {
+                return this.$route.query.template_id === undefined ? this.i18n.create : this.i18n.edit
             },
             isSaveAndCreateTaskType () {
                 return this.isTemplateDataChanged || this.type === 'new' || this.type === 'clone'
             },
             createTaskBtnText () {
-                return this.isSaveAndCreateTaskType ? this.i18n.saveTplAndcreateTask : this.i18n.addTask
+                return this.isSaveAndCreateTaskType ? this.i18n.saveAndCreateTask : this.i18n.createTask
             },
             createTaskBtnIsPass () {
                 if (this.type === 'new') {
@@ -234,8 +277,9 @@
             onNameEditing () {
                 this.isShowMode = false
                 this.$nextTick(() => {
+                    const inputEl = this.$refs.canvasNameInput.$el.getElementsByClassName('bk-form-input')[0]
                     this.$refs.canvasNameInput.focus()
-                    this.$refs.canvasNameInput.select()
+                    inputEl.select()
                 })
             },
             onInputBlur () {
@@ -250,31 +294,19 @@
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-.config-wrapper {
-    position: relative;
-    height: 60px;
-    background: #f4f7fa;
-    border-bottom: 1px solid $commonBorderColor;
-    text-align: center;
-    .config-title-wrapper {
-        float: left;
-        margin: 19px 0 0 20px;
-        .title-border {
-            color: #a3c5fd;
+    .template-header-wrapper {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        height: 59px;
+        background: #f4f7fa;
+        border: 1px solid #cacedb;
+        .template-name-input {
+            position: relative;
+            width: 430px;
+            text-align: center;
         }
-        .title-text {
-            line-height: 20px;
-            margin-left: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            color:#313238;
-        }
-    }
-    .config-name-wrapper {
-        margin: 0 auto;
-        padding-top: 15px;
-        width: 430px;
         .name-show-mode {
             display: inline-block;
         }
@@ -287,7 +319,7 @@
             font-size: 14px;
             font-weight: normal;
             overflow: hidden;
-            text-overflow:ellipsis;
+            text-overflow: ellipsis;
             white-space: nowrap;
             color: #606266;
         }
@@ -301,36 +333,12 @@
                 color: #3480ff;
             }
         }
-        .canvas-name-input {
-            padding: 4px 10px;
-            max-width: 400px;
-            height: auto;
-            line-height: 12px;
-            font-size: 14px;
-            overflow: hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-            border: 1px solid $commonBorderColor;
-            outline: none;
-            &:focus {
-                border-color: $blueDefault;
-            }
-        }
         .name-error {
             position: absolute;
             margin: 7px 0 0 10px;
+            right: 0;
+            top: 6px;
             font-size: 12px;
         }
     }
-    .canvas-operation-wrapper {
-        position: absolute;
-        top: 14px;
-        right: 20px;
-        .canvas-btn {
-            &:not(:last-child) {
-                margin-right: 10px;
-            }
-        }
-    }
-}
 </style>

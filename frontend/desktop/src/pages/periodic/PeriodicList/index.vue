@@ -167,10 +167,10 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
-            :cc_id="cc_id"
+            type="periodic"
+            :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
-            :create-entrance="false"
             :task-category="taskCategory"
             :dialog-title="i18n.dialogTitle"
             @onCreateTaskCancel="onCreateTaskCancel">
@@ -300,7 +300,7 @@
                 'deletePeriodic'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             async getPeriodicList () {
                 this.listLoading = true
@@ -332,8 +332,8 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
-                    this.taskCategory = bizBasicInfo.task_categories
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -541,28 +541,6 @@
             }
             .bk-selector-search-item > input {
                 min-width: 249px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 32px 0 10px;
-                font-size: 14px;
-                color: $greyDefault;
-                border: 1px solid $formBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                    & + i {
-                        color: $blueDefault;
-                    }
-                }
-            }
-            .search-input.placeholder {
-                color: $formBorderColor;
             }
         }
     }

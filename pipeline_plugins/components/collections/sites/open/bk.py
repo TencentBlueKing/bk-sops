@@ -109,6 +109,7 @@ class NotifyService(Service):
                             schema=StringItemSchema(description=_(u'通知接口的返回码'))),
             self.OutputItem(name=_(u'信息'),
                             key='message',
+                            type='string',
                             schema=StringItemSchema(description=_(u'通知接口返回的信息')))]
 
     def execute(self, data, parent_data):

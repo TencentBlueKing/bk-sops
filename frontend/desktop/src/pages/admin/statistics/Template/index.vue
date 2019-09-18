@@ -26,8 +26,8 @@
                                 <bk-option
                                     v-for="(option, index) in allProjectList"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -41,7 +41,6 @@
                                 @open-change="onShutTimeSelector"
                                 @change="onChangeCategoryTime">
                             </bk-date-picker>
-                            <!-- <i :class="['bk-icon icon-angle-down', { 'icon-flip': showClassifyDatePanel }]"></i> -->
                         </div>
                     </div>
                 </div>
@@ -110,8 +109,8 @@
                                     <bk-option
                                         v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -172,8 +171,8 @@
                                     <bk-option
                                         v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -416,7 +415,7 @@
         created () {
             this.getDateTime()
             this.onTemplateCategory(null)
-            this.onTemplateBizCcId(null)
+            this.onSelectProject(null)
             this.onTemplateNode()
         },
         methods: {
@@ -692,11 +691,6 @@
     display: inline-block;
     width: 260px;
     background-color: #ffffff;
-}
-.bk-date-range {
-    position: relative;
-    left: 20px;
-    border-right: 35px solid rgba(0,0,0,0);
 }
 .icon-angle-down {
     transition: all linear 0.2s;

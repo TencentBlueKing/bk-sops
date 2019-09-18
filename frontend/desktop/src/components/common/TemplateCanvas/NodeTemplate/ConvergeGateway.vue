@@ -10,21 +10,20 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="node-canvas">
+    <div :class="['circle-node', 'converge-gateway', node.status ? node.status.toLowerCase() : '']">
+        <div class="node-type-icon common-icon-node-convergegateway"></div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
     export default {
-        name: 'NodeCanvas'
+        name: 'ConvergeGateway',
+        props: {
+            node: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            }
+        }
     }
 </script>
-<style lang="scss" scoped>
-    @import '../../../scss/config.scss';
-    .node-canvas {
-        width: calc(100% - 60px);
-        height: calc(100% - 50px);
-        background: #e1e4e8;
-        background-size: 10px 10px;
-    }
-</style>

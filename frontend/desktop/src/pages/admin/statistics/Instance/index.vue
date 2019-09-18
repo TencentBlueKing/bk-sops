@@ -26,8 +26,8 @@
                                 <bk-option
                                     v-for="(option, index) in allProjectList"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -96,8 +96,8 @@
                             <bk-option
                                 v-for="(option, index) in allProjectList"
                                 :key="index"
-                                :id="option.cc_id"
-                                :name="option.cc_name">
+                                :id="option.id"
+                                :name="option.name">
                             </bk-option>
                         </bk-select>
                     </div>
@@ -177,8 +177,8 @@
                                     <bk-option
                                         v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -240,8 +240,8 @@
                                     <bk-option
                                         v-for="(option, index) in projectList"
                                         :key="index"
-                                        :id="option.cc_id"
-                                        :name="option.cc_name">
+                                        :id="option.id"
+                                        :name="option.name">
                                     </bk-option>
                                 </bk-select>
                             </div>
@@ -872,11 +872,6 @@
     display: inline-block;
     width: 260px;
     background-color: #ffffff;
-}
-.bk-date-range {
-    position: relative;
-    left: 20px;
-    border-right: 35px solid rgba(0,0,0,0);
 }
 .content-date-picker {
     vertical-align: top;

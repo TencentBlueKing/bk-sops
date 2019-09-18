@@ -51,9 +51,8 @@
             'allFinished',
             'common',
             'instanceName',
-            'cc_id',
+            'project_id',
             'taskStatus',
-            'templateSource',
             'template_id',
             'isFunctional'
         ],
@@ -125,15 +124,15 @@
              */
             getHomeUrl () {
                 const backObj = {
-                    'business': `/template/home/${this.cc_id}/`,
-                    'periodicTask': `/periodic/home/${this.cc_id}/`,
-                    'taskflow': `/taskflow/home/${this.cc_id}/`,
-                    'common': `/template/common/${this.cc_id}/`,
+                    'business': `/template/home/${this.project_id}/`,
+                    'periodicTask': `/periodic/home/${this.project_id}/`,
+                    'taskflow': `/taskflow/home/${this.project_id}/`,
+                    'common': `/template/common/${this.project_id}/`,
                     'adminCommon': '/admin/common/template/',
-                    'templateEdit': `/template/edit/${this.cc_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
+                    'templateEdit': `/template/edit/${this.project_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
                     'functor': `/function/home/`,
                     'auditor': `/audit/home/`,
-                    'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.cc_id}/`
+                    'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.project_id}/`
                 }
                 const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
                 const entrance = this.$route.query.entrance || ''

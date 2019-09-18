@@ -16,7 +16,7 @@
             <div class="list-header">
                 <bk-button
                     v-cursor="{ active: !hasPermission(['create'], projectActions, authOperations) }"
-                    type="primary"
+                    theme="primary"
                     :class="['create-project-btn', {
                         'btn-permission-disable': !hasPermission(['create'], projectActions, authOperations)
                     }]"
@@ -24,133 +24,99 @@
                     {{i18n.createProject}}
                 </bk-button>
                 <div class="filter-area">
-                    <div class="switch-status" @click="onClosedProjectToggle">
-                        <span :class="['checkbox', { checked: isClosedShow }]"></span>
-                        <span class="checkbox-name">{{i18n.showClosedProject}}</span>
-                    </div>
+                    <bk-checkbox v-model="isClosedShow" @change="onClosedProjectToggle">{{i18n.showClosedProject}}</bk-checkbox>
                     <div class="search-input">
-                        <BaseInput
+                        <bk-input
                             v-model="searchStr"
                             class="search-input"
+                            :right-icon="'bk-icon icon-search'"
                             :placeholder="i18n.placeholder"
                             @input="onSearchInput">
-                        </BaseInput>
-                        <i class="common-icon-search"></i>
+                        </bk-input>
                     </div>
                 </div>
             </div>
             <div class="project-table-content">
-                <table class="project-table" v-bkloading="{ isLoading: loading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th width="10%">ID</th>
-                            <th width="30%">{{ i18n.projectName}}</th>
-                            <th width="40%">{{ i18n.projectDesc}}</th>
-                            <th width="10%">{{ i18n.creator }}</th>
-                            <th width="10%">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in projectList" :key="item.id">
-                            <td>{{item.id}}</td>
-                            <td><div class="project-name" :title="item.name">{{item.name}}</div></td>
-                            <td><div class="project-desc" :title="item.desc">{{item.desc || '--' }}</div></td>
-                            <td>{{item.creator}}</td>
-                            <td>
+                <bk-table
+                    class="project-table"
+                    :data="projectList"
+                    :pagination="pagination"
+                    v-bkloading="{ isLoading: loading, opacity: 1 }"
+                    @page-change="onPageChange">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.projectName" prop="name"></bk-table-column>
+                    <bk-table-column :label="i18n.projectDesc">
+                        <template slot-scope="props">
+                            {{props.row.desc || '--'}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <template
+                                v-for="(item, index) in OptBtnList">
                                 <bk-button
-                                    v-cursor="{ active: !hasPermission(['view'], item.auth_actions, projectOperations) }"
+                                    v-if="isShowOptBtn(props.row.is_disable, item.name)"
+                                    v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions, projectOperations) }"
+                                    :key="index"
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['view'], item.auth_actions, projectOperations)
+                                        'btn-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
                                     }]"
-                                    type="default"
-                                    @click="onViewProject(item)">
-                                    {{i18n.view}}
+                                    theme="default"
+                                    @click="onClickOptBtn(props.row, item.name)">
+                                    {{item.text}}
                                 </bk-button>
-                                <bk-button
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
-                                    :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
-                                    }]"
-                                    type="default"
-                                    @click="onEditProject(item)">
-                                    {{i18n.edit}}
-                                </bk-button>
-                                <bk-button
-                                    v-if="item.is_disable"
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
-                                    :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
-                                    }]"
-                                    type="default"
-                                    @click="onChangeProjectStatus(item, 'start')">
-                                    {{i18n.start}}
-                                </bk-button>
-                                <bk-button
-                                    v-else
-                                    v-cursor="{ active: !hasPermission(['edit'], item.auth_actions, projectOperations) }"
-                                    :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission(['edit'], item.auth_actions, projectOperations)
-                                    }]"
-                                    type="default"
-                                    @click="onChangeProjectStatus(item, 'stop')">
-                                    {{i18n.stop}}
-                                </bk-button>
-                            </td>
-                        </tr>
-                        <tr v-if="!projectList.length" class="empty-tr">
-                            <td colspan="4">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
-                </div>
+                            </template>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
         <bk-dialog
-            v-if="isProjectDialogShow"
-            :quick-close="false"
-            :has-header="true"
-            :ext-cls="'common-dialog'"
-            :title="projectDialogTitle"
-            :is-show.sync="isProjectDialogShow"
             width="600"
             padding="30px 20px"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="projectDialogTitle"
+            :value="isProjectDialogShow"
             @confirm="onProjectConfirm"
             @cancel="onEditProjectCancel">
-            <div slot="content" class="dialog-content">
+            <div class="dialog-content">
                 <div class="common-form-item">
                     <label class="required">{{ i18n.name }}</label>
                     <div class="common-form-content">
-                        <BaseInput
+                        <bk-input
                             name="projectName"
                             :disabled="dialogType === 'edit'"
                             v-model="projectDetail.name"
                             data-vv-validate-on=" "
                             v-validate="nameRule">
-                        </BaseInput>
+                        </bk-input>
                         <span v-show="errors.has('projectName')" class="common-error-tip error-msg">{{ errors.first('projectName') }}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
                     <label class="required">{{ i18n.timeZone }}</label>
                     <div class="common-form-content">
-                        <bk-selector
+                        <bk-select
+                            v-model="projectDetail.timeZone"
+                            class="bk-select-inline"
+                            :popover-width="260"
+                            :searchable="true"
                             :disabled="dialogType === 'edit'"
-                            :list="timeZoneList"
-                            :selected="projectDetail.timeZone"
-                            @item-selected="onChangeTimeZone">
-                        </bk-selector>
+                            :placeholder="i18n.statusPlaceholder"
+                            @selected="onChangeTimeZone">
+                            <bk-option
+                                v-for="(option, index) in timeZoneList"
+                                :key="index"
+                                :id="option.id"
+                                :name="option.name">
+                            </bk-option>
+                        </bk-select>
                     </div>
                 </div>
                 <div class="common-form-item">
@@ -169,17 +135,17 @@
             </div>
         </bk-dialog>
         <bk-dialog
-            v-if="isOperationDialogShow"
-            :quick-close="false"
-            :has-header="true"
-            :ext-cls="'common-dialog'"
-            :title="projectStatusTitle"
-            :is-show="isOperationDialogShow"
             width="400"
             padding="30px"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="projectStatusTitle"
+            :value="isOperationDialogShow"
             @confirm="onChangeStatusConfirm"
             @cancel="isOperationDialogShow = false">
-            <div slot="content" class="operation-dialog-tips">
+            <div class="operation-dialog-tips">
                 {{i18n.confirm}}{{operationType === 'start' ? i18n.start : i18n.stop}}{{i18n.project}}:{{projectDetail.name}}?
             </div>
         </bk-dialog>
@@ -193,29 +159,47 @@
     import NoData from '@/components/common/base/NoData.vue'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { getTimeZoneList } from '@/constants/timeZones.js'
     import permission from '@/mixins/permission.js'
-
+    const OptBtnList = [
+        {
+            name: 'view',
+            power: 'view',
+            text: gettext('查看')
+        },
+        {
+            name: 'edit',
+            power: 'edit',
+            text: gettext('编辑')
+        },
+        {
+            name: 'start',
+            power: 'edit',
+            text: gettext('启用')
+        },
+        {
+            name: 'stop',
+            power: 'edit',
+            text: gettext('停用')
+        }
+    ]
     export default {
         name: 'ProjectHome',
         components: {
             NoData,
             BaseTitle,
-            BaseInput,
             CopyrightFooter
         },
         mixins: [permission],
         data () {
             return {
+                OptBtnList,
                 searchStr: '',
                 projectList: [],
                 loading: true,
                 countPerPage: 15,
-                totalCount: 0,
                 totalPage: 1,
-                currentPage: 1,
                 isClosedShow: false,
                 isProjectDialogShow: false,
                 isOperationDialogShow: false,
@@ -241,6 +225,13 @@
                 projectActions: [],
                 projectOperations: [],
                 projectResource: {},
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                },
                 i18n: {
                     projectManage: gettext('项目管理'),
                     createProject: gettext('新建项目'),
@@ -319,7 +310,7 @@
                 try {
                     const data = {
                         limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        offset: (this.pagination.current - 1) * this.countPerPage,
                         is_disable: this.isClosedShow
                     }
                     
@@ -329,10 +320,10 @@
                     
                     const projectList = await this.loadProjectList(data)
                     this.projectList = projectList.objects || []
-                    this.totalCount = projectList.meta.total_count
+                    this.pagination.count = projectList.meta.total_count
                     this.projectOperations = projectList.meta.auth_operations
                     this.projectResource = projectList.meta.auth_resource
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    const totalPage = Math.ceil(this.pagination.count / this.countPerPage)
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -403,11 +394,11 @@
                 }
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.getProjectList()
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getProjectList()
             },
             onProjectPermissonCheck (required, project, event) {
@@ -424,8 +415,7 @@
                 }
             },
             onClosedProjectToggle () {
-                this.isClosedShow = !this.isClosedShow
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getProjectList()
             },
             onCreateProject () {
@@ -482,6 +472,7 @@
             },
             onChangeProjectStatus (project, type) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
+                    console.log('dsadsa')
                     this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
                     return
                 }
@@ -498,6 +489,40 @@
                 const disabled = this.operationType === 'stop'
                 this.isOperationDialogShow = false
                 this.changeProject(disabled)
+            },
+            /**
+             * 是否显示操作按钮
+             * @param {Boolean} isDisable
+             * @param {String} name
+             */
+            isShowOptBtn (isDisable, name) {
+                if (name === 'view' || name === 'edit') {
+                    return true
+                }
+                if (name === 'start' && isDisable) {
+                    return true
+                }
+                if (name === 'stop' && !isDisable) {
+                    return true
+                }
+            },
+            /**
+             * 操作按钮点击
+             * @param {Object} item
+             * @param {String} name
+             */
+            onClickOptBtn (item, name) {
+                const _this = this
+                switch (name) {
+                    case 'view':
+                        _this.onViewProject(item)
+                        break
+                    case 'edit':
+                        _this.onEditProject(item)
+                        break
+                    default:
+                        _this.onChangeProjectStatus(item, name)
+                }
             }
         }
     }
@@ -536,125 +561,26 @@
         .search-input {
             position: relative;
             width: 360px;
-            input {
-                height: 32px;
-                padding: 0 32px 0 10px;
-                font-size: 14px;
-                color: #666666;
-                border: 1px solid #c3cdd7;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                }
-            }
-        }
-        .common-icon-search {
-            position: absolute;
-            right: 15px;
-            top: 8px;
-            color: #63656e;
-        }
-        .switch-status {
-            font-size: 14px;
-            cursor: pointer;
-            .checkbox {
-                display: inline-block;
-                position: relative;
-                width: 14px;
-                height: 14px;
-                color: $whiteDefault;
-                border: 1px solid $formBorderColor;
-                border-radius: 2px;
-                text-align: center;
-                vertical-align: -2px;
-                &:hover {
-                    border-color: $greyDark;
-                }
-                &.checked {
-                    background: $blueDefault;
-                    border-color: $blueDefault;
-                    &::after {
-                        content: "";
-                        position: absolute;
-                        left: 2px;
-                        top: 2px;
-                        height: 4px;
-                        width: 8px;
-                        border-left: 1px solid;
-                        border-bottom: 1px solid;
-                        border-color: $whiteDefault;
-                        transform: rotate(-45deg);
-                    }
-                }
-            }
         }
     }
     .project-table {
-        width: 100%;
-        font-size: 12px;
-        border: 1px solid #dddddd;
-        border-collapse: collapse;
-        background: #ffffff;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
-        }
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #dddddd;
-            &:first-child {
-                padding-left: 20px;
-            }
-        }
-        th {
-            background: #fafafa;
-        }
-        .empty-tr td {
-            padding: 10px;
-        }
-        .project-name,
-        .project-desc {
-            max-width: 100%;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-        }
-        .operate-btn {
-            margin-right: 5px;
-            padding: 0;
-            height: auto;
-            line-height: 1;
-            background: transparent;
-            border: none;
-            font-size: 12px;
-            color: #3c96ff;
-        }
-        .empty-data {
-            padding: 120px 0;
-        }
+        background-color: #ffffff;
     }
-    .panagation {
-        padding: 10px 20px;
-        text-align: right;
-        border: 1px solid #dde4eb;
-        border-top: none;
-        background: #ffff;
-        .page-info {
-            float: left;
-            line-height: 36px;
-            font-size: 12px;
-        }
-        .bk-page {
-            display: inline-block;
+    .operate-btn {
+        margin-right: 5px;
+        padding: 0;
+        height: auto;
+        line-height: 1;
+        background: transparent;
+        border: none;
+        font-size: 12px;
+        color: #3c96ff;
+        &.bk-button {
+            min-width: unset;
         }
     }
     .dialog-content {
+        padding: 20px 0;
         label {
             font-weight: normal;
         }
@@ -675,5 +601,6 @@
     }
     .operation-dialog-tips {
         word-break: break-all;
+        padding: 20px;
     }
 </style>

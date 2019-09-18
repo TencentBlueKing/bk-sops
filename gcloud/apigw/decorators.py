@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import sys
 from functools import wraps
 
 import ujson as json
@@ -28,33 +27,19 @@ from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
 from gcloud.apigw.exceptions import UserNotExistError
 
-if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
-    try:
-        from bkoauth.decorators import apigw_required
-    except ImportError:
-        apigw_required = None
-else:
-    apigw_required = None
-
 WHITE_APPS = {'bk_fta', 'bk_bcs'}
 WHETHER_PREPARE_BIZ = getattr(settings, 'WHETHER_PREPARE_BIZ_IN_API_CALL', True)
 
 
 def check_white_apps(request):
-    if apigw_required is not None:
-        app_code = request.jwt.app.app_code
-    else:
-        app_code = request.META.get('HTTP_BK_APP_CODE')
+    app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if app_code in WHITE_APPS:
         return True
     return False
 
 
 def inject_user(request):
-    if apigw_required is not None:
-        username = request.jwt.user.username
-    else:
-        username = request.META.get('HTTP_BK_USERNAME')
+    username = getattr(request.jwt.app, settings.APIGW_USER_USERNAME_KEY)
     user_model = get_user_model()
     try:
         user = user_model.objects.get(username=username)
