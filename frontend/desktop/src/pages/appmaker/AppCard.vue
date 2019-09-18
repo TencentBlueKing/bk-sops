@@ -13,7 +13,7 @@
     <div class="card-wrapper">
         <div class="card-basic">
             <div class="logo" @click="onGotoAppMaker">
-                <div v-if="isShowDefaultLogo || !appData.logo_url" class="default-logo">
+                <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
                 <div v-else>
@@ -79,7 +79,7 @@
         props: ['appData', 'project_id', 'appResource', 'appOperations'],
         data () {
             return {
-                isShowDefaultLogo: false,
+                isLogoLoadingError: false,
                 isShowEdit: false,
                 mouseAccess: true,
                 i18n: {
@@ -95,9 +95,14 @@
                 }
             }
         },
+        computed: {
+            isShowDefaultLogo () {
+                return this.isLogoLoadingError || !this.appData.logo_url
+            }
+        },
         methods: {
             useDefaultLogo () {
-                this.isShowDefaultLogo = true
+                this.isLogoLoadingError = true
             },
             /**
              * 单个轻应用操作项点击时校验
