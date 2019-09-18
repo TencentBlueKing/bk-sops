@@ -45,7 +45,17 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished', 'common', 'instanceName', 'project_id', 'taskStatus', 'template_id'],
+        props: [
+            'list',
+            'currentStep',
+            'allFinished',
+            'common',
+            'instanceName',
+            'project_id',
+            'taskStatus',
+            'template_id',
+            'isFunctional'
+        ],
         data () {
             return {
                 i18n: {
@@ -113,10 +123,19 @@
              * 目的：返回到【节点选择】上一个页面
              */
             getHomeUrl () {
-                const userType = this.userType // 用户类型
-                const path = this.$route.fullPath
-                const entrance = this.$route.query.entrance || '' // 入口参数
-                const projectId = this.$route.params.project_id
+                const backObj = {
+                    'business': `/template/home/${this.project_id}/`,
+                    'periodicTask': `/periodic/home/${this.project_id}/`,
+                    'taskflow': `/taskflow/home/${this.project_id}/`,
+                    'common': `/template/common/${this.project_id}/`,
+                    'adminCommon': '/admin/common/template/',
+                    'templateEdit': `/template/edit/${this.project_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
+                    'functor': `/function/home/`,
+                    'auditor': `/audit/home/`,
+                    'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.project_id}/`
+                }
+                const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
+                const entrance = this.$route.query.entrance || ''
                 let url = '/'
                 const isCommon = this.common && userType === 'maintainer'
                 // 不是从编辑模版页面进入的 entrance 列表

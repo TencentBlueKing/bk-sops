@@ -715,21 +715,17 @@
             getJumpUrl (name, template_id) {
                 const urlMap = {
                     // 编辑按钮的跳转链接
-                    'edit': {
-                        path: `/template/edit/${this.project_id}/`,
-                        query: ['template_id', 'common'] },
+                    'edit': `${routerHead}/template/edit/${this.project_id}/?template_id=${template_id}`,
                     // 新建模板的跳转链接
-                    'newTemplate': {
-                        path: `/template/new/${this.project_id}/`,
-                        query: ['common'] },
+                    'newTemplate': `${routerHead}/template/new/${this.project_id}/`,
                     // 新建任务的跳转链接
-                    'newTask': {
-                        path: `/template/newtask/${this.project_id}/selectnode/`,
-                        query: ['template_id', 'common'] },
+                    'newTask': `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`,
                     // 克隆
-                    'clone': {
-                        path: `/template/clone/${this.project_id}/`,
-                        query: ['template_id', 'common'] }
+                    'clone': `${routerHead}/template/clone/${this.project_id}/?template_id=${template_id}`
+                }
+                url = urlMap[name]
+                if (this.common) {
+                    url += url.indexOf('?') > -1 ? '&common=1' : '?common=1'
                 }
                 let querys = ''
                 const entrance = this.getEntrance(name)

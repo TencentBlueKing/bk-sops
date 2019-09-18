@@ -15,12 +15,10 @@ import logging
 
 import boto3
 from botocore.exceptions import ClientError
-from botocore.client import Config
 
 from pipeline.contrib.external_plugins.utils.importer.base import AutoInstallRequirementsImporter
 
 logger = logging.getLogger('root')
-CONFIG = Config(connect_timeout=10, read_timeout=10, retries={"max_attempts": 2})
 
 
 class S3ModuleImporter(AutoInstallRequirementsImporter):
@@ -46,8 +44,7 @@ class S3ModuleImporter(AutoInstallRequirementsImporter):
         self.s3 = boto3.resource('s3',
                                  aws_access_key_id=access_key,
                                  aws_secret_access_key=secret_key,
-                                 endpoint_url=self.service_address,
-                                 config=CONFIG)
+                                 endpoint_url=self.service_address)
         self.obj_cache = {}
 
     def is_package(self, fullname):

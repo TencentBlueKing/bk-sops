@@ -44,6 +44,7 @@
                 {{i18n.save}}
             </bk-button>
             <bk-button
+                v-if="isShowNewTask"
                 theme="primary"
                 :class="['task-btn', {
                     'btn-permission-disable': !isSaveAndCreateBtnEnable
@@ -187,6 +188,9 @@
                 } else {
                     return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
                 }
+            },
+            isShowNewTask () {
+                return !this.common
             }
         },
         watch: {
@@ -256,18 +260,17 @@
                     }
                 })
                 if (this.common) {
-                    url += '?common=1'
+                    url = '/admin/common/template/'
                 }
                 return url
             },
             goToTaskUrl () {
-                const entrance = this.$route.query.entrance
                 this.$router.push({
                     path: `/template/newtask/${this.project_id}/selectnode/`,
                     query: {
                         template_id: this.template_id,
                         common: this.common ? '1' : undefined,
-                        entrance: entrance || undefined
+                        entrance: 'templateEdit'
                     }
                 })
             },

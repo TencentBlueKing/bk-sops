@@ -91,7 +91,8 @@
                 templateSource: '',
                 instanceActions: [],
                 instanceOperations: [],
-                instanceResource: {}
+                instanceResource: {},
+                templateId: ''
             }
         },
         computed: {

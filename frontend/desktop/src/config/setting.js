@@ -27,7 +27,10 @@ export function setAtomConfigApiUrls (site_url, project) {
         component: site_url + 'api/v3/component/',
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
-        instance: site_url + 'api/v3/taskflow/'
+        instance: site_url + 'api/v3/taskflow/',
+        getConstants () {
+            return store.state.template.constants
+        }
     }
 }
 

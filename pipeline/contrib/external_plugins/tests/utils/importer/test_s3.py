@@ -15,7 +15,7 @@ from django.test import TestCase
 
 from pipeline.contrib.external_plugins.tests.mock import *  # noqa
 from pipeline.contrib.external_plugins.tests.mock_settings import *  # noqa
-from pipeline.contrib.external_plugins.utils.importer.s3 import S3ModuleImporter, CONFIG
+from pipeline.contrib.external_plugins.utils.importer.s3 import S3ModuleImporter
 
 GET_FILE_RETURN = 'GET_FILE_RETURN'
 GET_SOURCE_RETURN = 'a=1'
@@ -50,8 +50,7 @@ class S3ModuleImporterTestCase(TestCase):
         self.assertEqual(importer.s3, mock_s3_resource('s3',
                                                        aws_access_key_id=self.access_key,
                                                        aws_secret_access_key=self.secret_key,
-                                                       endpoint_url=self.service_address,
-                                                       config=CONFIG))
+                                                       endpoint_url=self.service_address))
 
         importer = S3ModuleImporter(name='name',
                                     modules=[],
@@ -63,8 +62,7 @@ class S3ModuleImporterTestCase(TestCase):
         self.assertEqual(importer.s3, mock_s3_resource('s3',
                                                        aws_access_key_id=self.access_key,
                                                        aws_secret_access_key=self.secret_key,
-                                                       endpoint_url=self.service_address,
-                                                       config=CONFIG))
+                                                       endpoint_url=self.service_address))
 
         self.assertRaises(ValueError,
                           S3ModuleImporter,
@@ -86,8 +84,7 @@ class S3ModuleImporterTestCase(TestCase):
         self.assertEqual(importer.s3, mock_s3_resource('s3',
                                                        aws_access_key_id=self.access_key,
                                                        aws_secret_access_key=self.secret_key,
-                                                       endpoint_url=self.not_secure_service_address,
-                                                       config=CONFIG))
+                                                       endpoint_url=self.not_secure_service_address))
 
     def test_is_package(self):
         importer = S3ModuleImporter(name='name',

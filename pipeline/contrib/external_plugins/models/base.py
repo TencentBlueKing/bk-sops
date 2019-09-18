@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import sys
-import logging
 from copy import deepcopy
 from abc import abstractmethod
 
@@ -26,7 +25,7 @@ from pipeline.component_framework.library import ComponentLibrary
 GIT = 'git'
 S3 = 's3'
 FILE_SYSTEM = 'fs'
-logger = logging.getLogger('root')
+
 source_cls_factory = {}
 
 
@@ -103,14 +102,9 @@ class ExternalPackageSource(models.Model):
     @property
     def imported_plugins(self):
         plugins = []
-        try:
-            importer = self.importer()
-        except ValueError as e:
-            logger.exception(u"ExternalPackageSource[name=%s] call importer error: %s" % (self.name, e))
-            return plugins
         for code, component in ComponentLibrary.components.items():
             component_importer = getattr(sys.modules[component.__module__], '__loader__', None)
-            if isinstance(component_importer, type(importer)) and component_importer.name == self.name:
+            if isinstance(component_importer, type(self.importer())) and component_importer.name == self.name:
                 plugins.append({
                     'code': code,
                     'name': component.name,

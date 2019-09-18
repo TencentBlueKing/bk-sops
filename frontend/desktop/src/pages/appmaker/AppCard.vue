@@ -79,7 +79,7 @@
         props: ['appData', 'project_id', 'appResource', 'appOperations'],
         data () {
             return {
-                isShowDefaultLogo: false,
+                isLogoLoadingError: false,
                 isShowEdit: false,
                 mouseAccess: true,
                 i18n: {
@@ -95,9 +95,24 @@
                 }
             }
         },
+        computed: {
+            isShowDefaultLogo () {
+                return this.isLogoLoadingError || !this.appData.logo_url
+            }
+        },
         methods: {
             useDefaultLogo () {
-                this.isShowDefaultLogo = true
+                this.isLogoLoadingError = true
+            },
+            /**
+             * 单个轻应用操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} app 模板数据对象
+             * @params {Object} event 事件对象
+             */
+            onAppMakerPermissonCheck (required, app, event) {
+                this.applyForPermission(required, app, this.appOperations, this.appResource)
+                event.preventDefault()
             },
             /**
              * 单个轻应用操作项点击时校验
