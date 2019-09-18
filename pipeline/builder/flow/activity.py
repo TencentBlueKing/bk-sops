@@ -21,13 +21,24 @@ __all__ = [
 
 
 class ServiceActivity(Element):
-    def __init__(self, component_code=None, failure_handler=None, *args, **kwargs):
+    def __init__(self,
+                 component_code=None,
+                 failure_handler=None,
+                 error_ignorable=False,
+                 timeout=None,
+                 skippable=True,
+                 retryable=True,
+                 *args, **kwargs):
         self.component = FancyDict({
             'code': component_code,
             'inputs': FancyDict({})
         })
         self.failure_handler = '{module}.{name}'.format(module=failure_handler.__module__,
                                                         name=failure_handler.__name__) if failure_handler else None
+        self.error_ignorable = error_ignorable
+        self.timeout = timeout
+        self.skippable = skippable
+        self.retryable = retryable
         super(ServiceActivity, self).__init__(*args, **kwargs)
 
     def type(self):
