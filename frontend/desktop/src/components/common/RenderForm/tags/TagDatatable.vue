@@ -237,18 +237,29 @@
             },
             export2Excel () {
                 require.ensure([], () => {
-                    const { export_json_to_excel } = require('../../../../assets/js/table_to_excel/export2Excel')
+                    const TableToExcel = require('table-to-excel')
+                    const tableToExcel = new TableToExcel()
                     const tableHeader = []
+                    const tableData = []
                     const filterVal = []
                     for (let i = 0; i < this.columns.length; i++) {
+                        console.log(this.columns[i])
                         const tag_code = this.columns[i].tag_code
                         const name = this.columns[i].attrs.name
                         tableHeader.push(name)
                         filterVal.push(tag_code)
                     }
+                    tableData.push(tableHeader)
                     const list = this.tableValue
-                    const data = this.formatJson(filterVal, list)
-                    export_json_to_excel(tableHeader, data, 'data')
+                    for (let i = 0; i < list.length; i++) {
+                        const row = []
+                        for (let j = 0; j < filterVal.length; j++) {
+                            console.log(list[i][filterVal[j]])
+                            row.push(list[i][filterVal[j]])
+                        }
+                        tableData.push(row)
+                    }
+                    tableToExcel.render(tableData)
                 })
             },
             importExcel (file) {
@@ -256,7 +267,7 @@
                 const types = file.name.split('.')[1]
                 const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
                 if (!fileType) {
-                    alert('格式错误！请重新选择')
+                    alert(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
                     return
                 }
                 this.file2Xce(file).then(tabJson => {
@@ -276,13 +287,6 @@
                             }
                         }
                         this.tableValue = tabJson[0]['sheet']
-                        // xlsxJson就是解析出来的json数据,数据格式如下
-                        // [
-                        //   {
-                        //     sheetName: sheet1
-                        //     sheet: sheetData
-                        //   }
-                        // ]
                     }
                 })
             },
