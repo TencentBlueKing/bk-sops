@@ -49,6 +49,7 @@
                 {{ i18n.save }}
             </bk-button>
             <bk-button
+                v-if="isShowNewTask"
                 theme="primary"
                 :class="['task-btn', {
                     'btn-permission-disable': !isSaveAndCreateBtnEnable
@@ -144,6 +145,9 @@
                 } else {
                     return this.hasPermission(this.saveAndCreateRequiredPerm, this.tplActions, this.tplOperations)
                 }
+            },
+            isShowNewTask () {
+                return !this.common
             }
         },
         watch: {
