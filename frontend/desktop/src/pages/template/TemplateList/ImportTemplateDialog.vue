@@ -240,11 +240,10 @@
                     const resp = await this.templateImport(data)
                     if (resp.result) {
                         this.$emit('onImportConfirm')
-                        return true
+                        this.resetData()
                     } else {
                         this.templateFileError = true
                         errorHandler(resp, this)
-                        return false
                     }
                 } catch (e) {
                     errorHandler(e, this)
@@ -283,10 +282,7 @@
                     return
                 }
                 if (!this.templateFileErrorExt && !this.templateFileEmpty && !this.templateFileError) {
-                    this.importTemplate(isOverride).then(result => {
-                        // 提交成功
-                        result && this.resetData()
-                    })
+                    this.importTemplate(isOverride)
                 }
             },
             onShowConflicts () {
@@ -317,6 +313,7 @@
                 this.templateFileError = false
                 this.templateFileErrorExt = false
                 this.dataConflict = false
+                this.$refs.templateFile.value = ''
             }
         }
     }
