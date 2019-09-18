@@ -75,7 +75,7 @@
                         </bk-option>
                     </bk-select>
                     <i
-                        class="bk-icon icon-info-circle scheme-tooltip"
+                        class="common-icon-info scheme-tooltip"
                         v-bk-tooltips="{
                             content: i18n.schemeTips,
                             placements: ['left'],

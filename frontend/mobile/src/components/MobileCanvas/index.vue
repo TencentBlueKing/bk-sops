@@ -66,7 +66,7 @@
             const overlayConfig = {
                 type: 'Label',
                 name: '',
-                cls: 'branch-conditions',
+                cls: 'branch-condition',
                 editable: false,
                 location: '-60'
             }
@@ -112,8 +112,16 @@
 </script>
 
 <style lang="scss">
-    .branch-conditions {
+    .branch-condition {
+        padding: 3px 8px;
+        min-width: 60px;
+        max-width: 120px;
         font-size: 12px;
+        text-align: center;
+        background: #e1f3ff;
+        border: 1px solid #c3cdd7;
+        border-radius: 2px;
+        z-index: 1;
     }
 
     .page-view {

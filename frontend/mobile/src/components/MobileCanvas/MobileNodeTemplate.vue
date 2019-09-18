@@ -45,7 +45,7 @@
         <div
             v-else
             ref="nodeLocation"
-            class="node-circle">
+            :class="['node-circle', node['status'] ? node['status'].toLowerCase() : '']">
             <van-icon slot="icon" class-prefix="icon" :name="`node-${node.type}`" />
         </div>
     </div>
@@ -162,7 +162,7 @@
         .subflow-node-icon.finished {
             background: #30d878;
         }
-        .bsubflow-node-icon.suspended {
+        .subflow-node-icon.suspended {
             background: #f8b53f;
         }
     }
