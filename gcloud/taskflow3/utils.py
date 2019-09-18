@@ -19,7 +19,7 @@ from gcloud.taskflow3.context import TaskContext
 logger = logging.getLogger("root")
 
 
-def get_instance_context(pipeline_instance, data_type, username=''):
+def get_instance_context(pipeline_instance, data_type):
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance=pipeline_instance)
     except TaskFlowInstance.DoesNotExist:
@@ -27,119 +27,7 @@ def get_instance_context(pipeline_instance, data_type, username=''):
         return {}
     # pipeline的root_pipeline_params数据，最终会传给插件的parent_data，是简单地字典格式
     if data_type == 'data':
-        return TaskContext(taskflow, username).__dict__
+        return TaskContext(taskflow, pipeline_instance.executor).__dict__
     # pipeline的root_pipeline_context数据，可以直接在参数中引用，如 ${_system.biz_cc_id}
     else:
-        return TaskContext(taskflow, username).context()
-
-
-def draw_pipeline_automatic(pipeline):
-    line = []
-    for flow_id, flow in pipeline['flows'].items():
-        line.append({
-            "source": {
-                "id": flow['source'],
-                "arrow": "Right"
-            },
-            "id": flow_id,
-            "target": {
-                "id": flow['target'],
-                "arrow": "Left"
-            }
-        })
-
-    # TODO： 兼容多层嵌套和子流程
-    acts = {}
-    acts.update(pipeline['activities'])
-    acts.update(pipeline['gateways'])
-    acts.update({pipeline['end_event']['id']: pipeline['end_event']})
-
-    flows = pipeline['flows']
-    point_shift_y = 15
-    gateway_shift_y = 18
-    start_point_x = 60
-    shift_x = 180
-    shift_y = 140
-    last_node = pipeline['start_event']
-    last_node_x = 60
-    last_node_y = 100
-    current_flow = flows[last_node['outgoing']]
-
-    location = [{
-        'id': pipeline['start_event']['id'],
-        'type': 'startpoint',
-        'name': pipeline['start_event']['name'],
-        'status': '',
-        'x': start_point_x,
-        'y': last_node_y + point_shift_y,
-    }]
-
-    while current_flow['target'] != pipeline['end_event']['id']:
-        current_node = acts[current_flow['target']]
-        if current_node['type'] == 'ServiceActivity':
-            location.append({
-                'id': current_node['id'],
-                'type': 'tasknode',
-                'name': current_node['name'],
-                'stage_name': current_node.get('stage_name', ''),
-                'status': '',
-                'x': last_node_x + shift_x,
-                'y': last_node_y,
-            })
-            last_node = current_node
-            last_node_x = last_node_x + shift_x
-            current_flow = flows[last_node['outgoing']]
-        elif current_node['type'] == 'ParallelGateway':
-            location.append({
-                'id': current_node['id'],
-                'type': 'parallelgateway',
-                'name': current_node['name'],
-                'status': '',
-                'x': last_node_x + shift_x,
-                'y': last_node_y + gateway_shift_y,
-            })
-            last_node_x = last_node_x + shift_x
-            for index, flow_id in enumerate(current_node['outgoing']):
-                parallel_flow = flows[flow_id]
-                current_node = acts[parallel_flow['target']]
-                location.append({
-                    'id': current_node['id'],
-                    'type': 'tasknode',
-                    'name': current_node['name'],
-                    'stage_name': current_node.get('stage_name', ''),
-                    'status': '',
-                    'x': last_node_x + shift_x,
-                    # 第一个分支和网关对齐，剩余分支依次先下后上均匀分布两侧
-                    'y': last_node_y + (-1) ** index * ((index + 1) / 2) * shift_y,
-                })
-            last_node = current_node
-            last_node_x = last_node_x + shift_x
-            current_flow = flows[last_node['outgoing']]
-        elif current_node['type'] == 'ConvergeGateway':
-            location.append({
-                'id': current_node['id'],
-                'type': 'convergegateway',
-                'name': current_node['name'],
-                'status': '',
-                'x': last_node_x + shift_x,
-                'y': last_node_y + gateway_shift_y,
-            })
-            last_node = current_node
-            last_node_x = last_node_x + shift_x
-            current_flow = flows[last_node['outgoing']]
-
-    current_node = acts[current_flow['target']]
-    location.append({
-        'id': current_node['id'],
-        'type': 'endpoint',
-        'name': current_node['name'],
-        'status': '',
-        'x': last_node_x + shift_x,
-        'y': last_node_y + point_shift_y,
-    })
-
-    pipeline.update({
-        'location': location,
-        'line': line,
-    })
-    return pipeline
+        return TaskContext(taskflow, pipeline_instance.executor).context()
