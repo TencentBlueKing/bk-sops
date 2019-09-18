@@ -23,6 +23,7 @@ Create onetime task quickly
 |   flow_type   |   string   |  NO      |  flow task type，common: common flow，common_func：functional flow. Default is common |
 |   description |   string   |  NO      |  task description|
 |   category    |   string   |  NO      |  flow type, the value is described below |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to project_id. otherwise, bk_sops will find a project which id equal to project_id when scope value is 'project'|
 
 #### category
 
@@ -142,10 +143,11 @@ KEY of global variables, the format is "${key}"
 |  source_info  | dict       | YES        |  source info about task node ID |
 
 
-### 请求参数示例
+### Request Parameters Example
 
 ```
 {
+    "project_id": "1",
     "bk_app_code": "esb_test",
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
@@ -377,7 +379,7 @@ KEY of global variables, the format is "${key}"
 }
 ```
 
-### 返回结果示例
+### Return Result Example
 
 ```
 {

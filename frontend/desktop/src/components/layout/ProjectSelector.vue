@@ -11,14 +11,23 @@
 */
 <template>
     <div class="project-wrapper">
-        <bk-selector
-            :has-children="true"
+        <bk-select
+            class="project-select"
+            v-model="currentProject"
             :disabled="disabled"
-            :searchable="true"
-            :list="projects"
-            :selected="currentProject"
-            @item-selected="onProjectChange">
-        </bk-selector>
+            :clearable="false"
+            :searchable="true">
+            <bk-option-group
+                v-for="(group, index) in projects"
+                :name="group.name"
+                :key="index">
+                <bk-option v-for="(option, i) in group.children"
+                    :key="i"
+                    :id="option.id"
+                    :name="option.name">
+                </bk-option>
+            </bk-option-group>
+        </bk-select>
     </div>
 </template>
 <script>
@@ -35,7 +44,8 @@
                 searchStr: '',
                 i18n: {
                     biz: gettext('业务'),
-                    proj: gettext('项目')
+                    proj: gettext('项目'),
+                    placeholder: gettext('请选择')
                 }
             }
         },
@@ -52,9 +62,11 @@
                 const projectsGroup = [
                     {
                         name: this.i18n.biz,
+                        id: 1,
                         children: []
                     },
                     {
+                        id: 2,
                         name: this.i18n.proj,
                         children: []
                     }
@@ -77,10 +89,10 @@
             },
             currentProject: {
                 get () {
-                    return this.project_id
+                    return Number(this.project_id)
                 },
                 set (id) {
-                    this.setProjectId(id)
+                    this.onProjectChange(id)
                 }
             }
         },
@@ -92,11 +104,11 @@
             ...mapActions('project', [
                 'changeDefaultProject'
             ]),
-            async onProjectChange (id, project) {
+            async onProjectChange (id) {
                 try {
                     this.setProjectId(id)
                     await this.changeDefaultProject(id)
-                    const timeZone = project.time_zone || 'Asia/Shanghai'
+                    const timeZone = this.projectList.find(m => Number(m.id) === Number(id)).time_zone || 'Asia/Shanghai'
                     this.setTimeZone(timeZone)
                     
                     $.atoms = {} // notice: 清除标准插件配置项里的全局变量缓存
@@ -119,33 +131,8 @@
         color: #979ba5;
         font-size: 14px;
     }
-    /deep/ .bk-selector-input {
-        border: 1px solid #445060;
-        color: #979ba5;
-        background: transparent;
-        &:not([disabled="disabled"]):hover {
-            color: #ffffff;
-            border-color: #616d7d;
-            & + .bk-icon {
-                color: #616d7d;
-            }
-        }
-        &[disabled="disabled"] {
-            color: #979ba5;
-            background: transparent;
-            cursor: not-allowed;
-            &:hover {
-                & + .bk-icon {
-                    color: #616d7d;
-                }
-            }
-        }
-        &.active {
-            color: #ffffff;
-            border-color: #616d7d !important;
-            & + .bk-icon {
-                color: #616d7d;
-            }
-        }
+    .project-select {
+        border-color: #445060;
+        color: #c4c6cc;
     }
 </style>

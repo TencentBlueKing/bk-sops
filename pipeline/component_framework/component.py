@@ -36,6 +36,23 @@ class Component(object):
         return inputs
 
     @classmethod
+    def _get_item_schema(cls, type, key):
+        items = getattr(cls.bound_service(), type)()
+        for item in items:
+            if item.key == key:
+                return item
+
+        return None
+
+    @classmethod
+    def get_output_schema(cls, key):
+        return cls._get_item_schema(type='outputs', key=key).schema
+
+    @classmethod
+    def get_input_schema(cls, key):
+        return cls._get_item_schema(type='inputs', key=key).schema
+
+    @classmethod
     def form_is_embedded(cls):
         return getattr(cls, 'embedded_form', False)
 

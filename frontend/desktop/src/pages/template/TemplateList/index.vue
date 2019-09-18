@@ -17,7 +17,7 @@
                 <bk-button
                     v-show="showOperationBtn"
                     v-cursor="{ active: !hasPermission(createTplRequired, createTplActions, createTplOperations) }"
-                    type="primary"
+                    theme="primary"
                     :class="['create-template', {
                         'btn-permission-disable': !hasPermission(createTplRequired, createTplActions, createTplOperations)
                     }]"
@@ -682,6 +682,14 @@
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
             },
+            // 获取新建模板的跳转链接
+            getNewTemplateUrl () {
+                let url = `/template/new/${this.project_id}`
+                if (this.common) {
+                    url += '/?&common=1'
+                }
+                return url
+            },
             async onAuthorityConfirm (data) {
                 if (this.pending.authority) return
                 this.pending.authority = true
@@ -826,14 +834,6 @@
                 height: 32px;
                 line-height: 32px;
             }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
             input::-webkit-input-placeholder{
                 color: $formBorderColor;
             }
@@ -846,21 +846,11 @@
             input:-ms-input-placeholder {
                 color: $formBorderColor;
             }
-            input, .bk-selector, .bk-date-range {
+            input{
                 min-width: 260px;
             }
             .bk-selector-search-item > input {
                 min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-date-range input {
-                height: 32px;
-                line-height: 32px;
             }
             .search-input {
                 width: 260px;
@@ -877,12 +867,6 @@
                 &:focus {
                     border-color: $blueDefault;
                 }
-            }
-            .ommon-icon-search {
-                position: relative;
-                right: 15px;
-                top: 11px;
-                color:#dddddd;
             }
             .search-input.placeholder {
                 color: $formBorderColor;
@@ -917,12 +901,6 @@
     .template-search {
         height: 156px;
         background: #fff;
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
     }
     .template-advanced-search {
         float: right;
@@ -961,6 +939,9 @@
         td.is-last .cell {
             overflow: visible;
         }
+    }
+    .template-operation > .text-permission-disable {
+        padding: 5px;
     }
     .template-operate-btn {
         padding: 5px;

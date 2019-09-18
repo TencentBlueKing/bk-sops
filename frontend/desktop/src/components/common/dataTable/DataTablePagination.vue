@@ -56,7 +56,7 @@
                     <div class="operate-group">
                         <template v-for="(btn, key) in operates.data">
                             <div class="item" :style="{ flex: operates.flex }" :key="key" v-if="btn.show">
-                                <el-button :class="btn.cls" :type="btn.type" size="mini" :icon="btn.icon" :disabled="btn.disabled"
+                                <el-button :class="btn.cls" :type="btn.type" size="small" :icon="btn.icon" :disabled="btn.disabled"
                                     :plain="btn.plain" @click.native.prevent="btn.method(key,scope.row)">{{ btn.label }}
                                 </el-button>
                             </div>

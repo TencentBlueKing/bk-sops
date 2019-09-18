@@ -470,6 +470,9 @@ header {
                 margin-top: 17px;
             }
         }
+        /deep/ .bk-select.is-disabled {
+            background: none;
+        }
     }
 }
 </style>

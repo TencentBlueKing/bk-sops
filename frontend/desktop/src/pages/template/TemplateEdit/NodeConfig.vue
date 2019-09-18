@@ -214,7 +214,7 @@
             'idOfNodeInConfigPanel',
             'template_id',
             'common',
-            'cc_id'
+            'project_id'
         ],
         data () {
             return {
@@ -804,13 +804,13 @@
                     const variable = this.constants[variableKey]
                     this.setVariableSourceInfo({ type: 'delete', id, key: variableKey, tagCode: formKey })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable(variableKey)
+                        this.removeFromGlobal(variableKey)
                     }
                 })
                 this.taskTypeEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
-                        this.deleteVariable(item.key)
+                        this.removeFromGlobal(item.key)
                     }
                 })
             },
@@ -844,7 +844,7 @@
             },
             onJumpToProcess (index) {
                 const item = this.atomList[index].id
-                const { href } = this.$router.resolve({ path: `/template/edit/${this.cc_id}/?template_id=${item}` })
+                const { href } = this.$router.resolve({ path: `/template/edit/${this.project_id}/?template_id=${item}` })
                 window.open(href, '_blank')
             },
             /**
@@ -935,7 +935,7 @@
                             name, key: variableKey, source_info, custom_type, value, validation
                         }
                         this.$set(this.inputAtomData, key, variableKey)
-                        this.createVariable(variableOpts)
+                        this.hookToGlobal(variableOpts)
                         return
                     }
                     for (const cKey in this.constants) {
@@ -964,7 +964,7 @@
                             name, key: variableKey, source_tag, source_info, custom_type, value, validation
                         }
                         this.$set(this.inputAtomData, key, variableKey)
-                        this.createVariable(variableOpts) // input arguments hook
+                        this.hookToGlobal(variableOpts) // input arguments hook
                     }
                 } else { // cancel hook
                     variableKey = this.inputAtomData[key] // variable key
@@ -978,7 +978,7 @@
                     this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)
                     this.setVariableSourceInfo({ type: 'delete', id: this.nodeId, key: variableKey, tagCode: formKey })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable(variableKey)
+                        this.removeFromGlobal(variableKey)
                     }
                 }
             },
@@ -1003,18 +1003,18 @@
                             return true
                         }
                     })
-                    this.createVariable(variableOpts)
+                    this.hookToGlobal(variableOpts)
                 } else {
                     const constant = this.constants[key]
                     if (constant) {
-                        this.deleteVariable(key)
+                        this.removeFromGlobal(key)
                     }
                 }
             },
             /**
              * 参数不复用，创建新变量
              */
-            createVariable (variableOpts) {
+            hookToGlobal (variableOpts) {
                 const len = Object.keys(this.constants).length
                 const defaultOpts = {
                     name: '',
@@ -1031,6 +1031,11 @@
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))
+                this.$emit('globalVariableUpdate', true)
+            },
+            removeFromGlobal (key) {
+                this.deleteVariable(key)
+                this.$emit('globalVariableUpdate', true)
             },
             generateRandomKey (key) {
                 let variableKey = key.replace(/^\$\{/, '').replace(/(\}$)/, '').slice(0, 14)
@@ -1054,7 +1059,7 @@
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
                     const variableOpts = { name, key: varKey, source_tag, source_info, value }
-                    this.createVariable(variableOpts)
+                    this.hookToGlobal(variableOpts)
                 } else {
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
@@ -1109,7 +1114,7 @@
     border-left: 1px solid $commonBorderColor;
     box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.15);
     overflow-y: auto;
-    z-index: 4;
+    z-index: 5;
     transition: right 0.5s ease-in-out;
     @include scrollbar;
     .node-title {
@@ -1122,7 +1127,7 @@
         }
     }
     &.position-right-side {
-        right: 55px;
+        right: 56px;
     }
     .basic-info-form {
         .node-select,

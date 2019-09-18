@@ -26,6 +26,7 @@
                     <div class="business-selector">
                         <bk-select
                             v-model="filterCondition.classifyId"
+                            class="bk-select-inline"
                             :clearable="false"
                             :disabled="exportPending"
                             @change="onSelectClassify">
@@ -77,7 +78,7 @@
                                             <div class="template-item-name">{{template.name}}</div>
                                         </div>
                                         <div class="apply-permission-mask">
-                                            <bk-button type="primary" size="mini">{{i18n.applyPermission}}</bk-button>
+                                            <bk-button theme="primary" size="small">{{i18n.applyPermission}}</bk-button>
                                         </div>
                                     </li>
                                 </ul>
@@ -129,7 +130,7 @@
             NoData
         },
         mixins: [permission],
-        props: ['isExportDialogShow', 'projectInfoLoading', 'common', 'pending'],
+        props: ['isExportDialogShow', 'businessInfoLoading', 'projectInfoLoading', 'common', 'pending'],
         data () {
             return {
                 exportPending: false,
@@ -353,6 +354,7 @@
             },
             onCancel () {
                 this.templateEmpty = false
+                this.selectError = false
                 this.resetData()
                 this.$emit('onExportCancel')
             },
@@ -384,9 +386,15 @@
         width: 255px;
         height: 32px;
     }
+    .business-selector {
+        width: 260px;
+        display: inline-block;
+        vertical-align: top;
+    }
     .template-search {
-        margin-left: 265px;
-        margin-bottom: 20px;
+        width: 250px;
+        display: inline-block;
+        vertical-align: top;
     }
     .template-wrapper {
         float: left;
@@ -416,9 +424,10 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        cursor: pointer;
+        border: 1px solid #c4c6cc;
         border-radius: 2px;
         overflow: hidden;
+        cursor: pointer;
         &:nth-child(2n + 1) {
             margin-left: 0;
         }
@@ -461,6 +470,9 @@
             }
             .template-item-name {
                 color: #c4c6cc;
+                &:after {
+                    background: #f7f7f7;
+                }
             }
             .apply-permission-mask {
                 padding: 12px 0;
