@@ -148,7 +148,6 @@ mac: 执行 “sudo vim /etc/hosts”，添加“127.0.0.1 dev.{BK_PAAS_HOST}”
 ## 启动进程
 ```bash
 python manage.py celery worker -l info
-python manage.py celery beat -l info
 python manage.py runserver 8000
 ```
 

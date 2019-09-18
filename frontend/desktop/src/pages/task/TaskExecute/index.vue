@@ -17,9 +17,12 @@
             :list="stepList"
             :current-step="currentStep"
             :task-status="'TaskExecute'"
+            :is-functional="isFunctional"
             :common="common"
             :project_id="project_id"
             :instance-name="instanceName"
+            :template-source="templateSource"
+            :async-template-id="templateId"
             :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
@@ -38,7 +41,7 @@
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
-            :template_id="template_id"
+            :template_id="templateId"
             :template-source="templateSource"
             :instance-actions="instanceActions"
             :instance-operations="instanceOperations"
@@ -91,7 +94,8 @@
                 templateSource: '',
                 instanceActions: [],
                 instanceOperations: [],
-                instanceResource: {}
+                instanceResource: {},
+                templateId: ''
             }
         },
         computed: {
@@ -127,7 +131,7 @@
                     }
                     this.instanceFlow = instanceData.pipeline_tree
                     this.instanceName = instanceData.name
-                    this.template_id = instanceData.template_id
+                    this.templateId = instanceData.template_id
                     this.templateSource = instanceData.template_source
                     this.instanceActions = instanceData.auth_actions
                     this.instanceOperations = instanceData.auth_operations

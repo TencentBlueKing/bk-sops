@@ -292,9 +292,9 @@
                 if (this.selectedTplType === 'publicProcess') {
                     url += '&common=1'
                 }
-                if (this.type === 'periodic') {
-                    url += '&entrance=periodicTask_new'
-                } else {
+                if (this.createEntrance === false) {
+                    url += '&entrance=periodicTask'
+                } else if (this.createEntrance === true) {
                     url += '&entrance=taskflow'
                 }
                 this.$router.push(url)

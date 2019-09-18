@@ -897,9 +897,8 @@ class HistoryManager(models.Manager):
                            skip=status.skip)
 
     def get_histories(self, identifier):
-        histories = self.filter(identifier=identifier).order_by('started_time')
+        histories = self.model.objects.filter(identifier=identifier).order_by('started_time')
         data = [{
-            'history_id': item.id,
             'started_time': item.started_time,
             'archived_time': item.archived_time,
             'elapsed_time': calculate_elapsed_time(item.started_time, item.archived_time),

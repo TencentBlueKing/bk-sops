@@ -363,8 +363,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
 
-        locations = {item['id']: item for item in pipeline_tree.get(PE.location, [])}
-        lines = {item['id']: item for item in pipeline_tree.get(PE.line, [])}
+        locations = {item['id']: item for item in pipeline_tree.get('location', [])}
+        lines = {item['id']: item for item in pipeline_tree.get('line', [])}
 
         for act_id in exclude_task_nodes_id:
             if act_id not in pipeline_tree[PE.activities]:
@@ -384,8 +384,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         TaskFlowInstanceManager._remove_useless_parallel(pipeline_tree, lines, locations)
 
-        pipeline_tree[PE.line] = lines.values()
-        pipeline_tree[PE.location] = locations.values()
+        pipeline_tree['line'] = lines.values()
+        pipeline_tree['location'] = locations.values()
 
         TaskFlowInstanceManager._remove_useless_constants(exclude_task_nodes_id=exclude_task_nodes_id,
                                                           pipeline_tree=pipeline_tree)

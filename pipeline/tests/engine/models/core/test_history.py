@@ -98,4 +98,3 @@ class HistoryTestCase(TestCase):
                 self.assertEqual(history['ex_data'], data_get().ex_data)
                 self.assertEqual(history['loop'], status.loop)
                 self.assertEqual(history['skip'], status.skip)
-                self.assertTrue('history_id' in history)

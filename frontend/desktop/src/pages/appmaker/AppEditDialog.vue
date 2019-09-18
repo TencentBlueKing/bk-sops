@@ -173,7 +173,7 @@
                     appLogo: undefined
                 },
                 logoUrl: '',
-                isShowDefaultLogo: false,
+                isLogoLoadingError: false,
                 isLogoEmpty: !!this.isCreateNewApp,
                 appNameRule: {
                     required: true,
@@ -207,6 +207,9 @@
             },
             hasConfirmPerm () {
                 return this.hasPermission(this.btnPermission, this.appData.appActions, this.tplOperations)
+            },
+            isShowDefaultLogo () {
+                return this.isLogoLoadingError || !this.logoUrl
             }
         },
         watch: {
@@ -236,7 +239,7 @@
                 'loadTaskScheme'
             ]),
             useDefaultLogo () {
-                this.isShowDefaultLogo = true
+                this.isLogoLoadingError = true
             },
             async getTemplateList () {
                 this.templateLoading = true
@@ -289,7 +292,7 @@
                     })
                 } else {
                     this.isLogoEmpty = false
-                    this.isShowDefaultLogo = false
+                    this.isLogoLoadingError = false
                     this.logoUrl = window.URL.createObjectURL(pic)
                     this.appData.appLogo = pic
                 }

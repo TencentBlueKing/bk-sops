@@ -80,7 +80,3 @@ def get_activity_histories(act_id):
 
 def callback(act_id, data=None):
     return adapter_api.callback(act_id, data)
-
-
-def get_plain_log_for_node(node_id, history_id=-1):
-    return adapter_api.get_plain_log_for_node(node_id, history_id)
