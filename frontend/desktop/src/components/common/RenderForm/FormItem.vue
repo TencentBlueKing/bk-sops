@@ -11,15 +11,20 @@
 */
 <template>
     <div
+        v-show="showForm"
         :class="[
             'rf-form-item',
             'clearfix',
             {
                 'rf-has-hook': showHook,
-                'show-label': option.showLabel
+                'show-label': option.showLabel,
+                'rf-has-hook': option.showHook,
+                'rf-col-layout': scheme.attrs.cols
             }
         ]"
-        v-show="showForm">
+        :style="{
+            width: (scheme.attrs.cols ? scheme.attrs.cols / 12 * 100 : 100) + '%'
+        }">
         <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
             <span class="name">{{scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
@@ -29,18 +34,21 @@
                         placements: ['right'],
                         zIndex: 2002
                     }"
-                    class="bk-icon icon-info-circle">
+                    class="common-icon-info">
                 </i>
             </span>
         </div>
+        <!-- 表单名称 -->
         <label
             v-if="option.showLabel"
             :class="['rf-tag-label', { 'required': isRequired() }]">
             {{scheme.attrs.name}}
         </label>
+        <!-- 表单勾选为全局变量 -->
         <div v-show="hook" class="rf-tag-form">
             <el-input :disabled="true" :value="String(value)"></el-input>
         </div>
+        <!-- 表单元素 -->
         <component
             v-show="!hook"
             class="rf-tag-form"
@@ -56,6 +64,7 @@
             @onShow="onShowForm"
             @onHide="onHideForm">
         </component>
+        <!-- 变量勾选checkbox -->
         <div class="rf-tag-hook" v-if="showHook">
             <bk-checkbox
                 v-bk-tooltips="{
@@ -139,7 +148,17 @@
             }
         },
         data () {
-            const showForm = ('hidden' in this.scheme.attrs) ? !this.scheme.attrs.hidden : true
+            let showForm = true
+            // 原子配置为默认隐藏
+            if ('hidden' in this.scheme.attrs) {
+                showForm = !this.scheme.attrs.hidden
+            }
+            // 原子配置为非编辑状态下隐藏，优先级高于 hidden
+            if ('formViewHidden' in this.scheme.attrs && !this.option.formEdit) {
+                showForm = !this.scheme.attrs.formViewHidden
+            }
+
+            // 是否展示右侧变量勾选checkbox
             const showHook = ('hookable' in this.scheme.attrs)
                 ? (this.scheme.attrs.hookable && this.option.showHook)
                 : !!this.option.showHook
@@ -324,6 +343,9 @@
         & > .rf-tag-form {
             margin-right: 30px;
         }
+    }
+    &.rf-col-layout {
+        display: inline-block;
     }
     .rf-tag-label {
         float: left;

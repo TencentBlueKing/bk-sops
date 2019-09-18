@@ -172,7 +172,6 @@
                 templateUUID: uuid(),
                 localTemplateData: null,
                 isClickDraft: false,
-                entrance: this.$route.query.entrance,
                 tplOperations: [],
                 tplActions: [],
                 tplResource: {}
@@ -499,7 +498,7 @@
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
+                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -779,7 +778,7 @@
                     query: {
                         template_id,
                         common: this.common ? '1' : undefined,
-                        entrance: this.entrance
+                        entrance: 'templateEdit'
                     }
                 })
             },
