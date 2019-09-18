@@ -11,30 +11,36 @@
 */
 <template>
     <div
+        v-show="showForm"
         :class="[
             'rf-form-item',
             'clearfix',
             {
                 'rf-has-hook': showHook,
-                'show-label': option.showLabel
+                'show-label': option.showLabel,
+                'rf-has-hook': option.showHook,
+                'rf-col-layout': scheme.attrs.cols
             }
         ]"
-        v-show="showForm">
+        :style="{
+            width: (scheme.attrs.cols ? scheme.attrs.cols / 12 * 100 : 100) + '%'
+        }">
         <div v-if="!hook && option.showGroup && scheme.attrs.name" class="rf-group-name">
             <span class="name">{{scheme.attrs.name}}</span>
             <span v-if="scheme.attrs.desc" class="rf-group-desc">
                 <i
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: scheme.attrs.desc,
                         placements: ['right'],
                         zIndex: 2002
                     }"
-                    class="bk-icon icon-info-circle">
+                    class="common-icon-info">
                 </i>
             </span>
         </div>
+        <!-- 表单名称 -->
         <label
-            v-if="option.showLabel"
+            v-if="option.showLabel && scheme.attrs.name"
             :class="['rf-tag-label', { 'required': isRequired() }]">
             {{scheme.attrs.name}}
         </label>
@@ -310,7 +316,7 @@
 <style lang="scss">
 .rf-form-item {
     position: relative;
-    margin: 15px 0;
+    margin: 15px 0 !important;
     min-height: 36px;
     &:first-child {
         margin-top: 0;
@@ -322,6 +328,10 @@
         & > .rf-tag-form {
             margin-right: 30px;
         }
+    }
+    &.rf-col-layout {
+        display: inline-block;
+        margin: 0 0 !important;
     }
     .rf-tag-label {
         float: left;

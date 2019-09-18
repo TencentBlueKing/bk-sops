@@ -185,7 +185,8 @@ module.exports = {
     resolve: {
         alias: {
             '@': path.resolve(__dirname, '../src/'),
-            'vue': 'vue/dist/vue.esm.js'
+            'vue': 'vue/dist/vue.esm.js',
+            'table_excel': path.resolve(__dirname, '../src/assets/js/table_to_excel')
         },
         extensions: ['*', '.js', '.vue', '.json']
     },
