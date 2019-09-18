@@ -22,6 +22,7 @@ from django.test import TestCase, Client
 
 from pipeline.exceptions import PipelineException
 
+from gcloud.conf import settings
 from gcloud.core.utils import format_datetime
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -30,6 +31,12 @@ from gcloud.periodictask.models import PeriodicTask
 
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+
+try:
+    from bkoauth.decorators import apigw_required  # noqa
+    BKOAUTH_DECORATOR_JWT_CLIENT = 'bkoauth.decorators.JWTClient'
+except ImportError:
+    BKOAUTH_DECORATOR_JWT_CLIENT = 'packages.bkoauth.decorators.JWTClient'
 
 logger = logging.getLogger('root')
 
@@ -109,10 +116,16 @@ class APITest(TestCase):
         exist_return_true_qs = MagicMock()
         exist_return_true_qs.exist = MagicMock(return_value=True)
         self.project_filter_patcher = mock.patch(PROJECT_FILTER, MagicMock(return_value=exist_return_true_qs))
+        self.bkoauth_decorator_jwt_client = mock.patch(BKOAUTH_DECORATOR_JWT_CLIENT,
+                                                       MagicMock(return_value=MockJwtClient({
+                                                           settings.APIGW_APP_CODE_KEY: TEST_APP_CODE,
+                                                           settings.APIGW_USER_USERNAME_KEY: TEST_USERNAME})
+                                                       ))
 
         self.white_list_patcher.start()
         self.get_user_model_patcher.start()
         self.project_filter_patcher.start()
+        self.bkoauth_decorator_jwt_client.start()
 
         self.client = Client()
 
@@ -120,6 +133,7 @@ class APITest(TestCase):
         self.white_list_patcher.stop()
         self.get_user_model_patcher.stop()
         self.project_filter_patcher.stop()
+        self.bkoauth_decorator_jwt_client.stop()
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID,
                                                                 name=TEST_PROJECT_NAME,
@@ -352,7 +366,7 @@ class APITest(TestCase):
                 response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                              project_id=TEST_PROJECT_ID),
                                             data=json.dumps({'name': 'name',
-                                                             'constants': 'constants',
+                                                             'constants': {},
                                                              'exclude_task_nodes_id': 'exclude_task_nodes_id',
                                                              'flow_type': 'common'}),
                                             content_type="application/json",
@@ -361,7 +375,7 @@ class APITest(TestCase):
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
                     tmpl,
                     {'name': 'name', 'creator': ''},
-                    'constants',
+                    {},
                     'exclude_task_nodes_id')
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -395,7 +409,7 @@ class APITest(TestCase):
                 response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                              project_id=TEST_PROJECT_ID),
                                             data=json.dumps({'name': 'name',
-                                                             'constants': 'constants',
+                                                             'constants': {},
                                                              'exclude_task_nodes_id': 'exclude_task_nodes_id',
                                                              'template_source': 'common',
                                                              'flow_type': 'common'}),
@@ -405,7 +419,7 @@ class APITest(TestCase):
                 TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
                     tmpl,
                     {'name': 'name', 'creator': ''},
-                    'constants',
+                    {},
                     'exclude_task_nodes_id')
 
                 TaskFlowInstance.objects.create.assert_called_once_with(
@@ -434,7 +448,8 @@ class APITest(TestCase):
     def test_create_task__validate_fail(self):
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                      project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'constants': 'constants',
+                                    data=json.dumps({'name': 'name',
+                                                     'constants': {},
                                                      'exclude_task_node_id': 'exclude_task_node_id'}),
                                     content_type="application/json")
 
@@ -445,7 +460,8 @@ class APITest(TestCase):
 
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                      project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'constants': 'constants',
+                                    data=json.dumps({'name': 'name',
+                                                     'constants': {},
                                                      'exclude_task_node_id': 'exclude_task_node_id',
                                                      'template_source': 'common'}),
                                     content_type="application/json")
@@ -462,10 +478,15 @@ class APITest(TestCase):
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
     @mock.patch(APIGW_VIEW_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(BKOAUTH_DECORATOR_JWT_CLIENT, MagicMock(return_value=MockJwtClient({
+        settings.APIGW_APP_CODE_KEY: '',
+        settings.APIGW_USER_USERNAME_KEY: TEST_USERNAME})
+    ))
     def test_create_task__without_app_code(self):
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                      project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'constants': 'constants',
+                                    data=json.dumps({'constants': {},
+                                                     'name': 'test',
                                                      'exclude_task_node_id': 'exclude_task_node_id'}),
                                     content_type="application/json")
 
@@ -476,7 +497,8 @@ class APITest(TestCase):
 
         response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                      project_id=TEST_PROJECT_ID),
-                                    data=json.dumps({'constants': 'constants',
+                                    data=json.dumps({'constants': {},
+                                                     'name': 'test',
                                                      'exclude_task_node_id': 'exclude_task_node_id',
                                                      'template_source': 'common'}),
                                     content_type="application/json")
@@ -502,7 +524,7 @@ class APITest(TestCase):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                          project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
-                                                         'constants': 'constants',
+                                                         'constants': {},
                                                          'exclude_task_node_id': 'exclude_task_node_id'}),
                                         content_type="application/json",
                                         HTTP_BK_APP_CODE=TEST_APP_CODE)
@@ -521,7 +543,7 @@ class APITest(TestCase):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                          project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
-                                                         'constants': 'constants',
+                                                         'constants': {},
                                                          'exclude_task_node_id': 'exclude_task_node_id',
                                                          'template_source': 'common'}),
                                         content_type="application/json",
@@ -548,7 +570,7 @@ class APITest(TestCase):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                          project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
-                                                         'constants': 'constants',
+                                                         'constants': {},
                                                          'exclude_task_node_id': 'exclude_task_node_id'}),
                                         content_type="application/json",
                                         HTTP_BK_APP_CODE=TEST_APP_CODE)
@@ -567,7 +589,7 @@ class APITest(TestCase):
             response = self.client.post(path=self.CREATE_TASK_URL.format(template_id=TEST_TEMPLATE_ID,
                                                                          project_id=TEST_PROJECT_ID),
                                         data=json.dumps({'name': 'name',
-                                                         'constants': 'constants',
+                                                         'constants': {},
                                                          'exclude_task_node_id': 'exclude_task_node_id',
                                                          'template_source': 'common'}),
                                         content_type="application/json",

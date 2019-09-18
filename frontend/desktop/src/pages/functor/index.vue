@@ -229,7 +229,7 @@
                                 </bk-option>
                             </bk-option-group>
                         </bk-select>
-                        <i class="bk-icon icon-info-circle template-selector-tips"
+                        <i class="common-icon-info template-selector-tips"
                             v-bk-tooltips="{
                                 width: 400,
                                 placement: 'top',

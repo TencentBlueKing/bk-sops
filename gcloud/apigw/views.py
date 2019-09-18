@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 import json
 import logging
-import sys
 
 import jsonschema
 from django.http import JsonResponse
@@ -28,6 +27,7 @@ from pipeline.engine import api as pipeline_api
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.component_framework.models import ComponentModel
+from pipeline_web.drawing import draw_pipeline
 
 from gcloud.conf import settings
 from gcloud.constants import PROJECT, BUSINESS, ONETIME
@@ -41,9 +41,6 @@ from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS, APIGW_CREATE
 from gcloud.core.constant import TASK_CATEGORY, TASK_NAME_MAX_LENGTH
 from gcloud.core.utils import format_datetime, name_handler, pipeline_node_name_handle
 from gcloud.core.permissions import project_resource
-from gcloud.taskflow3.utils import draw_pipeline_automatic
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
@@ -52,16 +49,13 @@ from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3 import varschema
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.permissions import taskflow_resource
 
-if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
-    try:
-        from bkoauth.decorators import apigw_required
-    except ImportError:
-        def apigw_required(func):
-            return func
-else:
-    def apigw_required(func):
-        return func
+try:
+    from bkoauth.decorators import apigw_required
+except ImportError:
+    from packages.bkoauth.decorators import apigw_required
 
 logger = logging.getLogger("root")
 
@@ -291,7 +285,7 @@ def create_task(request, template_id, project_id):
         message = 'task params is invalid: %s' % e
         return JsonResponse({'result': False, 'message': message})
 
-    app_code = request.jwt.app.app_code if hasattr(request, 'jwt') else request.META.get('HTTP_BK_APP_CODE')
+    app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if not app_code:
         message = 'app_code cannot be empty, make sure api gateway has sent correct params'
         return JsonResponse({'result': False, 'message': message})
@@ -899,14 +893,13 @@ def fast_create_task(request, project_id):
                                           perms_tuples=perms_tuples,
                                           status=200)
 
-    # validate pipeline tree
     try:
         pipeline_tree = params['pipeline_tree']
         pipeline_node_name_handle(pipeline_tree)
         pipeline_tree.setdefault('gateways', {})
         pipeline_tree.setdefault('constants', {})
         pipeline_tree.setdefault('outputs', [])
-        draw_pipeline_automatic(pipeline_tree)
+        draw_pipeline(pipeline_tree)
         validate_web_pipeline_tree(pipeline_tree)
     except Exception as e:
         message = u'invalid param pipeline_tree: %s' % e.message

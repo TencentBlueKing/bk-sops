@@ -143,7 +143,10 @@ def __grow(tree, elem):
             PE.type: elem.type(),
             PE.id: elem.id,
             PE.name: elem.name,
-            PE.error_ignorable: False,
+            PE.error_ignorable: elem.error_ignorable,
+            PE.timeout: elem.timeout,
+            PE.skippable: elem.skippable,
+            PE.retryable: elem.retryable,
             PE.component: elem.component_dict(),
             PE.optional: False,
             PE.failure_handler: elem.failure_handler

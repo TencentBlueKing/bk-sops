@@ -23,6 +23,10 @@ class PipelineElement(object):
     EmptyStartEvent = 'EmptyStartEvent'
     EmptyEndEvent = 'EmptyEndEvent'
 
+    TaskNodes = {ServiceActivity, LoopServiceActivity, SubProcess}
+    BranchGateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway}
+    Gateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway, ConvergeGateway}
+
     pipeline = 'pipeline'
     id = 'id'
     type = 'type'
@@ -41,6 +45,7 @@ class PipelineElement(object):
     component = 'component'
     evaluate = 'evaluate'
     name = 'name'
+    stage_name = 'stage_name'
     failure_handler = 'failure_handler'
     inputs = 'inputs'
     outputs = 'outputs'
@@ -66,10 +71,6 @@ class PipelineElement(object):
     plain = 'plain'
     splice = 'splice'
     lazy = 'lazy'
-
-    location = 'location'
-    line = 'line'
-    version = 'version'
 
 
 PE = PipelineElement()
