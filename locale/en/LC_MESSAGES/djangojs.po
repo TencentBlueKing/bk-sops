@@ -8,11 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-<<<<<<< HEAD
 "POT-Creation-Date: 2019-08-23 09:42+0800\n"
-=======
-"POT-Creation-Date: 2019-09-17 18:32+0800\n"
->>>>>>> V3.3.X
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -75,13 +71,8 @@ msgstr "From"
 msgid "从星期"
 msgstr "From day"
 
-<<<<<<< HEAD
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:210
 msgid "开始,每隔"
-=======
-#: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:205
-msgid "开始，每隔"
->>>>>>> V3.3.X
 msgstr ", execute once every"
 
 #: frontend/desktop/src/components/common/Individualization/loopRuleSelect.vue:211
@@ -171,11 +162,7 @@ msgstr "Edit Flow"
 
 #: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:81
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:112
-<<<<<<< HEAD
 #: frontend/desktop/src/pages/task/TaskStep.vue:52
-=======
-#: frontend/desktop/src/pages/task/TaskStep.vue:63
->>>>>>> V3.3.X
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:289
 msgid "新建任务"
 msgstr "NewTask"
@@ -194,13 +181,8 @@ msgstr "Save And NewTask"
 msgid "保存"
 msgstr "Save"
 
-<<<<<<< HEAD
 #: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:83
 #: frontend/desktop/src/pages/task/TaskStep.vue:54
-=======
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:84
-#: frontend/desktop/src/pages/task/TaskStep.vue:65
->>>>>>> V3.3.X
 msgid "返回"
 msgstr "Return"
 
@@ -2199,25 +2181,16 @@ msgid "方案删除成功"
 msgstr "Scheme deleted successfully"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:53
-<<<<<<< HEAD
 #: frontend/desktop/src/pages/task/TaskExecute/index.vue:54
-=======
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:57
->>>>>>> V3.3.X
 msgid "节点选择"
 msgstr "Node Selection"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:58
-<<<<<<< HEAD
 #: frontend/desktop/src/pages/task/TaskExecute/index.vue:58
-=======
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:61
->>>>>>> V3.3.X
 msgid "参数填写"
 msgstr "Parameter Filling"
 
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:63
-<<<<<<< HEAD
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:117
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:129
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:134
@@ -2229,17 +2202,6 @@ msgstr "Task Execution"
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:124
 #: frontend/desktop/src/pages/task/TaskCreate/index.vue:151
 #: frontend/desktop/src/pages/task/TaskExecute/index.vue:105
-=======
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:116
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:65
-#: frontend/desktop/src/pages/task/TaskStep.vue:64
-msgid "任务执行"
-msgstr "Task Execution"
-
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:125
-#: frontend/desktop/src/pages/task/TaskCreate/index.vue:146
-#: frontend/desktop/src/pages/task/TaskExecute/index.vue:109
->>>>>>> V3.3.X
 msgid "职能化认领"
 msgstr "Functional Claiming"
 
@@ -2539,11 +2501,7 @@ msgstr "No failure process set, you won't be able to operate it if this node fai
 msgid "默认值不符合正则规则："
 msgstr "Default value does not match the regular rule: "
 
-<<<<<<< HEAD
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1054
-=======
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1048
->>>>>>> V3.3.X
 msgid "变量KEY已存在"
 msgstr "KEY cannot repeat"
 
