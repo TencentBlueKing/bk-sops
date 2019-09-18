@@ -25,9 +25,9 @@ class TaskContext(object):
     """
     prefix = '_system'
 
-    def __init__(self, taskflow, operator=''):
+    def __init__(self, taskflow, username=''):
         # 执行任务的操作员
-        operator = operator or taskflow.executor
+        operator = username or taskflow.executor
         self.language = translation.get_language()
         self.project_id = taskflow.project.id
         self.project_name = taskflow.project.name

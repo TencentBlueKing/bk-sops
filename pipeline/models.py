@@ -731,10 +731,12 @@ class PipelineInstance(models.Model):
             parser = parser_cls(pipeline_data)
             pipeline = parser.parse(root_pipeline_data=get_pipeline_context(instance,
                                                                             obj_type='instance',
-                                                                            data_type='data'),
+                                                                            data_type='data',
+                                                                            username=executor),
                                     root_pipeline_context=get_pipeline_context(instance,
                                                                                obj_type='instance',
-                                                                               data_type='context')
+                                                                               data_type='context',
+                                                                               username=executor)
                                     )
 
             # calculate tree info
