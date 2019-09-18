@@ -146,32 +146,32 @@ msgstr "0 means Sunday, 6 means Saturday"
 msgid "task-zh"
 msgstr "task-en"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:78
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:77
 #: frontend/desktop/src/components/common/PipelineCanvas/MenuBar.vue:152
 msgid "请输入名称"
 msgstr "Please enter a name"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:79
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:78
 #: frontend/desktop/src/pages/home/HomeSummary.vue:93
 msgid "新建流程"
 msgstr "New Flow"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:80
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:79
 msgid "编辑流程"
 msgstr "Edit Flow"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:81
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:80
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:112
 #: frontend/desktop/src/pages/task/TaskStep.vue:52
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:289
 msgid "新建任务"
 msgstr "NewTask"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:82
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:81
 msgid "保存并新建任务"
 msgstr "Save And NewTask"
 
-#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:83
+#: frontend/desktop/src/components/common/PipelineCanvas/ConfigBar.vue:82
 #: frontend/desktop/src/components/common/RenderForm/tags/TagDatatable.vue:148
 #: frontend/desktop/src/pages/config/index.vue:71
 #: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:129
@@ -2719,11 +2719,11 @@ msgstr "Local Cache added successfully"
 msgid "替换流程自动保存"
 msgstr "Replacement saved"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:365
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:366
 msgid "普通变量"
 msgstr "Common Variables"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:369
+#: frontend/desktop/src/pages/template/TemplateEdit/index.vue:370
 msgid "元变量"
 msgstr "Meta Variables"
 
