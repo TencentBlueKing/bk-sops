@@ -20,8 +20,7 @@ import store from '@/store/index.js'
 export function setConfigContext (site_url, project) {
     $.context = {
         project: project || undefined,
-        bk_biz_id: project ? (project.from_cmdb ? project.bk_biz_id : '') : undefined,
-        biz_cc_id: project ? project.bk_biz_id : undefined,
+        biz_cc_id: project ? (project.from_cmdb ? project.bk_biz_id : undefined) : undefined,
         site_url: site_url,
         component: site_url + 'api/v3/component/',
         variable: site_url + 'api/v3/variable/',
@@ -34,7 +33,7 @@ export function setConfigContext (site_url, project) {
             if ($.context.project) {
                 return $.context.project.from_cmdb ? $.context.project.bk_biz_id : ''
             }
-            return undefined
+            return ''
         },
         canSelectBiz () { // 是否可以选择业务
             if ($.context.project) {
