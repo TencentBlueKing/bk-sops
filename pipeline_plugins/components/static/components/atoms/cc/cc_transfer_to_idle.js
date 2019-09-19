@@ -18,17 +18,21 @@
                 name: gettext("业务"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
-                disabled: $.context.project.from_cmdb,
-                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
+                disabled: !$.context.canSelectBiz(),
                 validation: [
                     {
                         type: "required"
                     }
                 ]
+            },
+            methods: {
+                _tag_init: function () {
+                    this.value = $.context.canSelectBiz() ? $.context.get('bk_biz_id') : ''
+                }
             }
         },
         {
