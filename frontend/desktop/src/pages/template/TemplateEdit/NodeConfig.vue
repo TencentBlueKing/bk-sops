@@ -472,11 +472,14 @@
              * 加载标准插件节点数据
              */
             async getAtomConfig (atomType) {
+                this.atomConfigLoading = true
                 if ($.atoms[atomType]) {
                     this.setNodeConfigData(atomType)
+                    this.$nextTick(() => {
+                        this.atomConfigLoading = false
+                    })
                     return
                 }
-                this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atomType })
                     this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
