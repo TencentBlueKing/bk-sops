@@ -13,3 +13,5 @@ specific language governing permissions and limitations under the License.
 
 __author__ = u"蓝鲸智云"
 __copyright__ = "Copyright (c) 2012-2018 Tencent. All Rights Reserved."
+
+default_app_config = 'gcloud.apigw.apps.ApiConfig'

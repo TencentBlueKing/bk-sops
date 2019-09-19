@@ -53,6 +53,12 @@ APIGW_DECORATOR_BUSINESS_EXIST = 'gcloud.apigw.decorators.business_exist'
 APIGW_COMPONENT_MODEL_FILTER = 'gcloud.apigw.views.ComponentModel.objects.filter'
 APIGW_COMPONENT_LIBRARY_GET_COMPONENT_CLS = 'gcloud.apigw.views.ComponentLibrary.get_component_class'
 
+APIGW_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.read_encoded_template_data'
+APIGW_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.replace_template_id'
+
+APIGW_VIEW_APIGW_REQUIRED = 'gcloud.apigw.views.apigw_required'
+APIGW_DECORATOR_APIGW_REQUIRED = 'gcloud.apigw.decorators.apigw_required'
+
 MAIN_PACKAGE_SOURCE_GET = 'gcloud.external_plugins.models.main_source.MainPackageSource.objects.get'
 
 ROOT_PACKAGES_CREATE_PACKAGES_FOR_SOURCE = \
@@ -62,9 +68,6 @@ ROOT_PACKAGES_DELETE_PACKAGES_IN_SOURCE = \
 ROOT_PACKAGES_PACKAGES_FOR_SOURCE = 'gcloud.external_plugins.models.sync_base.RootPackage.objects.packages_for_source'
 
 GIT_REPO_SOURCE_GET = 'gcloud.external_plugins.models.sync_source.GitRepoSyncSource.objects.get'
-
-APIGW_READ_ENCODED_TEMPLATE_DATA = 'gcloud.apigw.views.read_encoded_template_data'
-APIGW_REPLACE_TEMPLATE_ID = 'gcloud.apigw.views.replace_template_id'
 
 CORE_PROJECT_GET_USER_BUSINESS_LIST = 'gcloud.core.project.get_user_business_list'
 

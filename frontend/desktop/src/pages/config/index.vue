@@ -21,7 +21,7 @@
                 <div class="common-form-content">
                     <bk-input class="bk-input-inline" :clearable="true" v-model="executor"></bk-input>
                     <i
-                        class="bk-icon icon-info-circle desc-tooltip"
+                        class="common-icon-info desc-tooltip"
                         v-bk-tooltips="{
                             content: i18n.executorTips,
                             width: 300,
@@ -35,7 +35,7 @@
                 <div class="common-form-content">
                     <bk-switcher v-model="alwaysUseExecutor" size="small"></bk-switcher>
                     <i
-                        class="bk-icon icon-info-circle desc-tooltip"
+                        class="common-icon-info desc-tooltip"
                         v-bk-tooltips="{
                             content: i18n.alwaysUseTips,
                             placements: ['right']
@@ -172,7 +172,7 @@
     .force-tooltip {
         position: relative;
     }
-    .icon-info-circle:hover {
+    .common-icon-info:hover {
         color: #f4aa1a
     }
     .bk-button {
