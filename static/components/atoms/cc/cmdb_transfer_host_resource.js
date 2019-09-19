@@ -9,21 +9,21 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-<template>
-    <div :class="['circle-node', 'converge-gateway', node.status ? node.status.toLowerCase() : '']">
-        <div class="node-type-icon common-icon-node-convergegateway"></div>
-    </div>
-</template>
-<script>
-    export default {
-        name: 'ConvergeGateway',
-        props: {
-            node: {
-                type: Object,
-                default () {
-                    return {}
-                }
+(function(){
+    $.atoms.cmdb_transfer_host_resource = [
+        {
+            tag_code: "cc_host_ip",
+            type: "textarea",
+            attrs: {
+                name: gettext("主机内网IP"),
+                placeholder: gettext("请输入主机内网IP，多个用换行符分隔"),
+                hookable: true,
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
             }
-        }
-    }
-</script>
+        },
+    ]
+})();

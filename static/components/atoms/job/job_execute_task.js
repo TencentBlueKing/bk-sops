@@ -16,14 +16,14 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
-                hookable: false,
+                hookable: true,
                 remote: true,
                 remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
                 disabled: $.context.project.from_cmdb,
-                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
                 validation: [
                     {
                         type: "required"
@@ -39,10 +39,13 @@
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + $.context.project.cmdb_biz_id + '/' : '';
+                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + $.context.project.bk_biz_id + '/' : '';
                     return url;
                 },
                 remote_data_init: function (resp) {
+                    if (resp.result === false) {
+                        show_msg(resp.message, 'error');
+                    }
                     return resp.data;
                 },
                 validation: [
@@ -129,17 +132,22 @@
                             return;
                         }
                         this.set_loading(true);
+                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         $.ajax({
-                            url: $.context.site_url + 'pipeline/job_get_job_detail_by_biz/' + $.context.biz_cc_id + '/' + value + '/',
+                            url: $.context.site_url + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {
                                 $this._set_value(resp.data.global_var);
                                 $this.set_loading(false);
+                                if (resp.result === false) {
+                                    show_msg(resp.message, 'error');
+                                }
                             },
                             error: function () {
                                 $this._set_value([]);
                                 $this.set_loading(false);
+                                show_msg('request job detail error', 'error');
                             }
                         });
                     }

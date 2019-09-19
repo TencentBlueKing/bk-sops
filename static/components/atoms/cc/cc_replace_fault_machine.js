@@ -16,14 +16,14 @@
             type: "select",
             attrs: {
                 name: gettext("业务"),
-                hookable: false,
+                hookable: true,
                 remote: true,
                 remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
                 disabled: $.context.project.from_cmdb,
-                value: $.context.project.from_cmdb ? $.context.project.cmdb_biz_id : '',
+                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
                 validation: [
                     {
                         type: "required"

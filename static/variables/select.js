@@ -39,7 +39,7 @@
                         attrs: {
                             name: gettext("选项"),
                             hookable: true,
-                            placeholder: gettext('请输入数据源信息，自定义数据源格式为 [{"text": "", "value": ""}...}]，若是远程数据源则填写返回该格式数据的 URL'),
+                            placeholder: gettext('请输入数据源信息，自定义数据源格式为 [{"text": "", "value": ""}...]，若是远程数据源则填写返回该格式数据的 URL'),
                             validation: [
                                 {
                                     type: "required"
@@ -68,7 +68,7 @@
                         attrs: {
                             name: gettext("默认值"),
                             placeholder: gettext("请输入下拉框的默认值，单选为 value 的格式，多选为 value,value,... 的格式"),
-                            hookable: true,
+                            hookable: true
                         }
                     }
                 ]
