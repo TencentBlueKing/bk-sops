@@ -16,6 +16,7 @@ from django.conf.urls import url
 from gcloud.taskflow3 import api
 
 urlpatterns = [
+    url(r'^api/context/$', api.context),
     url(r'^api/status/(?P<project_id>\d+)/$', api.status),
     url(r'^api/clone/(?P<project_id>\d+)/$', api.task_clone),
     url(r'^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$', api.task_action),
