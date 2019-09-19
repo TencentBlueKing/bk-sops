@@ -13,139 +13,176 @@
     <div class="audit-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.auditList"></BaseTitle>
-            <BaseSearch
-                v-model="searchStr"
-                :input-placeholader="i18n.placeholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="operation-area clearfix">
+                <AdvanceSearch
+                    v-model="searchStr"
+                    :input-placeholader="i18n.placeholder"
+                    @onShow="onAdvanceShow"
+                    @input="onSearchInput">
+                </AdvanceSearch>
+            </div>
             <div class="audit-search" v-show="isAdvancedSerachShow">
                 <fieldset class="audit-fieldset">
                     <div class="audit-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.business}}</span>
-                            <bk-selector
-                                :list="business.list"
-                                :selected.sync="selectedProject"
-                                :placeholder="i18n.choice"
+                            <bk-select
+                                v-model="selectedProject"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
-                                @item-selected="onSelectProject">
-                            </bk-selector>
+                                :placeholder="i18n.choice"
+                                :clearable="true"
+                                @selected="onSelectProject">
+                                <bk-option
+                                    v-for="(option, index) in business.list"
+                                    :key="index"
+                                    :id="option.cc_id"
+                                    :name="option.cc_name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.startedTime}}</span>
-                            <bk-date-range
-                                :range-separator="'-'"
-                                :quick-select="false"
-                                :start-date.sync="executeStartTime"
-                                :end-date.sync="executeEndTime"
+                            <bk-date-picker
+                                ref="bkRanger"
+                                :placeholder="i18n.dateRange"
+                                :type="'daterange'"
                                 @change="onChangeExecuteTime">
-                            </bk-date-range>
+                            </bk-date-picker>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.taskType}}</span>
-                            <bk-selector
-                                :placeholder="i18n.taskTypePlaceholder"
-                                :is-loading="taskBasicInfoLoading"
-                                :list="taskCategory"
-                                :selected.sync="taskSync"
-                                :setting-key="'value'"
-                                :display-key="'name'"
+                            <bk-select
+                                v-model="taskSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
+                                :placeholder="i18n.taskTypePlaceholder"
+                                :clearable="true"
                                 @clear="onClearCategory"
-                                @item-selected="onSelectedCategory">
-                            </bk-selector>
+                                @selected="onSelectedCategory">
+                                <bk-option
+                                    v-for="(option, index) in taskCategory"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
+                            <bk-input
+                                v-model="creator"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.creatorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.operator}}</span>
-                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder" />
+                            <bk-input
+                                v-model="executor"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.executorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.status}}</span>
-                            <bk-selector
-                                :placeholder="i18n.statusPlaceholder"
-                                :list="statusList"
-                                :selected.sync="statusSync"
-                                :allow-clear="true"
+                            <bk-select
+                                v-model="statusSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
+                                :placeholder="i18n.statusPlaceholder"
+                                :clearable="true"
                                 @clear="onClearStatus"
-                                @item-selected="onSelectedStatus">
-                            </bk-selector>
+                                @selected="onSelectedStatus">
+                                <bk-option
+                                    v-for="(option, index) in statusList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
                 </fieldset>
             </div>
             <div class="audit-table-content">
-                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th class="audit-id">ID</th>
-                            <th class="audit-business">{{ i18n.business }}</th>
-                            <th class="audit-name">{{ i18n.name }}</th>
-                            <th class="audit-time">{{ i18n.startedTime }}</th>
-                            <th class="audit-time">{{ i18n.finishedTime }}</th>
-                            <th class="audit-category">{{ i18n.category }}</th>
-                            <th class="audit-creator">{{ i18n.creator }}</th>
-                            <th class="audit-executor">{{ i18n.operator }}</th>
-                            <th class="audit-status">{{ i18n.status }}</th>
-                            <th class="audit-operation">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in auditList" :key="item.id">
-                            <td class="audit-id">{{item.id}}</td>
-                            <td class="audit-business">{{item.project.name}}</td>
-                            <td class="audit-name">
-                                <router-link
-                                    :title="item.name"
-                                    :to="`/taskflow/execute/${item.project.id}/?instance_id=${item.id}`">
-                                    {{item.name}}
-                                </router-link>
-                            </td>
-                            <td class="audit-time">{{item.start_time || '--'}}</td>
-                            <td class="audit-time">{{item.finish_time || '--'}}</td>
-                            <td class="audit-category">{{item.category_name}}</td>
-                            <td class="audit-creator">{{item.creator_name}}</td>
-                            <td class="audit-executor">{{item.executor_name || '--'}}</td>
-                            <td class="audit-status">
-                                <span :class="executeStatus[index] && executeStatus[index].cls"></span>
-                                <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
-                            </td>
-                            <td class="audit-operation">
-                                <router-link
-                                    class="audit-operation-btn"
-                                    :to="`/taskflow/execute/${item.project.id}/?instance_id=${item.id}`">
-                                    {{ i18n.view }}
-                                </router-link>
-                            </td>
-                        </tr>
-                        <tr v-if="!auditList || !auditList.length" class="empty-tr">
-                            <td colspan="10">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
-                </div>
+                <bk-table
+                    :data="auditList"
+                    :pagination="pagination"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @page-change="onPageChange">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.business" prop="business.cc_name" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                :title="props.row.name"
+                                @click="onTemplatePermissonCheck(props.row)">
+                                {{props.row.name}}
+                            </a>
+                            <router-link
+                                class="task-name"
+                                :title="props.row.name"
+                                :to="`/taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                {{props.row.name}}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.startedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.start_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.finishedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.finish_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.category" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.operator" width="100">
+                        <template slot-scope="props">
+                            {{ props.row.executor_name || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.status" width="100">
+                        <template slot-scope="props">
+                            <div class="audit-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.operation" width="80">
+                        <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                @click="onTemplatePermissonCheck(props.row)">
+                                {{i18n.view}}
+                            </a>
+                            <router-link
+                                class="audit-operation-btn"
+                                :to="`/taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                {{ i18n.view }}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
@@ -155,10 +192,11 @@
     import '@/utils/i18n.js'
     import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
 
@@ -167,9 +205,10 @@
         components: {
             CopyrightFooter,
             BaseTitle,
-            BaseSearch,
+            AdvanceSearch,
             NoData
         },
+        mixins: [permission],
         data () {
             return {
                 i18n: {
@@ -198,18 +237,15 @@
                     taskTypePlaceholder: gettext('请选择分类'),
                     creatorPlaceholder: gettext('请输入创建人'),
                     executorPlaceholder: gettext('请输入执行人'),
-                    statusPlaceholder: gettext('请选择状态')
+                    statusPlaceholder: gettext('请选择状态'),
+                    dateRange: gettext('选择日期时间范围')
                 },
                 taskBasicInfoLoading: true,
                 listLoading: true,
                 isAdvancedSerachShow: false,
-                currentPage: 1,
-                selectedProject: -1,
-                totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
-                taskSync: 0,
-                statusSync: 0,
+                selectedProject: '',
+                taskSync: '',
+                statusSync: '',
                 searchStr: '',
                 projectId: undefined,
                 creator: undefined,
@@ -233,7 +269,16 @@
                     { 'id': 'runing', 'name': gettext('未完成') },
                     { 'id': 'finished', 'name': gettext('完成') }
                 ],
-                executeStatus: [] // 任务执行态
+                executeStatus: [], // 任务执行态
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                },
+                taskOperations: [],
+                taskResource: {}
             }
         },
         computed: {
@@ -242,7 +287,7 @@
             })
         },
         created () {
-            this.loadFunctionTask()
+            this.loadAuditTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
             this.getProjectList()
             this.getProjectBaseInfo()
@@ -260,12 +305,12 @@
             ...mapActions('project/', [
                 'loadProjectList'
             ]),
-            async loadFunctionTask () {
+            async loadAuditTask () {
                 this.listLoading = true
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         project_id: this.projectId,
                         category: this.activeTaskCategory,
                         audit__pipeline_instance__name__contains: this.searchStr,
@@ -286,15 +331,13 @@
                     const auditListData = await this.loadAuditTaskList(data)
                     const list = auditListData.objects
                     this.auditList = list
+                    this.pagination.count = auditListData.meta.total_count
+                    this.taskOperations = auditListData.meta.auth_operations
+                    this.taskResource = auditListData.meta.auth_resource
                     this.totalCount = auditListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
-                    if (!totalPage) {
-                        this.totalPage = 1
-                    } else {
-                        this.totalPage = totalPage
-                    }
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
+                       
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
@@ -314,12 +357,12 @@
                 }
             },
             onPageChange (page) {
-                this.currentPage = page
-                this.loadFunctionTask()
+                this.pagination.current = page
+                this.loadAuditTask()
             },
             searchInputhandler () {
-                this.currentPage = 1
-                this.loadFunctionTask()
+                this.pagination.current = 1
+                this.loadAuditTask()
             },
             async getExecuteDetail (task, index) {
                 const data = {
@@ -379,7 +422,7 @@
                 this.taskBasicInfoLoading = true
                 try {
                     const data = await this.loadProjectBaseInfo()
-                    this.taskCategory = data.task_categories
+                    this.taskCategory = data.task_categories.map(m => ({ name: m.name, id: m.value }))
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -389,16 +432,15 @@
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
             },
-            onChangeExecuteTime (oldValue, newValue) {
-                const timeArray = newValue.split(' - ')
-                this.executeStartTime = timeArray[0]
-                this.executeEndTime = timeArray[1]
+            onChangeExecuteTime (Value) {
+                this.executeStartTime = Value[0]
+                this.executeEndTime = Value[1]
             },
             onClearCategory () {
                 this.activeTaskCategory = undefined
             },
-            onSelectedCategory (name, value) {
-                this.activeTaskCategory = name
+            onSelectedCategory (id) {
+                this.activeTaskCategory = id
             },
             onResetForm () {
                 this.isStarted = undefined
@@ -406,12 +448,13 @@
                 this.creator = undefined
                 this.executor = undefined
                 this.searchStr = undefined
-                this.statusSync = 0
-                this.selectedProject = 0
-                this.taskSync = 0
+                this.statusSync = ''
+                this.selectedProject = ''
+                this.taskSync = ''
                 this.activeTaskCategory = undefined
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
+                this.searchInputhandler()
             },
             onSelectedStatus (id, name) {
                 this.isStarted = id !== 'nonExecution'
@@ -426,14 +469,22 @@
                     return
                 }
                 this.projectId = name
+            },
+            onTemplatePermissonCheck (task) {
+                if (!this.hasPermission(['view'], task.auth_actions, this.taskOperations)) {
+                    this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
+                }
             }
         }
     }
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+.bk-select-inline,.bk-input-inline {
+    display: inline-block;
+    width: 260px;
+}
 .audit-container {
-    padding-top: 20px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #fafafa;
@@ -442,12 +493,42 @@
     padding: 0 60px;
     min-height: calc(100vh - 240px);
     .advanced-search {
-        margin: 20px 0px;
+        margin: 0;
+    }
+}
+.operation-area {
+    margin: 20px 0;
+    .search-input {
+        padding: 0 40px 0 10px;
+        width: 360px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 14px;
+        background: $whiteDefault;
+        border: 1px solid $commonBorderColor;
+        border-radius: 4px;
+        outline: none;
+        &:hover {
+            border-color: #c0c4cc;
+        }
+        &:focus {
+            border-color: $blueDefault;
+            & + i {
+                color: $blueDefault;
+            }
+        }
+    }
+    .common-icon-search {
+        position: absolute;
+        right: 15px;
+        top: 8px;
+        color: $commonBorderColor;
     }
 }
 .audit-fieldset {
     width: 100%;
     margin-bottom: 15px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .audit-query-content {
@@ -476,17 +557,6 @@
                 height: 32px;
                 line-height: 32px;
             }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-selector-icon.clear-icon {
-                top:6px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
             input::-webkit-input-placeholder{
                 color: $formBorderColor;
             }
@@ -499,7 +569,7 @@
             input:-ms-input-placeholder {
                 color: $formBorderColor;
             }
-            input,.bk-selector,.bk-date-range {
+            input{
                 min-width: 260px;
             }
             .search-input {
@@ -523,10 +593,6 @@
             .bk-selector-search-item > input {
                 min-width: 249px;
             }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
-            }
         }
         .query-button {
             padding: 10px;
@@ -546,118 +612,47 @@
     }
 }
 .common-icon-dark-circle-pause {
-    color: #FF9C01;
+    color: #ff9C01;
     font-size: 12px;
 }
 .audit-table-content {
-    table {
-        width: 100%;
-        border: 1px solid $commonBorderColor;;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: #fafafa;
-        }
-        th,td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;;
-        }
-        th {
-            background: #fafafa;
-        }
-        .audit-id {
-            padding-left: 20px;
-            width: 80px;
-        }
-        .audit-name {
-            text-align: left;
-            a {
-                display: block;
-                width: 100%;
-                color: #3c96ff;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
-        }
-        .audit-type {
-            width: 110px;
-        }
-        .audit-time {
-            width: 215px;
-        }
-        .audit-creator {
-            width: 100px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
-        .audit-business {
-            width: 120px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
-        .audit-status {
-            width: 100px;
-            .common-icon-dark-circle-shape {
-                display: inline-block;
-                transform: scale(0.9);
-                font-size: 12px;
-                color: #979BA5;
-            }
-            .common-icon-dark-circle-ellipsis {
-                color: #3c96ff;
-                font-size: 12px;
-            }
-            .icon-check-circle-shape {
-                color: $greenDefault;
-            }
-            .common-icon-dark-circle-close {
-                color: $redDefault;
-            }
-            &.revoke {
-                color: $blueDisable;
-            }
-            .common-icon-loading {
-                display: inline-block;
-                animation: bk-button-loading 1.4s infinite linear;
-            }
-            @keyframes bk-button-loading {
-                from {
-                    -webkit-transform: rotate(0);
-                    transform: rotate(0); }
-                to {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-        }
-        .audit-operation {
-            width: 90px;
-        }
-        .audit-category {
-            width: 110px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
-        .audit-executor {
-            width: 100px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
+    background: #ffffff;
+    a.task-name {
+        color: $blueDefault;
     }
-    .btn-size-mini {
-        height: 24px;
-        line-height: 22px;
-        padding: 0 11px;
-        font-size: 12px;
+    .audit-status {
+        .common-icon-dark-circle-shape {
+            display: inline-block;
+            transform: scale(0.9);
+            font-size: 12px;
+            color: #979BA5;
+        }
+        .common-icon-dark-circle-ellipsis {
+            color: #3c96ff;
+            font-size: 12px;
+        }
+        .icon-check-circle-shape {
+            color: $greenDefault;
+        }
+        .common-icon-dark-circle-close {
+            color: $redDefault;
+        }
+        &.revoke {
+            color: $blueDisable;
+        }
+        .common-icon-loading {
+            display: inline-block;
+            animation: bk-button-loading 1.4s infinite linear;
+        }
+        @keyframes bk-button-loading {
+            from {
+                -webkit-transform: rotate(0);
+                transform: rotate(0); }
+            to {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
     }
     .audit-operation-btn {
         color: #3c96ff;

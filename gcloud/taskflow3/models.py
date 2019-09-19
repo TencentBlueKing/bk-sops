@@ -31,7 +31,7 @@ from pipeline.models import PipelineInstance
 from pipeline.engine import exceptions
 from pipeline.engine import api as pipeline_api
 from pipeline.engine.models import Data
-from pipeline.utils.context import get_pipeline_context
+from pipeline.parser.context import get_pipeline_context
 from pipeline.engine import states
 from pipeline.log.models import LogEntry
 from pipeline.component_framework.models import ComponentModel
@@ -51,26 +51,26 @@ from pipeline_web.wrapper import PipelineTemplateWebWrapper
 from pipeline_web.parser.format import format_node_io_to_list
 
 from gcloud.conf import settings
-from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
 from gcloud.core.models import Project
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.commons.template.models import replace_template_id, CommonTemplate
-from gcloud.taskflow3.constants import (
-    TASK_CREATE_METHOD,
-    TEMPLATE_SOURCE,
-    PROJECT,
-)
 from gcloud.core.utils import (
     convert_readable_username,
-    strftime_with_timezone,
     timestamp_to_datetime,
     format_datetime,
     camel_case_to_underscore_naming,
     gen_day_dates,
     get_month_dates
 )
+from gcloud.commons.template.models import replace_template_id, CommonTemplate
+from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.constants import (
+    TASK_CREATE_METHOD,
+    TEMPLATE_SOURCE,
+    PROJECT,
+    ONETIME
+)
 from gcloud.taskflow3.signals import taskflow_started
+from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
@@ -94,9 +94,6 @@ NODE_ACTIONS = {
     'pause_subproc': pipeline_api.pause_pipeline,
     'resume_subproc': pipeline_api.resume_node_appointment,
 }
-GROUP_BY_DICT = {
-    'instance_details': 'instance_details'
-}
 
 
 class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -113,7 +110,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
 
         pipeline_instance = PipelineInstance.objects.create_instance(
-            template.pipeline_template,
+            template.pipeline_template if template else None,
             pipeline_tree,
             spread=True,
             **pipeline_template_data
@@ -195,8 +192,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
             for incoming_id in incoming_id_list:
                 lines[incoming_id][PE.target]['id'] = next_node['id']
-        except Exception as e:
-            logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error:%s' % e)
+        except Exception:
+            logger.exception('create_pipeline_instance_exclude_task_nodes adjust web data error: %s' %
+                             traceback.format_exc())
 
     @staticmethod
     def _remove_useless_constants(exclude_task_nodes_id, pipeline_tree):
@@ -365,8 +363,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
 
-        locations = {item['id']: item for item in pipeline_tree.get(PE.location, [])}
-        lines = {item['id']: item for item in pipeline_tree.get(PE.line, [])}
+        locations = {item['id']: item for item in pipeline_tree.get('location', [])}
+        lines = {item['id']: item for item in pipeline_tree.get('line', [])}
 
         for act_id in exclude_task_nodes_id:
             if act_id not in pipeline_tree[PE.activities]:
@@ -386,8 +384,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         TaskFlowInstanceManager._remove_useless_parallel(pipeline_tree, lines, locations)
 
-        pipeline_tree[PE.line] = lines.values()
-        pipeline_tree[PE.location] = locations.values()
+        pipeline_tree['line'] = lines.values()
+        pipeline_tree['location'] = locations.values()
 
         TaskFlowInstanceManager._remove_useless_constants(exclude_task_nodes_id=exclude_task_nodes_id,
                                                           pipeline_tree=pipeline_tree)
@@ -769,7 +767,7 @@ class TaskFlowInstance(models.Model):
                                           on_delete=models.SET_NULL)
     category = models.CharField(_(u"任务类型，继承自模板"), choices=TASK_CATEGORY,
                                 max_length=255, default='Other')
-    template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255)
+    template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255, blank=True)
     template_source = models.CharField(_(u"流程模板来源"), max_length=32,
                                        choices=TEMPLATE_SOURCE,
                                        default=PROJECT)
@@ -854,7 +852,9 @@ class TaskFlowInstance(models.Model):
 
     @property
     def template(self):
-        if self.template_source == PROJECT:
+        if self.template_source == ONETIME:
+            return None
+        elif self.template_source == PROJECT:
             return TaskTemplate.objects.get(pk=self.template_id)
         else:
             return CommonTemplate.objects.get(pk=self.template_id)
@@ -865,7 +865,7 @@ class TaskFlowInstance(models.Model):
 
     @property
     def subprocess_info(self):
-        return self.pipeline_instance.template.subprocess_version_info
+        return self.pipeline_instance.template.subprocess_version_info if self.template else {}
 
     @property
     def raw_state(self):
@@ -885,10 +885,10 @@ class TaskFlowInstance(models.Model):
         status_tree.setdefault('children', {})
         status_tree.pop('created_time', '')
 
-        status_tree['start_time'] = strftime_with_timezone(status_tree.pop('started_time'))
-        status_tree['finish_time'] = strftime_with_timezone(status_tree.pop('archived_time'))
+        status_tree['start_time'] = format_datetime(status_tree.pop('started_time'))
+        status_tree['finish_time'] = format_datetime(status_tree.pop('archived_time'))
         child_status = []
-        for identifier_code, child_tree in status_tree['children'].iteritems():
+        for identifier_code, child_tree in status_tree['children'].items():
             TaskFlowInstance.format_pipeline_status(child_tree)
             child_status.append(child_tree['state'])
 
@@ -918,7 +918,7 @@ class TaskFlowInstance(models.Model):
         TaskFlowInstance.format_pipeline_status(status_tree)
         return status_tree
 
-    def get_node_data(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -942,14 +942,21 @@ class TaskFlowInstance(models.Model):
                 inputs = WebPipelineAdapter(instance_data).get_act_inputs(
                     act_id=node_id,
                     subprocess_stack=subprocess_stack,
-                    root_pipeline_data=get_pipeline_context(self.pipeline_instance, 'instance')
+                    root_pipeline_data=get_pipeline_context(self.pipeline_instance,
+                                                            obj_type='instance',
+                                                            data_type='data',
+                                                            username=username),
+                    root_pipeline_context=get_pipeline_context(self.pipeline_instance,
+                                                               obj_type='instance',
+                                                               data_type='context',
+                                                               username=username)
                 )
                 outputs = {}
             except Exception as e:
                 inputs = {}
                 result = False
-                message = 'parser pipeline tree error: %s' % e
-                logger.exception(message)
+                logger.exception(traceback.format_exc())
+                message = u"parser pipeline tree error: %s" % e
                 outputs = {'ex_data': message}
 
         if not isinstance(inputs, dict):
@@ -964,8 +971,8 @@ class TaskFlowInstance(models.Model):
                 outputs_format = component.outputs_format()
             except Exception as e:
                 result = False
-                message = 'get component[component_code=%s] format error: %s' % (component_code, e)
-                logger.exception(message)
+                message = u"get component[component_code=%s] format error: %s" % (component_code, e)
+                logger.exception(traceback.format_exc())
                 outputs = {'ex_data': message}
             else:
                 # for some special empty case e.g. ''
@@ -1009,7 +1016,7 @@ class TaskFlowInstance(models.Model):
         }
         return {'result': result, 'data': data, 'message': '' if result else data['ex_data']}
 
-    def get_node_detail(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -1017,7 +1024,7 @@ class TaskFlowInstance(models.Model):
             )
             return {'result': False, 'message': message, 'data': {}}
 
-        ret_data = self.get_node_data(node_id, component_code, subprocess_stack)
+        ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack)
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:
@@ -1068,33 +1075,31 @@ class TaskFlowInstance(models.Model):
                                                                                            e.message,
                                                                                            e.gateway_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except StreamValidateError as e:
                 message = u"task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, e.message, e.node_id)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except IsolateNodeError as e:
                 message = u"task[id=%s] has isolate structure, message: %s" % (self.id, e.message)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except ConnectionValidateError as e:
                 message = u"task[id=%s] connection check failed, message: %s, nodes: %s" % (self.id,
                                                                                             e.detail,
                                                                                             e.failed_nodes)
                 logger.exception(message)
-                return {'result': False, 'message': message}
 
             except TypeError:
+                message = 'redis connection error, please check redis configuration'
                 logger.exception(traceback.format_exc())
-                return {'result': False, 'message': 'redis connection error, check redis configuration please'}
 
             except Exception as e:
                 message = u"task[id=%s] action failed:%s" % (self.id, e)
-                logger.exception(message)
-                return {'result': False, 'message': message}
+                logger.exception(traceback.format_exc())
+
+            return {'result': False, 'message': message}
+
         try:
             action_result = INSTANCE_ACTIONS[action](self.pipeline_instance.instance_id)
             if action_result.result:
@@ -1103,7 +1108,7 @@ class TaskFlowInstance(models.Model):
                 return {'result': action_result.result, 'message': action_result.message}
         except Exception as e:
             message = u"task[id=%s] action failed:%s" % (self.id, e)
-            logger.exception(message)
+            logger.exception(traceback.format_exc())
             return {'result': False, 'message': message}
 
     def nodes_action(self, action, node_id, username, **kwargs):
@@ -1126,7 +1131,7 @@ class TaskFlowInstance(models.Model):
                 action_result = NODE_ACTIONS[action](node_id)
         except Exception as e:
             message = u"task[id=%s] node[id=%s] action failed:%s" % (self.id, node_id, e)
-            logger.exception(message)
+            logger.exception(traceback.format_exc())
             return {'result': False, 'message': message}
         if action_result.result:
             return {'result': True, 'data': 'success'}
@@ -1151,16 +1156,16 @@ class TaskFlowInstance(models.Model):
     def reset_pipeline_instance_data(self, constants, name):
         exec_data = self.pipeline_tree
         try:
-            for key, value in constants.iteritems():
+            for key, value in constants.items():
                 if key in exec_data['constants']:
                     exec_data['constants'][key]['value'] = value
             self.pipeline_instance.set_execution_data(exec_data)
             if name:
                 self.pipeline_instance.name = name
                 self.pipeline_instance.save()
-        except Exception as e:
+        except Exception:
             logger.exception('TaskFlow reset_pipeline_instance_data error:id=%s, constants=%s, error=%s' % (
-                self.pk, json.dumps(constants), e))
+                self.pk, json.dumps(constants), traceback.format_exc()))
             return {'result': False, 'message': 'constants is not valid'}
         return {'result': True, 'data': 'success'}
 

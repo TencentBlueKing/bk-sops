@@ -145,8 +145,14 @@ def revoke_pipeline(pipeline_id):
         return action_result
 
     process = PipelineModel.objects.get(id=pipeline_id).process
-    process.revoke_subprocess()
-    process.destroy_all()
+
+    if not process:
+        return ActionResult(result=False, message='relate process is none, this pipeline may be revoked.')
+
+    with transaction.atomic():
+        PipelineProcess.objects.select_for_update().get(id=process.id)
+        process.revoke_subprocess()
+        process.destroy_all()
 
     return action_result
 
@@ -233,8 +239,8 @@ def retry_node(node_id, inputs=None):
     if not (isinstance(node, ServiceActivity) or isinstance(node, ParallelGateway)):
         return ActionResult(result=False, message='can\'t retry this type of node')
 
-    if hasattr(node, 'can_retry') and not node.can_retry:
-        return ActionResult(result=False, message='the node is set to not be retried, try skip it please.')
+    if hasattr(node, 'retryable') and not node.retryable:
+        return ActionResult(result=False, message='the node is set to not be retryable, try skip it please.')
 
     action_result = Status.objects.retry(process, node, inputs)
     if not action_result.result:
@@ -266,8 +272,8 @@ def skip_node(node_id):
     if not isinstance(node, ServiceActivity):
         return ActionResult(result=False, message='can\'t skip this type of node')
 
-    if not node.skippable:
-        return ActionResult(result=False, message='this node can not be skipped')
+    if hasattr(node, 'skippable') and not node.skippable:
+        return ActionResult(result=False, message='this node is set to not be skippable, try retry it please.')
 
     # skip and write result bit
     action_result = Status.objects.skip(process, node)
@@ -422,22 +428,6 @@ def get_activity_histories(node_id):
     :return:
     """
     return History.objects.get_histories(node_id)
-
-
-def get_single_state(node_id):
-    """
-    get state for single node
-    :param node_id:
-    :return:
-    """
-    s = Status.objects.get(id=node_id)
-    return {
-        'state': s.state,
-        'started_time': s.started_time,
-        'finished_time': s.archived_time,
-        'retry': s.retry,
-        'skip': s.skip
-    }
 
 
 @_frozen_check

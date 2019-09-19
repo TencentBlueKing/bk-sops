@@ -13,7 +13,9 @@
     <div :class="['step-wrapper',{ 'hidden-step-wrapper': hiddenBorder }]">
         <div class="step-header">
             <div class="step-section-title">
-                <span>{{ taskTemplateTitle }}</span>
+                <span v-if="isShowBackBtn" class="bk-button bk-button-default" @click.prevent="getHomeUrl()">{{ i18n.return }}</span>
+                <span class="task-title">{{ taskTemplateTitle }}</span>
+                <span class="task-name">{{ instanceName }}</span>
             </div>
         </div>
         <div class="division-line"></div>
@@ -43,18 +45,31 @@
     import { mapState } from 'vuex'
     export default {
         name: 'TaskCreateStep',
-        props: ['list', 'currentStep', 'allFinished'],
+        props: [
+            'list',
+            'currentStep',
+            'allFinished',
+            'common',
+            'instanceName',
+            'project_id',
+            'taskStatus',
+            'template_id',
+            'isFunctional'
+        ],
         data () {
             return {
                 i18n: {
                     newTask: gettext('新建任务'),
-                    taskExecution: gettext('任务执行')
+                    taskExecution: gettext('任务执行'),
+                    return: gettext('返回')
                 }
             }
         },
         computed: {
             ...mapState({
-                'lang': state => state.lang
+                'lang': state => state.lang,
+                userType: state => state.userType,
+                view_mode: state => state.view_mode
             }),
             currentStepIndex () {
                 return this.getCurrentStepIndex()
@@ -64,6 +79,9 @@
             },
             taskTemplateTitle () {
                 return this.$route.query.instance_id === undefined ? this.i18n.newTask : this.i18n.taskExecution
+            },
+            isShowBackBtn () {
+                return !(this.view_mode === 'appmaker' && this.$route.path.indexOf('newtask') !== -1)
             }
         },
         methods: {
@@ -99,6 +117,63 @@
                     style['left'] = nameLength * -2 + 'px'
                 }
                 return style
+            },
+            /**
+             * 返回任务列表
+             * 目的：返回到【节点选择】上一个页面
+             */
+            getHomeUrl () {
+                const backObj = {
+                    'business': `/template/home/${this.project_id}/`,
+                    'periodicTask': `/periodic/home/${this.project_id}/`,
+                    'taskflow': `/taskflow/home/${this.project_id}/`,
+                    'common': `/template/common/${this.project_id}/`,
+                    'adminCommon': '/admin/common/template/',
+                    'templateEdit': `/template/edit/${this.project_id}/?template_id=${this.template_id || this.asyncTemplateId}`,
+                    'functor': `/function/home/`,
+                    'auditor': `/audit/home/`,
+                    'appmaker': `/appmaker/${this.$route.params.app_id}/task_home/${this.project_id}/`
+                }
+                const currentUser = this.view_mode === 'app' ? this.userType : 'appmaker'
+                const entrance = this.$route.query.entrance || ''
+                let url = '/'
+                switch (currentUser) {
+                    case 'maintainer':
+                        // 任务创建(节点选择+参数填写)
+                        if (this.currentStep === 'selectnode' || this.currentStep === 'paramfill') {
+                            /**
+                             * entrance
+                             * 1、periodicTask - 周期任务新建
+                             * 2、taskflow - 任务记录新建
+                             * 3、templateEdit - 模版编辑
+                             */
+                            if (entrance === 'periodicTask' || entrance === 'taskflow' || entrance === 'templateEdit') {
+                                url = backObj[entrance]
+                                break
+                            }
+                            if (this.common) {
+                                url = backObj['common']
+                                break
+                            }
+                            if (this.isFunctional) {
+                                url = backObj['taskflow']
+                                break
+                            }
+                            url = backObj['business']
+                        } else {
+                            // 任务执行页面
+                            url = backObj['taskflow']
+                        }
+                        break
+                    case 'functor':
+                    case 'auditor':
+                    case 'appmaker':
+                        url = backObj[currentUser]
+                        break
+                    default:
+                        url = '/'
+                }
+                this.$router.push(url)
             }
         }
     }
@@ -107,21 +182,54 @@
 @import '@/scss/config.scss';
 .step-wrapper {
     background: #f4f7fa;
-    border: 1px solid #cacedb;
+    border-bottom: 1px solid #cacedb;
     .step-header {
         background-color: #f4f7fa;
+        .bk-button-default {
+            float: right;
+            position: relative;
+            top: 16px;
+            right: 20px;
+            width: 90px
+        }
+    }
+    .step-section-title {
+        height: 67px;
+        margin: 0;
+        color: #313238;
+        line-height: 67px;
+        text-align: left;
+    }
+    .task-title {
+        padding-left: 30px;
+        font-size: 14px;
+        font-weight: 600;
+        &:before {
+            content: '';
+            display: inline-block;
+            position: relative;
+            top: 4px;
+            right: 10px;
+            width: 2px;
+            height: 20px;
+            background: #a3c5fd;
+        }
+    }
+    .task-name {
+        font-size: 14px;
+        font-weight: 600;
     }
     .division-line {
         margin: 0 20px 10px 20px;
-        border:0;
+        border: 0;
         height: 1px;
-        background-color:#DDE4EB;
+        background-color: #dde4eB;
     }
     .step-list {
         display: flex;
-        margin: 0 0 7px 0;
+        margin: 0 0 16px 0;
         min-width: 1320px;
-            
+
     }
     .step-item {
         display: inline-block;
@@ -132,7 +240,7 @@
         line-height: 16px;
         text-align: left;
         width: 90px;
-        &:last-child{
+        &:last-child {
             .order {
                 margin-top: 4px;
             }

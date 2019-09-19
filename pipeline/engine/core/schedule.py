@@ -20,7 +20,7 @@ from django.db import transaction
 from pipeline.engine import signals, states, exceptions
 from pipeline.engine.core.data import get_schedule_parent_data, set_schedule_data, delete_parent_data
 from pipeline.engine.models import ScheduleService, Data, Status, PipelineProcess
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 logger = logging.getLogger('celery')
 
@@ -102,8 +102,14 @@ def schedule(process_id, schedule_id):
                 logger.info('node %s %s timeout monitor revoke' % (service_act.id, version))
 
             Data.objects.write_node_data(service_act, ex_data=ex_data)
-            process = PipelineProcess.objects.get(id=sched_service.process_id)
-            process.adjust_status()
+
+            with transaction.atomic():
+                process = PipelineProcess.objects.select_for_update().get(id=sched_service.process_id)
+                if not process.is_alive:
+                    logger.info('pipeline %s has been revoked, status adjust failed.' % process.root_pipeline_id)
+                    return
+
+                process.adjust_status()
 
             # send activity error signal
 
@@ -120,7 +126,8 @@ def schedule(process_id, schedule_id):
             valve.send(signals, 'activity_failed',
                        sender=process.root_pipeline,
                        pipeline_id=process.root_pipeline_id,
-                       pipeline_activity_id=service_act.id)
+                       pipeline_activity_id=service_act.id,
+                       subprocess_id_stack=process.subprocess_stack)
             return
 
         # schedule execute finished or callback finished

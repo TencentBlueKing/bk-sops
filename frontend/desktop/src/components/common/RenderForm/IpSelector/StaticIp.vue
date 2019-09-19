@@ -13,13 +13,14 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button type="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
+                <bk-button theme="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
+                    v-if="isShowQuantity"
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
                     @hide="onDropdownHide">
-                    <bk-button type="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
+                    <bk-button theme="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
                         <span>{{i18n.moreOperations}}</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </bk-button>
@@ -33,16 +34,16 @@
                         </div>
                     </div>
                 </bk-dropdown-menu>
-                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch"></ip-search-input>
+                <ip-search-input class="ip-search-wrap" @search="onStaticIpSearch" :editable="editable"></ip-search-input>
             </div>
-            <div class="selected-num">{{i18n.selected}}
+            <div v-if="isShowQuantity" class="selected-num">{{i18n.selected}}
                 <span class="total-ip">{{staticIps.length}}</span>
                 {{i18n.staticIpNum}}
                 <span class="total-not-installed">{{failedAgentLength}}</span>
                 {{i18n.num}}
             </div>
             <div class="selected-ip-table-wrap">
-                <table class="ip-table">
+                <table :class="['ip-table', { 'disabled': !editable }]">
                     <thead>
                         <tr>
                             <th width="">{{i18n.cloudArea}}</th>
@@ -54,7 +55,7 @@
                     <tbody>
                         <template v-if="listInPage.length">
                             <tr v-for="item in listInPage" :key="item.bk_host_d">
-                                <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}}</td>
+                                <td>{{item.cloud[0] && item.cloud[0].bk_inst_name}}</td>
                                 <td>{{item.bk_host_innerip}}</td>
                                 <td :class="item.agent ? 'agent-normal' : 'agent-failed'">{{item.agent ? 'Agent' + i18n.normal : 'Agent' + i18n.error}}</td>
                                 <td>
@@ -70,7 +71,7 @@
                             <td class="static-ip-empty" colspan="4">
                                 <span v-if="!isSearchMode && editable">
                                     {{i18n.noDataClick}}
-                                    <a class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</a>
+                                    <span class="add-ip-btn" @click="onAddPanelShow">{{i18n.add}}</span>
                                     {{i18n.server}}
                                 </span>
                                 <span v-else>{{i18n.noData}}</span>
@@ -79,12 +80,14 @@
                     </tbody>
                 </table>
                 <div class="table-pagination" v-if="isPaginationShow">
-                    <bk-paging
-                        :location="'right'"
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
+                    <bk-pagination
+                        :current.sync="currentPage"
+                        :count="totalCount"
+                        :limit="listCountPerPage"
+                        :limit-list="[15,20,30]"
+                        :show-limit="false"
+                        @change="onPageChange">
+                    </bk-pagination>
                 </div>
                 <span v-show="dataError" class="common-error-tip error-info">{{i18n.notEmpty}}</span>
             </div>
@@ -134,7 +137,7 @@
         },
         props: ['editable', 'staticIpList', 'staticIps'],
         data () {
-            const listCountPerPage = 10
+            const listCountPerPage = 5
             const totalPage = Math.ceil(this.staticIps.length / listCountPerPage)
             return {
                 isDropdownShow: false,
@@ -143,6 +146,7 @@
                 copyText: '',
                 isPaginationShow: totalPage > 1,
                 currentPage: 1,
+                totalCount: this.staticIps.length,
                 totalPage: totalPage,
                 listCountPerPage: listCountPerPage,
                 listInPage: this.staticIps.slice(0, listCountPerPage),
@@ -171,11 +175,17 @@
         computed: {
             failedAgentLength () {
                 return this.staticIps.filter(item => !item.agent).length
+            },
+            isShowQuantity () {
+                return this.staticIps.length
             }
         },
         watch: {
             staticIps (val) {
                 this.setPanigation(val)
+                if (this.staticIps.length !== 0) {
+                    this.dataError = false
+                }
             }
         },
         methods: {
@@ -279,14 +289,15 @@
     margin: 20px 0;
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
+        padding: 0px;
     }
 }
 .operation-btn {
     padding: 5px 8px;
-    color: #3a84ff;
     font-size: 14px;
     cursor: pointer;
     &:hover {
+        color: #3a84ff;
         background: #ebf4ff;
     }
 }
@@ -299,6 +310,9 @@
     .total-not-installed {
         color: #ea3636;
     }
+}
+/deep/.bk-button .bk-icon {
+    margin-left: 55px;
 }
 .ip-search-wrap {
     position: absolute;
@@ -342,8 +356,14 @@
         text-align: center;
         color: #c4c6cc;
         .add-ip-btn {
+            margin: 0 -2px 0 -2px;
             color: #3a84ff;
             cursor: pointer;
+        }
+    }
+    &.disabled {
+        th, td {
+            color: #cccccc;
         }
     }
 }

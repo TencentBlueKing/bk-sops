@@ -103,7 +103,7 @@ const api = {
         } else {
             prefixUrl = this.getPrefix('template')
         }
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, { 'project__id': project_id }, data)
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -165,7 +165,7 @@ const api = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                project_id
+                'project__id': project_id
             }
         }
         return request(opts)
@@ -196,10 +196,18 @@ const api = {
      */
     $getAtomForm (type, classify, isMeta) {
         return this.getAtomFormURL(type, classify, isMeta).then(response => {
-            const { output: outputData, form: url } = response.data
+            const { output: outputData, form: formResource, form_is_embedded: embedded } = response.data
+
             store.commit('atomForm/setAtomForm', { atomType: type, data: response.data, isMeta })
             store.commit('atomForm/setAtomOutput', { atomType: type, outputData })
-            return $.getScript(url)
+
+            // 标准插件配置项内嵌到 form 字段
+            if (embedded) {
+                eval(formResource)
+                return Promise.resolve({ data: $.atoms[type] })
+            }
+
+            return $.getScript(formResource)
         }).catch(e => {
             return Promise.reject(e)
         })
@@ -235,7 +243,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersons')
-            params['project_id'] = project_id
+            params['project__id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersons')
         }
@@ -262,7 +270,7 @@ const api = {
         }
         if (common) {
             prefixUrl = this.getPrefix('commonTemplatePersonsSave')
-            bodyData['project_id'] = project_id
+            bodyData['project__id'] = project_id
         } else {
             prefixUrl = this.getPrefix('templatePersonsSave')
         }
@@ -454,10 +462,10 @@ const api = {
     getTaskList (data) {
         const { project_id } = store.state.project
         const { common, template_id } = data
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('instance')
         if (template_id) {
-            querystring['template_source'] = 'business'
+            querystring['template_source'] = 'project'
         }
         if (common) {
             querystring['template_source'] = 'common'
@@ -508,14 +516,14 @@ const api = {
      * @param {Object} data 筛选条件
      */
     getTaskScheme (data) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { project_id, template_id } = data
         const opts = {
             method: 'GET',
             url: prefixUrl,
             params: {
-                project_id,
-                'template__template_id': template_id
+                template_id,
+                'project__id': project_id
             }
         }
         return request(opts)
@@ -525,13 +533,13 @@ const api = {
      * @param {Object}} schemeData 方案配置数据
      */
     createTaskScheme (schemeData) {
-        const prefixUrl = this.getPrefix('schemes')
+        const prefixUrl = schemeData.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const { project_id, template_id, data, name } = schemeData
         const opts = {
             method: 'POST',
             url: prefixUrl,
             data: {
-                project_id,
+                'project__id': project_id,
                 template_id,
                 data,
                 name
@@ -543,11 +551,11 @@ const api = {
      * 删除任务节点选择方案
      * @param {String} schemeId 方案id
      */
-    deleteTaskScheme (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    deleteTaskScheme (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'DELETE',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },
@@ -555,11 +563,11 @@ const api = {
      * 获取任务节点选择方案详情
      * @param {String} schemeId 方案id
      */
-    getSchemeDetail (schemeId) {
-        const prefixUrl = this.getPrefix('schemes')
+    getSchemeDetail (data) {
+        const prefixUrl = data.isCommon ? this.getPrefix('commonSchemes') : this.getPrefix('schemes')
         const opts = {
             method: 'GET',
-            url: `${prefixUrl}${schemeId}/`
+            url: `${prefixUrl}${data.id}/`
         }
         return request(opts)
     },
@@ -573,7 +581,7 @@ const api = {
         const dataJson = {
             template_id: templateId,
             exclude_task_nodes_id: excludeTaskNodesId,
-            template_source: 'business'
+            template_source: 'project'
         }
         if (common) {
             dataJson['template_source'] = 'common'
@@ -593,7 +601,7 @@ const api = {
      */
     createTask (data) {
         const { app_id, view_mode, username } = store.state
-        const { project_id } = store.state
+        const { project_id } = store.state.project
         const { templateId, name, description, execData, flowType, common } = data
         const prefixUrl = this.getPrefix('instance')
         const requestData = {
@@ -606,7 +614,7 @@ const api = {
             'create_method': view_mode === 'appmaker' ? 'app_maker' : 'app',
             'create_info': app_id,
             'flow_type': flowType,
-            'template_source': 'business'
+            'template_source': 'project'
         }
         if (common) {
             requestData['template_source'] = 'common'
@@ -636,10 +644,15 @@ const api = {
      */
     claimFuncTask (data) {
         const prefixUrl = this.getPrefix('instanceClaim')
-        const requestData = qs.stringify(data)
+        const { name, instance_id, constants, project_id } = data
+        const requestData = qs.stringify({
+            name,
+            instance_id,
+            constants
+        })
         const opts = {
             method: 'POST',
-            url: prefixUrl,
+            url: `${prefixUrl}${project_id}/`,
             data: requestData
         }
 
@@ -650,13 +663,14 @@ const api = {
      * @param {String} instance_id 实例id
      */
     getInstanceStatus (data) {
-        const { instance_id, project_id } = data
+        const { instance_id, project_id, subprocess_id } = data
         const prefixUrl = this.getPrefix('instanceStatus')
         const opts = {
             method: 'GET',
             url: `${prefixUrl}${project_id}/`,
             params: {
-                instance_id
+                instance_id,
+                subprocess_id
             }
         }
 
@@ -979,7 +993,7 @@ const api = {
     loadAppmaker (data) {
         const { project_id } = store.state.project
         const prefixUrl = this.getPrefix('appmaker')
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const opts = {
             method: 'GET',
             url: prefixUrl,
@@ -1155,7 +1169,7 @@ const api = {
      */
     getPeriodicList (data) {
         const { project_id } = store.state.project
-        const querystring = Object.assign({}, data, { project_id })
+        const querystring = Object.assign({}, data, { 'project__id': project_id })
         const prefixUrl = this.getPrefix('periodic')
         const opts = {
             method: 'GET',
@@ -1219,7 +1233,7 @@ const api = {
     getPeriodic (data) {
         const { project_id } = store.state.project
         const { taskId } = data
-        const querystring = Object.assign({}, { project_id })
+        const querystring = Object.assign({}, { 'project_id': project_id })
         const prefixUrl = this.getPrefix('periodic') + taskId + '/'
         const opts = {
             method: 'GET',
@@ -1291,10 +1305,149 @@ const api = {
         return request(opts)
     },
     /**
+     * 加载插件包源配置
+     * @param {Object} fields 包源查询字段
+     */
+    loadPackageSource (fields) {
+        const prefixUrl = this.getPrefix('packageSource')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                fields: JSON.stringify(fields)
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 新增插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    createPackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 删除所有插件包源
+     */
+    deletePackageSource (data) {
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'DELETE',
+            url: prefixUrl,
+            data
+        }
+        return request(opts)
+    },
+    /**
+     * 更新插件包源配置
+     * @param {Object} data 插件包源配置
+     */
+    updatePackageSource (data) {
+        const { origins, caches } = data
+        const prefixUrl = this.getPrefix('packageSource')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: {
+                'content-type': 'application/json',
+                'X-HTTP-Method-Override': 'PATCH'
+            },
+            data: {
+                origins,
+                caches
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 加载远程包源同步任务列表
+     */
+    loadSyncTask (params) {
+        const { limit, offset } = params
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                limit,
+                offset
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 创建远程包源同步
+     */
+    createSyncTask () {
+        const creator = store.state.username
+        const create_method = 'manual'
+        const prefixUrl = this.getPrefix('syncTask')
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            data: {
+                creator,
+                create_method
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 获取收藏模板详情
+     * @param {String} ids 模板id字符串, eg: 123,33
+     */
+    getCollectedTemplateDetail (ids) {
+        const prefixUrl = this.getPrefix('template')
+
+        const opts = {
+            method: 'GET',
+            url: prefixUrl,
+            params: {
+                id__in: ids
+            }
+        }
+        return request(opts)
+    },
+    /**
+     * 查询用户是否具有某权限
+     * @param {Object} data 查询参数 {resource_type: 'xxx', instance_id: 0, action_ids: "['aaa', 'bbb']"}
+     */
+    queryUserPermission (data) {
+        const prefixUrl = this.getPrefix('permissionQuery')
+        const { resource_type, instance_id, action_ids } = data
+        const dataBody = qs.stringify({
+            resource_type,
+            instance_id,
+            action_ids
+        })
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            data: dataBody
+        }
+        return request(opts)
+    },
+    /**
      * 加载项目列表
      */
     loadProjectList (data = {}) {
-        const { limit, offset, is_disable, name } = data
+        const { limit, offset, is_disable = false, q } = data
         const prefixUrl = this.getPrefix('project')
 
         const opts = {
@@ -1304,8 +1457,21 @@ const api = {
                 limit,
                 offset,
                 is_disable,
-                name
+                q
             }
+        }
+        return request(opts)
+    },
+    /**
+     * 获取项目详情
+     * @param {String} id 项目id
+     */
+    loadProjectDetail (id) {
+        const prefixUrl = this.getPrefix('project')
+
+        const opts = {
+            method: 'GET',
+            url: `${prefixUrl}${id}`
         }
         return request(opts)
     },
@@ -1329,19 +1495,6 @@ const api = {
         return request(opts)
     },
     /**
-     * 获取项目详情
-     * @param {String} id 项目id
-     */
-    loadProjectDetail (id) {
-        const prefixUrl = this.getPrefix('project')
-
-        const opts = {
-            method: 'GET',
-            url: `${prefixUrl}id`
-        }
-        return request(opts)
-    },
-    /**
      * 更新项目详情
      * @param {Object} data 项目配置参数
      */
@@ -1358,6 +1511,22 @@ const api = {
                 desc,
                 is_disable
             }
+        }
+        return request(opts)
+    },
+    /**
+     * 获取申请权限 url
+     * @param {String} data 权限数据
+     */
+    getPermissionUrl (data) {
+        const prefixUrl = this.getPrefix('permission')
+        const dataBody = qs.stringify({ permission: data })
+
+        const opts = {
+            method: 'POST',
+            url: prefixUrl,
+            headers: { 'content-type': 'application/x-www-form-urlencoded' },
+            data: dataBody
         }
         return request(opts)
     }

@@ -36,30 +36,36 @@
             </div>
         </div>
         <div class="canvas-wrapper" v-bkloading="{ isLoading: previewDataLoading, opacity: 1 }">
-            <PipelineCanvas
+            <TemplateCanvas
                 v-if="!previewDataLoading"
-                ref="pipelineCanvas"
-                :is-menu-bar-show="false"
-                :is-config-bar-show="false"
-                :is-edit="false"
-                :is-select-node="isSelectNode"
-                :is-select-all-node="isSelectAllNode"
-                :is-preview-mode="isPreviewMode"
+                ref="TemplateCanvas"
+                :show-palette="false"
+                :editable="false"
+                :is-all-selected="isAllSelected"
+                :is-show-select-all-tool="isShowSelectAllTool"
+                :is-select-all-tool-disabled="isSelectAllToolDisabled"
                 :canvas-data="canvasData"
                 @onNodeClick="onNodeClick">
-            </PipelineCanvas>
+            </TemplateCanvas>
         </div>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     export default {
         name: 'NodePreview',
         components: {
-            PipelineCanvas
+            TemplateCanvas
         },
-        props: ['canvasData', 'previewBread', 'previewDataLoading', 'isSelectNode', 'isPreviewMode', 'isSelectAllNode'],
+        props: [
+            'canvasData',
+            'previewBread',
+            'previewDataLoading',
+            'isAllSelected',
+            'isShowSelectAllTool',
+            'isSelectAllToolDisabled'
+        ],
         data () {
             return {
                 ellipsis: '...',
@@ -93,7 +99,7 @@
                 this.$emit('onSelectSubflow', data, index)
             },
             onUpdateNodeInfo (id, item) {
-                this.$refs.pipelineCanvas.onUpdateNodeInfo(item.id, item)
+                this.$refs.TemplateCanvas.onUpdateNodeInfo(item.id, item)
             }
         }
     }
@@ -101,16 +107,14 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .node-preview-wrapper {
-    height: 460px;
+    height: 100%;
 }
 .canvas-wrapper {
     height: calc(100% - 50px);
     overflow: hidden;
     z-index: 1;
-    /deep/ .node-canvas {
-        width: 100%;
-        height: 100%;
-        background: #e1e4e8;
+    /deep/ .jsflow .tool-panel-wrap {
+        left: 40px;
     }
 }
 .operation-header {

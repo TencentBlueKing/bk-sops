@@ -58,6 +58,7 @@ def mysetting(request):
         'LOGIN_URL': settings.LOGIN_URL,  # 登录链接
         'RUN_MODE': settings.RUN_MODE,  # 运行模式
         'APP_CODE': settings.APP_CODE,  # 在蓝鲸系统中注册的  "应用编码"
+        'APP_NAME': settings.APP_NAME,  # 应用名称
         'SITE_URL': settings.SITE_URL,  # URL前缀
         'REMOTE_STATIC_URL': settings.REMOTE_STATIC_URL,  # 远程静态资源url
         'STATIC_VERSION': settings.STATIC_VERSION,  # 静态资源版本号,用于指示浏览器更新缓存
@@ -87,7 +88,7 @@ def mysetting(request):
         'IS_FUNCTOR': is_functor,
         'IS_AUDITOR': is_auditor,
         'PROJECT_TIMEZONE': project_timezone,
-        'DEFAULT_PROJECT_ID': default_project.id if default_project else None
+        'DEFAULT_PROJECT_ID': default_project.id if default_project else ''
     }
 
     return ctx

@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from django.test import TestCase
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 from pipeline.engine import signals
 from pipeline.engine.exceptions import InvalidOperationException
 from pipeline.engine.models import ScheduleService, ScheduleCeleryTask
@@ -24,10 +24,10 @@ valve.unload_valve_function()
 
 class TestScheduleService(TestCase):
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.set_schedule_data', mock.MagicMock())
     def test_set_schedule(self):
-        from django_signal_valve.valve import send
+        from pipeline.django_signal_valve.valve import send
         from pipeline.engine.core.data import set_schedule_data
 
         service_act = ServiceActObject(interval=None)
@@ -77,7 +77,7 @@ class TestScheduleService(TestCase):
             countdown=interval.interval
         )
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.set_schedule_data', mock.MagicMock())
     def test_schedule_for(self):
         service_act = ServiceActObject(interval=None)
@@ -94,7 +94,7 @@ class TestScheduleService(TestCase):
         schedule = ScheduleService.objects.schedule_for(activity_id=service_act.id, version=version)
         self.assertEqual(schedule.id, '{}{}'.format(service_act.id, version))
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.set_schedule_data', mock.MagicMock())
     def test_delete_schedule(self):
         service_act = ServiceActObject(interval=None)
@@ -115,11 +115,11 @@ class TestScheduleService(TestCase):
             activity_id=service_act.id,
             version=version)
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.set_schedule_data', mock.MagicMock())
     @mock.patch('pipeline.engine.models.ScheduleCeleryTask.objects.unbind', mock.MagicMock())
     def test_set_next_schedule(self):
-        from django_signal_valve.valve import send
+        from pipeline.django_signal_valve.valve import send
 
         interval = StaticIntervalObject(interval=3)
         service_act = ServiceActObject(interval=interval)
@@ -163,7 +163,7 @@ class TestScheduleService(TestCase):
         )
         self.assertRaises(InvalidOperationException, schedule.set_next_schedule)
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.set_schedule_data', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.delete_parent_data', mock.MagicMock())
     @mock.patch('pipeline.engine.models.ScheduleCeleryTask.objects.destroy', mock.MagicMock())
@@ -189,7 +189,7 @@ class TestScheduleService(TestCase):
         delete_parent_data.assert_called_with(schedule_id)
         ScheduleCeleryTask.objects.destroy.assert_called_with(schedule_id)
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     @mock.patch('pipeline.engine.models.ScheduleCeleryTask.objects.destroy', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.set_schedule_data', mock.MagicMock())
     def test_finish(self):
@@ -212,10 +212,10 @@ class TestScheduleService(TestCase):
         self.assertFalse(schedule.is_scheduling)
         ScheduleCeleryTask.objects.destroy.assert_called_with(schedule.id)
 
-    @mock.patch('django_signal_valve.valve.send', mock.MagicMock())
+    @mock.patch('pipeline.django_signal_valve.valve.send', mock.MagicMock())
     @mock.patch('pipeline.engine.core.data.set_schedule_data', mock.MagicMock())
     def test_callback(self):
-        from django_signal_valve.valve import send
+        from pipeline.django_signal_valve.valve import send
 
         service_act = ServiceActObject(interval=None)
         process_id = uniqid()

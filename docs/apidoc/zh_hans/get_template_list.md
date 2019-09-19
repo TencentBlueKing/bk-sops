@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -18,6 +19,7 @@
 |---------------|------------|--------|-------------------|
 | bk_biz_id     |  string    | 是     | 模板所属业务ID     |
 | template_source | string   | 否     | 流程模板来源，business:默认值，业务流程，common：公共流程 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 
@@ -27,7 +29,7 @@
     "bk_app_secret": "xxx",
     "bk_token": "xxx",
     "bk_biz_id": "2",
-    "template_source": "business",
+    "template_source": "business"
 }
 ```
 

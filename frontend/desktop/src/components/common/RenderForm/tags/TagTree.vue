@@ -12,9 +12,10 @@
 <template>
     <div class="tag-tree">
         <el-tree
+            v-if="Array.isArray(value)"
+            v-loading="loading"
             ref="tree"
             node-key="id"
-            v-loading="loading"
             :data="items"
             :props="default_props"
             :show-checkbox="editable && formMode && show_checkbox"
@@ -26,8 +27,7 @@
             :expand-on-click-node="false"
             @check="_handleBoxCheck"
             @node-expand="nodeExpend"
-            @node-collapse="nodeCollapse"
-        >
+            @node-collapse="nodeCollapse">
         </el-tree>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
@@ -38,7 +38,7 @@
 
     const TreeAttrs = {
         value: {
-            type: Array,
+            type: [Array, String],
             required: false,
             default () {
                 return []
@@ -174,8 +174,13 @@
 </script>
 <style lang="scss" scoped>
 .tag-tree {
-    /deep/ .el-tree > .el-tree-node > .el-tree-node__content {
-        height: 36px;
+    /deep/ .el-tree {
+        & > .el-tree-node > .el-tree-node__content {
+            height: 36px;
+        }
+        .el-tree-node__label {
+            padding-left: 4px;
+        }
     }
 }
 </style>

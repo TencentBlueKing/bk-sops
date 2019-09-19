@@ -13,146 +13,215 @@
     <div class="task-container">
         <div class="list-wrapper">
             <BaseTitle :title="i18n.task_list"></BaseTitle>
-            <BaseSearch
-                v-model="flowName"
-                :input-placeholader="i18n.taskNamePlaceholder"
-                @onShow="onAdvanceShow"
-                @input="onSearchInput">
-            </BaseSearch>
+            <div class="operation-area">
+                <div class="operation-area clearfix">
+                    <bk-button
+                        theme="primary"
+                        class="task-btn"
+                        @click="onCreateTask">
+                        {{i18n.create}}
+                    </bk-button>
+                    <div class="task-advanced-search">
+                        <AdvanceSearch
+                            class="base-search"
+                            v-model="flowName"
+                            :input-placeholader="i18n.taskNamePlaceholder"
+                            @onShow="onAdvanceShow"
+                            @input="onSearchInput">
+                        </AdvanceSearch>
+                    </div>
+                </div>
+            </div>
             <div class="task-search" v-show="isAdvancedSerachShow">
                 <fieldset class="task-fieldset">
                     <div class="task-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.start_time}}</span>
-                            <bk-date-range
+                            <bk-date-picker
                                 ref="bkRanger"
-                                :range-separator="'-'"
-                                :quick-select="false"
-                                :start-date.sync="executeStartTime"
-                                :end-date.sync="executeEndTime"
+                                v-model="TimeRange"
+                                :placeholder="i18n.dateRange"
+                                :type="'daterange'"
                                 @change="onChangeExecuteTime">
-                            </bk-date-range>
+                            </bk-date-picker>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.task_type}}</span>
-                            <bk-selector
-                                :placeholder="i18n.taskTypePlaceholder"
-                                :is-loading="taskBasicInfoLoading"
-                                :list="taskCategory"
-                                :selected.sync="taskSync"
-                                :setting-key="'value'"
-                                :display-key="'name'"
+                            <bk-select
+                                v-model="taskSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
+                                :is-loading="taskBasicInfoLoading"
+                                :placeholder="i18n.taskTypePlaceholder"
                                 @clear="onClearCategory"
-                                @item-selected="onSelectedCategory">
-                            </bk-selector>
+                                @selected="onSelectedCategory">
+                                <bk-option
+                                    v-for="(option, index) in taskCategory"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.createMethod}}</span>
-                            <bk-selector
-                                :placeholder="i18n.createMethodPlaceholder"
-                                :list="taskCreateMethodList"
-                                :is-loading="taskBasicInfoLoading"
-                                :selected="createMethod"
-                                :allow-clear="true"
+                            <bk-select
+                                v-model="createMethod"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :setting-key="'value'"
-                                :display-key="'name'"
+                                :is-loading="taskBasicInfoLoading"
+                                :placeholder="i18n.createMethodPlaceholder"
                                 @clear="onClearCreateMethod"
-                                @item-selected="onSelectedCreateMethod">
-                            </bk-selector>
+                                @selected="onSelectedCreateMethod">
+                                <bk-option
+                                    v-for="(option, index) in taskCreateMethodList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
+                            <bk-input
+                                v-model="creator"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.creatorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.executor}}</span>
-                            <input class="search-input" v-model="executor" :placeholder="i18n.executorPlaceholder" />
+                            <bk-input
+                                v-model="executor"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.executorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.status}}</span>
-                            <bk-selector
-                                :placeholder="i18n.statusPlaceholder"
-                                :list="statusList"
-                                :selected.sync="statusSync"
-                                :allow-clear="true"
+                            <bk-select
+                                v-model="statusSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
+                                :is-loading="taskBasicInfoLoading"
+                                :placeholder="i18n.statusPlaceholder"
                                 @clear="onClearStatus"
-                                @item-selected="onSelectedStatus">
-                            </bk-selector>
+                                @selected="onSelectedStatus">
+                                <bk-option
+                                    v-for="(option, index) in statusList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
                 </fieldset>
             </div>
             <div class="task-table-content">
-                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th class="task-id">ID</th>
-                            <th class="task-name">{{ i18n.task_name }}</th>
-                            <th class="task-time">{{ i18n.start_time }}</th>
-                            <th class="task-time">{{ i18n.finish_time }}</th>
-                            <th class="task-type">{{ i18n.task_type }}</th>
-                            <th class="task-executor">{{ i18n.creator }}</th>
-                            <th class="task-executor">{{ i18n.executor }}</th>
-                            <th class="task-method">{{ i18n.createMethod }}</th>
-                            <th class="task-status">{{ i18n.status }}</th>
-                            <th class="task-operation">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in taskList" :key="item.id">
-                            <td class="task-id">{{item.id}}</td>
-                            <td class="task-name">
-                                <router-link
-                                    :title="item.name"
-                                    :to="`/taskflow/execute/${project_id}/?instance_id=${item.id}`">
-                                    {{item.name}}
-                                </router-link>
-                            </td>
-                            <td class="task-time">{{item.start_time || '--'}}</td>
-                            <td class="task-time">{{item.finish_time || '--'}}</td>
-                            <td class="task-type">{{item.category_name}}</td>
-                            <td class="task-executor">{{item.creator_name}}</td>
-                            <td class="task-executor">{{item.executor_name || '--'}}</td>
-                            <td class="task-method">{{transformCreateMethod(item.create_method)}}</td>
-                            <td class="task-status">
-                                <span :class="executeStatus[index] && executeStatus[index].cls"></span>
-                                <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
-                            </td>
-                            <td class="task-operation">
-                                <a class="task-operation-clone" href="javascript:void(0);" @click="onCloneTaskClick(item.id, item.name)">{{ i18n.clone }}</a>
-                                <a class="task-operation-delete" href="javascript:void(0);" @click="onDeleteTask(item.id, item.name)">{{ i18n.delete }}</a>
-                            </td>
-                        </tr>
-                        <tr v-if="!taskList || !taskList.length" class="empty-tr">
-                            <td colspan="10">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
-                </div>
+                <bk-table
+                    :data="taskList"
+                    :pagination="pagination"
+                    @page-change="onPageChange"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.task_name" prop="name">
+                        <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                :title="props.row.name"
+                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                {{props.row.name}}
+                            </a>
+                            <router-link
+                                v-else
+                                class="template-operate-btn"
+                                :title="props.row.name"
+                                :to="`/taskflow/execute/${project_id}/?instance_id=${props.row.id}`">
+                                {{props.row.name}}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.start_time" prop="category_name">
+                        <template slot-scope="props">
+                            {{ props.row.start_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.finish_time">
+                        <template slot-scope="props">
+                            {{ props.row.finish_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.task_type" prop="category_name"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.executor" width="100">
+                        <template slot-scope="props">
+                            {{ props.row.executor_name || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.createMethod" width="80">
+                        <template slot-scope="props">
+                            {{ transformCreateMethod(props.row.create_method) }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.status" width="120">
+                        <template slot-scope="props">
+                            <div class="task-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]" class="task-status-text">{{executeStatus[props.$index].text}}</span>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.operation" width="120">
+                        <template slot-scope="props">
+                            <div class="task-operation">
+                                <a
+                                    v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
+                                    :class="['task-operation-clone', {
+                                        'text-permission-disable': !hasPermission(['clone'], props.row.auth_actions, taskOperations)
+                                    }]"
+                                    href="javascript:void(0);"
+                                    @click="onCloneTaskClick(props.row, $event)">
+                                    {{ i18n.clone }}
+                                </a>
+                                <a
+                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, taskOperations) }"
+                                    :class="['task-operation-delete', {
+                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, taskOperations)
+                                    }]"
+                                    href="javascript:void(0);"
+                                    @click="onDeleteTask(props.row, $event)">
+                                    {{ i18n.delete }}
+                                </a>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
+        <TaskCreateDialog
+            type="normal"
+            :common="common"
+            :project_id="project_id"
+            :is-new-task-dialog-show="isNewTaskDialogShow"
+            :business-info-loading="businessInfoLoading"
+            :task-category="taskCategory"
+            @onCreateTaskCancel="onCreateTaskCancel">
+        </TaskCreateDialog>
         <TaskCloneDialog
-            v-if="isTaskCloneDialogShow"
             :is-task-clone-dialog-show="isTaskCloneDialogShow"
             :task-name="theCloneTaskName"
             :pending="pending.clone"
@@ -160,16 +229,16 @@
             @cancel="onCloneCancel">
         </TaskCloneDialog>
         <bk-dialog
-            :quick-close="false"
-            :has-header="true"
-            :ext-cls="'common-dialog'"
-            :title="i18n.delete"
             width="400"
-            padding="30px"
-            :is-show.sync="isDeleteDialogShow"
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.delete"
+            :value="isDeleteDialogShow"
             @confirm="onDeleteConfirm"
             @cancel="onDeleteCancel">
-            <div slot="content" class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
+            <div class="dialog-content" v-bkloading="{ isLoading: pending.delete, opacity: 1 }">
                 {{i18n.deleleTip + '"' + theDeleteTaskName + '"?'}}
             </div>
         </bk-dialog>
@@ -182,20 +251,24 @@
     import toolsUtils from '@/utils/tools.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
+    import TaskCreateDialog from './TaskCreateDialog.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
     import TaskCloneDialog from './TaskCloneDialog.vue'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'TaskList',
         components: {
             CopyrightFooter,
             BaseTitle,
-            BaseSearch,
+            AdvanceSearch,
             NoData,
+            TaskCreateDialog,
             TaskCloneDialog
         },
+        mixins: [permission],
         props: {
             project_id: {
                 type: String,
@@ -218,22 +291,24 @@
                 activeTaskCategory: undefined, // 任务类型筛选
                 searchStr: '',
                 executeStatus: [], // 任务执行状态
-                currentPage: 1,
+                TimeRange: ['', ''],
                 totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
                 isDeleteDialogShow: false,
                 shapeShow: false,
                 isAdvancedSerachShow: false,
                 theDeleteTaskId: undefined,
                 theDeleteTaskName: '',
                 isTaskCloneDialogShow: false,
+                isNewTaskDialogShow: false,
+                businessInfoLoading: true, // 模板分类信息 loading
                 theCloneTaskName: '',
                 theCloneTaskId: undefined,
                 pending: {
                     delete: false,
                     clone: false
                 },
+                taskOperations: [],
+                taskResource: {},
                 i18n: {
                     allCategory: gettext('全部'),
                     placeholder: gettext('请输入ID或任务名称'),
@@ -267,7 +342,9 @@
                     createMethodPlaceholder: gettext('请选择创建方式'),
                     advanceSearch: gettext('高级搜索'),
                     executing: gettext('执行中'),
-                    pauseState: gettext('暂停')
+                    pauseState: gettext('暂停'),
+                    create: gettext('新建'),
+                    dateRange: gettext('选择日期时间范围')
                 },
                 executeStartTime: undefined,
                 executeEndTime: undefined,
@@ -275,7 +352,7 @@
                 category: undefined,
                 creator: undefined,
                 executor: undefined,
-                taskSync: 0,
+                taskSync: '',
                 statusList: [
                     { 'id': 'nonExecution', 'name': gettext('未执行') },
                     { 'id': 'runing', 'name': gettext('未完成') },
@@ -284,9 +361,16 @@
                 taskBasicInfoLoading: true,
                 isStarted: undefined,
                 isFinished: undefined,
-                statusSync: 0,
+                statusSync: '',
                 taskCreateMethodList: [],
-                createMethod: ''
+                createMethod: this.create_method || '',
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                }
             }
         },
         computed: {
@@ -329,23 +413,16 @@
                 this.executeStatus = []
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         category: this.activeTaskCategory,
                         template_id: this.templateId,
                         pipeline_instance__creator__contains: this.creator,
                         pipeline_instance__executor__contains: this.executor,
                         pipeline_instance__name__contains: this.flowName,
                         pipeline_instance__is_started: this.isStarted,
-                        pipeline_instance__is_finished: this.isFinished
-                    }
-
-                    if (this.common !== '') {
-                        data.common = this.common
-                    }
-
-                    if (this.createMethod !== '') {
-                        data.create_method = this.createMethod
+                        pipeline_instance__is_finished: this.isFinished,
+                        create_method: this.createMethod || undefined
                     }
 
                     if (this.executeEndTime) {
@@ -359,8 +436,11 @@
                     }
                     const taskListData = await this.loadTaskList(data)
                     const list = taskListData.objects
+                    this.pagination.count = taskListData.meta.total_count
                     this.totalCount = taskListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
+                    this.taskOperations = taskListData.meta.auth_operations
+                    this.taskResource = taskListData.meta.auth_resource
+                    const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -368,6 +448,7 @@
                     }
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
+                        
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
@@ -432,9 +513,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadProjectBaseInfo()
-                    this.taskCategory = bizBasicInfo.task_categories
-                    this.setProjectBaseInfo(bizBasicInfo)
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories
+                    this.setProjectBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -442,16 +523,30 @@
             },
             onCategoryClick (category) {
                 this.activeTaskCategory = category
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getTaskList()
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getTaskList()
             },
-            onDeleteTask (id, name) {
-                this.theDeleteTaskId = id
-                this.theDeleteTaskName = name
+            /**
+             * 单个任务操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} task 任务数据对象
+             * @params {Object} event 事件对象
+             */
+            onTaskPermissonCheck (required, task, event) {
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
+                event.preventDefault()
+            },
+            onDeleteTask (task, event) {
+                if (!this.hasPermission(['delete'], task.auth_actions, this.taskOperations)) {
+                    this.onTaskPermissonCheck(['delete'], task, event)
+                    return
+                }
+                this.theDeleteTaskId = task.id
+                this.theDeleteTaskName = task.name
                 this.isDeleteDialogShow = true
             },
             async onDeleteConfirm () {
@@ -461,19 +556,19 @@
                     await this.deleteTask(this.theDeleteTaskId)
                     this.theDeleteTaskId = undefined
                     this.theDeleteTaskName = ''
-                    this.isDeleteDialogShow = false
                     // 最后一页最后一条删除后，往前翻一页
                     if (
-                        this.currentPage > 1
-                        && this.totalPage === this.currentPage
-                        && this.totalCount - (this.totalPage - 1) * this.countPerPage === 1
+                        this.pagination.current > 1
+                        && this.totalPage === this.pagination.current
+                        && this.pagination.count - (this.totalPage - 1) * this.pagination.limit === 1
                     ) {
-                        this.currentPage -= 1
+                        this.pagination.current -= 1
                     }
                     await this.getTaskList()
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
+                    this.isDeleteDialogShow = false
                     this.pending.delete = false
                 }
             },
@@ -482,10 +577,14 @@
                 this.theDeleteTaskName = ''
                 this.isDeleteDialogShow = false
             },
-            onCloneTaskClick (id, name) {
+            onCloneTaskClick (task, event) {
+                if (!this.hasPermission(['clone'], task.auth_actions, this.taskOperations)) {
+                    this.onTaskPermissonCheck(['clone'], task, event)
+                    return
+                }
                 this.isTaskCloneDialogShow = true
-                this.theCloneTaskId = id
-                this.theCloneTaskName = name
+                this.theCloneTaskId = task.id
+                this.theCloneTaskName = task.name
             },
             async onCloneConfirm (name) {
                 if (this.pending.clone) return
@@ -511,10 +610,10 @@
             onSelectedCategory (name, value) {
                 this.activeTaskCategory = name
             },
-            onSelectedCreateMethod (name, value) {
-                this.createMethod = name
+            onSelectedCreateMethod (value) {
+                this.createMethod = value
             },
-            onSelectedStatus (id, name) {
+            onSelectedStatus (id) {
                 this.isStarted = id !== 'nonExecution'
                 this.isFinished = id === 'finished'
             },
@@ -526,32 +625,33 @@
                 this.isFinished = undefined
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.getTaskList()
             },
             onResetForm () {
-                this.$refs.bkRanger.clear()
+                this.TimeRange = ['', '']
                 this.isStarted = undefined
                 this.isFinished = undefined
                 this.createMethod = ''
                 this.creator = undefined
                 this.executor = undefined
                 this.flowName = undefined
-                this.statusSync = 0
-                this.taskSync = 0
+                this.statusSync = ''
+                this.taskSync = ''
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
+                this.searchInputhandler()
             },
             onChangeExecuteTime (oldValue, newValue) {
-                const timeArray = newValue.split(' - ')
-                this.executeStartTime = timeArray[0]
-                this.executeEndTime = timeArray[1]
+                // const timeArray = oldValue.split(' - ')
+                this.executeStartTime = oldValue[0]
+                this.executeEndTime = oldValue[1]
             },
             async getCreateMethod () {
                 try {
                     const createMethodData = await this.loadCreateMethod()
-                    this.taskCreateMethodList = createMethodData.data
-                    this.createMethod = this.create_method
+                    this.taskCreateMethodList = createMethodData.data.map(m => ({ id: m.value, name: m.name }))
+                    this.createMethod = this.create_method || ''
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -569,24 +669,28 @@
                 if (this.taskCreateMethodList.length === 0) {
                     return ''
                 }
-                const taskCreateMethod = this.taskCreateMethodList.find((taskCreateMethod) => taskCreateMethod['value'] === value)
+                const taskCreateMethod = this.taskCreateMethodList.find((taskCreateMethod) => taskCreateMethod['id'] === value)
                 return taskCreateMethod['name']
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onCreateTask () {
+                this.isNewTaskDialogShow = true
+            },
+            onCreateTaskCancel () {
+                this.isNewTaskDialogShow = false
             }
         }
     }
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
-.task-container {
-    min-width: 1320px;
-    min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
-    .dialog-content {
-        word-break: break-all;
-    }
+@import '@/scss/mixins/advancedSearch.scss';
+@include advancedSearch;
+.dialog-content {
+    padding: 30px;
+    word-break: break-all;
 }
 .list-wrapper {
     padding: 0 60px;
@@ -597,222 +701,94 @@
 }
 .operation-area {
     margin: 20px 0;
-}
-.task-fieldset {
-    width: 100%;
-    margin-bottom: 15px;
-    border: 1px solid $commonBorderColor;
-    background: #fff;
-    .task-query-content {
-        display: flex;
-        flex-wrap: wrap;
-        .query-content {
-            min-width: 420px;
-            padding: 10px;
-            @media screen and (max-width: 1420px){
-                min-width: 380px;
-            }
-            .query-span {
-                float: left;
-                min-width: 130px;
-                margin-right: 12px;
-                height: 32px;
-                line-height: 32px;
-                font-size: 14px;
-                text-align: right;
-                @media screen and (max-width: 1420px){
-                    min-width: 100px;
-                }
-            }
-            input {
-                max-width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-selector-icon.clear-icon {
-                top:7px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
-            /deep/ .bk-date-range input {
-                height: 32px;
-                line-height: 32px;
-            }
-            input::-webkit-input-placeholder{
-                color: $formBorderColor;
-            }
-            input:-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input::-moz-placeholder {
-                color: $formBorderColor;
-            }
-            input:-ms-input-placeholder {
-                color: $formBorderColor;
-            }
-            input,.bk-selector,.bk-date-range {
-                min-width: 260px;
-            }
-            .bk-selector-search-item > input {
-                min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 10px 0 10px;
-                font-size: 14px;
-                border: 1px solid $commonBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                    & + i {
-                        color: $blueDefault;
-                    }
-                }
-            }
-            .search-input.placeholder {
-                color: $formBorderColor;
-            }
+    .template-btn {
+        margin-left: 5px;
+        color: #313238;
+    }
+    .task-advanced-search {
+        float: right;
+        .base-search {
+            margin: 0px;
         }
     }
 }
-.query-button {
-    padding: 10px;
-    min-width: 450px;
-    @media screen and (max-width: 1420px) {
-        min-width: 390px;
-    }
-    text-align: center;
-    .query-cancel {
-        margin-left: 5px;
-    }
-    .bk-button {
-        height: 32px;
-        line-height: 32px;
-    }
+.bk-select-inline {
+    width: 260px;
+    display: inline-block;
+}
+.bk-input-inline {
+    display: inline-block;
+    width: 260px;
 }
 .common-icon-dark-circle-pause {
-    color: #FF9C01;
-    font-size: 12px;
+    color: #ff9c01;
+    font-size: 14px;
+}
+.operation-area {
+    .bk-button {
+        min-width: 120px;
+    }
 }
 .task-table-content {
-    table {
-        width: 100%;
-        border: 1px solid $commonBorderColor;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
+    background: #ffffff;
+    a.task-name {
+        color: $blueDefault;
+    }
+    .task-status {
+        width: 105px;
+        text-align: left;
+        .common-icon-dark-circle-shape {
+            display: inline-block;
+            font-size: 14px;
+            color: #979BA5;
+            vertical-align: middle;
         }
-        th,td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;
+        .common-icon-dark-circle-ellipsis {
+            color: #3c96ff;
+            font-size: 14px;
+            vertical-align: middle;
         }
-        th {
-            background: $whiteNodeBg;
+        .icon-check-circle-shape {
+            font-size: 14px;
+            color: $greenDefault;
+            vertical-align: middle;
         }
-        .task-id {
-            padding-left: 20px;
-            width: 80px;
+        .common-icon-dark-circle-close {
+            color: $redDefault;
+            font-size: 16px;
+            vertical-align: middle;
         }
-        .task-name {
-            text-align: left;
-            a {
-                display: block;
-                width: 100%;
-                color: $blueDefault;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
+        &.revoke {
+            color: $blueDisable;
         }
-        @media screen and (min-width: 1500px) {
-            .task-time {
-                width: 220px;
-            }
+        .common-icon-loading {
+            display: inline-block;
+            animation: bk-button-loading 1.4s infinite linear;
         }
-        @media screen and (max-width: 1500px) {
-            .task-time {
-                width: 152px;
-            }
-            td[class="task-time"] {
-                height: 60px;
+        @keyframes bk-button-loading {
+            from {
+                -webkit-transform: rotate(0);
+                transform: rotate(0); }
+            to {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
             }
         }
-        .task-type {
-            width: 122px;
+        .task-status-text {
+            display: inline-block;
+            vertical-align: middle;
         }
-        .task-executor {
-            width: 110px;
+    }
+    .task-operation {
+        width: 150px;
+        .task-operation-clone {
+            color: #3C96FF;
+            font-size: 12px;
         }
-        .task-method {
-            width: 110px;
-        }
-        .task-status {
-            width: 105px;
-            text-align: left;
-           .common-icon-dark-circle-shape {
-                display: inline-block;
-                transform: scale(0.9);
-                font-size: 12px;
-                color: #979BA5;
-            }
-            .common-icon-dark-circle-ellipsis {
-                color: #3c96ff;
-                font-size: 12px;
-            }
-            .icon-check-circle-shape {
-                color: $greenDefault;
-            }
-            .common-icon-dark-circle-close {
-                color: $redDefault;
-            }
-            &.revoke {
-                color: $blueDisable;
-            }
-            .common-icon-loading {
-                display: inline-block;
-                animation: bk-button-loading 1.4s infinite linear;
-            }
-            @keyframes bk-button-loading {
-                from {
-                    -webkit-transform: rotate(0);
-                    transform: rotate(0); }
-                to {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-        }
-        .task-operation {
-            width: 150px;
-            .task-operation-clone {
-                color: #3C96FF;
-                font-size: 12px;
-            }
-            .task-operation-delete {
-                padding: 5px;
-                color: #3C96FF;
-                font-size: 12px;
-            }
+        .task-operation-delete {
+            padding: 5px;
+            color: #3C96FF;
+            font-size: 12px;
         }
     }
     .empty-data {

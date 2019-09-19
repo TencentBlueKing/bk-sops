@@ -78,3 +78,7 @@ class DataObject(object):
             'outputs': self.outputs
         }
         return json.dumps(result)
+
+    def __setstate__(self, state):
+        self.inputs = FancyDict(state['inputs'])
+        self.outputs = FancyDict(state['outputs'])

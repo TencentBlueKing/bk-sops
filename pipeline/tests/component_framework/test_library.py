@@ -67,6 +67,9 @@ class TestRegistry(TestCase):
 
         self.assertEqual(ComponentLibrary.get_component('code', {}).__class__, TestComponent)
 
+    def test_get_component__raise(self):
+        self.assertRaises(ComponentNotExistException, ComponentLibrary.get_component, 'c_not_exist', {})
+
     def test_args_new(self):
         component = ComponentLibrary(self.component.code)
         self.assertEqual(component, self.component)

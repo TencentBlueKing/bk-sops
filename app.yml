@@ -1,10 +1,12 @@
 !!python/unicode 'language': python
 app_code: bk_sops
 app_name: 标准运维
+app_name_en: Standard OPS
 is_use_celery: True
 author: 蓝鲸智云
 introduction: 标准运维是通过一套成熟稳定的任务调度引擎，把在多系统间的工作整合到一个流程，助力运维实现跨系统调度自动化的SaaS应用。
-version: 3.4.1
+introduction_en: SOPS is a SaaS application that utilizes a set of mature and stable task scheduling engines to help realize cross-system scheduling automation, and integrates the work among multiple systems into a single process.
+version: 3.4.6
 category: 运维工具
 language_support: 中文
 desktop:
@@ -13,3 +15,5 @@ desktop:
   is_max: True
 container:
     memory: 2048
+yums:
+  - git

@@ -76,9 +76,7 @@ def save(request, project_id):
         params['link_prefix'] = '%sappmaker/' % settings.APP_HOST
         fake = False
 
-    result, data = AppMaker.objects.save_app_maker(
-        project_id, params, fake
-    )
+    result, data = AppMaker.objects.save_app_maker(project_id, params, fake)
     if not result:
         return JsonResponse({'result': False, 'message': data})
 

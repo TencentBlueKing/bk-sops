@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -19,6 +20,7 @@
 |   bk_biz_id    |   string     |   是   |  模板所属业务ID |
 |   group_by     |   string     |   是   |  分类统计维度，status：按任务状态（未执行、执行中、已完成）统计，category：按照任务类型统计，flow_type：按照流程类型统计，create_method：按照创建方式 |
 |   conditions     |   dict     |   否   |  任务过滤条件 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 #### conditions
 

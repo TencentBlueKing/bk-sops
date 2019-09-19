@@ -14,8 +14,8 @@
         <div class="ip-added-number">{{i18n.add}}({{selectedIp.length}})</div>
         <div class="operation-area">
             <div class="ip-list-add">
-                <bk-button type="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
-                <bk-button type="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
+                <bk-button theme="primary" @click.stop="onAddIpConfirm">{{i18n.add}}</bk-button>
+                <bk-button theme="default" @click.stop="onAddIpCancel">{{i18n.cancel}}</bk-button>
             </div>
             <ip-search-input class="ip-search-wrap" @search="onIpSearch"></ip-search-input>
         </div>
@@ -57,13 +57,15 @@
                 </tbody>
             </table>
             <div class="table-pagination">
-                <bk-paging
+                <bk-pagination
                     v-if="isPaginationShow"
-                    :location="'right'"
-                    :cur-page.sync="currentPage"
-                    :total-page="totalPage"
-                    @page-change="onPageChange">
-                </bk-paging>
+                    :current.sync="currentPage"
+                    :count="totalCount"
+                    :limit="listCountPerPage"
+                    :limit-list="[15,20,30]"
+                    :show-limit="false"
+                    @change="onPageChange">
+                </bk-pagination>
             </div>
         </div>
     </div>
@@ -90,7 +92,7 @@
         },
         props: ['staticIpList', 'staticIps'],
         data () {
-            const listCountPerPage = 10
+            const listCountPerPage = 5
             const listInPage = this.staticIpList.slice(0, listCountPerPage)
             const totalPage = Math.ceil(this.staticIpList.length / listCountPerPage)
 
@@ -99,6 +101,7 @@
                 isPaginationShow: totalPage > 1,
                 selectedIp: this.staticIps.slice(0),
                 currentPage: 1,
+                totalCount: this.staticIpList.length,
                 totalPage,
                 listCountPerPage,
                 listInPage,
@@ -191,9 +194,9 @@
     }
     .ip-search-wrap {
         position: absolute;
-        top: -2px;
+        top: 0px;
         right: 0;
-        width: 70%;
+        width: calc(100% - 144px);
     }
     .bk-button {
         height: 32px;
@@ -281,8 +284,6 @@
         justify-content: flex-end;
         /deep/ .page-item {
             min-width: 30px;
-            height: 30px;
-            line-height: 30px;
             font-size: 12px;
         }
     }

@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -19,12 +20,13 @@
 |   task_id    |   string     |   是   |  周期任务ID |
 |   bk_biz_id    |   string     |   是   |  模板所属业务ID |
 |   constants    |   dict     |   否   | 任务全局参数，详细信息见下面说明 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
-#### constants.KEY
+#### constants KEY
 
 变量 KEY，${key} 格式
 
-#### constants.VALUE
+#### constants VALUE
 
 变量值
 
@@ -37,7 +39,9 @@
     "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
-    "constants": {"${bk_timing}": "100"},
+    "constants": {
+        "${bk_timing}": "100"
+    }
 }
 ```
 
@@ -76,10 +80,10 @@
 |  data        |    dict      |      result=true 时成功数据，详细信息请见下面说明     |
 |  message        |    string      |      result=false 时错误信息     |
 
-#### data.KEY
+#### data KEY
 全局变量 KEY，${key} 格式
 
-#### data.VALUE
+#### data VALUE
 
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |

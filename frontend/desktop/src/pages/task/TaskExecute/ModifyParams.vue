@@ -28,7 +28,15 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isParamsEmpty && paramsCanBeModify">
-            <bk-button type="success" @click="onModifyParams">{{ i18n.save }}</bk-button>
+            <bk-button
+                theme="success"
+                :class="{
+                    'btn-permission-disable': !hasSavePermission
+                }"
+                v-cursor="{ active: !hasSavePermission }"
+                @click="onModifyParams">
+                {{ i18n.save }}
+            </bk-button>
         </div>
     </div>
 </template>
@@ -36,15 +44,18 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
+
     export default {
         name: 'ModifyParams',
         components: {
             TaskParamEdit,
             NoData
         },
-        props: ['instance_id', 'paramsCanBeModify'],
+        mixins: [permission],
+        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'instanceOperations', 'instanceResource'],
         data () {
             return {
                 bkMessageInstance: null,
@@ -61,6 +72,9 @@
         computed: {
             isParamsEmpty () {
                 return !Object.keys(this.constants).length
+            },
+            hasSavePermission () {
+                return this.hasPermission(['edit'], this.instanceActions, this.instanceOperations)
             },
             loading () {
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
@@ -94,6 +108,15 @@
                 }
             },
             async onModifyParams () {
+                if (!this.hasSavePermission) {
+                    const resourceData = {
+                        id: this.instance_id,
+                        name: this.instanceName,
+                        auth_actions: this.instanceActions
+                    }
+                    this.applyForPermission(['edit'], resourceData, this.instanceOperations, this.instanceResource)
+                }
+
                 if (this.pending) {
                     return
                 }

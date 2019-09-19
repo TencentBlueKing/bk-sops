@@ -26,9 +26,9 @@ from django.db import models, transaction
 from django.utils.module_loading import import_string
 
 from pipeline.service import task_service
-from pipeline.utils.context import get_pipeline_context
 from pipeline.utils.uniqid import uniqid, node_uniqid
 from pipeline.parser.utils import replace_all_id
+from pipeline.parser.context import get_pipeline_context
 from pipeline.utils.graph import Graph
 from pipeline.exceptions import SubprocessRefError
 from pipeline.engine.utils import calculate_elapsed_time, ActionResult
@@ -154,7 +154,7 @@ class TemplateManager(models.Manager):
         # circle reference check
         trace = graph.get_cycle()
         if trace:
-            name_trace = u' → '.join(map(lambda proc_id: name_map[proc_id], trace))
+            name_trace = u" → ".join(map(lambda proc_id: name_map[proc_id], trace))
             return False, _(u"子流程引用链中存在循环引用：%s") % name_trace
 
         return True, ''
@@ -271,26 +271,26 @@ class PipelineTemplate(models.Model):
     """
     流程模板
     """
-    template_id = models.CharField(_(u'模板ID'), max_length=32, unique=True)
-    name = models.CharField(_(u'模板名称'), max_length=MAX_LEN_OF_NAME, default='default_template')
-    create_time = models.DateTimeField(_(u'创建时间'), auto_now_add=True)
-    creator = models.CharField(_(u'创建者'), max_length=32)
-    description = models.TextField(_(u'描述'), null=True, blank=True)
-    editor = models.CharField(_(u'修改者'), max_length=32, null=True, blank=True)
-    edit_time = models.DateTimeField(_(u'修改时间'), auto_now=True)
-    snapshot = models.ForeignKey(Snapshot, verbose_name=_(u'模板结构数据'), related_name='snapshot_templates')
-    has_subprocess = models.BooleanField(_(u'是否含有子流程'), default=False)
+    template_id = models.CharField(_(u"模板ID"), max_length=32, unique=True)
+    name = models.CharField(_(u"模板名称"), max_length=MAX_LEN_OF_NAME, default='default_template')
+    create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
+    creator = models.CharField(_(u"创建者"), max_length=32)
+    description = models.TextField(_(u"描述"), null=True, blank=True)
+    editor = models.CharField(_(u"修改者"), max_length=32, null=True, blank=True)
+    edit_time = models.DateTimeField(_(u"修改时间"), auto_now=True)
+    snapshot = models.ForeignKey(Snapshot, verbose_name=_(u"模板结构数据"), related_name='snapshot_templates')
+    has_subprocess = models.BooleanField(_(u"是否含有子流程"), default=False)
     is_deleted = models.BooleanField(
-        _(u'是否删除'),
+        _(u"是否删除"),
         default=False,
-        help_text=_(u'表示当前模板是否删除')
+        help_text=_(u"表示当前模板是否删除")
     )
 
     objects = TemplateManager()
 
     class Meta:
-        verbose_name = _(u'Pipeline模板')
-        verbose_name_plural = _(u'Pipeline模板')
+        verbose_name = _(u"Pipeline模板")
+        verbose_name_plural = _(u"Pipeline模板")
         ordering = ['-edit_time']
         app_label = 'pipeline'
 
@@ -393,15 +393,17 @@ class PipelineTemplate(models.Model):
             setattr(self, key, value)
         self.save()
 
-    def gen_instance(self, **kwargs):
+    def gen_instance(self, inputs=None, **kwargs):
         """
         使用该模板创建实例
+        @param inputs: 自定义输入
         @param kwargs: 其他参数
         @return: 实例对象
         """
         return PipelineInstance.objects.create_instance(
             template=self,
             exec_data=copy.deepcopy(self.data),
+            inputs=inputs,
             **kwargs
         )
 
@@ -507,13 +509,14 @@ class TemplateScheme(models.Model):
 
 class InstanceManager(models.Manager):
 
-    def create_instance(self, template, exec_data, spread=False, **kwargs):
+    def create_instance(self, template, exec_data, spread=False, inputs=None, **kwargs):
         """
         创建流程实例对象
         @param template: 流程模板
         @param exec_data: 执行用流程数据
         @param spread: exec_data 是否已经展开
         @param kwargs: 其他参数
+        @param inputs: 自定义输入
         @return: 实例对象
         """
         if not spread:
@@ -521,13 +524,20 @@ class InstanceManager(models.Manager):
         else:
             PipelineTemplate.objects.replace_id(exec_data)
 
+        inputs = inputs or {}
+
+        for key, val in inputs.items():
+            if key in exec_data['data']['inputs']:
+                exec_data['data']['inputs'][key]['value'] = val
+
         instance_id = node_uniqid()
         exec_data['id'] = instance_id
         exec_snapshot, _ = Snapshot.objects.create_or_get_snapshot(exec_data)
         TreeInfo.objects.create()
-        kwargs['template'] = template
+        if template is not None:
+            kwargs['template'] = template
+            kwargs['snapshot_id'] = template.snapshot.id
         kwargs['instance_id'] = instance_id
-        kwargs['snapshot_id'] = template.snapshot.id
         kwargs['execution_snapshot_id'] = exec_snapshot.id
         return self.create(**kwargs)
 
@@ -583,45 +593,50 @@ class PipelineInstance(models.Model):
     """
     流程实例对象
     """
-    template = models.ForeignKey(PipelineTemplate, verbose_name=_(u'Pipeline模板'))
-    instance_id = models.CharField(_(u'实例ID'), max_length=32, unique=True)
-    name = models.CharField(_(u'实例名称'), max_length=MAX_LEN_OF_NAME, default='default_instance')
-    creator = models.CharField(_(u'创建者'), max_length=32, blank=True)
-    create_time = models.DateTimeField(_(u'创建时间'), auto_now_add=True)
-    executor = models.CharField(_(u'执行者'), max_length=32, blank=True)
-    start_time = models.DateTimeField(_(u'启动时间'), null=True, blank=True)
-    finish_time = models.DateTimeField(_(u'结束时间'), null=True, blank=True)
-    description = models.TextField(_(u'描述'), blank=True)
-    is_started = models.BooleanField(_(u'是否已经启动'), default=False)
-    is_finished = models.BooleanField(_(u'是否已经完成'), default=False)
+    instance_id = models.CharField(_(u"实例ID"), max_length=32, unique=True)
+    template = models.ForeignKey(PipelineTemplate, verbose_name=_(u"Pipeline模板"),
+                                 null=True, blank=True, on_delete=models.SET_NULL)
+    name = models.CharField(_(u"实例名称"), max_length=MAX_LEN_OF_NAME, default='default_instance')
+    creator = models.CharField(_(u"创建者"), max_length=32, blank=True)
+    create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
+    executor = models.CharField(_(u"执行者"), max_length=32, blank=True)
+    start_time = models.DateTimeField(_(u"启动时间"), null=True, blank=True)
+    finish_time = models.DateTimeField(_(u"结束时间"), null=True, blank=True)
+    description = models.TextField(_(u"描述"), blank=True)
+    is_started = models.BooleanField(_(u"是否已经启动"), default=False)
+    is_finished = models.BooleanField(_(u"是否已经完成"), default=False)
     is_deleted = models.BooleanField(
-        _(u'是否已经删除'),
+        _(u"是否已经删除"),
         default=False,
-        help_text=_(u'表示当前实例是否删除')
+        help_text=_(u"表示当前实例是否删除")
     )
     snapshot = models.ForeignKey(
         Snapshot,
+        blank=True,
+        null=True,
         related_name='snapshot_instances',
-        verbose_name=_(u'实例结构数据，指向实例对应的模板的结构数据')
+        verbose_name=_(u"实例结构数据，指向实例对应的模板的结构数据")
     )
     execution_snapshot = models.ForeignKey(
         Snapshot,
+        blank=True,
         null=True,
         related_name='execution_snapshot_instances',
-        verbose_name=_(u'用于实例执行的结构数据')
+        verbose_name=_(u"用于实例执行的结构数据")
     )
     tree_info = models.ForeignKey(
         TreeInfo,
+        blank=True,
         null=True,
         related_name='tree_info_instances',
-        verbose_name=_(u'提前计算好的一些流程结构数据')
+        verbose_name=_(u"提前计算好的一些流程结构数据")
     )
 
     objects = InstanceManager()
 
     class Meta:
-        verbose_name = _(u'Pipeline实例')
-        verbose_name_plural = _(u'Pipeline实例')
+        verbose_name = _(u"Pipeline实例")
+        verbose_name_plural = _(u"Pipeline实例")
         ordering = ['-create_time']
         app_label = 'pipeline'
 
@@ -709,12 +724,20 @@ class PipelineInstance(models.Model):
             except ImportError:
                 return ActionResult(result=False, message='invalid parser class: %s' % settings.PIPELINE_PARSER_CLASS)
 
-            parser = parser_cls(pipeline_data)
-            pipeline = parser.parse(get_pipeline_context(instance, 'instance'))
-
             instance.start_time = timezone.now()
             instance.is_started = True
             instance.executor = executor
+
+            parser = parser_cls(pipeline_data)
+            pipeline = parser.parse(root_pipeline_data=get_pipeline_context(instance,
+                                                                            obj_type='instance',
+                                                                            data_type='data',
+                                                                            username=executor),
+                                    root_pipeline_context=get_pipeline_context(instance,
+                                                                               obj_type='instance',
+                                                                               data_type='context',
+                                                                               username=executor)
+                                    )
 
             # calculate tree info
             instance.calculate_tree_info()

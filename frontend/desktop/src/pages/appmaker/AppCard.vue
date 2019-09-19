@@ -11,8 +11,8 @@
 */
 <template>
     <div class="card-wrapper">
-        <div class="card-basic" @click.self="onGotoAppMaker">
-            <div class="logo">
+        <div class="card-basic">
+            <div class="logo" @click="onGotoAppMaker">
                 <div v-if="isShowDefaultLogo" class="default-logo">
                     <i class="common-icon-blueking"></i>
                 </div>
@@ -29,29 +29,26 @@
                 </a>
             </div>
             <div class="card-operation">
-                <span class="common-icon-box-pen operate-btn"
+                <span
+                    :class="['common-icon-box-pen', 'operate-btn', {
+                        'permission-disable': !hasPermission(['edit'], appData.auth_actions, appOperations)
+                    }]"
                     :title="i18n.modifier"
+                    v-cursor="{ active: !hasPermission(['edit'], appData.auth_actions, appOperations) }"
                     @click.stop="onCardEdit">
                 </span>
-                <span class="common-icon-black-figure operate-btn"
-                    :title="i18n.jurisdiction"
-                    @click.stop="onOpenPermissions">
+                <router-link
+                    class="common-icon-clock-reload operate-btn"
+                    :title="i18n.executive"
+                    :to="getExecuteHistoryUrl(appData.template_id)">
+                </router-link>
+                <span
+                    :class="['common-icon-dustbin', 'operate-btn', {
+                        'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
+                    }]"
+                    v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
+                    @click="onCardDelete">
                 </span>
-                <span class="common-icon-gray-edit operate-btn"
-                    @mouseenter="onShowOperation"
-                    @mouseleave="onHideOperation">
-                </span>
-            </div>
-            <div class="edit-box-background"
-                v-if="isShowEdit"
-                @mouseenter="onShowOperation"
-                @mouseleave="onHideOperation">
-                <ul class="edit-box">
-                    <li class="executive-record edit-operation">
-                        <router-link :to="getExecuteHistoryUrl(appData.template_id)">{{i18n.executive}}</router-link>
-                    </li>
-                    <li class="edit-delete edit-operation" @click.stop="onCardDelete">{{i18n.delete}}</li>
-                </ul>
             </div>
         </div>
         <div class="card-particular">
@@ -74,13 +71,15 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'AppCard',
-        props: ['appData', 'project_id'],
+        mixins: [permission],
+        props: ['appData', 'project_id', 'appResource', 'appOperations'],
         data () {
             return {
-                isShowDefaultLogo: false,
+                isLogoLoadingError: false,
                 isShowEdit: false,
                 mouseAccess: true,
                 i18n: {
@@ -96,9 +95,24 @@
                 }
             }
         },
+        computed: {
+            isShowDefaultLogo () {
+                return this.isLogoLoadingError || !this.appData.logo_url
+            }
+        },
         methods: {
             useDefaultLogo () {
-                this.isShowDefaultLogo = true
+                this.isLogoLoadingError = true
+            },
+            /**
+             * 单个轻应用操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} app 模板数据对象
+             * @params {Object} event 事件对象
+             */
+            onAppMakerPermissonCheck (required, app, event) {
+                this.applyForPermission(required, app, this.appOperations, this.appResource)
+                event.preventDefault()
             },
             onShowOperation () {
                 this.isShowEdit = true
@@ -107,20 +121,29 @@
                 this.isShowEdit = false
             },
             onCardEdit () {
+                if (!this.hasPermission(['edit'], this.appData.auth_actions, this.appOperations)) {
+                    this.onAppMakerPermissonCheck(['edit'], this.appData, event)
+                    return
+                }
                 this.$emit('onCardEdit', this.appData)
             },
             onOpenPermissions (id) {
                 this.$emit('onOpenPermissions', this.appData)
             },
             onCardDelete () {
+                if (!this.hasPermission(['delete'], this.appData.auth_actions, this.appOperations)) {
+                    this.onAppMakerPermissonCheck(['delete'], this.appData, event)
+                    return
+                }
                 this.$emit('onCardDelete', this.appData)
             },
             onGotoAppMaker () {
+                if (!this.hasPermission(['view'], this.appData.auth_actions, this.appOperations)) {
+                    this.onAppMakerPermissonCheck(['view'], this.appData, event)
+                    return
+                }
                 if (self === top) {
-                    this.$bkMessage({
-                        'message': gettext('外链不支持打开轻应用，请在蓝鲸市场中打开此链接'),
-                        'theme': 'warning'
-                    })
+                    window.open(this.appData.link, '_blank')
                 } else {
                     window.PAAS_API.open_other_app(this.appData.code, this.appData.link)
                 }
@@ -149,27 +172,23 @@
     font-size: 24px;
     color: #979ba5;
     text-align: center;
-    transform: translateY(130%);
+    transform: translateY(120%);
     transition-duration: 0.25s;
     .operate-btn {
+        padding: 5px;
+        font-size: 14px;
+        color: #ffffff;
+        background: #dcdee4;
+        border-radius: 2px;
         cursor: pointer;
-        &:hover {
-            color: #63656e;
+        &:not(.permission-disable):hover {
+            background: #979ba5;
         }
     }
 }
-.edit-box-background {
-    position: absolute;
-    left: 111px;
-    top: 142px;
-    z-index: 10;
-    padding-left: 6px;
-    width: 102px;
-    cursor: pointer;
-}
 .card-basic {
     float: left;
-    width: 136px;
+    width: 40%;
     height: 100%;
     padding: 20px 15px;
     overflow: hidden;
@@ -178,6 +197,7 @@
         width: 60px;
         height: 60px;
         margin: 0 auto;
+        cursor: pointer;
         .logo-pic {
             width: 60px;
             height: 60px;
@@ -212,7 +232,6 @@
             &:hover {
                 color: $blueDefault;
             }
-
         }
     }
     &:hover {
@@ -224,41 +243,42 @@
     }
 }
 .edit-box {
+    width: 96px;
+    height: 84px;
+    background: #fff;
+    box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.2);
+    border-radius: 2px;
+    &:hover {
+        z-index: 10;
+    }
+    .edit-operation {
         width: 96px;
-        height: 84px;
+        height: 42px;
+        color: #63656e;
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 42px;
+        text-align: center;
         background: #fff;
-        box-shadow: 0px 2px 4px 0px rgba(0,0,0,0.2);
-        border-radius: 2px;
         &:hover {
-            z-index: 10;
+            color: #3a84ff;
+            background: #ebf4ff;
         }
-        .edit-operation {
-            width: 96px;
-            height: 42px;
-            color: #63656e;
-            font-size: 12px;
-            font-weight: 400;
-            line-height: 42px;
-            text-align: center;
-            background: #fff;
-            &:hover {
-                color: #3a84ff;
-                background: #ebf4ff;
-            }
-        }
+    }
 }
 .edit-box>li>a {
     display: block;
-    color: #63656e;
+    color: #fff;
     height: 42px;
     &:hover {
-        color: #3a84ff;
-        background: rgb#ebf4ff;
+        background: #63656e;
     }
 }
 .card-particular {
     float: left;
+    width: 60%;
     height: 100%;
+    background: #f7f9fa;
     .app-detail {
         padding: 20px;
         font-size: 12px;
@@ -288,7 +308,7 @@
         position: absolute;
         bottom: 0px;
         height: 100%;
-        width: 70%;
+        width: 60%;
         background: #f7f9fa;
         font-weight: bold;
         font-size: 12px;

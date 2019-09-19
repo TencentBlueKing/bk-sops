@@ -5,6 +5,7 @@ callback specific node
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -20,30 +21,30 @@ callback specific node
 |   task_id     |   string   |   YES   |  the task ID     |
 |   node_id        | string     | YES         | node id                        |
 |   callback_data        | dict     | NO         | callback data          |           |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
 ```
-import requests
-kwargs = {
-    "app_code": "app_code",
-    "app_secret": "app_secret",
-    "access_token": "access_token",
+{
+    "bk_app_code": "app_code",
+    "bk_app_secret": "app_secret",
+    "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd",
-    "callback_data": {"data": "data"},
+    "callback_data": {
+        "data": {}
+    }
 }
-response = requests.get("http://{stageVariables.domain}/apigw/node_callback/10/2/", kwargs)
-result = response.json()
 ```
 
 ### Return Result Example
 
 ```
 {
-    "message": "success",
-    "result": true
+    "result": true,
+    "message": "success"
 }
 ```
 

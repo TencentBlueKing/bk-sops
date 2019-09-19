@@ -23,7 +23,8 @@ from pipeline import exceptions
 
 
 logger = logging.getLogger('root')
-TEMPLATE_PATTERN = re.compile(r'\${[^${}]+}')
+# find mako template(format is ${xxx}，and ${}# not in xxx, # may raise memory error)
+TEMPLATE_PATTERN = re.compile(r'\${[^${}#]+}')
 
 
 def format_constant_key(key):

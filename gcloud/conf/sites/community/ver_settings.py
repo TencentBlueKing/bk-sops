@@ -12,7 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf import settings
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from packages.blueking.component.shortcuts import (
     get_client_by_request,
@@ -32,7 +32,6 @@ APP_MAKER_UPLOAD_LOGO_USER_UIN = 'bk_token'
 APP_MAKER_UPLOAD_LOGO_USER_KEY = 'bk_token_null'
 
 IMPORT_V1_TEMPLATE_FLAG = False
-USE_BK_OAUTH = False
 WHETHER_PREPARE_BIZ_IN_API_CALL = True
 
 TEMPLATE_DATA_SALT = 'e5483c1ccde63392bd439775bba6a7ae'

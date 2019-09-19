@@ -17,6 +17,7 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
@@ -68,13 +69,56 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
 
 class NotifyService(Service):
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'通知人员所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'通知类型'),
+                           key='bk_notify_type',
+                           type='array',
+                           schema=ArrayItemSchema(description=_(u'需要使用的通知类型'),
+                                                  enum=['weixin', 'email', 'sms'],
+                                                  item_schema=StringItemSchema(description=_(u'通知方式')))),
+            self.InputItem(name=_(u'通知分组'),
+                           key='bk_receiver_group',
+                           type='array',
+                           required=False,
+                           schema=ArrayItemSchema(description=_(u'需要进行通知的业务人员分组'),
+                                                  enum=['Maintainers', 'ProductPm', 'Developer', 'Tester'],
+                                                  item_schema=StringItemSchema(description=_(u'通知分组')))),
+            self.InputItem(name=_(u'额外通知人'),
+                           key='bk_more_receiver',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'除了通知分组外需要额外通知的人员'))),
+            self.InputItem(name=_(u'通知标题'),
+                           key='bk_notify_title',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'通知的标题'))),
+            self.InputItem(name=_(u'通知内容'),
+                           key='bk_notify_content',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'通知的内容')))]
+
+    def outputs_format(self):
+        return [
+            self.OutputItem(name=_(u'返回码'),
+                            key='code',
+                            type='string',
+                            schema=StringItemSchema(description=_(u'通知接口的返回码'))),
+            self.OutputItem(name=_(u'信息'),
+                            key='message',
+                            type='string',
+                            schema=StringItemSchema(description=_(u'通知接口返回的信息')))]
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
-        biz_cc_id = data.get_one_of_inputs('biz_cc_id')
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
         supplier_account = supplier_account_for_business(biz_cc_id)
         notify_type = data.get_one_of_inputs('bk_notify_type')
         receiver_info = data.get_one_of_inputs('bk_receiver_info')
@@ -114,12 +158,6 @@ class NotifyService(Service):
         data.set_outputs('code', code)
         data.set_outputs('message', message)
         return True
-
-    def outputs_format(self):
-        return [
-            self.OutputItem(name=_(u'返回码'), key='code', type='str'),
-            self.OutputItem(name=_(u'信息'), key='message', type='str')
-        ]
 
     def _email_args(self, receivers, title, content):
         return {
@@ -161,6 +199,7 @@ class NotifyComponent(Component):
     name = _(u'发送通知')
     code = 'bk_notify'
     bound_service = NotifyService
-    form = '%scomponents/atoms/sites/%s/bk/notify.js' % (settings.STATIC_URL, settings.RUN_VER)
+    form = '%scomponents/atoms/bk/notify.js' % settings.STATIC_URL
     desc = _(u"API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。"
-             u"API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网关->使用指南。")
+             u"API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网"
+             u"关->使用指南。")

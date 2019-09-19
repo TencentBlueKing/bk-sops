@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 from django.http import HttpResponseRedirect, JsonResponse
 try:
     from django.urls import reverse
@@ -19,6 +21,8 @@ except Exception:
 
 from blueapps.account.utils.http import build_redirect_url
 from blueapps.core.exceptions import RioVerifyError
+
+logger = logging.getLogger('root')
 
 
 class ResponseHandler(object):
@@ -123,6 +127,7 @@ class ResponseHandler(object):
         }
         _redirect = build_redirect_url(
             _next, _login_url, 'redirect_uri', extra_args=extra_args)
+        logger.info('weixin build 401 redirect url: %s' % _redirect)
         return HttpResponseRedirect(_redirect)
 
     def build_rio_401_response(self, request):

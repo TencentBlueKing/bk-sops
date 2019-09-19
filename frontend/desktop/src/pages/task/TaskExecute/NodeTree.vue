@@ -137,6 +137,9 @@
             float: left;
             font-size: 16px;
             font-weight: bold;
+            .common-icon-node-subflow,.common-icon-node-tasknode{
+                font-weight: bold;
+            }
         }
         .name {
             float: left;

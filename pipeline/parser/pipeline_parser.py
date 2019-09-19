@@ -13,8 +13,18 @@ specific language governing permissions and limitations under the License.
 
 from copy import deepcopy
 
+from django.utils.module_loading import import_string
+
 from pipeline import exceptions
-from pipeline.core.flow import base, activity, gateway, event
+from pipeline.core.flow import (
+    FlowNodeClsFactory,
+    SequenceFlow,
+    ExclusiveGateway,
+    ConditionalParallelGateway,
+    ParallelGateway,
+    ConvergeGateway,
+    Condition
+)
 from pipeline.core.pipeline import PipelineSpec, Pipeline
 from pipeline.core.data.base import DataObject
 from pipeline.core.data.context import Context
@@ -25,85 +35,121 @@ from pipeline.validators.base import validate_pipeline_tree
 from pipeline.core.constants import PE
 
 
+def classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params=None):
+    """
+    @summary: classify pipeline inputs into different parts
+    @param pipeline_inputs: pipeline or subprocess inputs
+    @param params: pipeline or subprocess params, which can cover item whose is_param is True in inputs
+    @param is_subprocess: whether pipeline is root or subprocess
+    @param root_pipeline_params: root pipeline params which should deliver to all subprocess
+    @return:
+    """
+    # data from activity outputs
+    act_outputs = {}
+    # params should deliver to son subprocess
+    subprocess_params = {}
+    # context scope to resolving inputs
+    scope_info = deepcopy(root_pipeline_params)
+    for key, info in pipeline_inputs.items():
+        if info.get(PE.source_act):
+            act_outputs.setdefault(info[PE.source_act], {}).update({info[PE.source_key]: key})
+            continue
+
+        is_param = info.get(PE.is_param, False)
+        info = params.get(key, info) if is_param else info
+        if is_subprocess and is_param:
+            subprocess_params.update({key: info})
+            continue
+
+        scope_info.update({key: info})
+    result = {
+        'act_outputs': act_outputs,
+        'scope_info': scope_info,
+        'subprocess_params': subprocess_params
+    }
+    return result
+
+
 class PipelineParser(object):
 
     def __init__(self, pipeline_tree, cycle_tolerate=False):
         validate_pipeline_tree(pipeline_tree, cycle_tolerate=cycle_tolerate)
         self.pipeline_tree = deepcopy(pipeline_tree)
 
-    def parse(self, root_pipeline_data=None, params=None):
-        return self._parse(root_pipeline_data, params=params)
+    def parse(self, root_pipeline_data=None, root_pipeline_context=None):
+        """
+        @summary: parse pipeline json tree to object with root data
+        @param root_pipeline_data: like business info or operator, which can be accessed by parent_data in
+            Component.execute
+        @param root_pipeline_context: params for pipeline to resolving inputs data
+        @return:
+        """
+        return self._parse(root_pipeline_data, root_pipeline_context)
 
-    def parser(self, root_pipeline_data=None, params=None):
-        return self._parse(root_pipeline_data, params=params)
-
-    def _parse(self, root_pipeline_data=None, params=None, is_subprocess=False, parent_context=None):
+    def _parse(self, root_pipeline_data=None, root_pipeline_params=None, params=None,
+               is_subprocess=False, parent_context=None):
+        """
+        @summary: parse pipeline and subprocess recursively
+        @param root_pipeline_data: root data from root pipeline parsing, witch will be passed to subprocess recursively
+        @param root_pipeline_params: params from root pipeline for all subprocess
+        @param params: params from parent for son subprocess
+        @param is_subprocess: whither is subprocess
+        @param parent_context: parent context for activity of subprocess to resolving inputs
+        @return: Pipeline object
+        """
         if root_pipeline_data is None:
             root_pipeline_data = {}
+        if root_pipeline_params is None:
+            root_pipeline_params = {}
         if params is None:
             params = {}
-        pipeline_data = deepcopy(root_pipeline_data) if is_subprocess else root_pipeline_data
 
         pipeline_inputs = self.pipeline_tree[PE.data][PE.inputs]
-        act_outputs = {}
-        scope_info = {}
-        process_params = {}
-        for key, info in pipeline_inputs.items():
-            if info.get(PE.source_act):
-                act_outputs.setdefault(info[PE.source_act],
-                                       {}).update({info[PE.source_key]: key})
-                continue
-
-            is_param = info.get(PE.is_param, False)
-            info = params.get(key, info) if is_param else info
-
-            if is_subprocess and is_param:
-                process_params.update({key: info})
-                continue
-
-            scope_info.update({key: info})
+        classification = classify_inputs(pipeline_inputs, params, is_subprocess, root_pipeline_params)
 
         output_keys = self.pipeline_tree[PE.data][PE.outputs]
-        context = Context(act_outputs, output_keys)
-        for key, info in scope_info.items():
-            var = get_variable(key, info, context, pipeline_data)
+        context = Context(classification['act_outputs'], output_keys)
+        for key, info in classification['scope_info'].items():
+            var = get_variable(key, info, context, root_pipeline_data)
             context.set_global_var(key, var)
 
+        pipeline_data = deepcopy(root_pipeline_data)
         if is_subprocess:
             if parent_context is None:
                 raise exceptions.DataTypeErrorException('parent context of subprocess cannot be none')
-            for key, info in process_params.items():
+            for key, info in classification['subprocess_params'].items():
                 var = get_variable(key, info, parent_context, pipeline_data)
                 pipeline_data.update({key: var})
 
         start = self.pipeline_tree[PE.start_event]
-        start_cls = getattr(event, start[PE.type])
-        start_event = start_cls(id=start[PE.id],
-                                name=start[PE.name])
+        start_cls = FlowNodeClsFactory.get_node_cls(start[PE.type])
+        start_event = start_cls(id=start[PE.id], name=start[PE.name])
 
         end = self.pipeline_tree[PE.end_event]
-        end_cls = getattr(event, end[PE.type])
+        end_cls = FlowNodeClsFactory.get_node_cls(end[PE.type])
         end_event = end_cls(id=end[PE.id],
-                            name=end[PE.name])
+                            name=end[PE.name],
+                            data=DataObject({}))
 
         acts = self.pipeline_tree[PE.activities]
         act_objs = []
         for act in acts.values():
-            act_cls = getattr(activity, act[PE.type])
+            act_cls = FlowNodeClsFactory.get_node_cls(act[PE.type])
             if act[PE.type] == PE.ServiceActivity:
-                component = ComponentLibrary.get_component(
-                    act[PE.component][PE.code], act[PE.component][PE.inputs]
-                )
+                component = ComponentLibrary.get_component(act[PE.component][PE.code], act[PE.component][PE.inputs])
                 service = component.service()
                 data = component.data_for_execution(context, pipeline_data)
+                handler_path = act.get('failure_handler')
+                failure_handler = import_string(handler_path) if handler_path else None
                 act_objs.append(act_cls(id=act[PE.id],
                                         service=service,
                                         name=act[PE.name],
                                         data=data,
                                         error_ignorable=act.get(PE.error_ignorable, False),
-                                        skippable=act.get(PE.skippable, True),
-                                        can_retry=act.get(PE.can_retry, True),
-                                        timeout=act.get(PE.timeout)))
+                                        skippable=act.get(PE.skippable) or act.get(PE.skippable_old, True),
+                                        retryable=act.get(PE.retryable) or act.get(PE.retryable_old, True),
+                                        timeout=act.get(PE.timeout),
+                                        failure_handler=failure_handler))
             elif act[PE.type] == PE.SubProcess:
                 sub_tree = act[PE.pipeline]
                 params = act[PE.params]
@@ -111,6 +157,7 @@ class PipelineParser(object):
                 act_objs.append(act_cls(id=act[PE.id],
                                         pipeline=sub_parser._parse(
                                             root_pipeline_data=root_pipeline_data,
+                                            root_pipeline_params=root_pipeline_params,
                                             params=params,
                                             is_subprocess=True,
                                             parent_context=context),
@@ -123,12 +170,11 @@ class PipelineParser(object):
         flows = self.pipeline_tree[PE.flows]
         gateway_objs = []
         for gw in gateways.values():
-            gw_cls = getattr(gateway, gw[PE.type])
+            gw_cls = FlowNodeClsFactory.get_node_cls(gw[PE.type])
             if gw[PE.type] in {PE.ParallelGateway, PE.ConditionalParallelGateway}:
-                gateway_objs.append(
-                    gw_cls(id=gw[PE.id],
-                           converge_gateway_id=gw[PE.converge_gateway_id],
-                           name=gw[PE.name]))
+                gateway_objs.append(gw_cls(id=gw[PE.id],
+                                           converge_gateway_id=gw[PE.converge_gateway_id],
+                                           name=gw[PE.name]))
             elif gw[PE.type] in {PE.ExclusiveGateway, PE.ConvergeGateway}:
                 gateway_objs.append(gw_cls(id=gw[PE.id],
                                            name=gw[PE.name]))
@@ -147,9 +193,9 @@ class PipelineParser(object):
                 target = end_event
             else:
                 target = filter(lambda x: x.id == fl[PE.target], flow_nodes)[0]
-            flow_objs_dict[fl[PE.id]] = base.SequenceFlow(fl[PE.id],
-                                                          source,
-                                                          target)
+            flow_objs_dict[fl[PE.id]] = SequenceFlow(fl[PE.id],
+                                                     source,
+                                                     target)
         flow_objs = flow_objs_dict.values()
 
         # add incoming and outgoing flow to acts
@@ -174,43 +220,35 @@ class PipelineParser(object):
             act.outgoing.add_flow(flow_objs_dict[acts[act.id][PE.outgoing]])
 
         for gw in gateway_objs:
-            if isinstance(gw, gateway.ExclusiveGateway) or isinstance(gw, gateway.ConditionalParallelGateway):
+            if isinstance(gw, ExclusiveGateway) or isinstance(gw, ConditionalParallelGateway):
                 for flow_id, con in gateways[gw.id][PE.conditions].items():
-                    con_obj = gateway.Condition(
-                        con[PE.evaluate],
-                        flow_objs_dict[flow_id],
-                    )
+                    con_obj = Condition(con[PE.evaluate],
+                                        flow_objs_dict[flow_id])
                     gw.add_condition(con_obj)
 
                 if isinstance(gateways[gw.id][PE.incoming], list):
                     for incoming_id in gateways[gw.id][PE.incoming]:
                         gw.incoming.add_flow(flow_objs_dict[incoming_id])
                 else:
-                    gw.incoming.add_flow(
-                        flow_objs_dict[gateways[gw.id][PE.incoming]]
-                    )
+                    gw.incoming.add_flow(flow_objs_dict[gateways[gw.id][PE.incoming]])
 
                 for outgoing_id in gateways[gw.id][PE.outgoing]:
                     gw.outgoing.add_flow(flow_objs_dict[outgoing_id])
 
-            elif isinstance(gw, gateway.ParallelGateway):
+            elif isinstance(gw, ParallelGateway):
                 if isinstance(gateways[gw.id][PE.incoming], list):
                     for incoming_id in gateways[gw.id][PE.incoming]:
                         gw.incoming.add_flow(flow_objs_dict[incoming_id])
                 else:
-                    gw.incoming.add_flow(
-                        flow_objs_dict[gateways[gw.id][PE.incoming]]
-                    )
+                    gw.incoming.add_flow(flow_objs_dict[gateways[gw.id][PE.incoming]])
 
                 for outgoing_id in gateways[gw.id][PE.outgoing]:
                     gw.outgoing.add_flow(flow_objs_dict[outgoing_id])
 
-            elif isinstance(gw, gateway.ConvergeGateway):
+            elif isinstance(gw, ConvergeGateway):
                 for incoming_id in gateways[gw.id][PE.incoming]:
                     gw.incoming.add_flow(flow_objs_dict[incoming_id])
-                gw.outgoing.add_flow(
-                    flow_objs_dict[gateways[gw.id][PE.outgoing]]
-                )
+                gw.outgoing.add_flow(flow_objs_dict[gateways[gw.id][PE.outgoing]])
 
             else:
                 raise exceptions.FlowTypeError(u"Unknown Gateway type: %s" %
@@ -223,13 +261,10 @@ class PipelineParser(object):
                                      context)
         return Pipeline(self.pipeline_tree[PE.id], pipeline_spec)
 
-    def get_act(self, act_id, subprocess_stack=None, root_pipeline_data=None):
+    def get_act(self, act_id, subprocess_stack=None, root_pipeline_data=None, root_pipeline_context=None):
         if subprocess_stack is None:
             subprocess_stack = []
-        if root_pipeline_data is None:
-            root_pipeline_data = {}
-
-        subprocess = self.parse(root_pipeline_data)
+        subprocess = self.parse(root_pipeline_data, root_pipeline_context)
         for sub_id in subprocess_stack:
             subprocess_act = filter(lambda x: x.id == sub_id,
                                     subprocess.spec.activities)[0]
@@ -238,8 +273,8 @@ class PipelineParser(object):
         act = filter(lambda x: x.id == act_id, subprocess.spec.activities)[0]
         return act
 
-    def get_act_inputs(self, act_id, subprocess_stack=None, root_pipeline_data=None):
-        act = self.get_act(act_id, subprocess_stack, root_pipeline_data)
+    def get_act_inputs(self, act_id, subprocess_stack=None, root_pipeline_data=None, root_pipeline_context=None):
+        act = self.get_act(act_id, subprocess_stack, root_pipeline_data, root_pipeline_context)
         hydrate_node_data(act)
         inputs = act.data.inputs
         return inputs

@@ -11,41 +11,41 @@
 */
 <template>
     <div class="config-page">
-        <div class="page-container">
-            <h3 class="page-title">{{i18n.title}}</h3>
-            <div class="page-content" v-bkloading="{ isLoading: configLoading, opacity: 1 }">
-                <div class="common-form-item">
-                    <label>{{i18n.executorLabel}}</label>
-                    <div class="common-form-content">
-                        <BaseInput v-model="executor" />
-                        <bk-tooltip placement="right" width="400" class="desc-tooltip">
-                            <i class="bk-icon icon-info-circle"></i>
-                            <div slot="content" style="white-space: normal;">
-                                <div>{{i18n.executorTips}}</div>
-                            </div>
-                        </bk-tooltip>
-                    </div>
-                </div>
-                <div class="common-form-item executor-switch">
-                    <label>{{i18n.alwaysUseExecutorLabel}}</label>
-                    <div class="common-form-content">
-                        <bk-switcher
-                            :selected="alwaysUseExecutor"
-                            :is-square="true"
-                            @change="onSwitchChange">
-                        </bk-switcher>
-                        <bk-tooltip placement="right" width="400" class="desc-tooltip">
-                            <i class="bk-icon icon-info-circle"></i>
-                            <div slot="content" style="white-space: normal;">
-                                <div>{{i18n.alwaysUseTips}}</div>
-                            </div>
-                        </bk-tooltip>
-                    </div>
-                </div>
-                <div class="operation-wrapper">
-                    <bk-button type="success" @click="onSaveConfig" :loading="pending">{{i18n.save}}</bk-button>
+        <div class="list-wrapper-title">
+            <span class="list-wrapper-border">|</span>
+            <span class="page-title">{{i18n.title}}</span>
+        </div>
+        <div class="page-content" v-bkloading="{ isLoading: configLoading, opacity: 1 }">
+            <div class="common-form-item">
+                <label>{{i18n.executorLabel}}</label>
+                <div class="common-form-content">
+                    <bk-input class="bk-input-inline" :clearable="true" v-model="executor"></bk-input>
+                    <i
+                        class="common-icon-info desc-tooltip"
+                        v-bk-tooltips="{
+                            content: i18n.executorTips,
+                            width: 300,
+                            placements: ['right']
+                        }">
+                    </i>
                 </div>
             </div>
+            <div class="common-form-item executor-switch">
+                <label>{{i18n.alwaysUseExecutorLabel}}</label>
+                <div class="common-form-content">
+                    <bk-switcher v-model="alwaysUseExecutor" size="small"></bk-switcher>
+                    <i
+                        class="common-icon-info desc-tooltip"
+                        v-bk-tooltips="{
+                            content: i18n.alwaysUseTips,
+                            placements: ['right']
+                        }">
+                    </i>
+                </div>
+            </div>
+        </div>
+        <div class="operation-wrapper">
+            <bk-button theme="primary" @click="onSaveConfig" :loading="pending" :disabled="configLoading">{{i18n.save}}</bk-button>
         </div>
     </div>
 </template>
@@ -53,13 +53,9 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
 
     export default {
         name: 'configPage',
-        components: {
-            BaseInput
-        },
         data () {
             return {
                 executor: undefined,
@@ -123,9 +119,6 @@
                 } finally {
                     this.pending = false
                 }
-            },
-            onSwitchChange (selected) {
-                this.alwaysUseExecutor = selected
             }
         }
     }
@@ -133,52 +126,63 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .config-page {
-    padding: 20px 60px 0;
+    padding: 0px 60px 0 60px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
-}
-.page-container {
-    border: 1px solid $commonBorderColor;
+    background: #f4f7fa;
+    .list-wrapper-title {
+        height: 60px;
+        line-height: 60px;
+        border-bottom: 1px solid #dde4eb;
+    }
+    .list-wrapper-border {
+        color: #a3c5fd;
+    }
     .page-title {
-        margin: 0;
-        padding: 15px;
-        font-size: 16px;
-        font-weight: normal;
-        border-bottom: 1px solid $commonBorderColor;
+        margin-left: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #313238;
     }
     .page-content {
-        padding: 100px 0 60px;
+        margin: 30px 0;
+        padding: 30px 0 30px 35px;
+        background: #fff;
+        border:1px solid #dde4eb;
+    }
+    .base-input {
+        width: 500px;
+    }
+    .executor-switch {
+        margin: 30px 0 0 0;
+    }
+    .common-form-content {
+        margin-left: 160px;
+    }
+    .common-form-item > label {
+        width: 140px;
         text-align: left;
-        background: $whiteDefault;
-        .common-form-item {
-            margin: 0 auto 30px;
-            width: 800px;
-            right: 30px;
-            position: relative;
-            .common-form-content {
-                margin-right: 30px
-            }
-            .executor-switch {
-                position: absolute;
-            }
-            .desc-tooltip {
-                position: absolute;
-                top: 6px;
-                text-align: right;
-                right: 0px;
-                .icon-info-circle {
-                    color:#c4c6cc;
-                    cursor: pointer;
-                    &:hover {
-                        color:#f4aa1a;
-                    }
-                }
-            }
-        }
-        .operation-wrapper {
-            text-align: center
-        }
+    }
+    .desc-tooltip {
+        color: #c4c6cc;
+        position: relative;
+        top: 3px;
+        left: 6px;
+    }
+    .force-tooltip {
+        position: relative;
+    }
+    .common-icon-info:hover {
+        color: #f4aa1a
+    }
+    .bk-button {
+        width:140px;
+        height:32px;
+        line-height: 32px;
+    }
+    .bk-input-inline {
+        display: inline-block;
+        width: 500px;
     }
 }
 </style>

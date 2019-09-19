@@ -42,9 +42,7 @@ const store = new Vuex.Store({
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id
         view_mode: window.VIEW_MODE,
-        project_id: window.PROJECT_ID,
         lang: getAppLang(),
-        templateId: '', // 轻应用页面全局 template_id
         notFoundPage: false,
         categorys: [],
         components: [],
@@ -58,12 +56,6 @@ const store = new Vuex.Store({
         },
         setViewMode (state, mode) {
             state.view_mode = mode
-        },
-        setProjectId (state, id) {
-            state.project_id = id
-        },
-        setTemplateId (state, id) {
-            state.templateId = id
         },
         setNotFoundPage (state, val) {
             state.notFoundPage = val
@@ -94,6 +86,12 @@ const store = new Vuex.Store({
         },
         getTopoModelInCC ({ commit }) {
             return api.loadTopoModelInCC().then(response => response.data)
+        },
+        getPermissionUrl ({ commit }, data) {
+            return api.getPermissionUrl(data).then(response => response.data)
+        },
+        queryUserPermission ({ commit }, data) {
+            return api.queryUserPermission(data).then(response => response.data)
         }
     },
     getters: {},

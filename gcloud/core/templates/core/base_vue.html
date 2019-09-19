@@ -5,7 +5,7 @@
 <head>
 
 	<meta charset="UTF-8">
-	<title>{%  trans "标准运维" %}|{% trans RUN_VER_NAME %}</title>
+	<title>{{ APP_NAME }}|{{ RUN_VER_NAME }}</title>
     <script>
 		/* 全局变量 */
         var RUN_VER = '{{RUN_VER}}';
@@ -23,11 +23,10 @@
         // 当前时区
         var TIMEZONE = '{{PROJECT_TIMEZONE}}';
         /* 局部变量 */
-        // 业务首页会返回 biz_cc_id
-        var DEFAULT_PROJECT_ID = '{{ DEFAULT_PROJECT_ID }}';
-        var BIZ_CC_ID = '{{biz_cc_id |default:"0"}}';
+        // 首页会返回默认项目ID
+        var DEFAULT_PROJECT_ID = '{{ DEFAULT_PROJECT_ID | default:"" }}';
         // APP 内打开或者轻应用内打开
-        var VIEW_MODE = '{{view_mode |default:"app"}}';
+        var VIEW_MODE = '{{view_mode | default:"app"}}';
         // 轻应打开时的轻应用ID
         var APP_ID = '{{app_id | default:"0"}}';
         // 是否开启导入 V1 模板的入口

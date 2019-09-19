@@ -82,5 +82,5 @@ def callback(act_id, data=None):
     return adapter_api.callback(act_id, data)
 
 
-def get_single_state(act_id):
-    return adapter_api.get_single_state(act_id)
+def get_plain_log_for_node(node_id, history_id=-1):
+    return adapter_api.get_plain_log_for_node(node_id, history_id)

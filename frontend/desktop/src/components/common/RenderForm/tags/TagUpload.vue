@@ -13,6 +13,7 @@
     <div class="tag-upload">
         <div v-if="editable">
             <el-upload
+                ref="upload"
                 :action="url"
                 :multiple="multiple"
                 :limit="limit"
@@ -28,9 +29,10 @@
                 :before-upload="beforeUpload"
                 :before-remove="beforeRemove"
                 :file-list="fileValue">
-                <el-button size="small" type="primary">{{ text }}</el-button>
+                <el-button size="small" theme="primary">{{ text }}</el-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
+            <el-button v-if="!auto_upload" type="success" @click="onSubmit">{{ i18n.submit }}</el-button>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validate.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
@@ -88,13 +90,31 @@
         text: {
             type: String,
             required: false,
-            default: gettext('点击上传'),
+            default: '',
             desc: 'tips on upload button'
+        },
+        submit: {
+            type: Function,
+            required: false,
+            default () {
+                return function () {
+                    this.$refs.upload.submit()
+                }
+            }
         }
     }
     export default {
         name: 'TagUpload',
         mixins: [getFormMixins(uploadAttrs)],
+        data () {
+            return {
+                i18n: {
+                    submit: gettext('提交'),
+                    upload: gettext('点击上传'),
+                    select: gettext('选择文件')
+                }
+            }
+        },
         computed: {
             fileValue: {
                 get () {
@@ -109,9 +129,20 @@
                     return '--'
                 }
                 return this.fileValue.join(',')
+            },
+            uploadText () {
+                return this.text || (this.auto_upload ? this.i18n.select : this.i18n.upload)
             }
         },
         methods: {
+            // 手动提交
+            onSubmit () {
+                if (typeof this.submit === 'function') {
+                    this.submit()
+                } else {
+                    this.$refs.upload.submit()
+                }
+            },
             // 点击已上传的文件链接时的钩子, 可以通过 file.response 拿到服务端返回数据
             handlePreview (file) {},
             // 文件列表移除文件时的钩子

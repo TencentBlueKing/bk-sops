@@ -1,5 +1,5 @@
 <template>
-    <template-list common="1" :project_id="project_id"></template-list>
+    <template-list :common="1" :project_id="project_id"></template-list>
 </template>
 <script>
     import '@/utils/i18n.js'

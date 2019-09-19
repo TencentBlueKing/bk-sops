@@ -476,7 +476,9 @@ module.exports = {
 
         // https://eslint.org/docs/rules/prefer-const
         // 如果一个变量不会被重新赋值，必须使用 `const` 进行声明。
-        'prefer-const': 'error'
+        'prefer-const': 'error',
+        // https://eslint.org/docs/rules/no-eval
+        'no-eval': 'off'
     },
     overrides: [
         {

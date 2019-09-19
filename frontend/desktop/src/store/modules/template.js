@@ -152,7 +152,10 @@ const template = {
         notify_type: [],
         time_out: '',
         category: '',
-        subprocess_info: {}
+        subprocess_info: {
+            details: [],
+            subproc_has_update: false
+        }
     },
     mutations: {
         setTemplateName (state, name) {
@@ -200,7 +203,6 @@ const template = {
             state.time_out = time_out
             state.category = category
             state.subprocess_info = subprocess_info
-
             pipelineTreeOrder.forEach(key => {
                 let val = pipelineData[key]
                 if (key !== 'constants') {
@@ -803,6 +805,11 @@ const template = {
         },
         loadTemplateCollectList ({ commit }) {
             return api.loadTemplateCollectList().then(response => response.data)
+        },
+        getCollectedTemplateDetail ({ commit }, ids) {
+            return api.getCollectedTemplateDetail(ids).then(
+                response => response.data
+            )
         }
     },
     getters: {

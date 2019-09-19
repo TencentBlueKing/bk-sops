@@ -25,7 +25,7 @@ from pipeline.component_framework.models import ComponentModel
 from pipeline.contrib.statistics.models import ComponentInTemplate, TemplateInPipeline
 from pipeline.models import PipelineInstance, TemplateRelationship
 from pipeline.parser.utils import replace_all_id
-from pipeline_web.wrapper import PipelineTemplateWebWrapper
+from auth_backend.resources import resource_type_lib
 
 from gcloud.commons.template.models import BaseTemplate, BaseTemplateManager
 from gcloud.core.constant import TASK_CATEGORY, AE
@@ -88,10 +88,8 @@ class TaskTemplateManager(BaseTemplateManager):
         return result
 
     def import_templates(self, template_data, override, project_id):
-        template = template_data['template']
         project = Project.objects.get(id=project_id)
         check_info = self.import_operation_check(template_data, project_id)
-        tid_to_reuse = {}
 
         # operation validation check
         if override and (not check_info['can_override']):
@@ -101,23 +99,8 @@ class TaskTemplateManager(BaseTemplateManager):
                 'data': 0
             }
 
-        # find old template_id for override using
-        # import_id -> reuse_id
-        for template_to_be_replaced in check_info['override_template']:
-            task_template_id = template_to_be_replaced['id']
-            template_id = template_data['template'][str(task_template_id)]['pipeline_template_str_id']
-            tid_to_reuse[template_id] = template_to_be_replaced['template_id']
-
-        # import pipeline template first
-        id_map = PipelineTemplateWebWrapper.import_templates(template_data['pipeline_template_data'],
-                                                             override=override,
-                                                             tid_to_reuse=tid_to_reuse)
-        old_id_to_new_id = id_map[PipelineTemplateWebWrapper.ID_MAP_KEY]
-
-        new_objects = []
-        for tid, template_dict in template.items():
-            template_dict['pipeline_template_id'] = old_id_to_new_id[template_dict['pipeline_template_str_id']]
-            defaults = {
+        def defaults_getter(template_dict):
+            return {
                 'project': project,
                 'category': template_dict['category'],
                 'notify_type': template_dict['notify_type'],
@@ -126,18 +109,12 @@ class TaskTemplateManager(BaseTemplateManager):
                 'pipeline_template_id': template_dict['pipeline_template_id'],
                 'is_deleted': False
             }
-            # use update or create to avoid id conflict
-            if override:
-                self.update_or_create(id=tid, defaults=defaults)
-            else:
-                new_objects.append(self.model(**defaults))
-        self.model.objects.bulk_create(new_objects)
 
-        return {
-            'result': True,
-            'data': len(template),
-            'message': 'Successfully imported %s flows' % len(template)
-        }
+        return super(TaskTemplateManager, self)._perform_import(template_data=template_data,
+                                                                check_info=check_info,
+                                                                override=override,
+                                                                defaults_getter=defaults_getter,
+                                                                resource=resource_type_lib['flow'])
 
     def extend_classified_count(self, group_by, filters=None, page=None, limit=None):
         """
@@ -431,18 +408,6 @@ class TaskTemplateManager(BaseTemplateManager):
                 'name': template.name
             })
         return True, collected_templates_list
-
-    def get_template_context(self, obj):
-        try:
-            template = self.get(pipeline_template=obj)
-        except TaskTemplate.DoesNotExist:
-            logger.warning('TaskTemplate Does not exist: pipeline_template.id=%s' % obj.pk)
-            return {}
-        context = {
-            'project_id': template.project.id,
-            'project_name': template.project.name
-        }
-        return context
 
 
 class TaskTemplate(BaseTemplate):

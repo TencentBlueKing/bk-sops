@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -19,6 +20,7 @@
 |   task_id    |   string     |   是   |  周期任务ID |
 |   bk_biz_id    |   string     |   是   |  模板所属业务ID |
 |   cron    |   dict     |   否   | 调度策略对象 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 #### cron
  
@@ -39,7 +41,13 @@
     "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
-    "cron" : {"minute": "*/1", "hour": "15", "day_of_week":"*", "day_of_month":"*", "month_of_year":"*"},
+    "cron" : {
+	    "minute": "*/1", 
+	    "hour": "15", 
+	    "day_of_week":"*", 
+	    "day_of_month":"*", 
+	    "month_of_year":"*"
+    }
 }
 ```
 

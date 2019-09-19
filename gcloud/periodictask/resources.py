@@ -18,25 +18,26 @@ import traceback
 from tastypie import fields
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest
-from tastypie.authorization import Authorization
+from tastypie.authorization import ReadOnlyAuthorization
 from djcelery.models import PeriodicTask as CeleryTask
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
 
 from pipeline.exceptions import PipelineException
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.periodictask.models import PeriodicTask
+from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.core.models import Project
-from gcloud.core.utils import (
-    name_handler,
-)
+from gcloud.core.utils import name_handler
 from gcloud.core.constant import PERIOD_TASK_NAME_MAX_LENGTH
 from gcloud.webservice3.resources import (
     ProjectResource,
     GCloudModelResource,
-    GCloudReadOnlyAuthorization,
-    AppSerializer
 )
 from gcloud.commons.template.models import replace_template_id
 
@@ -49,16 +50,13 @@ class CeleryTaskResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = CeleryTask.objects.all()
-        authorization = GCloudReadOnlyAuthorization()
+        authorization = ReadOnlyAuthorization()
         resource_name = 'celery_task'
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             'enabled': ALL,
         }
-        limit = 0
 
 
 class PipelinePeriodicTaskResource(GCloudModelResource):
@@ -76,18 +74,20 @@ class PipelinePeriodicTaskResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = PipelinePeriodicTask.objects.all()
-        authorization = GCloudReadOnlyAuthorization()
+        authorization = ReadOnlyAuthorization()
         resource_name = 'pipeline_periodic_task'
-        always_return_data = True
-        serializer = AppSerializer()
         filtering = {
             'name': ALL,
             'creator': ALL,
             'celery_task': ALL_WITH_RELATIONS,
         }
-        limit = 0
+
+
+class CustomCreateDetailAuthorization(BkSaaSLooseAuthorization):
+    def create_detail(self, object_list, bundle):
+        return True
 
 
 class PeriodicTaskResource(GCloudModelResource):
@@ -145,22 +145,22 @@ class PeriodicTaskResource(GCloudModelResource):
         full=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = PeriodicTask.objects.all()
         resource_name = 'periodic_task'
-        authorization = Authorization()
-        always_return_data = True
-        serializer = AppSerializer()
+        auth_resource = periodic_task_resource
+        authorization = CustomCreateDetailAuthorization(auth_resource=auth_resource,
+                                                        read_action_id='view',
+                                                        update_action_id='edit')
         filtering = {
             'id': ALL,
             'template_id': ALL,
-            'projects': ALL_WITH_RELATIONS,
+            'project': ALL_WITH_RELATIONS,
             'name': ALL,
             'enabled': ALL,
             'creator': ALL,
             'task': ALL_WITH_RELATIONS
         }
-        limit = 0
 
     def obj_create(self, bundle, **kwargs):
         try:
@@ -187,6 +187,12 @@ class PeriodicTaskResource(GCloudModelResource):
             kwargs['template_id'] = template.id
         except TaskTemplate.DoesNotExist:
             raise BadRequest('template[id=%s] does not exist' % template_id)
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=creator,
+                                           resource=task_template_resource,
+                                           action_ids=[task_template_resource.actions.create_periodic_task.id],
+                                           instance=template)
 
         try:
             replace_template_id(TaskTemplate, pipeline_tree)

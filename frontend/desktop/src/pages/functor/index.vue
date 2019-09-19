@@ -14,181 +14,241 @@
         <div class="list-wrapper">
             <BaseTitle :title="i18n.functorList"></BaseTitle>
             <div class="operation-area clearfix">
-                <bk-button type="primary" size="small" @click="onCreateTask">{{i18n.new}}</bk-button>
-                <BaseSearch
+                <bk-button theme="primary" class="task-create-btn" @click="onCreateTask">{{i18n.new}}</bk-button>
+                <AdvanceSearch
                     v-model="searchStr"
                     :input-placeholader="i18n.placeholder"
                     @onShow="onAdvanceShow"
                     @input="onSearchInput">
-                </BaseSearch>
+                </AdvanceSearch>
             </div>
             <div class="functor-search" v-show="isAdvancedSerachShow">
                 <fieldset class="functor-fieldset">
                     <div class="functor-query-content">
                         <div class="query-content">
                             <span class="query-span">{{i18n.ownBusiness}}</span>
-                            <bk-selector
-                                :list="business.list"
-                                :selected.sync="selectedProject"
-                                :placeholder="i18n.choice"
+                            <bk-select
+                                v-model="selectedProject"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
-                                @item-selected="onSelectProject">
-                            </bk-selector>
+                                :placeholder="i18n.choice"
+                                :clearable="true"
+                                @selected="onSelectProject">
+                                <bk-option
+                                    v-for="(option, index) in business.list"
+                                    :key="index"
+                                    :id="option.cc_id"
+                                    :name="option.cc_name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.billTime}}</span>
-                            <bk-date-range
-                                :range-separator="'-'"
-                                :quick-select="false"
-                                :start-date.sync="executeStartTime"
-                                :end-date.sync="executeEndTime"
+                            <bk-date-picker
+                                ref="bkRanger"
+                                :placeholder="i18n.dateRange"
+                                :type="'daterange'"
                                 @change="onChangeExecuteTime">
-                            </bk-date-range>
+                            </bk-date-picker>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.creator}}</span>
-                            <input class="search-input" v-model="creator" :placeholder="i18n.creatorPlaceholder" />
+                            <bk-input
+                                v-model="creator"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.creatorPlaceholder">
+                            </bk-input>
                         </div>
                         <div class="query-content">
                             <span class="query-span">{{i18n.status}}</span>
-                            <bk-selector
-                                :placeholder="i18n.statusPlaceholder"
-                                :list="statusList"
-                                :selected.sync="statusSync"
-                                :allow-clear="true"
+                            <bk-select
+                                v-model="statusSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
+                                :placeholder="i18n.statusPlaceholder"
+                                :clearable="true"
                                 @clear="onClearStatus"
-                                @item-selected="onSelectedStatus">
-                            </bk-selector>
+                                @selected="onSelectedStatus">
+                                <bk-option
+                                    v-for="(option, index) in statusList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="query-button">
-                            <bk-button class="query-primary" type="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
                             <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
                         </div>
                     </div>
                 </fieldset>
             </div>
             <div class="functor-table-content">
-                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th class="functor-business">{{i18n.business}}</th>
-                            <th class="functor-id">{{i18n.taskId}}</th>
-                            <th class="functor-name">{{ i18n.name }}</th>
-                            <th class="functor-time">{{ i18n.createdTime }}</th>
-                            <th class="functor-time">{{ i18n.claimedTime }}</th>
-                            <th class="functor-creator">{{ i18n.creator }}</th>
-                            <th class="functor-claimant">{{ i18n.claimant }}</th>
-                            <th class="functor-status">{{ i18n.status }}</th>
-                            <th class="functor-operation">{{ i18n.operation }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in functorList" :key="item.id">
-                            <td class="functor-business">{{item.task.project.name}}</td>
-                            <td class="functor-id">{{item.task.id}}</td>
-                            <td class="functor-name">
+                <bk-table
+                    :data="functorList"
+                    :pagination="pagination"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @page-change="onPageChange">
+                    <bk-table-column :label="i18n.business" prop="task.business.cc_name" width="160"></bk-table-column>
+                    <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                :title="props.row.task.name"
+                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                {{props.row.task.name}}
+                            </a>
+                            <router-link
+                                class="task-name"
+                                :title="props.row.task.name"
+                                :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
+                                {{props.row.task.name}}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.createdTime" prop="create_time" width="200"></bk-table-column>
+                    <bk-table-column :label="i18n.claimedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.claim_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator" width="140"></bk-table-column>
+                    <bk-table-column :label="i18n.claimant" width="140">
+                        <template slot-scope="props">
+                            {{ props.row.claimant || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.status" width="140">
+                        <template slot-scope="props">
+                            <span :class="statusClass(props.row.status)"></span>
+                            {{statusMethod(props.row.status, props.row.status_name)}}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.operation" width="100">
+                        <template slot-scope="props">
+                            <template v-if="props.row.status === 'submitted'">
+                                <a
+                                    v-if="!hasPermission(['claim'], props.row.auth_actions, tplAuthOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTaskPermissonCheck(['claim'], props.row, $event)">
+                                    {{ i18n.claim }}
+                                </a>
                                 <router-link
-                                    :title="item.task.name"
-                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
-                                    {{item.task.name}}
-                                </router-link>
-                            </td>
-                            <td class="functor-time">{{item.create_time}}</td>
-                            <td class="functor-time">{{item.claim_time || '--'}}</td>
-                            <td class="functor-creator">{{item.creator}}</td>
-                            <td class="functor-claimant">{{item.claimant || '--'}}</td>
-                            <td class="functor-status">
-                                <span :class="statusClass(item.status)"></span>
-                                {{statusMethod(item.status, item.status_name)}}
-                            </td>
-                            <td class="functor-operation">
-                                <router-link v-if="item.status === 'submitted'"
+                                    v-else
                                     class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
+                                    :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
                                     {{ i18n.claim }}
                                 </router-link>
-                                <router-link v-else
+                            </template>
+                            <template v-else>
+                                <a
+                                    v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                    {{ i18n.view }}
+                                </a>
+                                <router-link
+                                    v-else
                                     class="functor-operation-btn"
-                                    :to="`/taskflow/execute/${item.task.project.id}/?instance_id=${item.task.id}`">
+                                    :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
                                     {{ i18n.view }}
                                 </router-link>
-                            </td>
-                        </tr>
-                        <tr v-if="!functorList || !functorList.length" class="empty-tr">
-                            <td colspan="9">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
-                    </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
-                </div>
+                            </template>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
         <bk-dialog
-            :is-show.sync="isShowNewTaskDialog"
-            @confirm="onConfirmlNewTask"
-            @cancel="onCancelNewTask"
-            :has-header="true"
-            :quick-close="false"
-            :ext-cls="'common-dialog'"
-            :close-icon="true"
             width="600"
-            padding="30px"
-            :title="i18n.new">
-            <div slot="content">
+            ext-cls="common-dialog"
+            :theme="'primary'"
+            :mask-close="false"
+            :header-position="'left'"
+            :title="i18n.new"
+            :value="isShowNewTaskDialog"
+            @confirm="onConfirmlNewTask"
+            @cancel="onCancelNewTask">
+            <div class="create-task-content">
                 <div class="common-form-item">
                     <label>{{i18n.choiceBusiness}}</label>
                     <div class="common-form-content">
-                        <bk-selector
-                            :allow-clear="true"
-                            :list="business.list"
-                            :selected="business.id"
+                        <bk-select
+                            v-model="business.id"
+                            class="bk-select-inline"
+                            :popover-width="430"
+                            :searchable="true"
                             :is-loading="business.loading"
-                            :searchable="business.searchable"
-                            @item-selected="onSelectedBusiness"
-                            @clear="onClearBusiness">
-                        </bk-selector>
+                            :placeholder="i18n.statusPlaceholder"
+                            :clearable="true"
+                            @clear="onClearBusiness"
+                            @selected="onSelectedBusiness">
+                            <bk-option
+                                v-for="(option, index) in business.list"
+                                :key="index"
+                                :id="option.cc_id"
+                                :name="option.cc_name">
+                            </bk-option>
+                        </bk-select>
                         <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
                     </div>
                 </div>
                 <div class="common-form-item">
                     <label>{{i18n.choiceTemplate}}</label>
                     <div class="common-form-content">
-                        <bk-selector
-                            setting-key="id"
-                            display-key="name"
-                            ext-cls="template-selector"
-                            :allow-clear="true"
-                            :list="template.list"
-                            :selected="template.id"
-                            :has-children="true"
-                            :is-loading="template.loading"
+                        <bk-select
+                            v-model="template.id"
+                            class="bk-select-inline"
+                            :popover-width="260"
+                            :is-loading="business.loading"
                             :searchable="template.searchable"
+                            :placeholder="i18n.statusPlaceholder"
+                            :clearable="true"
                             :disabled="template.disabled"
-                            @item-selected="onSelectedTemplate"
+                            @selected="onSelectedTemplate"
                             @clear="onClearTemplate">
-                        </bk-selector>
-                        <bk-tooltip placement="left" width="400" class="template-tooltip">
-                            <i class="bk-icon icon-info-circle"></i>
-                            <div slot="content" style="white-space: normal;">
-                                <div>{{i18n.tips}}</div>
-                            </div>
-                        </bk-tooltip>
+                            <bk-option-group
+                                v-for="(group, index) in template.list"
+                                :name="group.name"
+                                :key="index">
+                                <bk-option v-for="(childOption, childIndex) in group.children"
+                                    :key="childIndex"
+                                    :id="childOption.id"
+                                    :name="childOption.name">
+                                </bk-option>
+                            </bk-option-group>
+                        </bk-select>
+                        <i class="common-icon-info template-selector-tips"
+                            v-bk-tooltips="{
+                                width: 400,
+                                placement: 'top',
+                                content: i18n.tips }"></i>
                         <span v-show="template.empty" class="common-error-tip error-msg">{{i18n.choiceTemplate}}</span>
                     </div>
                 </div>
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasConfirmPerm
+                    }"
+                    v-cursor="{ active: !hasConfirmPerm }"
+                    @click="onConfirmlNewTask">
+                    {{i18n.confirm}}
+                </bk-button>
+                <bk-button theme="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
             </div>
         </bk-dialog>
     </div>
@@ -200,18 +260,20 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
-    import BaseSearch from '@/components/common/base/BaseSearch.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'functorTaskHome',
         components: {
             CopyrightFooter,
-            BaseSearch,
+            AdvanceSearch,
             BaseTitle,
             NoData
         },
+        mixins: [permission],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -233,8 +295,8 @@
                     operation: gettext('操作'),
                     claim: gettext('认领'),
                     view: gettext('查看'),
-                    new: gettext('新建任务'),
-                    choiceBusiness: gettext('选择项目'),
+                    new: gettext('新建'),
+                    choiceBusiness: gettext('选择业务'),
                     choiceTemplate: gettext('选择模板'),
                     tips: gettext('如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
                     total: gettext('共'),
@@ -247,16 +309,15 @@
                     functorTypePlaceholder: gettext('请选择分类'),
                     creatorPlaceholder: gettext('请输入提单人'),
                     query: gettext('搜索'),
-                    reset: gettext('清空')
+                    reset: gettext('清空'),
+                    dateRange: gettext('选择日期时间范围'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
                 },
                 listLoading: true,
-                selectedProject: -1,
-                currentPage: 1,
-                totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
+                selectedProject: '',
                 functorSync: 0,
-                statusSync: 0,
+                statusSync: '',
                 searchStr: undefined,
                 isShowNewTaskDialog: false,
                 functorBasicInfoLoading: true,
@@ -282,8 +343,9 @@
                     loading: false,
                     searchable: true,
                     id: '',
+                    name: '',
                     empty: false,
-                    disabled: true
+                    disabled: false
                 },
                 projectId: undefined,
                 billTime: undefined,
@@ -301,7 +363,19 @@
                     { 'id': 'claimed', 'name': gettext('已认领') },
                     { 'id': 'executed', 'name': gettext('已执行') },
                     { 'id': 'finished', 'name': gettext('完成') }
-                ]
+                ],
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                },
+                tplAuthResource: {},
+                commonTplAuthResource: {},
+                tplAuthOperations: [],
+                commonTplAuthOperations: [],
+                tplAction: []
             }
         },
         computed: {
@@ -310,7 +384,11 @@
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
-            })
+            }),
+            hasConfirmPerm () {
+                const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
+                return this.hasPermission(['create_task'], this.tplAction, authOperations)
+            }
         },
         created () {
             this.loadFunctionTask()
@@ -334,8 +412,8 @@
                 this.listLoading = true
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         task__pipeline_instance__name__contains: this.searchStr,
                         creator: this.creator || undefined,
                         pipeline_instance__is_started: this.isStarted,
@@ -354,14 +432,10 @@
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
+                    this.tplAuthOperations = functorListData.meta.auth_operations
+                    this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
-                    this.totalCount = functorListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
-                    if (!totalPage) {
-                        this.totalPage = 1
-                    } else {
-                        this.totalPage = totalPage
-                    }
+                    this.pagination.count = functorListData.meta.total_count
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -369,11 +443,11 @@
                 }
             },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.loadFunctionTask()
             },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.loadFunctionTask()
             },
             statusMethod (status, status_name) {
@@ -402,7 +476,7 @@
                         cls = 'common-icon-dark-circle-close'
                         break
                     case 'finished': // 完成
-                        cls = 'bk-icon icon-check-circle-shape default'
+                        cls = 'bk-icon icon-check-circle-shape'
                         break
                     default:
                         cls = ''
@@ -429,23 +503,16 @@
                 try {
                     // 查询职能化数据及公共流程数据
                     await Promise.all([
-                        this.loadTemplateList({ project_id: this.business.id }),
+                        this.loadTemplateList({ project__id: this.business.id }),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
-                        if (value[0].objects.length === 0) {
-                            this.template.list[0].children = [{ 'id': undefined, 'name': gettext('无数据'), disabled: true }]
-                        } else {
-                            this.template.list[0].children = value[0].objects
-                        }
-                        if (value[1].objects.length === 0) {
-                            this.template.list[1].children = [{ 'id': undefined, 'name': gettext('无数据') }]
-                        } else {
-                            this.template.list[1].children = value[1].objects
-                        }
+                        this.template.list[0].children = value[0].objects
+                        this.template.list[1].children = value[1].objects
+                        this.tplAuthResource = value[0].meta.auth_resource
+                        this.tplAuthOperations = value[0].meta.auth_operations
+                        this.commonTplAuthResource = value[1].meta.auth_resource
+                        this.commonTplAuthOperations = value[1].meta.auth_operations
                         this.clearAtomForm()
-                        this.$nextTick(() => {
-                            this.changeNoDataTextStyle()
-                        })
                     })
                 } catch (e) {
                     errorHandler(e, this)
@@ -463,19 +530,40 @@
                 this.business.id = id
                 this.getTemplateList()
                 this.business.empty = false
+                this.template.id = ''
+                this.template.name = ''
                 this.template.disabled = false
+                this.template.id = ''
             },
-            onSelectedTemplate (id, data) {
+            onSelectedTemplate (id) {
+                const templateList = this.template.list
+                let resource_uri = ''
+                let name, tplAction
+                
                 if (id === undefined) {
                     return
                 }
+                
+                templateList.some(group => {
+                    return group.children.some(item => {
+                        if (item.id === id) {
+                            resource_uri = item.resource_uri
+                            name = item.name
+                            tplAction = item.auth_actions
+                            return true
+                        }
+                    })
+                })
+
                 this.isCommonTemplate = false
                 // 通过resource_uri查找是否是公共流程
-                if (data.resource_uri.search('common_template') !== -1) {
+                if (resource_uri.search('common_template') !== -1) {
                     this.isCommonTemplate = true
                 }
                 this.template.id = id
+                this.template.name = name
                 this.template.empty = false
+                this.tplAction = tplAction
             },
             onConfirmlNewTask () {
                 if (this.business.id === '') {
@@ -486,6 +574,18 @@
                     this.template.empty = true
                     return
                 }
+                if (!this.hasConfirmPerm) {
+                    const authResource = this.isCommonTemplate ? this.commonTplAuthResource : this.tplAuthResource
+                    const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
+                    const resourceData = {
+                        name: this.template.name,
+                        id: this.template.id,
+                        auth_actions: this.tplAction
+                    }
+                    this.applyForPermission(['create_task'], resourceData, authOperations, authResource)
+                    return
+                }
+
                 if (this.isCommonTemplate) {
                     this.$router.push({ path: `/template/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id, common: 1 } })
                 } else {
@@ -501,31 +601,20 @@
             },
             onClearTemplate () {
                 this.template.id = ''
+                this.template.name = ''
             },
             onClearBusiness () {
                 this.business.id = ''
                 this.template.id = ''
+                this.template.name = ''
                 this.template.disabled = true
-            },
-            // 无数据文本修改样式
-            changeNoDataTextStyle () {
-                const templateEls = document.querySelector('.template-selector').querySelectorAll('.bk-selector-node')
-                for (const item of templateEls) {
-                    if (item.classList.contains('template-empty')) {
-                        item.classList.remove('template-empty')
-                    }
-                    if (item.querySelector('.text').textContent === gettext(' 无数据 ')) {
-                        item.classList.add('template-empty')
-                    }
-                }
             },
             onAdvanceShow () {
                 this.isAdvancedSerachShow = !this.isAdvancedSerachShow
             },
-            onChangeExecuteTime (oldValue, newValue) {
-                const timeArray = newValue.split(' - ')
-                this.executeStartTime = timeArray[0]
-                this.executeEndTime = timeArray[1]
+            onChangeExecuteTime (Value) {
+                this.executeStartTime = Value[0]
+                this.executeEndTime = Value[1]
             },
             onClearStatus () {
                 this.isStarted = undefined
@@ -534,57 +623,43 @@
             onResetForm () {
                 this.status = undefined
                 this.creator = undefined
-                this.statusSync = 0
+                this.statusSync = ''
                 this.selectedProject = 0
                 this.funtorSync = 0
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
+                this.searchInputhandler()
             },
             onSelectedStatus (id, name) {
                 this.status = id
+            },
+            onTaskPermissonCheck (required, template, event) {
+                this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
+                event.preventDefault()
             }
         }
     }
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
-label.required:after {
-    content: '*';
-    position: absolute;
-    top: 0px;
-    right: -10px;
-    color: $redDark;
-    font-family: "SimSun";
+.bk-select-inline,.bk-input-inline {
+    display: inline-block;
+    width: 260px;
 }
 .functor-container {
     min-width: 1320px;
     min-height: calc(100% - 50px);
-    background: $whiteNodeBg;
+    background: #f4f7fa;
 }
 .list-wrapper {
     padding: 0 60px;
     min-height: calc(100vh - 240px);
 }
-.template-tooltip {
-    position: absolute;
-    right: 30px;
-    top: 156px;
-    &:hover {
-        color: #FF9C01;
-    }
-}
-.common-form-item {
-    label {
-        width: 60px;
-        font-weight: normal;
-    }
-    .common-form-content {
-        margin-left: 80px;
-        margin-right: 30px;
-    }
-}
 .operation-area {
     margin: 20px 0;
+    .task-create-btn {
+        min-width: 120px;
+    }
 }
 .advanced-search {
     margin: 0;
@@ -592,6 +667,7 @@ label.required:after {
 .functor-fieldset {
     width: 100%;
     margin-bottom: 20px;
+    padding: 8px;
     border: 1px solid $commonBorderColor;
     background: #fff;
     .functor-query-content {
@@ -620,17 +696,6 @@ label.required:after {
                 height: 32px;
                 line-height: 32px;
             }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-selector-icon.clear-icon {
-                top:6px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
             input::-webkit-input-placeholder{
                 color: $formBorderColor;
             }
@@ -643,7 +708,7 @@ label.required:after {
             input:-ms-input-placeholder {
                 color: $formBorderColor;
             }
-            input,.bk-selector,.bk-date-range {
+            input{
                 min-width: 260px;
             }
             .search-input {
@@ -667,10 +732,6 @@ label.required:after {
             .bk-selector-search-item > input {
                 min-width: 249px;
             }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
-            }
         }
         .query-button {
             padding: 10px;
@@ -690,76 +751,9 @@ label.required:after {
     }
 }
 .functor-table-content {
-    table {
-        width: 100%;
-        border: 1px solid $commonBorderColor;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
-        }
-        th,td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;
-        }
-        th {
-            background: $whiteNodeBg;
-        }
-        .functor-id {
-            width: 80px;
-        }
-        .functor-name {
-            text-align: left;
-            a {
-                display: block;
-                width: 100%;
-                color: $blueDefault;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
-        }
-        .functor-type {
-            width: 110px;
-        }
-        .functor-time {
-            width: 215px;
-        }
-        .functor-creator {
-            width: 110px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .functor-claimant {
-            width: 110px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
-        .functor-business {
-            padding-left: 20px;
-            width: 130px;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space: nowrap;
-        }
-        .functor-status {
-            width: 110px;
-        }
-        .functor-operation {
-            width: 110px;
-        }
-    }
-    .btn-size-mini {
-        height: 24px;
-        line-height: 22px;
-        padding: 0 11px;
-        font-size: 12px;
+    background: #ffffff;
+    a.task-name {
+        color: $blueDefault;
     }
     .functor-operation-btn {
         color: #3c96ff;
@@ -798,11 +792,36 @@ label.required:after {
 .success {
     color: #2dcb56;
 }
-.template-selector {
-    /deep/ .template-empty {
-        background-color: #fafafa;
-        color: #aaaaaa;
-        cursor: not-allowed;
+.create-task-content {
+    padding: 30px;
+    .common-form-item {
+        label {
+            width: 70px;
+            font-weight: normal;
+        }
+        .common-form-content {
+            position: relative;
+            margin-left: 80px;
+            margin-right: 30px;
+            .template-selector-tips {
+                position: absolute;
+                right: -20px;
+                top: 9px;
+            }
+        }
+    }
+    .bk-select-inline {
+        width: 430px;
+    }
+}
+.dialog-footer {
+    padding: 0 10px;
+    text-align: right;
+    .bk-button {
+        margin-left: 10px;
+        width: 90px;
+        height: 32px;
+        line-height: 30px;
     }
 }
 </style>

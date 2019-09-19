@@ -12,36 +12,49 @@
 <template>
     <div class="template-page" v-bkloading="{ isLoading: templateDataLoading }">
         <div v-if="!templateDataLoading" class="pipeline-canvas-wrapper">
-            <PipelineCanvas
-                ref="pipelineCanvas"
-                :single-atom-list-loading="singleAtomListLoading"
-                :sub-atom-list-loading="subAtomListLoading"
-                :is-template-data-changed="isTemplateDataChanged"
-                :template-saving="templateSaving"
-                :create-task-saving="createTaskSaving"
-                :canvas-data="canvasData"
+            <TemplateHeader
                 :name="name"
                 :project_id="project_id"
                 :type="type"
                 :common="common"
                 :template_id="template_id"
-                :atom-type-list="atomTypeList"
-                :search-atom-result="searchAtomResult"
+                :is-template-data-changed="isTemplateDataChanged"
+                :template-saving="templateSaving"
+                :create-task-saving="createTaskSaving"
+                :tpl-resource="tplResource"
+                :tpl-actions="tplActions"
+                :tpl-operations="tplOperations"
                 @onChangeName="onChangeName"
+                @onNewDraft="onNewDraft"
                 @onSaveTemplate="onSaveTemplate"
-                @onSearchAtom="onSearchAtom"
-                @onBackToList="onBackToList"
+                @onBackToList="onBackToList">
+            </TemplateHeader>
+            <TemplateCanvas
+                ref="templateCanvas"
+                class="template-canvas"
+                :single-atom-list-loading="singleAtomListLoading"
+                :sub-atom-list-loading="subAtomListLoading"
+                :atom-type-list="atomTypeList"
+                :name="name"
+                :project_id="project_id"
+                :type="type"
+                :common="common"
+                :template_id="template_id"
+                :canvas-data="canvasData"
                 @onNodeClick="onNodeClick"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
-                @onNewDraft="onNewDraft"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
-            </PipelineCanvas>
+            </TemplateCanvas>
+            <div class="atom-node">
+                <span class="atom-number">{{i18n.added}} {{Object.keys(activities).length}} {{i18n.node}}</span>
+            </div>
             <NodeConfig
                 ref="nodeConfig"
-                v-if="isNodeConfigPanelShow"
+                :project_id="project_id"
+                v-show="isNodeConfigPanelShow"
                 :template_id="template_id"
                 :single-atom="singleAtom"
                 :sub-atom="subAtom"
@@ -50,11 +63,13 @@
                 :id-of-node-in-config-panel="idOfNodeInConfigPanel"
                 :common="common"
                 @hideConfigPanel="hideConfigPanel"
+                @globalVariableUpdate="globalVariableUpdate"
                 @onUpdateNodeInfo="onUpdateNodeInfo">
             </NodeConfig>
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
+                :is-global-variable-update="isGlobalVariableUpdate"
                 :project-info-loading="projectInfoLoading"
                 :is-template-config-valid="isTemplateConfigValid"
                 :is-setting-panel-show="isSettingPanelShow"
@@ -62,6 +77,7 @@
                 :local-template-data="localTemplateData"
                 :is-click-draft="isClickDraft"
                 @toggleSettingPanel="toggleSettingPanel"
+                @globalVariableUpdate="globalVariableUpdate"
                 @onDeleteConstant="onDeleteConstant"
                 @variableDataChanged="variableDataChanged"
                 @onSelectCategory="onSelectCategory"
@@ -72,15 +88,16 @@
                 @hideConfigPanel="hideConfigPanel">
             </TemplateSetting>
             <bk-dialog
-                :is-show.sync="isLeaveDialogShow"
-                :quick-close="false"
-                :ext-cls="'common-dialog'"
-                :title="i18n.leave"
                 width="400"
-                padding="30px"
+                ext-cls="common-dialog"
+                :theme="'primary'"
+                :mask-close="false"
+                :header-position="'left'"
+                :title="i18n.leave"
+                :value="isLeaveDialogShow"
                 @confirm="onLeaveConfirm"
                 @cancel="onLeaveCancel">
-                <div slot="content">{{ i18n.tips }}</div>
+                <div class="leave-tips">{{ i18n.tips }}</div>
             </bk-dialog>
         </div>
     </div>
@@ -94,12 +111,12 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
+    import TemplateHeader from './TemplateHeader.vue'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
     import NodeConfig from './NodeConfig.vue'
     import draft from '@/utils/draft.js'
     import { STRING_LENGTH } from '@/constants/index.js'
-    import { setAtomConfigApiUrls } from '@/config/setting.js'
 
     const i18n = {
         templateEdit: gettext('流程编辑'),
@@ -111,13 +128,16 @@
         delete_fail: gettext('该本地缓存不存在，删除失败'),
         replace_success: gettext('替换流程成功'),
         add_cache: gettext('新增流程本地缓存成功'),
-        replace_save: gettext('替换流程自动保存')
+        replace_save: gettext('替换流程自动保存'),
+        added: gettext('已添加'),
+        node: gettext('个任务节点')
     }
 
     export default {
         name: 'TemplateEdit',
         components: {
-            PipelineCanvas,
+            TemplateHeader,
+            TemplateCanvas,
             NodeConfig,
             TemplateSetting
         },
@@ -134,6 +154,7 @@
                 templateSaving: false,
                 createTaskSaving: false,
                 saveAndCreate: false,
+                isGlobalVariableUpdate: false, // 全局变量是否有更新
                 isTemplateConfigValid: true, // 模板基础配置是否合法
                 isTemplateDataChanged: false,
                 isSettingPanelShow: true,
@@ -150,7 +171,10 @@
                 intervalGetDraftArray: null,
                 templateUUID: uuid(),
                 localTemplateData: null,
-                isClickDraft: false
+                isClickDraft: false,
+                tplOperations: [],
+                tplActions: [],
+                tplResource: {}
             }
         },
         computed: {
@@ -232,10 +256,6 @@
             }
         },
         created () {
-            if (this.common) {
-                this.defaultProjectId = this.project_id
-                setAtomConfigApiUrls(this.site_url, 0)
-            }
             this.initTemplateData()
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
@@ -392,6 +412,9 @@
                         common: this.common
                     }
                     const templateData = await this.loadTemplateData(data)
+                    this.tplOperations = templateData.auth_operations
+                    this.tplActions = templateData.auth_actions
+                    this.tplResource = templateData.auth_resource
                     if (this.type === 'clone') {
                         templateData.name = templateData.name.slice(0, STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH - 6) + '_clone'
                     }
@@ -461,6 +484,9 @@
 
                 try {
                     const data = await this.saveTemplateData({ 'templateId': template_id, 'projectId': this.project_id, 'common': this.common })
+                    this.tplActions = data.auth_actions
+                    this.tplOperations = data.auth_operations
+                    this.tplResource = data.auth_resource
                     if (template_id === undefined) {
                         // 保存模板之前有本地缓存
                         draft.draftReplace(this.username, this.project_id, data.template_id, this.templateUUID)
@@ -471,13 +497,11 @@
                     })
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
-                        this.template_id = data.template_id
                         this.allowLeave = true
                         this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
                     if (this.createTaskSaving) {
-                        const taskUrl = this.getTaskUrl()
-                        this.$router.push(taskUrl)
+                        this.goToTaskUrl(data.template_id)
                     }
                 } catch (e) {
                     errorHandler(e, this)
@@ -652,6 +676,7 @@
              * 任务节点点击
              */
             onNodeClick (id) {
+                this.toggleSettingPanel(false)
                 const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
@@ -722,8 +747,11 @@
                 this.variableDataChanged()
                 this.setLocationXY(location)
             },
+            globalVariableUpdate (val) {
+                this.isGlobalVariableUpdate = val
+            },
             onUpdateNodeInfo (id, data) {
-                this.$refs.pipelineCanvas.onUpdateNodeInfo(id, data)
+                this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             onDeleteConstant (key) {
                 this.variableDataChanged()
@@ -743,12 +771,16 @@
                     this.isTemplateConfigValid = true
                 }
             },
-            getTaskUrl () {
-                let url = `/template/newtask/${this.project_id}/selectnode/?template_id=${this.template_id}`
-                if (this.common) {
-                    url += '&common=1'
-                }
-                return url
+            // 跳转到节点选择页面
+            goToTaskUrl (template_id) {
+                this.$router.push({
+                    path: `/template/newtask/${this.project_id}/selectnode/`,
+                    query: {
+                        template_id,
+                        common: this.common ? '1' : undefined,
+                        entrance: 'templateEdit'
+                    }
+                })
             },
             // 点击保存模板按钮回调
             onSaveTemplate (saveAndCreate) {
@@ -867,6 +899,7 @@
                     this.$nextTick(() => {
                         this.isClickDraft = type === 'replace'
                         this.$refs.templateSetting.onTemplateSettingShow('localDraftTab')
+                        this.upDataAllNodeInfo()
                     })
                 })
             },
@@ -901,6 +934,21 @@
             },
             updateLocalTemplateData () {
                 this.localTemplateData = this.getLocalTemplateData()
+            },
+            // 重新获得缓存后，更新 dom data[raw]上绑定的数据
+            upDataAllNodeInfo () {
+                const nodes = this.activities
+                Object.keys(nodes).forEach((node, index) => {
+                    this.onUpdateNodeInfo(node, {
+                        status: '',
+                        name: nodes[node].name,
+                        stage_name: nodes[node].stage_name,
+                        optional: nodes[node].optional,
+                        error_ignorable: nodes[node].error_ignorable,
+                        can_retry: nodes[node].can_retry,
+                        isSkipped: nodes[node].isSkipped
+                    })
+                })
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page
@@ -912,9 +960,6 @@
                 // 如果是 uuid 或者克隆的模板会进行删除
                 if (template_id.length === 28 || this.type === 'clone') {
                     draft.deleteAllDraftByUUID(this.username, this.project_id, this.templateUUID)
-                }
-                if (this.common) {
-                    to.params.project_id = this.defaultProjectId
                 }
                 this.clearAtomForm()
                 next()
@@ -929,12 +974,30 @@
     @import '@/scss/config.scss';
     .template-page {
         position: relative;
-        min-width: 1320px;
-        min-height: 600px;
-        height: calc(100% - 50px);
+        height: 100%;
         overflow: hidden;
+    }
+    .atom-node {
+        position: absolute;
+        top: 86px;
+        left: 50%;
+        padding: 2px 9px;
+        border-radius: 1px;
+        transform: translateX(-50%);
+        background: rgba(225, 228, 232, 0.95);
+        z-index: 4;
+        .atom-number {
+            color: #a9b2bd;
+            font-size: 14px;
+        }
     }
     .pipeline-canvas-wrapper {
         height: 100%;
+    }
+    .template-canvas {
+        height: calc(100% - 60px);
+    }
+    .leave-tips {
+        padding: 30px;
     }
 </style>

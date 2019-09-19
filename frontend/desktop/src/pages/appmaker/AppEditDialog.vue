@@ -11,58 +11,78 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.title"
         width="800"
-        :is-show.sync="isEditDialogShow"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.title"
+        :auto-close="false"
+        :value="isEditDialogShow"
         @confirm="onConfirm"
         @cancel="onCancel">
-        <div slot="content" class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
+        <div class="app-edit-content" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
             <div class="common-form-item">
                 <label class="required">{{i18n.template}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="templateList"
-                        :selected.sync="appData.appTemplate"
+                    <bk-select
+                        v-model="appData.appTemplate"
+                        class="bk-select-inline"
                         :searchable="true"
+                        :placeholder="i18n.statusPlaceholder"
+                        :clearable="true"
                         :disabled="!isCreateNewApp"
-                        @item-selected="onSelectTemplate">
-                    </bk-selector>
+                        @selected="onSelectTemplate">
+                        <bk-option
+                            v-for="(option, index) in templateList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                     <span v-show="appTemplateEmpty" class="common-error-tip error-msg">{{i18n.templateTips}}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label class="required">{{i18n.appName}}</label>
                 <div class="common-form-content">
-                    <BaseInput
-                        name="appName"
+                    <bk-input
                         v-model="appData.appName"
-                        v-validate="appNameRule" />
+                        v-validate.disable="appNameRule"
+                        name="appName"
+                        class="bk-input-inline"
+                        :clearable="true">
+                    </bk-input>
                     <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
                 </div>
             </div>
             <div class="common-form-item">
                 <label>{{i18n.scheme}}</label>
                 <div class="common-form-content">
-                    <bk-selector
-                        :list="schemeList"
-                        :selected.sync="appData.appScheme"
+                    <bk-select
+                        v-model="appData.appScheme"
+                        class="bk-select-inline"
                         :searchable="true"
+                        :placeholder="i18n.statusPlaceholder"
+                        :clearable="true"
                         :is-loading="schemeLoading"
-                        :allow-clear="true"
-                        @visible-toggle="onOpenScheme"
-                        @item-selected="onSelectScheme">
-                    </bk-selector>
+                        @selected="onSelectScheme">
+                        <bk-option
+                            v-for="(option, index) in schemeList"
+                            :key="index"
+                            :id="option.id"
+                            :name="option.name">
+                        </bk-option>
+                    </bk-select>
                     <i
-                        class="bk-icon icon-info-circle scheme-tooltip"
-                        v-bktooltips="{
+                        class="common-icon-info scheme-tooltip"
+                        v-bk-tooltips="{
                             content: i18n.schemeTips,
                             placements: ['left'],
+                            customClass: 'offset-left-tooltip',
                             width: 400,
-                            zIndex: 1501
-                        }"></i>
+                            zIndex: 1501 }">
+                    </i>
                 </div>
             </div>
             <div class="common-form-item">
@@ -97,6 +117,18 @@
                 </div>
             </div>
         </div>
+        <div slot="footer" class="dialog-footer">
+            <bk-button
+                theme="primary"
+                :class="{
+                    'btn-permission-disable': !hasConfirmPerm
+                }"
+                v-cursor="{ active: !hasConfirmPerm }"
+                @click="onConfirm">
+                {{i18n.confirm}}
+            </bk-button>
+            <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+        </div>
     </bk-dialog>
 </template>
 <script>
@@ -104,13 +136,27 @@
     import { mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
+    import permission from '@/mixins/permission.js'
     export default {
         name: 'AppEditDialog',
-        components: {
-            BaseInput
+        mixins: [permission],
+        props: {
+            'project_id': String,
+            'isCreateNewApp': Boolean,
+            'isEditDialogShow': Boolean,
+            'currentAppData': {
+                type: Object,
+                default () {
+                    return {
+                        template_id: '',
+                        name: '',
+                        template_scheme_id: '',
+                        desc: '',
+                        logo_url: undefined
+                    }
+                }
+            }
         },
-        props: ['project_id', 'isCreateNewApp', 'isEditDialogShow', 'currentAppData'],
         data () {
             return {
                 templateLoading: true,
@@ -119,18 +165,16 @@
                 schemeList: [],
                 appTemplateEmpty: false,
                 appData: {
-                    appTemplate: this.currentAppData ? Number(this.currentAppData.template_id) : '',
-                    appName: this.currentAppData ? this.currentAppData.name : '',
-                    appScheme: this.currentAppData ? Number(this.currentAppData.template_scheme_id) : '',
-                    appDesc: this.currentAppData ? this.currentAppData.desc : '',
+                    appTemplate: '',
+                    appName: '',
+                    appScheme: '',
+                    appDesc: '',
+                    appActions: this.currentAppData ? this.currentAppData.auth_actions : [],
                     appLogo: undefined
                 },
-                logoUrl: this.currentAppData ? this.currentAppData.logo_url : '',
-                isShowDefaultLogo: false,
+                logoUrl: '',
+                isLogoLoadingError: false,
                 isLogoEmpty: !!this.isCreateNewApp,
-                appTemplateRule: {
-                    required: true
-                },
                 appNameRule: {
                     required: true,
                     max: STRING_LENGTH.APP_NAME_MAX_LENGTH,
@@ -139,6 +183,8 @@
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
+                tplOperations: [],
+                tplResource: {},
                 i18n: {
                     title: this.isCreateNewApp ? gettext('新建轻应用') : gettext('修改轻应用'),
                     template: gettext('流程模板'),
@@ -149,15 +195,41 @@
                     appDesc: gettext('应用简介'),
                     appLogo: gettext('应用LOGO'),
                     change: gettext('点击更换'),
-                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')
+                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
+                }
+            }
+        },
+        computed: {
+            btnPermission () {
+                return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
+            },
+            hasConfirmPerm () {
+                return this.hasPermission(this.btnPermission, this.appData.appActions, this.tplOperations)
+            },
+            isShowDefaultLogo () {
+                return this.isLogoLoadingError || !this.logoUrl
+            }
+        },
+        watch: {
+            currentAppData (val) {
+                const { template_id, name, template_scheme_id, desc, logo_url } = val
+                this.appData = {
+                    appTemplate: template_id ? Number(template_id) : '',
+                    appName: name,
+                    appScheme: template_scheme_id ? Number(template_scheme_id) : '',
+                    appDesc: desc,
+                    appLogo: undefined
+                }
+                this.logoUrl = logo_url
+                if (template_id !== '') {
+                    this.getTemplateScheme()
                 }
             }
         },
         created () {
             this.getTemplateList()
-            if (!this.isCreateNewApp) {
-                this.getTemplateScheme()
-            }
         },
         methods: {
             ...mapActions('templateList', [
@@ -167,13 +239,15 @@
                 'loadTaskScheme'
             ]),
             useDefaultLogo () {
-                this.isShowDefaultLogo = true
+                this.isLogoLoadingError = true
             },
             async getTemplateList () {
                 this.templateLoading = true
                 try {
                     const templateListData = await this.loadTemplateList()
                     this.templateList = templateListData.objects
+                    this.tplOperations = templateListData.meta.auth_operations
+                    this.tplResource = templateListData.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -193,16 +267,16 @@
                     errorHandler(e, this)
                 }
             },
-            onSelectTemplate (id, data) {
-                this.appData.appName = data.name
+            onSelectTemplate (id) {
+                const template = this.templateList.find(item => item.id === id)
+                this.appData.appTemplate = id
+                this.appData.appName = template.name
                 this.appTemplateEmpty = false
+                this.appData.appScheme = ''
+                this.appData.appActions = template.auth_actions
+                this.getTemplateScheme()
             },
-            onOpenScheme (value) {
-                if (value && this.appData.appTemplate !== '') {
-                    this.getTemplateScheme()
-                }
-            },
-            onSelectScheme (id, data) {
+            onSelectScheme (id) {
                 this.appData.appScheme = Number(id)
             },
             // logo 上传
@@ -218,7 +292,7 @@
                     })
                 } else {
                     this.isLogoEmpty = false
-                    this.isShowDefaultLogo = false
+                    this.isLogoLoadingError = false
                     this.logoUrl = window.URL.createObjectURL(pic)
                     this.appData.appLogo = pic
                 }
@@ -228,6 +302,16 @@
                     this.appTemplateEmpty = true
                     return
                 }
+                if (!this.hasConfirmPerm) {
+                    const resourceData = {
+                        name: this.appData.appName,
+                        id: this.appData.appTemplate,
+                        auth_actions: this.appData.appActions
+                    }
+                    this.applyForPermission(['create_mini_app'], resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
+                
                 this.appData.appName = this.appData.appName.trim()
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
@@ -236,6 +320,8 @@
             },
             onCancel () {
                 this.$emit('onEditCancel')
+                this.errors.clear()
+                this.appTemplateEmpty = false
             }
         }
     }
@@ -243,6 +329,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .app-edit-content {
+    padding: 30px;
     .common-form-content {
         position: relative;
         margin-right: 30px;
@@ -251,6 +338,7 @@
         position: absolute;
         right: -20px;
         top: 10px;
+        color: #c4c6cc;
         &:hover {
             color: #f4aa1a;
         }
@@ -339,6 +427,16 @@
     }
     #app-logo {
         visibility: hidden;
+    }
+}
+.dialog-footer {
+    padding: 0 10px;
+    text-align: right;
+    .bk-button {
+        margin-left: 10px;
+        width: 90px;
+        height: 32px;
+        line-height: 30px;
     }
 }
 </style>

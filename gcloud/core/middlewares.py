@@ -11,14 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import ujson as json
 import logging
+import traceback
+import ujson as json
 
 import pytz
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
+from django.db.models import ObjectDoesNotExist
 
 from gcloud.core.models import Project
 
@@ -29,20 +31,9 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def _get_biz_cc_id_in_rest_request(self, request):
-        biz_cc_id = None
-        try:
-            body = json.loads(request.body)
-            biz_cc_id = int(body.get('business').split('/')[-2])
-        except Exception:
-            pass
-
-        return biz_cc_id
-
     def process_view(self, request, view_func, view_args, view_kwargs):
         """
-        If a request path contains biz_cc_id parameter, check if current
-        user has perm view_business or return http 403.
+        If a request path contains project_id parameter, check whether project exist
         """
         if getattr(view_func, 'login_exempt', False):
             return None
@@ -55,6 +46,15 @@ class GCloudPermissionMiddleware(MiddlewareMixin):
 
             # set time_zone of business
             request.session['blueking_timezone'] = project.time_zone
+
+    def _get_biz_cc_id_in_rest_request(self, request):
+        biz_cc_id = None
+        try:
+            body = json.loads(request.body)
+            biz_cc_id = int(body.get('business').split('/')[-2])
+        except Exception:
+            pass
+        return biz_cc_id
 
 
 class UnauthorizedMiddleware(MiddlewareMixin):
@@ -82,3 +82,14 @@ class TimezoneMiddleware(MiddlewareMixin):
             timezone.activate(pytz.timezone(tzname))
         else:
             timezone.deactivate()
+
+
+class ObjectDoesNotExistExceptionMiddleware(MiddlewareMixin):
+
+    def process_exception(self, request, exception):
+        if isinstance(exception, ObjectDoesNotExist):
+            logger.error(traceback.format_exc())
+            return JsonResponse({
+                'result': False,
+                'message': 'Object not found: %s' % exception.message
+            })

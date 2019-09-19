@@ -18,7 +18,10 @@ from gcloud.apigw import views
 urlpatterns = [
     url(r'^get_template_list/(?P<project_id>\d+)/$', views.get_template_list),
     url(r'^get_template_info/(?P<template_id>\d+)/(?P<project_id>\d+)/$', views.get_template_info),
+    url(r'^get_common_template_list/$', views.get_common_template_list),
+    url(r'^get_common_template_info/(?P<template_id>\d+)/$', views.get_common_template_info),
     url(r'^create_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$', views.create_task),
+    url(r'^fast_create_task/(?P<project_id>\d+)/$', views.fast_create_task),
     url(r'^start_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.start_task),
     url(r'^operate_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.operate_task),
     url(r'^get_task_status/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.get_task_status),
@@ -34,4 +37,5 @@ urlpatterns = [
     url(r'^get_task_node_detail/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.get_task_node_detail),
     url(r'^node_callback/(?P<task_id>\d+)/(?P<project_id>\d+)/$', views.node_callback),
     url(r'^import_common_template/$', views.import_common_template),
+    url(r'^get_plugin_list/(?P<project_id>\d+)/$', views.get_plugin_list)
 ]

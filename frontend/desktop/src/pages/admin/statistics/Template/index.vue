@@ -17,24 +17,30 @@
                     <div class="content-title">{{i18n.flowCategory}}</div>
                     <div class="content-date">
                         <div class="content-date-business">
-                            <bk-selector
-                                :list="allProjectList"
-                                :selected.sync="businessSelected"
+                            <bk-select
+                                v-model="businessSelected"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
-                                @item-selected="onTemplateCategory">
-                            </bk-selector>
+                                @selected="onTemplateCategory">
+                                <bk-option
+                                    v-for="(option, index) in allProjectList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="content-date-picker" @click="onDatePickerClick">
-                            <bk-date-range
+                            <bk-date-picker
                                 ref="datePickerRef"
-                                :quick-select="true"
-                                :start-date="categoryStartTime"
-                                :end-date="categoryEndTime"
-                                :end-date-max="endDateMax"
+                                class="bk-date-picker-common"
+                                v-model="categoryTime"
+                                :placeholder="i18n.choice"
+                                :type="'daterange'"
+                                @open-change="onShutTimeSelector"
                                 @change="onChangeCategoryTime">
-                            </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': isDropdownShow }]"></i>
+                            </bk-date-picker>
                         </div>
                     </div>
                 </div>
@@ -45,30 +51,32 @@
                     <div class="content-title">{{i18n.flowBusiness}}</div>
                     <div class="content-statistics">
                         <div class="content-business">
-                            <bk-selector
-                                :list="categoryList"
-                                :display-key="'name'"
-                                :setting-name="'value'"
-                                :search-key="'name'"
-                                :setting-key="'value'"
-                                :selected.sync="categorySelected"
-                                :placeholder="i18n.choice"
+                            <bk-select
+                                v-model="categorySelected"
+                                class="bk-select-inline"
+                                :popover-width="260"
                                 :searchable="true"
-                                :allow-clear="true"
-                                @item-selected="onSelectProject">
-                            </bk-selector>
+                                :placeholder="i18n.choice"
+                                @selected="onSelectProject">
+                                <bk-option
+                                    v-for="(option, index) in categoryList"
+                                    :key="index"
+                                    :id="option.value"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
                         </div>
                         <div class="content-business-picker" @click="onTemplatePickerClick">
-                            <bk-date-range
+                            <bk-date-picker
+                                v-model="businessTime"
+                                class="bk-date-picker-common"
                                 ref="businessPickerRef"
-                                position="bottom-left"
-                                :quick-select="true"
-                                :start-date="businessStartTime"
-                                :end-date="businessEndTime"
-                                :end-date-max="endDateMax"
+                                :placeholder="i18n.choice"
+                                :type="'daterange'"
+                                @open-change="onShutTimeSelector"
                                 @change="onChangeBusinessTime">
-                            </bk-date-range>
-                            <i :class="['bk-icon icon-angle-down', { 'icon-flip': choiceDownShow }]"></i>
+                            </bk-date-picker>
+                            <!-- <i :class="['bk-icon icon-angle-down', { 'icon-flip': showBusinessDatePanel }]"></i> -->
                         </div>
                     </div>
                 </div>
@@ -76,47 +84,53 @@
             </div>
         </div>
         <div class="content-process-detail">
-            <bk-tab :type="'fill'" :active-name="tabName" @tab-changed="onChangeTabPanel">
-                <bk-tabpanel name="processDetails" :title="i18n.node">
+            <bk-tab :type="'card'" :active="tabName" @tab-change="onChangeTabPanel">
+                <bk-tab-panel name="processDetails" :label="i18n.node">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
                             <div class="content-wrap-select">
                                 <span class="content-detail-label">{{i18n.timeLimit}}</span>
-                                <bk-date-range
-                                    :quick-select="true"
-                                    :start-date="tableStartTime"
-                                    :end-date="tableEndTime"
-                                    :end-date-max="endDateMax"
+                                <bk-date-picker
+                                    v-model="tableTime"
+                                    class="bk-date-picker-common"
+                                    :type="'daterange'"
                                     @change="onTemplateNode">
-                                </bk-date-range>
+                                </bk-date-picker>
                             </div>
                             <div class="content-wrap-select">
                                 <span class="content-detail-label">{{i18n.choiceBusiness}}</span>
-                                <bk-selector
-                                    :list="projectList"
-                                    :selected.sync="selectedProject"
-                                    :placeholder="i18n.choice"
+                                <bk-select
+                                    v-model="selectedProject"
+                                    class="bk-select-inline"
+                                    :popover-width="260"
                                     :searchable="true"
-                                    :allow-clear="true"
-                                    @item-selected="onSelectedProject">
-                                </bk-selector>
+                                    :placeholder="i18n.choice"
+                                    @selected="onSelectedProject">
+                                    <bk-option
+                                        v-for="(option, index) in projectList"
+                                        :key="index"
+                                        :id="option.id"
+                                        :name="option.name">
+                                    </bk-option>
+                                </bk-select>
                             </div>
                             <div class="content-wrap-select">
                                 <span class="content-detail-label">{{i18n.choiceCategory}}</span>
-                                <bk-selector
-                                    :list="categorys"
-                                    :display-key="'name'"
-                                    :setting-name="'value'"
-                                    :search-key="'name'"
-                                    :setting-key="'value'"
-                                    :selected.sync="selectedCategory"
-                                    :placeholder="i18n.choice"
+                                <bk-select
+                                    v-model="selectedCategory"
+                                    class="bk-select-inline"
+                                    :popover-width="260"
                                     :searchable="true"
-                                    :allow-clear="true"
-                                    @change="onTemplateNode"
+                                    :placeholder="i18n.choice"
                                     @clear="onClearCategory"
-                                    @item-selected="onSelectedCategory">
-                                </bk-selector>
+                                    @selected="onSelectedCategory">
+                                    <bk-option
+                                        v-for="(option, index) in categorys"
+                                        :key="index"
+                                        :id="option.value"
+                                        :name="option.name">
+                                    </bk-option>
+                                </bk-select>
                             </div>
                         </div>
                         <data-table-pagination
@@ -131,32 +145,36 @@
                             @handleIndexChange="onNodeHandleIndexChange">
                         </data-table-pagination>
                     </div>
-                </bk-tabpanel>
-                <bk-tabpanel name="processReference" :title="i18n.cite">
+                </bk-tab-panel>
+                <bk-tab-panel name="processReference" :label="i18n.cite">
                     <div class="content-wrap-detail">
                         <div class="content-wrap-from">
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.timeLimit}}</label>
-                                <bk-date-range
-                                    :quick-select="true"
-                                    :start-date="tableStartTime"
-                                    :end-date="tableEndTime"
-                                    :end-date-max="endDateMax"
+                                <bk-date-picker
+                                    v-model="tableTime"
+                                    class="bk-date-picker-common"
+                                    :type="'daterange'"
                                     @change="onTemplateByCiteData">
-                                </bk-date-range>
+                                </bk-date-picker>
                             </div>
                             <div class="content-wrap-select">
                                 <label class="content-detail-label">{{i18n.choiceBusiness}}</label>
-                                <bk-selector
-                                    :list="projectList"
-                                    :selected.sync="selectedProject"
-                                    :placeholder="i18n.choice"
+                                <bk-select
+                                    v-model="selectedProject"
+                                    class="bk-select-inline"
+                                    :popover-width="260"
                                     :searchable="true"
-                                    :allow-clear="true"
-                                    @change="onTemplateByCiteData"
+                                    :placeholder="i18n.choice"
                                     @clear="onClearProject"
-                                    @item-selected="onSelectedProject">
-                                </bk-selector>
+                                    @selected="onSelectedProject">
+                                    <bk-option
+                                        v-for="(option, index) in projectList"
+                                        :key="index"
+                                        :id="option.id"
+                                        :name="option.name">
+                                    </bk-option>
+                                </bk-select>
                             </div>
                         </div>
                         <data-table-pagination
@@ -170,7 +188,7 @@
                             @handleIndexChange="onCiteHandleIndexChange">
                         </data-table-pagination>
                     </div>
-                </bk-tabpanel>
+                </bk-tab-panel>
             </bk-tab>
         </div>
     </div>
@@ -229,7 +247,6 @@
                 isBussLoading: true,
                 isReferLoading: true,
                 isDetailLoading: true,
-                choiceDownShow: false,
                 datePickerRefShow: false,
                 businessPickerRefShow: false,
                 choiceBusinessName: '',
@@ -356,19 +373,18 @@
                         sortable: 'custom'
                     }
                 ],
-                selectedProject: -1,
+                tableTime: ['', ''],
+                categoryTime: ['', ''],
+                businessTime: ['', ''],
+                selectedProject: '',
                 businessSelected: 'all',
                 categorySelected: 'all',
-                selectedCategory: -1,
-                categoryStartTime: undefined,
-                categoryEndTime: undefined,
-                choiceBusiness: undefined,
-                tableStartTime: undefined,
-                tableEndTime: undefined,
-                businessStartTime: undefined,
-                businessEndTime: undefined,
+                selectedCategory: '',
+                choiceBusiness: '',
                 choiceCategory: undefined,
-                endDateMax: ''
+                endDateMax: '',
+                showClassifyDatePanel: '',
+                showBusinessDatePanel: ''
             }
         },
         computed: {
@@ -384,7 +400,7 @@
                     this.loadProjectList({ limit: 0 })
                 }
                 const list = tools.deepClone(this.projectList)
-                list.unshift({ id: undefined, name: gettext('全部项目') })
+                list.unshift({ id: 'all', name: gettext('全部业务') })
                 return list
             },
             categoryList () {
@@ -398,6 +414,9 @@
         },
         created () {
             this.getDateTime()
+            this.onTemplateCategory(null)
+            this.onSelectProject(null)
+            this.onTemplateNode()
         },
         methods: {
             ...mapActions([
@@ -417,12 +436,12 @@
                     }
                     this.choiceBusiness = business
                 } else if (business === undefined) {
-                    if (this.choiceBusiness === undefined) {
+                    if (this.choiceBusiness === '') {
                         return
                     }
                     this.choiceBusiness = business
                 }
-                const time = this.getUTCTime([this.categoryStartTime, this.categoryEndTime])
+                const time = this.getUTCTime(this.categoryTime)
                 const data = {
                     group_by: 'category',
                     conditions: JSON.stringify({
@@ -433,19 +452,17 @@
                 }
                 this.templateData(data)
             },
-            onTemplateNode (oldValue = null, newValue = null) {
+            onTemplateNode (value) {
                 if (this.tabName !== 'processDetails') {
                     // 防止不同界面进行触发接口调用
                     return
                 }
-                if (newValue) {
-                    const dateArray = newValue.split(' - ')
-                    this.tableStartTime = dateArray[0]
-                    this.tableEndTime = dateArray[1]
+                if (value) {
+                    this.tableTime = value
                     this.resetPageIndex()
                 }
                 this.isDetailLoading = true
-                const time = this.getUTCTime([this.tableStartTime, this.tableEndTime])
+                const time = this.getUTCTime(this.tableTime)
                 const data = {
                     group_by: 'template_node',
                     conditions: JSON.stringify({
@@ -477,7 +494,7 @@
                     }
                     this.choiceCategory = category
                 }
-                const time = this.getUTCTime([this.businessStartTime, this.businessEndTime])
+                const time = this.getUTCTime(this.tableTime)
                 const data = {
                     group_by: 'project_id',
                     conditions: JSON.stringify({
@@ -527,19 +544,17 @@
                         break
                 }
             },
-            onTemplateByCiteData (oldValue = null, newValue = null) {
+            onTemplateByCiteData (value) {
                 if (this.tabName !== 'processReference') {
                     // 防止不同界面进行触发接口调用
                     return
                 }
-                if (newValue) {
-                    const dateArray = newValue.split(' - ')
-                    this.tableStartTime = dateArray[0]
-                    this.tableEndTime = dateArray[1]
+                if (Array.isArray(value)) {
+                    this.tableTime = value
                     this.resetPageIndex()
                 }
                 this.isReferLoading = true
-                const time = this.getUTCTime([this.tableStartTime, this.tableEndTime])
+                const time = this.getUTCTime(this.tableTime)
                 const data = {
                     group_by: 'template_cite',
                     conditions: JSON.stringify({
@@ -597,28 +612,28 @@
             },
             getDateTime () {
                 const date = new Date()
-                date.setHours(0, 0, 0)
-                const endTime = moment(date).format('YYYY-MM-DD')
-                this.tableEndTime = endTime
-                this.categoryEndTime = endTime
-                this.businessEndTime = endTime
-                this.endDateMax = endTime
+                const endTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
+                this.tableTime[1] = endTime
+                this.categoryTime[1] = endTime
+                this.businessTime[1] = endTime
                 date.setTime(date.getTime() - 3600 * 1000 * 24 * 30)
-                const startTime = moment(date).format('YYYY-MM-DD')
-                this.tableStartTime = startTime
-                this.categoryStartTime = startTime
-                this.businessStartTime = startTime
+                const startTime = moment(date).format('YYYY-MM-DD HH:mm:ss')
+                this.tableTime[0] = startTime
+                this.categoryTime[0] = startTime
+                this.businessTime[0] = startTime
             },
             onInstanceHandleView (index, row) {
                 window.open(this.site_url + 'taskflow/home/' + row.businessId + '/?template_id=' + row.templateId)
             },
+            onShutTimeSelector () {
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
+            },
             onDatePickerClick () {
-                this.datePickerRefShow = !this.datePickerRefShow
-                this.$refs.datePickerRef.pickerVisible = this.datePickerRefShow
+                this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
             },
             onTemplatePickerClick () {
-                this.businessPickerRefShow = !this.businessPickerRefShow
-                this.$refs.businessPickerRef.pickerVisible = this.businessPickerRefShow
+                this.showBusinessDatePanel = this.$refs.businessPickerRef.showDatePanel
             },
             onSelectedCategory (name, value) {
                 if (this.category === name) {
@@ -637,31 +652,23 @@
                 this.onChangeTabPanel(this.tabName)
             },
             onClearProject () {
-                this.selectedProject = -1
+                this.selectedProject = ''
                 this.projectId = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
             onClearCategory () {
-                this.selectedCategory = -1
+                this.selectedCategory = ''
                 this.category = undefined
                 this.resetPageIndex()
                 this.onChangeTabPanel(this.tabName)
             },
-            onChangeCategoryTime (oldValue, newValue) {
-                if (newValue) {
-                    const dateArray = newValue.split(' - ')
-                    this.categoryStartTime = dateArray[0]
-                    this.categoryEndTime = dateArray[1]
-                }
+            onChangeCategoryTime (value) {
+                this.categoryTime = value
                 this.onTemplateCategory(null)
             },
-            onChangeBusinessTime (oldValue, newValue) {
-                if (newValue) {
-                    const dateArray = newValue.split(' - ')
-                    this.businessStartTime = dateArray[0]
-                    this.businessEndTime = dateArray[1]
-                }
+            onChangeBusinessTime (value) {
+                this.businessTime = value
                 this.onSelectProject(null)
             },
             resetPageIndex () {
@@ -679,3 +686,24 @@
         }
     }
 </script>
+<style lang="scss">
+.bk-select-inline,.bk-input-inline {
+    display: inline-block;
+    width: 260px;
+    background-color: #ffffff;
+}
+.icon-angle-down {
+    transition: all linear 0.2s;
+}
+.icon-flip {
+    display: inline-block;
+    transform: rotate(180deg);
+}
+.content-date-picker {
+    vertical-align: top;
+}
+.content-business-picker {
+    vertical-align: top;
+}
+
+</style>

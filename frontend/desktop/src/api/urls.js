@@ -13,6 +13,8 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
     return {
         // 业务人员列表
         bizPerson: SITE_URL + 'core/api/get_roles_and_personnel/' + PROJECT_ID + '/',
+        permission: SITE_URL + 'core/api/query_apply_permission_url/',
+        permissionQuery: SITE_URL + 'core/api/query_resource_verify_perms/',
         // 更改默认项目
         projectDefaultChange: SITE_URL + 'core/api/change_default_project/',
         projectBaseInfo: SITE_URL + 'core/api/get_basic_info/',
@@ -42,7 +44,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         instanceRevoke: SITE_URL + 'taskflow/api/action/revoke/' + PROJECT_ID + '/',
         instanceResume: SITE_URL + 'taskflow/api/action/resume/' + PROJECT_ID + '/',
         instanceModify: SITE_URL + 'taskflow/api/inputs/modify/' + PROJECT_ID + '/',
-        instanceClaim: SITE_URL + 'taskflow/api/flow/claim/' + PROJECT_ID + '/',
+        instanceClaim: SITE_URL + 'taskflow/api/flow/claim/',
         instanceDetail: SITE_URL + 'taskflow/detail/' + PROJECT_ID + '/',
         instanceStatus: SITE_URL + 'taskflow/api/status/',
         nodeActInfo: SITE_URL + 'taskflow/api/nodes/data/' + PROJECT_ID + '/',
@@ -59,6 +61,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         setSleepNode: SITE_URL + 'taskflow/api/nodes/spec/timer/reset/' + PROJECT_ID + '/',
         taskCount: SITE_URL + 'taskflow/api/query_task_count/' + PROJECT_ID + '/',
         schemes: SITE_URL + 'api/v3/schemes/',
+        commonSchemes: SITE_URL + 'api/v3/common_scheme/',
         bizConfig: SITE_URL + 'config/api/biz_config/' + PROJECT_ID + '/',
         configBizExecutor: SITE_URL + 'config/api/biz_executor/' + PROJECT_ID + '/',
         appmaker: SITE_URL + 'api/v3/appmaker/',
@@ -82,6 +85,8 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         taskCreateMethod: SITE_URL + 'taskflow/api/get_task_create_method/',
         cc_search_host: SITE_URL + 'pipeline/cc_search_host/' + PROJECT_ID + '/',
         cc_search_topo_tree: SITE_URL + 'pipeline/cc_search_topo_tree/' + PROJECT_ID + '/',
-        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + PROJECT_ID + '/'
+        cc_get_mainline_object_topo: SITE_URL + 'pipeline/cc_get_mainline_object_topo/' + PROJECT_ID + '/',
+        packageSource: SITE_URL + 'api/v3/package_source/',
+        syncTask: SITE_URL + 'api/v3/sync_task/'
     }
 }

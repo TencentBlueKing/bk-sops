@@ -11,22 +11,23 @@
 */
 <template>
     <bk-dialog
-        :quick-close="false"
-        :has-header="true"
-        :ext-cls="'common-dialog'"
-        :title="i18n.deleteTips"
         width="400"
-        :is-show.sync="isDeleteDialogShow"
+        :ext-cls="'common-dialog'"
+        :theme="'primary'"
+        :mask-close="false"
+        :header-position="'left'"
+        :title="i18n.deleteTips"
+        :value="isDeleteDialogShow"
+        :draggable="true"
         @confirm="onDeletePeriodicConfrim"
         @cancel="onDeletePeriodicCancel">
-        <div slot="content" v-bkloading="{ isLoading: deleting, opacity: 1 }">
+        <div class="dialog-content" v-bkloading="{ isLoading: deleting, opacity: 1 }">
             <div class="information-tips">{{deleteInfo}}</div>
         </div>
     </bk-dialog>
 </template>
 <script>
     import '@/utils/i18n.js'
-
     export default {
         name: 'DeletePeriodicDialog',
         props: ['isDeleteDialogShow', 'templateName', 'deleting'],
@@ -54,6 +55,9 @@
 </script>
 
 <style lang="scss" scoped>
+    .dialog-content {
+        padding: 30px;
+    }
     .information-tips {
         word-break: break-all;
     }

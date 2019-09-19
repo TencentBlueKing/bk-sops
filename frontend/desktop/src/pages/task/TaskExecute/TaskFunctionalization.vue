@@ -17,12 +17,12 @@
             <div class="common-form-item">
                 <label class="required">{{ i18n.taskName }}</label>
                 <div class="common-form-content">
-                    <BaseInput
+                    <bk-input
                         class="common-form-content-size"
                         name="taskName"
                         v-model="name"
                         v-validate="taskNameRule">
-                    </BaseInput>
+                    </bk-input>
                     <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                 </div>
             </div>
@@ -48,34 +48,34 @@
                 {{ i18n.preview }}
             </bk-button>
             <bk-button
-                class="task-claim-button"
-                type="success"
+                theme="success"
+                :class="['task-claim-button', {
+                    'btn-permission-disable': !hasPermission(['claim'], instanceActions, instanceOperations)
+                }]"
                 :loading="isSubmit"
+                v-cursor="{ active: !hasPermission(['claim'], instanceActions, instanceOperations) }"
                 @click="onTaskClaim">
                 {{ i18n.claim }}
             </bk-button>
         </div>
         <bk-dialog
-            v-if="previewDialogShow"
-            :quick-close="false"
-            :has-header="true"
+            :value="previewDialogShow"
+            :mask-close="false"
+            :header-position="'left'"
             :has-footer="false"
             :ext-cls="'common-dialog'"
             :title="i18n.taskPreview"
             width="1000"
-            padding="0px"
-            :is-show.sync="previewDialogShow"
             @cancel="onCancel">
-            <div slot="content">
-                <NodePreview
-                    ref="nodePreviewRef"
-                    :preview-data-loading="previewDataLoading"
-                    :canvas-data="formatCanvasData(previewData)"
-                    :preview-bread="previewBread"
-                    @onNodeClick="onNodeClick"
-                    @onSelectSubflow="onSelectSubflow">
-                </NodePreview>
-            </div>
+            <NodePreview
+                v-if="previewDialogShow"
+                ref="nodePreviewRef"
+                :preview-data-loading="previewDataLoading"
+                :canvas-data="formatCanvasData(previewData)"
+                :preview-bread="previewBread"
+                @onNodeClick="onNodeClick"
+                @onSelectSubflow="onSelectSubflow">
+            </NodePreview>
         </bk-dialog>
     </div>
 </template>
@@ -85,8 +85,8 @@
     import tools from '@/utils/tools.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
     import NodePreview from '../NodePreview.vue'
 
@@ -95,11 +95,14 @@
         inject: ['reload'],
         components: {
             NoData,
-            BaseInput,
             TaskParamEdit,
             NodePreview
         },
-        props: ['project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName'],
+        mixins: [permission],
+        props: [
+            'project_id', 'template_id', 'instance_id', 'instanceFlow', 'instanceName',
+            'instanceActions', 'instanceOperations', 'instanceResource'
+        ],
         data () {
             return {
                 i18n: {
@@ -162,6 +165,17 @@
             },
             onTaskClaim () {
                 if (this.isSubmit) return
+
+                if (!this.hasPermission(['claim'], this.instanceActions, this.instanceOperations)) {
+                    const resourceData = {
+                        name: this.instanceName,
+                        id: this.instance_id,
+                        auth_actions: this.instanceActions
+                    }
+                    this.applyForPermission(['claim'], resourceData, this.instanceOperations, this.instanceResource)
+                    return
+                }
+
                 this.isSubmit = true
                 this.$validator.validateAll().then(async (result) => {
                     if (!result) return
@@ -175,6 +189,7 @@
                     const data = {
                         name: this.name,
                         instance_id: this.instance_id,
+                        project_id: this.project_id,
                         constants: JSON.stringify(formData)
                     }
                     try {
@@ -229,9 +244,11 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 .functionalization-wrapper {
+    position: relative;
     margin: 0 40px;
     padding-top: 30px;
     width: calc(100% - 80px);
+    min-height: calc(100vh - 50px - 139px);
     background-color: #ffffff;
     @media screen and (max-width: 1300px){
         width: calc(100% - 80px);
@@ -326,6 +343,9 @@
     width: 720px;
 }
 .action-wrapper {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
     height: 72px;
     line-height: 72px;
     margin: 0 -40px;
@@ -355,6 +375,7 @@
     max-width: 500px;
 }
 /deep/ .bk-dialog-body {
+    height: 420px;
     background-color: #f4f7fa;
 }
 /deep/ .pipeline-canvas{

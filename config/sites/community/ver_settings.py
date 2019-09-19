@@ -11,8 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-REMOTE_ANALYSIS_URL = ''
-REMOTE_API_URL = ''
+import os
+
+from config import BK_PAAS_HOST as _BK_PAAS_HOST
+
+REMOTE_ANALYSIS_URL = '%s/console/static/js/analysis.min.js' % os.environ.get('BK_PAAS_HOST', _BK_PAAS_HOST)
+REMOTE_API_URL = '%s/console/static/bk_api/api.js' % os.environ.get('BK_PAAS_HOST', _BK_PAAS_HOST)
 
 ESB_SDK_NAME = 'packages.blueking.component'
 ESB_AUTH_COMPONENT_SYSTEM = 'bk_login'
@@ -36,6 +40,7 @@ bU+nE0FAfETaN+/eUQJAMN4sJTjEMkeSeE+SBzqsmzc4ajMHRrhtu989JgZZvDyr
 LOah9mmRwLJdcfa3Js+jw2lOCmxzqauYZHVHg/hH7g==
 -----END RSA PRIVATE KEY-----
 """
+
 # PUB_KEY for frontend, which can not use three quotes
 RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
               "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA2XZvbf++4M6YLSgS93kYJS34\\n" + \
@@ -43,3 +48,25 @@ RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
               "itqI6xYBqb3WBRu9WYEd8skFy1mwOEbxOgsXoOPd9tLkt4etSMzm7kdBqmZKIeiA\\n" + \
               "OtbmirDqkuz6M64b5wIDAQAB\\n" + \
               "-----END PUBLIC KEY-----"
+
+# APIGW Auth
+APIGW_APP_CODE_KEY = 'bk_app_code'
+APIGW_USER_USERNAME_KEY = 'bk_username'
+
+COMPATIBLE_MODULE_MAP = {
+    'pipeline.components.collections.common': 'pipeline_plugins.components.collections.common',
+    'pipeline.components.collections.controller': 'pipeline_plugins.components.collections.controller',
+    'pipeline.components.collections.sites.community.bk': 'pipeline_plugins.components.collections.sites.open.bk',
+    'pipeline.components.collections.sites.community.cc': 'pipeline_plugins.components.collections.sites.open.cc',
+    'pipeline.components.collections.sites.community.job': 'pipeline_plugins.components.collections.sites.open.job',
+    'pipeline_plugins.components.collections.sites.community.bk':
+        'pipeline_plugins.components.collections.sites.open.bk',
+    'pipeline_plugins.components.collections.sites.community.cc':
+        'pipeline_plugins.components.collections.sites.open.cc',
+    'pipeline_plugins.components.collections.sites.community.job':
+        'pipeline_plugins.components.collections.sites.open.job',
+    'pipeline.variables.collections.common': 'pipeline_plugins.variables.collections.common',
+    'pipeline.variables.collections.sites.community.cc': 'pipeline_plugins.variables.collections.sites.open.cc',
+    'pipeline_plugins.variables.variables.collections.sites.community.cc':
+        'pipeline_plugins.variables.collections.sites.open.cc',
+}

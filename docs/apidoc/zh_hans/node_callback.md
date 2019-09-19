@@ -5,6 +5,7 @@
 ### 请求参数
 
 #### 通用参数
+
 |   字段           |  类型       | 必选     |  描述             |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   是    |  应用ID |
@@ -20,22 +21,22 @@
 |   task_id     |   string   |   是   |  任务ID     |
 |   node_id        | string     | 是         | 节点 ID                        |
 |   callback_data        | dict     | 否         | 回调数据           |           |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 
 ```
-import requests
-kwargs = {
-    "app_code": "app_code",
-    "app_secret": "app_secret",
-    "access_token": "access_token",
+{
+    "bk_app_code": "app_code",
+    "bk_app_secret": "app_secret",
+    "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd",
-    "callback_data": {"data": "data"},
+    "callback_data": {
+        "data": {}
+    }
 }
-response = requests.get("http://{stageVariables.domain}/apigw/node_callback/10/2/", kwargs)
-result = response.json()
 ```
 
 ### 返回结果示例

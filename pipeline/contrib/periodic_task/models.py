@@ -303,11 +303,11 @@ class PeriodicTask(models.Model):
     snapshot = models.ForeignKey(
         Snapshot,
         related_name='periodic_tasks',
-        verbose_name=_(u'用于创建流程实例的结构数据')
+        verbose_name=_(u"用于创建流程实例的结构数据")
     )
     total_run_count = models.PositiveIntegerField(_(u"执行次数"), default=0)
     last_run_at = models.DateTimeField(_(u"上次运行时间"), null=True)
-    creator = models.CharField(_(u'创建者'), max_length=32, default='')
+    creator = models.CharField(_(u"创建者"), max_length=32, default='')
     extra_info = CompressJSONField(verbose_name=_(u"额外信息"), null=True)
 
     objects = PeriodicTaskManager()

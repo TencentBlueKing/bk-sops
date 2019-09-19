@@ -82,7 +82,8 @@
 }
 .rf-view-textarea-value {
     /deep/ .el-textarea__inner {
-        padding-left: 0px;
+        padding: 6px 0 0;
+        line-height: 24px;
     }
 }
 </style>

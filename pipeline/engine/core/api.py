@@ -16,7 +16,7 @@ import socket
 from redis.exceptions import ConnectionError
 from djcelery.app import current_app
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from pipeline.conf import settings
 from pipeline.engine.models import FunctionSwitch, PipelineProcess

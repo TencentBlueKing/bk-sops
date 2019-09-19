@@ -5,6 +5,7 @@ modify crontab for periodic task
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -19,6 +20,7 @@ modify crontab for periodic task
 |   task_id    |   string     |   YES   |  task ID |
 |   bk_biz_id    |   string     |   YES   |  business ID |
 |   cron    |   dict     |   YES   |  crontab dict |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 #### cron
  
@@ -39,7 +41,13 @@ modify crontab for periodic task
     "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
-    "cron" : {"minute": "*/1", "hour": "15", "day_of_week":"*", "day_of_month":"*", "month_of_year":"*"},
+    "cron" : {
+        "minute": "*/1", 
+        "hour": "15", 
+        "day_of_week":"*", 
+        "day_of_month":"*", 
+        "month_of_year":"*"
+    }
 }
 ```
 

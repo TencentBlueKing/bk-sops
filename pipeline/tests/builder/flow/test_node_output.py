@@ -21,7 +21,7 @@ class NodeOutputTestCase(TestCase):
     def test_init(self):
         output = NodeOutput(type=NodeOutput.PLAIN, value='val', source_act='1', source_key='2')
         self.assertEqual(output.type, NodeOutput.PLAIN)
-        self.assertEqual(output.value, 'val')
+        self.assertEqual(output.value, None)
         self.assertEqual(output.source_act, '1')
         self.assertEqual(output.source_key, '2')
 

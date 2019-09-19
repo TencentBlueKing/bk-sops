@@ -16,20 +16,20 @@ import store from './store/index.js'
 import './directives/index.js'
 import App from './App.vue'
 import './api/index.js'
-import bkMagic, { locale, langPkg } from './assets/bk-magic/bk-magic-vue.min.js'
-import './assets/bk-magic/bk-magic-vue.min.css'
+import bkMagicVue, { locale, lang } from 'bk-magic-vue'
+import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
-    Container, Row, Col, Pagination } from 'element-ui'
+    Container, Row, Col, Pagination, Tooltip } from 'element-ui'
 import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
 import { STRING_LENGTH } from '@/constants/index.js'
-
+const cron = require('@/assets/js/node-cron-valid/node-cron-vaild.js')
 Vue.use(VeeValidate)
 
-Vue.use(bkMagic)
+Vue.use(bkMagicVue)
 
 Vue.use(Input)
 Vue.use(Select)
@@ -53,18 +53,31 @@ Vue.use(Container)
 Vue.use(Row)
 Vue.use(Col)
 Vue.use(Pagination)
+Vue.use(Tooltip)
 
 if (store.state.lang === 'en') {
-    locale.use(langPkg.enUS)
+    locale.use(lang.enUS)
     locales.use(enLocale)
 } else {
     locales.use(zhLocale)
 }
 
 $.atoms = {} // hack atom config load
+$.context = {}
 
 const InvalidNameChar = '\'‘"”$&<>'
-
+Validator.extend('cronRlue', {
+    getMessage: (field, args) => {
+        return args + gettext('输入定时表达式非法，请校验')
+    },
+    validate: value => cron.validate(value).status
+})
+Validator.extend('integer', {
+    getMessage: (field, args) => {
+        return args + gettext('间隔时间必须是正整数')
+    },
+    validate: value => Number(value) >= 1 && Number(value) % 1 === 0
+})
 Validator.localize({
     en: {
         messages: {
@@ -129,14 +142,62 @@ Validator.localize({
                 regex: gettext('定时流程名称包含') + InvalidNameChar + gettext('非法字符'),
                 max: gettext('定时流程名称不能超过') + STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH + gettext('个字符')
             },
+            projectName: {
+                required: gettext('项目名称不能为空'),
+                regex: gettext('项目名称包含') + InvalidNameChar + gettext('非法字符'),
+                max: gettext('项目名称不能超过') + STRING_LENGTH.PROJECT_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            projectDesc: {
+                max: gettext('项目描述不能超过') + STRING_LENGTH.PROJECT_DESC_LENGTH + gettext('个字符')
+            },
             periodicCron: {
                 required: gettext('定时表达式不能为空'),
                 regex: gettext('输入定时表达式非法，请校验')
+            },
+            interval: {
+                required: gettext('间隔时间不能为空'),
+                regex: gettext('间隔时间必须是正整数')
             },
             draftName: {
                 required: gettext('本地缓存名称不能为空'),
                 regex: gettext('本地缓存名称包含') + InvalidNameChar + gettext('非法字符'),
                 max: gettext('本地缓存名称不能超过') + STRING_LENGTH.DRAFT_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            packageName: {
+                regex: gettext('名称由英文字母、数字、下划线组成，且不能以数字开头'),
+                max: gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            moduleName: {
+                regex: gettext('名称由英文字母、数字、下划线组成，且不能以数字开头'),
+                max: gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            cacheName: {
+                regex: gettext('名称由英文字母、数字、下划线组成，且不能以数字开头'),
+                max: gettext('名称长度不能超过') + STRING_LENGTH.SOURCE_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            minRule: {
+                required: gettext('开始分钟数不能为空'),
+                regex: gettext('请输入 0 - 59 之间的数')
+            },
+            hourRule: {
+                required: gettext('开始小时数不能为空'),
+                regex: gettext('请输入 0 - 23 之间的数')
+            },
+            weekRule: {
+                required: gettext('开始周数不能为空'),
+                regex: gettext('请输入 0 - 6 之间的数')
+            },
+            dayRule: {
+                required: gettext('开始天数不能为空'),
+                regex: gettext('请输入 1 - 31 之间的数')
+            },
+            monthRule: {
+                required: gettext('开始月数不能为空'),
+                regex: gettext('请输入 1 - 12 之间的数')
+            },
+            testName: {
+                required: gettext('test不能为空'),
+                regex: gettext('请输入 test 之间的数')
             }
         }
     }

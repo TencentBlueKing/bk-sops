@@ -15,7 +15,11 @@
         'fill-height': currentStep === 'selectnode'
     }">
         <TaskStep
+            :project_id="project_id"
             :list="stepList"
+            :common="common"
+            :template_id="template_id"
+            :task-status="'TaskCreate'"
             :current-step="currentStep">
         </TaskStep>
         <component
@@ -24,6 +28,7 @@
             :current-step="currentStep"
             :project_id="project_id"
             :common="common"
+            :entrance="entrance"
             :template_id="template_id"
             :exclude-node="excludeNode"
             :preview-data="previewData"
@@ -65,7 +70,7 @@
             TaskSelectNode,
             TaskParamFill
         },
-        props: ['template_id', 'project_id', 'step', 'common'],
+        props: ['template_id', 'project_id', 'step', 'common', 'entrance'],
         data () {
             return {
                 stepList: STEP_DICT.slice(),
@@ -106,11 +111,12 @@
                 }
             },
             hasPeriodicTask (val) {
+                const taskExecution = {
+                    step: 'taskexecute',
+                    name: gettext('任务执行')
+                }
                 if (!val) {
-                    this.stepList.push({
-                        step: 'taskexecute',
-                        name: gettext('任务执行')
-                    })
+                    this.stepList.push(taskExecution)
                 } else if (!val.periodicType) {
                     this.deletePeriodicCurrentStep()
                 } else if (val.periodicType && val.functionalType) {
@@ -119,21 +125,18 @@
                         name: gettext('职能化认领'),
                         component: 'TaskParamFill'
                     })
-                    this.stepList.push({
-                        step: 'taskexecute',
-                        name: gettext('任务执行')
-                    })
+                    this.stepList.push(taskExecution)
                 } else {
-                    this.stepList.push({
-                        step: 'taskexecute',
-                        name: gettext('任务执行')
-                    })
+                    this.stepList.push(taskExecution)
                 }
             }
         },
         mounted () {
             if (this.userType === 'functor') {
                 this.setFunctionalStep(true)
+            }
+            if (this.entrance === 'periodicTask') {
+                this.deletePeriodicCurrentStep()
             }
         },
         methods: {

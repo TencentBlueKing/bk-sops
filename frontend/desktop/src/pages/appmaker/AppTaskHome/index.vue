@@ -15,60 +15,141 @@
             <BaseTitle :title="i18n.taskRecord"></BaseTitle>
             <div class="operation-area clearfix">
                 <div class="appmaker-search">
-                    <input class="search-input" :placeholder="i18n.placeholder" v-model="searchStr" @input="onSearchInput" />
-                    <i class="common-icon-search"></i>
+                    <AdvanceSearch
+                        v-model="searchStr"
+                        :input-placeholader="i18n.placeholder"
+                        @onShow="onAdvanceShow"
+                        @input="onSearchInput">
+                    </AdvanceSearch>
                 </div>
             </div>
-            <div class="appmaker-table-content">
-                <table v-bkloading="{ isLoading: listLoading, opacity: 1 }">
-                    <thead>
-                        <tr>
-                            <th class="appmaker-id">ID</th>
-                            <th class="appmaker-name">{{ i18n.name }}</th>
-                            <th class="appmaker-time">{{ i18n.startedTime }}</th>
-                            <th class="appmaker-time">{{ i18n.finishedTime }}</th>
-                            <th class="appmaker-category">{{ i18n.category }}</th>
-                            <th class="appmaker-creator">{{ i18n.creator }}</th>
-                            <th class="appmaker-operator">{{ i18n.operator }}</th>
-                            <th class="appmaker-status">{{ i18n.status }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(item, index) in appmakerList" :key="item.id">
-                            <td class="appmaker-id">{{item.id}}</td>
-                            <td class="appmaker-name">
-                                <router-link
-                                    :to="`/appmaker/${item.create_info}/execute/${item.id}/?instance_id=${item.id}`">
-                                    {{item.name}}
-                                </router-link>
-                            </td>
-                            <td class="appmaker-time">{{item.start_time || '--'}}</td>
-                            <td class="appmaker-time">{{item.finish_time || '--'}}</td>
-                            <td class="appmaker-category">{{item.category_name}}</td>
-                            <td class="appmaker-creator">{{item.creator_name}}</td>
-                            <td class="appmaker-operator">{{item.executor_name || '--'}}</td>
-                            <td class="appmaker-status">
-                                <span :class="executeStatus[index] ? executeStatus[index].cls : ''"></span>
-                                <span v-if="executeStatus[index]">{{executeStatus[index].text}}</span>
-                            </td>
-                        </tr>
-                        <tr v-if="!appmakerList || !appmakerList.length" class="empty-tr">
-                            <td colspan="8">
-                                <div class="empty-data"><NoData /></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="panagation" v-if="totalPage > 1">
-                    <div class="page-info">
-                        <span> {{i18n.total}} {{totalCount}} {{i18n.item}}{{i18n.comma}} {{i18n.currentPageTip}} {{currentPage}} {{i18n.page}}</span>
+            <div class="app-search" v-show="isAdvancedSerachShow">
+                <fieldset class="task-fieldset">
+                    <div class="task-query-content">
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.startedTime}}</span>
+                            <bk-date-picker
+                                ref="bkRanger"
+                                v-model="timeRange"
+                                :placeholder="i18n.dateRange"
+                                :type="'daterange'">
+                            </bk-date-picker>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.task_type}}</span>
+                            <bk-select
+                                v-model="taskSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
+                                :searchable="true"
+                                :is-loading="taskBasicInfoLoading"
+                                :placeholder="i18n.taskTypePlaceholder"
+                                @clear="onClearCategory">
+                                <bk-option
+                                    v-for="(option, index) in taskCategory"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.creator}}</span>
+                            <bk-input
+                                v-model="creator"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.creatorPlaceholder">
+                            </bk-input>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.operator}}</span>
+                            <bk-input
+                                v-model="executor"
+                                class="bk-input-inline"
+                                :clearable="true"
+                                :placeholder="i18n.executorPlaceholder">
+                            </bk-input>
+                        </div>
+                        <div class="query-content">
+                            <span class="query-span">{{i18n.status}}</span>
+                            <bk-select
+                                v-model="statusSync"
+                                class="bk-select-inline"
+                                :popover-width="260"
+                                :searchable="true"
+                                :is-loading="taskBasicInfoLoading"
+                                :placeholder="i18n.statusPlaceholder"
+                                @clear="onClearStatus"
+                                @selected="onSelectedStatus">
+                                <bk-option
+                                    v-for="(option, index) in statusList"
+                                    :key="index"
+                                    :id="option.id"
+                                    :name="option.name">
+                                </bk-option>
+                            </bk-select>
+                        </div>
+                        <div class="query-button">
+                            <bk-button class="query-primary" theme="primary" @click="searchInputhandler">{{i18n.query}}</bk-button>
+                            <bk-button class="query-cancel" @click="onResetForm">{{i18n.reset}}</bk-button>
+                        </div>
                     </div>
-                    <bk-paging
-                        :cur-page.sync="currentPage"
-                        :total-page="totalPage"
-                        @page-change="onPageChange">
-                    </bk-paging>
-                </div>
+                </fieldset>
+            </div>
+            <div class="appmaker-table-content">
+                <bk-table
+                    :data="appmakerList"
+                    :pagination="pagination"
+                    v-bkloading="{ isLoading: listLoading, opacity: 1 }"
+                    @page-change="onPageChange">
+                    <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
+                    <bk-table-column :label="i18n.name">
+                        <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                :title="props.row.name"
+                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                {{props.row.name}}
+                            </a>
+                            <router-link
+                                v-else
+                                class="task-name"
+                                :title="props.row.name"
+                                :to="`/appmaker/${props.row.create_info}/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
+                                {{props.row.name}}
+                            </router-link>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.startedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.start_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.finishedTime" width="200">
+                        <template slot-scope="props">
+                            {{ props.row.finish_time || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.category" prop="category_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.creator" prop="creator_name" width="100"></bk-table-column>
+                    <bk-table-column :label="i18n.operator" width="100">
+                        <template slot-scope="props">
+                            {{ props.row.executor_name || '--' }}
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.status" width="100">
+                        <template slot-scope="props">
+                            <div class="appmaker-status">
+                                <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
+                                <span v-if="executeStatus[props.$index]">{{executeStatus[props.$index].text}}</span>
+                            </div>
+                        </template>
+                    </bk-table-column>
+                    <div class="empty-data" slot="empty"><NoData /></div>
+                </bk-table>
             </div>
         </div>
         <CopyrightFooter></CopyrightFooter>
@@ -76,19 +157,25 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions, mapMutations } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
+    import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
+    import moment from 'moment-timezone'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'appmakerTaskHome',
         components: {
             CopyrightFooter,
             BaseTitle,
+            AdvanceSearch,
             NoData
         },
+        mixins: [permission],
         props: ['project_id', 'app_id'],
         data () {
             return {
@@ -106,28 +193,60 @@
                     comma: gettext('，'),
                     currentPageTip: gettext('当前第'),
                     page: gettext('页'),
-                    taskRecord: gettext('任务记录')
+                    taskRecord: gettext('任务记录'),
+                    query: gettext('搜索'),
+                    reset: gettext('清空'),
+                    dateRange: gettext('选择日期时间范围'),
+                    task_type: gettext('任务分类'),
+                    creatorPlaceholder: gettext('请输入创建人'),
+                    executorPlaceholder: gettext('请输入执行人'),
+                    taskTypePlaceholder: gettext('请选择分类'),
+                    statusPlaceholder: gettext('请选择状态')
                 },
                 listLoading: true,
-                currentPage: 1,
-                totalPage: 1,
-                countPerPage: 15,
-                totalCount: 0,
                 isDeleteDialogShow: false,
+                taskBasicInfoLoading: true,
+                isAdvancedSerachShow: false,
                 theDeleteTemplateId: undefined,
                 pending: {
                     delete: false,
                     authority: false
                 },
                 searchStr: '',
+                taskSync: '',
+                creator: '',
+                executor: '',
+                statusSync: '',
+                isStarted: undefined,
+                isFinished: undefined,
                 appmakerList: [],
-                executeStatus: [] // 任务执行状态
+                executeStatus: [], // 任务执行状态
+                taskCategory: [],
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    limit: 15,
+                    'limit-list': [15],
+                    'show-limit': false
+                },
+                timeRange: [],
+                statusList: [
+                    { 'id': 'nonExecution', 'name': gettext('未执行') },
+                    { 'id': 'runing', 'name': gettext('未完成') },
+                    { 'id': 'finished', 'name': gettext('完成') }
+                ],
+                taskOperations: [],
+                taskResource: {}
             }
         },
         computed: {
+            ...mapState({
+                businessTimezone: state => state.businessTimezone
+            })
         },
         created () {
             this.getAppmakerList()
+            this.getBizBaseInfo()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -137,26 +256,39 @@
             ...mapActions('task/', [
                 'getInstanceStatus'
             ]),
+            ...mapActions('template/', [
+                'loadProjectBaseInfo'
+            ]),
+            ...mapMutations('template/', [
+                'setBusinessBaseInfo'
+            ]),
             async getAppmakerList () {
                 this.listLoading = true
                 try {
                     const data = {
-                        limit: this.countPerPage,
-                        offset: (this.currentPage - 1) * this.countPerPage,
+                        limit: this.pagination.limit,
+                        offset: (this.pagination.current - 1) * this.pagination.limit,
                         create_method: 'app_maker',
                         create_info: this.app_id,
-                        q: this.searchStr
+                        q: this.searchStr,
+                        category: this.taskSync || undefined,
+                        pipeline_instance__creator__contains: this.creator || undefined,
+                        pipeline_instance__executor__contains: this.executor || undefined,
+                        pipeline_instance__is_started: this.isStarted,
+                        pipeline_instance__is_finished: this.isFinished
                     }
+                    
+                    if (this.timeRange.length && this.timeRange.every(m => m !== '')) {
+                        data['pipeline_instance__start_time__gte'] = moment.tz(this.timeRange[0], this.businessTimezone).format('YYYY-MM-DD')
+                        data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                    }
+                    
                     const appmakerListData = await this.loadTaskList(data)
                     const list = appmakerListData.objects
                     this.appmakerList = list
-                    this.totalCount = appmakerListData.meta.total_count
-                    const totalPage = Math.ceil(this.totalCount / this.countPerPage)
-                    if (!totalPage) {
-                        this.totalPage = 1
-                    } else {
-                        this.totalPage = totalPage
-                    }
+                    this.taskOperations = appmakerListData.meta.auth_operations
+                    this.taskResource = appmakerListData.meta.auth_resource
+                    this.pagination.count = appmakerListData.meta.total_count
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
                         if (item.is_finished) {
@@ -220,13 +352,37 @@
                     errorHandler(e, this)
                 }
             },
+            async getBizBaseInfo () {
+                try {
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
+                    this.setBusinessBaseInfo(projectBasicInfo)
+                    this.taskBasicInfoLoading = false
+                } catch (e) {
+                    errorHandler(e, this)
+                }
+            },
             onPageChange (page) {
-                this.currentPage = page
+                this.pagination.current = page
                 this.getAppmakerList()
             },
+            onClearCategory () {
+                this.activeTaskCategory = ''
+            },
             searchInputhandler () {
-                this.currentPage = 1
+                this.pagination.current = 1
                 this.getAppmakerList()
+            },
+            onAdvanceShow () {
+                this.isAdvancedSerachShow = !this.isAdvancedSerachShow
+            },
+            onClearStatus () {
+                this.isStarted = undefined
+                this.isFinished = undefined
+            },
+            onSelectedStatus (id) {
+                this.isStarted = id !== 'nonExecution'
+                this.isFinished = id === 'finished'
             },
             statusMethod (is_started, is_finished) {
                 let status = ''
@@ -249,15 +405,32 @@
                     statusClass = { primary: true }
                 }
                 return statusClass
+            },
+            onResetForm () {
+                this.timeRange = []
+                this.taskSync = ''
+                this.creator = ''
+                this.executor = ''
+                this.statusSync = ''
+                this.isStarted = undefined
+                this.isFinished = undefined
+                this.getAppmakerList()
+            },
+            onTaskPermissonCheck (task, event) {
+                this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
+                event.preventDefault()
             }
-
         }
     }
 </script>
 <style lang='scss' scoped>
 @import '@/scss/config.scss';
+@import '@/scss/mixins/advancedSearch.scss';
+.bk-select-inline,.bk-input-inline {
+   display: inline-block;
+    width: 260px;
+}
 .appmaker-container {
-    padding-top: 20px;
     min-width: 1320px;
     min-height: calc(100% - 50px);
     background: #fafafa;
@@ -268,9 +441,8 @@
 }
 .operation-area {
     margin: 20px 0;
-    .appmaker-search {
-        float: right;
-        position: relative;
+    .advanced-search {
+        margin: 0;
     }
     .search-input {
         padding: 0 40px 0 10px;
@@ -299,118 +471,50 @@
         color: $commonBorderColor;
     }
 }
+.app-search {
+    @include advancedSearch;
+}
 .appmaker-table-content {
-    table {
-        width: 100%;
-        border: 1px solid #ebebeb;
-        border-collapse: collapse;
-        font-size: 12px;
-        background: $whiteDefault;
-        table-layout: fixed;
-        tr:not(.empty-tr):hover {
-            background: $whiteNodeBg;
-        }
-        th,td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid $commonBorderColor;
-        }
-        th {
-            background: #fafafa;
-        }
-        .appmaker-id {
-            padding-left: 20px;
-            width: 80px;
-        }
-        .appmaker-name {
-            text-align: left;
-            a {
-                display: block;
-                width: 100%;
-                color: #3c96ff;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                word-break: break-all;
-                overflow: hidden;
-            }
-        }
-        .appmaker-type {
-            width: 110px;
-        }
-        .appmaker-time {
-            width: 220px;
-        }
-        .appmaker-creator {
-            width: 110px;
-        }
-        .appmaker-operator {
-            width: 110px;
-        }
-        .appmaker-category {
-            width: 110px;
-        }
-        .appmaker-name {
-            width: 220px;
-        }
-        .appmaker-status {
-            width: 84px;
-            .common-icon-dark-circle-shape {
-                display: inline-block;
-                transform: scale(0.9);
-                font-size: 12px;
-                color: #979BA5;
-            }
-             .common-icon-dark-circle-ellipsis {
-                color: #3c96ff;
-                font-size: 12px;
-            }
-            .icon-check-circle-shape {
-                color: $greenDefault;
-            }
-            .common-icon-dark-circle-close {
-                color: $redDefault;
-            }
-            &.revoke {
-                color: $blueDisable;
-            }
-            .common-icon-loading {
-                display: inline-block;
-                animation: bk-button-loading 1.4s infinite linear;
-            }
-            @keyframes bk-button-loading {
-                from {
-                    -webkit-transform: rotate(0);
-                    transform: rotate(0); }
-                to {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-        }
+    background: #ffffff;
+    a.task-name {
+        color: $blueDefault;
     }
-    .btn-size-mini {
-        height: 24px;
-        line-height: 22px;
-        padding: 0 11px;
-        font-size: 12px;
+    .appmaker-status {
+        .common-icon-dark-circle-shape {
+            display: inline-block;
+            transform: scale(0.9);
+            font-size: 12px;
+            color: #979BA5;
+        }
+            .common-icon-dark-circle-ellipsis {
+            color: #3c96ff;
+            font-size: 12px;
+        }
+        .icon-check-circle-shape {
+            color: $greenDefault;
+        }
+        .common-icon-dark-circle-close {
+            color: $redDefault;
+        }
+        &.revoke {
+            color: $blueDisable;
+        }
+        .common-icon-loading {
+            display: inline-block;
+            animation: bk-button-loading 1.4s infinite linear;
+        }
+        @keyframes bk-button-loading {
+            from {
+                -webkit-transform: rotate(0);
+                transform: rotate(0); }
+            to {
+                -webkit-transform: rotate(360deg);
+                transform: rotate(360deg);
+            }
+        }
     }
     .empty-data {
         padding: 120px 0;
-    }
-}
-.panagation {
-    padding: 10px 20px;
-    text-align: right;
-    border: 1px solid #dde4eb;
-    border-top: none;
-    background: #fafbfd;
-    .page-info {
-        float: left;
-        line-height: 36px;
-        font-size: 14px;
-    }
-    .bk-page {
-        display: inline-block;
     }
 }
 .success {

@@ -16,6 +16,13 @@
         <TaskStep
             :list="stepList"
             :current-step="currentStep"
+            :task-status="'TaskExecute'"
+            :is-functional="isFunctional"
+            :common="common"
+            :project_id="project_id"
+            :instance-name="instanceName"
+            :template-source="templateSource"
+            :async-template-id="templateId"
             :all-finished="isAllStepsFinished">
         </TaskStep>
         <TaskFunctionalization
@@ -23,7 +30,10 @@
             :project_id="project_id"
             :instance_id="instance_id"
             :instance-name="instanceName"
-            :instance-flow="instanceFlow">
+            :instance-flow="instanceFlow"
+            :instance-actions="instanceActions"
+            :instance-operations="instanceOperations"
+            :instance-resource="instanceResource">
         </TaskFunctionalization>
         <TaskOperation
             v-if="!isFunctional && !loading"
@@ -31,6 +41,11 @@
             :instance_id="instance_id"
             :instance-name="instanceName"
             :instance-flow="instanceFlow"
+            :template_id="templateId"
+            :template-source="templateSource"
+            :instance-actions="instanceActions"
+            :instance-operations="instanceOperations"
+            :instance-resource="instanceResource"
             @taskStatusLoadChange="taskStatusLoadChange">
         </TaskOperation>
     </div>
@@ -63,19 +78,24 @@
             TaskOperation,
             TaskFunctionalization
         },
-        props: ['project_id', 'instance_id'],
+        props: ['project_id', 'instance_id', 'common'],
         data () {
             return {
                 taskDataLoading: true,
                 taskStatusLoading: true,
                 bkMessageInstance: null,
                 exception: {},
-                stepList: STEP_DICT,
+                stepList: STEP_DICT.slice(),
                 currentStep: 'taskexecute',
                 isFunctional: false,
                 isAllStepsFinished: false,
                 instanceName: '',
-                instanceFlow: ''
+                instanceFlow: '',
+                templateSource: '',
+                instanceActions: [],
+                instanceOperations: [],
+                instanceResource: {},
+                templateId: ''
             }
         },
         computed: {
@@ -111,6 +131,11 @@
                     }
                     this.instanceFlow = instanceData.pipeline_tree
                     this.instanceName = instanceData.name
+                    this.templateId = instanceData.template_id
+                    this.templateSource = instanceData.template_source
+                    this.instanceActions = instanceData.auth_actions
+                    this.instanceOperations = instanceData.auth_operations
+                    this.instanceResource = instanceData.auth_resource
                     if (instanceData.is_finished) {
                         this.isAllStepsFinished = true
                     }
@@ -128,9 +153,8 @@
 </script>
 <style lang="scss" scoped>
     .task-execute-container {
-        min-width: 1320px;
-        height: calc(100% - 62px);
-        background-color: #f4f7fa;
+        height: 100%;
+        background: #f4f7fa;
     }
     .task-function-container {
         background-color: #ffffff;

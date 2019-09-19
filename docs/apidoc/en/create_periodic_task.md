@@ -5,6 +5,7 @@ Create a periodic task
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -22,12 +23,13 @@ Create a periodic task
 |   cron    |   dict     |   YES   |  crontab dict |
 |   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
-#### constants.KEY
+#### constants KEY
 
 constant KEY, the format is like ${key}
 
-#### constants.VALUE
+#### constants VALUE
 
 constant value
 
@@ -51,8 +53,16 @@ constant value
     "template_id": "1",
     "bk_biz_id": "2",
 	"name": "from api 3",
-	"cron" : {"minute": "*/1", "hour": "15", "day_of_week":"*", "day_of_month":"*", "month_of_year":"*"},
-	"constants": {"${bk_timing}": "100"},
+	"cron" : {
+	    "minute": "*/1", 
+	    "hour": "15", 
+	    "day_of_week":"*", 
+	    "day_of_month":"*", 
+	    "month_of_year":"*"
+    },
+	"constants": {
+	    "${bk_timing}": "100"
+    },
 	"exclude_task_nodes_id": ["nodea5c396a3ef0f9f3cd7d4d7695f78"]
 }
 ```
@@ -290,11 +300,11 @@ constant value
 |  constants      |    dict    |  global variables, details are described below    |
 |  outputs      |    list    |    outputs info, indicate outputs field of global variables|
 
-#### data.form.KEY, data.pipeline_tree.constants.KEY
+#### data.form KEY, data.pipeline_tree.constants KEY
 
 KEY, the format is like ${key}
 
-#### data.form.VALUE, data.pipeline_tree.constants.VALUE
+#### data.form VALUE, data.pipeline_tree.constants VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|

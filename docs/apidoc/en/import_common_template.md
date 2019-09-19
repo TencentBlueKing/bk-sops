@@ -5,6 +5,7 @@ import common flow template
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -16,21 +17,19 @@ import common flow template
 
 | Field          |  Type       | Required   |  Description             |
 | ------------ | ------------ | ------ | ---------------- |
-|   data_file    |   file     |   YES   |  flow data file |
+|   template_data    |   string     |   YES   |  flow data, the content of file which download from bk-sops - common templates - export |
 |   override        | bool     | NO         | whether to override flows which has same ID           |           |
 
 ### Request Parameters Example
 
 ```
-import requests
-kwargs = {
-    "app_code": "app_code",
-    "app_secret": "app_secret",
-    "access_token": "access_token",
-    "data_file": data_file
+{
+    "bk_app_code": "esb_test",
+    "bk_app_secret": "xxx",
+    "bk_token": "xxx",
+    "template_data": "xxx",
+    "override": true
 }
-response = requests.post("http://{stageVariables.domain}/apigw/import_common_template/", kwargs)
-result = response.json()
 ```
 
 ### Return Result Example
@@ -38,7 +37,9 @@ result = response.json()
 ```
 {
     "message": "Successfully imported 2 common flows",
-    "data": 2,
+    "data": {
+        "count": 2
+    },
     "result": true
 }
 ```
@@ -49,4 +50,10 @@ result = response.json()
 | ------------  | ---------- | ------------------------------ |
 |  result   |    bool    |      true or false, indicate success or failure   |
 |  message  |    string  |      error message returned when result is false  |
-|  data         | int        | the number of flows had been imported                    |
+|  data         | dict        |    return data                |
+
+#### data
+
+| Field      | Type      | Description      |
+| ------------ | ---------- | ------------------------------ |
+|  count      |    int    |       the number of flows had been imported    |

@@ -22,6 +22,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
 
+from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
+
 from gcloud.conf import settings
 from gcloud.core.api_adapter import (
     create_maker_app,
@@ -39,6 +41,7 @@ from gcloud.core.utils import (
     timestamp_to_datetime
 )
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.permissions import task_template_resource
 
 logger = logging.getLogger("root")
 
@@ -72,7 +75,14 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             return False, _(u"保存失败，引用的流程模板不存在！")
 
         # create appmaker
+        from gcloud.contrib.appmaker.permissions import mini_app_resource
         if not app_id:
+            verify_or_raise_auth_failed(principal_type='user',
+                                        principal_id=app_params['username'],
+                                        resource=task_template_resource,
+                                        action_ids=[task_template_resource.actions.create_mini_app.id],
+                                        instance=task_template)
+
             fields = {
                 'project': proj,
                 'name': app_params['name'],
@@ -134,6 +144,12 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             except AppMaker.DoesNotExist:
                 return False, _(u"保存失败，当前操作的轻应用不存在或已删除！")
 
+            verify_or_raise_auth_failed(principal_type='user',
+                                        principal_id=app_params['username'],
+                                        resource=mini_app_resource,
+                                        action_ids=[mini_app_resource.actions.edit.id],
+                                        instance=app_maker_obj)
+
             app_code = app_maker_obj.code
             creator = app_maker_obj.creator
             link = app_maker_obj.link
@@ -165,11 +181,10 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             if not app_logo_result['result']:
                 logger.warning(u"AppMaker[id=%s] upload logo failed: %s" % (app_maker_obj.id,
                                                                             app_logo_result['message']))
+            # update app maker info
+            app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
 
-        # update app maker info
-        app_maker_obj.logo_url = get_app_logo_url(app_code=app_code)
         app_maker_obj.save()
-
         return True, app_maker_obj
 
     def del_app_maker(self, project_id, app_id, fake=False):

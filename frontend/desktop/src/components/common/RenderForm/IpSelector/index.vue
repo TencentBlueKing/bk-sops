@@ -126,6 +126,10 @@
                 type: Boolean,
                 default: true
             },
+            allowEmpty: {
+                type: Boolean,
+                default: true
+            },
             // 静态IP可选列表
             staticIpList: {
                 type: Array,
@@ -177,7 +181,6 @@
                 if (!key) {
                     return
                 }
-
                 if (Array.isArray(key) && Array.isArray(val)) {
                     key.forEach((k, i) => {
                         this.value[k] = val[i]
@@ -190,7 +193,10 @@
             },
             validate () {
                 const selector = this.isMultiple ? this.$refs.multipleIpSelector : this.$refs.singleIpSelector
-                const selectorValidate = selector.validate()
+                let selectorValidate = true
+                if (!this.allowEmpty) {
+                    selectorValidate = selector.validate()
+                }
                 const filterValidate = this.$refs.filterConditions.validate()
                 const excludeValidate = this.$refs.excludeConditions.validate()
             
@@ -204,6 +210,6 @@
     margin-bottom: 20px;
 }
 .condition-area {
-    border-top: 1px dashed #c4c6cc;
+    border-top: 1px dotted #c4c6cc;
 }
 </style>

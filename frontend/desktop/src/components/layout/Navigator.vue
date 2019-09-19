@@ -11,17 +11,22 @@
 */
 <template>
     <header>
-        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" @click.native="onGoToPath(homeRoute)">
+        <router-link v-if="userType === 'maintainer' && view_mode === 'app'" to="/" class="header-logo" @click.native="onGoToPath(homeRoute)">
             <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
         </router-link>
-        <img v-else :src="logo" class="logo" />
+        <span v-else class="header-logo">
+            <img :src="logo" class="logo" />
+            <span class="header-title">{{i18n.title}}</span>
+        </span>
         <nav>
             <div class="navigator" v-if="!appmakerDataLoading">
                 <template v-for="route in routeList">
                     <div
                         v-if="route.children && route.children.length"
                         :key="route.key"
-                        :class="['nav-item', { 'active': isNavActived(route) }]">
+                        :class="['nav-item', { 'active': isNavActived(route) }]"
+                        @click="jumpToFirstPath(route)">
                         <span>{{route.name}}</span>
                         <div class="sub-nav">
                             <router-link
@@ -30,7 +35,7 @@
                                 :key="subRoute.key"
                                 :class="['sub-nav-item', { 'selected': isSubNavActived(subRoute) }]"
                                 :to="getPath(subRoute)"
-                                @click.native="onGoToPath(subRoute)">
+                                @click.native.stop="onGoToPath(subRoute)">
                                 {{subRoute.name}}
                             </router-link>
                         </div>
@@ -59,9 +64,9 @@
             <div class="user-avatar">
                 <span
                     class="common-icon-dark-circle-avatar"
-                    v-bktooltips="{
+                    v-bk-tooltips="{
                         content: username,
-                        placement: 'bottom-left',
+                        placement: 'bottom-end',
                         theme: 'light',
                         zIndex: 1001
                     }">
@@ -74,6 +79,7 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
+    import { errorHandler } from '@/utils/errorHandler.js'
 
     const ROUTE_LIST = {
         // 职能化中心导航
@@ -100,7 +106,7 @@
                 children: [
                     {
                         key: 'template',
-                        name: gettext('业务流程'),
+                        name: gettext('项目流程'),
                         path: '/template/home/'
                     },
                     {
@@ -121,11 +127,6 @@
                 name: gettext('任务记录')
             },
             {
-                key: 'config',
-                path: '/config/home/',
-                name: gettext('业务配置')
-            },
-            {
                 key: 'appmaker',
                 path: '/appmaker/home/',
                 name: gettext('轻应用')
@@ -139,6 +140,12 @@
                 key: 'admin',
                 name: gettext('管理员入口'),
                 children: [
+                    {
+                        key: 'manage',
+                        parent: 'admin',
+                        name: gettext('后台管理'),
+                        path: '/admin/manage/source_manage/'
+                    },
                     {
                         key: 'statistics',
                         parent: 'admin',
@@ -165,13 +172,15 @@
         props: ['appmakerDataLoading'],
         data () {
             return {
-                logo: require('../../assets/images/logo/' + gettext('logo-zh') + '.svg'),
+                logo: require('../../assets/images/logo/logo_icon.svg'),
                 i18n: {
-                    help: gettext('帮助文档')
+                    help: gettext('帮助文档'),
+                    title: gettext('标准运维')
                 },
+                hasAdminPerm: false, // 是否拥有管理员入口查看权限
                 homeRoute: {
                     key: 'home',
-                    path: '/project/home/'
+                    path: '/home/'
                 }
             }
         },
@@ -182,13 +191,15 @@
                 userType: state => state.userType,
                 app_id: state => state.app_id,
                 view_mode: state => state.view_mode,
-                templateId: state => state.templateId,
                 notFoundPage: state => state.notFoundPage,
                 isSuperUser: state => state.isSuperUser
             }),
             ...mapState('project', {
                 projectList: state => state.projectList,
                 project_id: state => state.project_id
+            }),
+            ...mapState('appmaker', {
+                appmakerTemplateId: state => state.appmakerTemplateId
             }),
             showHeaderRight () {
                 return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
@@ -199,7 +210,7 @@
                         {
                             key: 'appmakerTaskCreate',
                             path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode`,
-                            query: { template_id: this.template_id },
+                            query: { template_id: this.appmakerTemplateId },
                             name: gettext('新建任务')
                         },
                         {
@@ -212,7 +223,7 @@
                     let routes = ROUTE_LIST[`${this.userType}_router_list`]
 
                     // 非管理员用户去掉管理员入口
-                    if (!this.isSuperUser) {
+                    if (!this.hasAdminPerm) {
                         routes = routes.filter(item => item.key !== 'admin')
                     }
                     return routes
@@ -236,20 +247,44 @@
             this.initHome()
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('project', [
                 'loadProjectList'
             ]),
             ...mapMutations([
                 'setBizId'
             ]),
-            initHome () {
+            ...mapMutations('project', [
+                'setProjectPerm'
+            ]),
+            async initHome () {
                 if (this.userType === 'maintainer' && this.view_mode !== 'appmaker') {
-                    this.loadProjectList({ limit: 0 })
+                    this.getAdminPerm()
+                    const res = await this.loadProjectList({ limit: 0 })
+                    this.setProjectPerm(res.meta)
+                }
+            },
+            async getAdminPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'admin_operate',
+                        action_ids: JSON.stringify(['view'])
+                    })
+    
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'view' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.hasAdminPerm = true
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
                 }
             },
             isNavActived (route) {
                 const key = route.key
-
                 // 轻应用打开
                 if (this.view_mode === 'appmaker') {
                     if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {
@@ -265,11 +300,15 @@
                 } else if (this.userType === 'auditor') {
                     return key === 'audit'
                 }
-
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
             isSubNavActived (route) {
-                return new RegExp('^' + route.path).test(this.$route.path)
+                let index = route.path.indexOf('/')
+                for (let i = 0; i < 2; i++) {
+                    index = route.path.indexOf('/', index + 1)
+                }
+                const newPath = route.path.substring(0, index + 1)
+                return new RegExp('^' + newPath).test(this.$route.path)
             },
             getPath (route) {
                 /** 404 页面时，导航统一跳转到首页 */
@@ -283,8 +322,13 @@
 
                 let path
                 if (route.key === 'appmakerTaskCreate') {
-                    path = `${route.path}?template_id=${this.templateId}`
-                } else if (this.userType !== 'maintainer' || route.key === 'project' || route.parent === 'admin') {
+                    path = `${route.path}?template_id=${this.appmakerTemplateId}`
+                } else if (
+                    this.userType !== 'maintainer'
+                    || route.key === 'project'
+                    || route.parent === 'admin'
+                    || (isNaN(this.project_id) || this.project_id === '')
+                ) {
                     path = `${route.path}`
                 } else {
                     path = { path: `${route.path}${this.project_id}/`, query: route.query }
@@ -303,6 +347,14 @@
             },
             refreshCurrentPage () {
                 this.reload()
+            },
+            /**
+             * 默认跳转到第一个子级
+             * @param {Object} route -路由对象
+             */
+            jumpToFirstPath (route) {
+                const firstPath = this.getPath(route.children[0])
+                this.$router.push(firstPath)
             }
         }
     }
@@ -315,10 +367,23 @@ header {
     height: 50px;
     font-size: 14px;
     background: #182131;
-    .logo {
+    .header-logo{
         float: left;
-        margin-top: 11px;
-        width: 110px;
+        height: 100%;
+        line-height: 50px;
+        .logo,.header-title{
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .logo {
+            width: 28px;
+            height: 28px;
+        }
+        .header-title{
+            margin-left: 6px;
+            font-size: 18px;
+            color: #979ba5;
+        }
     }
     nav {
         float: left;
@@ -331,7 +396,7 @@ header {
         min-width: 90px;
         height: 50px;
         line-height: 50px;
-        color: #979BA5;
+        color: #979ba5;;
         text-align: center;
         border-radius: 2px;
         cursor: pointer;
@@ -404,6 +469,9 @@ header {
                 display: inline-block;
                 margin-top: 17px;
             }
+        }
+        /deep/ .bk-select.is-disabled {
+            background: none;
         }
     }
 }

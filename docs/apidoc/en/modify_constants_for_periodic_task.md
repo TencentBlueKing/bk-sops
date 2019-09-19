@@ -5,6 +5,7 @@ modify global parameters for periodic task
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -19,12 +20,13 @@ modify global parameters for periodic task
 |   task_id    |   string     |   YES   |  task ID |
 |   bk_biz_id    |   string     |   YES   |  business ID |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
-#### constants.KEY
+#### constants KEY
 
 constant KEY, the format is like ${key}
 
-#### constants.VALUE
+#### constants VALUE
 
 constant value
 
@@ -37,7 +39,9 @@ constant value
     "bk_token": "xxx",
     "bk_biz_id": "2",
     "task_id": "8",
-    "constants": {"${bk_timing}": "100"},
+    "constants": {
+        "${bk_timing}": "100"
+    }
 }
 ```
 
@@ -76,11 +80,11 @@ constant value
 |  data     |    dict    |      data returned when result is true, details are described below  |
 |  message  |    string  |      error message returned when result is false                     |
 
-#### data.KEY
+#### data KEY
 
 KEY, the format is like ${key}
 
-#### data.VALUE
+#### data VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|

@@ -20,7 +20,10 @@ from tastypie import fields
 from tastypie.authorization import Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.exceptions import BadRequest, InvalidFilterError
-from tastypie.resources import ModelResource
+
+from auth_backend.plugins.delegation import RelateAuthDelegation
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
 
 from pipeline.models import TemplateScheme
 from pipeline.exceptions import PipelineException
@@ -31,12 +34,12 @@ from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.commons.template.resources import PipelineTemplateResource
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.webservice3.resources import (
-    pipeline_node_name_handle,
-    AppSerializer,
     GCloudModelResource,
     ProjectResource,
-    TemplateFilterPaginator
 )
+from gcloud.webservice3.paginator import TemplateFilterPaginator
+from gcloud.core.utils import pipeline_node_name_handle
+from gcloud.tasktmpl3.permissions import task_template_resource, project_resource
 
 logger = logging.getLogger('root')
 
@@ -101,13 +104,17 @@ class TaskTemplateResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = TaskTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'template'
-        always_return_data = True
-        authorization = Authorization()
-        serializer = AppSerializer()
-
+        create_delegation = RelateAuthDelegation(delegate_resource=project_resource,
+                                                 action_ids=['create_template'],
+                                                 delegate_instance_f='project')
+        auth_resource = task_template_resource
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit',
+                                                 create_delegation=create_delegation)
         filtering = {
             "id": ALL,
             "project": ALL_WITH_RELATIONS,
@@ -118,7 +125,6 @@ class TaskTemplateResource(GCloudModelResource):
             "has_subprocess": ALL
         }
         q_fields = ["id", "pipeline_template__name"]
-        limit = 0
         paginator_class = TemplateFilterPaginator
 
     @staticmethod
@@ -131,6 +137,7 @@ class TaskTemplateResource(GCloudModelResource):
         return json.dumps(bundle.data['pipeline_tree'])
 
     def alter_list_data_to_serialize(self, request, data):
+        data = super(TaskTemplateResource, self).alter_list_data_to_serialize(request, data)
         user_model = get_user_model()
         user = request.user
         collected_templates = user_model.objects.get(username=user.username) \
@@ -221,29 +228,25 @@ class TaskTemplateResource(GCloudModelResource):
         return filters
 
 
-class TemplateSchemeResource(ModelResource):
+class TemplateSchemeResource(GCloudModelResource):
     data = fields.CharField(
         attribute='data',
         use_in='detail',
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = TemplateScheme.objects.all()
-        resource_name = 'schemes'
+        resource_name = 'scheme'
         authorization = Authorization()
-        always_return_data = True
-        serializer = AppSerializer()
-
         filtering = {
             'template': ALL,
         }
-        limit = 0
 
     def build_filters(self, filters=None, **kwargs):
         orm_filters = super(TemplateSchemeResource, self).build_filters(filters, **kwargs)
-        if 'project_id' in filters and 'template_id' in filters:
+        if 'project__id' in filters and 'template_id' in filters:
             template_id = filters.pop('template_id')[0]
-            project_id = filters.pop('project_id')[0]
+            project_id = filters.pop('project__id')[0]
             try:
                 template = TaskTemplate.objects.get(pk=template_id, project_id=project_id)
             except TaskTemplate.DoesNotExist:
@@ -252,13 +255,16 @@ class TemplateSchemeResource(ModelResource):
                 logger.error(message)
                 raise InvalidFilterError(message)
             orm_filters.update({'template__template_id': template.pipeline_template.template_id})
+        elif 'pk' not in filters:
+            # 不允许请求全部执行方案
+            orm_filters.update({'unique_id': ''})
         return orm_filters
 
     def obj_create(self, bundle, **kwargs):
         try:
             template_id = bundle.data.pop('template_id')
-            project_id = bundle.data.pop('project_id')
-            _ = json.loads(bundle.data['data'])
+            project_id = bundle.data.pop('project__id')
+            json.loads(bundle.data['data'])
         except Exception as e:
             message = 'create scheme params error: %s' % e
             logger.error(message)
@@ -270,9 +276,34 @@ class TemplateSchemeResource(ModelResource):
                 template_id=template_id, project_id=project_id)
             logger.error(message)
             raise BadRequest(message)
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=task_template_resource,
+                                           action_ids=[task_template_resource.actions.edit.id],
+                                           instance=template)
+
         bundle.data['name'] = name_handler(bundle.data['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
         kwargs['unique_id'] = '%s-%s' % (template_id, bundle.data['name'])
         if TemplateScheme.objects.filter(unique_id=kwargs['unique_id']).exists():
             raise BadRequest('template scheme name has existed, please change the name')
         kwargs['template'] = template.pipeline_template
         return super(TemplateSchemeResource, self).obj_create(bundle, **kwargs)
+
+    def obj_delete(self, bundle, **kwargs):
+        try:
+            obj = TemplateScheme.objects.get(id=kwargs['pk'])
+        except TemplateScheme.DoesNotExist:
+            raise BadRequest('scheme does not exist')
+
+        try:
+            template = TaskTemplate.objects.get(pipeline_template=obj.template)
+        except TaskTemplate.DoesNotExist:
+            raise BadRequest('flow template the deleted scheme belongs to does not exist')
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=task_template_resource,
+                                           action_ids=[task_template_resource.actions.edit.id],
+                                           instance=template)
+        return super(TemplateSchemeResource, self).obj_delete(bundle, **kwargs)

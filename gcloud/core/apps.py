@@ -11,11 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import os
 import logging
 import traceback
 
 from django.apps import AppConfig
 from django.conf import settings
+
+from auth_backend.plugins.bkiam.shortcuts import upsert_perm_templates
 
 logger = logging.getLogger('root')
 
@@ -26,6 +29,7 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         from gcloud.core.signals.handlers import business_post_save_handler  # noqa
+        from gcloud.core.permissions import project_resource, admin_operate_resource  # noqa
         if not hasattr(settings, 'REDIS'):
             try:
                 from gcloud.core.models import EnvironmentVariables
@@ -38,4 +42,15 @@ class CoreConfig(AppConfig):
                     'db': EnvironmentVariables.objects.get_var('BKAPP_REDIS_DB'),
                 }
             except Exception:
-                logger.error(traceback.format_exc())
+                logger.warning(traceback.format_exc())
+                # first migrate, database may not have been migrated, so try get BKAPP_REDIS from env
+                if 'BKAPP_REDIS_HOST' in os.environ:
+                    settings.REDIS = {
+                        'host': os.getenv('BKAPP_REDIS_HOST'),
+                        'port': os.getenv('BKAPP_REDIS_PORT'),
+                        'password': os.getenv('BKAPP_REDIS_PASSWORD'),
+                        'service_name': os.getenv('BKAPP_REDIS_SERVICE_NAME'),
+                        'mode': os.getenv('BKAPP_REDIS_MODE'),
+                        'db': os.getenv('BKAPP_REDIS_DB'),
+                    }
+        upsert_perm_templates()

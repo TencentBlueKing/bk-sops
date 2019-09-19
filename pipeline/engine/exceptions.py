@@ -40,3 +40,7 @@ class DataRetrieveError(PipelineEngineException):
 
 class InvalidDataBackendError(PipelineEngineException):
     pass
+
+
+class InvalidPipelineEndHandleError(PipelineEngineException):
+    pass

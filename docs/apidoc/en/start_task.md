@@ -5,6 +5,7 @@ Start a task
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -18,6 +19,7 @@ Start a task
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string     |   YES   |  the business ID |
 |   task_id     |   string     |   YES   |  the task ID     |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 

@@ -10,29 +10,30 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="edit-dialog-wrapper">
-        <bk-dialog
-            :quick-close="false"
-            :ext-cls="'common-dialog'"
-            :title="i18n.edit"
-            width="600"
-            :is-show.sync="isShow"
-            @confirm="onConfirm"
-            @cancel="onCancel">
-            <div slot="content" class="variable-params-content">
-                <RenderForm
-                    ref="renderForm"
-                    :scheme="renderConfig"
-                    :form-option="renderOption"
-                    v-model="formData"
-                    @change="onDataChange">
-                </RenderForm>
-                <div class="error-tips" v-if="formError">
-                    <span class="common-error-tip error-info">{{i18n.checkData}}</span>
-                </div>
+    <bk-dialog
+        width="600"
+        ext-cls="common-dialog"
+        :theme="'primary'"
+        :mask-close="false"
+        :auto-close="false"
+        :header-position="'left'"
+        :title="i18n.edit"
+        :value="isShow"
+        @confirm="onConfirm"
+        @cancel="onCancel">
+        <div class="variable-params-content">
+            <RenderForm
+                ref="renderForm"
+                :scheme="renderConfig"
+                :form-option="renderOption"
+                v-model="formData"
+                @change="onDataChange">
+            </RenderForm>
+            <div class="error-tips" v-if="formError">
+                <span class="common-error-tip error-info">{{i18n.checkData}}</span>
             </div>
-        </bk-dialog>
-    </div>
+        </div>
+    </bk-dialog>
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -52,6 +53,11 @@
                     edit: gettext('编辑变量'),
                     checkData: gettext('变量的参数值不合法')
                 }
+            }
+        },
+        watch: {
+            renderData (val) {
+                this.formData = tools.deepClone(val)
             }
         },
         methods: {
@@ -76,8 +82,10 @@
     }
 </script>
 <style lang="scss" scoped>
-.edit-dialog-wrapper {
-    position: relative;
+.variable-params-content {
+    padding: 30px;
+    max-height: 400px;
+    overflow-y: auto;
     /deep/ .tag-form {
         margin-left: 0;
     }
@@ -91,5 +99,8 @@
         right: 230px;
         font-size: 12px;
     }
+}
+/deep/ .common-dialog .bk-dialog-body{
+    padding: 20px;
 }
 </style>

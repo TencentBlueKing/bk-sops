@@ -19,13 +19,17 @@ import traceback
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
+from auth_backend.plugins.shortcuts import (
+    batch_verify_or_raise_auth_failed,
+    verify_or_return_insufficient_perms
+)
 
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.commons.template.utils import read_template_data_file
-from gcloud.core.decorators import check_is_superuser
+from gcloud.commons.template.permissions import common_template_resource
 from gcloud.core.utils import time_now_str
 
 logger = logging.getLogger('root')
@@ -48,7 +52,6 @@ def form(request):
 
 
 @require_GET
-@check_is_superuser()
 def export_templates(request):
     try:
         template_id_list = json.loads(request.GET.get('template_id_list'))
@@ -57,6 +60,12 @@ def export_templates(request):
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+
+    templates = CommonTemplate.objects.filter(id__in=template_id_list, is_deleted=False)
+    perms_tuples = [(common_template_resource, [common_template_resource.actions.view.id], t) for t in templates]
+    batch_verify_or_raise_auth_failed(principal_type='user',
+                                      principal_id=request.user.username,
+                                      perms_tuples=perms_tuples)
 
     # wash
     try:
@@ -90,7 +99,6 @@ def export_templates(request):
 
 
 @require_POST
-@check_is_superuser()
 def import_templates(request):
     f = request.FILES.get('data_file', None)
     form_data = TemplateImportForm(request.POST)
@@ -107,6 +115,25 @@ def import_templates(request):
 
     templates_data = r['data']['template_data']
 
+    # check again and authenticate
+    check_info = CommonTemplate.objects.import_operation_check(templates_data)
+    perms_tuples = []
+    if override:
+        if check_info['new_template']:
+            perms_tuples.append((common_template_resource, [common_template_resource.actions.create.id], None))
+
+        if check_info['override_template']:
+            templates_id = [template_info['id'] for template_info in check_info['override_template']]
+            templates = CommonTemplate.objects.filter(id__in=templates_id, is_deleted=False)
+            for template in templates:
+                perms_tuples.append((common_template_resource, [common_template_resource.actions.edit.id], template))
+    else:
+        perms_tuples.append((common_template_resource, [common_template_resource.actions.create.id], None))
+
+    batch_verify_or_raise_auth_failed(principal_type='user',
+                                      principal_id=request.user.username,
+                                      perms_tuples=perms_tuples)
+
     try:
         result = CommonTemplate.objects.import_templates(templates_data, override)
     except Exception as e:
@@ -120,7 +147,6 @@ def import_templates(request):
 
 
 @require_POST
-@check_is_superuser()
 def check_before_import(request):
     f = request.FILES.get('data_file', None)
     r = read_template_data_file(f)
@@ -128,7 +154,19 @@ def check_before_import(request):
         return JsonResponse(r)
 
     check_info = CommonTemplate.objects.import_operation_check(r['data']['template_data'])
+
+    perms_tuples = [(common_template_resource, [common_template_resource.actions.create.id], None)]
+    if check_info['override_template']:
+        templates_id = [template_info['id'] for template_info in check_info['override_template']]
+        templates = CommonTemplate.objects.filter(id__in=templates_id, is_deleted=False)
+        for template in templates:
+            perms_tuples.append((common_template_resource, [common_template_resource.actions.edit.id], template))
+    permissions = verify_or_return_insufficient_perms(principal_type='user',
+                                                      principal_id=request.user.username,
+                                                      perms_tuples=perms_tuples)
+
     return JsonResponse({
         'result': True,
-        'data': check_info
+        'data': check_info,
+        'permission': permissions
     })

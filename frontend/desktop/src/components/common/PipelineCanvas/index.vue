@@ -24,6 +24,9 @@
             :is-template-data-changed="isTemplateDataChanged"
             :template-saving="templateSaving"
             :create-task-saving="createTaskSaving"
+            :tpl-resource="tplResource"
+            :tpl-actions="tplActions"
+            :tpl-operations="tplOperations"
             @onChangeName="onChangeName"
             @onSaveTemplate="onSaveTemplate">
         </ConfigBar>
@@ -41,46 +44,75 @@
         <div :class="['tool-wrapper',{ 'tool-wrapper-telescopic ': showNodeList }]">
             <transition name="wrapperLeft">
                 <div class="tool-position">
-                    <bk-tooltip :content="i18n.zoomIn" :delay="1000">
-                        <div class="tool-icon" @click="onZoomIn">
-                            <i class="common-icon-zoom-in"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.zoomOut" :delay="1000">
-                        <div class="tool-icon" @click="onZoomOut">
-                            <i class="common-icon-zoom-out"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.resetZoom" :delay="1000">
-                        <div class="tool-icon" @click="onResetPosition">
-                            <i class="common-icon-reduction"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.nodeSelection" :delay="1000" v-if="isEdit">
-                        <div
-                            :class="['tool-icon', { 'actived': isSelectionOpen }]"
-                            @click="onOpenDragSelection">
-                            <i class="common-icon-marquee"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="i18n.formatPosition" :delay="1000" v-if="isEdit">
-                        <div
-                            class="tool-icon"
-                            @click="onFormatPosition">
-                            <i class="common-icon-four-square"></i>
-                        </div>
-                    </bk-tooltip>
-                    <bk-tooltip :content="selectNodeName" :delay="1000" v-if="isSelectNode">
-                        <div
-                            class="tool-icon"
-                            @click="onSelectNode">
-                            <i :class="[{
-                                'common-icon-black-box': !isSelectAll,
-                                'common-icon-black-hook': isSelectAll,
-                                'tool-disable': isPreviewMode
-                            }]"></i>
-                        </div>
-                    </bk-tooltip>
+                    <div
+                        class="tool-icon"
+                        v-bk-tooltips="{
+                            content: i18n.zoomIn,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onZoomIn">
+                        <i class="common-icon-zoom-in"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-bk-tooltips="{
+                            content: i18n.zoomOut,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onZoomOut">
+                        <i class="common-icon-zoom-out"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-bk-tooltips="{
+                            content: i18n.resetZoom,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onResetPosition">
+                        <i class="common-icon-reduction"></i>
+                    </div>
+                    <div
+                        :class="['tool-icon', {
+                            'actived': isSelectionOpen
+                        }]"
+                        v-if="isEdit"
+                        v-bk-tooltips="{
+                            content: i18n.nodeSelection,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onOpenDragSelection">
+                        <i class="common-icon-marquee"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-if="isEdit"
+                        v-bk-tooltips="{
+                            content: i18n.formatPosition,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onFormatPosition">
+                        <i class="common-icon-four-square"></i>
+                    </div>
+                    <div
+                        class="tool-icon"
+                        v-if="isSelectNode"
+                        v-bk-tooltips="{
+                            content: selectNodeName,
+                            delay: 1000,
+                            placements: ['bottom']
+                        }"
+                        @click="onToggleAllNode">
+                        <i :class="[{
+                            'common-icon-black-box': !isSelectAll,
+                            'common-icon-black-hook': isSelectAll,
+                            'tool-disable': isPreviewMode
+                        }]"></i>
+                    </div>
                 </div>
             </transition>
         </div>
@@ -104,7 +136,7 @@
     import formatPositionUtils from '@/utils/formatPosition.js'
 
     const ENDPOINT_DIRECTION = ['Top', 'Left', 'Right', 'Bottom']
-    
+
     export default {
         name: 'PipelineCanvas',
         components: {
@@ -169,7 +201,7 @@
                 required: false
             },
             template_id: {
-                type: String,
+                type: [String, Number],
                 required: false
             },
             type: {
@@ -197,6 +229,24 @@
             isSelectAllNode: {
                 type: Boolean,
                 default: false
+            },
+            tplOperations: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplActions: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplResource: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -512,6 +562,9 @@
                 this.$emit('onLabelBlur', labelData)
             },
             onUpdateNodeInfo (id, data) {
+                if (id === '') {
+                    return false
+                }
                 this.dataFlowInstance.updateLocationById(id, data)
             },
             onUpdateCanvas (data) {
@@ -607,12 +660,12 @@
 
                 return { locations, lines }
             },
-            onSelectNode () {
+            onToggleAllNode () {
                 if (this.isPreviewMode) {
                     return
                 }
                 this.isSelectAll = !this.isSelectAll
-                this.$emit('onSelectNode', this.isSelectAll)
+                this.$emit('onToggleAllNode', this.isSelectAll)
             }
         }
     }
@@ -674,7 +727,10 @@
         position: absolute;
         top: 86px;
         left: 50%;
+        padding: 2px 9px;
+        border-radius: 1px;
         transform: translateX(-50%);
+        background: rgba(225, 228, 232, 0.95);
         z-index: 4;
         .atom-number {
             color: #a9b2bd;

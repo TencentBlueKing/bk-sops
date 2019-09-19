@@ -13,11 +13,16 @@ specific language governing permissions and limitations under the License.
 
 from gcloud.conf import settings
 
-get_client_by_request = settings.ESB_GET_CLIENT_BY_REQUEST
+get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-def get_user_info(request):
-    client = get_client_by_request(request)
+def get_user_info(username):
+    """
+    @summary: 获取用户信息，通过APIGW请求也会调用该函数，请确保开通了ESB白名单并通过get_client_by_user获取client
+    @param username:
+    @return:
+    """
+    client = get_client_by_user(username)
     auth = getattr(client, settings.ESB_AUTH_COMPONENT_SYSTEM)
     _get_user_info = getattr(auth, settings.ESB_AUTH_GET_USER_INFO)
     user_info = _get_user_info({})

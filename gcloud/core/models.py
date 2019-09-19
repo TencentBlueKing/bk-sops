@@ -13,9 +13,11 @@ specific language governing permissions and limitations under the License.
 
 from os import environ
 
+from auth_backend.resources.base import resource_type_lib
+
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import Group
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 
@@ -65,7 +67,7 @@ class Business(models.Model):
         return u"%s_%s" % (self.cc_id, self.cc_name)
 
     def available(self):
-        return self.status != 'disabled' and self.life_cycle not in [Business.LIFE_CYCLE_CLOSE_DOWN, _(u"停运")]
+        return self.status != 'disabled'
 
 
 class UserBusiness(models.Model):
@@ -125,23 +127,45 @@ class EnvironmentVariables(models.Model):
 class ProjectManager(models.Manager):
 
     def sync_project_from_cmdb_business(self, businesses):
-        if not businesses:
-            return []
+        with transaction.atomic():
+            if not businesses:
+                return
 
-        exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('bk_biz_id', flat=True))
-        to_be_sync_cc_id = set(businesses.keys()) - exist_sync_cc_id
-        projects = []
+            exist_sync_cc_id = set(self.filter(from_cmdb=True).values_list('bk_biz_id', flat=True))
+            to_be_sync_cc_id = set(businesses.keys()) - exist_sync_cc_id
+            projects = []
 
-        for cc_id in to_be_sync_cc_id:
-            biz = businesses[cc_id]
-            projects.append(Project(name=biz['cc_name'],
-                                    time_zone=biz['time_zone'],
-                                    creator=biz['creator'],
-                                    desc='',
-                                    from_cmdb=True,
-                                    bk_biz_id=cc_id))
+            # update exist business project
+            exist_projects = self.all()
+            for exist_project in exist_projects:
+                business = businesses.get(exist_project.bk_biz_id)
+                if not business:
+                    continue
 
-        return self.bulk_create(projects, batch_size=5000)
+                if exist_project.name != business['cc_name']:
+                    exist_project.name = business['cc_name']
+                    exist_project.save()
+
+            for cc_id in to_be_sync_cc_id:
+                biz = businesses[cc_id]
+                projects.append(Project(name=biz['cc_name'],
+                                        time_zone=biz['time_zone'],
+                                        creator=biz['creator'],
+                                        desc='',
+                                        from_cmdb=True,
+                                        bk_biz_id=cc_id))
+
+            self.bulk_create(projects, batch_size=5000)
+
+            projects = Project.objects.filter(from_cmdb=True, bk_biz_id__in=to_be_sync_cc_id)
+
+            if projects:
+                project_resource = resource_type_lib['project']
+                project_resource.batch_register_instance(list(projects))
+
+    def update_business_project_status(self, archived_cc_ids, active_cc_ids):
+        self.filter(bk_biz_id__in=archived_cc_ids, from_cmdb=True).update(is_disable=True)
+        self.filter(bk_biz_id__in=active_cc_ids, from_cmdb=True).update(is_disable=False)
 
 
 class Project(models.Model):

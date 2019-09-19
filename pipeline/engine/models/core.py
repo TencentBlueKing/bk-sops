@@ -21,7 +21,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from celery.task.control import revoke
 
-from django_signal_valve import valve
+from pipeline.django_signal_valve import valve
 
 from pipeline.engine import exceptions
 from pipeline.core.data.base import DataObject
@@ -52,6 +52,7 @@ class ProcessSnapshotManager(models.Manager):
 
 
 class ProcessSnapshot(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     data = IOField(verbose_name=_(u"pipeline 运行时数据"))
 
     objects = ProcessSnapshotManager()
@@ -190,6 +191,10 @@ class PipelineProcess(models.Model):
     @property
     def subprocess_stack(self):
         return self.snapshot.subprocess_stack if self.snapshot else None
+
+    @property
+    def in_subprocess(self):
+        return len(self.snapshot.pipeline_stack) > 1
 
     def push_pipeline(self, pipeline, is_subprocess=False):
         """
@@ -521,7 +526,7 @@ class PipelineModelManager(models.Manager):
 
 
 class PipelineModel(models.Model):
-    id = models.CharField(u'pipeline ID', unique=True, primary_key=True, max_length=32)
+    id = models.CharField('pipeline ID', unique=True, primary_key=True, max_length=32)
     process = models.ForeignKey(PipelineProcess, null=True, on_delete=models.SET_NULL)
 
     objects = PipelineModelManager()
@@ -542,6 +547,7 @@ class RelationshipManager(models.Manager):
 
 
 class NodeRelationship(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     ancestor_id = models.CharField(_(u"祖先 ID"), max_length=32, db_index=True)
     descendant_id = models.CharField(_(u"后代 ID"), max_length=32, db_index=True)
     distance = models.IntegerField(_(u"距离"))
@@ -814,7 +820,7 @@ class Status(models.Model):
     loop = models.IntegerField(_(u"循环次数"), default=1)
     skip = models.BooleanField(_(u"是否跳过"), default=False)
     error_ignorable = models.BooleanField(_(u"是否出错后自动忽略"), default=False)
-    created_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
+    created_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True, db_index=True)
     started_time = models.DateTimeField(_(u"开始时间"), null=True)
     archived_time = models.DateTimeField(_(u"归档时间"), null=True)
     version = models.CharField(_(u"版本"), max_length=32)
@@ -863,6 +869,7 @@ class Data(models.Model):
 
 
 class HistoryData(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     inputs = IOField(verbose_name=_(u"输入数据"))
     outputs = IOField(verbose_name=_(u"输出数据"))
     ex_data = IOField(verbose_name=_(u"异常数据"))
@@ -890,8 +897,9 @@ class HistoryManager(models.Manager):
                            skip=status.skip)
 
     def get_histories(self, identifier):
-        histories = self.model.objects.filter(identifier=identifier).order_by('started_time')
+        histories = self.filter(identifier=identifier).order_by('started_time')
         data = [{
+            'history_id': item.id,
             'started_time': item.started_time,
             'archived_time': item.archived_time,
             'elapsed_time': calculate_elapsed_time(item.started_time, item.archived_time),
@@ -905,6 +913,7 @@ class HistoryManager(models.Manager):
 
 
 class History(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     identifier = models.CharField(_(u"节点 id"), max_length=32, db_index=True)
     started_time = models.DateTimeField(_(u"开始时间"))
     archived_time = models.DateTimeField(_(u"结束时间"))
@@ -1015,6 +1024,7 @@ class SubProcessRelationshipManager(models.Manager):
 
 
 class SubProcessRelationship(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     subprocess_id = models.CharField(_(u"子流程 ID"), max_length=32, db_index=True)
     process_id = models.CharField(_(u"对应的进程 ID"), max_length=32)
 
@@ -1048,6 +1058,7 @@ class ProcessCeleryTaskManager(models.Manager):
 
 
 class ProcessCeleryTask(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     process_id = models.CharField(_(u"pipeline 进程 ID"), max_length=32, unique=True, db_index=True)
     celery_task_id = models.CharField(_(u"celery 任务 ID"), max_length=40, default='')
 
@@ -1075,6 +1086,7 @@ class ScheduleCeleryTaskManager(models.Manager):
 
 
 class ScheduleCeleryTask(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     schedule_id = models.CharField(_(u"schedule ID"), max_length=NAME_MAX_LENGTH, unique=True, db_index=True)
     celery_task_id = models.CharField(_(u"celery 任务 ID"), max_length=40, default='')
 
@@ -1107,6 +1119,7 @@ class NodeCeleryTaskManager(models.Manager):
 
 
 class NodeCeleryTask(models.Model):
+    id = models.BigAutoField(_(u"ID"), primary_key=True)
     node_id = models.CharField(_(u"节点 ID"), max_length=32, unique=True, db_index=True)
     celery_task_id = models.CharField(_(u"celery 任务 ID"), max_length=40, default='')
 

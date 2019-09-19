@@ -45,6 +45,12 @@ const COMMON_ATTRS = {
         type: Boolean,
         default: true
     },
+    validateSet: {
+        type: Array,
+        default () {
+            return []
+        }
+    },
     parentValue: {
         type: [String, Number, Boolean, Array, Object]
     }
@@ -158,7 +164,7 @@ export function getFormMixins (attrs = {}) {
                     return this.customValidate()
                 }
                 if (!this.validation) return true
-                
+
                 const isValid = this.validation.every(item => {
                     const result = this.getValidateResult(item, this.value, this.parentValue)
                     this.validateInfo = result
@@ -177,41 +183,44 @@ export function getFormMixins (attrs = {}) {
             getValidateResult (config, value, parentValue) {
                 let valid = true
                 let message = ''
-                switch (config.type) {
-                    case 'required':
-                        const valueType = checkDataType(value)
-                        let valueEmpty = false
-                        if (valueType === 'Object') {
-                            valueEmpty = !Object.keys(value).length
-                        } else if (valueType === 'String' || valueType === 'Array') {
-                            valueEmpty = !value.length
-                        } else if (valueType === 'Number') {
-                            valueEmpty = !value.toString()
-                        }
-                        if (valueEmpty) {
-                            valid = false
-                            message = gettext('必填项')
-                        }
-                        break
-                    case 'regex':
-                        const reg = new RegExp(config.args)
-                        if (!reg.test(value)) {
-                            valid = false
-                            message = config.error_message
-                        }
-                        break
-                    case 'custom':
-                        if (!/^\${[^${}]+}$/.test(value)) {
-                            const validateInfo = config.args.call(this, value, parentValue)
-                            if (!validateInfo.result) {
-                                valid = false
-                                message = validateInfo.error_message
+                if (this.validateSet.includes(config.type)) {
+                    switch (config.type) {
+                        case 'required':
+                            const valueType = checkDataType(value)
+                            let valueEmpty = false
+                            if (valueType === 'Object') {
+                                valueEmpty = !Object.keys(value).length
+                            } else if (valueType === 'String' || valueType === 'Array') {
+                                valueEmpty = !value.length
+                            } else if (valueType === 'Number') {
+                                valueEmpty = !value.toString()
                             }
-                        }
-                        break
-                    default:
-                        break
+                            if (valueEmpty) {
+                                valid = false
+                                message = gettext('必填项')
+                            }
+                            break
+                        case 'regex':
+                            const reg = new RegExp(config.args)
+                            if (!reg.test(value)) {
+                                valid = false
+                                message = config.error_message
+                            }
+                            break
+                        case 'custom':
+                            if (!/^\${[^${}]+}$/.test(value)) {
+                                const validateInfo = config.args.call(this, value, parentValue)
+                                if (!validateInfo.result) {
+                                    valid = false
+                                    message = validateInfo.error_message
+                                }
+                            }
+                            break
+                        default:
+                            break
+                    }
                 }
+
                 return { valid, message }
             },
             emit_event (name, type, data) {

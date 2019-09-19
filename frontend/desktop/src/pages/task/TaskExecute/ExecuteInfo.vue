@@ -11,35 +11,47 @@
 */
 <template>
     <div class="execute-info" v-bkloading="{ isLoading: loading, opacity: 1 }">
-        <h3 class="panel-title">{{ i18n.execute_detail }}</h3>
+        <div class="execute-head">
+            <div class="node-name">
+                <span>{{nodeInfo.name}}</span>
+                <div class="node-state">
+                    <span :class="displayStatus"></span>
+                    <span class="status-text-messages">{{nodeState}}</span>
+                </div>
+            </div>
+        </div>
         <section class="info-section">
-            <h4 class="common-section-title">{{ i18n.execute_info }}</h4>
+            <h4 class="common-section-title">{{ i18n.executeInfo }}</h4>
             <table class="operation-table">
-                <thead>
-                    <tr>
-                        <th class="start-time">{{ i18n.start_time }}</th>
-                        <th class="finish-time">{{ i18n.finish_time }}</th>
-                        <th class="last-time">{{ i18n.last_time}}</th>
-                        <th class="task-skipped">{{ i18n.task_skipped}}</th>
-                        <th class="error_ignorable">{{i18n.error_ignorable}}</th>
-                        <th class="manually-retry">{{i18n.manuallyRetry}}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="start-time">{{nodeInfo.start_time}}</td>
-                        <td class="finish-time">{{nodeInfo.finish_time}}</td>
-                        <td class="last-time">{{getLastTime(nodeInfo.elapsed_time)}}</td>
-                        <td class="task-skipped">{{nodeInfo.skip ? i18n.yes : i18n.no}}</td>
-                        <td class="error_ignorable">{{nodeInfo.error_ignorable ? i18n.yes : i18n.no}}</td>
-                        <td class="manually-retry">{{nodeInfo.retry > 0 ? i18n.yes : i18n.no}}</td>
-                    </tr>
-                </tbody>
+                <tr>
+                    <th class="start-time">{{ i18n.startTime }}</th>
+                    <td>{{nodeInfo.start_time}}</td>
+                </tr>
+                <tr>
+                    <th class="finish-time">{{ i18n.finishTime }}</th>
+                    <td>{{nodeInfo.finish_time}}</td>
+                </tr>
+                <tr>
+                    <th class="last-time">{{ i18n.lastTime}}</th>
+                    <td>{{getLastTime(nodeInfo.elapsed_time)}}</td>
+                </tr>
+                <tr>
+                    <th class="task-skipped">{{ i18n.taskSkipped}}</th>
+                    <td>{{nodeInfo.skip ? i18n.yes : i18n.no}}</td>
+                </tr>
+                <tr>
+                    <th class="error_ignorable">{{i18n.errorIgnorable}}</th>
+                    <td>{{nodeInfo.error_ignorable ? i18n.yes : i18n.no}}</td>
+                </tr>
+                <tr>
+                    <th class="manually-retry">{{i18n.manuallyRetry}}</th>
+                    <td>{{nodeInfo.retry}}</td>
+                </tr>
             </table>
         </section>
         <section class="info-section" v-show="isSingleAtom">
-            <h4 class="common-section-title">{{ i18n.inputs_params }}</h4>
-            <div class="">
+            <h4 class="common-section-title">{{ i18n.inputsParams }}</h4>
+            <div>
                 <RenderForm
                     v-if="!isEmptyParams && !loading"
                     :scheme="renderConfig"
@@ -50,7 +62,7 @@
             </div>
         </section>
         <section class="info-section" v-show="isSingleAtom">
-            <h4 class="common-section-title">{{ i18n.outputs_params }}</h4>
+            <h4 class="common-section-title">{{ i18n.outputsParams }}</h4>
             <table class="operation-table outputs-table">
                 <thead>
                     <tr>
@@ -83,7 +95,7 @@
                 <el-table-column type="expand">
                     <template slot-scope="props">
                         <div class="common-form-item">
-                            <label>{{ i18n.inputs_params }}</label>
+                            <label>{{ i18n.inputsParams }}</label>
                             <div class="common-form-content">
                                 <VueJsonPretty
                                     :data="props.row.inputs">
@@ -91,7 +103,7 @@
                             </div>
                         </div>
                         <div class="common-form-item">
-                            <label>{{ i18n.outputs_params }}</label>
+                            <label>{{ i18n.outputsParams }}</label>
                             <div class="common-form-content">
                                 <VueJsonPretty
                                     :data="props.row.outputs">
@@ -133,7 +145,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import VueJsonPretty from 'vue-json-pretty'
     import tools from '@/utils/tools.js'
-    import { URL_REG } from '@/constants/index.js'
+    import { URL_REG, TASK_STATE_DICT } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
@@ -150,15 +162,14 @@
         data () {
             return {
                 i18n: {
-                    execute_detail: gettext('执行详情'),
-                    execute_info: gettext('执行信息'),
-                    start_time: gettext('开始时间'),
-                    finish_time: gettext('结束时间'),
-                    last_time: gettext('耗时'),
-                    task_skipped: gettext('失败后跳过'),
-                    error_ignorable: gettext('失败自动忽略'),
-                    inputs_params: gettext('输入参数'),
-                    outputs_params: gettext('输出参数'),
+                    executeInfo: gettext('执行信息'),
+                    startTime: gettext('开始时间'),
+                    finishTime: gettext('结束时间'),
+                    lastTime: gettext('耗时'),
+                    taskSkipped: gettext('失败后跳过'),
+                    errorIgnorable: gettext('失败自动忽略'),
+                    inputsParams: gettext('输入参数'),
+                    outputsParams: gettext('输出参数'),
                     name: gettext('参数名'),
                     value: gettext('参数值'),
                     exception: gettext('异常信息'),
@@ -166,7 +177,11 @@
                     index: gettext('序号'),
                     yes: gettext('是'),
                     no: gettext('否'),
-                    manuallyRetry: gettext('手动重试')
+                    manuallyRetry: gettext('重试次数'),
+                    running: gettext('执行中'),
+                    suspended: gettext('暂停'),
+                    failed: gettext('失败'),
+                    finished: gettext('完成')
                 },
                 loading: true,
                 bkMessageInstance: null,
@@ -192,6 +207,22 @@
             },
             isEmptyParams () {
                 return this.renderConfig && this.renderConfig.length === 0
+            },
+            displayStatus () {
+                let state = ''
+                if (this.nodeInfo.state === 'RUNNING') {
+                    state = 'common-icon-dark-circle-ellipsis'
+                } else if (this.nodeInfo.state === 'SUSPENDED') {
+                    state = 'common-icon-dark-circle-pause'
+                } else if (this.nodeInfo.state === 'FINISHED') {
+                    state = 'bk-icon icon-check-circle-shape'
+                } else if (this.nodeInfo.state === 'FAILED') {
+                    state = 'common-icon-dark-circle-close'
+                }
+                return state
+            },
+            nodeState () {
+                return TASK_STATE_DICT[this.nodeInfo.state]
             }
         },
         watch: {
@@ -241,7 +272,7 @@
                             this.nodeInfo.outputs = this.nodeInfo.outputs.filter(output => output.preset)
                         }
                         this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data)
-                    
+
                         if (this.nodeInfo.ex_data && this.nodeInfo.ex_data.show_ip_log) {
                             this.failInfo = this.transformFailInfo(this.nodeInfo.ex_data.exception_msg)
                         } else {
@@ -313,14 +344,41 @@
 .execute-info {
     padding: 30px 20px;
     height: 100%;
+    color: #313238;
     overflow-y: auto;
     @include scrollbar;
+    .execute-head {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid #cacedb;
+    }
     .panel-title {
         margin: 0;
-        font-size: 22px;
-        font-weight: normal;
+        color: #313238;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .status-text-messages {
+        margin-left: 0px;
+        font-size: 12px;
+        font-weight: 400;
+    }
+    .node-name {
+        font-weight: 600;
+        word-break: break-all;
+    }
+    .node-state {
+        display: inline-block;
+        white-space: nowrap;
+        :first-child {
+            margin: 0 6px;
+            vertical-align: middle;
+        }
     }
     .info-section {
+        font-size: 12px;
         margin: 30px 0;
         word-wrap: break-word;
         word-break: break-all;
@@ -329,35 +387,43 @@
         }
     }
     .common-section-title {
+        color: #313238;
+        font-size: 14px;
         margin-bottom: 20px;
     }
     .operation-table {
+        font-size: 12px;
         table-layout: fixed;
-        .start-time,
-        .finish-time {
-            width: 210px;
-        }
-        .last-time {
-            width: 80px;
-        }
         .output-name {
             width: 35%;
         }
+        th {
+            width: 260px;
+            font-weight: 400;
+            color: #313238;
+        }
+        td {
+            color: #313238;
+        }
     }
     .retry-table {
+        font-size: 12px;
         .common-form-item {
             & > label {
                 margin-top: 0;
                 width: 60px;
+                font-size: 12px;
             }
             .commont-form-content {
                 margin-left: 100px;
+                font-size: 12px;
             }
         }
     }
     /deep/ .el-table {
         .el-table__header {
             tr, th {
+                font-size: 12px;
                 background: $whiteNodeBg;
                 color: $greyDefault;
             }
@@ -368,6 +434,22 @@
         .el-table__expanded-cell {
             background: $whiteThinBg;
         }
+    }
+    .common-icon-dark-circle-ellipsis {
+        font-size: 12px;
+        color: #3c96ff;
+    }
+    .common-icon-dark-circle-pause {
+        font-size: 12px;
+        color: #f8B53f;
+    }
+    .icon-check-circle-shape {
+        font-size: 12px;
+        color: #30d878;
+    }
+    .common-icon-dark-circle-close {
+        font-size: 12px;
+        color: #ff5757;
     }
 }
 </style>

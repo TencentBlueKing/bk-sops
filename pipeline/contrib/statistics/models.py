@@ -41,7 +41,7 @@ class ComponentExecuteData(models.Model):
     elapsed_time = models.IntegerField(_(u"标准插件执行耗时(s)"), null=True, blank=True)
     status = models.BooleanField(_(u"是否执行成功"), default=False)
     is_skip = models.BooleanField(_(u"是否跳过"), default=False)
-    is_retry = models.BooleanField(_(u'是否重试记录'), default=False)
+    is_retry = models.BooleanField(_(u"是否重试记录"), default=False)
 
     class Meta:
         verbose_name = _(u"Pipeline标准插件执行数据")

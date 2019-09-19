@@ -21,6 +21,7 @@ import project from './project'
 import functionTask from './function.js'
 import auditTask from './audit.js'
 import periodic from './periodic.js'
+import manage from './manage.js'
 
 const modules = {
     template,
@@ -34,6 +35,7 @@ const modules = {
     functionTask,
     auditTask,
     periodic,
+    manage,
     project
 }
 

@@ -26,10 +26,42 @@ class Component(object):
     @classmethod
     def outputs_format(cls):
         outputs = cls.bound_service().outputs()
-        outputs = map(lambda oi: oi._asdict(), outputs)
+        outputs = map(lambda oi: oi.as_dict(), outputs)
         return outputs
 
+    @classmethod
+    def inputs_format(cls):
+        inputs = cls.bound_service().inputs()
+        inputs = map(lambda ii: ii.as_dict(), inputs)
+        return inputs
+
+    @classmethod
+    def _get_item_schema(cls, type, key):
+        items = getattr(cls.bound_service(), type)()
+        for item in items:
+            if item.key == key:
+                return item
+
+        return None
+
+    @classmethod
+    def get_output_schema(cls, key):
+        return cls._get_item_schema(type='outputs', key=key).schema
+
+    @classmethod
+    def get_input_schema(cls, key):
+        return cls._get_item_schema(type='inputs', key=key).schema
+
+    @classmethod
+    def form_is_embedded(cls):
+        return getattr(cls, 'embedded_form', False)
+
     def clean_execute_data(self, context):
+        """
+        @summary: hook for subclass of Component to clean execute data with context
+        @param context:
+        @return:
+        """
         return self.data_dict
 
     def data_for_execution(self, context, pipeline_data):

@@ -5,6 +5,7 @@ Query a task node execution details
 ### Request Parameters
 
 #### General Parameters
+
 |   Field         |  Type       | Required |  Description    |
 |-----------------|-------------|---------|------------------|
 |   bk_app_code   |   string    |   YES    |  APP ID |
@@ -21,6 +22,7 @@ Query a task node execution details
 |   node_id        | string     | YES         | the node ID of task                        |
 |   component_code| string     | NO         | the code of Standard Plugin, this field is required when query a Standard Plugin node |
 |   subprocess_stack| string   | NO         | stack of SubProcess, format is json  |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
@@ -33,7 +35,7 @@ Query a task node execution details
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd"
     "subprocess_stack": "[\"nodeaaa0ce51d2143aa9b0dbc27cb7df\"]",
-    "component_code": "job_fast_execute_script",
+    "component_code": "job_fast_execute_script"
 }
 ```
 
@@ -124,7 +126,7 @@ Query a task node execution details
 
 
 #### data.histories[]
-|      名称     |     类型   |               说明             |
+|      Field     |     Type   |               Description             |
 | ------------  | ---------- | ------------------------------ |
 |  start_time   | string     | start time    |
 |  finish_time  | string     | finish time    |

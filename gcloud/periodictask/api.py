@@ -14,9 +14,12 @@ specific language governing permissions and limitations under the License.
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
+from auth_backend.plugins.decorators import verify_perms
+
 from blueapps.utils.view_decorators import post_form_validator, model_instance_inject
 from gcloud.core.models import Project
 from gcloud.periodictask.models import PeriodicTask
+from gcloud.periodictask.permissions import periodic_task_resource
 from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
                                     PeriodicTaskEnabledSetForm,
                                     PeriodicTaskConstantsModifyForm)
@@ -28,6 +31,9 @@ from gcloud.taskflow3.forms import (PeriodicTaskCronModifyForm,
     'id': 'task_id',
     'project_id': 'project_id'
 })
+@verify_perms(auth_resource=periodic_task_resource,
+              resource_get={'from': 'kwargs', 'key': 'task_id'},
+              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
 def set_enabled_for_periodic_task(request, project_id, task_id):
     enabled = request.form.clean()['enabled']
 
@@ -46,8 +52,11 @@ def set_enabled_for_periodic_task(request, project_id, task_id):
     'project_id': 'project_id'
 })
 @model_instance_inject(model_cls=Project, inject_attr='project', field_maps={
-    'project_id': 'project_id'
+    'id': 'project_id'
 })
+@verify_perms(auth_resource=periodic_task_resource,
+              resource_get={'from': 'kwargs', 'key': 'task_id'},
+              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
 def modify_cron(request, project_id, task_id):
     cron = request.form.clean()['cron']
 
@@ -71,6 +80,9 @@ def modify_cron(request, project_id, task_id):
     'id': 'task_id',
     'project_id': 'project_id'
 })
+@verify_perms(auth_resource=periodic_task_resource,
+              resource_get={'from': 'kwargs', 'key': 'task_id'},
+              actions=[periodic_task_resource.actions.view, periodic_task_resource.actions.edit])
 def modify_constants(request, project_id, task_id):
     constants = request.form.clean()['constants']
 

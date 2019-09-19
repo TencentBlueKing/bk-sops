@@ -16,39 +16,44 @@ import ujson as json
 
 from django.utils.translation import ugettext_lazy as _
 from tastypie import fields
-from tastypie.authorization import ReadOnlyAuthorization, Authorization
+from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest
-from tastypie.resources import ModelResource
+from tastypie.exceptions import BadRequest, NotFound
+
+from auth_backend.plugins.tastypie.shortcuts import (batch_verify_or_raise_immediate_response,
+                                                     verify_or_raise_immediate_response)
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
 
 from pipeline.engine import states
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance
 from pipeline_web.parser.validator import validate_web_pipeline_tree
-from pipeline_web.exceptions import ParserException
 
-from gcloud.core.utils import name_handler
+from gcloud.core.utils import name_handler, pipeline_node_name_handle
 from gcloud.core.constant import TASK_NAME_MAX_LENGTH
+from gcloud.core.permissions import project_resource
 from gcloud.commons.template.models import CommonTemplate
+from gcloud.commons.template.permissions import common_template_resource
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.tasktmpl3.permissions import task_template_resource
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.constants import PROJECT
+from gcloud.taskflow3.permissions import taskflow_resource
 from gcloud.webservice3.resources import (
     GCloudModelResource,
-    AppSerializer,
-    pipeline_node_name_handle,
     ProjectResource,
 )
+from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.contrib.appmaker.permissions import mini_app_resource
 
 logger = logging.getLogger('root')
 
 
-class PipelineInstanceResource(ModelResource):
-    class Meta:
+class PipelineInstanceResource(GCloudModelResource):
+    class Meta(GCloudModelResource.Meta):
         queryset = PipelineInstance.objects.filter(is_deleted=False)
         resource_name = 'pipeline_instance'
         authorization = ReadOnlyAuthorization()
-        serializer = AppSerializer()
         filtering = {
             'name': ALL,
             'is_finished': ALL,
@@ -60,7 +65,14 @@ class PipelineInstanceResource(ModelResource):
             'is_started': ALL,
             'start_time': ['gte', 'lte']
         }
-        limit = 0
+
+
+class CustomCreateDetailAuthorization(BkSaaSLooseAuthorization):
+    """
+    @summary: 在obj_create自行控制复杂权限校验逻辑，上层不使用统一的create权限校验
+    """
+    def create_detail(self, object_list, bundle):
+        return True
 
 
 class TaskFlowInstanceResource(GCloudModelResource):
@@ -120,15 +132,15 @@ class TaskFlowInstanceResource(GCloudModelResource):
     subprocess_info = fields.DictField(
         attribute='subprocess_info',
         use_in='detail',
-        readonly=True
-    )
+        readonly=True)
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = TaskFlowInstance.objects.filter(pipeline_instance__isnull=False, is_deleted=False)
         resource_name = 'taskflow'
-        always_return_data = True
-        authorization = Authorization()
-        serializer = AppSerializer()
+        auth_resource = taskflow_resource
+        authorization = CustomCreateDetailAuthorization(auth_resource=auth_resource,
+                                                        read_action_id='view',
+                                                        update_action_id='edit')
         filtering = {
             'id': ALL,
             'project': ALL_WITH_RELATIONS,
@@ -141,7 +153,6 @@ class TaskFlowInstanceResource(GCloudModelResource):
             'pipeline_instance': ALL_WITH_RELATIONS,
         }
         q_fields = ['id', 'pipeline_instance__name']
-        limit = 0
 
     @staticmethod
     def handle_task_name_attr(data):
@@ -174,14 +185,35 @@ class TaskFlowInstanceResource(GCloudModelResource):
             validate_web_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'])
         except PipelineException as e:
             raise BadRequest(e.message)
-        except ParserException as e:
-            raise BadRequest(e.message)
 
         if template_source == PROJECT:
             try:
                 template = TaskTemplate.objects.get(pk=template_id)
             except TaskTemplate.DoesNotExist:
                 raise BadRequest('template[pk=%s] does not exist' % template_id)
+
+            create_method = bundle.data['create_method']
+
+            if create_method == 'app_maker':
+                app_maker_id = bundle.data['create_info']
+                try:
+                    app_maker = AppMaker.objects.get(id=app_maker_id)
+                except AppMaker.DoesNotExist:
+                    raise BadRequest('app_maker[pk=%s] does not exist' % app_maker_id)
+
+                verify_or_raise_immediate_response(principal_type='user',
+                                                   principal_id=creator,
+                                                   resource=mini_app_resource,
+                                                   action_ids=[mini_app_resource.actions.create_task.id],
+                                                   instance=app_maker)
+
+            else:
+                verify_or_raise_immediate_response(principal_type='user',
+                                                   principal_id=creator,
+                                                   resource=task_template_resource,
+                                                   action_ids=[task_template_resource.actions.create_task.id],
+                                                   instance=template)
+
         else:
             try:
                 template = CommonTemplate.objects.get(pk=str(template_id),
@@ -189,8 +221,19 @@ class TaskFlowInstanceResource(GCloudModelResource):
             except CommonTemplate.DoesNotExist:
                 raise BadRequest('common template[pk=%s] does not exist' % template_id)
 
+            try:
+                project = ProjectResource().get_via_uri(bundle.data.get('project'), request=bundle.request)
+            except NotFound:
+                raise BadRequest('project with uri(%s) does not exist' % bundle.data.get('project'))
+
+            perms_tuples = [(project_resource, [project_resource.actions.use_common_template.id], project),
+                            (common_template_resource, [common_template_resource.actions.create_task.id], template)]
+            batch_verify_or_raise_immediate_response(principal_type='user',
+                                                     principal_id=creator,
+                                                     perms_tuples=perms_tuples)
+
         try:
-            pipeline_instance = model.objects.__class__.create_pipeline_instance(
+            pipeline_instance = model.objects.create_pipeline_instance(
                 template,
                 **pipeline_instance_kwargs
             )

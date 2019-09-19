@@ -21,6 +21,7 @@ from django.utils import timezone
 
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
 
 from gcloud.core.models import Project
@@ -63,6 +64,16 @@ class SleepTimerService(Service):
 
     seconds_regex = re.compile(r'^\d{1,8}$')
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'定时时间'),
+                           key='bk_timing',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)')))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
@@ -103,9 +114,6 @@ class SleepTimerService(Service):
         self.interval.interval = t_delta.total_seconds() - 0.5
 
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class SleepTimerComponent(Component):

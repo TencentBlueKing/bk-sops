@@ -19,7 +19,6 @@ urlpatterns = [
     url(r'^api/status/(?P<project_id>\d+)/$', api.status),
     url(r'^api/clone/(?P<project_id>\d+)/$', api.task_clone),
     url(r'^api/action/(?P<action>\w+)/(?P<project_id>\d+)/$', api.task_action),
-
     url(r'^api/flow/claim/(?P<project_id>\d+)/$', api.task_func_claim),
     url(r'^api/inputs/modify/(?P<project_id>\d+)/$', api.task_modify_inputs),
     url(r'^api/nodes/action/(?P<action>\w+)/(?P<project_id>\d+)/$', api.nodes_action),
