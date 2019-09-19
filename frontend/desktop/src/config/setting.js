@@ -30,7 +30,7 @@ export function setConfigContext (site_url, project) {
         get (attr) { // 获取 $.context 对象上属性
             return $.context[attr]
         },
-        getBkBzId () { // 项目来自 cmdb，则获取对应的业务 id
+        getBkBizId () { // 项目来自 cmdb，则获取对应的业务 id
             if ($.context.project) {
                 return $.context.project.from_cmdb ? $.context.project.bk_biz_id : ''
             }
