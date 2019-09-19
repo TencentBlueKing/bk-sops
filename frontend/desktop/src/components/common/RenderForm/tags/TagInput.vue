@@ -75,14 +75,21 @@
         },
         computed: {
             ...mapState({
-                'constants': state => state.template.constants
+                'constants': state => state.template.constants,
+                'context': state => state.template.context
             }),
             constantArr: {
                 get () {
+                    const Keylist = []
                     if (this.constants) {
-                        return Object.keys(this.constants)
+                        Keylist.concat(Object.keys(this.constants))
                     }
-                    return []
+                    if (this.context) {
+                        this.context.forEach(m => {
+                            Keylist.push(m.key)
+                        })
+                    }
+                    return Keylist
                 },
                 set (val) {
                     this.varList = val

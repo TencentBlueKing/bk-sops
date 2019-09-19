@@ -23,6 +23,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         component: SITE_URL + 'api/v3/component/',
         template: SITE_URL + 'api/v3/template/',
         variable: SITE_URL + 'api/v3/variable/',
+        internalVariable: SITE_URL + 'taskflow/api/context/',
         instance: SITE_URL + 'api/v3/taskflow/',
         function: SITE_URL + 'api/v3/function_task/',
         periodic: SITE_URL + 'api/v3/periodic_task/',
