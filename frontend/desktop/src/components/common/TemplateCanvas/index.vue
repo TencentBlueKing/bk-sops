@@ -310,6 +310,9 @@
                 const { locations: nodes, lines } = this.canvasData
                 this.$refs.jsFlow.updateCanvas({ nodes, lines })
             },
+            removeAllConnector () {
+                this.$refs.jsFlow.removeAllConnector()
+            },
             onNodeClick (id) {
                 this.$emit('onNodeClick', id)
             },
