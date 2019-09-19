@@ -18,6 +18,7 @@
                     'entry-item',
                     { disabled: isDisableStartPoint }
                 ]"
+                data-config-name=""
                 data-type="startpoint">
                 <div class="node-type-text start-point">{{ i18n.start }}</div>
             </div>
@@ -27,16 +28,17 @@
                     'entry-item',
                     { disabled: isDisableEndPoint }
                 ]"
+                data-config-name=""
                 data-type="endpoint">
                 <div class="node-type-text end-point">{{ i18n.end }}</div>
             </div>
-            <div class="palette-item entry-item" data-type="parallelgateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="parallelgateway">
                 <div class="node-type-icon common-icon-node-parallelgateway"></div>
             </div>
-            <div class="palette-item entry-item" data-type="branchgateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="branchgateway">
                 <div class="node-type-icon common-icon-node-branchgateway"></div>
             </div>
-            <div class="palette-item entry-item" data-type="convergegateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
             <div
