@@ -31,7 +31,10 @@
             },
             methods: {
                 _tag_init: function () {
-                    this.value = $.context.canSelectBiz() ? $.context.get('bk_biz_id') : ''
+                    if (this.value) {
+                        return
+                    }
+                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
                 }
             }
         },
