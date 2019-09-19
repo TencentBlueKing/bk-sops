@@ -29,7 +29,16 @@ export function setAtomConfigApiUrls (site_url, project) {
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
         instance: site_url + 'api/v3/taskflow/',
-        getConstants () {
+        get (attr) { // 获取 $.context 对象上属性
+            return $.context[attr]
+        },
+        canSelectBiz () { // 是否可以选择业务
+            if ($.context.project) {
+                return $.context.project.from_cmdb === false
+            }
+            return true
+        },
+        getConstants () { // 获取流程模板下的全局变量
             return store.state.template.constants
         }
     }
