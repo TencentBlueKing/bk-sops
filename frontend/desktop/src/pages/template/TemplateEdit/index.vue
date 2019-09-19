@@ -718,6 +718,7 @@
                     const width = canvasEl.offsetWidth
                     const res = await this.getLayoutedPipeline({ width, pipelineTree })
                     if (res.result) {
+                        this.onNewDraft(undefined, false)
                         this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
