@@ -18,17 +18,21 @@
                 name: gettext("业务"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
-                disabled: $.context.project.from_cmdb,
-                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
+                disabled: !$.context.canSelectBiz(),
                 validation: [
                     {
                         type: "required"
                     }
                 ]
+            },
+            methods: {
+                _tag_init: function () {
+                    this.value = $.context.canSelectBiz() ? $.context.get('bk_biz_id') : ''
+                }
             }
         },
         {
@@ -39,7 +43,7 @@
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + $.context.project.bk_biz_id + '/' : '';
+                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.get('bk_biz_id') + '/' : '';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -61,7 +65,7 @@
                     action: function () {
                         cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         if (cc_id !== '') {
-                            this.remote_url = $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -74,7 +78,7 @@
                         if (value === '') {
                             return;
                         }
-                        this.remote_url = $.context.site_url + 'pipeline/job_get_job_tasks_by_biz/' + value + '/';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + value + '/';
                         this.remoteMethod();
                     }
                 }
@@ -134,7 +138,7 @@
                         this.set_loading(true);
                         cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         $.ajax({
-                            url: $.context.site_url + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
+                            url: $.context.get('site_url') + 'pipeline/job_get_job_detail_by_biz/' + cc_id + '/' + value + '/',
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {
