@@ -32,7 +32,7 @@
     import { mapState, mapMutations, mapActions } from 'vuex'
     import bus from '@/utils/bus.js'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import { setAtomConfigApiUrls } from '@/config/setting.js'
+    import { setConfigContext } from '@/config/setting.js'
     import permission from '@/mixins/permission.js'
     import UserLoginModal from '@/components/common/modal/UserLoginModal.vue'
     import ErrorCodeModal from '@/components/common/modal/ErrorCodeModal.vue'
@@ -153,9 +153,9 @@
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
-                    setAtomConfigApiUrls(this.site_url, projectDetail)
+                    setConfigContext(this.site_url, projectDetail)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
-                        $.context.biz_binding = false
+                        setConfigContext(this.site_url)
                     }
                 } catch (err) {
                     errorHandler(err, this)
@@ -176,7 +176,7 @@
                 this.isRouterAlive = true
                 if (!this.$route.meta.project) {
                     this.permissinApplyShow = false
-                    $.context.biz_binding = false
+                    setConfigContext(this.site_url)
                 } else {
                     if (this.project_id !== '' && !isNaN(this.project_id)) {
                         this.permissinApplyShow = false

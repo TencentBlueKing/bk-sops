@@ -58,9 +58,6 @@ def context(request):
 
 
 @require_GET
-@verify_perms(auth_resource=taskflow_resource,
-              resource_get={'from': 'request', 'key': 'instance_id'},
-              actions=[taskflow_resource.actions.view])
 def status(request, project_id):
     instance_id = request.GET.get('instance_id')
     subprocess_id = request.GET.get('subprocess_id')

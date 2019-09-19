@@ -354,6 +354,7 @@
             },
             onCancel () {
                 this.templateEmpty = false
+                this.selectError = false
                 this.resetData()
                 this.$emit('onExportCancel')
             },
@@ -423,9 +424,10 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        cursor: pointer;
+        border: 1px solid #c4c6cc;
         border-radius: 2px;
         overflow: hidden;
+        cursor: pointer;
         &:nth-child(2n + 1) {
             margin-left: 0;
         }
@@ -468,6 +470,9 @@
             }
             .template-item-name {
                 color: #c4c6cc;
+                &:after {
+                    background: #f7f7f7;
+                }
             }
             .apply-permission-mask {
                 padding: 12px 0;

@@ -167,10 +167,10 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
+            type="periodic"
             :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
-            :create-entrance="false"
             :task-category="taskCategory"
             :dialog-title="i18n.dialogTitle"
             @onCreateTaskCancel="onCreateTaskCancel">
@@ -541,28 +541,6 @@
             }
             .bk-selector-search-item > input {
                 min-width: 249px;
-            }
-            .search-input {
-                width: 260px;
-                height: 32px;
-                padding: 0 32px 0 10px;
-                font-size: 14px;
-                color: $greyDefault;
-                border: 1px solid $formBorderColor;
-                line-height: 32px;
-                outline: none;
-                &:hover {
-                    border-color: #c0c4cc;
-                }
-                &:focus {
-                    border-color: $blueDefault;
-                    & + i {
-                        color: $blueDefault;
-                    }
-                }
-            }
-            .search-input.placeholder {
-                color: $formBorderColor;
             }
         }
     }

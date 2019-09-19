@@ -144,10 +144,9 @@ WEB_PIPELINE_SCHEMA = {
                                             "type": "object",
                                             "properties": {
                                                 "evaluate": {"type": "string"},
-                                                "tag": {"type": "string"}
                                             },
                                             "required": [
-                                                "evaluate", "tag"
+                                                "evaluate"
                                             ]
                                         }
                                     }

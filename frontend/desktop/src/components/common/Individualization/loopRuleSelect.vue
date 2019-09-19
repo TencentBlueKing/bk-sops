@@ -50,6 +50,7 @@
                                 class="loop-time"
                                 @blur="renderRule()">
                             </bk-input>
+                            {{ item.key !== 'week' ? item.title : ''}}{{ autoWay.loop.center }}
                             <bk-input
                                 v-model.number="item.loop.inter"
                                 v-validate="{ required: true, integer: true }"
@@ -59,9 +60,7 @@
                             </bk-input>
                             {{ item.key !== 'week' ? item.title : i18n.dayName }}{{ autoWay.loop.end }}
                             <!-- 星期说明 -->
-                            <i v-if="item.key === 'week'"
-                                v-bk-tooltips="i18n.monthTips"
-                                class="bk-icon icon-info-circle month-tips top-start"></i>
+                            <i v-if="item.key === 'week'" v-bk-tooltips="i18n.monthTips" class="common-icon-info month-tips top-start"></i>
                             <!-- startInput 错误提示 -->
                             <div v-show="errors.has(item.key + 'Rule') || errors.has('interval')"
                                 class="local-error-tip error-msg">
@@ -98,7 +97,7 @@
                 </bk-input>
             </div>
         </div>
-        <i class="bk-icon icon-info-circle rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
+        <i class="common-icon-info rule-tips" v-bk-tooltips="ruleTipsHtmlConfig"></i>
         <!-- corn 规则 tips -->
         <div id="periodic-cron-tips-html">
             <img class="ui-img" :src="periodicCronImg">
@@ -197,7 +196,7 @@
             name: gettext('循环'),
             start: gettext('从第'),
             startWeek: gettext('从星期'),
-            center: gettext('开始,每隔'),
+            center: gettext('开始，每隔'),
             end: gettext('执行一次')
         },
         'appoint': {
@@ -522,6 +521,7 @@ $bgBlue: #3a84ff;
 .bk-form-checkbox {
     margin-top: 20px;
     margin-right: 22px;
+    min-width: 40px;
 }
 .rule-tips {
     position: absolute;

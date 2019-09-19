@@ -14,6 +14,7 @@
         width="600"
         padding="0 24px 40px 24px"
         ext-cls="permission-dialog"
+        :z-index="2000"
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
