@@ -256,13 +256,18 @@
                 }
             }
         },
-        created () {
+        async created () {
             this.initTemplateData()
+            // 获取流程内置变量
+            this.templateDataLoading = true
+            const contextList = await this.loadInternalVariable()
+            this.setInternalVariable(contextList)
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
                 const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
+                this.templateDataLoading = false
             }
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
@@ -302,7 +307,8 @@
                 'loadTemplateData',
                 'saveTemplateData',
                 'loadCommonTemplateData',
-                'loadCustomVarCollection'
+                'loadCustomVarCollection',
+                'loadInternalVariable'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -327,6 +333,7 @@
                 'setStartpoint',
                 'setEndpoint',
                 'setBranchCondition',
+                'setInternalVariable',
                 'replaceTemplate',
                 'replaceLineAndLocation'
             ]),
@@ -406,7 +413,6 @@
                 }
             },
             async getTemplateData () {
-                this.templateDataLoading = true
                 try {
                     const data = {
                         templateId: this.template_id,
