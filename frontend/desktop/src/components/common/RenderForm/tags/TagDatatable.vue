@@ -243,7 +243,6 @@
                     const tableData = []
                     const filterVal = []
                     for (let i = 0; i < this.columns.length; i++) {
-                        console.log(this.columns[i])
                         const tag_code = this.columns[i].tag_code
                         const name = this.columns[i].attrs.name
                         tableHeader.push(name)
@@ -254,7 +253,6 @@
                     for (let i = 0; i < list.length; i++) {
                         const row = []
                         for (let j = 0; j < filterVal.length; j++) {
-                            console.log(list[i][filterVal[j]])
                             row.push(list[i][filterVal[j]])
                         }
                         tableData.push(row)
