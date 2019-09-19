@@ -391,12 +391,13 @@ def draw_pipeline(request):
     @return:
     """
     try:
-        pipeline_tree = json.loads(request.POST.get('pipeline_tree'))
+        params = json.loads(request.body)
+        pipeline_tree = params['pipeline_tree']
+        canvas_width = int(params.get('canvas_width', CANVAS_WIDTH))
     except Exception as e:
         message = 'json loads pipeline_tree error: %s' % e
         logger.exception(e)
         return JsonResponse({'result': False, 'message': message})
-    canvas_width = int(request.POST.get('canvas_width', CANVAS_WIDTH))
     try:
         draw_pipeline_tree(pipeline_tree, canvas_width=canvas_width)
     except Exception as e:
