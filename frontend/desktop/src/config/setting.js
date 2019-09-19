@@ -17,14 +17,11 @@ import store from '@/store/index.js'
  * @param {String} site_url
  * @param {Object} project
  */
-export function setAtomConfigApiUrls (site_url, project) {
+export function setConfigContext (site_url, project) {
     $.context = {
-        project,
-        biz_binding: project.from_cmdb,
-        bk_biz_id: project.bk_biz_id,
-        biz_cc_id: project.bk_biz_id,
+        project: project || undefined,
+        biz_cc_id: project ? (project.from_cmdb ? project.bk_biz_id : undefined) : undefined,
         site_url: site_url,
-        project_id: project.id,
         component: site_url + 'api/v3/component/',
         variable: site_url + 'api/v3/variable/',
         template: site_url + 'api/v3/template/',
@@ -32,9 +29,15 @@ export function setAtomConfigApiUrls (site_url, project) {
         get (attr) { // 获取 $.context 对象上属性
             return $.context[attr]
         },
+        getBkBizId () { // 项目来自 cmdb，则获取对应的业务 id
+            if ($.context.project) {
+                return $.context.project.from_cmdb ? $.context.project.bk_biz_id : ''
+            }
+            return ''
+        },
         canSelectBiz () { // 是否可以选择业务
             if ($.context.project) {
-                return $.context.project.from_cmdb === false
+                return !$.context.project.from_cmdb
             }
             return true
         },
