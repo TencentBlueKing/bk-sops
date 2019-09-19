@@ -59,7 +59,7 @@
                                 <bk-option
                                     v-for="(option, index) in taskCategory"
                                     :key="index"
-                                    :id="option.id"
+                                    :id="option.value"
                                     :name="option.name">
                                 </bk-option>
                             </bk-select>
