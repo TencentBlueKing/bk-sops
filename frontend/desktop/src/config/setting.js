@@ -20,6 +20,7 @@ import store from '@/store/index.js'
 export function setConfigContext (site_url, project) {
     $.context = {
         project: project || undefined,
+        bk_biz_id: project ? (project.from_cmdb ? project.bk_biz_id : '') : undefined,
         biz_cc_id: project ? project.bk_biz_id : undefined,
         site_url: site_url,
         component: site_url + 'api/v3/component/',
