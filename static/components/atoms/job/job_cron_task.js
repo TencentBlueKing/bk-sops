@@ -34,7 +34,7 @@
                     if (this.value) {
                         return
                     }
-                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
+                    this.value = $.context.canSelectBiz() ? '' : $.context.getBkBizId()
                 }
             }
         },
@@ -46,7 +46,7 @@
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/' : ''
+                    url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/'
                     return url
                 },
                 remote_data_init: function (resp) {
@@ -105,9 +105,13 @@
                     source: "job_cron_job_id",
                     type: "change",
                     action: function (value) {
+                        if (!value) {
+                            return
+                        }
                         var $this = this;
+                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         $.ajax({
-                            url: $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/',
+                            url: $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/',
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {

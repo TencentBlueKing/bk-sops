@@ -34,7 +34,7 @@
                     if (this.value) {
                         return
                     }
-                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
+                    this.value = $.context.canSelectBiz() ? '' : $.context.getBkBizId()
                 }
             }
         },
@@ -46,7 +46,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/' : '';
+                    url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_topo/set/normal/' + $.context.getBkBizId() + '/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -95,7 +95,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/cc_search_object_attribute/set/' + $.context.getBkBizId() + '/' : '';
+                    url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_object_attribute/set/' + $.context.getBkBizId() + '/';
                     return url;
                 },
                 remote_data_init: function (resp) {

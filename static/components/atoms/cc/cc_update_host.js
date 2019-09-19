@@ -34,7 +34,7 @@
                     if (this.value) {
                         return
                     }
-                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
+                    this.value = $.context.canSelectBiz() ? '' : $.context.getBkBizId()
                 }
             }
         },
@@ -47,7 +47,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/cc_search_object_attribute/host/' + $.context.getBkBizId() + '/' : '';
+                    url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_object_attribute/host/' + $.context.getBkBizId() + '/';
                     return url
                 },
                 remote_data_init: function (resp) {
