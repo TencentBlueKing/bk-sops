@@ -299,15 +299,13 @@
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
                         const previewNodeData = resp.data.pipeline_tree
+                        const layoutedData = await this.getLayoutedPosition(previewNodeData)
+                        previewNodeData['line'] = layoutedData.line
+                        previewNodeData['location'] = layoutedData.location
+                        this.previewData = previewNodeData
 
-                        // 画布节点不包含网关节点则进行自动排版
-                        if (Object.keys(previewNodeData.gateways).length === 0) {
-                            const layoutedData = await this.formatPosition(previewNodeData)
-                            previewNodeData['line'] = layoutedData.data.pipeline_tree.lines
-                            previewNodeData['location'] = layoutedData.data.pipeline_tree.locations
-                            this.updatePreviewData(previewNodeData, isSubflow)
-                        } else {
-                            this.updatePreviewData(previewNodeData, isSubflow)
+                        if (!isSubflow) {
+                            this.pipelineData = tools.deepClone(previewNodeData)
                         }
                     } else {
                         errorHandler(resp, this)
@@ -322,9 +320,9 @@
              * 从接口获取编排后的画布数据
              * @params {Object} data pipeline_tree 数据
              */
-            async formatPosition (data) {
+            async getLayoutedPosition (data) {
                 try {
-                    const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
+                    const canvasEl = document.getElementsByClassName('canvas-wrapper')[0]
                     const width = canvasEl.offsetWidth
                     const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
                     if (res.result) {
@@ -334,13 +332,6 @@
                     }
                 } catch (error) {
                     errorHandler(error, this)
-                }
-            },
-            updatePreviewData (data, isSubflow) {
-                this.previewData = data
-
-                if (!isSubflow) {
-                    this.pipelineData = tools.deepClone(data)
                 }
             },
             /**

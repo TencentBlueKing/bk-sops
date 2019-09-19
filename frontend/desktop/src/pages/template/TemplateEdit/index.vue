@@ -330,7 +330,8 @@
                 'setEndpoint',
                 'setBranchCondition',
                 'replaceTemplate',
-                'replaceLineAndLocation'
+                'replaceLineAndLocation',
+                'setPipelineTree'
             ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig',
@@ -717,11 +718,14 @@
                     const width = canvasEl.offsetWidth
                     const res = await this.getLayoutedPipeline({ width, pipelineTree })
                     if (res.result) {
+                        this.$refs.templateCanvas.removeAllConnector()
                         this.setPipelineTree(res.data.pipeline_tree)
-                        this.$refs.templateCanvas.updateCanvas()
-                        this.$bkMessage({
-                            message: gettext('排版完成，原内容在本地缓存中'),
-                            theme: 'success'
+                        this.$nextTick(() => {
+                            this.$refs.templateCanvas.updateCanvas()
+                            this.$bkMessage({
+                                message: gettext('排版完成，原内容在本地缓存中'),
+                                theme: 'success'
+                            })
                         })
                     } else {
                         errorHandler(res, this)
