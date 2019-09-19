@@ -462,10 +462,6 @@ const api = {
         const opts = {
             method: 'POST',
             url: prefixUrl,
-            headers: {
-                'content-type': 'application/json',
-                'X-HTTP-Method-Override': 'PATCH'
-            },
             data: {
                 canvas_width: width,
                 pipeline_tree: pipelineTree
