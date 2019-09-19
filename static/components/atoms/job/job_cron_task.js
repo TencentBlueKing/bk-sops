@@ -31,7 +31,10 @@
             },
             methods: {
                 _tag_init: function () {
-                    this.value = $.context.canSelectBiz() ? $.context.get('bk_biz_id') : ''
+                    if (this.value) {
+                        return
+                    }
+                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
                 }
             }
         },
@@ -43,7 +46,7 @@
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.get('bk_biz_id') + '/' : ''
+                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/' : ''
                     return url
                 },
                 remote_data_init: function (resp) {
@@ -104,7 +107,7 @@
                     action: function (value) {
                         var $this = this;
                         $.ajax({
-                            url: $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.get('bk_biz_id') + '/',
+                            url: $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/',
                             type: 'GET',
                             dataType: 'json',
                             success: function (resp) {

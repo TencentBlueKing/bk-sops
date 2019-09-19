@@ -31,7 +31,10 @@
             },
             methods: {
                 _tag_init: function () {
-                    this.value = $.context.canSelectBiz() ? $.context.get('bk_biz_id') : ''
+                    if (this.value) {
+                        return
+                    }
+                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
                 }
             }
         },
@@ -172,7 +175,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.get('bk_biz_id') + '/?type=public' : '';
+                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public' : '';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -248,7 +251,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.get('bk_biz_id') + '/?type=general' : '';
+                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=general' : '';
                     return url;
                 },
                 remote_data_init: function (resp) {
