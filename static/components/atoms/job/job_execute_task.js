@@ -34,7 +34,7 @@
                     if (this.value) {
                         return
                     }
-                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
+                    this.value = $.context.canSelectBiz() ? '' : $.context.getBkBizId()
                 }
             }
         },
@@ -46,7 +46,7 @@
                 hookable: false,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/' : '';
+                    url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + $.context.getBkBizId() + '/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -68,7 +68,6 @@
                     action: function () {
                         cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         if (cc_id !== '') {
-                            console.log('init')
                             this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + cc_id + '/';
                             this.remoteMethod();
                         }
@@ -82,7 +81,6 @@
                         if (value === '') {
                             return;
                         }
-                        console.log('change')
                         this.remote_url = $.context.get('site_url') + 'pipeline/job_get_job_tasks_by_biz/' + value + '/';
                         this.remoteMethod();
                     }

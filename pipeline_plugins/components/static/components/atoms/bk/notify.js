@@ -34,7 +34,7 @@
                     if (this.value) {
                         return
                     }
-                    this.value = $.context.canSelectBiz() ? $.context.getBkBizId() : ''
+                    this.value = $.context.canSelectBiz() ? '': $.context.getBkBizId()
                 }
             }
         },
