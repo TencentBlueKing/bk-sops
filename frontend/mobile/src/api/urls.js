@@ -34,6 +34,6 @@ export function getMobileUrlSetting (SITE_URL, BIZ_CC_ID, PLATFORM_URL = 'weixin
         pauseSubProcess: SITE_URL + PLATFORM_URL + 'taskflow/api/nodes/action/pause_subproc/' + BIZ_CC_ID + '/',
         resumeSubProcess: SITE_URL + PLATFORM_URL + 'taskflow/api/nodes/action/resume_subproc/' + BIZ_CC_ID + '/',
         setSleepNode: SITE_URL + PLATFORM_URL + 'taskflow/api/nodes/spec/timer/reset/' + BIZ_CC_ID + '/',
-        schemes: SITE_URL + PLATFORM_URL + 'api/v3/schemes/'
+        schemes: SITE_URL + PLATFORM_URL + 'api/v3/scheme/'
     }
 }

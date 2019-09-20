@@ -713,42 +713,23 @@
              * @param {Number} template_id -模版id(可选)
              */
             getJumpUrl (name, template_id) {
+                const routerHead = this.common ? '/admin' : ''
+                let url
                 const urlMap = {
                     // 编辑按钮的跳转链接
-                    'edit': {
-                        path: `/template/edit/${this.project_id}/`,
-                        query: ['template_id', 'common'] },
+                    'edit': `${routerHead}/template/edit/${this.project_id}/?template_id=${template_id}`,
                     // 新建模板的跳转链接
-                    'newTemplate': {
-                        path: `/template/new/${this.project_id}/`,
-                        query: ['common'] },
+                    'newTemplate': `${routerHead}/template/new/${this.project_id}/`,
                     // 新建任务的跳转链接
-                    'newTask': {
-                        path: `/template/newtask/${this.project_id}/selectnode/`,
-                        query: ['template_id', 'common'] },
+                    'newTask': `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`,
                     // 克隆
-                    'clone': {
-                        path: `/template/clone/${this.project_id}/`,
-                        query: ['template_id', 'common'] }
+                    'clone': `${routerHead}/template/clone/${this.project_id}/?template_id=${template_id}`
                 }
-                let querys = ''
-                const entrance = this.getEntrance(name)
-                urlMap[name].query.forEach(item => {
-                    if (template_id && item === 'template_id') {
-                        querys += `&template_id=${template_id}`
-                    }
-                    if ((this.common || this.common_template) && item === 'common') {
-                        querys += `&common=1`
-                    }
-                })
-                return `${urlMap[name].path}?entrance=${entrance}${querys}`
-            },
-            // 获取入口信息
-            getEntrance (name) {
-                return (new RegExp('/admin/').test(this.$route.path) ? 'admin' : 'template')
-                    + (new RegExp('/common/').test(this.$route.path) ? '_common' : '_business')
-                    + '_'
-                    + name
+                url = urlMap[name]
+                if (this.common) {
+                    url += url.indexOf('?') > -1 ? '&common=1' : '?common=1'
+                }
+                return url
             },
             getExecuteHistoryUrl (id) {
                 let url = `/taskflow/home/${this.project_id}/?template_id=${id}`
@@ -887,12 +868,6 @@
                     border-color: $blueDefault;
                 }
             }
-            .ommon-icon-search {
-                position: relative;
-                right: 15px;
-                top: 11px;
-                color:#dddddd;
-            }
             .search-input.placeholder {
                 color: $formBorderColor;
             }
@@ -926,12 +901,6 @@
     .template-search {
         height: 156px;
         background: #fff;
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
     }
     .template-advanced-search {
         float: right;
@@ -971,12 +940,12 @@
             overflow: visible;
         }
     }
+    .template-operation > .text-permission-disable {
+        padding: 5px;
+    }
     .template-operate-btn {
         padding: 5px;
         color: #3c96ff;
-    }
-    .text-permission-disable {
-        padding: 5px;
     }
     .drop-icon-ellipsis {
         position: absolute;

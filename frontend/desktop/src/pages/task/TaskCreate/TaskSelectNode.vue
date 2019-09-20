@@ -18,7 +18,7 @@
                     'scheme-right-header',
                     { 'scheme-toggle-right-header': !showPanel }
                 ]">
-                <div class="scheme-combine-shape" @click="togglePanel">
+                <div class="scheme-combine-shape" @click="toggleSchemePanel">
                     <i class="common-icon-paper" v-bk-tooltips="{
                         content: i18n.schema,
                         placements: ['top']
@@ -34,6 +34,7 @@
                         <bk-input
                             v-model="schemeName"
                             v-validate="schemeNameRule"
+                            data-vv-validate-on=" "
                             name="schemeName"
                             class="bk-input-inline"
                             :clearable="true"
@@ -79,27 +80,28 @@
                     </div>
                 </div>
             </div>
-            <pipelineCanvas
+            <TemplateCanvas
                 v-if="!loading && !isPreviewMode"
-                ref="pipelineCanvas"
+                ref="templateCanvas"
                 :preview-data-loading="previewDataLoading"
-                :is-menu-bar-show="false"
-                :is-config-bar-show="false"
-                :is-edit="false"
-                :is-select-node="isSchemeShow"
-                :is-select-all-node="isSelectAllNode"
+                :show-palette="false"
+                :editable="false"
+                :is-node-check-open="isSchemeShow"
+                :is-all-selected="isAllSelected"
+                :is-show-select-all-tool="true"
                 :canvas-data="canvasData"
+                @onNodeCheckClick="onNodeCheckClick"
                 @onToggleAllNode="onToggleAllNode">
-            </pipelineCanvas>
+            </TemplateCanvas>
             <NodePreview
                 v-else
                 ref="nodePreview"
                 :preview-data-loading="previewDataLoading"
-                :canvas-data="formatCanvasData(previewData)"
+                :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
-                :is-select-node="isSchemeShow"
-                :is-select-all-node="isSelectAllNode"
-                :is-preview-mode="isPreviewMode"
+                :is-all-selected="isAllSelected"
+                :is-show-select-all-tool="true"
+                :is-select-all-tool-disabled="isPreviewMode"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
             </NodePreview>
@@ -119,7 +121,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import PipelineCanvas from '@/components/common/PipelineCanvas/index.vue'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
     import formatPositionUtils from '@/utils/formatPosition.js'
     import permission from '@/mixins/permission.js'
@@ -127,7 +129,7 @@
     export default {
         name: 'TaskSelectNode',
         components: {
-            PipelineCanvas,
+            TemplateCanvas,
             NodePreview
         },
         mixins: [permission],
@@ -153,6 +155,7 @@
                 isDelete: false,
                 showPanel: true,
                 selectedNodes: [],
+                allSelectableNodes: [],
                 selectedScheme: '',
                 schemeName: '',
                 schemeNameRule: {
@@ -174,8 +177,7 @@
                 pipelineData: '',
                 isPreview: false,
                 lastSelectSchema: '',
-                allSelectedNode: [],
-                isSelectAllNode: true,
+                isAllSelected: true,
                 taskActionShow: false,
                 tplActions: [],
                 tplOperations: [],
@@ -185,8 +187,8 @@
         computed: {
             ...mapState({
                 'activities': state => state.template.activities,
-                'locations': state => state.template.location,
-                'lines': state => state.template.line,
+                'location': state => state.template.location,
+                'line': state => state.template.line,
                 'constants': state => state.template.constants,
                 'gateways': state => state.template.gateways,
                 'taskScheme': state => state.task.taskScheme,
@@ -194,35 +196,20 @@
                 'viewMode': state => state.view_mode
             }),
             canvasData () {
-                const branchConditions = {}
-                let mode
-                for (const gKey in this.gateways) {
-                    const item = this.gateways[gKey]
-                    if (item.conditions) {
-                        branchConditions[item.id] = Object.assign({}, item.conditions)
-                    }
-                }
+                let mode = 'select'
                 if (this.viewMode === 'appmaker') {
                     mode = 'selectDisabled'
-                } else {
-                    mode = 'select'
                 }
-                return {
-                    lines: this.lines,
-                    locations: this.locations.map(item => {
-                        return { ...item, mode, checked: true }
-                    }),
-                    branchConditions
-                }
+                return this.formatCanvasData(mode, this)
             },
             isSchemeShow () {
-                return this.viewMode !== 'appmaker' && this.locations.some(item => item.optional)
+                return this.viewMode !== 'appmaker' && this.location.some(item => item.optional)
             },
             isCommonProcess () {
                 return Number(this.$route.query.common) === 1
             }
         },
-        mounted () {
+        created () {
             this.getTemplateData()
         },
         methods: {
@@ -255,6 +242,7 @@
                         templateId: this.template_id,
                         common: this.common
                     }
+                    const selectedNodes = []
                     const templateData = await this.loadTemplateData(data)
                     this.tplActions = templateData.auth_actions
                     this.tplOperations = templateData.auth_operations
@@ -270,9 +258,18 @@
                 
                     this.setTaskScheme(schemeData)
                     this.setTemplateData(templateData)
-                    this.modifySelectedLocation()
-                    this.allSelectedNode = this.selectedNodes
-                    this.updateSelectedLocation()
+                    this.allSelectableNodes = this.location.filter(item => item.optional)
+                    this.allSelectableNodes.forEach(item => {
+                        if (this.excludeNode.indexOf(item.id) === -1) {
+                            selectedNodes.push(item.id)
+                        }
+                    })
+                    this.selectedNodes = selectedNodes
+                    this.canvasData.locations.forEach(item => {
+                        if (this.selectedNodes.indexOf(item.id) > -1) {
+                            this.$set(item, 'checked', true)
+                        }
+                    })
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -280,13 +277,55 @@
                 }
             },
             /**
-             * 面板是否显示
+             * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、为使用的全局变量)
+             * @params {String} templateId  模板 ID
+             * @params {Boolean} isSubflow  是否为子流程预览
              */
-            togglePanel () {
+            async getPreviewNodeData (templateId, isSubflow = false, inExcludeNode) {
+                this.previewDataLoading = true
+                this.isPreview = true
+                const excludeNode = isSubflow ? [] : this.getExcludeNode()
+                const templateSource = this.common ? 'common' : 'business'
+                const params = {
+                    templateId: templateId,
+                    excludeTaskNodesId: JSON.stringify(excludeNode),
+                    common: this.common,
+                    cc_id: this.cc_id,
+                    template_source: templateSource,
+                    version: this.version
+                }
+                try {
+                    const resp = await this.loadPreviewNodeData(params)
+                    if (resp.result) {
+                        const previewNodeData = resp.data.pipeline_tree
+                        const { line, location } = previewNodeData
+                        if (formatPositionUtils.isLocationAllNode(location)) {
+                            const data = formatPositionUtils.formatPosition(line, location)
+                            previewNodeData['line'] = data['lines']
+                            previewNodeData['location'] = data['locations']
+                        }
+                        this.previewData = previewNodeData
+                        
+                        if (!isSubflow) {
+                            this.pipelineData = tools.deepClone(previewNodeData)
+                        }
+                    } else {
+                        errorHandler(resp, this)
+                    }
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.previewDataLoading = false
+                }
+            },
+            /**
+             * 任务方案面板是否显示
+             */
+            toggleSchemePanel () {
                 this.showPanel = !this.showPanel
             },
             /**
-             * 显示任务方案面板
+             * 创建任务方案弹窗
              */
             onShowSchemeDialog () {
                 if (!this.hasPermission(['create_scheme'], this.tplActions, this.tplOperations)) {
@@ -302,41 +341,14 @@
                     this.taskActionShow = true
                 }
             },
-            /**
-             * 显示任务方案面板
-             * @return {Array} nodeId  被选中的ID数组
-             */
             getExcludeNode () {
-                let canvasEl
-                if (this.$refs.pipelineCanvas === undefined) {
-                    canvasEl = this.$refs.nodePreview.$el
-                } else {
-                    canvasEl = this.$refs.pipelineCanvas.$el
-                }
-                const optionalNode = canvasEl.querySelectorAll('.node-checkbox input[type="checkbox"]')
-                const nodeId = []
-                Array.prototype.forEach.call(optionalNode, function (item) {
-                    if (!item.checked) {
-                        nodeId.push(item.dataset.id)
+                const nodes = []
+                this.allSelectableNodes.filter(item => {
+                    if (this.selectedNodes.indexOf(item.id) === -1) {
+                        nodes.push(item.id)
                     }
                 })
-                return nodeId
-            },
-            /**
-             * 通过已选节点数据，获取排除节点的数组
-             */
-            getExcludeNodeBySelectId (data) {
-                const excludeNode = []
-                this.canvasData.locations.forEach(item => {
-                    if (
-                        this.isCanSelectNode(item)
-                        && item.optional
-                        && data.indexOf(item.id) === -1
-                    ) {
-                        excludeNode.push(item.id)
-                    }
-                })
-                return excludeNode
+                return nodes
             },
             /**
              * 添加方案
@@ -354,17 +366,8 @@
                         this.isSubmit = false
                         return
                     }
-                    const excludeNode = this.getExcludeNode()
-                    const selectedNodes = []
-                    this.canvasData.locations.forEach(item => {
-                        if (this.isCanSelectNode(item)) {
-                            if (excludeNode.indexOf(item.id) === -1) {
-                                selectedNodes.push(item.id)
-                            }
-                        }
-                    })
-                    this.selectedNodes = selectedNodes.slice()
                     this.schemeName = this.schemeName.trim()
+                    const selectedNodes = this.selectedNodes.slice()
                     const scheme = {
                         project_id: this.project_id,
                         template_id: this.template_id,
@@ -396,31 +399,6 @@
                 })
             },
             /**
-             * 更新选择节点
-             */
-            updateSelectedLocation () {
-                const pipelineCanvas = this.$refs.pipelineCanvas
-                this.canvasData.locations.forEach((item) => {
-                    if (this.isCanSelectNode(item)) {
-                        const checkState = this.selectedNodes.indexOf(item.id) > -1
-                        this.$set(item, 'checked', checkState)
-                        pipelineCanvas && pipelineCanvas.onUpdateNodeInfo(item.id, item)
-                    }
-                })
-            },
-            modifySelectedLocation () {
-                const selectedNodes = []
-                this.locations.forEach(item => {
-                    if (
-                        this.isCanSelectNode(item)
-                        && this.excludeNode.indexOf(item.id) === -1
-                    ) {
-                        selectedNodes.push(item.id)
-                    }
-                })
-                this.selectedNodes = selectedNodes
-            },
-            /**
              * 选择方案并进行切换更新选择的节点
              */
             async onSelectScheme (id) {
@@ -429,18 +407,20 @@
                     this.lastSelectSchema = ''
                     if (this.isPreviewMode) {
                         await this.getPreviewNodeData(this.template_id, true)
-                    } else {
-                        this.modifySelectedLocation()
-                        this.updateSelectedLocation()
                     }
                 } else {
                     this.lastSelectSchema = id
                     try {
                         const data = await this.getSchemeDetail({ id: id, isCommon: this.isCommonProcess })
                         this.selectedNodes = tools.deepClone(data.data)
-                        const excludeNode = this.getExcludeNodeBySelectId(JSON.parse(this.selectedNodes))
+                        const excludeNode = this.getExcludeNode()
                         this.$emit('setExcludeNode', excludeNode)
-                        this.updateSelectedLocation()
+                        this.canvasData.locations.forEach(item => {
+                            if (this.isSelectableNode(item.id)) {
+                                const checked = this.selectedNodes.indexOf(item.id) > -1
+                                this.$set(item, 'checked', checked)
+                            }
+                        })
                         if (this.isPreviewMode) {
                             await this.getPreviewNodeData(this.template_id, false, excludeNode)
                         }
@@ -480,49 +460,17 @@
                 }
             },
             /**
-             * 全选可选节点
-             */
-            onSelectAllNode () {
-                const list = []
-                this.canvasData.locations.forEach(item => {
-                    if (this.isCanSelectNode(item)) {
-                        item.checked = true
-                        list.push(item.id)
-                    }
-                })
-                this.selectedNodes = list
-                this.updateSelectedLocation()
-            },
-            /**
-             * 取消所有可选节点
-             */
-            onSelectNoneNode () {
-                this.canvasData.locations.forEach(item => {
-                    if (this.isCanSelectNode(item)) {
-                        item.checked = false
-                    }
-                })
-                this.selectedNodes = []
-                this.updateSelectedLocation()
-            },
-            /**
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
                 this.loading = true
-                let excludeNode = []
-                if (this.isPreviewMode) {
-                    excludeNode = this.excludeNode
-                } else {
-                    excludeNode = this.getExcludeNode()
-                }
+                const excludeNode = this.getExcludeNode()
                 try {
                     if (!this.isPreview) {
                         await this.getPreviewNodeData(this.template_id)
                     }
                 
                     this.$emit('setExcludeNode', excludeNode)
-                    this.updateSelectedLocation()
                     this.$emit('setPreviewData', this.pipelineData)
                 
                     this.loading = false
@@ -563,69 +511,6 @@
                 } else {
                     this.isPreviewMode = false
                     this.previewBread = []
-                }
-            },
-            /**
-             * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、为使用的全局变量)
-             * @params {String} templateId  模板 ID
-             * @params {Boolean} isSubflow  是否为子流程预览
-             */
-            async getPreviewNodeData (templateId, isSubflow = false, inExcludeNode) {
-                this.previewDataLoading = true
-                this.isPreview = true
-                let excludeNode
-                try {
-                    excludeNode = this.getExcludeNode()
-                } catch (e) {
-                    excludeNode = this.getExecuteNodeList()
-                }
-                excludeNode = isSubflow ? [] : (inExcludeNode || excludeNode)
-                const templateSource = this.common ? 'common' : 'business'
-                const params = {
-                    templateId: templateId,
-                    excludeTaskNodesId: JSON.stringify(excludeNode),
-                    common: this.common,
-                    project_id: this.project_id,
-                    template_source: templateSource,
-                    version: this.version
-                }
-                try {
-                    const resp = await this.loadPreviewNodeData(params)
-                    if (resp.result) {
-                        const previewNodeData = resp.data.pipeline_tree
-                        // let compareNodeData = JSON.stringify(previewNodeData)
-                        // while (true) {
-                        //     this.clearUnnecessaryGateway(previewNodeData)
-                        //     if (compareNodeData === JSON.stringify(previewNodeData)) {
-                        //         break
-                        //     }
-                        //     compareNodeData = JSON.stringify(previewNodeData)
-                        // }
-                        const { line, location } = previewNodeData
-                        if (formatPositionUtils.isLocationAllNode(location)) {
-                            const data = formatPositionUtils.formatPosition(line, location)
-                            previewNodeData['line'] = data['lines']
-                            previewNodeData['location'] = data['locations']
-                        }
-                        this.previewData = previewNodeData
-                        // 改变预览前的选择节点
-                        this.canvasData.locations.forEach(item => {
-                            // 先还原为全部选中
-                            item.checked = true
-                            if (this.isCanSelectNode(item) && !(item.id in previewNodeData.activities)) {
-                                item.checked = false
-                            }
-                        })
-                        if (!isSubflow) {
-                            this.pipelineData = tools.deepClone(previewNodeData)
-                        }
-                    } else {
-                        errorHandler(resp, this)
-                    }
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.previewDataLoading = false
                 }
             },
             /**
@@ -726,41 +611,11 @@
                 return Object.assign(previewNodeData, { line, location })
             },
             /**
-             * 点击子流程节点，并进入新的canvas画面
-             * @params {String} id  点击的子流程节点id
-             */
-            onNodeClick (id) {
-                const activity = this.previewData.activities[id]
-                if (!activity || activity.type !== 'SubProcess') {
-                    return
-                }
-                const templateId = activity.template_id
-                this.previewBread.push({
-                    data: templateId,
-                    name: activity.name
-                })
-                this.getPreviewNodeData(templateId, true)
-            },
-            /**
-             * 点击预览模式下的面包屑
-             * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
-             * @params {Number} index  点击的面包屑的下标
-             */
-            onSelectSubflow (id, index) {
-                if (id === this.template_id) {
-                    this.previewData = this.pipelineData
-                    this.updateCanvas()
-                } else {
-                    this.getPreviewNodeData(id, true)
-                }
-                this.previewBread.splice(index + 1, this.previewBread.length)
-            },
-            /**
              * 格式化pipelineTree的数据，只输出一部分数据
              * @params {Object} data  需要格式化的pipelineTree
              * @return {Object} {lines（线段连接）, locations（节点默认都被选中）, branchConditions（分支条件）}
              */
-            formatCanvasData (data) {
+            formatCanvasData (mode, data) {
                 const { line, location, gateways } = data
                 const branchConditions = {}
                 for (const gKey in gateways) {
@@ -772,7 +627,7 @@
                 return {
                     lines: line,
                     locations: location.map(item => {
-                        return { ...item, mode: 'preview', checked: true }
+                        return { ...item, mode }
                     }),
                     branchConditions
                 }
@@ -792,25 +647,78 @@
              * 在没有画布时，获取执行节点
              */
             getExecuteNodeList () {
-                return this.allSelectedNode.filter(item => {
+                return this.allSelectableNodes.filter(item => {
                     return !this.selectedNodes.includes(item)
                 })
             },
-            onToggleAllNode (value) {
-                this.isSelectAllNode = value
-                if (value) {
-                    this.onSelectAllNode()
+            onToggleAllNode (val) {
+                this.isAllSelected = val
+                this.canvasData.locations.forEach(item => {
+                    if (this.isSelectableNode(item.id)) {
+                        this.$set(item, 'checked', val)
+                    }
+                })
+                const selectableNodes = this.allSelectableNodes.map(item => item.id)
+                if (val) {
+                    this.selectedNodes = selectableNodes
                 } else {
-                    this.onSelectNoneNode()
+                    this.selectedNodes = []
                 }
+            },
+            /**
+             * 点击子流程节点，并进入新的canvas画面
+             * @params {String} id  点击的子流程节点id
+             */
+            onNodeClick (id) {
+                const activity = this.previewData.activities[id]
+                if (!activity || activity.type !== 'SubProcess') {
+                    return
+                }
+                const templateId = activity.template_id
+                this.previewBread.push({
+                    data: templateId,
+                    name: activity.name
+                })
+                this.getPreviewNodeData(templateId, true)
+            },
+            onNodeCheckClick (id, val) {
+                this.canvasData.locations.some(item => {
+                    if (item.id === id) {
+                        this.$set(item, 'checked', val)
+                        return true
+                    }
+                })
+                if (!val) {
+                    this.isAllSelected = false
+                    this.selectedNodes = this.selectedNodes.filter(item => item !== id)
+                } else {
+                    if (this.selectedNodes.length === this.allSelectableNodes.length - 1) {
+                        this.isAllSelected = true
+                    }
+                    this.selectedNodes.push(id)
+                }
+            },
+            /**
+             * 点击预览模式下的面包屑
+             * @params {String} id  点击的节点id（可能为父节点或其他子流程节点）
+             * @params {Number} index  点击的面包屑的下标
+             */
+            onSelectSubflow (id, index) {
+                if (id === this.template_id) {
+                    this.previewData = this.pipelineData
+                    this.updateCanvas()
+                } else {
+                    this.getPreviewNodeData(id, true)
+                }
+                this.previewBread.splice(index + 1, this.previewBread.length)
             },
             // 取消添加执行方案
             onCancelScheme () {
                 this.schemeName = ''
                 this.taskActionShow = false
             },
-            isCanSelectNode (node) {
-                return node.type === 'tasknode' || node.type === 'subflow'
+            isSelectableNode (id) {
+                return this.allSelectableNodes.findIndex(item => item.id === id) > -1
             }
         }
     }
@@ -827,11 +735,8 @@
     min-height: 500px;
     border-bottom: 1px solid $commonBorderColor;
     overflow: hidden;
-    /deep/ .node-canvas {
-        width: 100%;
-        height: 100%;
-        background: #e1e4e8;
-        border-top: 1px solid #dcdee5;
+    /deep/ .jsflow .tool-panel-wrap {
+        left: 40px;
     }
     .node-preview-wrapper {
         height: 100%;

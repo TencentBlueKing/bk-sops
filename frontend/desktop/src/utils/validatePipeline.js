@@ -18,12 +18,12 @@ const NODE_RULE = {
         max_in: 0,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'branchgateway', 'parallelgateway', 'endpoint', 'subflow'],
+        allowed_out: ['tasknode', 'branchgateway', 'parallelgateway', 'subflow'],
         unique: true
     },
     'endpoint': {
         min_in: 1,
-        max_in: 1,
+        max_in: 1000,
         min_out: 0,
         max_out: 0,
         allowed_out: [],
@@ -31,30 +31,6 @@ const NODE_RULE = {
     },
     'tasknode': {
         min_in: 1,
-        max_in: 1,
-        min_out: 1,
-        max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
-        unique: false
-    },
-    'branchgateway': {
-        min_in: 1,
-        max_in: 1,
-        min_out: 2,
-        max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
-        unique: false
-    },
-    'parallelgateway': {
-        min_in: 1,
-        max_in: 1,
-        min_out: 2,
-        max_out: 1000,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
-        unique: false
-    },
-    'convergegateway': {
-        min_in: 2,
         max_in: 1000,
         min_out: 1,
         max_out: 1,
@@ -63,10 +39,34 @@ const NODE_RULE = {
     },
     'subflow': {
         min_in: 1,
-        max_in: 1,
+        max_in: 1000,
         min_out: 1,
         max_out: 1,
-        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'endpoint', 'convergegateway'],
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
+        unique: false
+    },
+    'branchgateway': {
+        min_in: 1,
+        max_in: 1000,
+        min_out: 1,
+        max_out: 1000,
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        unique: false
+    },
+    'parallelgateway': {
+        min_in: 1,
+        max_in: 1000,
+        min_out: 1,
+        max_out: 1000,
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway'],
+        unique: false
+    },
+    'convergegateway': {
+        min_in: 1,
+        max_in: 1000,
+        min_out: 1,
+        max_out: 1,
+        allowed_out: ['tasknode', 'subflow', 'branchgateway', 'parallelgateway', 'convergegateway', 'endpoint'],
         unique: false
     }
 }
@@ -168,8 +168,6 @@ const validatePipeline = {
      */
     isNodeNumValida (data) {
         let message
-        let branchAndParallelGateways = 0
-        let convergegateways = 0
         let tasknode = 0
         let subflow = 0
         const isLineNumValid = data.locations.every(loc => {
@@ -177,11 +175,7 @@ const validatePipeline = {
             const name = loc.name || NODE_DICT[loc.type]
             let sourceLinesLinked = 0
             let targetLinesLinked = 0
-            if (loc.type === 'branchgateway' || loc.type === 'parallelgateway') {
-                branchAndParallelGateways += 1
-            } else if (loc.type === 'convergegateway') {
-                convergegateways += 1
-            } else if (loc.type === 'tasknode') {
+            if (loc.type === 'tasknode') {
                 tasknode += 1
             } else if (loc.type === 'subflow') {
                 subflow += 1
@@ -214,11 +208,6 @@ const validatePipeline = {
 
         if ((tasknode + subflow) === 0) {
             message = gettext('请添加任务节点')
-            return this.getMessage(false, message)
-        }
-
-        if (branchAndParallelGateways !== convergegateways) {
-            message = gettext('并行网关、分支网关个数和汇聚网关个数必须一致，并且必须配对使用')
             return this.getMessage(false, message)
         }
 
