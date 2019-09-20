@@ -107,15 +107,20 @@
             <div :class="['pipeline-nodes', {
                 'task-params-show': isTaskParamsShow
             }]">
-                <PipelineCanvas
-                    ref="pipelineCanvas"
+                <TemplateCanvas
+                    ref="templateCanvas"
                     v-if="!nodeSwitching"
-                    :is-menu-bar-show="false"
-                    :is-config-bar-show="false"
-                    :is-edit="false"
+                    :editable="false"
+                    :show-palette="false"
                     :canvas-data="canvasData"
-                    @onNodeClick="onNodeClick">
-                </PipelineCanvas>
+                    @onNodeClick="onNodeClick"
+                    @onRetryClick="onRetryClick"
+                    @onSkipClick="onSkipClick"
+                    @onModifyTimeClick="onModifyTimeClick"
+                    @onGatewaySelectionClick="onGatewaySelectionClick"
+                    @onTaskNodeResumeClick="onTaskNodeResumeClick"
+                    @onSubflowPauseResumeClick="onSubflowPauseResumeClick">
+                </TemplateCanvas>
             </div>
         </div>
         <transition name="slideRight">
@@ -174,11 +179,10 @@
 <script>
     import '@/utils/i18n.js'
     import { mapActions, mapState } from 'vuex'
-    import Tooltip from 'tooltip.js'
     import { errorHandler } from '@/utils/errorHandler.js'
     import dom from '@/utils/dom.js'
     import { TASK_STATE_DICT } from '@/constants/index.js'
-    import PipelineCanvas from '@/components/common/PipelineCanvas'
+    import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import ViewParams from './ViewParams.vue'
     import ModifyParams from './ModifyParams.vue'
     import ExecuteInfo from './ExecuteInfo.vue'
@@ -220,7 +224,7 @@
     export default {
         name: 'TaskOperation',
         components: {
-            PipelineCanvas,
+            TemplateCanvas,
             ViewParams,
             ModifyParams,
             ExecuteInfo,
@@ -265,7 +269,6 @@
                 nodeSwitching: false,
                 isGatewaySelectDialogShow: false,
                 gatewayBranches: [],
-                nodeTooltipInstance: {},
                 pending: {
                     skip: false,
                     selectGateway: false,
@@ -306,7 +309,7 @@
                 return {
                     lines: line,
                     locations: location.map(item => {
-                        return { ...item, mode: 'preview', checked: true }
+                        return { ...item, mode: 'execute', checked: true }
                     }),
                     branchConditions
                 }
@@ -369,12 +372,10 @@
         },
         mounted () {
             this.loadTaskStatus()
-            this.$el.addEventListener('click', this.handleNodeHoverClick, false)
             window.addEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         beforeDestroy () {
             this.cancelTaskStatusTimer()
-            this.$el.removeEventListener('click', this.handleNodeHoverClick, false)
             window.removeEventListener('click', this.handleNodeInfoPanelHide, false)
         },
         methods: {
@@ -516,8 +517,7 @@
                     this.pending.task = false
                 }
             },
-            async nodeTaskSkip (tooltipDom, data) {
-                tooltipDom.style.display = 'none'
+            async nodeTaskSkip (data) {
                 this.pending.skip = true
                 try {
                     const res = await this.instanceNodeSkip(data)
@@ -526,12 +526,10 @@
                             message: gettext('跳过成功'),
                             theme: 'success'
                         })
-                        this.destroyTooltipInstance(data.id)
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
                     } else {
-                        tooltipDom.style.display = 'block'
                         errorHandler(res, this)
                     }
                 } catch (e) {
@@ -549,7 +547,6 @@
                             message: gettext('跳过成功'),
                             theme: 'success'
                         })
-                        this.destroyTooltipInstance(data.id)
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -571,7 +568,6 @@
                             message: gettext('继续成功'),
                             theme: 'success'
                         })
-                        this.destroyTooltipInstance(data.id)
                         setTimeout(() => {
                             this.setTaskStatusTimer()
                         }, 1000)
@@ -605,146 +601,27 @@
             updateNodeInfo () {
                 const nodes = this.instanceStatus.children
                 for (const id in nodes) {
-                    const nodeActivities = this.pipelineData.activities[id]
-                    const nodeEl = document.querySelector(`#${id}`)
+                    let code, canSkipped, canRetry
                     let isSkipped = false
+                    const nodeActivities = this.pipelineData.activities[id]
+                    
                     if (nodes[id].state === 'FINISHED') {
                         isSkipped = nodes[id].skip || nodes[id].error_ignorable
-                        this.destroyTooltipInstance(id)
-                    } else if (nodes[id].state === 'FAILED') { // 初始化失败节点重试 tooltip（任务节点、分支网关）
-                        const type = nodeEl ? nodeEl.dataset.type : 'undefined'
-                        if (type === 'tasknode') {
-                            const tpl = this.getFailedBtnTpl(id, nodeActivities.isSkipped, nodeActivities.can_retry)
-                            this.generateTooltipInstance(nodeEl, id, tpl)
-                        } else if (type === 'branchgateway') {
-                            const tpl = this.getGatewayBtnTpl(id)
-                            this.generateTooltipInstance(nodeEl, id, tpl)
-                        }
-                    } else if ( // 初始化定时节点修改时间 tooltip
-                        nodes[id].state === 'RUNNING'
-                        && nodeActivities
-                        && nodeActivities.component
-                        && nodeActivities.component.code === 'sleep_timer'
-                        && !this.nodeTooltipInstance[id]
-                    ) {
-                        const tpl = this.getModityTimeBtnTpl(id)
-                        this.generateTooltipInstance(nodeEl, id, tpl)
-                    } else if ( // 初始化暂停节点继续 tooltip
-                        nodes[id].state === 'RUNNING'
-                        && nodeActivities
-                        && nodeActivities.component
-                        && nodeActivities.component.code === 'pause_node'
-                        && !this.nodeTooltipInstance[id]
-                    ) {
-                        const tpl = this.getPauseResumeBtnTpl(id)
-                        this.generateTooltipInstance(nodeEl, id, tpl)
-                    } else if ( // 初始化子流程节点暂停 tooltip
-                        nodes[id].state === 'RUNNING'
-                        && nodeActivities
-                        && nodeActivities.type === 'SubProcess'
-                    ) {
-                        const tpl = this.getSubflowPauseBtnTpl(id)
-                        if (!this.nodeTooltipInstance[id]) {
-                            this.generateTooltipInstance(nodeEl, id, tpl)
-                        } else {
-                            this.nodeTooltipInstance[id].updateTitleContent(tpl)
-                        }
-                    } else if ( // 初始化子流程节点继续 tooltip
-                        nodes[id].state === 'SUSPENDED'
-                        && nodeActivities
-                        && nodeActivities.type === 'SubProcess'
-                    ) {
-                        const tpl = this.getSubflowResumeBtnTpl(id)
-                        if (!this.nodeTooltipInstance[id]) {
-                            this.generateTooltipInstance(nodeEl, id, tpl)
-                        } else {
-                            this.nodeTooltipInstance[id].updateTitleContent(tpl)
-                        }
-                    }
-                    const data = { status: nodes[id].state, isSkipped }
-
-                    // 暂停节点右上角显示暂停icon
-                    if (nodes[id].state === 'RUNNING'
-                        && nodeActivities
-                        && nodeActivities.component
-                        && nodeActivities.component.code === 'pause_node'
-                    ) {
-                        data.status = 'SUSPENDED'
                     }
 
-                    // 定时节点右上角显示时钟icon
-                    if (nodes[id].state === 'RUNNING'
-                        && nodeActivities
-                        && nodeActivities.component
-                        && nodeActivities.component.code === 'sleep_timer'
-                    ) {
-                        data.isShowClockIcon = true
+                    if (nodeActivities) {
+                        code = nodeActivities.component ? nodeActivities.component.code : ''
+                        canSkipped = nodeActivities.isSkipped
+                        canRetry = nodeActivities.can_retry
                     }
+                    
+                    const data = { status: nodes[id].state, isSkipped, code, canSkipped, canRetry }
 
                     this.setTaskNodeStatus(id, data)
                 }
             },
             setTaskNodeStatus (id, data) {
-                this.$refs.pipelineCanvas && this.$refs.pipelineCanvas.onUpdateNodeInfo(id, data)
-            },
-            getFailedBtnTpl (id, isSkipped, retry) {
-                const i18n_retry = gettext('重试')
-                const i18n_skip = gettext('跳过')
-                const atom_failed = gettext('流程模板中该标准插件节点未配置失败处理方式，不可操作')
-                let content = `<div class="btn-wrapper">`
-                if (retry) {
-                    content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
-                }
-                if (isSkipped) {
-                    content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
-                }
-                // 兼容老数据
-                if (retry === undefined && isSkipped === undefined) {
-                    content += `<div class="tooltip-btn retry-btn" data-id="${id}">${i18n_retry}</div>`
-                    content += `<div class="tooltip-btn skip-btn" data-id="${id}">${i18n_skip}</div>`
-                } else if (!retry && !isSkipped) {
-                    content += `<div class="atom-failed">${atom_failed}</div>`
-                }
-                content += `</div>`
-                return content
-            },
-            getModityTimeBtnTpl (id) {
-                const i18n_change_timer = gettext('修改时间')
-                return `<div class="btn-wrapper">
-                <div class="tooltip-btn modify-time-btn" data-id="${id}">${i18n_change_timer}</div>
-            </div>`
-            },
-            getGatewayBtnTpl (id) {
-                const i18n_skip = gettext('跳过')
-                return `<div class="btn-wrapper">
-                <div class="tooltip-btn gateway-select-btn" data-id="${id}">${i18n_skip}</div>
-            </div>`
-            },
-            getPauseResumeBtnTpl (id) {
-                const i18n_continue = gettext('继续')
-                return `<div class="btn-wrapper">
-                <div class="tooltip-btn pause-resume-btn" data-id="${id}">${i18n_continue}</div>
-            </div>`
-            },
-            getSubflowPauseBtnTpl (id) {
-                const i18n_pause = gettext('暂停')
-                return `<div class="btn-wrapper">
-                <div class="tooltip-btn subflow-pause-btn" data-id="${id}">${i18n_pause}</div>
-            </div>`
-            },
-            getSubflowResumeBtnTpl (id) {
-                const i18n_continue = gettext('继续')
-                return `<div class="btn-wrapper">
-                <div class="tooltip-btn subflow-resume-btn" data-id="${id}">${i18n_continue}</div>
-            </div>`
-            },
-            generateTooltipInstance (el, id, tpl) {
-                this.destroyTooltipInstance(id)
-                this.nodeTooltipInstance[id] = new Tooltip(el, {
-                    placement: 'bottom',
-                    html: true,
-                    title: tpl
-                })
+                this.$refs.templateCanvas && this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             setNodeDetailConfig (id) {
                 const nodeActivities = this.pipelineData.activities[id]
@@ -759,26 +636,6 @@
                     subprocess_stack: JSON.stringify(subprocessStack)
                 }
             },
-            // 节点 tooltip 操作
-            handleNodeHoverClick (e) {
-                const classList = e.target.classList
-                if (!classList) return
-                if (classList.contains('retry-btn')) {
-                    this.handleNodeRetryClick(e)
-                } else if (classList.contains('skip-btn')) {
-                    this.handleNodeSkipClick(e)
-                } else if (classList.contains('modify-time-btn')) {
-                    this.handleNodeModifyTimeClick(e)
-                } else if (classList.contains('gateway-select-btn')) {
-                    this.handleGatewaySelectClick(e)
-                } else if (classList.contains('pause-resume-btn')) {
-                    this.handlePauseResumeClick(e)
-                } else if (classList.contains('subflow-pause-btn')) {
-                    this.handleSubflowPauseClick(e)
-                } else if (classList.contains('subflow-resume-btn')) {
-                    this.handleSubflowResumeClick(e)
-                }
-            },
             handleNodeInfoPanelHide (e) {
                 const classList = e.target.classList
                 const isParamsBtn = classList.contains('params-btn')
@@ -786,7 +643,6 @@
                 if (!this.isNodeInfoPanelShow || isParamsBtn || isTooltipBtn) {
                     return
                 }
-                console.log(1)
                 const NodeInfoPanel = document.querySelector('.node-info-panel')
                 if (NodeInfoPanel) {
                     if (!dom.nodeContains(NodeInfoPanel, e.target)) {
@@ -796,32 +652,25 @@
                     }
                 }
             },
-            handleNodeRetryClick (e) {
-                const id = e.target.dataset.id
+            onRetryClick (id) {
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = 'retryNode'
                 this.setNodeDetailConfig(id)
-                this.updateNodeActived(id, true)
             },
-            handleNodeSkipClick (e) {
+            onSkipClick (id) {
                 if (this.pending.skip) return
-                const id = e.target.dataset.id
                 const data = {
                     instance_id: this.instance_id,
                     node_id: id
                 }
-                const tooltipDom = e.target.parentNode.parentNode.parentNode
-                this.nodeTaskSkip(tooltipDom, data)
+                this.nodeTaskSkip(data)
             },
-            handleNodeModifyTimeClick (e) {
-                const id = e.target.dataset.id
+            onModifyTimeClick (id) {
                 this.isNodeInfoPanelShow = true
                 this.nodeInfoType = 'modifyTime'
                 this.setNodeDetailConfig(id)
-                this.updateNodeActived(id, true)
             },
-            handleGatewaySelectClick (e) {
-                const id = e.target.dataset.id
+            onGatewaySelectionClick (id) {
                 const nodeGateway = this.pipelineData.gateways[id]
                 const branches = []
                 for (const item in nodeGateway.conditions) {
@@ -834,9 +683,8 @@
                 this.gatewayBranches = branches
                 this.isGatewaySelectDialogShow = true
             },
-            handlePauseResumeClick (e) {
+            onTaskNodeResumeClick (id) {
                 if (this.pending.parseNodeResume) return
-                const id = e.target.dataset.id
                 const data = {
                     instance_id: this.instance_id,
                     node_id: id,
@@ -844,15 +692,9 @@
                 }
                 this.nodeResume(data)
             },
-            handleSubflowPauseClick (e) {
+            onSubflowPauseResumeClick (id, value) {
                 if (this.pending.subflowPause) return
-                const id = e.target.dataset.id
-                this.taskPause(true, id)
-            },
-            handleSubflowResumeClick (e) {
-                if (this.pending.subflowResume) return
-                const id = e.target.dataset.id
-                this.taskResume(true, id)
+                value === 'pause' ? this.taskPause(true, id) : this.taskResume(true, id)
             },
             // 设置画布数据，更新页面
             setCanvasData () {
@@ -938,19 +780,8 @@
                 }
                 return nodes
             },
-            destroyTooltipInstance (id) {
-                if (this.nodeTooltipInstance[id]) {
-                    this.nodeTooltipInstance[id].dispose()
-                    delete this.nodeTooltipInstance[id]
-                }
-            },
-            clearTooltipInstance () {
-                Object.keys(this.nodeTooltipInstance).forEach(item => {
-                    this.destroyTooltipInstance(item)
-                })
-            },
             updateNodeActived (id, isActived) {
-                this.$refs.pipelineCanvas.onUpdateNodeInfo(id, { isActived })
+                this.$refs.templateCanvas.onUpdateNodeInfo(id, { isActived })
             },
             // 查看参数、修改参数
             onTaskParamsClick (type) {
@@ -1045,7 +876,6 @@
             },
             handleSubflowAtomClick (id) {
                 this.cancelTaskStatusTimer()
-                this.clearTooltipInstance()
                 const nodeActivities = this.pipelineData.activities[id]
                 this.nodeSwitching = true
                 this.selectedFlowPath.push({
@@ -1081,7 +911,6 @@
                 }
                 this.isNodeInfoPanelShow = false
                 this.nodeDetailConfig = {}
-                this.clearTooltipInstance()
                 this.cancelTaskStatusTimer()
                 this.updateTaskStatus(id)
             },
@@ -1135,7 +964,6 @@
             },
             onRetrySuccess (id) {
                 this.isNodeInfoPanelShow = false
-                this.destroyTooltipInstance(id)
                 this.setTaskStatusTimer()
                 this.updateNodeActived(id, false)
             },
@@ -1146,7 +974,6 @@
             },
             onModifyTimeSuccess (id) {
                 this.isNodeInfoPanelShow = false
-                this.destroyTooltipInstance(id)
                 this.setTaskStatusTimer()
                 this.updateNodeActived(id, false)
             },
@@ -1235,7 +1062,7 @@
             border-top: 1px solid #efb9be;
             border-bottom: 1px solid #efb9be;
             .task-status-name {
-                color: #EA3636;
+                color: #ea3636;
             }
         }
         &.REVOKED {

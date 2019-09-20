@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 const dom = {
-    nodeContains: function (root, el) {
+    nodeContains (root, el) {
         if (root.compareDocumentPosition) {
             return root === el || !!(root.compareDocumentPosition(el) & 16)
         }
@@ -19,6 +19,15 @@ const dom = {
         }
         while ((el = el.parentNode)) {
             if (el === root) return true
+        }
+        return false
+    },
+    parentClsContains (cls, el) {
+        if (el.classList.contains(cls)) {
+            return true
+        }
+        while ((el = el.parentNode)) {
+            if (el.classList && el.classList.contains(cls)) return true
         }
         return false
     }

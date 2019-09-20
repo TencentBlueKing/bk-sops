@@ -28,6 +28,9 @@ from auth_backend.plugins.shortcuts import (
     verify_or_return_insufficient_perms
 )
 
+from pipeline_web.drawing import CANVAS_WIDTH
+from pipeline_web.drawing import draw_pipeline as draw_pipeline_tree
+
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
 from gcloud.core.models import Project
@@ -378,3 +381,27 @@ def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
                     for var in act_comp['data']['job_global_var']['value']:
                         if 'id' in var:
                             var['id'] = id_map.get(VAR_ID_MAP, {}).get(var['id'], var['id'])
+
+
+@require_POST
+def draw_pipeline(request):
+    """
+    @summary：自动排版画布
+    @param request:
+    @return:
+    """
+    try:
+        params = json.loads(request.body)
+        pipeline_tree = params['pipeline_tree']
+        canvas_width = int(params.get('canvas_width', CANVAS_WIDTH))
+    except Exception as e:
+        message = 'json loads pipeline_tree error: %s' % e
+        logger.exception(e)
+        return JsonResponse({'result': False, 'message': message})
+    try:
+        draw_pipeline_tree(pipeline_tree, canvas_width=canvas_width)
+    except Exception as e:
+        message = 'draw pipeline_tree error: %s' % e
+        logger.exception(e)
+        return JsonResponse({'result': False, 'message': message})
+    return JsonResponse({'result': True, 'data': {'pipeline_tree': pipeline_tree}})

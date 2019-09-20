@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from pipeline.engine import api
+from pipeline.log.models import LogEntry
 
 STATE_MAP = {
     'CREATED': 'RUNNING',
@@ -125,10 +126,11 @@ def _get_parent_state_from_children_state(parent_state, children_state_list):
     @param children_state_list:
     @return:
     """
+    children_state_set = set(children_state_list)
     if parent_state == 'BLOCKED':
-        if 'RUNNING' in children_state_list:
+        if 'RUNNING' in children_state_set:
             parent_state = 'RUNNING'
-        if 'FAILED' in children_state_list:
+        if 'FAILED' in children_state_set:
             parent_state = 'FAILED'
     return parent_state
 
@@ -159,3 +161,7 @@ def _map(tree):
         'retry': tree['retry'],
         'skip': tree['skip']
     }
+
+
+def get_plain_log_for_node(node_id, history_id):
+    return LogEntry.objects.plain_log_for_node(node_id=node_id, history_id=history_id)
