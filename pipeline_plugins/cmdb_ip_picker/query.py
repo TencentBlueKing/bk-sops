@@ -19,8 +19,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
-
-from pipeline_plugins.components.utils import handle_api_error
+from pipeline_plugins.components.utils import (
+    handle_api_error,
+    format_sundry_ip
+)
 from gcloud.conf import settings
 
 from .utils import get_cmdb_topo_tree
@@ -88,6 +90,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
         fields = list(set(default_fields + fields))
         for host in host_info:
             host_detail = {field: host['host'][field] for field in fields if field in host['host']}
+            host_detail['bk_host_innerip'] = format_sundry_ip(host_detail['bk_host_innerip'])
             if 'set' in fields:
                 host_detail['set'] = host['set']
             if 'module' in fields:
