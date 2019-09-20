@@ -46,6 +46,7 @@
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
+                @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
             <div class="atom-node">
@@ -301,7 +302,8 @@
                 'loadTemplateData',
                 'saveTemplateData',
                 'loadCommonTemplateData',
-                'loadCustomVarCollection'
+                'loadCustomVarCollection',
+                'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -327,14 +329,16 @@
                 'setEndpoint',
                 'setBranchCondition',
                 'replaceTemplate',
-                'replaceLineAndLocation'
+                'replaceLineAndLocation',
+                'setPipelineTree'
             ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig',
                 'clearAtomForm'
             ]),
             ...mapGetters('template/', [
-                'getLocalTemplateData'
+                'getLocalTemplateData',
+                'getPipelineTree'
             ]),
             async getSingleAtomList () {
                 this.singleAtomListLoading = true
@@ -701,6 +705,36 @@
             onLabelBlur (labelData) {
                 this.variableDataChanged()
                 this.setBranchCondition(labelData)
+            },
+            async onFormatPosition () {
+                if (this.canvasDataLoading) {
+                    return
+                }
+                this.canvasDataLoading = true // @todo 支持画布单独loading
+                try {
+                    const pipelineTree = this.getPipelineTree()
+                    const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
+                    const width = canvasEl.offsetWidth
+                    const res = await this.getLayoutedPipeline({ width, pipelineTree })
+                    if (res.result) {
+                        this.onNewDraft(undefined, false)
+                        this.$refs.templateCanvas.removeAllConnector()
+                        this.setPipelineTree(res.data.pipeline_tree)
+                        this.$nextTick(() => {
+                            this.$refs.templateCanvas.updateCanvas()
+                            this.$bkMessage({
+                                message: gettext('排版完成，原内容在本地缓存中'),
+                                theme: 'success'
+                            })
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.canvasDataLoading = false
+                }
             },
             onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
