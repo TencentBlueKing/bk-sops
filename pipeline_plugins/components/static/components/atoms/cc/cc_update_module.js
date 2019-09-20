@@ -34,7 +34,7 @@
                     if (this.value) {
                         return
                     }
-                    this.value = $.context.canSelectBiz() ? '' : $.context.getBkBizId()
+                    this.value = $.context.getBkBizId()
                 }
             }
         },
@@ -46,7 +46,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ?  '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
+                    const url = $.context.canSelectBiz() ?  '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -63,7 +63,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.items = [];
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + cc_id + '/';
@@ -95,7 +95,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_object_attribute/module/' + $.context.getBkBizId() + '/';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_object_attribute/module/' + $.context.getBkBizId() + '/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -112,7 +112,7 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.items = [];
                         if (cc_id !== '') {
                             this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_object_attribute/module/' + cc_id + '/';
