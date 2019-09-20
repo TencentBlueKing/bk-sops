@@ -295,15 +295,18 @@
 </script>
 <style lang="scss" scoped>
     .template-header-wrapper {
+        position: relative;
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         padding: 0 20px;
         height: 59px;
         background: #f4f7fa;
         border: 1px solid #cacedb;
         .template-name-input {
-            position: relative;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             width: 430px;
             text-align: center;
         }
@@ -325,9 +328,9 @@
         }
         .common-icon-edit {
             float: right;
-            margin: 6px 0 0 4px;
+            margin: 9px 0 0 4px;
+            font-size: 12px;
             color: #546a9e;
-            vertical-align: 9px;
             cursor: pointer;
             &:hover {
                 color: #3480ff;
@@ -335,10 +338,11 @@
         }
         .name-error {
             position: absolute;
-            margin: 7px 0 0 10px;
-            right: 0;
+            margin: 6px 0 0 4px;
+            left: 100%;
             top: 6px;
             font-size: 12px;
+            white-space: nowrap;
         }
     }
 </style>
