@@ -412,6 +412,7 @@ $localBorderColor: #d8e2e7;
     height: 100%;
     .global-title {
         height: 35px;
+        line-height: 35px;
         margin: 20px;
         border-bottom: 1px solid #cacecb;
         span {
