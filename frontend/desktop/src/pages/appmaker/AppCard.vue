@@ -43,7 +43,7 @@
                     :to="getExecuteHistoryUrl(appData.template_id)">
                 </router-link>
                 <span
-                    :class="['common-icon-dustbin', 'operate-btn', {
+                    :class="['common-icon-gray-edit', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
                     v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
