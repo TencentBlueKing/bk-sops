@@ -96,7 +96,7 @@
                                     {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info"></i>
+                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info ui-failure-info"></i>
                             <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
@@ -1206,11 +1206,13 @@
         }
         .common-icon-info {
             display: inline-block;
-            vertical-align: middle;
             color: #c4c6cc;
             &:hover {
                 color: #f4aa1a;
             }
+        }
+        .ui-failure-info {
+            vertical-align: middle;
         }
     }
     &.form-name {
