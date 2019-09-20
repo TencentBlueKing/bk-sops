@@ -52,8 +52,7 @@ const project = {
         loadProjectList ({ commit }, data) {
             return api.loadProjectList(data).then(response => {
                 if (data && data.limit === 0) {
-                    const authedList = response.data.objects.filter(item => item.auth_actions.indexOf('view') > -1)
-                    commit('setProjectList', authedList)
+                    commit('setProjectList', response.data.objects)
                 }
                 
                 return response.data
@@ -73,6 +72,13 @@ const project = {
             return api.updateProject(data).then(
                 response => response.data
             )
+        }
+    },
+    getters: {
+        userCanViewProjects (state) {
+            return state.projectList.filter(item => {
+                return item.auth_actions.indexOf('view') > -1
+            })
         }
     }
 }

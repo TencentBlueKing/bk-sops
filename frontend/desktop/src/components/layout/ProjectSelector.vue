@@ -32,7 +32,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
 
     export default {
@@ -54,8 +54,10 @@
                 site_url: state => state.site_url
             }),
             ...mapState('project', {
-                project_id: state => state.project_id,
-                projectList: state => state.projectList
+                project_id: state => state.project_id
+            }),
+            ...mapGetters('project', {
+                projectList: 'userCanViewProjects'
             }),
             projects () {
                 const projects = []
