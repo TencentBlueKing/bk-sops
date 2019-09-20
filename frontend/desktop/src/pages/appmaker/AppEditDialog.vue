@@ -16,7 +16,7 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.title"
+        :title="dialogTitle"
         :auto-close="false"
         :value="isEditDialogShow"
         @confirm="onConfirm"
@@ -188,7 +188,8 @@
                 tplOperations: [],
                 tplResource: {},
                 i18n: {
-                    title: this.isCreateNewApp ? gettext('新建轻应用') : gettext('修改轻应用'),
+                    new: gettext('新建轻应用'),
+                    edit: gettext('修改轻应用'),
                     template: gettext('流程模板'),
                     templateTips: gettext('流程模板不能为空'),
                     appName: gettext('应用名称'),
@@ -204,6 +205,9 @@
             }
         },
         computed: {
+            dialogTitle () {
+                return this.isCreateNewApp ? this.i18n.new : this.i18n.edit
+            },
             btnPermission () {
                 return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
             },
@@ -330,6 +334,14 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+.bk-input-inline {
+    width: 260px;
+}
+.common-error-tip {
+    position: absolute;
+    left: 0;
+    bottom: -14px;
+}
 .app-edit-content {
     padding: 30px;
     .common-form-content {
@@ -338,7 +350,7 @@
     }
     .scheme-tooltip {
         position: absolute;
-        right: -20px;
+        left: 270px;
         top: 10px;
         color: #c4c6cc;
         &:hover {
