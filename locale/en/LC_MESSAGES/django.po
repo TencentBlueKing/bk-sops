@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-08-28 19:50+0800\n"
+"POT-Creation-Date: 2019-09-17 18:32+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -594,7 +594,7 @@ msgid "包源"
 msgstr "Package Source"
 
 #: gcloud/external_plugins/models/origin.py:96
-#: pipeline/contrib/external_plugins/models/base.py:82
+#: pipeline/contrib/external_plugins/models/base.py:83
 msgid "模块配置"
 msgstr "Modules Config"
 
@@ -690,7 +690,7 @@ msgstr "Creation method"
 msgid "启动时间"
 msgstr "Date Started"
 
-#: gcloud/external_plugins/models/sync.py:40 pipeline/engine/models/core.py:918
+#: gcloud/external_plugins/models/sync.py:40 pipeline/engine/models/core.py:919
 #: pipeline/engine/models/loop_activity.py:68 pipeline/models.py:602
 msgid "结束时间"
 msgstr "Date Finished"
@@ -749,7 +749,7 @@ msgstr "Exception"
 
 #: gcloud/periodictask/models.py:173
 #: pipeline/contrib/periodic_task/models.py:404
-#: pipeline/engine/models/core.py:824 pipeline/engine/models/core.py:917
+#: pipeline/engine/models/core.py:824 pipeline/engine/models/core.py:918
 #: pipeline/engine/models/loop_activity.py:67
 msgid "开始时间"
 msgstr "Date Started"
@@ -1055,11 +1055,11 @@ msgstr "Available"
 msgid "组件 Component"
 msgstr "Component"
 
-#: pipeline/contrib/external_plugins/models/base.py:80
+#: pipeline/contrib/external_plugins/models/base.py:81
 msgid "包源名"
 msgstr "Package Source NAme"
 
-#: pipeline/contrib/external_plugins/models/base.py:81
+#: pipeline/contrib/external_plugins/models/base.py:82
 msgid "是否是从配置文件中读取的"
 msgstr "Whether From Config File"
 
@@ -1283,7 +1283,7 @@ msgid "是否执行成功"
 msgstr "Success"
 
 #: pipeline/contrib/statistics/models.py:43 pipeline/engine/models/core.py:821
-#: pipeline/engine/models/core.py:920
+#: pipeline/engine/models/core.py:921
 msgid "是否跳过"
 msgstr "Skip OR Not"
 
@@ -1350,9 +1350,9 @@ msgid "用于冻结引擎, 冻结期间会屏蔽所有内部信号及暂停所�
 msgstr "Used to freeze engine. In which period all signals and processes will be shielded and all request refused."
 
 #: pipeline/engine/models/core.py:55 pipeline/engine/models/core.py:550
-#: pipeline/engine/models/core.py:872 pipeline/engine/models/core.py:915
-#: pipeline/engine/models/core.py:1026 pipeline/engine/models/core.py:1060
-#: pipeline/engine/models/core.py:1088 pipeline/engine/models/core.py:1121
+#: pipeline/engine/models/core.py:872 pipeline/engine/models/core.py:916
+#: pipeline/engine/models/core.py:1027 pipeline/engine/models/core.py:1061
+#: pipeline/engine/models/core.py:1089 pipeline/engine/models/core.py:1122
 #: pipeline/log/models.py:42
 msgid "ID"
 msgstr "ID"
@@ -1414,7 +1414,7 @@ msgid "距离"
 msgstr "Distance"
 
 #: pipeline/engine/models/core.py:816 pipeline/engine/models/core.py:863
-#: pipeline/engine/models/core.py:960 pipeline/engine/models/core.py:1122
+#: pipeline/engine/models/core.py:961 pipeline/engine/models/core.py:1123
 #: pipeline/engine/models/loop_activity.py:36 pipeline/log/models.py:49
 msgid "节点 ID"
 msgstr "Node ID"
@@ -1431,7 +1431,7 @@ msgstr "Node Name"
 msgid "重试次数"
 msgstr "Retry Times"
 
-#: pipeline/engine/models/core.py:820 pipeline/engine/models/core.py:919
+#: pipeline/engine/models/core.py:820 pipeline/engine/models/core.py:920
 msgid "循环次数"
 msgstr "Circle Times"
 
@@ -1459,71 +1459,71 @@ msgstr "Output Data"
 msgid "异常数据"
 msgstr "Exceptions"
 
-#: pipeline/engine/models/core.py:916
+#: pipeline/engine/models/core.py:917
 #: pipeline/engine/models/loop_activity.py:65
 #: pipeline/engine/models/loop_activity.py:99
 msgid "节点 id"
 msgstr "Node ID"
 
-#: pipeline/engine/models/core.py:959
+#: pipeline/engine/models/core.py:960
 #: pipeline/engine/models/loop_activity.py:35
 msgid "ID 节点ID+version"
 msgstr "ID Node+Version"
 
-#: pipeline/engine/models/core.py:961
+#: pipeline/engine/models/core.py:962
 msgid "Pipeline 进程 ID"
 msgstr "Pipeline process ID"
 
-#: pipeline/engine/models/core.py:962
+#: pipeline/engine/models/core.py:963
 #: pipeline/engine/models/loop_activity.py:37
 msgid "被调度次数"
 msgstr "Schedule times"
 
-#: pipeline/engine/models/core.py:963
+#: pipeline/engine/models/core.py:964
 #: pipeline/engine/models/loop_activity.py:38
 msgid "是否是回调型调度"
 msgstr "Schedulable"
 
-#: pipeline/engine/models/core.py:964
+#: pipeline/engine/models/core.py:965
 #: pipeline/engine/models/loop_activity.py:39
 msgid "回调数据"
 msgstr "Callback Data"
 
-#: pipeline/engine/models/core.py:965
+#: pipeline/engine/models/core.py:966
 msgid "待调度服务"
 msgstr "To be Scheduled"
 
-#: pipeline/engine/models/core.py:966
+#: pipeline/engine/models/core.py:967
 msgid "是否已完成"
 msgstr "Finished"
 
-#: pipeline/engine/models/core.py:967
+#: pipeline/engine/models/core.py:968
 #: pipeline/engine/models/loop_activity.py:40
 msgid "Activity 的版本"
 msgstr "Activity Version"
 
-#: pipeline/engine/models/core.py:968
+#: pipeline/engine/models/core.py:969
 msgid "是否正在被调度"
 msgstr "Dispatch"
 
-#: pipeline/engine/models/core.py:1027
+#: pipeline/engine/models/core.py:1028
 msgid "子流程 ID"
 msgstr "Subprocess ID"
 
-#: pipeline/engine/models/core.py:1028
+#: pipeline/engine/models/core.py:1029
 msgid "对应的进程 ID"
 msgstr "Process ID"
 
-#: pipeline/engine/models/core.py:1061
+#: pipeline/engine/models/core.py:1062
 msgid "pipeline 进程 ID"
 msgstr "Pipeline Process ID"
 
-#: pipeline/engine/models/core.py:1062 pipeline/engine/models/core.py:1090
-#: pipeline/engine/models/core.py:1123
+#: pipeline/engine/models/core.py:1063 pipeline/engine/models/core.py:1091
+#: pipeline/engine/models/core.py:1124
 msgid "celery 任务 ID"
 msgstr "Celery Task ID"
 
-#: pipeline/engine/models/core.py:1089
+#: pipeline/engine/models/core.py:1090
 msgid "schedule ID"
 msgstr "schedule ID"
 

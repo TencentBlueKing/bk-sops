@@ -9,16 +9,16 @@ for item in `find $WORK_PATH/frontend/desktop/src -name "*.vue" ! -path "*IpSele
     grep "i18n.js" $item || exit 1
 done
 
-mkdir -p  ~/Temp/gcloud_open/
-mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/
-rm -rf $WORK_PATH/frontend/desktop/static/
+mkdir -p  ~/Temp/gcloud_open/ || exit 1
+mv -f $WORK_PATH/static/ ~/Temp/gcloud_open/ || exit 1
+rm -rf $WORK_PATH/frontend/desktop/static/ || exit 1
 
 pybabel extract -F babel.cfg --copyright-holder=blueking . -o django.pot || exit 1
 # first time
 # pybabel init -i django.pot -D django -d locale -l en --no-wrap
 # pybabel init -i django.pot -D django -d locale -l zh_hans --no-wrap
 pybabel update -i django.pot -d locale -D django --no-wrap || exit 1
-django-admin makemessages -d djangojs -e vue,js -i '*node_modules*' --no-wrap || exit 1
+django-admin makemessages -d djangojs -e vue,js -i '*node_modules*' -i '*dist*' --no-wrap || exit 1
 
 # 避免手动翻译被注释
 #sed -i -e 's/#~ //g' $WORK_PATH/locale/en/LC_MESSAGES/djangojs.po

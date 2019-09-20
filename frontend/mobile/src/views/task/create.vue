@@ -227,6 +227,7 @@
                 this.schemes = response
                 this.columns = [{ text: DEFAULT_SCHEMES_NAME }, ...this.schemes]
                 this.scheme = this.columns[this.defaultSchemaIndex]
+                this.excludeTaskNodes = this.$store.state.excludeTaskNodes
             },
             fillTemplateData (response) {
                 this.templateData = response
@@ -257,7 +258,9 @@
                             template_source: 'business'
                         }
                         const pipelineTree = await this.getPreviewTaskTree(params)
-                        pipelineTree.constants = this.templateConstants
+                        Object.keys(this.templateConstants).forEach(k => {
+                            pipelineTree.constants[k].value = this.templateConstants[k].value
+                        })
                         const data = {
                             'name': this.taskName,
                             'description': '',
