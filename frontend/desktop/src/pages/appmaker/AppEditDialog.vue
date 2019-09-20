@@ -118,16 +118,18 @@
             </div>
         </div>
         <div slot="footer" class="dialog-footer">
-            <bk-button
-                theme="primary"
-                :class="{
-                    'btn-permission-disable': !hasConfirmPerm
-                }"
-                v-cursor="{ active: !hasConfirmPerm }"
-                @click="onConfirm">
-                {{i18n.confirm}}
-            </bk-button>
-            <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+            <div class="bk-button-group">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasConfirmPerm
+                    }"
+                    v-cursor="{ active: !hasConfirmPerm }"
+                    @click="onConfirm">
+                    {{i18n.confirm}}
+                </bk-button>
+                <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+            </div>
         </div>
     </bk-dialog>
 </template>
@@ -430,13 +432,9 @@
     }
 }
 .dialog-footer {
-    padding: 0 10px;
-    text-align: right;
     .bk-button {
         margin-left: 10px;
-        width: 90px;
-        height: 32px;
-        line-height: 30px;
+        min-width: 90px;
     }
 }
 </style>

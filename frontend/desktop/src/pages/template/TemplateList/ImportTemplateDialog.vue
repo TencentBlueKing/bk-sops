@@ -106,9 +106,11 @@
             </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
-            <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-            <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
-            <bk-button theme="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
+            <div class="bk-button-group">
+                <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
+                <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
+                <bk-button theme="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
+            </div>
         </div>
     </bk-dialog>
 </template>
@@ -490,11 +492,11 @@
             }
         }
     }
-    /deep/ .common-wrapper-btn {
-        padding: 1200px;
-        /deep/ .bk-button {
-            min-width: 76px;
-        }
+}
+.common-wrapper-btn {
+    .bk-button {
+        margin-left: 10px;
     }
 }
+
 </style>
