@@ -342,6 +342,9 @@
     left: 0;
     bottom: -14px;
 }
+.common-form-item > label {
+    font-weight: normal;
+}
 .app-edit-content {
     padding: 30px;
     .common-form-content {
