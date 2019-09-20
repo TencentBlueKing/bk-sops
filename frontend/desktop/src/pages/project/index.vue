@@ -60,7 +60,7 @@
                                     v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions, projectOperations) }"
                                     :key="index"
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
+                                        'operate-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
                                     }]"
                                     theme="default"
                                     @click="onClickOptBtn(props.row, item.name)">
@@ -472,7 +472,6 @@
             },
             onChangeProjectStatus (project, type) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
-                    console.log('dsadsa')
                     this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
                     return
                 }
@@ -577,6 +576,9 @@
         color: #3c96ff;
         &.bk-button {
             min-width: unset;
+        }
+        &.operate-permission-disable {
+            color: #cccccc;
         }
     }
     .dialog-content {
