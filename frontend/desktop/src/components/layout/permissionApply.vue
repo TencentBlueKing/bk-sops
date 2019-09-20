@@ -28,7 +28,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapMutations, mapActions, mapState } from 'vuex'
+    import { mapMutations, mapActions, mapState, mapGetters } from 'vuex'
     import permission from '@/mixins/permission.js'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -70,6 +70,9 @@
                 'authResource': state => state.authResource,
                 'authOperations': state => state.authOperations
             }),
+            ...mapGetters('project', [
+                'userCanViewProjects'
+            ]),
             permissionTitle () {
                 return this.permissionData.type === 'project' ? this.i18n.projectTitle : this.i18n.resourceTitle
             },
@@ -97,8 +100,21 @@
                 'setProjectActions'
             ]),
             applyBtnClick () {
-                if (this.permissionData.type === 'project' && this.projectList.length === 0) {
-                    this.$router.push('/project/home/')
+                if (this.permissionData.type === 'project') {
+                    const isProjectValid = this.permissionData.permission.every(perm => {
+                        return perm.resources.every(resource => {
+                            return resource.every(item => {
+                                return this.projectList.find(project => {
+                                    return project.id === item.resource_id
+                                })
+                            })
+                        })
+                    })
+                    if (isProjectValid) {
+                        this.goToAuthCenter()
+                    } else {
+                        this.$router.push('/project/home/')
+                    }
                 } else {
                     this.goToAuthCenter()
                 }
