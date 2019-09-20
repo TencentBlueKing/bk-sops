@@ -1,23 +1,18 @@
 import { STRING_LENGTH } from './index.js'
 import { Validator } from 'jsonschema'
 
-const NODE_ID_REG = '^node[0-9a-z]{28}$'
-const LINE_ID_REG = '^line[0-9a-z]{28}$'
+const NODE_ID_REG = '^n[0-9a-z]+'
+const LINE_ID_REG = '^l[0-9a-z]+$'
 const VAR_KEY_REG = '^\\$\\{(\\w+)\\}$'
 
-const serviceActivity = {
-    id: '/ServiceActivity',
-    title: '普通任务节点字段',
+const flowNode = {
+    id: '/FlowNode',
+    title: '流程节点字段',
     type: 'object',
     properties: {
         id: {
             type: 'string',
             pattern: NODE_ID_REG
-        },
-        name: {
-            type: 'string',
-            minLenth: 1,
-            maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
         },
         incoming: {
             type: 'string',
@@ -27,64 +22,105 @@ const serviceActivity = {
             type: 'string',
             pattern: LINE_ID_REG
         },
-        type: {
-            type: 'string',
-            const: 'ServiceActivity'
-        },
-        component: {
-            type: 'object',
-            properties: {
-                code: {
-                    type: 'string',
-                    minLenth: 1
-                },
-                data: {
-                    type: 'object'
-                }
-            },
-            required: ['code', 'data']
-        },
         optional: {
             type: 'boolean'
+        },
+        state_name: {
+            type: 'string'
         }
     },
-    required: ['id', 'name', 'incoming', 'outgoing', 'type', 'component', 'optional']
+    required: ['id', 'incoming', 'outgoing', 'optional']
+}
+
+const serviceActivity = {
+    id: '/ServiceActivity',
+    title: '普通任务节点字段',
+    allOf: [
+        { $ref: '/FlowNode' },
+        {
+            type: 'object',
+            properties: {
+                name: {
+                    type: 'string',
+                    minLenth: 1,
+                    maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
+                },
+                type: {
+                    type: 'string',
+                    const: 'ServiceActivity'
+                },
+                component: {
+                    type: 'object',
+                    properties: {
+                        code: {
+                            type: 'string',
+                            minLenth: 1
+                        },
+                        data: {
+                            type: 'object'
+                        }
+                    },
+                    required: ['code', 'data']
+                },
+                // error_ignorable 为旧数据字段，retryable 为新规范字段
+                error_ignorable: {
+                    type: 'boolean'
+                },
+                retryable: {
+                    type: 'boolean'
+                },
+                // isSkipped 为旧数据字段，skippable 为新规范字段
+                isSkipped: {
+                    type: 'boolean'
+                },
+                skippable: {
+                    type: 'boolean'
+                }
+            },
+            required: ['name', 'type', 'component'],
+            oneOf: [ // 这两个旧字段统一替换，不存在交叉存在的情况
+                {
+                    required: ['error_ignorable', 'isSkipped']
+                },
+                {
+                    required: ['retryable', 'skippable']
+                }
+            ]
+        }
+    ]
 }
 
 const subProcess = {
     id: '/SubProcess',
     title: '子流程任务节点字段',
-    type: 'object',
-    properties: {
-        id: {
-            type: 'string',
-            pattern: NODE_ID_REG
-        },
-        name: {
-            type: 'string',
-            minLenth: 1,
-            maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
-        },
-        incoming: {
-            type: 'string',
-            pattern: LINE_ID_REG
-        },
-        outgoing: {
-            type: 'string',
-            pattern: LINE_ID_REG
-        },
-        type: {
-            type: 'string',
-            const: 'SubProcess'
-        },
-        constants: {
-            type: 'object'
-        },
-        optional: {
-            type: 'boolean'
+    allOf: [
+        { $ref: '/FlowNode' },
+        {
+            type: 'object',
+            properties: {
+                template_id: {
+                    type: 'string',
+                    minLenth: 1
+                },
+                name: {
+                    type: 'string',
+                    minLenth: 1,
+                    maxLength: STRING_LENGTH.TEMPLATE_NODE_NAME_MAX_LENGTH
+                },
+                type: {
+                    type: 'string',
+                    const: 'SubProcess'
+                },
+                constants: {
+                    type: 'object'
+                },
+                version: {
+                    type: 'string'
+                }
+            },
+            required: ['template_id', 'name', 'type', 'constants']
         }
-    },
-    required: ['id', 'name', 'incoming', 'outgoing', 'type', 'constants', 'optional']
+    ]
 }
 
 const constantItem = {
@@ -307,6 +343,9 @@ const locationItem = {
         type: {
             type: 'string'
         },
+        name: {
+            type: 'string'
+        },
         x: {
             type: 'integer'
         },
@@ -483,6 +522,7 @@ export const pipelineTreeSchema = {
 
 const schemaValidator = new Validator()
 
+schemaValidator.addSchema(flowNode, '/FlowNode')
 schemaValidator.addSchema(serviceActivity, '/ServiceActivity')
 schemaValidator.addSchema(subProcess, '/SubProcess')
 schemaValidator.addSchema(constantItem, '/ConstantItem')
