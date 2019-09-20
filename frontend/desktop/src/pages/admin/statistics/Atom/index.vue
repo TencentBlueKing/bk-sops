@@ -277,7 +277,7 @@
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import DataStatistics from '../dataStatistics/index.vue'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapState, mapGetters } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -524,8 +524,8 @@
                 categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            ...mapState('project', {
-                projectList: state => state.projectList
+            ...mapGetters('project', {
+                projectList: 'userCanViewProjects'
             }),
             allProjectList () {
                 if (this.projectList.length === 0) {

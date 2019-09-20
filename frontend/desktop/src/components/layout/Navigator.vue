@@ -77,7 +77,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -195,11 +195,13 @@
                 isSuperUser: state => state.isSuperUser
             }),
             ...mapState('project', {
-                projectList: state => state.projectList,
                 project_id: state => state.project_id
             }),
             ...mapState('appmaker', {
                 appmakerTemplateId: state => state.appmakerTemplateId
+            }),
+            ...mapGetters('project', {
+                projectList: 'userCanViewProjects'
             }),
             showHeaderRight () {
                 return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0

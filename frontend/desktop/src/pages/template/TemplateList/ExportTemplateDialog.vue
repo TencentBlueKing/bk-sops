@@ -182,9 +182,6 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo
             }),
             taskCategories () {
-                if (this.projectBaseInfo.task_categories && this.projectBaseInfo.task_categories.length === 0) {
-                    this.getCategorys()
-                }
                 const list = toolsUtils.deepClone(this.projectBaseInfo.task_categories || [])
                 list.unshift({ value: 'all', name: gettext('全部分类') })
                 return list
@@ -196,7 +193,7 @@
             }
         },
         created () {
-            this.getTemplateData()
+            this.getData()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
@@ -206,6 +203,14 @@
             ...mapActions([
                 'getCategorys'
             ]),
+            async getData () {
+                if (this.projectBaseInfo.task_categories && this.projectBaseInfo.task_categories.length === 0) {
+                    await this.getCategorys()
+                    this.getTemplateData()
+                } else {
+                    this.getTemplateData()
+                }
+            },
             async getTemplateData () {
                 this.exportPending = true
                 this.isCheckedDisabled = true
@@ -229,7 +234,7 @@
             getGroupedList (list) {
                 const groups = []
                 const atomGrouped = []
-                this.projectBaseInfo.task_categories.forEach(item => {
+                this.taskCategories.forEach(item => {
                     groups.push(item.value)
                     atomGrouped.push({
                         name: item.name,

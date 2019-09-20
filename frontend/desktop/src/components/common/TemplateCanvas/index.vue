@@ -79,7 +79,6 @@
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import { endpointOptions, connectorOptions } from './options.js'
-    import formatPositionUtils from '@/utils/formatPosition.js'
     import validatePipeline from '@/utils/validatePipeline.js'
 
     export default {
@@ -168,9 +167,6 @@
                 connectorOptions
             }
         },
-        created () {
-            this.onFormatPosition = tools.debounce(this.formatPositionHandler, 500)
-        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
@@ -193,6 +189,9 @@
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
+            },
+            onFormatPosition () {
+                this.$emit('onFormatPosition')
             },
             onOpenFrameSelect () {
                 this.isSelectionOpen = true
@@ -281,55 +280,6 @@
                 })
                 return { locations, lines }
             },
-            formatPositionHandler () {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
-                // 判断是否结构完整
-                if (!validateMessage.result) {
-                    this.$bkMessage({
-                        message: validateMessage.message,
-                        theme: 'error'
-                    })
-                    return false
-                }
-                // 恢复大小后进行编排
-                this.onResetPosition()
-
-                // 需要做深拷贝一次 防止改变vue store内容
-                const lines = tools.deepClone(this.canvasData.lines)
-                const locations = this.canvasData.locations
-                const data = formatPositionUtils.formatPosition(lines, locations)
-
-                this.$emit('onNewDraft', gettext('排版自动保存'))
-                const message = gettext('排版完成，原内容在本地缓存中')
-                this.$refs.jsFlow.removeAllConnector()
-                // 改变store中的line和location内容
-                this.$emit('onReplaceLineAndLocation', data)
-                // 重绘Canvas
-                this.$refs.jsFlow.updateCanvas({ nodes: data.locations, lines: data.lines })
-                const { overBorderLine } = data
-                if (overBorderLine.length !== 0) {
-                    overBorderLine.forEach(line => {
-                        const config = [
-                            'Flowchart', // 流程图种类
-                            {
-                                stub: [5, 20], // 起始端点连接线的最小长度
-                                gap: 8, // 线与端点点最小间隔
-                                cornerRadius: 2, // 折线弧度
-                                alwaysRespectStubs: true, // 允许 stub 配置生效
-                                midpoint: line.midpoint// 折线比例
-                            // todo:需要增加midpoint数据的source,target,midpoint数据进行后台和前端保存
-                            }
-                        ]
-                        this.$refs.jsFlow.setConnector(line.source, line.target, config)
-                    })
-                }
-                this.$nextTick(() => {
-                    this.$bkMessage({
-                        message: message,
-                        theme: 'success'
-                    })
-                })
-            },
             branchConditionEditHandler (e) {
                 const $branchEl = e.target
                 if ($branchEl.classList.contains('branch-condition')) {
@@ -355,6 +305,13 @@
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
+            },
+            updateCanvas () {
+                const { locations: nodes, lines } = this.canvasData
+                this.$refs.jsFlow.updateCanvas({ nodes, lines })
+            },
+            removeAllConnector () {
+                this.$refs.jsFlow.removeAllConnector()
             },
             onNodeClick (id) {
                 this.$emit('onNodeClick', id)
