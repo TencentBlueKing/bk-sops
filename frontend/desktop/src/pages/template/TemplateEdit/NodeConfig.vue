@@ -24,6 +24,7 @@
                             <bk-select
                                 v-model="currentAtom"
                                 class="node-select"
+                                font-size="14"
                                 :searchable="true"
                                 @selected="onAtomSelect">
                                 <bk-option
@@ -31,8 +32,10 @@
                                     :key="index"
                                     :id="option.id"
                                     :name="option.name">
-                                    <span v-if="!isSingleAtom" class="bk-option-name">{{option.name}}</span>
-                                    <i v-if="!isSingleAtom" class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
+                                    <template v-if="!isSingleAtom">
+                                        <span class="subflow-option-name">{{option.name}}</span>
+                                        <i class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
+                                    </template>
                                 </bk-option>
                             </bk-select>
                             <!-- 标准插件节点说明 -->
@@ -104,7 +107,7 @@
                         <label>{{ i18n.optional }}</label>
                         <div class="form-content">
                             <bk-switcher
-                                size="min"
+                                size="small"
                                 v-model="nodeCouldBeSkipped">
                             </bk-switcher>
                         </div>
@@ -1176,6 +1179,10 @@
             top: 5px;
         }
     }
+}
+// 子流程选择下拉框字号
+.subflow-option-name {
+    font-size: 14px;
 }
 .form-item {
     margin-bottom: 20px;

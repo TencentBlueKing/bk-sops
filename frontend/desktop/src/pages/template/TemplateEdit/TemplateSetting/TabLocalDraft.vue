@@ -228,16 +228,15 @@
             padding: 0 10px;
             height: 40px;
             line-height: 40px;
+            font-size: 12px;
             border-bottom: 1px solid $commonBorderColor;
             text-align: left;
         }
         th {
-            font-size: 14px;
             font-weight: normal;
             background: #ecf0f4;
         }
         td {
-            font-size: 12px;
             .content {
                 width: 100%;
                 overflow: hidden;
