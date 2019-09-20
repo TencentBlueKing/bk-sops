@@ -51,6 +51,7 @@ CELERY_ROUTES = {
 }
 
 CELERY_QUEUES = (
+    # keep old queue to process message left in broker, remove on next version
     Queue('default', default_exchange, routing_key='default'),
     Queue('pipeline', default_exchange, routing_key='pipeline_push'),
     Queue('service_schedule', default_exchange, routing_key='schedule_service'),
