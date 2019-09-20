@@ -14,6 +14,7 @@
     "axios": "^0.18.0",
     "bk-magic-vue": "^2.1.0",
     "element-ui": "^2.4.1",
+    "file-saver": "^2.0.2",
     "jquery": "^3.3.1",
     "jsencrypt": "^3.0.0-rc.1",
     "jsplumb": "^2.7.3",
@@ -21,11 +22,14 @@
     "moment-timezone": "^0.5.23",
     "plotly.js": "1.39.4",
     "qs": "^6.5.2",
+    "table-to-excel": "^1.0.6",
+    "tooltip.js": "^1.2.0",
     "vee-validate": "^2.1.0-beta.6",
     "vue": "^2.6.10",
     "vue-router": "^3.0.1",
     "vuedraggable": "^2.16.0",
-    "vuex": "^3.0.1"
+    "vuex": "^3.0.1",
+    "xlsx": "^0.15.1"
   },
   "devDependencies": {
     "acorn": "^6.1.1",
@@ -69,6 +73,7 @@
     "postcss-url": "^8.0.0",
     "sass-loader": "^7.0.3",
     "style-loader": "^0.21.0",
+    "script-loader": "^0.7.2",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "url-loader": "^1.0.1",
     "vue-json-pretty": "^1.4.1-beta.1",

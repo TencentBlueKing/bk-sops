@@ -40,7 +40,7 @@
         </div>
         <!-- 表单名称 -->
         <label
-            v-if="option.showLabel"
+            v-if="option.showLabel && scheme.attrs.name"
             :class="['rf-tag-label', { 'required': isRequired() }]">
             {{scheme.attrs.name}}
         </label>
@@ -331,7 +331,7 @@
 <style lang="scss">
 .rf-form-item {
     position: relative;
-    margin: 15px 0;
+    margin: 15px 0 !important;
     min-height: 36px;
     &:first-child {
         margin-top: 0;
@@ -346,6 +346,7 @@
     }
     &.rf-col-layout {
         display: inline-block;
+        margin: 0 0 !important;
     }
     .rf-tag-label {
         float: left;
