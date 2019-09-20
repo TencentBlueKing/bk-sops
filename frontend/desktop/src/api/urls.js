@@ -60,7 +60,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         resumeSubProcess: SITE_URL + 'taskflow/api/nodes/action/resume_subproc/' + PROJECT_ID + '/',
         setSleepNode: SITE_URL + 'taskflow/api/nodes/spec/timer/reset/' + PROJECT_ID + '/',
         taskCount: SITE_URL + 'taskflow/api/query_task_count/' + PROJECT_ID + '/',
-        schemes: SITE_URL + 'api/v3/schemes/',
+        schemes: SITE_URL + 'api/v3/scheme/',
         commonSchemes: SITE_URL + 'api/v3/common_scheme/',
         bizConfig: SITE_URL + 'config/api/biz_config/' + PROJECT_ID + '/',
         configBizExecutor: SITE_URL + 'config/api/biz_executor/' + PROJECT_ID + '/',
