@@ -60,7 +60,7 @@
                                     v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions, projectOperations) }"
                                     :key="index"
                                     :class="['operate-btn', {
-                                        'operate-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
+                                        'text-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
                                     }]"
                                     theme="default"
                                     @click="onClickOptBtn(props.row, item.name)">
@@ -576,9 +576,6 @@
         color: #3c96ff;
         &.bk-button {
             min-width: unset;
-        }
-        &.operate-permission-disable {
-            color: #cccccc;
         }
     }
     .dialog-content {
