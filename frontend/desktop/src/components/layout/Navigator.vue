@@ -354,6 +354,7 @@
              */
             jumpToFirstPath (route) {
                 const firstPath = this.getPath(route.children[0])
+                if (this.$route.path === firstPath.path) return
                 this.$router.push(firstPath)
             }
         }
