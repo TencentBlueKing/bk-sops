@@ -11,25 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .apis.bk_login import CollectionsBkLogin
-from .apis.bk_paas import CollectionsBkPaas
-from .apis.cc import CollectionsCC
-from .apis.cmsi import CollectionsCMSI
-from .apis.gse import CollectionsGSE
-from .apis.job import CollectionsJOB
-from .apis.sops import CollectionsSOPS
-from .apis.esb import CollectionsEsb
-from .apis.nodeman import CollectionsNodeMan
+from ..base import ComponentAPI
 
-# Available components
-AVAILABLE_COLLECTIONS = {
-    'bk_login': CollectionsBkLogin,
-    'bk_paas': CollectionsBkPaas,
-    'cc': CollectionsCC,
-    'cmsi': CollectionsCMSI,
-    'gse': CollectionsGSE,
-    'job': CollectionsJOB,
-    'sops': CollectionsSOPS,
-    'esb': CollectionsEsb,
-    'nodeman': CollectionsNodeMan
-}
+
+class CollectionsNodeMan(object):
+    """Collections of JOB APIS"""
+
+    def __init__(self, client):
+        self.client = client
+
+        self.create_task = ComponentAPI(
+            client=self.client, method='POST',
+            path='/api/c/compapi/v2/nodeman/create_task/',
+            description=u'安装作业'
+        )
