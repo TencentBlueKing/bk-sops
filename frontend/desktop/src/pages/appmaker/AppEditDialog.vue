@@ -27,7 +27,7 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appTemplate"
-                        class="bk-select-inline"
+                        class="ui-form-item"
                         :searchable="true"
                         :placeholder="i18n.statusPlaceholder"
                         :clearable="true"
@@ -50,7 +50,7 @@
                         v-model="appData.appName"
                         v-validate.disable="appNameRule"
                         name="appName"
-                        class="bk-input-inline"
+                        class="ui-form-item"
                         :clearable="true">
                     </bk-input>
                     <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
@@ -61,7 +61,7 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appScheme"
-                        class="bk-select-inline"
+                        class="ui-form-item"
                         :searchable="true"
                         :placeholder="i18n.statusPlaceholder"
                         :clearable="true"
@@ -89,7 +89,7 @@
                 <label>{{i18n.appDesc}}</label>
                 <div class="common-form-content">
                     <textarea
-                        class="app-desc"
+                        class="app-desc ui-form-item"
                         name="appDesc"
                         v-model="appData.appDesc"
                         v-validate="appDescRule">
@@ -334,8 +334,8 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-.bk-input-inline {
-    width: 260px;
+.ui-form-item {
+    width: 500px;
 }
 .common-error-tip {
     position: absolute;
@@ -353,7 +353,7 @@
     }
     .scheme-tooltip {
         position: absolute;
-        left: 270px;
+        left: 510px;
         top: 10px;
         color: #c4c6cc;
         &:hover {
@@ -361,9 +361,8 @@
         }
     }
     .app-desc {
-        width: 100%;
         height: 80px;
-        border: 1px solid $commonBorderColor;
+        border: 1px solid #c4c6cc;
         outline: none;
         resize: none;
         &:hover {
