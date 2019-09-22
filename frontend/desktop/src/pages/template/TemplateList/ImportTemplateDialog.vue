@@ -240,7 +240,9 @@
                     const resp = await this.templateImport(data)
                     if (resp.result) {
                         this.$emit('onImportConfirm')
+                        this.resetData()
                     } else {
+                        this.templateFileError = true
                         errorHandler(resp, this)
                     }
                 } catch (e) {
@@ -281,7 +283,6 @@
                 }
                 if (!this.templateFileErrorExt && !this.templateFileEmpty && !this.templateFileError) {
                     this.importTemplate(isOverride)
-                    this.resetData()
                 }
             },
             onShowConflicts () {
@@ -312,6 +313,7 @@
                 this.templateFileError = false
                 this.templateFileErrorExt = false
                 this.dataConflict = false
+                this.$refs.templateFile.value = ''
             }
         }
     }
