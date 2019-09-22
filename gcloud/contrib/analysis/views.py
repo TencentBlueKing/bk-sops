@@ -75,6 +75,7 @@ def standardize_params(func):
         return JsonResponse({'result': True, 'data': content})
     return wrapper
 
+
 @check_is_superuser()
 @require_POST
 @standardize_params
