@@ -11,12 +11,8 @@
 */
 <template>
     <div class="content-box">
-        <chart-card
-            :charts="charts"
-        ></chart-card>
-        <table-panel
-            :tabpanels="tabPanels"
-        ></table-panel>
+        <chart-card :charts="charts"></chart-card>
+        <table-panel :tabpanels="tabPanels"></table-panel>
     </div>
 </template>
 <script>
@@ -87,14 +83,11 @@
                 test_map: { 'a': 'b' },
                 i18n: i18n,
                 choiceBusinessName: '',
-                isDropdownShow: false,
-                datePickerRefShow: false,
                 isTemplateLoading: true,
                 isCitationLoading: true,
                 isInstanceLoading: true,
                 time: [0, 0],
                 taskPlotData: [],
-                nodeData: [],
                 templateData: [],
                 templateTotal: 0,
                 templatePageIndex: 1,
@@ -156,8 +149,6 @@
                 },
                 atom: '',
                 components: [],
-                executePageIndex: 1,
-                executeLimit: 15,
                 instanceData: [],
                 instanceTotal: 0,
                 taskTotal: 0,
@@ -205,7 +196,6 @@
                     }
                 ],
                 selectedAtom: '',
-                endDateMax: '',
                 templateOrderBy: '',
                 instanceOrderBy: ''
             }

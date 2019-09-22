@@ -330,15 +330,15 @@ class TaskTemplateManager(BaseTemplateManager):
         if order_by[0] == '-':
             # 倒序则把未创建任务的流程放在数组后面
             filtered_count = filtered_list.count()
-            range = page * limit - filtered_count if page * limit > filtered_count else 0
-            other_template_id_list = other_template_id_list[:range]
+            item_range = page * limit - filtered_count if page * limit > filtered_count else 0
+            other_template_id_list = other_template_id_list[:item_range]
             template_id_list = filtered_id_list + other_template_id_list
             template_id_list = template_id_list[(page - 1) * limit:page * limit]
         else:
             # 正序则把未创建任务的流程放在数组前面
             other_count = other_template.count()
-            range = page * limit - other_count if page * limit > other_count else 0
-            filtered_id_list = filtered_id_list[:range]
+            item_range = page * limit - other_count if page * limit > other_count else 0
+            filtered_id_list = filtered_id_list[:item_range]
             template_id_list = other_template_id_list + filtered_id_list
             template_id_list = template_id_list[(page - 1) * limit:page * limit]
         return template_id_list

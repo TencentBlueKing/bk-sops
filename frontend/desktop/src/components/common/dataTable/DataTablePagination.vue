@@ -23,8 +23,7 @@
                 'show-limit': false
             }"
             @sort-change="handleSortChange"
-            @page-change="handleIndexChange"
-        >
+            @page-change="handleIndexChange">
             <!--选择框-->
             <bk-table-column v-if="options.mutiSelect" type="selection" style="width: 55px;">
             </bk-table-column>
@@ -56,13 +55,12 @@
             <!--按钮操作组-->
             <bk-table-column ref="fixedColumn" :label="i18n.operate" align="center" :width="operates.width" :fixed="operates.fixed"
                 v-if="operates.isShow && operates.data.filter(_x => _x.show === true).length > 0">
-                <template slot-scope="scope">
+                <template>
                     <div class="operate-group">
                         <template v-for="(btn, key) in operates.data">
                             <div class="item" :style="{ flex: operates.flex }" :key="key" v-if="btn.show">
-                                <bk-button :class="btn.cls" :type="btn.type" size="mini" :icon="btn.icon" :disabled="btn.disabled"
-                                    :plain="btn.plain" @click.native.prevent="btn.method(key,scope.row)">{{ btn.label }}
-                                </bk-button>
+                                <bk-button :class="btn.cls" :theme="btn.theme" size="small" :icon="btn.icon" :disabled="btn.disabled"
+                                    @click="btn.onClick" :title="btn.title"></bk-button>
                             </div>
                         </template>
                     </div>
@@ -125,7 +123,7 @@
                 // formatter: (row, column, cellValue) => {return;}格式化函数
                 // render: (h, params) => {return h('bk-tag'),{
                 //      props: {}
-                // }, '显示文字'} //bk-tag是标签，如h1,p标签等  显示文字可以通过对应函数再获取
+                // }, '显示文字'} //bk-tag是标签，如h1,p标签等显示文字可以通过对应函数再获取
                 type: Array,
                 default () {
                     return []

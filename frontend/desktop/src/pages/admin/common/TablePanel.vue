@@ -16,15 +16,13 @@
                 v-for="panel in panels"
                 :key="panel.label"
                 :name="panel.name"
-                :label="panel.label"
-            >
+                :label="panel.label">
                 <div class="content-wrap-detail">
                     <div class="content-wrap-from">
                         <div
-                            v-for="(select, j) in panel.selects"
-                            :key="panel.label + 'select' + j"
-                            class="content-wrap-select"
-                        >
+                            v-for="select in panel.selects"
+                            :key="select.label"
+                            class="content-wrap-select">
                             <label class="content-detail-label">{{select.label}}</label>
                             <bk-select
                                 v-model="select.model"
@@ -36,8 +34,8 @@
                                 @clear="select.onClear"
                                 @selected="select.onSelected">
                                 <bk-option
-                                    v-for="(option, k) in select.options"
-                                    :key="k"
+                                    v-for="option in select.options"
+                                    :key="option[select.option.key]"
                                     :id="option[select.option.key]"
                                     :name="option[select.option.name]">
                                 </bk-option>

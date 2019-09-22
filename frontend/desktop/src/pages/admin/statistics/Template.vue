@@ -11,12 +11,8 @@
 */
 <template>
     <div class="content-box">
-        <chart-card
-            :charts="charts"
-        ></chart-card>
-        <table-panel
-            :tabpanels="tabPanels"
-        ></table-panel>
+        <chart-card :charts="charts"></chart-card>
+        <table-panel :tabpanels="tabPanels"></table-panel>
     </div>
 </template>
 
@@ -69,29 +65,21 @@
             return {
                 i18n: i18n,
                 business: '',
-                isDropdownShow: false,
                 isCateLoading: true,
                 isBussLoading: true,
-                isReferLoading: true,
                 isDetailLoading: true,
-                datePickerRefShow: false,
-                businessPickerRefShow: false,
                 classiFicationArray: [],
                 taskStatistArray: [],
                 nodeData: [],
                 nodePageIndex: 1,
                 nodeLimit: 15, // 每页数量
                 nodeOrderBy: '-templateId',
-                citeOrderBy: '-templateId',
                 tabName: 'processDetails',
                 nodePagination: {
                     limit: this.nodeLimit,
                     pageIndex: this.nodePageIndex,
                     pageArray: this.dataTablePageArray
                 },
-                citeTotal: 0,
-                citePageIndex: 1,
-                citeLimit: 15,
                 nodeColumns: [
                     {
                         prop: 'templateId',
@@ -441,10 +429,6 @@
                     case 'processDetails':
                         this.nodePageIndex = 1
                         this.nodePagination.pageIndex = 1
-                        break
-                    case 'processReference':
-                        this.citePageIndex = 1
-                        this.citePagination.pageIndex = 1
                         break
                 }
             }

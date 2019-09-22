@@ -97,12 +97,6 @@ export const AnalysisMixins = {
             this.category = undefined
             this.resetPageIndex()
             this.onChangeTabPanel(this.tabName)
-        },
-        resetPageIndex () {
-            return null
-        },
-        onChangeTabPanel (name) {
-            return name
         }
     }
 }

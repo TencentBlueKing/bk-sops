@@ -23,7 +23,7 @@ from django.test import TestCase, Client
 from pipeline.exceptions import PipelineException
 
 from gcloud.core.utils import strftime_with_timezone
-from gcloud.contrib.analysis.analy_items import task_flow_instance
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate

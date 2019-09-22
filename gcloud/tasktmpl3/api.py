@@ -39,7 +39,7 @@ from gcloud.commons.template.utils import (
 )
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.contrib.analysis.analy_items import task_template
+from gcloud.contrib.analysis.analyse_items import task_template
 
 logger = logging.getLogger('root')
 

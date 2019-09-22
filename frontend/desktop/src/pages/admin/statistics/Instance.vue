@@ -11,9 +11,7 @@
 */
 <template>
     <div class="content-box">
-        <chart-card
-            :charts="charts"
-        ></chart-card>
+        <chart-card :charts="charts"></chart-card>
         <div class="content-task-wrap" v-bkloading="{ isLoading: isInstanceTypeLoading, opacity: 1 }">
             <div class="clearfix">
                 <div class="content-title">{{i18n.instanceTime}}</div>
@@ -75,9 +73,7 @@
             </div>
             <vertical-bar-chart :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></vertical-bar-chart>
         </div>
-        <table-panel
-            :tabpanels="tabPanels"
-        ></table-panel>
+        <table-panel :tabpanels="tabPanels"></table-panel>
     </div>
 </template>
 <script>
@@ -128,9 +124,6 @@
         data () {
             return {
                 i18n: i18n,
-                datePickerRefShow: false,
-                businessPickerRefShow: false,
-                isDropdownShow: false,
                 isInstanceLoading: true,
                 isBuinsessLoading: true,
                 isDetailsLoading: true,
@@ -272,13 +265,9 @@
                         align: 'center'
                     }
                 ],
-                instanceType: 'day',
-                endDateMax: '',
                 choiceTimeTypeName: '',
                 choiceTimeType: 'day',
-                choiceTimeTypeCategoryName: '',
                 choiceTimeTypeCategory: undefined,
-                choiceTimeTypeBusinessName: '',
                 choiceTimeTypeBusiness: undefined,
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,

@@ -21,11 +21,11 @@ def dispatch(group_by, filters=None):
     :param filters
     :return:
     """
-    appMakerManager = AppMaker.objects
+    app_maker_manager = AppMaker.objects
     # 获取通用过滤后的queryset
     if filters is None:
         filters = {}
-    result, appmaker, message = appMakerManager.general_filter(filters)
+    result, appmaker, message = app_maker_manager.general_filter(filters)
     if not result:
         return False, message
 
@@ -34,10 +34,10 @@ def dispatch(group_by, filters=None):
 
     # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
     if group_by == AE.business__cc_id:
-        total, groups = appMakerManager.group_by_biz_cc_id(appmaker, group_by)
+        total, groups = app_maker_manager.group_by_biz_cc_id(appmaker, group_by)
 
     # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
     elif group_by == AE.category:
-        total, groups = appMakerManager.group_by_category(appmaker, group_by)
+        total, groups = app_maker_manager.group_by_category(appmaker, group_by)
     data = {'total': total, 'groups': groups}
     return result, data

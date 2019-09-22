@@ -33,7 +33,7 @@ from gcloud.taskflow3.constants import TASK_CREATE_METHOD
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.decorators import check_user_perm_of_task
 from gcloud.taskflow3.context import TaskContext
-from gcloud.contrib.analysis.analy_items import task_flow_instance
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER

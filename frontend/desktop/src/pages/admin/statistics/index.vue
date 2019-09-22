@@ -32,8 +32,7 @@
                         :clearable="false"
                         type="daterange"
                         placement="top-end"
-                        @change="onChangeTimeRange"
-                    >
+                        @change="onChangeTimeRange">
                     </bk-date-picker>
                 </div>
             </div>

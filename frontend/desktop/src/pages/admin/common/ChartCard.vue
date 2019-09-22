@@ -15,16 +15,14 @@
             v-for="(chart, i) in charts"
             :key="chart.title"
             :class="chartClassNames[i]"
-            v-bkloading="{ isLoading: chart.isLoading, opacity: 1 }"
-        >
+            v-bkloading="{ isLoading: chart.isLoading, opacity: 1 }">
             <div class="clearfix">
                 <div class="content-title">{{chart.title}}</div>
                 <div class="content-date">
                     <div
                         v-for="(select, j) in chart.selects"
                         :key="chart.title + 'select' + j"
-                        class="content-date-business"
-                    >
+                        class="content-date-business">
                         <bk-select
                             v-model="select.model"
                             class="bk-select-inline"
@@ -49,7 +47,7 @@
     </div>
 </template>
 <script>
-    import DataStatistics from '../common/dataStatistics.vue'
+    import DataStatistics from './dataStatistics.vue'
 
     export default {
         name: 'ChartCard',
