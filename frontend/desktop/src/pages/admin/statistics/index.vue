@@ -101,11 +101,13 @@
             padding: 21px 0;
             h3 {
                 margin: 0;
-                padding-right: 20px;
+                padding: 0 25px 0 12px;
                 border-right: 1px solid #c4c6cc;
-                line-height: 1;
-                font-size: 18px;
-                font-weight: 400;
+                border-left: 2px solid #a3c5fd;
+                height: 20px;
+                line-height: 20px;
+                font-size: 14px;
+                font-weight: bold;
                 color: #313238;
             }
         }

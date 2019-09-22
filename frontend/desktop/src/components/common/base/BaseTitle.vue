@@ -11,7 +11,6 @@
 */
 <template>
     <div class="list-wrapper-title">
-        <span class="list-wrapper-border">|</span>
         <span class="list-wrapper-name">{{ title }}</span>
     </div>
 </template>
@@ -26,17 +25,24 @@
 
 <style lang='scss' scoped>
 .list-wrapper-title {
+    position: relative;
     height: 60px;
     line-height: 60px;
     border-bottom: 1px solid #dde4eb;
-    .list-wrapper-border {
-        color:#a3c5fd;
-    }
     .list-wrapper-name {
-        margin-left: 10px;
+        margin-left: 12px;
         font-size: 14px;
         font-weight:600;
         color: #313238;
+        &:before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 21px;
+            width: 0;
+            height: 20px;
+            border-left: 2px solid #a3c5fd;
+        }
     }
 }
 </style>

@@ -13,7 +13,6 @@
     <div class="source-manage">
         <bk-button
             theme="primary"
-            class="sync-btn"
             :loading="pending"
             @click="onTaskSyncClick">
             {{i18n.sync}}
@@ -203,10 +202,6 @@
     .source-manage {
         padding: 20px 60px 60px;
         background: #f4f7fa;
-        .sync-btn {
-            height: 32px;
-            line-height: 32px;
-        }
         .table-container {
             min-height: 400px;
         }
