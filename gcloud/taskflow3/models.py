@@ -421,10 +421,10 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         try:
             taskflow = self.filter(**prefix_filters)
-            return True, None, taskflow, prefix_filters
         except Exception as e:
             message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
             return False, message, None, None
+        return True, None, taskflow, prefix_filters
 
     def group_by_state(self, taskflow):
         # 按流程执行状态查询流程个数
@@ -674,7 +674,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         order_by = filters.get("order_by", '-templateId')
         if order_by == '-instanceId':
             taskflow_list = taskflow_list.order_by('-id')
-        if order_by == 'instanceId':
+        elif order_by == 'instanceId':
             taskflow_list = taskflow_list.order_by('id')
         taskflow_list = taskflow_list.values(
             'id',
@@ -847,10 +847,10 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
     def general_group_by(self, prefix_filters, group_by):
         try:
             total, groups = self.classified_count(prefix_filters, group_by)
-            return True, None, total, groups
         except Exception as e:
             message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (prefix_filters, e)
             return False, message, None, None
+        return True, None, total, groups
 
     def callback(self, act_id, data):
         try:

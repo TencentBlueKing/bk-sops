@@ -24,7 +24,7 @@ from gcloud.core.decorators import check_user_perm_of_business
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.schema import APP_MAKER_PARAMS_SCHEMA
 from gcloud.core.utils import check_and_rename_params
-from gcloud.contrib.analysis.analy_items import app_maker
+from gcloud.contrib.analysis.analyse_items import app_maker
 
 logger = logging.getLogger("root")
 

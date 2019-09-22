@@ -11,12 +11,8 @@
 */
 <template>
     <div class="content-box">
-        <chart-card
-            :charts="charts"
-        ></chart-card>
-        <table-panel
-            :tabpanels="tabPanels"
-        ></table-panel>
+        <chart-card :charts="charts"></chart-card>
+        <table-panel :tabpanels="tabPanels"></table-panel>
     </div>
 </template>
 <script>
@@ -62,33 +58,16 @@
                 i18n: i18n,
                 choiceBusinessName: '',
                 choiceCategoryName: '',
-                isDropdownShow: false,
-                datePickerRefShow: false,
-                businessPickerRefShow: false,
                 isAppLicationLoading: true,
                 isCategoryLoading: true,
                 isAppmakerLoading: true,
                 time: [0, 0],
                 taskPlotData: [],
                 ownBusinessData: [],
-                nodeData: [],
                 templateData: [],
-                templateTotal: 0,
                 taskToatal: 0,
                 businessTotal: 0,
-                templatePageIndex: 1,
-                templateLimit: 15,
-                templatePagination: {
-                    limit: this.templateLimit,
-                    pageIndex: this.templatePageIndex,
-                    pageArray: this.dataTablePageArray
-                },
                 tabName: 'appmakerDetails',
-                nodePagination: {
-                    limit: this.nodeLimit,
-                    pageIndex: this.nodePageIndex,
-                    pageArray: this.dataTablePageArray
-                },
                 atom: '',
                 components: [],
                 appmakerData: [],
@@ -246,7 +225,7 @@
             }
         },
         watch: {
-            timeRange: function (val) {
+            timeRange (val) {
                 this.onAppMakerCategory(null)
                 this.onAppMakerBizCcid(null)
                 this.onAppMakerInstance()

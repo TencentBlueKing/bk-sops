@@ -36,7 +36,7 @@ from gcloud.commons.template.constants import PermNm
 from gcloud.commons.template.models import CommonTemplate, replace_template_id
 from gcloud.commons.template.utils import read_encoded_template_data
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.contrib.analysis.analy_items import task_flow_instance
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 
 if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
     try:
