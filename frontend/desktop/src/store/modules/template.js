@@ -156,7 +156,7 @@ const template = {
             details: [],
             subproc_has_update: false
         },
-        context: []
+        systemConstants: []
     },
     mutations: {
         setTemplateName (state, name) {
@@ -737,28 +737,7 @@ const template = {
         },
         // 设置内置变量
         setInternalVariable (state, payload) {
-            // 模拟数据，测试完删除
-            const mockData = [
-                {
-                    name: 'systemName1',
-                    show_type: 'hide',
-                    key: '${system.name1}',
-                    desc: 'this is systemVar'
-                },
-                {
-                    name: 'systemName2',
-                    show_type: 'hide',
-                    key: '${system.name2}',
-                    desc: 'this is systemVar'
-                },
-                {
-                    name: 'systemName3',
-                    show_type: 'hide',
-                    key: '${system.name3}',
-                    desc: 'this is systemVar'
-                }
-            ]
-            state.context = mockData
+            state.systemConstants = payload
         }
     },
     actions: {

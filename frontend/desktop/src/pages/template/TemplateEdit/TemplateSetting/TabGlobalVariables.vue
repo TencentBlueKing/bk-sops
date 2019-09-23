@@ -53,7 +53,7 @@
             </div>
             <ul class="variable-list" ref="variableList">
                 <VariableItem
-                    v-for="(constant, index) in context"
+                    v-for="(constant, index) in systemConstants"
                     :key="index"
                     :outputs="outputs"
                     :is-variable-editing="isVariableEditing"
@@ -157,7 +157,7 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
-                'context': state => state.template.context,
+                'systemConstants': state => state.template.systemConstants,
                 'timeout': state => state.template.time_out
             }),
             variableData () {
@@ -180,7 +180,7 @@
                 }
             },
             isShowNodata () {
-                return !this.isVariableEditing && !this.constantsArray.length && !this.context.length
+                return !this.isVariableEditing && !this.constantsArray.length && !this.systemConstants
             }
         },
         watch: {

@@ -260,8 +260,8 @@
             this.initTemplateData()
             // 获取流程内置变量
             this.templateDataLoading = true
-            const contextList = await this.loadInternalVariable()
-            this.setInternalVariable(contextList)
+            const result = await this.loadInternalVariable()
+            this.setInternalVariable(result.data || [])
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {

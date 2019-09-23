@@ -76,18 +76,16 @@
         computed: {
             ...mapState({
                 'constants': state => state.template.constants,
-                'context': state => state.template.context
+                'systemConstants': state => state.template.systemConstants
             }),
             constantArr: {
                 get () {
-                    const Keylist = []
+                    let Keylist = []
                     if (this.constants) {
-                        Keylist.concat(Object.keys(this.constants))
+                        Keylist = [...Object.keys(this.constants)]
                     }
-                    if (this.context) {
-                        this.context.forEach(m => {
-                            Keylist.push(m.key)
-                        })
+                    if (this.systemConstants) {
+                        Keylist = [...Object.keys(this.systemConstants)]
                     }
                     return Keylist
                 },
