@@ -179,7 +179,7 @@
                                 searchable: true,
                                 onSelected: this.onTemplateCategory,
                                 onClear: this.onClearTemplateCategory,
-                                options: this.businessList,
+                                options: this.allBusinessList,
                                 option: {
                                     key: 'cc_id',
                                     name: 'cc_name'
@@ -200,7 +200,7 @@
                                 searchable: true,
                                 onSelected: this.onTemplateBizCcId,
                                 onClear: this.onClearTemplateBizCcId,
-                                options: this.categoryList,
+                                options: this.categorys,
                                 option: {
                                     key: 'value',
                                     name: 'name'

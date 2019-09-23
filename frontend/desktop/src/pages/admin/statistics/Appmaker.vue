@@ -136,7 +136,7 @@
                                 searchable: true,
                                 onSelected: this.onAppMakerCategory,
                                 onClear: this.onClearAppMakerCategory,
-                                options: this.businessList,
+                                options: this.allBusinessList,
                                 option: {
                                     key: 'cc_id',
                                     name: 'cc_name'
@@ -157,7 +157,7 @@
                                 searchable: true,
                                 onSelected: this.onAppMakerBizCcid,
                                 onClear: this.onClearAppMakerBizCcid,
-                                options: this.categoryList,
+                                options: this.categorys,
                                 option: {
                                     key: 'value',
                                     name: 'name'

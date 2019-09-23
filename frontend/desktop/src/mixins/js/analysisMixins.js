@@ -11,7 +11,6 @@
 */
 import '@/utils/i18n.js'
 import { mapState } from 'vuex'
-import tools from '@/utils/tools.js'
 export const AnalysisMixins = {
     data () {
         return {
@@ -39,20 +38,14 @@ export const AnalysisMixins = {
         ...mapState({
             allBusinessList: state => state.allBusinessList,
             categorys: state => state.categorys
-        }),
-        businessList () {
-            if (this.allBusinessList.length === 0) {
-                this.getBizList(1)
-            }
-            const list = tools.deepClone(this.allBusinessList)
-            return list
-        },
-        categoryList () {
-            if (this.categorys.length === 0) {
-                this.getCategorys()
-            }
-            const list = tools.deepClone(this.categorys)
-            return list
+        })
+    },
+    created () {
+        if (this.allBusinessList.length === 0) {
+            this.getBizList(1)
+        }
+        if (this.categorys.length === 0) {
+            this.getCategorys()
         }
     },
     mounted () {

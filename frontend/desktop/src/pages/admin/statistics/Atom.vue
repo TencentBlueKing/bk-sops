@@ -238,7 +238,7 @@
                                 searchable: true,
                                 onSelected: this.onAtomCiteData,
                                 onClear: this.onClearAtomCiteData,
-                                options: this.businessList,
+                                options: this.allBusinessList,
                                 option: {
                                     key: 'cc_id',
                                     name: 'cc_name'
