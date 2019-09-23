@@ -14,7 +14,10 @@
         <div
             v-for="(chart, i) in charts"
             :key="chart.title"
-            :class="chartClassNames[i]"
+            :class="{
+                'content-dimesion': i === 0,
+                'content-wrap-right': i === 1,
+                'atom-statistics atom-content': charts.length === 1 }"
             v-bkloading="{ isLoading: chart.isLoading, opacity: 1 }">
             <div class="clearfix">
                 <div class="content-title">{{chart.title}}</div>
@@ -54,21 +57,7 @@
         components: {
             DataStatistics
         },
-        props: ['charts'],
-        computed: {
-            singleChart () {
-                return this.charts.length === 1
-            },
-            chartClassNames () {
-                const first = 'content-dimesion'
-                const second = 'content-wrap-right'
-                const single = 'content-dimesion atom-statistics atom-content'
-                if (this.singleChart) {
-                    return [single]
-                }
-                return [first, second]
-            }
-        }
+        props: ['charts']
     }
 </script>
 <style lang="scss">
