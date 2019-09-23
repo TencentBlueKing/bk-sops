@@ -182,7 +182,7 @@ class TaskTemplateManager(BaseTemplateManager):
             message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
             return False, message, None, None
 
-    def group_by_state(self, tasktmpl):
+    def group_by_state(self, tasktmpl, *args):
         # 按流程模板执行状态查询流程个数
         total = tasktmpl.count()
         groups = [
@@ -205,11 +205,11 @@ class TaskTemplateManager(BaseTemplateManager):
         ]
         return total, groups
 
-    def group_by_biz_cc_id(self, tasktmpl, group_by):
+    def group_by_biz_cc_id(self, tasktmpl, *args):
         # 查询不同业务的模板个数
         total = tasktmpl.count()
         template_list = tasktmpl.values(AE.business__cc_id, AE.business__cc_name).annotate(
-            value=Count(group_by)).order_by("value")
+            value=Count('business__cc_id')).order_by("value")
         groups = []
         for data in template_list:
             groups.append({
@@ -219,7 +219,7 @@ class TaskTemplateManager(BaseTemplateManager):
             })
         return total, groups
 
-    def group_by_atom_cite(self, tasktmpl):
+    def group_by_atom_cite(self, tasktmpl, *args):
         # 查询不同原子引用的个数
         # 获得标准插件dict列表
         component_dict = ComponentModel.objects.get_component_dict()
@@ -227,8 +227,7 @@ class TaskTemplateManager(BaseTemplateManager):
         component_list = ComponentModel.objects.filter(status=True).values("code")
         # 用 template_id 列表获取所有符合条件的总数
         other_component_list = ComponentInTemplate.objects.filter(template_id__in=template_list).values(
-            "component_code").annotate(
-            value=Count("component_code")).order_by()
+            "component_code").annotate(value=Count("component_code")).order_by()
         components_dict = {}
         total = component_list.count()
         for component in other_component_list:
