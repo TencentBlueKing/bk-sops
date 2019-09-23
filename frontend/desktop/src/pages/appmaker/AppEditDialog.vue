@@ -89,7 +89,7 @@
                 <label>{{i18n.appDesc}}</label>
                 <div class="common-form-content">
                     <textarea
-                        class="app-desc ui-form-item"
+                        class="app-desc"
                         name="appDesc"
                         v-model="appData.appDesc"
                         v-validate="appDescRule">
@@ -334,9 +334,6 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
-.ui-form-item {
-    width: 500px;
-}
 .common-error-tip {
     position: absolute;
     left: 0;
@@ -353,7 +350,7 @@
     }
     .scheme-tooltip {
         position: absolute;
-        left: 510px;
+        right: -24px;
         top: 10px;
         color: #c4c6cc;
         &:hover {
@@ -361,6 +358,7 @@
         }
     }
     .app-desc {
+        width: 100%;
         height: 80px;
         border: 1px solid #c4c6cc;
         outline: none;
