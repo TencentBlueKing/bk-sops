@@ -351,17 +351,20 @@ class TaskTemplateManager(BaseTemplateManager):
         # 获得所有类型的dict列表
         category_dict = dict(TASK_CATEGORY)
 
-        # 排序
+        # 过滤得到所有符合查询条件的流程
         template_id_list = tasktmpl.values("pipeline_template__template_id")
         id_list = tasktmpl.values("pipeline_template__id", "pipeline_template__template_id")
         template_pipeline_data = TemplateInPipeline.objects.filter(template_id__in=template_id_list)
+        # 查询所有的流程引用，并统计引用数量
         relationship_list = TemplateRelationship.objects.filter(descendant_template_id__in=template_id_list).values(
             "descendant_template_id").annotate(relationship_total=Count("descendant_template_id"))
+        # 构造id： template_id字典，方便后面对不同model进行查询
         template_id_map = {template['pipeline_template__id']: template['pipeline_template__template_id']
                            for template in id_list}
+        # 查询所有的任务，并统计每个template创建了多少个任务
         taskflow_list = PipelineInstance.objects.filter(template_id__in=template_id_map.keys()).values(
             "template_id").annotate(instance_total=Count("template_id")).order_by()
-
+        # 查询所有归档的周期任务，并统计每个template创建了多少个周期任务
         periodic_list = PeriodicTask.objects.filter(template__template_id__in=template_id_list).values(
             "template__template_id").annotate(periodic_total=Count("template__id"))
 
@@ -383,7 +386,7 @@ class TaskTemplateManager(BaseTemplateManager):
                 filtered_taskflow_list, filtered_id_list, order_by, page, limit)
         elif order_by in ['periodicTotal', '-periodicTotal']:
             # 计算流程创建的周期任务数
-            filtered_periodic_list = periodic_list.order_by(camel_order_by)[(page - 1) * limit:page * limit]
+            filtered_periodic_list = periodic_list.order_by(camel_order_by)
             filtered_id_list = [template["template__template_id"] for template in filtered_periodic_list]
             template_id_list = self._group_by_template_node_sorting(
                 filtered_periodic_list, filtered_id_list, order_by, page, limit)
