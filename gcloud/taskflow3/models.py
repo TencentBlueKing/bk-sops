@@ -426,7 +426,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             return False, message, None, None
         return True, None, taskflow, prefix_filters
 
-    def group_by_state(self, taskflow):
+    def group_by_state(self, taskflow, *args):
         # 按流程执行状态查询流程个数
         total = taskflow.count()
         groups = [
@@ -449,11 +449,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         ]
         return total, groups
 
-    def group_by_biz_cc_id(self, taskflow, group_by):
+    def group_by_biz_cc_id(self, taskflow, *args):
         # 查询不同业务对应的流程数
         total = taskflow.count()
         taskflow_list = taskflow.values(AE.business__cc_id, AE.business__cc_name).annotate(
-            value=Count(group_by)).order_by()
+            value=Count('business__cc_id')).order_by()
         groups = []
         for data in taskflow_list:
             groups.append({
@@ -532,7 +532,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             groups = sorted(groups, key=lambda group: group.get(order_by))
         return total, groups
 
-    def group_by_atom_execute_times(self, taskflow):
+    def group_by_atom_execute_times(self, taskflow, *args):
         # 查询各标准插件被执行次数
         # 获得标准插件dict列表
         component_dict = ComponentModel.objects.get_component_dict()
@@ -559,7 +559,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             })
         return total, groups
 
-    def group_by_atom_execute_fail_times(self, taskflow):
+    def group_by_atom_execute_fail_times(self, taskflow, *args):
         # 查询各标准插件重试次数
         component_dict = ComponentModel.objects.get_component_dict()
         component_list = ComponentModel.objects.filter(status=True).values("code")
@@ -591,7 +591,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             })
         return total, groups
 
-    def group_by_atom_avg_execute_time(self, taskflow):
+    def group_by_atom_avg_execute_time(self, taskflow, *args):
         # 查询各标准插件被执行次数
         # 获得标准插件dict列表
         component_dict = ComponentModel.objects.get_component_dict()
@@ -618,7 +618,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             })
         return total, groups
 
-    def group_by_atom_fail_percent(self, taskflow):
+    def group_by_atom_fail_percent(self, taskflow, *args):
         # 查询各标准插件重试次数
         component_dict = ComponentModel.objects.get_component_dict()
         component_list = ComponentModel.objects.filter(status=True).values("code")
@@ -813,7 +813,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             groups = sorted(groups, key=lambda group: group.get(order_by))
         return total, groups
 
-    def group_by_instance_time(self, taskflow, filters):
+    def group_by_instance_time(self, taskflow, filters, *args):
         #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
         instance_create_time_list = taskflow.values('pipeline_instance__create_time')
         total = instance_create_time_list.count()
