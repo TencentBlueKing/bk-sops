@@ -27,7 +27,7 @@
                             @selected="onChangeTimeTypeBusiness"
                             @clear="onClearTimeTypeBusiness">
                             <bk-option
-                                v-for="(option, index) in businessList"
+                                v-for="(option, index) in allBusinessList"
                                 :key="index"
                                 :id="option.cc_id"
                                 :name="option.cc_name">
@@ -45,7 +45,7 @@
                             @selected="onChangeTimeTypeCategory"
                             @clear="onClearTimeTypeCategory">
                             <bk-option
-                                v-for="(option, index) in categoryList"
+                                v-for="(option, index) in categorys"
                                 :key="index"
                                 :id="option.value"
                                 :name="option.name">
@@ -291,7 +291,7 @@
                                 searchable: true,
                                 onSelected: this.onInstanceCategory,
                                 onClear: this.onClearInstanceCategory,
-                                options: this.businessList,
+                                options: this.allBusinessList,
                                 option: {
                                     key: 'cc_id',
                                     name: 'cc_name'
@@ -312,7 +312,7 @@
                                 searchable: true,
                                 onSelected: this.onInstanceBizCcId,
                                 onClear: this.onClearInstanceBizCcId,
-                                options: this.categoryList,
+                                options: this.categorys,
                                 option: {
                                     key: 'value',
                                     name: 'name'
