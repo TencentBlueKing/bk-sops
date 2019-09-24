@@ -23,7 +23,6 @@
     "plotly.js": "1.39.4",
     "qs": "^6.5.2",
     "table-to-excel": "^1.0.6",
-    "tooltip.js": "^1.2.0",
     "vee-validate": "^2.1.0-beta.6",
     "vue": "^2.6.10",
     "vue-router": "^3.0.1",

@@ -11,34 +11,36 @@
 */
 <template>
     <div class="tag-datatable">
-        <bk-button
-            v-if="add_btn && editable && formMode"
-            class="add-column" type="default"
-            @click="add_row">
-            {{ i18n.add_text }}
-        </bk-button>
-        <div v-for="btn in table_buttons" :key="btn.type" class="table_buttons">
-            <el-button
-                v-if="btn.type !== 'import' && formMode"
-                type="default"
-                @click=onBtnClick(btn.callback)>
-                {{ btn.text}}
-            </el-button>
-            <el-upload
-                v-if="btn.type === 'import' && formMode"
-                ref="upload"
-                class="upload-btn"
-                action="/"
-                :show-file-list="false"
-                :on-change="importExcel"
-                :auto-upload="false">
+        <template v-if="editable && formMode">
+            <bk-button
+                v-if="add_btn"
+                class="add-column" type="default"
+                @click="add_row">
+                {{ i18n.add_text }}
+            </bk-button>
+            <div v-for="btn in table_buttons" :key="btn.type" class="table-buttons">
                 <el-button
-                    slot="trigger"
-                    type="default">
-                    {{ btn.text }}
+                    v-if="btn.type !== 'import'"
+                    type="default"
+                    @click="onBtnClick(btn.callback)">
+                    {{ btn.text}}
                 </el-button>
-            </el-upload>
-        </div>
+                <el-upload
+                    v-if="btn.type === 'import'"
+                    ref="upload"
+                    class="upload-btn"
+                    action="/"
+                    :show-file-list="false"
+                    :on-change="importExcel"
+                    :auto-upload="false">
+                    <el-button
+                        slot="trigger"
+                        type="default">
+                        {{ btn.text }}
+                    </el-button>
+                </el-upload>
+            </div>
+        </template>
         <el-table
             v-if="Array.isArray(value)"
             style="width: 100%; font-size: 12px"
@@ -97,6 +99,7 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
+    import errorHandler from '../../../../utils/errorHandler.js'
 
     const datatableAttrs = {
         columns: {
@@ -187,9 +190,7 @@
                     edit_text: gettext('编辑'),
                     operate_text: gettext('操作'),
                     delete_text: gettext('删除'),
-                    add_text: gettext('添加'),
-                    export_text: gettext('导出表格'),
-                    import_text: gettext('导入表格')
+                    add_text: gettext('添加')
                 }
             }
         },
@@ -261,27 +262,26 @@
                 })
             },
             importExcel (file) {
-                // let file = file.files[0] // 使用传统的input方法需要加上这一步
                 const types = file.name.split('.')[1]
                 const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
                 if (!fileType) {
-                    alert(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
+                    errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
                     return
                 }
                 this.file2Xce(file).then(tabJson => {
                     if (tabJson && tabJson.length > 0) {
                         // 首先做一个name与tag_code的对应字典
-                        const name_to_tagCode = {}
+                        const nameToTagCode = {}
                         for (let i = 0; i < this.columns.length; i++) {
-                            name_to_tagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
+                            nameToTagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
                         }
                         // 循环进行对比，如果发现与表头一致的name，就将其替换成tag_code
-                        const excel_value = tabJson[0]['sheet']
-                        for (let i = 0; i < excel_value.length; i++) {
-                            for (const key in excel_value[i]) {
-                                const newKey = name_to_tagCode[key]
-                                excel_value[i][newKey] = excel_value[i][key]
-                                delete excel_value[i][key]
+                        const excelValue = tabJson[0]['sheet']
+                        for (let i = 0; i < excelValue.length; i++) {
+                            for (const key in excelValue[i]) {
+                                const newKey = nameToTagCode[key]
+                                excelValue[i][newKey] = excelValue[i][key]
+                                delete excelValue[i][key]
                             }
                         }
                         this.tableValue = tabJson[0]['sheet']
@@ -293,20 +293,19 @@
                     const reader = new FileReader()
                     reader.onload = function (e) {
                         const data = e.target.result
-                        this.wb = XLSX.read(data, {
+                        const wb = XLSX.read(data, {
                             type: 'binary'
                         })
                         const result = []
-                        this.wb.SheetNames.forEach((sheetName) => {
+                        wb.SheetNames.forEach((sheetName) => {
                             result.push({
                                 sheetName: sheetName,
-                                sheet: XLSX.utils.sheet_to_json(this.wb.Sheets[sheetName])
+                                sheet: XLSX.utils.sheet_to_json(wb.Sheets[sheetName])
                             })
                         })
                         resolve(result)
                     }
                     reader.readAsBinaryString(file.raw)
-                // reader.readAsBinaryString(file) // 传统input方法
                 })
             },
             /**
@@ -472,7 +471,7 @@
         white-space: nowrap;
         cursor: pointer;
     }
-    .table_buttons{
+    .table-buttons{
         display: inline-block;
         margin-left: 10px;
         margin-bottom: 15px;

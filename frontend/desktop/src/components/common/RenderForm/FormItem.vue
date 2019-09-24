@@ -51,7 +51,7 @@
         <!-- 表单元素 -->
         <component
             v-show="!hook"
-            class="rf-tag-form"
+            :class="scheme.attrs.name ? 'rf-tag-form' : ''"
             ref="tagComponent"
             :is="tagComponent"
             v-bind="getDefaultAttrs()"
@@ -331,7 +331,7 @@
 <style lang="scss">
 .rf-form-item {
     position: relative;
-    margin: 15px 0 !important;
+    margin: 15px 0;
     min-height: 36px;
     &:first-child {
         margin-top: 0;
@@ -346,7 +346,7 @@
     }
     &.rf-col-layout {
         display: inline-block;
-        margin: 0 0 !important;
+        margin: 0 0;
     }
     .rf-tag-label {
         float: left;
