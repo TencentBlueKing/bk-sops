@@ -23,7 +23,6 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         component: SITE_URL + 'api/v3/component/',
         template: SITE_URL + 'api/v3/template/',
         variable: SITE_URL + 'api/v3/variable/',
-        internalVariable: SITE_URL + 'taskflow/api/context/',
         instance: SITE_URL + 'api/v3/taskflow/',
         function: SITE_URL + 'api/v3/function_task/',
         periodic: SITE_URL + 'api/v3/periodic_task/',
@@ -48,6 +47,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         instanceClaim: SITE_URL + 'taskflow/api/flow/claim/',
         instanceDetail: SITE_URL + 'taskflow/detail/' + PROJECT_ID + '/',
         instanceStatus: SITE_URL + 'taskflow/api/status/',
+        internalVariable: SITE_URL + 'taskflow/api/context/',
         nodeActInfo: SITE_URL + 'taskflow/api/nodes/data/' + PROJECT_ID + '/',
         // 执行详情
         nodeActDetails: SITE_URL + 'taskflow/api/nodes/detail/' + PROJECT_ID + '/',

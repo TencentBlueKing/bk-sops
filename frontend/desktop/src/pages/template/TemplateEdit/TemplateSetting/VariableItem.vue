@@ -72,11 +72,9 @@
                 </span>
             </span>
             <span class="col-item col-output">
-                <div @click="onPreventDefalut">
+                <div @click.stop>
                     <bk-switcher
                         size="small"
-                        on-text="ON"
-                        off-text="OFF"
                         :selected="outputs.indexOf(constant.key) > -1"
                         @change="onChangeVariableOutput(constant.key, $event)">
                     </bk-switcher>
@@ -130,9 +128,6 @@
             }
         },
         methods: {
-            onPreventDefalut (e) {
-                window.event ? window.event.cancelBubble = true : e.stopPropagation()
-            },
             /**
              * 变量 key 复制
              */
