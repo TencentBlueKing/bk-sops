@@ -611,8 +611,8 @@
             validateAtomInputForm (component) {
                 const { code, data, version } = component
                 if (!data) return false
-                const config = this.atomConfig[code][version]
-                if (config) {
+                if (this.atomConfig[code] && this.atomConfig[code][version]) {
+                    const config = this.atomConfig[code][version]
                     const formData = {}
                     Object.keys(data).forEach(key => {
                         formData[key] = data[key].value
@@ -843,7 +843,6 @@
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
-
                 if (isAllNodeValid) {
                     this.saveTemplate()
                 }
