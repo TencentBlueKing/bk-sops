@@ -19,8 +19,7 @@
                         <div class="content-date-business">
                             <bk-select
                                 v-model="businessSelected"
-                                class="bk-select-inline"
-                                :popover-width="260"
+                                class="chart-select-item"
                                 :searchable="true"
                                 @selected="onAtomCiteData">
                                 <bk-option
@@ -56,7 +55,6 @@
                                 <bk-select
                                     v-model="selectedAtom"
                                     class="bk-select-inline"
-                                    :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
                                     @clear="onClearAtom"
