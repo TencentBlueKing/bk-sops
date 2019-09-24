@@ -153,7 +153,6 @@
                     const projectDetail = await this.loadProjectDetail(this.project_id)
                     this.setProjectName(projectDetail.name)
                     this.setProjectActions(projectDetail.auth_actions)
-                    console.log(this.$route.name)
                     if (this.$route.name === 'templateEdit' && this.$route.query.common) {
                         setConfigContext(this.site_url)
                     } else {
