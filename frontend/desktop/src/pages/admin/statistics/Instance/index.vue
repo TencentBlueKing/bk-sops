@@ -19,7 +19,7 @@
                         <div class="content-date-business">
                             <bk-select
                                 v-model="taskProjectSelected"
-                                class="bk-select-inline"
+                                class="chart-select-item"
                                 :popover-width="260"
                                 :searchable="true"
                                 @selected="onInstanceCategory">
@@ -52,7 +52,7 @@
                         <div class="content-business">
                             <bk-select
                                 v-model="taskCategorySelected"
-                                class="bk-select-inline"
+                                class="chart-select-item"
                                 :popover-width="260"
                                 :searchable="true"
                                 :placeholder="i18n.choice"
@@ -88,7 +88,7 @@
                         <!--业务选择-->
                         <bk-select
                             v-model="timeProjectSelected"
-                            class="bk-select-inline"
+                            class="chart-select-item"
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.choice"
@@ -105,7 +105,7 @@
                         <!--分类选择-->
                         <bk-select
                             v-model="timeCategorySelected"
-                            class="bk-select-inline"
+                            class="chart-select-item"
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.choice"
@@ -132,7 +132,7 @@
                         <!--时间维度选择-->
                         <bk-select
                             v-model="choiceDate"
-                            class="bk-select-inline"
+                            class="chart-select-item"
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.choice"
