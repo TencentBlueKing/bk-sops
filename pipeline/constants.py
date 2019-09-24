@@ -11,6 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-default_app_config = 'pipeline.apps.PipelineConfig'
-
-__version__ = '1.0.0'
+PIPELINE_DEFAULT_PRIORITY = 100
+PIPELINE_MIN_PRIORITY = 0
+PIPELINE_MAX_PRIORITY = 255
