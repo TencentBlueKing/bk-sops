@@ -87,7 +87,7 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
 
     if host_info:
         default_fields = ['bk_host_innerip', 'bk_host_name', 'bk_host_id']
-        fields = list(set(default_fields + fields))
+        fields = set(default_fields + fields)
         for host in host_info:
             host_detail = {field: host['host'][field] for field in fields if field in host['host']}
             host_detail['bk_host_innerip'] = format_sundry_ip(host_detail['bk_host_innerip'])
