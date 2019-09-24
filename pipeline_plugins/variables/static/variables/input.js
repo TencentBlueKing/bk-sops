@@ -18,9 +18,6 @@
                 name: gettext("输入框"),
                 hookable: true,
                 validation: [
-                    {
-                        type: "required"
-                    }
                 ]
             }
         },
