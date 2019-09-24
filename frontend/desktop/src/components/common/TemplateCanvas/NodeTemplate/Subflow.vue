@@ -28,7 +28,7 @@
                 <template v-if="node.optional">
                     <div v-if="node.mode === 'edit'" class="optional-icon"></div>
                     <bk-checkbox
-                        v-else-if="node.mode === 'select' || ndoe.mode === 'selectDisabled'"
+                        v-else-if="node.mode === 'select' || node.mode === 'selectDisabled'"
                         :disabled="node.mode === 'selectDisabled'">
                     </bk-checkbox>
                 </template>
