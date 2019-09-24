@@ -117,7 +117,8 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
             agent_data = agent_result['data']
             for host in data:
                 # agent在线状态，0为不在线，1为在线，-1为未知
-                agent_info = agent_data.get('%s:%s' % (host['cloud'][0]['id'], host['bk_host_innerip']), {})
+                agent_info = agent_data.get('{cloud}:{ip}'.format(cloud=host['cloud'][0]['id'],
+                                                                  ip=host['bk_host_innerip']), {})
                 host['agent'] = agent_info.get('bk_agent_alive', -1)
 
     result = {'result': True, 'code': NO_ERROR, 'data': data}
