@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import datetime
 import logging
 
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseNotFound
 from django.utils.translation import check_for_language
 from django.shortcuts import render
 
@@ -26,6 +26,8 @@ logger = logging.getLogger("root")
 
 
 def page_not_found(request):
+    if request.is_ajax() or request.path.startswith(settings.STATIC_URL):
+        return HttpResponseNotFound()
     user = LoginRequiredMiddleware.authenticate(request)
     # 未登录重定向到首页，跳到登录页面
     if not user:
@@ -39,17 +41,9 @@ def home(request):
 
 
 def set_language(request):
-    next = None
-    if request.method == 'GET':
-        next = request.GET.get('next', None)
-    elif request.method == 'POST':
-        next = request.POST.get('next', None)
-
-    if not next:
-        next = request.META.get('HTTP_REFERER', None)
-    if not next:
-        next = '/'
-    response = HttpResponseRedirect(next)
+    request_params = getattr(request, request.method)
+    next_url = request_params.get('next', None) or request.META.get('HTTP_REFERER', '/')
+    response = HttpResponseRedirect(next_url)
 
     if request.method == 'GET':
         lang_code = request.GET.get('language', None)
