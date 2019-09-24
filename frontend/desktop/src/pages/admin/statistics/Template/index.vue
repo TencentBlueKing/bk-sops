@@ -19,8 +19,9 @@
                         <div class="content-date-business">
                             <bk-select
                                 v-model="businessSelected"
-                                class="bk-select-inline"
+                                class="chart-select-item"
                                 :popover-width="260"
+
                                 :searchable="true"
                                 @selected="onTemplateCategory">
                                 <bk-option
@@ -53,8 +54,9 @@
                         <div class="content-business">
                             <bk-select
                                 v-model="categorySelected"
-                                class="bk-select-inline"
+                                class="chart-select-item"
                                 :popover-width="260"
+
                                 :searchable="true"
                                 :placeholder="i18n.choice"
                                 @selected="onSelectProject">
@@ -102,7 +104,6 @@
                                 <bk-select
                                     v-model="selectedProject"
                                     class="bk-select-inline"
-                                    :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
                                     @selected="onSelectedProject">
@@ -119,7 +120,6 @@
                                 <bk-select
                                     v-model="selectedCategory"
                                     class="bk-select-inline"
-                                    :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
                                     @clear="onClearCategory"
@@ -163,7 +163,6 @@
                                 <bk-select
                                     v-model="selectedProject"
                                     class="bk-select-inline"
-                                    :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
                                     @clear="onClearProject"

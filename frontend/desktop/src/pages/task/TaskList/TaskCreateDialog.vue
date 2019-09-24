@@ -404,7 +404,6 @@
         width: 260px;
         cursor: pointer;
         background: #dcdee5;
-        border: 1px solid #c4c6cc;
         border-radius: 2px;
         overflow: hidden;
         &:nth-child(3n + 1) {
@@ -439,11 +438,14 @@
         }
         &.permission-disable {
             background: #f7f7f7;
-            border: 1px solid #dcdee5;
             .task-item-icon {
                 color: #dcdee5;
                 background: #f7f7f7;
-                border-right: 1px solid #dcdee5;
+                border: 1px solid #dcdee5;
+            }
+            .task-item-name-box {
+                border: 1px solid #dcdee5;
+                border-left: none;
             }
             .task-item-name {
                 color: #c4c6cc;
