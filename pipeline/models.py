@@ -744,7 +744,7 @@ class PipelineInstance(models.Model):
 
             instance.save()
 
-        act_result = task_service.run_pipeline(pipeline)
+        act_result = task_service.run_pipeline(pipeline, check_workers=check_workers)
 
         if not act_result.result:
             with transaction.atomic():
