@@ -326,7 +326,6 @@ const routers = new VueRouter({
                             path: '',
                             component: NotFoundComponent
                         },
-                       
                         {
                             path: 'edit/:cc_id?/',
                             component: TemplateEdit,

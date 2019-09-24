@@ -369,7 +369,7 @@
                     page: gettext('页'),
                     yes: gettext('是'),
                     no: gettext('否'),
-                    empty: gettext('无数据，若您不是运维人员，请尝试联系运维人员为您添加模板权限'),
+                    empty: gettext('无数据'),
                     templateNamePlaceholder: gettext('请输入流程名称'),
                     templateCategoryPlaceholder: gettext('请选择分类'),
                     subprocessUpdatePlaceholder: gettext('请选择子流程更新'),
