@@ -52,7 +52,7 @@
                 <span class="col-delete t-head"></span>
             </div>
             <ul class="variable-list" ref="variableList">
-                <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
+                <draggable class="variable-drag" v-model="constantsArray" handle=".col-item-drag" @end="onDragEnd">
                     <li
                         v-for="(constant, index) in constantsArray"
                         :key="constant.key"
