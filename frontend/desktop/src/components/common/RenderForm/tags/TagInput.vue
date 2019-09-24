@@ -85,7 +85,7 @@
                         Keylist = [...Object.keys(this.constants)]
                     }
                     if (this.systemConstants) {
-                        Keylist = [...Object.keys(this.systemConstants)]
+                        Keylist = [...Keylist, ...Object.keys(this.systemConstants)]
                     }
                     return Keylist
                 },
