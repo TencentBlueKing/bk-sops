@@ -25,3 +25,9 @@ class CollectionsNodeMan(object):
             path='/api/c/compapi/v2/nodeman/create_task/',
             description=u'安装作业'
         )
+
+        self.get_task_info = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi/v2/nodeman/get_task_info',
+            description=u'获取任务信息'
+        )

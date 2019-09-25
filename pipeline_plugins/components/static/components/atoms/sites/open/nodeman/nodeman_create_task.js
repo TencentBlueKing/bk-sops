@@ -69,7 +69,7 @@
             tag_code: "nodeman_hosts",
             type: "datatable",
             attrs: {
-                name: gettext("主机相关信息"),
+                name: gettext("主机"),
                 editable: true,
                 add_btn: true,
                 columns: [
@@ -77,7 +77,7 @@
                         tag_code: "conn_ips",
                         type: "input",
                         attrs: {
-                            name: gettext("主机通信IP"),
+                            name: gettext("通信IP"),
                             placeholder: gettext("多个用英文逗号隔开"),
                             width: '100px',
                             editable: true,
@@ -92,7 +92,7 @@
                         tag_code: "login_ip",
                         type: "input",
                         attrs: {
-                            name: gettext("主机登陆IP"),
+                            name: gettext("登录IP"),
                             placeholder: gettext("适配复杂网络时填写"),
                             width: '100px',
                             editable: true
@@ -102,7 +102,7 @@
                         tag_code: "data_ip",
                         type: "input",
                         attrs: {
-                            name: gettext("主机数据IP"),
+                            name: gettext("数据IP"),
                             placeholder: gettext("适配复杂网络时填写"),
                             width: '100px',
                             editable: true
@@ -163,7 +163,7 @@
                         tag_code: "account",
                         type: "input",
                         attrs: {
-                            name: gettext("登陆账号"),
+                            name: gettext("登录账号"),
                             width: '100px',
                             editable: true
                         }
@@ -185,7 +185,7 @@
                         tag_code: "password",
                         type: "input",
                         attrs: {
-                            name: gettext("登陆密码"),
+                            name: gettext("登录密码"),
                             width: '100px',
                             editable: true
                         }
@@ -194,7 +194,7 @@
                         tag_code: "key",
                         type: "input",
                         attrs: {
-                            name: gettext("登陆秘钥"),
+                            name: gettext("登录秘钥"),
                             width: '100px',
                             editable: true
                         }
