@@ -23,7 +23,8 @@ from pipeline_plugins.components.utils import (
     supplier_account_inject,
     get_ip_by_regex,
     ip_re,
-    ip_pattern
+    ip_pattern,
+    format_sundry_ip
 )
 from gcloud.conf import settings
 
@@ -168,9 +169,7 @@ def cc_get_ip_list_by_biz_and_user(username, biz_cc_id, supplier_account, use_ca
             data = cc_result['data']['info']
             # 多IP主机处理，取第一个IP
             for host in data:
-                if ',' in host['host']['bk_host_innerip']:
-                    logger.info('IP[%s] has multiple bk_host_innerip' % host['host']['bk_host_innerip'])
-                    host['host']['bk_host_innerip'] = host['host']['bk_host_innerip'].split(',')[0]
+                host['host']['bk_host_innerip'] = format_sundry_ip(host['host']['bk_host_innerip'])
             cache.set(cache_key, data, 60)
         else:
             logger.warning((u"search_host ERROR###biz_cc_id=%s"

@@ -11,11 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
-
-from pipeline_plugins.components.utils.common import *  # noqa
-
-utils_module = importlib.import_module('pipeline_plugins.components.utils.sites.%s.utils' % settings.RUN_VER)
-
-for util in utils_module.__all__:
-    locals()[util] = getattr(utils_module, util)
+PIPELINE_DEFAULT_PRIORITY = 100
+PIPELINE_MIN_PRIORITY = 0
+PIPELINE_MAX_PRIORITY = 255

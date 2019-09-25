@@ -5,18 +5,18 @@
 处理流程推进的 worker：
 
 ```shell
-python manage.py celery worker -Q pipeline
+python manage.py celery worker -Q pipeline,pipeline_priority
 ```
 
 处理轮询调度及回调请求的 worker：
 
 ```shell
-celery worker -A {celery app path} -P gevent -Q service_schedule
+celery worker -A {celery app path} -P gevent -Q service_schedule,service_schedule_priority
 ```
 
 处理其他事件的 worker：
 
 ```shell
-python manage.py celery worker -Q pipeline_additional_task
+python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority
 ```
 
