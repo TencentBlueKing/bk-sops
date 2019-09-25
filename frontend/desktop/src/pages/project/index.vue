@@ -66,7 +66,7 @@
                                     @click="onClickOptBtn(props.row, item.name)">
                                     {{
                                         item.name === 'view'
-                                            ? (!hasPermission([item.power], props.row.auth_actions, projectOperations) ? item.text : item.text2 )
+                                            ? (!hasPermission([item.power], props.row.auth_actions, projectOperations) ? item.text : item.enter )
                                             : item.text
                                     }}
                                 </bk-button>
@@ -171,7 +171,7 @@
             name: 'view',
             power: 'view',
             text: gettext('查看'),
-            text2: gettext('进入')
+            enter: gettext('进入')
         },
         {
             name: 'edit',
