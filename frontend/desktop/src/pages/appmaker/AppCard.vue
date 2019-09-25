@@ -46,6 +46,7 @@
                     :class="['common-icon-dustbin', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
+                    :title="i18n.delete"
                     v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
                     @click="onCardDelete">
                 </span>
