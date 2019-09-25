@@ -27,7 +27,7 @@
                     {{ btn.text}}
                 </el-button>
                 <el-upload
-                    v-else="btn.type === 'import'"
+                    v-else
                     ref="upload"
                     class="upload-btn"
                     action="/"
