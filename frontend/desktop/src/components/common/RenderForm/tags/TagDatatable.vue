@@ -14,7 +14,8 @@
         <template v-if="editable && formMode">
             <bk-button
                 v-if="add_btn"
-                class="add-column" type="default"
+                class="add-column"
+                type="default"
                 @click="add_row">
                 {{ i18n.add_text }}
             </bk-button>
@@ -26,7 +27,7 @@
                     {{ btn.text}}
                 </el-button>
                 <el-upload
-                    v-if="btn.type === 'import'"
+                    v-else="btn.type === 'import'"
                     ref="upload"
                     class="upload-btn"
                     action="/"
@@ -99,7 +100,7 @@
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
     import XLSX from 'xlsx'
-    import errorHandler from '../../../../utils/errorHandler.js'
+    import errorHandler from '@/utils/errorHandler.js'
 
     const datatableAttrs = {
         columns: {

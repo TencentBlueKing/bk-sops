@@ -346,7 +346,7 @@
     }
     &.rf-col-layout {
         display: inline-block;
-        margin: 0 0;
+        margin: 0;
     }
     .rf-tag-label {
         float: left;
