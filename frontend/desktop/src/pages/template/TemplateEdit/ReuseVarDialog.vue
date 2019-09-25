@@ -46,9 +46,7 @@
             <div class="create-new-variable" v-show="isCreateVar">
                 <p v-if="isNewVariableAlone" class="new-var-notice">{{i18n.newVarNotice}}</p>
                 <div
-                    :class="[
-                        { 'common-form-block-item': isNewVariableAlone },
-                        { 'common-form-item': !isNewVariableAlone }]">
+                    :class="isNewVariableAlone ? 'common-form-block-item' : 'common-form-item'">
                     <label>{{ i18n.name }}</label>
                     <div class="common-form-content">
                         <bk-input
@@ -58,9 +56,7 @@
                         <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
                     </div>
                 </div>
-                <div :class="[
-                    { 'common-form-block-item': isNewVariableAlone },
-                    { 'common-form-item': !isNewVariableAlone }]">
+                <div :class="isNewVariableAlone ? 'common-form-block-item' : 'common-form-item'">
                     <label>{{ i18n.key }}</label>
                     <div class="common-form-content">
                         <bk-input
