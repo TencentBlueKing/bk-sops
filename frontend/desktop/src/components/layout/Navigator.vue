@@ -233,7 +233,7 @@
             },
             disabled () {
                 const route = this.$route
-                return route.path.indexOf('/admin/') > -1
+                return route.path.indexOf('/admin/') === 0
             }
         },
         mounted () {

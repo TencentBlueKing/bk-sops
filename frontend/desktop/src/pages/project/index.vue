@@ -64,7 +64,11 @@
                                     }]"
                                     theme="default"
                                     @click="onClickOptBtn(props.row, item.name)">
-                                    {{item.text}}
+                                    {{
+                                        item.name === 'view'
+                                            ? (!hasPermission([item.power], props.row.auth_actions, projectOperations) ? item.text : item.text2 )
+                                            : item.text
+                                    }}
                                 </bk-button>
                             </template>
                         </template>
@@ -166,7 +170,8 @@
         {
             name: 'view',
             power: 'view',
-            text: gettext('查看')
+            text: gettext('查看'),
+            text2: gettext('进入')
         },
         {
             name: 'edit',
