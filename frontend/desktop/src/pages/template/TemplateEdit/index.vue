@@ -112,6 +112,7 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
@@ -707,6 +708,11 @@
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
+                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
                 if (this.canvasDataLoading) {
                     return
                 }
@@ -865,6 +871,12 @@
             },
             // 校验节点配置
             checkNodeAndSaveTemplate () {
+                // 校验节点数目
+                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
                 // 节点配置是否错误
                 const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
                 if (nodeWithErrors && nodeWithErrors.length) {
