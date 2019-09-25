@@ -755,7 +755,7 @@
         }
         .common-icon-dark-circle-close {
             color: $redDefault;
-            font-size: 16px;
+            font-size: 14px;
             vertical-align: middle;
         }
         &.revoke {
