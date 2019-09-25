@@ -34,6 +34,7 @@ def nodeman_rsa_encrypt(message):
 
 
 class NodemanCreateTaskService(Service):
+    __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
     def execute(self, data, parent_data):
@@ -91,6 +92,9 @@ class NodemanCreateTaskService(Service):
         LOGGER.info('nodeman created task result: {result}, api_kwargs: {kwargs}'.format(
             result=agent_result, kwargs=agent_kwargs))
         if agent_result['result']:
+            data.set_outputs('job_id', agent_result['data']['hosts'][0]['job_id'])
+            data.set_outputs('status', agent_result['message'])
+            data.set_outputs('agent_kwargs', agent_kwargs)
             return True
         else:
             message = u"create agent install task failed: %s" % agent_result['message']
@@ -99,6 +103,46 @@ class NodemanCreateTaskService(Service):
 
     def outputs_format(self):
         return []
+
+    def schedule(self, data, parent_data, callback_data=None):
+        bk_biz_id = data.inputs.nodeman_bk_biz_id
+        executor = parent_data.inputs.executor
+        client = get_client_by_user(executor)
+
+        job_id = data.get_one_of_outputs('job_id')
+        agent_kwargs = data.get_one_of_outputs('agent_kwargs')
+        status = data.get_one_of_outputs('status')
+        print job_id, agent_kwargs, status
+
+        if not job_id or not status:
+            data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_id, status)
+            self.finish_schedule()
+            return False
+
+        job_kwargs = {
+            'bk_biz_id': bk_biz_id,
+            'job_id': job_id
+        }
+        job_result = client.nodeman.get_task_info(job_kwargs)
+
+        if job_result['message'] != 'success':
+            data.set_outputs('ex_data', job_result['message'])
+            self.finish_schedule()
+            return False
+            # 任务执行结束
+        job_result = job_result['data']['hosts'][0]
+
+        # 执行成功
+        if job_result['status'] == 'SUCCEEDED':
+            data.set_outputs('data', job_result['step'])
+            self.finish_schedule()
+            return True
+        # 执行失败
+        else:
+            data.set_outputs('ex_data', _(u"任务执行失败，%s, error_code: %s") %
+                             (job_result['step'], job_result['err_code_desc']))
+            self.finish_schedule()
+            return False
 
 
 class NodemanCreateTaskComponent(Component):
