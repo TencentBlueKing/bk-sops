@@ -9,6 +9,8 @@
 #### 参数
 
 - pipeline(Pipeline)：流程对象
+- check_workers(bool)：是否检测 worker 的状态，默认为 `True`
+- priority(int)：流程优先级，范围为 `[0, 255]`，默认为 `100`
 
 #### 返回值
 

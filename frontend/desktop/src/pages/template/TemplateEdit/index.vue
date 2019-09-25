@@ -112,6 +112,7 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
@@ -865,6 +866,12 @@
             },
             // 校验节点配置
             checkNodeAndSaveTemplate () {
+                // 校验节点数目
+                const validateMessage = validatePipeline.isNodeNumValida(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
                 // 节点配置是否错误
                 const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
                 if (nodeWithErrors && nodeWithErrors.length) {
@@ -873,6 +880,7 @@
                     errorHandler({ message: i18n.error }, this)
                     return
                 }
+
                 const isAllNodeValid = this.validateAtomNode()
 
                 if (isAllNodeValid) {

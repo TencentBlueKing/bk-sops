@@ -51,8 +51,10 @@
             </div>
         </div>
         <div class="permission-footer" slot="footer">
-            <bk-button theme="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
-            <bk-button theme="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
+            <div class="bk-button-group">
+                <bk-button theme="primary" :loading="loading" @click="goToApply">{{ i18n.apply }}</bk-button>
+                <bk-button theme="default" @click="onCloseDialog">{{ i18n.cancel }}</bk-button>
+            </div>
         </div>
     </bk-dialog>
 </template>
@@ -199,16 +201,9 @@
             }
         }
     }
-    /deep/ .bk-dialog-footer.bk-d-footer {
-        height: 50px;
-        line-height: 50px;
-        .permission-footer {
-            padding: 0 24px;
-            text-align: right;
-        }
+    .bk-button-group {
         .bk-button {
-            height: 32px;
-            line-height: 30px;
+            margin-left: 10px;
         }
     }
     

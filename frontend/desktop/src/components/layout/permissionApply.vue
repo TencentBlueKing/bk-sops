@@ -191,7 +191,7 @@
             margin: 0 auto 20px;
             width: 56px;
             height: 58px;
-            box-shadow: 0 9px 5px -5px rgba(100, 100, 100, 0.7);
+            box-shadow: 0 8px 3px -5px rgba(90, 90, 90, 0.7);
         }
         & > h3 {
             margin: 0 0 30px;
