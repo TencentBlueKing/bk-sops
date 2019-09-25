@@ -538,9 +538,12 @@
                 z-index: 6;
             }
         }
+        .jtk-connector {
+            z-index: 2;
+        }
         .jtk-overlay {
             cursor: pointer;
-            z-index: 4;
+            z-index: 2;
             &:not(.branch-condition) {
                 display: none;
             }

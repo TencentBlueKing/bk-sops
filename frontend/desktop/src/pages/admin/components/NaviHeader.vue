@@ -46,8 +46,11 @@
             align-items: center;
             height: 60px;
             h3 {
-                padding: 0 25px 0 10px;
+                margin: 0;
+                padding: 0 25px 0 12px;
                 border-left: 2px solid #a3c5fd;
+                height: 20px;
+                line-height: 20px;
                 font-size: 14px;
                 font-weight: bold;
                 color: #313238;
