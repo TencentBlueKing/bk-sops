@@ -352,10 +352,8 @@
 @import '@/scss/config.scss';
 .task-container {
     position: relative;
-    height: 340px;
     .task-wrapper {
-        float: left;
-        padding: 20px;
+        padding: 20px 20px 0;
         width: 850px;
         height: 100%;
         .task-list {
@@ -381,12 +379,12 @@
         }
         .filtrate-wrapper {
             display: flex;
+            margin-bottom: 20px;
         }
     }
     .task-search {
         position: relative;
         margin-left: 15px;
-        margin-bottom: 20px;
         flex: 1;
         .search-input {
             width: 260px;

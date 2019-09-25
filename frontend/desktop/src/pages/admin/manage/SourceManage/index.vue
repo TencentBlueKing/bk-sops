@@ -14,7 +14,7 @@
         <div class="operate-area">
             <router-link
                 to="/admin/manage/source_edit/package_edit/"
-                class="operate-btn bk-button bk-primary">
+                class="bk-button bk-primary">
                 {{ emptyData ? i18n.create : i18n.edit }}
             </router-link>
         </div>
@@ -124,12 +124,6 @@
         padding: 20px 60px 60px;
         min-height: calc(100% - 80px);
         background: #f4f7fa;
-    }
-    .operate-area {
-        .operate-btn {
-            height: 32px;
-            line-height: 32px;
-        }
     }
     .section-title {
         margin: 20px 0;
