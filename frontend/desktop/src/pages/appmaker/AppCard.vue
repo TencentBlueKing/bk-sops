@@ -179,7 +179,7 @@
         padding: 5px;
         font-size: 14px;
         color: #ffffff;
-        background: #dcdee4;
+        background: #d8dadc;
         border-radius: 2px;
         cursor: pointer;
         &:not(.permission-disable):hover {
