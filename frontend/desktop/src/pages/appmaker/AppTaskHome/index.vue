@@ -111,7 +111,7 @@
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                @click="onTaskPermissonCheck(props.row, $event)">
                                 {{props.row.name}}
                             </a>
                             <router-link
