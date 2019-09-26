@@ -102,7 +102,6 @@ class NodemanCreateTaskService(Service):
                 'auth_type': host['auth_type'],
                 'password': host['password'],
                 'key': host['key'],
-                'has_cygwin': host['has_cygwin']
             }
 
             auth_type = host['auth_type']
@@ -210,7 +209,7 @@ class NodemanCreateTaskService(Service):
                     }
                     result = client.nodeman.get_log(log_kwargs)
                     log_info = result['data']['logs']
-                    error_log = error_log + "<br><b>" + u"主机："+fail_hosts[i] + "</b></br>"\
+                    error_log = error_log + "<br><b>" + u"主机："+ fail_hosts[i] + "</b></br>"\
                                           + "<br>" + u"日志：" + "</br>" + log_info
 
                 data.set_outputs('ex_data', error_log)
