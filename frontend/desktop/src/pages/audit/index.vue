@@ -160,7 +160,6 @@
                     <bk-table-column :label="i18n.operation" width="100">
                         <template slot-scope="props">
                             <router-link
-                                v-else
                                 class="audit-operation-btn"
                                 :to="`/taskflow/execute/${props.row.business.cc_id}/?instance_id=${props.row.id}`">
                                 {{ i18n.view }}
