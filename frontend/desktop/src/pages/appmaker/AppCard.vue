@@ -43,7 +43,7 @@
                     :to="getExecuteHistoryUrl(appData.template_id)">
                 </router-link>
                 <span
-                    :class="['common-icon-dustbin', 'operate-btn', {
+                    :class="['common-icon-ashcan-delete', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
                     :title="i18n.delete"

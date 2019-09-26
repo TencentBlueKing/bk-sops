@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from pipeline.engine import api
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.log.models import LogEntry
 
 STATE_MAP = {
@@ -26,8 +27,8 @@ STATE_MAP = {
 }
 
 
-def run_pipeline(pipeline_instance, instance_id=None, check_workers=True):
-    return api.start_pipeline(pipeline_instance, check_workers=check_workers)
+def run_pipeline(pipeline_instance, instance_id=None, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
+    return api.start_pipeline(pipeline_instance, check_workers=check_workers, priority=priority)
 
 
 def pause_pipeline(pipeline_id):

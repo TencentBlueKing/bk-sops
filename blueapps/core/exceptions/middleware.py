@@ -16,7 +16,7 @@ import logging
 import traceback
 
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.utils.deprecation import MiddlewareMixin
 
 from blueapps.core.exceptions.base import BlueException
@@ -69,9 +69,14 @@ class AppExceptionMiddleware(MiddlewareMixin):
             )
         )
 
-        # 判断是否在debug模式中,
+        # 判断是否在 debug 模式中,
         # 在这里判断是防止阻止了用户原本主动抛出的异常
         if settings.DEBUG:
+            return None
+
+        # 部分 django 异常需要直接返回，由 django 自行捕获
+        blocked_list = (Http404,)
+        if isinstance(exception, blocked_list):
             return None
 
         response = JsonResponse({

@@ -18,17 +18,24 @@
                 name: gettext("业务"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
-                disabled: $.context.project.from_cmdb,
-                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
+                disabled: !$.context.canSelectBiz(),
                 validation: [
                     {
                         type: "required"
                     }
                 ]
+            },
+            methods: {
+                _tag_init: function () {
+                    if (this.value) {
+                        return
+                    }
+                    this.value = $.context.getBkBizId()
+                }
             }
         },
         {
@@ -39,7 +46,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_topo/module/normal/' + $.context.project.bk_biz_id + '/' : '';
+                    const url = $.context.canSelectBiz() ?  '' : $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + $.context.getBkBizId() + '/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -56,10 +63,10 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.items = [];
                         if (cc_id !== '') {
-                            this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/module/normal/' + cc_id + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -71,7 +78,7 @@
                         this._set_value('');
                         this.items = [];
                         if (value !== '') {
-                            this.remote_url = $.context.site_url + 'pipeline/cc_search_topo/module/normal/' + value + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_topo/module/normal/' + value + '/';
                             this.remoteMethod();
                         }
                     }
@@ -88,7 +95,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/cc_search_object_attribute/module/' + $.context.project.bk_biz_id + '/' : '';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/cc_search_object_attribute/module/' + $.context.getBkBizId() + '/';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -105,10 +112,10 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         this.items = [];
                         if (cc_id !== '') {
-                            this.remote_url = $.context.site_url + 'pipeline/cc_search_object_attribute/module/' + cc_id + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_object_attribute/module/' + cc_id + '/';
                             this.remoteMethod();
                         }
                     }
@@ -120,7 +127,7 @@
                         this._set_value('');
                         this.items = [];
                         if (value !== '') {
-                            this.remote_url = $.context.site_url + 'pipeline/cc_search_object_attribute/module/' + value + '/';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/cc_search_object_attribute/module/' + value + '/';
                             this.remoteMethod();
                         }
                     }

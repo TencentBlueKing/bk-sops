@@ -794,6 +794,9 @@
     .empty-data {
         padding: 120px 0;
     }
+    .template-operate-btn {
+        color: $blueDefault;
+    }
 }
 .panagation {
     padding: 10px 20px;

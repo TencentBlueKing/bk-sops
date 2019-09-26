@@ -233,16 +233,7 @@
             },
             disabled () {
                 const route = this.$route
-                if (route.path.indexOf('/statistics/') > -1
-                    || (route.query
-                    && route.query.common
-                    && !route.query.common_template
-                    && route.name !== 'templateStep'
-                    && route.name !== 'taskList')
-                ) {
-                    return true
-                }
-                return false
+                return route.path.indexOf('/admin/') === 0
             }
         },
         mounted () {
@@ -356,6 +347,7 @@
              */
             jumpToFirstPath (route) {
                 const firstPath = this.getPath(route.children[0])
+                if (this.$route.path === firstPath.path) return
                 this.$router.push(firstPath)
             }
         }
