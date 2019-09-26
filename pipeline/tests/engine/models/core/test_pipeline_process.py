@@ -19,7 +19,7 @@ from pipeline.django_signal_valve import valve
 from pipeline.engine import states, signals, exceptions
 from pipeline.engine.models import Status
 from pipeline.engine.utils import Stack
-from pipeline.engine.models.core import PipelineProcess, ProcessSnapshot, SubProcessRelationship
+from pipeline.engine.models.core import PipelineProcess, ProcessSnapshot, SubProcessRelationship, PipelineModel
 
 from ..mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
@@ -917,3 +917,13 @@ class TestPipelineProcess(TestCase):
         process.snapshot = snapshot
 
         self.assertFalse(process.in_subprocess)
+
+    def test_priority_for_process(self):
+        pipeline = PipelineObject()
+        process = PipelineProcess.objects.prepare_for_pipeline(pipeline)
+        priority = 5
+        PipelineModel.objects.prepare_for_pipeline(pipeline=pipeline,
+                                                   process=process,
+                                                   priority=priority)
+
+        self.assertEqual(PipelineProcess.objects.priority_for_process(process.id), priority)

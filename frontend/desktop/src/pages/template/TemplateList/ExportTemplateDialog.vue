@@ -429,7 +429,6 @@
         margin: 0 0 7px 10px;
         width: 252px;
         background: #dcdee5;
-        border: 1px solid #c4c6cc;
         border-radius: 2px;
         overflow: hidden;
         cursor: pointer;
@@ -467,11 +466,14 @@
         }
         &.permission-disable {
             background: #f7f7f7;
-            border: 1px solid #dcdee5;
             .template-item-icon {
                 color: #dcdee5;
                 background: #f7f7f7;
-                border-right: 1px solid #dcdee5;
+                border: 1px solid #dcdee5;
+            }
+            .item-name-box {
+                border: 1px solid #dcdee5;
+                border-left: none;
             }
             .template-item-name {
                 color: #c4c6cc;
