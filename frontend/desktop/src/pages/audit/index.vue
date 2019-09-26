@@ -158,7 +158,7 @@
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="i18n.status" width="120">
                         <template slot-scope="props">
                             <div class="audit-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -166,7 +166,7 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="80">
+                    <bk-table-column :label="i18n.operation" width="100">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -176,6 +176,7 @@
                                 {{i18n.view}}
                             </a>
                             <router-link
+                                v-else
                                 class="audit-operation-btn"
                                 :to="`/taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
                                 {{ i18n.view }}
