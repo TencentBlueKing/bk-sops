@@ -50,7 +50,11 @@ CREATE_TASK_FAIL_CLIENT = MockClient(
         'result': False,
         'code': "500",
         'message': 'fail',
-        'data': {}
+        'data': {
+            'hosts': [{
+                'job_id': "1"
+            }]
+        }
     }
 )
 CREATE_TASK_SUCCESS_CLIENT = MockClient(
@@ -58,14 +62,18 @@ CREATE_TASK_SUCCESS_CLIENT = MockClient(
         'result': True,
         'code': "00",
         'message': 'success',
-        'data': {}
+        'data': {
+            'hosts': [{
+                'job_id': "1"
+            }]
+        }
     }
 )
 
 CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
     name='nodeman create task success case',
     inputs={
-        'nodeman_bk_biz_id': '1',
+        'biz_cc_id': '1',
         'nodeman_bk_cloud_id': '1',
         'nodeman_node_type': 'AGENT',
         'nodeman_op_type': 'INSTALL',
@@ -76,7 +84,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
                 'data_ip': '1.1.1.1',
                 'cascade_ip': '1.1.1.1',
                 'os_type': 'LINUX',
-                'has_cygwin': '0',
+                'has_cygwin': False,
                 'port': '22',
                 'account': 'test',
                 'auth_type': 'PASSWORD',
@@ -91,7 +99,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=True,
-        outputs={}
+        outputs={'job_id': '1'}
     ),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -130,7 +138,7 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
 CREATE_TASK_FAIL_CASE = ComponentTestCase(
     name='nodeman create task fail case',
     inputs={
-        'nodeman_bk_biz_id': '1',
+        'biz_cc_id': '1',
         'nodeman_bk_cloud_id': '1',
         'nodeman_node_type': 'AGENT',
         'nodeman_op_type': 'INSTALL',
@@ -141,7 +149,7 @@ CREATE_TASK_FAIL_CASE = ComponentTestCase(
                 'data_ip': '1.1.1.1',
                 'cascade_ip': '1.1.1.1',
                 'os_type': 'LINUX',
-                'has_cygwin': '0',
+                'has_cygwin': False,
                 'port': '22',
                 'account': 'test',
                 'auth_type': 'PASSWORD',
