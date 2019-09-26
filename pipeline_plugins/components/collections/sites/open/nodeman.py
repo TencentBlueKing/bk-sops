@@ -62,6 +62,11 @@ class NodemanCreateTaskService(Service):
         node_type = data.inputs.nodeman_node_type
         op_type = data.inputs.nodeman_op_type
         nodeman_hosts = data.inputs.nodeman_hosts
+
+        auth_type_dict = {
+            'PASSWORD': 'password',
+            'KEY': 'key'
+        }
         hosts = []
 
         for host in nodeman_hosts:
@@ -96,10 +101,10 @@ class NodemanCreateTaskService(Service):
                 'account': host['account'],
                 'auth_type': host['auth_type'],
                 'password': host['password'],
-                'key': host['key']
+                'key': host['key'],
+                'has_cygwin': host['has_cygwin']
             }
-            has_cygwin = True if host['has_cygwin'] == '1' else False
-            one['has_cygwin'] = has_cygwin
+
             auth_type = host['auth_type']
 
             value = host[auth_type.lower()]
@@ -110,7 +115,7 @@ class NodemanCreateTaskService(Service):
                 pass
             value = nodeman_rsa_encrypt(value)
 
-            one.update({auth_type.lower(): value})
+            one.update({auth_type_dict[auth_type]: value})
 
             for conn_ip in conn_ips:
                 dict_temp = {'conn_ips': conn_ip}
@@ -143,16 +148,26 @@ class NodemanCreateTaskService(Service):
                             key='job_id',
                             type='int',
                             schema=IntItemSchema(description=_(u'提交的任务的job_id'))),
+            self.OutputItem(name=_(u'安装成功个数'),
+                            key='success_num',
+                            type='int',
+                            schema=IntItemSchema(description=_(u'任务中安装成功的机器个数'))),
+            self.OutputItem(name=_(u'安装失败个数'),
+                            key='fail_num',
+                            type='int',
+                            schema=IntItemSchema(description=_(u'任务中安装失败的机器个数'))),
         ]
 
     def schedule(self, data, parent_data, callback_data=None):
-        bk_biz_id = data.inputs.nodeman_bk_biz_id
+        bk_biz_id = data.inputs.biz_cc_id
         executor = parent_data.inputs.executor
         client = get_client_by_user(executor)
 
         job_id = data.get_one_of_outputs('job_id')
         success_num = 0
         fail_num = 0
+        fail_ids = []
+        fail_hosts = []
 
         job_kwargs = {
             'bk_biz_id': bk_biz_id,
@@ -162,11 +177,12 @@ class NodemanCreateTaskService(Service):
         host_count = job_result['data']['host_count']
         result_data = job_result['data']
 
+        # 任务执行失败
         if job_result['message'] != 'success':
             data.set_outputs('ex_data', '查询失败，未能获得任务执行结果')
             self.finish_schedule()
             return False
-            # 任务执行失败
+
         for i in range(host_count):
             job_result = result_data['hosts'][i]
 
@@ -176,20 +192,30 @@ class NodemanCreateTaskService(Service):
             # 安装失败
             else:
                 fail_num += 1
+                fail_ids.append(job_result['host']['id'])
+                fail_hosts.append(job_result['host']['inner_ip'])
 
-        if success_num == host_count:
-            self.finish_schedule()
-            return True
-        elif success_num > 0:
-            data.set_outputs('ex_data', _(u"任务执行失败，安装成功%s台，安装失败%s台") %
-                             (success_num, fail_num))
-            self.finish_schedule()
-            return False
-        else:
-            data.set_outputs('ex_data', _(u"任务执行失败，%s, error_code: %s") %
-                             (job_result['step'], job_result['err_code_desc']))
-            self.finish_schedule()
-            return False
+        if success_num + fail_num == host_count:
+            if success_num == host_count:
+                self.finish_schedule()
+                return True
+            else:
+                data.set_outputs('success_num', success_num)
+                data.set_outputs('fail_num', fail_num)
+                error_log = u"<br>日志信息为：</br>"
+                for i in range(len(fail_ids)):
+                    log_kwargs = {
+                        'host_id': fail_ids[i],
+                        'bk_biz_id': bk_biz_id
+                    }
+                    result = client.nodeman.get_log(log_kwargs)
+                    log_info = result['data']['logs']
+                    error_log = error_log + "<br><b>" + u"主机："+fail_hosts[i] + "</b></br>"\
+                                          + "<br>" + u"日志：" + "</br>" + log_info
+
+                data.set_outputs('ex_data', error_log)
+                self.finish_schedule()
+                return False
 
 
 class NodemanCreateTaskComponent(Component):
