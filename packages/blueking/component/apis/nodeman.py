@@ -31,3 +31,9 @@ class CollectionsNodeMan(object):
             path='/api/c/compapi/v2/nodeman/get_task_info/',
             description=u'获取任务信息'
         )
+
+        self.get_log = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi/v2/nodeman/get_log/',
+            description=u'获取任务执行日志'
+        )

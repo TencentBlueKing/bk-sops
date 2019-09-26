@@ -156,11 +156,11 @@
                         attrs: {
                             name: gettext("是否安装cygwin"),
                             items: [
-                                {value: "1", text: gettext("是")},
-                                {value: "0", text: gettext("否")},
+                                {value: true, text: gettext("是")},
+                                {value: false, text: gettext("否")},
                             ],
                             width: '100px',
-                            default: "0",
+                            default: false,
                             validation: [
                                 {
                                     type: "required"
