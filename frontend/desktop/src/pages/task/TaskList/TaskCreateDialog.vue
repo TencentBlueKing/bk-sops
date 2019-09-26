@@ -292,9 +292,9 @@
                 if (this.selectedTplType === 'publicProcess') {
                     url += '&common=1'
                 }
-                if (this.type === 'periodic') {
-                    url += '&entrance=periodicTask_new'
-                } else {
+                if (this.createEntrance === false) {
+                    url += '&entrance=periodicTask'
+                } else if (this.createEntrance === true) {
                     url += '&entrance=taskflow'
                 }
                 this.$router.push(url)
@@ -352,10 +352,8 @@
 @import '@/scss/config.scss';
 .task-container {
     position: relative;
-    height: 340px;
     .task-wrapper {
-        float: left;
-        padding: 20px;
+        padding: 20px 20px 0;
         width: 850px;
         height: 100%;
         .task-list {
@@ -381,12 +379,12 @@
         }
         .filtrate-wrapper {
             display: flex;
+            margin-bottom: 20px;
         }
     }
     .task-search {
         position: relative;
         margin-left: 15px;
-        margin-bottom: 20px;
         flex: 1;
         .search-input {
             width: 260px;
@@ -406,7 +404,6 @@
         width: 260px;
         cursor: pointer;
         background: #dcdee5;
-        border: 1px solid #c4c6cc;
         border-radius: 2px;
         overflow: hidden;
         &:nth-child(3n + 1) {
@@ -441,11 +438,14 @@
         }
         &.permission-disable {
             background: #f7f7f7;
-            border: 1px solid #dcdee5;
             .task-item-icon {
                 color: #dcdee5;
                 background: #f7f7f7;
-                border-right: 1px solid #dcdee5;
+                border: 1px solid #dcdee5;
+            }
+            .task-item-name-box {
+                border: 1px solid #dcdee5;
+                border-left: none;
             }
             .task-item-name {
                 color: #c4c6cc;

@@ -29,7 +29,7 @@
                     </div>
                 </div>
                 <div
-                    v-if="isStartNowShow"
+                    v-if="!isExecuteSchemeHide"
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
@@ -214,6 +214,10 @@
             },
             operations () {
                 return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_operations : this.tplOperations
+            },
+            // 不显示【执行计划】的情况
+            isExecuteSchemeHide () {
+                return this.common || this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {

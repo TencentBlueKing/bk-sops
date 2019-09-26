@@ -19,8 +19,7 @@
                         <div class="content-date-business">
                             <bk-select
                                 v-model="businessSelected"
-                                class="bk-select-inline"
-                                :popover-width="260"
+                                class="chart-select-item"
                                 :searchable="true"
                                 @selected="onAtomCiteData">
                                 <bk-option
@@ -56,7 +55,6 @@
                                 <bk-select
                                     v-model="selectedAtom"
                                     class="bk-select-inline"
-                                    :popover-width="260"
                                     :searchable="true"
                                     :placeholder="i18n.choice"
                                     @clear="onClearAtom"
@@ -277,7 +275,7 @@
     import '@/utils/i18n.js'
     import tools from '@/utils/tools.js'
     import DataStatistics from '../dataStatistics/index.vue'
-    import { mapActions, mapState } from 'vuex'
+    import { mapActions, mapState, mapGetters } from 'vuex'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import DataTablePagination from '@/components/common/dataTable/DataTablePagination.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -524,8 +522,8 @@
                 categorys: state => state.categorys,
                 site_url: state => state.site_url
             }),
-            ...mapState('project', {
-                projectList: state => state.projectList
+            ...mapGetters('project', {
+                projectList: 'userCanViewProjects'
             }),
             allProjectList () {
                 if (this.projectList.length === 0) {

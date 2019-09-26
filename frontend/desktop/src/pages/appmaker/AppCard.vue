@@ -43,7 +43,7 @@
                     :to="getExecuteHistoryUrl(appData.template_id)">
                 </router-link>
                 <span
-                    :class="['common-icon-dustbin', 'operate-btn', {
+                    :class="['common-icon-ashcan-delete', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
                     v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
@@ -79,7 +79,7 @@
         props: ['appData', 'project_id', 'appResource', 'appOperations'],
         data () {
             return {
-                isShowDefaultLogo: false,
+                isLogoLoadingError: false,
                 isShowEdit: false,
                 mouseAccess: true,
                 i18n: {
@@ -95,9 +95,14 @@
                 }
             }
         },
+        computed: {
+            isShowDefaultLogo () {
+                return this.isLogoLoadingError || !this.appData.logo_url
+            }
+        },
         methods: {
             useDefaultLogo () {
-                this.isShowDefaultLogo = true
+                this.isLogoLoadingError = true
             },
             /**
              * 单个轻应用操作项点击时校验

@@ -18,6 +18,7 @@
                     'entry-item',
                     { disabled: isDisableStartPoint }
                 ]"
+                data-config-name=""
                 data-type="startpoint">
                 <div class="node-type-text start-point">{{ i18n.start }}</div>
             </div>
@@ -27,28 +28,30 @@
                     'entry-item',
                     { disabled: isDisableEndPoint }
                 ]"
+                data-config-name=""
                 data-type="endpoint">
                 <div class="node-type-text end-point">{{ i18n.end }}</div>
             </div>
-            <div class="palette-item entry-item" data-type="parallelgateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="parallelgateway">
                 <div class="node-type-icon common-icon-node-parallelgateway"></div>
             </div>
-            <div class="palette-item entry-item" data-type="branchgateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="branchgateway">
                 <div class="node-type-icon common-icon-node-branchgateway"></div>
             </div>
-            <div class="palette-item entry-item" data-type="convergegateway">
+            <div class="palette-item entry-item" data-config-name="" data-type="convergegateway">
                 <div class="node-type-icon common-icon-node-convergegateway"></div>
             </div>
             <div
-                :class="['palette-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
+                :class="['palette-item', 'entry-item', 'palette-with-menu', { actived: activeNodeListType === 'tasknode' }]"
                 data-type="tasknode"
+                @mousedown="onNodeMouseDown('tasknode', $event)"
                 @click="onOpenNodeMenu('tasknode', $event)">
                 <div class="node-type-icon common-icon-node-tasknode"></div>
             </div>
             <div
-                :class="['palette-item', 'palette-with-menu', { actived: activeNodeListType === 'subflow' }]"
+                :class="['palette-item','entry-item', 'palette-with-menu', { actived: activeNodeListType === 'subflow' }]"
                 data-type="subflow"
-                @click.stop="onOpenNodeMenu('subflow', $event)">
+                @mousedown="onNodeMouseDown('subflow', $event)">
                 <div class="node-type-icon common-icon-node-subflow"></div>
             </div>
         </div>
@@ -91,6 +94,11 @@
                 activeNodeListType: '',
                 showNodeMenu: false,
                 isFixedNodeMenu: false,
+                nodeMouse: {
+                    type: '',
+                    startX: null,
+                    startY: null
+                },
                 moveFlag: {
                     x: 0,
                     y: 0
@@ -122,9 +130,9 @@
                     y: e.pageY
                 }
             },
-            onOpenNodeMenu (type) {
+            onOpenNodeMenu () {
                 this.showNodeMenu = true
-                this.activeNodeListType = type
+                this.activeNodeListType = this.nodeMouse.type
             },
             onCloseNodeMenu () {
                 this.showNodeMenu = false
@@ -132,6 +140,27 @@
             },
             onToggleNodeMenuFixed (val) {
                 this.isFixedNodeMenu = val
+            },
+            /**
+             * 节点点击，区分是 展开菜单 还是 拖拽
+             * @param {String} type -node type
+             * @param {Object} e -event
+             */
+            onNodeMouseDown (type, e) {
+                this.nodeMouse.startX = e.pageX
+                this.nodeMouse.startY = e.pageY
+                this.nodeMouse.type = type
+                document.addEventListener('mouseup', this.mouseUpHandler)
+            },
+            mouseUpHandler (e) {
+                const endX = e.pageX
+                const endY = e.pageY
+                const max = Math.max(endX - this.nodeMouse.startX, endY - this.nodeMouse.startY)
+                // 移动距离小于 3 像素，认为是点击事件
+                if (max < 3) {
+                    this.onOpenNodeMenu()
+                }
+                document.removeEventListener('mouseup', this.mouseUpHandler)
             }
         }
     }

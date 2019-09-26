@@ -15,7 +15,10 @@ import copy
 
 from django.utils.translation import ugettext_lazy as _
 
-from pipeline_plugins.components.utils import handle_api_error
+from pipeline_plugins.components.utils import (
+    handle_api_error,
+    format_sundry_ip
+)
 from gcloud.conf import settings
 
 from .constants import NO_ERROR, ERROR_CODES
@@ -55,17 +58,19 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     # IP选择器
     selector = kwargs['selectors'][0]
     if selector == 'ip':
-        ip_list = ['%s:%s' % (str(host['cloud'][0]['id']), host['bk_host_innerip']) for host in kwargs['ip']]
+        ip_list = ['{cloud}:{ip}'.format(cloud=host['cloud'][0]['id'],
+                                         ip=host['bk_host_innerip']) for host in kwargs['ip']]
     else:
         ip_list = []
     data = []
     for host in host_info:
         host_modules_id = get_modules_id(host['module'])
-        if selector == 'topo' or '%s:%s' % (str(host['host']['bk_cloud_id'][0]['id']),
-                                            host['host']['bk_host_innerip']) in ip_list:
+        host_innerip = format_sundry_ip(host['host']['bk_host_innerip'])
+        if selector == 'topo' or '{cloud}:{ip}'.format(cloud=host['host']['bk_cloud_id'][0]['id'],
+                                                       ip=host_innerip) in ip_list:
             data.append({
                 'bk_host_id': host['host']['bk_host_id'],
-                'bk_host_innerip': host['host']['bk_host_innerip'],
+                'bk_host_innerip': host_innerip,
                 'bk_host_outerip': host['host']['bk_host_outerip'],
                 'bk_host_name': host['host']['bk_host_name'],
                 'bk_cloud_id': host['host']['bk_cloud_id'][0]['id'],

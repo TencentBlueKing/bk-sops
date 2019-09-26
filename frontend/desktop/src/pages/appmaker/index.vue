@@ -409,7 +409,7 @@
         }
     }
     .operation-wrapper {
-        margin: 18px 0 20px;
+        margin: 20px 0px;
         .bk-button {
             width: 120px;
             height: 32px;
