@@ -791,6 +791,9 @@
                 this.isGlobalVariableUpdate = val
             },
             onUpdateNodeInfo (id, data) {
+                const location = this.canvasData.locations.find(item => item.id === id)
+                const updatedLocation = Object.assign(location, data)
+                this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             onDeleteConstant (key) {
