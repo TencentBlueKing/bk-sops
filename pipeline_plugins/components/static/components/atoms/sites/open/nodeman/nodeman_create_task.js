@@ -1,7 +1,19 @@
+/**
+ * Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
+ * Edition) available.
+ * Copyright (C) 2017-2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
+
 (function(){
     $.atoms.nodeman_create_task = [
         {
-            tag_code: "nodeman_bk_biz_id",
+            tag_code: "biz_cc_id",
             type: "input",
             attrs: {
                 name: gettext("业务ID"),
@@ -37,6 +49,7 @@
                     {value: "PROXY", name: gettext("PROXY")},
                     {value: "PAGENT", name: gettext("PAGENT")}
                 ],
+                default: "AGENT",
                 validation: [
                     {
                         type: "required"
@@ -49,7 +62,6 @@
                 type: "select",
                 attrs: {
                     name: gettext("操作类型"),
-                    width: '100px',
                     items: [
                         {value: "INSTALL", text: gettext("安裝")},
                         {value: "REINSTALL", text: gettext("重新安装")},
@@ -57,7 +69,7 @@
                         {value: "REMOVE", text: gettext("移除")},
                         {value: "UPGRADE", text: gettext("升级")},
                     ],
-                    editable: true,
+                    default: "INSTALL",
                     validation: [
                         {
                             type: "required"
@@ -105,7 +117,8 @@
                             name: gettext("数据IP"),
                             placeholder: gettext("适配复杂网络时填写"),
                             width: '100px',
-                            editable: true
+                            editable: true,
+
                         }
                     },
                     {
@@ -129,7 +142,12 @@
                                 {value: "WINDOWS", text: gettext("WINDOWS")},
                                 {value: "AIX", text: gettext("AIX")}
                             ],
-                            editable: true
+                            default: "LINUX",
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     },
                     {
@@ -142,7 +160,12 @@
                                 {value: "0", text: gettext("否")},
                             ],
                             width: '100px',
-                            editable: true
+                            default: "0",
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     },
                     {
@@ -174,11 +197,16 @@
                         attrs: {
                             name: gettext("认证方式"),
                             width: '100px',
-                            editable: true,
                             items: [
                                 {value: "PASSWORD", text: gettext("PASSWORD")},
                                 {value: "KEY", text: gettext("KEY")}
                             ],
+                            default: "PASSWORD",
+                            validation: [
+                                {
+                                    type: "required"
+                                }
+                            ]
                         }
                     },
                     {
