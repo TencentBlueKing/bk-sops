@@ -123,7 +123,6 @@
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
-    import formatPositionUtils from '@/utils/formatPosition.js'
     import permission from '@/mixins/permission.js'
 
     export default {
@@ -215,7 +214,8 @@
         methods: {
             ...mapActions('template/', [
                 'loadTemplateData',
-                'saveTemplateData'
+                'saveTemplateData',
+                'getLayoutedPipeline'
             ]),
             ...mapActions('task/', [
                 'loadTaskScheme',
@@ -278,7 +278,7 @@
                 }
             },
             /**
-             * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、为使用的全局变量)
+             * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
              * @params {String} templateId  模板 ID
              * @params {Boolean} isSubflow  是否为子流程预览
              */
@@ -299,14 +299,11 @@
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
                         const previewNodeData = resp.data.pipeline_tree
-                        const { line, location } = previewNodeData
-                        if (formatPositionUtils.isLocationAllNode(location)) {
-                            const data = formatPositionUtils.formatPosition(line, location)
-                            previewNodeData['line'] = data['lines']
-                            previewNodeData['location'] = data['locations']
-                        }
+                        const layoutedData = await this.getLayoutedPosition(previewNodeData)
+                        previewNodeData['line'] = layoutedData.line
+                        previewNodeData['location'] = layoutedData.location
                         this.previewData = previewNodeData
-                        
+
                         if (!isSubflow) {
                             this.pipelineData = tools.deepClone(previewNodeData)
                         }
@@ -317,6 +314,24 @@
                     errorHandler(e, this)
                 } finally {
                     this.previewDataLoading = false
+                }
+            },
+            /**
+             * 从接口获取编排后的画布数据
+             * @params {Object} data pipeline_tree 数据
+             */
+            async getLayoutedPosition (data) {
+                try {
+                    const canvasEl = document.getElementsByClassName('canvas-wrapper')[0]
+                    const width = canvasEl.offsetWidth
+                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
+                    if (res.result) {
+                        return res.data.pipeline_tree
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
                 }
             },
             /**

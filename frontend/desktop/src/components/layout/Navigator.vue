@@ -77,7 +77,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -195,11 +195,13 @@
                 isSuperUser: state => state.isSuperUser
             }),
             ...mapState('project', {
-                projectList: state => state.projectList,
                 project_id: state => state.project_id
             }),
             ...mapState('appmaker', {
                 appmakerTemplateId: state => state.appmakerTemplateId
+            }),
+            ...mapGetters('project', {
+                projectList: 'userCanViewProjects'
             }),
             showHeaderRight () {
                 return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
@@ -285,7 +287,6 @@
             },
             isNavActived (route) {
                 const key = route.key
-                const entrance = this.$route.query.entrance || ''
                 // 轻应用打开
                 if (this.view_mode === 'appmaker') {
                     if (this.$route.name === 'appmakerTaskExecute' || this.$route.name === 'appmakerTaskHome') {
@@ -300,13 +301,6 @@
                     return key === 'function'
                 } else if (this.userType === 'auditor') {
                     return key === 'audit'
-                }
-                // 管理员入口
-                if (this.userType === 'maintainer' && entrance.indexOf('admin_common') > -1 && key === 'admin') {
-                    return true
-                }
-                if (key === 'template' && entrance.indexOf('admin_common') > -1) {
-                    return false
                 }
                 return new RegExp('^\/' + key).test(this.$route.path)
             },
@@ -362,6 +356,7 @@
              */
             jumpToFirstPath (route) {
                 const firstPath = this.getPath(route.children[0])
+                if (this.$route.path === firstPath.path) return
                 this.$router.push(firstPath)
             }
         }

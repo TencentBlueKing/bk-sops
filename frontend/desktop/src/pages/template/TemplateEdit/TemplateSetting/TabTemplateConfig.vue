@@ -189,6 +189,7 @@
     }
     .common-form-item > label {
         width: 70px;
+        font-size: 12px;
         font-weight: normal;
     }
     .common-form-content {
@@ -202,11 +203,11 @@
         font-size: 14px;
     }
     .bk-form-checkbox {
+        margin: 0 30px 0 0;
         min-width: 96px;
-        margin-left: 0px;
-        margin-right: 30px;
-        .bk-checkbox-text {
+        /deep/ .bk-checkbox-text {
             color: $greyDefault;
+            font-size: 12px;
         }
     }
     .hide {

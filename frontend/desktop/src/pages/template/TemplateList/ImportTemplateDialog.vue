@@ -106,9 +106,11 @@
             </div>
         </div>
         <div slot="footer" class="common-wrapper-btn">
-            <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
-            <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
-            <bk-button theme="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
+            <div class="bk-button-group">
+                <bk-button theme="primary" @click="exportSubmit(true)">{{exportConflict}}</bk-button>
+                <bk-button theme="default" @click="exportSubmit(false)"> {{overrideConflict}} </bk-button>
+                <bk-button theme="default" @click="onCancel"> {{ i18n.cancel}} </bk-button>
+            </div>
         </div>
     </bk-dialog>
 </template>
@@ -240,7 +242,9 @@
                     const resp = await this.templateImport(data)
                     if (resp.result) {
                         this.$emit('onImportConfirm')
+                        this.resetData()
                     } else {
+                        this.templateFileError = true
                         errorHandler(resp, this)
                     }
                 } catch (e) {
@@ -281,7 +285,6 @@
                 }
                 if (!this.templateFileErrorExt && !this.templateFileEmpty && !this.templateFileError) {
                     this.importTemplate(isOverride)
-                    this.resetData()
                 }
             },
             onShowConflicts () {
@@ -312,6 +315,7 @@
                 this.templateFileError = false
                 this.templateFileErrorExt = false
                 this.dataConflict = false
+                this.$refs.templateFile.value = ''
             }
         }
     }
@@ -490,11 +494,11 @@
             }
         }
     }
-    /deep/ .common-wrapper-btn {
-        padding: 1200px;
-        /deep/ .bk-button {
-            min-width: 76px;
-        }
+}
+.common-wrapper-btn {
+    .bk-button {
+        margin-left: 10px;
     }
 }
+
 </style>

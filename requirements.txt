@@ -1,5 +1,5 @@
 # Base
-Django==1.11.11
+Django==1.11.23
 PyMySQL==0.6.7
 requests==2.20.0
 celery==3.1.25
@@ -23,6 +23,7 @@ coverage==4.5.1
 python-magic==0.4.15
 cryptography==2.3.1
 GitPython==2.1.11
+PyJWT==1.6.1
 
 # pipeline
 ujson==1.35

@@ -24,6 +24,7 @@
                             <bk-select
                                 v-model="currentAtom"
                                 class="node-select"
+                                font-size="14"
                                 :searchable="true"
                                 @selected="onAtomSelect">
                                 <bk-option
@@ -31,12 +32,14 @@
                                     :key="index"
                                     :id="option.id"
                                     :name="option.name">
-                                    <span v-if="!isSingleAtom" class="bk-option-name">{{option.name}}</span>
-                                    <i v-if="!isSingleAtom" class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
+                                    <template v-if="!isSingleAtom">
+                                        <span class="subflow-option-name">{{option.name}}</span>
+                                        <i class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
+                                    </template>
                                 </bk-option>
                             </bk-select>
                             <!-- 标准插件节点说明 -->
-                            <i class="bk-icon icon-info-circle desc-tooltip"
+                            <i class="common-icon-info desc-tooltip"
                                 v-if="atomDesc"
                                 v-bk-tooltips="{
                                     content: atomDesc,
@@ -96,7 +99,7 @@
                                     {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle"></i>
+                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info ui-failure-info"></i>
                             <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
@@ -104,9 +107,8 @@
                         <label>{{ i18n.optional }}</label>
                         <div class="form-content">
                             <bk-switcher
-                                size="min"
-                                v-model="nodeCouldBeSkipped"
-                                @change="onSkippedChange">
+                                size="small"
+                                v-model="nodeCouldBeSkipped">
                             </bk-switcher>
                         </div>
                     </div>
@@ -473,11 +475,14 @@
              * 加载标准插件节点数据
              */
             async getAtomConfig (atomType) {
+                this.atomConfigLoading = true
                 if ($.atoms[atomType]) {
                     this.setNodeConfigData(atomType)
+                    this.$nextTick(() => {
+                        this.atomConfigLoading = false
+                    })
                     return
                 }
-                this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atomType })
                     this.setAtomConfig({ atomType, configData: $.atoms[atomType] })
@@ -892,9 +897,6 @@
             onErrorIngoredChange (selected) {
                 this.errorCouldBeIgnored = selected
             },
-            onSkippedChange (selected) {
-                this.nodeCouldBeSkipped = selected
-            },
             /**
              * 输入参数值更新
              */
@@ -904,14 +906,14 @@
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
                 let key, source_tag, source_info, custom_type, value, validation
-                // 变量 key 值
-                let variableKey = /^\$\{[\w]*\}$/.test(tagCode) ? tagCode : '${' + tagCode + '}'
+                // 变量 key 值，统一格式为 ${xxx}
+                let variableKey = varKeyReg.test(tagCode) ? tagCode : '${' + tagCode + '}'
                 const formConfig = this.renderInputConfig.filter(item => {
                     return item.tag_code === tagCode
                 })[0]
 
                 const name = formConfig.attrs.name.replace(/\s/g, '')
-
+                
                 if (this.isSingleAtom) {
                     key = tagCode
                     source_tag = this.nodeConfigData.component.code + '.' + tagCode
@@ -923,12 +925,10 @@
                     key = variableKey
                     tagCode = tagCode.match(varKeyReg)[1]
                     source_info = { [this.nodeId]: [variableKey] }
+                    source_tag = variable.source_tag
                     custom_type = variable.custom_type
                     value = tools.deepClone(this.inputAtomData[key])
-                    if (formConfig.type === 'combine') {
-                        source_tag = variable.source_tag.split('.')[0] + '.' + variableKey
-                    } else {
-                        source_tag = variable.source_tag
+                    if (formConfig.type !== 'combine') {
                         validation = variable.validation
                     }
                 }
@@ -1180,6 +1180,10 @@
         }
     }
 }
+// 子流程选择下拉框字号
+.subflow-option-name {
+    font-size: 14px;
+}
 .form-item {
     margin-bottom: 20px;
     @include clearfix;
@@ -1210,13 +1214,15 @@
             width: 150px;
             padding-right: 11px;
         }
-        .icon-info-circle {
+        .common-icon-info {
             display: inline-block;
-            vertical-align: middle;
             color: #c4c6cc;
             &:hover {
                 color: #f4aa1a;
             }
+        }
+        .ui-failure-info {
+            vertical-align: middle;
         }
     }
     &.form-name {

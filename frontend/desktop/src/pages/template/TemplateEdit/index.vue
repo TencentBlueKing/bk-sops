@@ -46,6 +46,7 @@
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
+                @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
             <div class="atom-node">
@@ -172,7 +173,6 @@
                 templateUUID: uuid(),
                 localTemplateData: null,
                 isClickDraft: false,
-                entrance: this.$route.query.entrance,
                 tplOperations: [],
                 tplActions: [],
                 tplResource: {}
@@ -308,7 +308,8 @@
                 'saveTemplateData',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
-                'loadInternalVariable'
+                'loadInternalVariable',
+                'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -335,14 +336,16 @@
                 'setBranchCondition',
                 'setInternalVariable',
                 'replaceTemplate',
-                'replaceLineAndLocation'
+                'replaceLineAndLocation',
+                'setPipelineTree'
             ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig',
                 'clearAtomForm'
             ]),
             ...mapGetters('template/', [
-                'getLocalTemplateData'
+                'getLocalTemplateData',
+                'getPipelineTree'
             ]),
             async getSingleAtomList () {
                 this.singleAtomListLoading = true
@@ -505,7 +508,7 @@
                     this.isTemplateDataChanged = false
                     if (this.type !== 'edit') {
                         this.allowLeave = true
-                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common, entrance: this.entrance } })
+                        this.$router.push({ path: `/template/edit/${this.project_id}/`, query: { 'template_id': data.template_id, 'common': this.common } })
                     }
                     if (this.createTaskSaving) {
                         this.goToTaskUrl(data.template_id)
@@ -709,6 +712,36 @@
                 this.variableDataChanged()
                 this.setBranchCondition(labelData)
             },
+            async onFormatPosition () {
+                if (this.canvasDataLoading) {
+                    return
+                }
+                this.canvasDataLoading = true // @todo 支持画布单独loading
+                try {
+                    const pipelineTree = this.getPipelineTree()
+                    const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
+                    const width = canvasEl.offsetWidth
+                    const res = await this.getLayoutedPipeline({ width, pipelineTree })
+                    if (res.result) {
+                        this.onNewDraft(undefined, false)
+                        this.$refs.templateCanvas.removeAllConnector()
+                        this.setPipelineTree(res.data.pipeline_tree)
+                        this.$nextTick(() => {
+                            this.$refs.templateCanvas.updateCanvas()
+                            this.$bkMessage({
+                                message: gettext('排版完成，原内容在本地缓存中'),
+                                theme: 'success'
+                            })
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.canvasDataLoading = false
+                }
+            },
             onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
@@ -785,7 +818,7 @@
                     query: {
                         template_id,
                         common: this.common ? '1' : undefined,
-                        entrance: this.entrance
+                        entrance: 'templateEdit'
                     }
                 })
             },

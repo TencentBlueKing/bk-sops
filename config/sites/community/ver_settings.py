@@ -40,6 +40,7 @@ bU+nE0FAfETaN+/eUQJAMN4sJTjEMkeSeE+SBzqsmzc4ajMHRrhtu989JgZZvDyr
 LOah9mmRwLJdcfa3Js+jw2lOCmxzqauYZHVHg/hH7g==
 -----END RSA PRIVATE KEY-----
 """
+
 # PUB_KEY for frontend, which can not use three quotes
 RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
               "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDA2XZvbf++4M6YLSgS93kYJS34\\n" + \
@@ -47,6 +48,10 @@ RSA_PUB_KEY = "-----BEGIN PUBLIC KEY-----\\n" + \
               "itqI6xYBqb3WBRu9WYEd8skFy1mwOEbxOgsXoOPd9tLkt4etSMzm7kdBqmZKIeiA\\n" + \
               "OtbmirDqkuz6M64b5wIDAQAB\\n" + \
               "-----END PUBLIC KEY-----"
+
+# APIGW Auth
+APIGW_APP_CODE_KEY = 'bk_app_code'
+APIGW_USER_USERNAME_KEY = 'bk_username'
 
 COMPATIBLE_MODULE_MAP = {
     'pipeline.components.collections.common': 'pipeline_plugins.components.collections.common',

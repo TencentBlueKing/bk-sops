@@ -731,10 +731,12 @@ class PipelineInstance(models.Model):
             parser = parser_cls(pipeline_data)
             pipeline = parser.parse(root_pipeline_data=get_pipeline_context(instance,
                                                                             obj_type='instance',
-                                                                            data_type='data'),
+                                                                            data_type='data',
+                                                                            username=executor),
                                     root_pipeline_context=get_pipeline_context(instance,
                                                                                obj_type='instance',
-                                                                               data_type='context')
+                                                                               data_type='context',
+                                                                               username=executor)
                                     )
 
             # calculate tree info
@@ -742,7 +744,7 @@ class PipelineInstance(models.Model):
 
             instance.save()
 
-        act_result = task_service.run_pipeline(pipeline)
+        act_result = task_service.run_pipeline(pipeline, check_workers=check_workers)
 
         if not act_result.result:
             with transaction.atomic():

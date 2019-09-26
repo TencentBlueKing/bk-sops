@@ -91,7 +91,7 @@ const routers = new VueRouter({
                 if (PAGE_MAP[pageType]) {
                     return PAGE_MAP[pageType].getIndex()
                 } else {
-                    return `/home/${project.project_id}`
+                    return `/home/${project.project_id}/`
                 }
             }
         },
@@ -317,6 +317,44 @@ const routers = new VueRouter({
                     path: 'common/template',
                     name: 'commonTemplateHome',
                     component: CommonTemplate
+                },
+                {
+                    path: 'template/',
+                    component: Template,
+                    children: [
+                        {
+                            path: '',
+                            component: NotFoundComponent
+                        },
+                        {
+                            path: 'edit/:cc_id?/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                template_id: route.query.template_id,
+                                type: 'edit',
+                                common: '1'
+                            })
+                        },
+                        {
+                            path: 'new/:cc_id/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                type: 'new',
+                                common: '1'
+                            })
+                        },
+                        {
+                            path: 'clone/:cc_id/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                template_id: route.query.template_id,
+                                type: 'clone',
+                                common: '1'
+                            })
+                        }]
                 },
                 {
                     path: 'manage/',

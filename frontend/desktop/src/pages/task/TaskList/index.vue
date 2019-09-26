@@ -59,7 +59,7 @@
                                 <bk-option
                                     v-for="(option, index) in taskCategory"
                                     :key="index"
-                                    :id="option.id"
+                                    :id="option.value"
                                     :name="option.name">
                                 </bk-option>
                             </bk-select>
@@ -793,6 +793,9 @@
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .template-operate-btn {
+        color: $blueDefault;
     }
 }
 .panagation {

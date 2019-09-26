@@ -252,37 +252,29 @@
                                         :to="getJumpUrl('edit', props.row.id)">
                                         {{i18n.edit}}
                                     </router-link>
-                                    <bk-dropdown-menu>
-                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul class="bk-dropdown-list" slot="dropdown-content">
-                                            <li>
-                                                <a
-                                                    v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
-                                                    v-cursor
-                                                    class="text-permission-disable"
-                                                    @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
-                                                    {{i18n.clone}}
-                                                </a>
-                                                <router-link
-                                                    v-else
-                                                    class="template-operate-btn"
-                                                    :to="getJumpUrl('clone', props.row.id)">
-                                                    {{i18n.clone}}
-                                                </router-link>
-                                            </li>
-                                            <li>
-                                                <a
-                                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
-                                                    href="javascript:void(0);"
-                                                    :class="{
-                                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
-                                                    }"
-                                                    @click="onDeleteTemplate(props.row, $event)">
-                                                    {{i18n.delete}}
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </bk-dropdown-menu>
+                                    <a
+                                        v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
+                                        {{i18n.clone}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="template-operate-btn"
+                                        :to="getJumpUrl('clone', props.row.id)">
+                                        {{i18n.clone}}
+                                    </router-link>
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                        href="javascript:void(0);"
+                                        class="template-operate-btn"
+                                        :class="{
+                                            'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                        }"
+                                        @click="onDeleteTemplate(props.row, $event)">
+                                        {{i18n.delete}}
+                                    </a>
                                 </template>
                             </div>
                         </template>
@@ -377,7 +369,7 @@
                     page: gettext('页'),
                     yes: gettext('是'),
                     no: gettext('否'),
-                    empty: gettext('无数据，若您不是运维人员，请尝试联系运维人员为您添加模板权限'),
+                    empty: gettext('无数据'),
                     templateNamePlaceholder: gettext('请输入流程名称'),
                     templateCategoryPlaceholder: gettext('请选择分类'),
                     subprocessUpdatePlaceholder: gettext('请选择子流程更新'),
@@ -713,42 +705,23 @@
              * @param {Number} template_id -模版id(可选)
              */
             getJumpUrl (name, template_id) {
+                const routerHead = this.common ? '/admin' : ''
+                let url
                 const urlMap = {
                     // 编辑按钮的跳转链接
-                    'edit': {
-                        path: `/template/edit/${this.project_id}/`,
-                        query: ['template_id', 'common'] },
+                    'edit': `${routerHead}/template/edit/${this.project_id}/?template_id=${template_id}`,
                     // 新建模板的跳转链接
-                    'newTemplate': {
-                        path: `/template/new/${this.project_id}/`,
-                        query: ['common'] },
+                    'newTemplate': `${routerHead}/template/new/${this.project_id}/`,
                     // 新建任务的跳转链接
-                    'newTask': {
-                        path: `/template/newtask/${this.project_id}/selectnode/`,
-                        query: ['template_id', 'common'] },
+                    'newTask': `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`,
                     // 克隆
-                    'clone': {
-                        path: `/template/clone/${this.project_id}/`,
-                        query: ['template_id', 'common'] }
+                    'clone': `${routerHead}/template/clone/${this.project_id}/?template_id=${template_id}`
                 }
-                let querys = ''
-                const entrance = this.getEntrance(name)
-                urlMap[name].query.forEach(item => {
-                    if (template_id && item === 'template_id') {
-                        querys += `&template_id=${template_id}`
-                    }
-                    if ((this.common || this.common_template) && item === 'common') {
-                        querys += `&common=1`
-                    }
-                })
-                return `${urlMap[name].path}?entrance=${entrance}${querys}`
-            },
-            // 获取入口信息
-            getEntrance (name) {
-                return (new RegExp('/admin/').test(this.$route.path) ? 'admin' : 'template')
-                    + (new RegExp('/common/').test(this.$route.path) ? '_common' : '_business')
-                    + '_'
-                    + name
+                url = urlMap[name]
+                if (this.common) {
+                    url += url.indexOf('?') > -1 ? '&common=1' : '?common=1'
+                }
+                return url
             },
             getExecuteHistoryUrl (id) {
                 let url = `/taskflow/home/${this.project_id}/?template_id=${id}`

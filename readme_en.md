@@ -51,7 +51,14 @@ If you want to know more about the above features, please refer to the
 - [Production Upload Deployment (In Chinese)](docs/install/upload_pack_deploy.md)
 - [Mobile Deployment (In Chinese)](docs/install/mobile_deploy.md)
 - [Standard Plugin Development](docs/develop/dev_plugins.md)
+
+
+## Usage
 - [API Documents](docs/apidoc/readme.md)
+- [Standard Plugin Remote Importing](docs/features/remote_plugins.md)
+- [Variables Engine](docs/features/variables_engine.md)
+- [Tag Usage And Develop](docs/develop/tag_usage_dev.md)
+- [Mobile Documents](docs/features/mobile.md)
 
 
 ## Version plan
