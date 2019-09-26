@@ -28,6 +28,6 @@ class CollectionsNodeMan(object):
 
         self.get_task_info = ComponentAPI(
             client=self.client, method='GET',
-            path='/api/c/compapi/v2/nodeman/get_task_info',
+            path='/api/c/compapi/v2/nodeman/get_task_info/',
             description=u'获取任务信息'
         )
