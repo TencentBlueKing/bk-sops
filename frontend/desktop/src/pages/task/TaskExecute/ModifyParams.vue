@@ -15,12 +15,12 @@
         v-bkloading="{ isLoading: loading, opacity: 1 }"
         @click="e => e.stopPropagation()">
         <div class="panel-title">
-            <h3>{{ i18n.change_params }}</h3>
+            <h3>{{ i18n.changeParams }}</h3>
         </div>
         <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
             <p>
                 <i class="common-icon-info ui-notice"></i>
-                {{ i18n.edit_task_disable }}
+                {{ i18n.editTaskDisable }}
             </p>
         </div>
         <div class="edit-wrapper">
@@ -70,8 +70,8 @@
                 configLoading: true, // 变量配置项加载
                 pending: false, // 提交修改中
                 i18n: {
-                    edit_task_disable: gettext('已开始执行的任务不能修改参数'),
-                    change_params: gettext('修改全局参数'),
+                    editTaskDisable: gettext('已开始执行的任务不能修改参数'),
+                    changeParams: gettext('修改全局参数'),
                     save: gettext('保存')
                 }
             }

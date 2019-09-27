@@ -397,10 +397,17 @@
             async loadTaskStatus () {
                 try {
                     this.$emit('taskStatusLoadChange', true)
-                    let instanceStatus
-                    await this.getStatusData().then(res => {
-                        instanceStatus = res
-                    })
+                    const data = {
+                        instance_id: this.taskId,
+                        project_id: this.project_id
+                    }
+                    if (this.selectedFlowPath.length > 1) {
+                        data.instance_id = this.instance_id
+                        data.subprocess_id = this.taskId
+                    }
+                    const instanceStatus = !this.isloadCacheStatus
+                        ? await this.getInstanceStatus(data)
+                        : this.getCacheStatusData()
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
@@ -419,27 +426,14 @@
                     this.$emit('taskStatusLoadChange', false)
                 }
             },
-            async getStatusData () {
-                let instanceStatus = {}
-                if (!this.isloadCacheStatus) {
-                    const data = {
-                        instance_id: this.taskId,
-                        project_id: this.project_id
-                    }
-                    if (this.selectedFlowPath.length > 1) {
-                        data.instance_id = this.instance_id
-                        data.subprocess_id = this.taskId
-                    }
-                    instanceStatus = await this.getInstanceStatus(data)
-                } else {
-                    const cacheStatus = this.instanceStatus.children
-                    instanceStatus = {
-                        data: cacheStatus[this.cacheNodeId],
-                        result: true
-                    }
-                    this.isloadCacheStatus = false
+            // 获取缓存状态数据
+            getCacheStatusData () {
+                this.isloadCacheStatus = false
+                const cacheStatus = this.instanceStatus.children
+                return {
+                    data: cacheStatus[this.cacheNodeId],
+                    result: true
                 }
-                return instanceStatus
             },
             async taskExecute () {
                 try {
