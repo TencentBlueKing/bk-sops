@@ -17,7 +17,7 @@ from mock import MagicMock
 from pipeline.component_framework.test import (Call, CallAssertion,
                                                ComponentTestCase,
                                                ComponentTestMixin,
-                                               ExecuteAssertion, Patcher)
+                                               ExecuteAssertion, ScheduleAssertion, Patcher)
 from pipeline_plugins.components.collections.sites.open.nodeman import NodemanCreateTaskComponent
 
 
@@ -25,8 +25,9 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
 
     def cases(self):
         return [
+            CREATE_TASK_FAIL_CASE,
             CREATE_TASK_SUCCESS_CASE,
-            CREATE_TASK_FAIL_CASE
+            CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE
         ]
 
     def component_cls(self):
@@ -34,10 +35,12 @@ class NodemanCreateTaskComponentTest(TestCase, ComponentTestMixin):
 
 
 class MockClient(object):
-    def __init__(self, create_task_return):
+    def __init__(self, create_task_return, get_task_info_return, get_log_return):
         self.name = 'name'
         self.nodeman = MagicMock()
         self.nodeman.create_task = MagicMock(return_value=create_task_return)
+        self.nodeman.get_task_info = MagicMock(return_value=get_task_info_return)
+        self.nodeman.get_log = MagicMock(return_value=get_log_return)
 
 
 # mock path
@@ -55,8 +58,21 @@ CREATE_TASK_FAIL_CLIENT = MockClient(
                 'job_id': "1"
             }]
         }
+    },
+    get_task_info_return={
+        'result': False,
+        'code': "500",
+        'message': 'fail',
+        'data': {}
+    },
+    get_log_return={
+        'result': False,
+        'code': "500",
+        'message': 'fail',
+        'data': {}
     }
 )
+
 CREATE_TASK_SUCCESS_CLIENT = MockClient(
     create_task_return={
         'result': True,
@@ -66,6 +82,63 @@ CREATE_TASK_SUCCESS_CLIENT = MockClient(
             'hosts': [{
                 'job_id': "1"
             }]
+        }
+    },
+    get_task_info_return={
+        'result': True,
+        'code': "00",
+        'message': 'success',
+        'data': {
+            'host_count': 1,
+            'hosts': [{
+                'status': "SUCCEEDED"
+            }]
+        }
+    },
+    get_log_return={
+        'result': True,
+        'code': "00",
+        'message': 'success',
+        'data': {
+            'host_count': 1,
+            'logs': 'success'
+        }
+    }
+)
+
+CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT = MockClient(
+    create_task_return={
+        'result': True,
+        'code': "00",
+        'message': 'success',
+        'data': {
+            'hosts': [{
+                'job_id': "1"
+            }]
+        }
+    },
+    get_task_info_return={
+        'result': True,
+        'code': "00",
+        'message': 'success',
+        'data': {
+            'host_count': 1,
+            'hosts': [{
+                'status': "FAILED",
+                'host': {
+                    'id': '1',
+                    'inner_ip': '1.1.1.1'
+                }
+            }]
+        }
+    },
+    get_log_return={
+        'result': True,
+        'code': "00",
+        'message': 'success',
+        'data': {
+            'host_count': 1,
+            'logs': 'install failed'
         }
     }
 )
@@ -101,7 +174,12 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={'job_id': '1'}
     ),
-    schedule_assertion=None,
+    schedule_assertion=ScheduleAssertion(
+        success=True,
+        callback_data=None,
+        schedule_finished=True,
+        outputs={'job_id': '1'}
+    ),
     execute_call_assertion=[
         CallAssertion(
             func=CREATE_TASK_SUCCESS_CLIENT.nodeman.create_task,
@@ -129,9 +207,104 @@ CREATE_TASK_SUCCESS_CASE = ComponentTestCase(
             })]
         ),
     ],
+    schedule_call_assertion=[
+        CallAssertion(
+            func=CREATE_TASK_SUCCESS_CLIENT.nodeman.get_task_info,
+            calls=[Call({
+                'bk_biz_id': '1',
+                'job_id': '1'
+            })]
+        ),
+    ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_SUCCESS_CLIENT),
-        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123")
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
+    ]
+)
+
+CREATE_TASK_SUCCESS_INSTALL_FAILED_CASE = ComponentTestCase(
+    name='nodeman create task success but install failed case',
+    inputs={
+        'biz_cc_id': '1',
+        'nodeman_bk_cloud_id': '1',
+        'nodeman_node_type': 'AGENT',
+        'nodeman_op_type': 'INSTALL',
+        'nodeman_hosts': [
+            {
+                'conn_ips': '1.1.1.1',
+                'login_ip': '1.1.1.1',
+                'data_ip': '1.1.1.1',
+                'cascade_ip': '1.1.1.1',
+                'os_type': 'LINUX',
+                'has_cygwin': False,
+                'port': '22',
+                'account': 'test',
+                'auth_type': 'PASSWORD',
+                'password': '123',
+                'key': ''
+            }
+        ]
+    },
+    parent_data={
+        'executor': 'tester',
+        'biz_cc_id': "1"
+    },
+    execute_assertion=ExecuteAssertion(
+        success=True,
+        outputs={
+            'job_id': '1'
+        }
+
+    ),
+    schedule_assertion=ScheduleAssertion(
+        success=False,
+        callback_data=None,
+        schedule_finished=True,
+        outputs={
+            'fail_num': 1,
+            'ex_data': u'<br>日志信息为：</br><br><b>主机：1.1.1.1</b></br><br>日志：</br>install failed',
+            'job_id': '1', 'success_num': 0
+        }
+    ),
+    execute_call_assertion=[
+        CallAssertion(
+            func=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT.nodeman.create_task,
+            calls=[Call({
+                'bk_biz_id': '1',
+                'bk_cloud_id': '1',
+                'node_type': 'AGENT',
+                'op_type': 'INSTALL',
+                'creator': 'tester',
+                'hosts': [
+                    {
+                        'conn_ips': '1.1.1.1',
+                        'login_ip': '1.1.1.1',
+                        'data_ip': '1.1.1.1',
+                        'cascade_ip': '1.1.1.1',
+                        'os_type': 'LINUX',
+                        'has_cygwin': False,
+                        'port': '22',
+                        'account': 'test',
+                        'auth_type': 'PASSWORD',
+                        'password': '123',
+                        'key': ''
+                    }
+                ]
+            })]
+        ),
+    ],
+    schedule_call_assertion=[
+        CallAssertion(
+            func=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT.nodeman.get_task_info,
+            calls=[Call({
+                'bk_biz_id': '1',
+                'job_id': '1'
+            })]
+        ),
+    ],
+    patchers=[
+        Patcher(target=GET_CLIENT_BY_USER, return_value=CREATE_TASK_SUCCESS_INSTALL_FAILED_CLIENT),
+        Patcher(target=NODEMAN_RSA_ENCRYPT, return_value="123"),
     ]
 )
 
