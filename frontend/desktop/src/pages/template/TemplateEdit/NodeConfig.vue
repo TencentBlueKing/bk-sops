@@ -202,6 +202,7 @@
     import tools from '@/utils/tools.js'
     import dom from '@/utils/dom.js'
     import atomFilter from '@/utils/atomFilter.js'
+    import formSchema from '@/utils/formSchema.js'
     import { random4 } from '@/utils/uuid.js'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
@@ -1090,6 +1091,13 @@
                         const variableOpts = {
                             name, key: variableKey, source_tag, source_info, custom_type, value, validation, version: variableVersion
                         }
+                        // 全局变量添加 form_schema
+                        const atomType = source_tag.split('.')[0]
+                        variableOpts.form_schema = formSchema.getSchema(
+                            tagCode,
+                            this.atomFormConfig[atomType][variableVersion]
+                        )
+
                         this.$set(this.inputAtomData, key, variableKey)
                         this.hookToGlobal(variableOpts) // input arguments hook
                     }
@@ -1186,6 +1194,15 @@
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
                     const variableOpts = { name, key: varKey, source_tag, source_info, value }
+                    // 全局变量添加 form_schema
+                    const atomType = source_tag.split('.')[0]
+                    const version = this.getVariableVersion(key)
+                    variableOpts.form_schema = formSchema.getSchema(
+                        key,
+                        this.atomFormConfig[atomType][version]
+                    )
+                    
+                    this.createVariable(variableOpts)
                     this.hookToGlobal(variableOpts)
                 } else {
                     this.$set(this.inputAtomHook, varKey, true)
