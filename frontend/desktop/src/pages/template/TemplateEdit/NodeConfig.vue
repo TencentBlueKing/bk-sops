@@ -475,9 +475,28 @@
             }
         },
         watch: {
+            // 打开节点或切换节点
             idOfNodeInConfigPanel (val) {
+                if (!val) return
                 this.nodeId = val
+                // 清空验证
+                this.currentVersion = ''
+                this.taskTypeEmpty = false
+                this.taskVersionEmpty = false
+                this.errors.clear()
+
                 this.initData()
+                this.$nextTick(() => {
+                    // 只验证错误节点（正确节点关闭时会验证）
+                    if (
+                        document.querySelector(`#${val} .task-node.failed`)
+                        || document.querySelector(`#${val} .subflow-node.failed`)
+                    ) {
+                        this.$validator.validateAll()
+                        this.taskTypeEmpty = !this.currentAtom
+                        this.taskVersionEmpty = !this.currentVersion
+                    }
+                })
             },
             isRetry (val) {
                 this.manuallyEmpty = !val && !this.isSkip && !this.errorCouldBeIgnored
