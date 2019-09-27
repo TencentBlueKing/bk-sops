@@ -236,10 +236,10 @@
                     const tableData = []
                     const filterVal = []
                     for (let i = 0; i < this.columns.length; i++) {
-                        const tag_code = this.columns[i].tag_code
+                        const tagCode = this.columns[i].tag_code
                         const name = this.columns[i].attrs.name
                         tableHeader.push(name)
-                        filterVal.push(tag_code)
+                        filterVal.push(tagCode)
                     }
                     tableData.push(tableHeader)
                     const list = this.tableValue
@@ -336,7 +336,7 @@
                 }
             },
             onBtnClick (callback) {
-                typeof callback === 'function' && callback.call(this)
+                typeof callback === 'function' && callback()
             },
             onEdit (index, row) {
                 this.editRowNumber = index
