@@ -12,7 +12,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
-import { setAtomConfigApiUrls } from '@/config/setting.js'
+// import bus from '@/utils/bus.js'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
 
@@ -27,10 +27,10 @@ const TaskList = () => import('@/pages/task/TaskList/index.vue')
 const TaskCreate = () => import('@/pages/task/TaskCreate/index.vue')
 const TaskExecute = () => import('@/pages/task/TaskExecute/index.vue')
 
-const ConfigPage = () => import('@/pages/config/index.vue')
-
 const AppMaker = () => import('@/pages/appmaker/index.vue')
 const AppMakerTaskHome = () => import('@/pages/appmaker/AppTaskHome/index.vue')
+
+const ProjectHome = () => import('@/pages/project/index.vue')
 
 const ErrorPage = () => import('@/pages/error/index.vue')
 
@@ -57,22 +57,52 @@ const periodicTemplateList = () => import('@/pages/periodic/PeriodicList/index.v
 
 Vue.use(VueRouter)
 
+const PAGE_MAP = {
+    functor: {
+        getIndex () {
+            return '/function/home/'
+        },
+        routes: ['functionHome', 'templateStep', 'taskExecute']
+    },
+    auditor: {
+        getIndex () {
+            return '/audit/home/'
+        },
+        routes: ['auditHome', 'taskExecute']
+    },
+    appmaker: {
+        getIndex () {
+            return `/appmaker/${store.state.app_id}/task_home/${store.state.project.project_id}/`
+        },
+        routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
+    }
+}
+
 const routers = new VueRouter({
     base: SITE_URL,
     mode: 'history',
     routes: [
         {
             path: '/',
-            redirect: to => {
-                return `/business/home/${store.state.cc_id}/`
+            redirect: function () {
+                const { userType, viewMode, project } = store.state
+                const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
+                
+                if (PAGE_MAP[pageType]) {
+                    return PAGE_MAP[pageType].getIndex()
+                } else {
+                    return `/home/${project.project_id}`
+                }
             }
         },
         {
-            path: '/business/home/:cc_id',
+            path: '/home/:project_id?/',
+            name: 'home',
             component: Home,
             props: (route) => ({
-                cc_id: route.params.cc_id
-            })
+                project_id: route.params.project_id
+            }),
+            meta: { project: true }
         },
         {
             path: '/template',
@@ -83,63 +113,72 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:cc_id/',
+                    path: 'home/:project_id?/',
                     component: TemplateList,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         common: route.query.common,
                         common_template: route.query.common_template
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
-                    path: 'common/:cc_id/',
+                    path: 'common/:project_id?/',
                     component: TemplateList,
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         common: 1,
                         common_template: 'common'
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
-                    path: 'edit/:cc_id?/',
+                    path: 'edit/:project_id/',
                     component: TemplateEdit,
+                    name: 'templateEdit',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: 'edit',
                         common: route.query.common
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
-                    path: 'new/:cc_id/',
+                    path: 'new/:project_id/',
                     component: TemplateEdit,
+                    name: 'templateEdit',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         type: 'new',
                         common: route.query.common
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
-                    path: 'clone/:cc_id/',
+                    path: 'clone/:project_id/',
                     component: TemplateEdit,
+                    name: 'templateEdit',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         template_id: route.query.template_id,
                         type: 'clone',
                         common: route.query.common
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
-                    path: 'newtask/:cc_id/:step/',
+                    path: 'newtask/:project_id/:step/',
                     component: TaskCreate,
                     name: 'templateStep',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         step: route.params.step,
                         template_id: route.query.template_id,
                         common: route.query.common,
                         entrance: route.query.entrance
-                    })
+                    }),
+                    meta: { project: true }
                 }]
         },
         {
@@ -151,74 +190,94 @@ const routers = new VueRouter({
                     component: NotFoundComponent
                 },
                 {
-                    path: 'home/:cc_id/',
+                    path: 'home/:project_id?/',
                     component: TaskList,
                     name: 'taskList',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         common: route.query.common,
                         create_method: route.query.create_method
-                    })
+                    }),
+                    meta: { project: true }
                 },
                 {
-                    path: 'execute/:cc_id/',
+                    path: 'execute/:project_id/',
                     component: TaskExecute,
+                    name: 'taskExecute',
                     props: (route) => ({
-                        cc_id: route.params.cc_id,
+                        project_id: route.params.project_id,
                         common: route.query.common,
                         instance_id: route.query.instance_id
-                    })
+                    }),
+                    meta: { project: true }
                 }]
         },
         {
-            path: '/config/home/:cc_id/',
-            component: ConfigPage,
-            props: (route) => ({
-                cc_id: route.params.cc_id
-            })
-        },
-        {
-            path: '/appmaker/home/:cc_id/',
+            path: '/appmaker/home/:project_id?/',
             component: AppMaker,
             props: (route) => ({
-                cc_id: route.params.cc_id
-            })
+                project_id: route.params.project_id
+            }),
+            meta: { project: true }
         },
         {
-            path: '/appmaker/:app_id/newtask/:cc_id/:step',
+            path: '/appmaker/:app_id/newtask/:project_id/:step',
             name: 'appmakerTaskCreate',
             component: TaskCreate,
             props: (route) => ({
-                cc_id: route.params.cc_id,
+                project_id: route.params.project_id,
                 step: route.params.step,
                 template_id: route.query.template_id
-            })
+            }),
+            meta: { project: true }
         },
         {
-            path: '/appmaker/:app_id/execute/:cc_id/',
+            path: '/appmaker/:app_id/execute/:project_id/',
             name: 'appmakerTaskExecute',
             component: TaskExecute,
             props: (route) => ({
-                cc_id: route.params.cc_id,
+                project_id: route.params.project_id,
                 instance_id: route.query.instance_id
-            })
+            }),
+            meta: { project: true }
         },
         {
-            path: '/appmaker/:app_id/task_home/:cc_id/',
+            path: '/appmaker/:app_id/task_home/:project_id/',
             name: 'appmakerTaskHome',
             component: AppMakerTaskHome,
             props: (route) => ({
-                cc_id: route.params.cc_id,
+                project_id: route.params.project_id,
                 app_id: route.params.app_id
-            })
+            }),
+            meta: { project: true }
         },
         {
-            path: '/error/:code(401|403|405|406|500)/',
-            component: ErrorPage,
-            name: 'errorPage',
-            props: (route) => ({
-                code: route.params.code
-            })
+            path: '/project/home/',
+            name: 'projectHome',
+            component: ProjectHome
+        },
+        {
+            path: '/function/home/',
+            name: 'functionHome',
+            component: FunctionHome
+        },
+        {
+            path: '/audit/home/',
+            name: 'auditHome',
+            component: AuditHome
+        },
+        {
+            path: '/periodic',
+            component: periodic,
+            children: [{
+                path: 'home/:project_id?/',
+                component: periodicTemplateList,
+                name: 'periodicTemplate',
+                props: (route) => ({
+                    project_id: route.params.project_id
+                }),
+                meta: { project: true }
+            }]
         },
         {
             path: '/admin',
@@ -256,7 +315,47 @@ const routers = new VueRouter({
                 },
                 {
                     path: 'common/template',
+                    name: 'commonTemplateHome',
                     component: CommonTemplate
+                },
+                {
+                    path: 'template/',
+                    component: Template,
+                    children: [
+                        {
+                            path: '',
+                            component: NotFoundComponent
+                        },
+                       
+                        {
+                            path: 'edit/:cc_id?/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                template_id: route.query.template_id,
+                                type: 'edit',
+                                common: '1'
+                            })
+                        },
+                        {
+                            path: 'new/:cc_id/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                type: 'new',
+                                common: '1'
+                            })
+                        },
+                        {
+                            path: 'clone/:cc_id/',
+                            component: TemplateEdit,
+                            props: (route) => ({
+                                cc_id: route.params.cc_id,
+                                template_id: route.query.template_id,
+                                type: 'clone',
+                                common: '1'
+                            })
+                        }]
                 },
                 {
                     path: 'manage/',
@@ -292,28 +391,13 @@ const routers = new VueRouter({
                 }
             ]
         },
-
         {
-            path: '/function/home/',
-            name: 'functionHome',
-            component: FunctionHome
-        },
-        {
-            path: '/audit/home/',
-            name: 'auditHome',
-            component: AuditHome
-        },
-        {
-            path: '/periodic',
-            component: periodic,
-            children: [{
-                path: 'home/:cc_id/',
-                component: periodicTemplateList,
-                name: 'periodicTemplate',
-                props: (route) => ({
-                    cc_id: route.params.cc_id
-                })
-            }]
+            path: '/error/:code(401|403|405|406|500)/',
+            component: ErrorPage,
+            name: 'errorPage',
+            props: (route) => ({
+                code: route.params.code
+            })
         },
         {
             path: '*',
@@ -330,11 +414,19 @@ routers.beforeEach((to, from, next) => {
     } else {
         store.commit('setNotFoundPage', false)
     }
-    if (to.params.cc_id) {
-        store.commit('setBizId', to.params.cc_id)
-        setAtomConfigApiUrls(store.state.site_url, to.params.cc_id)
+    // 设置全局 project_id
+    if (to.params.project_id) {
+        store.commit('project/setProjectId', to.params.project_id)
     }
-    next()
+
+    const { userType, viewMode } = store.state
+    const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
+    const page = PAGE_MAP[pageType]
+    if (page && !page.routes.includes(to.name)) {
+        next(page.getIndex())
+    } else {
+        next()
+    }
 })
 
 export default routers

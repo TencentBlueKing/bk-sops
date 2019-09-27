@@ -19,6 +19,7 @@
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string   |   是   |  所属业务ID   |
 |   task_id     |   string   |   是   |  任务ID     |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 
@@ -137,8 +138,8 @@
                         }
                     },
                     "stage_name": "步骤1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": false,
                     "id": "node9b5ae13799d63e179f0ce3088b62",
@@ -154,8 +155,8 @@
                         "data": {}
                     },
                     "stage_name": "步骤1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": true,
                     "id": "node880ded556c6c3c269be3cedc64b6",
@@ -300,12 +301,12 @@
 |  task_url     |    str     |    任务实例链接     |
 |  pipeline_tree     |    dict     |    任务实例树     |
 
-#### data.constants.KEY
+#### data.constants KEY
 
 全局变量 KEY，${key} 格式
 
 
-#### data.constants.VALUE
+#### data.constants VALUE
 |   字段   |  类型  |           描述             |
 | ------------ | ---------- | ------------------------------ |
 |  key      |    string    |      同 KEY     |

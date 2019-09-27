@@ -112,7 +112,7 @@
                     const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(variable)
                     // custom_type 可以判断是手动新建节点还是组件勾选
                     const version = variable.version || 'legacy'
-                    if (!tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
+                    if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                         this.isConfigLoading = true
                         await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                     }
@@ -164,7 +164,7 @@
                         const sourceTag = variable.source_tag
                         const [atomType, tagCode] = sourceTag.split('.')
                         const atomVersion = variable.version || 'legacy'
-                        if (!tools.isKeyExists(`${atomType}>>${atomVersion}`, this.atomFormConfig)) {
+                        if (!atomFilter.isConfigExists(atomType, atomVersion, this.atomFormConfig)) {
                             this.loadAtomConfig({ atomType, atomVersion })
                         }
                         const atomConfig = this.atomFormConfig[atomType]

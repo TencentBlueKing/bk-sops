@@ -14,8 +14,22 @@ import api from '@/api/index.js'
 const appmaker = {
     namespaced: true,
     state: {
+        appmakerTemplateId: '', // 轻应用页面全局 template_id
+        appmakerDetail: {
+            auth_actions: [],
+            auth_resource: {},
+            auth_operations: [],
+            id: '',
+            name: ''
+        }
     },
     mutations: {
+        setAppmakerTemplateId (state, id) {
+            state.appmakerTemplateId = id
+        },
+        setAppmakerDetail (state, data) {
+            state.appmakerDetail = data
+        }
     },
     actions: {
         loadAppmakerSummary ({ commit }, data) {

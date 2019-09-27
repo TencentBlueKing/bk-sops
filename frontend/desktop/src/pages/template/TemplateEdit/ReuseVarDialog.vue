@@ -44,21 +44,22 @@
                 </div>
             </div>
             <div class="create-new-variable" v-show="isCreateVar">
-                <p class="new-var-notice">{{i18n.newVarNotice}}</p>
-                <div class="common-form-block-item">
+                <p v-if="isNewVariableAlone" class="new-var-notice">{{i18n.newVarNotice}}</p>
+                <div
+                    :class="isNewVariableAlone ? 'common-form-block-item' : 'common-form-item'">
                     <label>{{ i18n.name }}</label>
                     <div class="common-form-content">
-                        <BaseInput
+                        <bk-input
                             name="variableName"
                             v-model="varName"
                             v-validate="variableNameRule" />
                         <span v-show="errors.has('variableName')" class="common-error-tip error-msg">{{ errors.first('variableName') }}</span>
                     </div>
                 </div>
-                <div class="common-form-block-item clearfix">
+                <div :class="isNewVariableAlone ? 'common-form-block-item' : 'common-form-item'">
                     <label>{{ i18n.key }}</label>
                     <div class="common-form-content">
-                        <BaseInput
+                        <bk-input
                             name="variableKey"
                             v-model="varKey"
                             v-validate="variableKeyRule" />
@@ -74,12 +75,8 @@
     import { mapState } from 'vuex'
     import { Validator } from 'vee-validate'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     export default {
         name: 'ReuseVarDialog',
-        components: {
-            BaseInput
-        },
         props: ['isReuseVarDialogShow', 'reuseVariable', 'reuseableVarList'],
         data () {
             let selectedVar = ''
@@ -118,6 +115,9 @@
             }),
             isSelectDisabled () {
                 return this.isCreateVar
+            },
+            isNewVariableAlone () {
+                return this.isCreateVar && this.reuseVariable.useNewKey
             },
             title () {
                 if (this.reuseVariable.useNewKey) {

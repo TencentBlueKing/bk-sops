@@ -36,7 +36,7 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
-    import tools from '@/utils/tools.js'
+    import atomFilter from '@/utils/atomFilter.js'
     export default {
         name: 'RetryNode',
         components: {
@@ -107,7 +107,7 @@
                 }
             },
             async getNodeConfig (type, version) {
-                if (tools.isKeyExists(`${type}>>${version}`, this.atomFormConfig)) {
+                if (atomFilter.isConfigExists(type, version, this.atomFormConfig)) {
                     return this.atomFormConfig[type][version]
                 } else {
                     try {

@@ -13,22 +13,20 @@ specific language governing permissions and limitations under the License.
 
 from django.shortcuts import render
 
-from gcloud.core.models import Business
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.decorators import check_db_object_exists
 
 
 @check_db_object_exists('AppMaker')
-def task_home(request, app_id, biz_cc_id):
+def task_home(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
     @param request:
     @param app_id:
-    @param biz_cc_id:
+    @param project_id:
     @return:
     """
-    business = Business.objects.get(cc_id=biz_cc_id)
-    app_maker = AppMaker.objects.get(pk=app_id, business=business)
+    app_maker = AppMaker.objects.get(pk=app_id, project_id=project_id)
 
     ctx = {
         'view_mode': 'appmaker',
@@ -39,12 +37,12 @@ def task_home(request, app_id, biz_cc_id):
 
 
 @check_db_object_exists('AppMaker')
-def newtask_selectnode(request, app_id, biz_cc_id):
+def newtask_selectnode(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
     @param request:
     @param app_id:
-    @param biz_cc_id:
+    @param project_id:
     @return:
     """
     context = {
@@ -56,12 +54,12 @@ def newtask_selectnode(request, app_id, biz_cc_id):
 
 
 @check_db_object_exists('AppMaker')
-def newtask_paramfill(request, app_id, biz_cc_id):
+def newtask_paramfill(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
     @param request:
     @param app_id:
-    @param biz_cc_id:
+    @param project_id:
     @return:
     """
     context = {
@@ -73,12 +71,12 @@ def newtask_paramfill(request, app_id, biz_cc_id):
 
 
 @check_db_object_exists('AppMaker')
-def execute(request, app_id, biz_cc_id):
+def execute(request, app_id, project_id):
     """
     @summary: 在轻应用中查看任务详情
     @param request:
     @param app_id:
-    @param biz_cc_id:
+    @param project_id:
     @return:
     """
     context = {

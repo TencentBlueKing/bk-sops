@@ -21,7 +21,7 @@ import 'bk-magic-vue/dist/bk-magic-vue.min.css'
 import { Input, Select, Radio, RadioGroup, RadioButton, Checkbox,
     CheckboxGroup, Button, Option, OptionGroup, Table, TableColumn,
     DatePicker, TimePicker, TimeSelect, Upload, Tree, Loading,
-    Container, Row, Col, Pagination } from 'element-ui'
+    Container, Row, Col, Pagination, Tooltip } from 'element-ui'
 import enLocale from 'element-ui/lib/locale/lang/en'
 import zhLocale from 'element-ui/lib/locale/lang/zh-CN'
 import locales from 'element-ui/lib/locale'
@@ -53,6 +53,7 @@ Vue.use(Container)
 Vue.use(Row)
 Vue.use(Col)
 Vue.use(Pagination)
+Vue.use(Tooltip)
 
 if (store.state.lang === 'en') {
     locale.use(lang.enUS)
@@ -62,6 +63,7 @@ if (store.state.lang === 'en') {
 }
 
 $.atoms = {} // hack atom config load
+$.context = {}
 
 const InvalidNameChar = '\'‘"”$&<>'
 Validator.extend('cronRlue', {
@@ -139,6 +141,14 @@ Validator.localize({
                 required: gettext('定时流程名称不能为空'),
                 regex: gettext('定时流程名称包含') + InvalidNameChar + gettext('非法字符'),
                 max: gettext('定时流程名称不能超过') + STRING_LENGTH.TEMPLATE_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            projectName: {
+                required: gettext('项目名称不能为空'),
+                regex: gettext('项目名称包含') + InvalidNameChar + gettext('非法字符'),
+                max: gettext('项目名称不能超过') + STRING_LENGTH.PROJECT_NAME_MAX_LENGTH + gettext('个字符')
+            },
+            projectDesc: {
+                max: gettext('项目描述不能超过') + STRING_LENGTH.PROJECT_DESC_LENGTH + gettext('个字符')
             },
             periodicCron: {
                 required: gettext('定时表达式不能为空'),

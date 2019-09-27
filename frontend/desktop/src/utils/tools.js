@@ -140,26 +140,6 @@ const tools = {
         } else {
             return '--'
         }
-    },
-    /**
-     * 判断对象多级属性是否存在
-     * @param {String} path 路径（obj>>a>>b）
-     * @param {Object} object 对象
-     */
-    isKeyExists (path, object) {
-        if (!object) {
-            return false
-        }
-        const pathList = path.split('>>')
-        let obj = object
-        for (const i in pathList) {
-            const key = pathList[i]
-            if (!obj[key]) {
-                return false
-            }
-            obj = obj[key]
-        }
-        return true
     }
 }
 

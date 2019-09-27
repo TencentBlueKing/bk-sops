@@ -18,7 +18,7 @@ from gcloud.periodictask import models
 
 @admin.register(models.PeriodicTask)
 class PeriodicTaskAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'total_run_count', 'last_run_at', 'creator', 'business', 'template_id']
+    list_display = ['id', 'name', 'total_run_count', 'last_run_at', 'creator', 'project', 'template_id']
     search_fields = ['id']
     raw_id_fields = ['task']
 

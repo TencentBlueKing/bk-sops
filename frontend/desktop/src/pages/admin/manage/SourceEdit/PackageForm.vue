@@ -43,10 +43,10 @@
                                     name="packageName"
                                     v-model="name"
                                     v-validate="packageNameRule"
-                                    :class="{ 'error-border': errors.first('packageName') }"
                                     :disabled="isEditing"
+                                    :class="{ 'error-border': errors.first('packageName') }"
                                     @blur="onPackageNameBlur">
-                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="errors.first('packageName')"></i>
                             </div>
                         </td>
                     </tr>
@@ -113,7 +113,7 @@
                                                 v-model="details[field.id]"
                                                 v-validate="valueRule"
                                                 @blur="onDetailInputBlur(field.id)">
-                                            <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -150,7 +150,7 @@
                                                     v-model="item.key"
                                                     v-validate="packageNameRule"
                                                     @blur="onPackageInputBlur($event, 'key', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('moduleVersion' + index) }"
@@ -163,7 +163,7 @@
                                                     v-model="item.version"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'version', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
                                             <td
                                                 :class="{ 'error-border': errors.first('modules' + index) }"
@@ -176,9 +176,17 @@
                                                     v-model="item.modules"
                                                     v-validate="valueRule"
                                                     @blur="onPackageInputBlur($event, 'modules', index)">
-                                                <i class="bk-icon icon-info-circle common-error-tip" v-bk-tooltips.top="i18n.required"></i>
+                                                <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                             </td>
-                                            <td><bk-button v-if="packageValues.length > 1" theme="default" size="small" class="delete-btn" @click="onDeletePackage(index)">{{i18n.delete}}</bk-button></td>
+                                            <td>
+                                                <bk-button
+                                                    size="small"
+                                                    class="delete-btn"
+                                                    :class="{ 'default-color': !isShowDelete }"
+                                                    @click="onDeletePackage(index)">
+                                                    {{ modulesOptName }}
+                                                </bk-button>
+                                            </td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -197,7 +205,7 @@
 <script>
     import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { PACKAGE_NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'PackageForm',
@@ -244,7 +252,7 @@
                 packageNameRule: { // 名称校验规则
                     required: true,
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
+                    regex: PACKAGE_NAME_REG
                 },
                 valueRule: {
                     required: true
@@ -260,7 +268,7 @@
                     module: gettext('模块配置'),
                     placeholder: gettext('请输入'),
                     importPlaceholder: gettext('请输入模块绝对路径，如a.b.c，多个用,分隔'),
-                    subModule: gettext('根模块'),
+                    subModule: gettext('子模块名称'),
                     version: gettext('版本'),
                     importModule: gettext('导入模块'),
                     operation: gettext('操作'),
@@ -273,6 +281,12 @@
         computed: {
             isEditing () {
                 return typeof this.value.id === 'number'
+            },
+            isShowDelete () {
+                return this.packageValues && this.packageValues.length > 1
+            },
+            modulesOptName () {
+                return this.isShowDelete ? this.i18n.delete : '--'
             }
         },
         methods: {
@@ -297,7 +311,7 @@
                     })
                     detailValues[key] = ''
                 }
-
+                
                 return [detailFields, detailValues]
             },
             /**
@@ -377,6 +391,7 @@
              * 删除模块配置（只有一条时不显示删除按钮）
              */
             onDeletePackage (index) {
+                if (!this.isShowDelete) return
                 this.packageValues.splice(index, 1)
                 const packages = this.getPackages()
                 this.updateValue('packages', packages)
@@ -414,15 +429,7 @@
     }
 </script>
 <style lang="scss" scoped>
-    @mixin input-verific-trigger {
-        input[aria-invalid="true"] + .common-error-tip {
-            display: inline-block;
-        }
-        .common-error-tip {
-            display: none;
-            bottom: 0;
-        }
-    }
+    @import '@/scss/mixins/input-error.scss';
     /deep/ .bk-select {
         background-color: #ffffff;
         &.is-disabled {
@@ -498,6 +505,9 @@
         height: auto;
         line-height: initial;
     }
+    .default-color {
+        color: #313238;
+    }
     .package-setting {
         padding: 0 20px 20px;
     }
@@ -530,21 +540,15 @@
                     font-family: "SimSun";
                 }
             }
-
+            
         }
         .td-with-input {
             &:hover{
                 border-style: double;
                 border-color: #3c96ff;
             }
-            &.error-border {
-                border:1px double #ea3636;
-                &:hover {
-                    border-color: #ea3636;
-                }
-            }
+            @include common-input-error;
         }
-        @include input-verific-trigger;
         .form-content {
             position: relative;
             width: 40%;
@@ -564,12 +568,6 @@
             &:active {
                 border-color: #3c96ff;
             }
-            &.error-border {
-                border:1px double #ea3636;
-                &:hover {
-                    border-color: #ea3636;
-                }
-            }
             &[disabled="disabled"] {
                 color: #aaa;
                 cursor: not-allowed;
@@ -578,6 +576,7 @@
                     border-color: #c3cdd7;
                 }
             }
+            @include common-input-error;
         }
         .package-desc {
             display: block;
@@ -613,7 +612,6 @@
             font-weight: 700;
             text-align: center;
         }
-        @include input-verific-trigger;
     }
     .module-table-wrapper {
         position: relative;
@@ -660,18 +658,13 @@
                 border-style: double;
                 border-color: #3c96ff;
             }
-            &.error-border {
-                border:1px double #ea3636;
-                &:hover {
-                    border-color: #ea3636;
-                }
-            }
+            @include common-input-error;
         }
 
     }
     .table-input {
         width: 100%;
-        color: #63656e;
+        color: #333333;
         border: none;
         outline: none;
     }
@@ -684,14 +677,5 @@
         background: #ffffff;
         border: 1px solid #dde4eb;
         border-top: none;
-    }
-    .common-error-tip {
-        position: absolute;
-        top: 50%;
-        right: 6px;
-        margin-top: -6px;
-        height: 6px;
-        font-size: 12px;
-        white-space: nowrap;
     }
 </style>

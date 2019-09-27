@@ -17,13 +17,16 @@
         <ConfigBar
             v-if="isConfigBarShow"
             :name="name"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :type="type"
             :common="common"
             :template_id="template_id"
             :is-template-data-changed="isTemplateDataChanged"
             :template-saving="templateSaving"
             :create-task-saving="createTaskSaving"
+            :tpl-resource="tplResource"
+            :tpl-actions="tplActions"
+            :tpl-operations="tplOperations"
             @onChangeName="onChangeName"
             @onSaveTemplate="onSaveTemplate">
         </ConfigBar>
@@ -193,7 +196,7 @@
                 type: String,
                 required: false
             },
-            cc_id: {
+            project_id: {
                 type: String,
                 required: false
             },
@@ -226,6 +229,24 @@
             isSelectAllNode: {
                 type: Boolean,
                 default: false
+            },
+            tplOperations: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplActions: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            tplResource: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {

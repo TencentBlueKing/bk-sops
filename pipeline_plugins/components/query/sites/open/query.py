@@ -11,27 +11,34 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-import os
 import re
+import os
+import logging
+import traceback
 
-from django.conf.urls import url
 from django.http import JsonResponse
-from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
+from django.conf.urls import url
 
-from pipeline_plugins.cmdb_ip_picker.query import (
-    cmdb_search_host,
-    cmdb_search_topo_tree,
-    cmdb_get_mainline_object_topo
-)
 from pipeline_plugins.components.utils import (
     cc_get_inner_ip_by_module_id,
     supplier_account_inject,
     handle_api_error,
     supplier_id_inject
 )
+from pipeline_plugins.cmdb_ip_picker.query import (
+    cmdb_search_host,
+    cmdb_search_topo_tree,
+    cmdb_get_mainline_object_topo
+)
+from auth_backend.constants import AUTH_FORBIDDEN_CODE
+from auth_backend.exceptions import AuthFailedException
+
 from gcloud.conf import settings
+from gcloud.exceptions import APIError
+from gcloud.core.models import Project
+from gcloud.core.utils import get_user_business_list
 
 logger = logging.getLogger('root')
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -58,7 +65,7 @@ def cc_search_object_attribute(request, obj_id, biz_cc_id, supplier_account):
     }
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result['result']:
-        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result['message'])
+        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result)
         logger.error(message)
         result = {
             'result': False,
@@ -87,7 +94,7 @@ def cc_search_create_object_attribute(request, obj_id, biz_cc_id, supplier_accou
     }
     cc_result = client.cc.search_object_attribute(kwargs)
     if not cc_result['result']:
-        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result['message'])
+        message = handle_api_error('cc', 'cc.search_object_attribute', kwargs, cc_result)
         logger.error(message)
         result = {
             'result': False,
@@ -179,7 +186,7 @@ def cc_search_topo(request, obj_id, category, biz_cc_id, supplier_account):
     }
     cc_result = client.cc.search_biz_inst_topo(kwargs)
     if not cc_result['result']:
-        message = handle_api_error('cc', 'cc.search_biz_inst_topo', kwargs, cc_result['message'])
+        message = handle_api_error('cc', 'cc.search_biz_inst_topo', kwargs, cc_result)
         logger.error(message)
         result = {
             'result': False,
@@ -212,7 +219,7 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
     for del_id in (set(module_hosts.keys()) - set(map(lambda x: 'module_%s' % x, select_module_id))):
         del module_hosts[del_id]
 
-    return JsonResponse({'result': True if module_hosts else False, 'data': module_hosts})
+    return JsonResponse({'result': True, 'data': module_hosts})
 
 
 def job_get_script_list(request, biz_cc_id):
@@ -236,7 +243,7 @@ def job_get_script_list(request, biz_cc_id):
     script_result = client.job.get_script_list(kwargs)
 
     if not script_result['result']:
-        message = handle_api_error('job', 'job.get_script_list', kwargs, script_result['message'])
+        message = handle_api_error('job', 'job.get_script_list', kwargs, script_result)
         logger.error(message)
         result = {
             'result': False,
@@ -272,7 +279,7 @@ def job_get_own_db_account_list(request, biz_cc_id):
     job_result = client.job.get_own_db_account_list(kwargs)
 
     if not job_result['result']:
-        message = handle_api_error('job', 'get_own_db_account_list', kwargs, job_result['message'])
+        message = handle_api_error('job', 'get_own_db_account_list', kwargs, job_result)
         logger.error(message)
         result = {
             'result': False,
@@ -353,6 +360,11 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
     if not job_result['result']:
         message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
             biz_cc_id, job_result['message'])
+
+        if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=job_result.get('permission', []))
+
         logger.error(message)
         result = {
             'result': False,
@@ -374,8 +386,14 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
     job_result = client.job.get_job_detail({'bk_biz_id': biz_cc_id,
                                             'bk_job_id': task_id})
     if not job_result['result']:
+
         message = _(u"查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
             biz_cc_id, job_result['message'])
+
+        if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=job_result.get('permission', []))
+
         logger.error(message)
         result = {
             'result': False,
@@ -423,19 +441,78 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
 
 
 @supplier_account_inject
-def cc_search_topo_tree(request, biz_cc_id, supplier_account):
-    return cmdb_search_topo_tree(request, biz_cc_id, supplier_account)
+def cc_search_topo_tree(request, project_id, supplier_account):
+    project = Project.objects.get(id=project_id)
+    if project.from_cmdb:
+        return cmdb_search_topo_tree(request, project.bk_biz_id, supplier_account)
+    else:
+        ctx = {
+            'result': False,
+            'message': 'cannot search topo tree by project which is not from CMDB',
+            'data': {},
+            'code': -1
+        }
+        return JsonResponse(ctx)
 
 
 @supplier_account_inject
 @supplier_id_inject
-def cc_search_host(request, biz_cc_id, supplier_account, supplier_id):
-    return cmdb_search_host(request, biz_cc_id, supplier_account, supplier_id)
+def cc_search_host(request, project_id, supplier_account, supplier_id):
+    project = Project.objects.get(id=project_id)
+    if project.from_cmdb:
+        return cmdb_search_host(request, project.bk_biz_id, supplier_account, supplier_id)
+    else:
+        ctx = {
+            'result': False,
+            'message': 'cannot search host by project which is not from CMDB',
+            'data': {},
+            'code': -1
+        }
+        return JsonResponse(ctx)
 
 
 @supplier_account_inject
-def cc_get_mainline_object_topo(request, biz_cc_id, supplier_account):
-    return cmdb_get_mainline_object_topo(request, biz_cc_id, supplier_account)
+def cc_get_mainline_object_topo(request, project_id, supplier_account):
+    project = Project.objects.get(id=project_id)
+    if project.from_cmdb:
+        return cmdb_get_mainline_object_topo(request, project.bk_biz_id, supplier_account)
+    else:
+        ctx = {
+            'result': False,
+            'message': 'cannot search mainline object topo by project which is not from CMDB',
+            'data': {},
+            'code': -1
+        }
+        return JsonResponse(ctx)
+
+
+def cc_get_business(request):
+    try:
+        business = get_user_business_list(username=request.user.username)
+    except APIError as e:
+        message = 'an error occurred when fetch user business: %s' % traceback.format_exc()
+
+        if e.result and e.result.get('code', 0) == AUTH_FORBIDDEN_CODE:
+            logger.warning(message)
+            raise AuthFailedException(permissions=e.result.get('permission', []))
+
+        logger.error(message)
+        return JsonResponse({
+            'result': False,
+            'message': 'fetch business list failed, please contact administrator'
+        })
+
+    data = []
+    for biz in business:
+        data.append({
+            'text': biz['bk_biz_name'],
+            'value': int(biz['bk_biz_id'])
+        })
+
+    return JsonResponse({
+        'result': True,
+        'data': data
+    })
 
 
 urlpatterns = [
@@ -448,7 +525,11 @@ urlpatterns = [
     url(r'^file_upload/(?P<biz_cc_id>\d+)/$', file_upload),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
     url(r'^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_job_task_detail),
-    url(r'^cc_search_topo_tree/(?P<biz_cc_id>\d+)/$', cc_search_topo_tree),
-    url(r'^cc_search_host/(?P<biz_cc_id>\d+)/$', cc_search_host),
-    url(r'^cc_get_mainline_object_topo/(?P<biz_cc_id>\d+)/$', cc_get_mainline_object_topo),
+
+    # IP selector
+    url(r'^cc_search_topo_tree/(?P<project_id>\d+)/$', cc_search_topo_tree),
+    url(r'^cc_search_host/(?P<project_id>\d+)/$', cc_search_host),
+    url(r'^cc_get_mainline_object_topo/(?P<project_id>\d+)/$', cc_get_mainline_object_topo),
+
+    url(r'^cc_get_business_list/$', cc_get_business),
 ]

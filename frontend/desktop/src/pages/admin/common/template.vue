@@ -1,5 +1,5 @@
 <template>
-    <template-list common="1" :cc_id="cc_id"></template-list>
+    <template-list :common="1" :project_id="project_id"></template-list>
 </template>
 <script>
     import '@/utils/i18n.js'
@@ -12,8 +12,8 @@
             TemplateList
         },
         computed: {
-            ...mapState({
-                cc_id: state => state.cc_id
+            ...mapState('project', {
+                project_id: state => state.project_id
             })
         }
     }

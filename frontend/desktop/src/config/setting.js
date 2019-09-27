@@ -10,22 +10,28 @@
 * specific language governing permissions and limitations under the License.
 */
 import bus from '@/utils/bus.js'
+import store from '@/store/index.js'
 
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
  * @param {String} site_url
- * @param {String} BIZ_CC_ID
+ * @param {Object} project
  */
-export function setAtomConfigApiUrls (SITE_URL, BIZ_CC_ID) {
+export function setAtomConfigApiUrls (site_url, project) {
     $.context = {
-        site_url: SITE_URL,
-        biz_cc_id: BIZ_CC_ID,
-        homelist: SITE_URL + 'template/home/' + BIZ_CC_ID + '/',
-        component: SITE_URL + 'api/v3/component/',
-        variable: SITE_URL + 'api/v3/variable/',
-        template: SITE_URL + 'api/v3/template/',
-        subform: SITE_URL + 'template/api/form/' + BIZ_CC_ID + '/',
-        instance: SITE_URL + 'api/v3/taskflow/'
+        project,
+        biz_binding: project.from_cmdb,
+        bk_biz_id: project.bk_biz_id,
+        biz_cc_id: project.bk_biz_id,
+        site_url: site_url,
+        project_id: project.id,
+        component: site_url + 'api/v3/component/',
+        variable: site_url + 'api/v3/variable/',
+        template: site_url + 'api/v3/template/',
+        instance: site_url + 'api/v3/taskflow/',
+        getConstants () {
+            return store.state.template.constants
+        }
     }
 }
 
@@ -64,6 +70,11 @@ export function setJqueryAjaxConfig () {
             },
             406: function (xhr) {
                 bus.$emit('showErrorModal', '406')
+            },
+            499: function (xhr) {
+                const resData = JSON.parse(xhr.responseText)
+                const permission = resData.permission
+                bus.$emit('showPermissionModal', permission)
             },
             500: function (xhr, textStatus) {
                 bus.$emit('showErrorModal', '500', xhr.responseText)

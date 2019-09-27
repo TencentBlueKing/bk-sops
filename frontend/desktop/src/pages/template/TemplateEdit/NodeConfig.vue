@@ -36,7 +36,7 @@
                                 </bk-option>
                             </bk-select>
                             <!-- 标准插件节点说明 -->
-                            <i class="bk-icon icon-info-circle desc-tooltip"
+                            <i class="common-icon-info desc-tooltip"
                                 v-if="atomDesc"
                                 v-bk-tooltips="{
                                     content: atomDesc,
@@ -115,7 +115,7 @@
                                     {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="bk-icon icon-info-circle"></i>
+                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info"></i>
                             <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
@@ -124,8 +124,7 @@
                         <div class="form-content">
                             <bk-switcher
                                 size="min"
-                                :selected="nodeCouldBeSkipped"
-                                @change="onSkippedChange">
+                                v-model="nodeCouldBeSkipped">
                             </bk-switcher>
                         </div>
                     </div>
@@ -235,7 +234,7 @@
             'idOfNodeInConfigPanel',
             'template_id',
             'common',
-            'cc_id'
+            'project_id'
         ],
         data () {
             return {
@@ -551,7 +550,7 @@
              * 加载标准插件节点数据
              */
             async getAtomConfig (atomType, version) {
-                if (tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
+                if (atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                     this.setNodeConfigData(atomType, version)
                     return
                 }
@@ -611,7 +610,7 @@
                         const { atomType, atom, tagCode, classify } = atomFilter.getVariableArgs(form)
                         // 全局变量版本
                         const version = form.version || 'legacy'
-                        if (!tools.isKeyExists(`${atomType}>>${version}`, this.atomFormConfig)) {
+                        if (!atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
                             await this.loadAtomConfig({ atomType, classify, version, saveName: atom })
                         }
                         const atomConfig = this.atomFormConfig[atom][version]
@@ -768,7 +767,7 @@
             iskeyInSourceInfo (key, tagCode) {
                 for (const cKey in this.constants) {
                     const constant = this.constants[cKey]
-                    const sourceInfo = constant.source_info
+                    const sourceInfo = JSON.stringify(constant.source_info)
                     if (
                         constant.source_type === 'component_inputs'
                         && sourceInfo
@@ -891,14 +890,14 @@
                     const variable = this.constants[variableKey]
                     this.setVariableSourceInfo({ type: 'delete', id, key: variableKey, tagCode: formKey })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable(variableKey)
+                        this.removeFromGlobal(variableKey)
                     }
                 })
                 this.taskTypeEmpty = false
                 this.taskVersionEmpty = false
                 outputs.forEach(item => {
                     if (item.hook) {
-                        this.deleteVariable(item.key)
+                        this.removeFromGlobal(item.key)
                     }
                 })
             },
@@ -950,7 +949,7 @@
             },
             onJumpToProcess (index) {
                 const item = this.atomList[index].id
-                const { href } = this.$router.resolve({ path: `/template/edit/${this.cc_id}/?template_id=${item}` })
+                const { href } = this.$router.resolve({ path: `/template/edit/${this.project_id}/?template_id=${item}` })
                 window.open(href, '_blank')
             },
             /**
@@ -998,9 +997,6 @@
             onErrorIngoredChange (selected) {
                 this.errorCouldBeIgnored = selected
             },
-            onSkippedChange (selected) {
-                this.nodeCouldBeSkipped = selected
-            },
             /**
              * 输入参数值更新
              */
@@ -1026,8 +1022,8 @@
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
                 let key, source_tag, source_info, custom_type, value, validation
-                // 变量 key 值
-                let variableKey = /^\$\{[\w]*\}$/.test(tagCode) ? tagCode : '${' + tagCode + '}'
+                // 变量 key 值，统一格式为 ${xxx}
+                let variableKey = varKeyReg.test(tagCode) ? tagCode : '${' + tagCode + '}'
                 const formConfig = this.renderInputConfig.filter(item => {
                     return item.tag_code === tagCode
                 })[0]
@@ -1046,13 +1042,10 @@
                     key = variableKey
                     tagCode = tagCode.match(varKeyReg)[1]
                     source_info = { [this.nodeId]: [variableKey] }
+                    source_tag = variable.source_tag
                     custom_type = variable.custom_type
                     value = tools.deepClone(this.inputAtomData[key])
-                    
-                    if (formConfig.type === 'combine') {
-                        source_tag = variable.source_tag.split('.')[0] + '.' + variableKey
-                    } else {
-                        source_tag = variable.source_tag
+                    if (formConfig.type !== 'combine') {
                         validation = variable.validation
                     }
                 }
@@ -1065,7 +1058,7 @@
                             name, key: variableKey, source_info, custom_type, value, validation, version: variableVersion
                         }
                         this.$set(this.inputAtomData, key, variableKey)
-                        this.createVariable(variableOpts)
+                        this.hookToGlobal(variableOpts)
                         return
                     }
                     // 获取全局变量中已有的 key + version 相同项列表
@@ -1106,7 +1099,7 @@
                         )
 
                         this.$set(this.inputAtomData, key, variableKey)
-                        this.createVariable(variableOpts) // input arguments hook
+                        this.hookToGlobal(variableOpts) // input arguments hook
                     }
                 } else { // cancel hook
                     variableKey = this.inputAtomData[key] // variable key
@@ -1119,7 +1112,7 @@
                     this.inputAtomData[formKey] = tools.deepClone(this.constants[variableKey].value)
                     this.setVariableSourceInfo({ type: 'delete', id: this.nodeId, key: variableKey, tagCode: formKey })
                     if (variable && !Object.keys(variable.source_info).length) {
-                        this.deleteVariable(variableKey)
+                        this.removeFromGlobal(variableKey)
                     }
                 }
             },
@@ -1144,18 +1137,18 @@
                             return true
                         }
                     })
-                    this.createVariable(variableOpts)
+                    this.hookToGlobal(variableOpts)
                 } else {
                     const constant = this.constants[key]
                     if (constant) {
-                        this.deleteVariable(key)
+                        this.removeFromGlobal(key)
                     }
                 }
             },
             /**
              * 参数不复用，创建新变量
              */
-            createVariable (variableOpts) {
+            hookToGlobal (variableOpts) {
                 const len = Object.keys(this.constants).length
                 const defaultOpts = {
                     name: '',
@@ -1173,6 +1166,11 @@
                 }
                 const variable = Object.assign({}, defaultOpts, variableOpts)
                 this.addVariable(Object.assign({}, variable))
+                this.$emit('globalVariableUpdate', true)
+            },
+            removeFromGlobal (key) {
+                this.deleteVariable(key)
+                this.$emit('globalVariableUpdate', true)
             },
             generateRandomKey (key) {
                 let variableKey = key.replace(/^\$\{/, '').replace(/(\}$)/, '').slice(0, 14)
@@ -1205,6 +1203,7 @@
                     )
                     
                     this.createVariable(variableOpts)
+                    this.hookToGlobal(variableOpts)
                 } else {
                     this.$set(this.inputAtomHook, varKey, true)
                     this.$set(this.inputAtomData, key, varKey)
@@ -1259,7 +1258,7 @@
     border-left: 1px solid $commonBorderColor;
     box-shadow: -4px 0 6px -4px rgba(0, 0, 0, 0.15);
     overflow-y: auto;
-    z-index: 4;
+    z-index: 5;
     transition: right 0.5s ease-in-out;
     @include scrollbar;
     .node-title {
@@ -1272,7 +1271,7 @@
         }
     }
     &.position-right-side {
-        right: 55px;
+        right: 56px;
     }
     .basic-info-form {
         .node-select,
@@ -1349,7 +1348,7 @@
             width: 150px;
             padding-right: 11px;
         }
-        .icon-info-circle {
+        .common-icon-info {
             display: inline-block;
             vertical-align: middle;
             color: #c4c6cc;

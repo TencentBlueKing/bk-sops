@@ -23,6 +23,10 @@ class PipelineElement(object):
     EmptyStartEvent = 'EmptyStartEvent'
     EmptyEndEvent = 'EmptyEndEvent'
 
+    TaskNodes = {ServiceActivity, LoopServiceActivity, SubProcess}
+    BranchGateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway}
+    Gateways = {ExclusiveGateway, ParallelGateway, ConditionalParallelGateway, ConvergeGateway}
+
     pipeline = 'pipeline'
     id = 'id'
     type = 'type'
@@ -41,6 +45,7 @@ class PipelineElement(object):
     component = 'component'
     evaluate = 'evaluate'
     name = 'name'
+    stage_name = 'stage_name'
     failure_handler = 'failure_handler'
     inputs = 'inputs'
     outputs = 'outputs'
@@ -49,7 +54,11 @@ class PipelineElement(object):
     code = 'code'
     error_ignorable = 'error_ignorable'
     skippable = 'skippable'
-    can_retry = 'can_retry'
+    # 兼容3.3.X不规范的命名
+    skippable_old = 'isSkipped'
+    retryable = 'retryable'
+    # 兼容3.3.X不规范的命名
+    retryable_old = 'can_retry'
     timeout = 'timeout'
     loop_times = 'loop_times'
     converge_gateway_id = 'converge_gateway_id'
@@ -62,9 +71,6 @@ class PipelineElement(object):
     plain = 'plain'
     splice = 'splice'
     lazy = 'lazy'
-
-    location = 'location'
-    line = 'line'
     version = 'version'
 
 

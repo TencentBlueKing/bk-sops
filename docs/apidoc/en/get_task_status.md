@@ -19,6 +19,7 @@ Query a task or task node execution status
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string   |   YES   |  the business ID             |
 |   task_id     |   string   |   YES   |  the task ID a task node ID  |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
@@ -109,8 +110,8 @@ Query a task or task node execution status
 | REVOKED   | revoked   |
 | FINISHED  | finished  |  
 
-#### data.children.KEY
+#### data.children KEY
 the unique ID of a task node
 
-#### data.children.VALUE
+#### data.children VALUE
 the detail of a task node, the format is same with data

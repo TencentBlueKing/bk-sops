@@ -24,12 +24,13 @@
 |   flow_type     |   string     |   否   |  任务流程类型，common: 常规流程，common_func：职能化流程 |
 |   constants     |   dict     |   否   |  任务全局参数，详细信息见下面说明 |
 |   exclude_task_nodes_id | list |   否   |  跳过执行的节点ID列表 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
-#### constants.KEY
+#### constants KEY
 
 变量 KEY，${key} 格式
 
-#### constants.VALUE
+#### constants VALUE
 
 变量值，value 的类型和从模板获取的全局变量中 value 类型保持一致
 
@@ -75,8 +76,8 @@
                         }
                     },
                     "stage_name": "步骤1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": false,
                     "id": "node9b5ae13799d63e179f0ce3088b62",
@@ -92,8 +93,8 @@
                         "data": {}
                     },
                     "stage_name": "步骤1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": true,
                     "id": "node880ded556c6c3c269be3cedc64b6",
@@ -236,11 +237,11 @@
 |  constants      |    dict    |  全局变量信息，详情见下面    |
 |  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
 
-#### data.pipeline_tree.constants.KEY
+#### data.pipeline_tree.constants KEY
 
 全局变量 KEY，${key} 格式
 
-#### data.pipeline_tree.constants.VALUE
+#### data.pipeline_tree.constants VALUE
 
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |

@@ -19,32 +19,18 @@ import traceback
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
-from guardian.shortcuts import (
-    get_groups_with_perms,
-    get_users_with_perms,
+from auth_backend.plugins.shortcuts import (
+    batch_verify_or_raise_auth_failed,
+    verify_or_return_insufficient_perms
 )
 
 from gcloud.commons.template.forms import TemplateImportForm
 from gcloud.conf import settings
 from gcloud.exceptions import FlowExportError
-from gcloud.commons.template.constants import PermNm
-from gcloud.commons.template.models import (
-    CommonTemplate,
-    CommonTmplPerm,
-)
-from gcloud.commons.template.utils import (
-    assign_tmpl_perms,
-    assign_tmpl_perms_user,
-    read_template_data_file,
-)
-from gcloud.core.decorators import (
-    check_user_perm_of_business,
-    check_is_superuser,
-)
-from gcloud.core.roles import ALL_ROLES
-from gcloud.core.utils import convert_group_name, time_now_str
+from gcloud.commons.template.models import CommonTemplate
+from gcloud.commons.template.utils import read_template_data_file
+from gcloud.commons.template.permissions import common_template_resource
+from gcloud.core.utils import time_now_str
 
 logger = logging.getLogger('root')
 
@@ -66,7 +52,6 @@ def form(request):
 
 
 @require_GET
-@check_is_superuser()
 def export_templates(request):
     try:
         template_id_list = json.loads(request.GET.get('template_id_list'))
@@ -75,6 +60,12 @@ def export_templates(request):
 
     if not isinstance(template_id_list, list):
         return JsonResponse({'result': False, 'message': 'invalid template_id_list'})
+
+    templates = CommonTemplate.objects.filter(id__in=template_id_list, is_deleted=False)
+    perms_tuples = [(common_template_resource, [common_template_resource.actions.view.id], t) for t in templates]
+    batch_verify_or_raise_auth_failed(principal_type='user',
+                                      principal_id=request.user.username,
+                                      perms_tuples=perms_tuples)
 
     # wash
     try:
@@ -108,7 +99,6 @@ def export_templates(request):
 
 
 @require_POST
-@check_is_superuser()
 def import_templates(request):
     f = request.FILES.get('data_file', None)
     form_data = TemplateImportForm(request.POST)
@@ -125,6 +115,25 @@ def import_templates(request):
 
     templates_data = r['data']['template_data']
 
+    # check again and authenticate
+    check_info = CommonTemplate.objects.import_operation_check(templates_data)
+    perms_tuples = []
+    if override:
+        if check_info['new_template']:
+            perms_tuples.append((common_template_resource, [common_template_resource.actions.create.id], None))
+
+        if check_info['override_template']:
+            templates_id = [template_info['id'] for template_info in check_info['override_template']]
+            templates = CommonTemplate.objects.filter(id__in=templates_id, is_deleted=False)
+            for template in templates:
+                perms_tuples.append((common_template_resource, [common_template_resource.actions.edit.id], template))
+    else:
+        perms_tuples.append((common_template_resource, [common_template_resource.actions.create.id], None))
+
+    batch_verify_or_raise_auth_failed(principal_type='user',
+                                      principal_id=request.user.username,
+                                      perms_tuples=perms_tuples)
+
     try:
         result = CommonTemplate.objects.import_templates(templates_data, override)
     except Exception as e:
@@ -138,7 +147,6 @@ def import_templates(request):
 
 
 @require_POST
-@check_is_superuser()
 def check_before_import(request):
     f = request.FILES.get('data_file', None)
     r = read_template_data_file(f)
@@ -146,90 +154,19 @@ def check_before_import(request):
         return JsonResponse(r)
 
     check_info = CommonTemplate.objects.import_operation_check(r['data']['template_data'])
+
+    perms_tuples = [(common_template_resource, [common_template_resource.actions.create.id], None)]
+    if check_info['override_template']:
+        templates_id = [template_info['id'] for template_info in check_info['override_template']]
+        templates = CommonTemplate.objects.filter(id__in=templates_id, is_deleted=False)
+        for template in templates:
+            perms_tuples.append((common_template_resource, [common_template_resource.actions.edit.id], template))
+    permissions = verify_or_return_insufficient_perms(principal_type='user',
+                                                      principal_id=request.user.username,
+                                                      perms_tuples=perms_tuples)
+
     return JsonResponse({
         'result': True,
-        'data': check_info
+        'data': check_info,
+        'permission': permissions
     })
-
-
-@require_GET
-@check_user_perm_of_business('view_business')
-def get_perms(request):
-    """
-    @summary: 暴露给业务的接口，业务人员获取自己业务下的权限
-    @param request:
-    @return:
-    """
-    template_id = request.GET.get('template_id')
-    biz_cc_id = str(request.GET.get('biz_cc_id'))
-
-    try:
-        CommonTemplate.objects.get(pk=template_id, is_deleted=False)
-    except CommonTemplate.DoesNotExist:
-        return HttpResponseForbidden()
-    template_perm, _ = CommonTmplPerm.objects.get_or_create(common_template_id=template_id,
-                                                            biz_cc_id=biz_cc_id)
-    data = {perm: [] for perm in PermNm.PERM_LIST}
-    common_perm_list = ['common_%s' % perm for perm in PermNm.PERM_LIST]
-    index = len('common_')
-    # 获取有权限的分组列表
-    groups = get_groups_with_perms(template_perm, attach_perms=True)
-    for group, perm_list in groups.items():
-        for perm in perm_list:
-            if perm in common_perm_list:
-                data[perm[index:]].append({
-                    "show_name": group.name.split("\x00")[-1]
-                })
-    # 获取有权限的人员列表(单独按人员角色授权，而不是按分组授权)
-    users = get_users_with_perms(template_perm, attach_perms=True, with_group_users=False)
-    for user, perm_list in users.items():
-        for perm in perm_list:
-            if perm in common_perm_list:
-                data[perm[index:]].append({
-                    "show_name": user.username
-                })
-    ctx = {
-        'result': True,
-        'data': data,
-        'message': 'success'
-    }
-    return JsonResponse(ctx)
-
-
-@require_POST
-@check_user_perm_of_business('manage_business')
-def save_perms(request):
-    """
-    @summary: 暴露给业务的接口，业务管理员保存自己业务下的权限
-    @param request:
-    @return:
-    """
-    template_id = request.POST.get('template_id')
-    biz_cc_id = str(request.POST.get('biz_cc_id'))
-
-    try:
-        CommonTemplate.objects.get(pk=template_id, is_deleted=False)
-    except CommonTemplate.DoesNotExist:
-        return HttpResponseForbidden()
-    template_perm, _ = CommonTmplPerm.objects.get_or_create(common_template_id=template_id,
-                                                            biz_cc_id=biz_cc_id)
-    user_model = get_user_model()
-    for perm in PermNm.PERM_LIST:
-        group_name_list = []
-        user_name_list = []
-        for data in json.loads(request.POST.get(perm, '[]')):
-            if data in ALL_ROLES:
-                group_name = convert_group_name(biz_cc_id, data)
-                group_name_list.append(group_name)
-            else:
-                user_name_list.append(data)
-        group_set = Group.objects.filter(name__in=group_name_list)
-        assign_tmpl_perms(['common_%s' % perm], group_set, template_perm)
-        user_set = user_model.objects.filter(username__in=user_name_list)
-        assign_tmpl_perms_user(['common_%s' % perm], user_set, template_perm)
-    ctx = {
-        'result': True,
-        'data': {},
-        'message': 'success'
-    }
-    return JsonResponse(ctx)

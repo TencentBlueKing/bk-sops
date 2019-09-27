@@ -19,23 +19,22 @@
                 <div class="common-form-item">
                     <label class="required">{{ i18n.taskName }}</label>
                     <div class="common-form-content" v-bkloading="{ isLoading: taskMessageLoading, opacity: 1 }">
-                        <BaseInput
+                        <bk-input
                             v-model="taskName"
                             v-validate="taskNameRule"
                             class="step-form-content-size"
                             name="taskName">
-                        </BaseInput>
+                        </bk-input>
                         <span class="common-error-tip error-msg">{{ errors.first('taskName') }}</span>
                     </div>
                 </div>
                 <div
-                    v-if="isStartNowShow"
+                    v-if="!isExecuteSchemeHide"
                     class="common-form-item">
                     <label class="required">{{i18n.startMethod}}</label>
                     <div class="common-form-content">
                         <div class="bk-button-group">
                             <bk-button
-                                v-if="!isPeriodicSelectShow"
                                 :theme="!isStartNow ? 'default' : 'primary'"
                                 @click="onChangeStartNow(true)">
                                 {{ i18n.startNow }}
@@ -103,10 +102,12 @@
                 {{ i18n.previous }}
             </bk-button>
             <bk-button
-                class="next-step-button"
+                :class="['next-step-button', {
+                    'btn-permission-disable': !hasPermission(nextStepPerm, actions, operations)
+                }]"
                 theme="success"
-                :disabled="disabledButton"
                 :loading="isSubmit"
+                v-cursor="{ active: !hasPermission(nextStepPerm, actions, operations) }"
                 @click="onCreateTask">
                 {{i18n.new}}
             </bk-button>
@@ -121,17 +122,17 @@
     import { errorHandler } from '@/utils/errorHandler.js'
     import { NAME_REG, PERIODIC_REG, STRING_LENGTH } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
+    import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
     import LoopRuleSelect from '@/components/common/Individualization/loopRuleSelect.vue'
     export default {
         name: 'TaskParamFill',
         components: {
-            BaseInput,
             ParameterInfo,
             LoopRuleSelect
         },
-        props: ['cc_id', 'template_id', 'common', 'previewData', 'entrance', 'excludeNode'],
+        mixins: [permission],
+        props: ['project_id', 'template_id', 'common', 'previewData', 'entrance', 'excludeNode'],
         data () {
             return {
                 i18n: {
@@ -171,7 +172,10 @@
                 templateData: {},
                 taskParamEditLoading: true,
                 taskMessageLoading: true,
-                disabledButton: true
+                disabledButton: true,
+                tplActions: [],
+                tplOperations: [],
+                tplResource: {}
             }
         },
         computed: {
@@ -179,8 +183,13 @@
                 'templateName': state => state.template.name,
                 'userType': state => state.userType,
                 'viewMode': state => state.view_mode,
-                'app_id': state => state.app_id,
-                'businessTimezone': state => state.businessTimezone
+                'app_id': state => state.app_id
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
+            }),
+            ...mapState('appmaker', {
+                'appmakerDetail': state => state.appmakerDetail
             }),
             isTaskTypeShow () {
                 return this.userType !== 'functor' && this.isStartNow
@@ -190,6 +199,28 @@
             },
             isPeriodicSelectShow () {
                 return this.entrance.indexOf('periodicTask') > -1
+            },
+            nextStepPerm () {
+                return this.isStartNow ? ['create_task'] : ['create_periodic_task']
+            },
+            resourceName () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.name : this.templateName
+            },
+            resourceId () {
+                return this.viewMode === 'appmaker' ? this.app_id : this.template_id
+            },
+            actions () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_actions : this.tplActions
+            },
+            resource () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_resource : this.tplResource
+            },
+            operations () {
+                return this.viewMode === 'appmaker' ? this.appmakerDetail.auth_operations : this.tplOperations
+            },
+            // 不显示【执行计划】的情况
+            isExecuteSchemeHide () {
+                return this.common || this.viewMode === 'appmaker' || this.userType === 'functor' || (['periodicTask', 'taskflow'].indexOf(this.entrance) > -1)
             }
         },
         mounted () {
@@ -211,7 +242,7 @@
                 'createPeriodic'
             ]),
             period () {
-                if (this.isPeriodicSelectShow) {
+                if (this.entrance === 'periodicTask') {
                     this.isStartNow = false
                 }
             },
@@ -224,12 +255,15 @@
                     }
                     const templateSource = this.common ? 'common' : 'business'
                     const templateData = await this.loadTemplateData(data)
+                    this.tplActions = templateData.auth_actions
+                    this.tplResource = templateData.auth_resource
+                    this.tplOperations = templateData.auth_operations
                     this.setTemplateData(templateData)
                     const params = {
                         templateId: this.template_id,
                         excludeTaskNodesId: JSON.stringify(this.excludeNode),
                         common: this.common,
-                        cc_id: this.cc_id,
+                        project_id: this.project_id,
                         template_source: templateSource,
                         version: templateData.version
                     }
@@ -249,7 +283,7 @@
                     // 无时区的公共流程使用本地的时间
                     nowTime = moment().format('YYYYMMDDHHmmss')
                 } else {
-                    nowTime = moment.tz(this.businessTimezone).format('YYYYMMDDHHmmss')
+                    nowTime = moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 }
                 return this.templateName + '_' + nowTime
             },
@@ -260,20 +294,30 @@
             onGotoSelectNode () {
                 this.$emit('setFunctionalStep', false)
                 if (this.viewMode === 'appmaker') {
-                    this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                    this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id } })
                 } else {
                     if (this.common) {
-                        this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
+                        this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id, common: this.common } })
                     } else {
                         if (this.entrance !== undefined) {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
+                            this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id, entrance: this.entrance } })
                         } else {
-                            this.$router.push({ path: `/template/newtask/${this.cc_id}/selectnode/`, query: { 'template_id': this.template_id } })
+                            this.$router.push({ path: `/template/newtask/${this.project_id}/selectnode/`, query: { 'template_id': this.template_id } })
                         }
                     }
                 }
             },
             onCreateTask () {
+                if (!this.hasPermission(this.nextStepPerm, this.actions, this.operations)) {
+                    const resourceData = {
+                        name: this.resourceName,
+                        id: this.resourceId,
+                        auth_actions: this.actions
+                    }
+                    this.applyForPermission(this.nextStepPerm, resourceData, this.operations, this.resource)
+                    return
+                }
+
                 const loopRule = !this.isStartNow ? this.$refs.loopRuleSelect.validationExpression() : { check: true, rule: '' }
                 if (!loopRule.check) return
                 if (this.isSubmit) return
@@ -311,22 +355,22 @@
                             const taskData = await this.createTask(data)
 
                             if (this.viewMode === 'appmaker') {
-                                if (this.isSelectFunctionalType) {
-                                    this.$router.push({ path: `/appmaker/${this.app_id}/task_home/${this.cc_id}/` })
+                                if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
+                                    this.$router.push({ path: `/appmaker/${this.app_id}/task_home/${this.project_id}/` })
                                 } else {
-                                    this.$router.push({ path: `/appmaker/${this.app_id}/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id } })
+                                    this.$router.push({ path: `/appmaker/${this.app_id}/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id } })
                                 }
                             } else if (this.isSelectFunctionalType) {
-                                if (this.common) {
-                                    this.$router.push({ path: `/taskflow/home/${this.cc_id}/`, query: { common: this.common } })
+                                if (this.common) { // 公共流程创建职能化任务
+                                    this.$router.push({ path: `/taskflow/home/${this.project_id}/`, query: { common: this.common } })
                                 } else {
-                                    this.$router.push({ path: `/taskflow/home/${this.cc_id}/` })
+                                    this.$router.push({ path: `/taskflow/home/${this.project_id}/` })
                                 }
                             } else {
                                 if (this.common) {
-                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id, common: this.common } })
+                                    this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id, common: this.common } })
                                 } else {
-                                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: taskData.instance_id } })
+                                    this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: taskData.instance_id } })
                                 }
                             }
                         } catch (e) {
@@ -356,7 +400,7 @@
                                 'message': gettext('创建周期任务成功'),
                                 'theme': 'success'
                             })
-                            this.$router.push({ path: `/periodic/home/${this.cc_id}/` })
+                            this.$router.push({ path: `/periodic/home/${this.project_id}/` })
                         } catch (e) {
                             errorHandler(e, this)
                         } finally {

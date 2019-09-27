@@ -20,26 +20,17 @@ from pipeline.core.constants import PE
 from pipeline.exceptions import SubprocessExpiredError
 from pipeline.models import PipelineTemplate
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
+from auth_backend.resources import resource_type_lib
 
 from gcloud.exceptions import FlowExportError
-from gcloud.commons.template.constants import PermNm
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_CATEGORY
 from gcloud.core.utils import convert_readable_username
 
 
-def get_common_permission_list():
-    permission_list = [
-        ('common_%s' % PermNm.CREATE_TASK_PERM_NAME, 'common template create task'),
-        ('common_%s' % PermNm.FILL_PARAMS_PERM_NAME, 'common template fill params'),
-        ('common_%s' % PermNm.EXECUTE_TASK_PERM_NAME, 'common template execute task'),
-    ]
-    return permission_list
-
-
 def replace_template_id(template_model, pipeline_data, reverse=False):
     activities = pipeline_data[PE.activities]
-    for act_id, act in activities.iteritems():
+    for act_id, act in activities.items():
         if act['type'] == PE.SubProcess:
             if not reverse:
                 act['template_id'] = template_model.objects.get(pk=act['template_id']).pipeline_template.template_id
@@ -123,6 +114,55 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             'override_template': override_template
         }
         return result
+
+    def _perform_import(self, template_data, check_info, override, defaults_getter, resource):
+        template = template_data['template']
+        tid_to_reuse = {}
+
+        # find old template_id for override using
+        # import_id -> reuse_id
+        for template_to_be_replaced in check_info['override_template']:
+            task_template_id = template_to_be_replaced['id']
+            template_id = template_data['template'][str(task_template_id)]['pipeline_template_str_id']
+            tid_to_reuse[template_id] = template_to_be_replaced['template_id']
+
+        # import pipeline template first
+        id_map = PipelineTemplateWebWrapper.import_templates(template_data['pipeline_template_data'],
+                                                             override=override,
+                                                             tid_to_reuse=tid_to_reuse)
+        old_id_to_new_id = id_map[PipelineTemplateWebWrapper.ID_MAP_KEY]
+
+        new_objects = []
+        new_objects_template_ids = set()
+
+        # find templates which had been deleted
+        if override:
+            new_objects_template_ids = set(self.model.objects.filter(id__in=template.keys(), is_deleted=True)
+                                           .values_list('pipeline_template_id', flat=True))
+
+        for tid, template_dict in template.items():
+            template_dict['pipeline_template_id'] = old_id_to_new_id[template_dict['pipeline_template_str_id']]
+            defaults = defaults_getter(template_dict)
+            # use update or create to avoid id conflict
+            if override:
+                obj, created = self.update_or_create(id=tid, defaults=defaults)
+                if created:
+                    new_objects_template_ids.add(template_dict['pipeline_template_id'])
+            else:
+                new_objects.append(self.model(**defaults))
+                new_objects_template_ids.add(template_dict['pipeline_template_id'])
+
+        self.model.objects.bulk_create(new_objects)
+
+        create_templates = list(self.model.objects.filter(pipeline_template_id__in=new_objects_template_ids))
+        if create_templates:
+            resource.batch_register_instance(create_templates)
+
+        return {
+            'result': True,
+            'data': len(template),
+            'message': 'Successfully imported %s flows' % len(template)
+        }
 
 
 class BaseTemplate(models.Model):
@@ -300,9 +340,7 @@ class CommonTemplateManager(BaseTemplateManager):
         return data
 
     def import_templates(self, template_data, override):
-        template = template_data['template']
         check_info = self.import_operation_check(template_data)
-        tid_to_reuse = {}
 
         # operation validation check
         if override and (not check_info['can_override']):
@@ -312,42 +350,21 @@ class CommonTemplateManager(BaseTemplateManager):
                 'data': 0
             }
 
-        # find old template_id for override using
-        # import_id -> reuse_id
-        for template_to_be_replaced in check_info['override_template']:
-            task_template_id = template_to_be_replaced['id']
-            template_id = template_data['template'][str(task_template_id)]['pipeline_template_str_id']
-            tid_to_reuse[template_id] = template_to_be_replaced['template_id']
-
-        # import pipeline template first
-        id_map = PipelineTemplateWebWrapper.import_templates(template_data['pipeline_template_data'],
-                                                             override=override,
-                                                             tid_to_reuse=tid_to_reuse)
-        old_id_to_new_id = id_map[PipelineTemplateWebWrapper.ID_MAP_KEY]
-
-        new_objects = []
-        for tid, tmpl_dict in template.items():
-            tmpl_dict['pipeline_template_id'] = old_id_to_new_id[tmpl_dict['pipeline_template_str_id']]
-            defaults = {
-                'category': tmpl_dict['category'],
-                'notify_type': tmpl_dict['notify_type'],
-                'notify_receivers': tmpl_dict['notify_receivers'],
-                'time_out': tmpl_dict['time_out'],
-                'pipeline_template_id': tmpl_dict['pipeline_template_id'],
+        def defaults_getter(template_dict):
+            return {
+                'category': template_dict['category'],
+                'notify_type': template_dict['notify_type'],
+                'notify_receivers': template_dict['notify_receivers'],
+                'time_out': template_dict['time_out'],
+                'pipeline_template_id': template_dict['pipeline_template_id'],
                 'is_deleted': False
             }
-            # use update or create to avoid id conflict
-            if override:
-                self.update_or_create(id=tid, defaults=defaults)
-            else:
-                new_objects.append(self.model(**defaults))
-        self.model.objects.bulk_create(new_objects)
 
-        return {
-            'result': True,
-            'data': {'count': len(template)},
-            'message': 'Successfully imported %s common flows' % len(template)
-        }
+        return super(CommonTemplateManager, self)._perform_import(template_data=template_data,
+                                                                  check_info=check_info,
+                                                                  override=override,
+                                                                  defaults_getter=defaults_getter,
+                                                                  resource=resource_type_lib['common_flow'])
 
 
 class CommonTemplate(BaseTemplate):
@@ -372,7 +389,6 @@ class CommonTmplPerm(models.Model):
     biz_cc_id = models.CharField(_(u"通用流程模板ID"), max_length=255)
 
     class Meta:
-        permissions = get_common_permission_list()
         unique_together = ('common_template_id', 'biz_cc_id')
         index_together = ['common_template_id', 'biz_cc_id']
         verbose_name = _(u"公共流程模板权限 CommonTmplPerm")

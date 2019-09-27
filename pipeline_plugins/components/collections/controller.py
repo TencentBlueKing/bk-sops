@@ -21,9 +21,10 @@ from django.utils import timezone
 
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
 
-from gcloud.core.models import Business
+from gcloud.core.models import Project
 
 __group_name__ = _(u"蓝鲸服务(BK)")
 
@@ -63,23 +64,33 @@ class SleepTimerService(Service):
 
     seconds_regex = re.compile(r'^\d{1,8}$')
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'定时时间'),
+                           key='bk_timing',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)')))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
 
         timing = str(data.inputs.bk_timing)
 
-        # 业务时区获取
-        business = Business.objects.get(cc_id=parent_data.inputs.biz_cc_id)
+        # 项目时区获取
+        project = Project.objects.get(id=parent_data.inputs.project_id)
 
-        business_tz = timezone.pytz.timezone(business.time_zone)
-        data.outputs.business_tz = business_tz
+        project_tz = timezone.pytz.timezone(project.time_zone)
+        data.outputs.business_tz = project_tz
 
         if self.date_regex.match(timing):
-            eta = business_tz.localize(datetime.datetime.strptime(timing, "%Y-%m-%d %H:%M:%S"))
+            eta = project_tz.localize(datetime.datetime.strptime(timing, "%Y-%m-%d %H:%M:%S"))
         elif self.seconds_regex.match(timing):
             #  如果写成+号 可以输入无限长，或考虑前端修改
-            eta = datetime.datetime.now(tz=business_tz) + datetime.timedelta(
+            eta = datetime.datetime.now(tz=project_tz) + datetime.timedelta(
                 seconds=int(timing))
         else:
             message = _(u"输入参数%s不符合【秒(s) 或 时间(%%Y-%%m-%%d %%H:%%M:%%S)】格式") % timing
@@ -103,9 +114,6 @@ class SleepTimerService(Service):
         self.interval.interval = t_delta.total_seconds() - 0.5
 
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class SleepTimerComponent(Component):

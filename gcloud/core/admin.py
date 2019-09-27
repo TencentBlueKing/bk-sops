@@ -33,3 +33,15 @@ class UserBusinessAdmin(admin.ModelAdmin):
 class EnvironmentVariablesAdmin(admin.ModelAdmin):
     list_display = ['key', 'name', 'value']
     search_fields = ['key', 'name']
+
+
+@admin.register(models.Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ['name', 'time_zone', 'creator', 'desc', 'from_cmdb', 'bk_biz_id', 'is_disable']
+    search_fields = ['id', 'name']
+
+
+@admin.register(models.UserDefaultProject)
+class UserDefaultProjectAdmin(admin.ModelAdmin):
+    list_display = ['username', 'default_project']
+    search_fields = ['username']

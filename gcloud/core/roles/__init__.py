@@ -32,6 +32,7 @@ export_var = ['ROLES_DECS',
               'ADMIN',
               'FUNCTOR',
               'AUDITOR',
+              'NORMAL',
               'CC_V2_ROLE_MAP']
 
 for role_var in export_var:

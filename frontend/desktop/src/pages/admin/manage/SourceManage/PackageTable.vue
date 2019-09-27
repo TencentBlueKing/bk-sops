@@ -31,7 +31,7 @@
                         <table class="detail-table">
                             <tbody>
                                 <tr v-for="field in detailFields" :key="field.id">
-                                    <th>{{field.name.name}}</th>
+                                    <th>{{field.name}}</th>
                                     <td>{{value.details[field.id]}}</td>
                                 </tr>
                             </tbody>
@@ -70,7 +70,7 @@
                                     <th>{{i18n.moduleBelong}}</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody v-if="value.imported_plugins">
                                 <tr v-for="(item, key) in value.imported_plugins" :key="key">
                                     <td>{{item.group_name}}-{{item.name}}</td>
                                     <td>{{item.class_name}}</td>
@@ -78,6 +78,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <NoData class="local-no-data" v-if="!value.imported_plugins" />
                     </td>
                 </tr>
             </tbody>
@@ -87,9 +88,12 @@
 <script>
     import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-
+    import NoData from '@/components/common/base/NoData'
     export default {
         name: 'PackageTable',
+        components: {
+            NoData
+        },
         props: {
             value: {
                 type: Object,
@@ -111,7 +115,7 @@
                     importedPlugin: gettext('已导入插件'),
                     rootModule: gettext('根模块'),
                     version: gettext('版本'),
-                    importedModule: gettext('导入模块'),
+                    importedModule: gettext('已导入模块'),
                     pluginName: gettext('插件名'),
                     clsName: gettext('类名'),
                     moduleBelong: gettext('所属模块')
@@ -131,16 +135,23 @@
                 for (const key in source.keys) {
                     detailFields.push({
                         id: key,
-                        name: source.keys[key]
+                        name: source.keys[key].name
                     })
                 }
-
+                
                 return detailFields
             }
         }
     }
 </script>
 <style lang="scss" scoped>
+    .local-no-data {
+        border: 1px solid #dde4eb;
+        border-top: none;
+        /deep/ .no-data {
+            padding: 20px 0px;
+        }
+    }
     .package-table {
         margin-top: 20px;
         table {

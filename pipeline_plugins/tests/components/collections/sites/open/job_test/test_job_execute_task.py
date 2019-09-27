@@ -114,7 +114,8 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
             {'type': 1, 'name': 'key_2', 'value': 'value_2'},
             {'type': 2, 'name': 'key_3', 'value': '1.1.1.1,2.2.2.2'}
         ],
-        'job_task_id': 12345
+        'job_task_id': 12345,
+        'biz_cc_id': 1,
     },
     parent_data={
         'executor': 'executor_token',
@@ -122,7 +123,12 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     },
     execute_assertion=ExecuteAssertion(
         success=False,
-        outputs={'ex_data': 'message token'}),
+        outputs={'ex_data': u'\u8c03\u7528\u4f5c\u4e1a\u5e73\u53f0(JOB)'
+                            u'\u63a5\u53e3job.execute_job\u8fd4\u56de\u5931\u8d25, '
+                            u'params={"bk_biz_id": 1, "global_vars": [{"name": "key_1", "value": "value_1"}, '
+                            u'{"name": "key_2", "value": "value_2"}, {"name": "key_3", "ip_list": '
+                            u'[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]}], '
+                            u'"bk_job_id": 12345, "bk_callback_url": "url_token"}, error=message token'}),
     schedule_assertion=None,
     execute_call_assertion=[
         CallAssertion(func=CC_GET_IPS_INFO_BY_STR, calls=[Call(username='executor_token',
@@ -162,7 +168,8 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             {'type': 1, 'name': 'key_2', 'value': 'value_2'},
             {'type': 2, 'name': 'key_3', 'value': '1.1.1.1,2.2.2.2'}
         ],
-        'job_task_id': 12345
+        'job_task_id': 12345,
+        'biz_cc_id': 1,
     },
     parent_data={
         'executor': 'executor_token',
@@ -228,7 +235,8 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             {'type': 1, 'name': 'key_2', 'value': 'value_2'},
             {'type': 2, 'name': 'key_3', 'value': '1.1.1.1,2.2.2.2'}
         ],
-        'job_task_id': 12345
+        'job_task_id': 12345,
+        'biz_cc_id': 1,
     },
     parent_data={
         'executor': 'executor_token',
@@ -300,7 +308,8 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             {'type': 1, 'name': 'key_2', 'value': 'value_2'},
             {'type': 2, 'name': 'key_3', 'value': '1.1.1.1,2.2.2.2'}
         ],
-        'job_task_id': 12345
+        'job_task_id': 12345,
+        'biz_cc_id': 1,
     },
     parent_data={
         'executor': 'executor_token',
@@ -321,7 +330,9 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             'job_inst_id': 56789,
             'job_inst_name': 'job_name_token',
             'client': GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
-            'ex_data': 'global var message token'
+            'ex_data': u'\u8c03\u7528\u4f5c\u4e1a\u5e73\u53f0(JOB)\u63a5\u53e3job.get_job_instance_global_var_value'
+                       u'\u8fd4\u56de\u5931\u8d25, params={"bk_biz_id": 1, "job_instance_id": 56789}, '
+                       u'error=global var message token'
         },
         callback_data={
             'job_instance_id': 56789,
@@ -376,7 +387,8 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             {'type': 1, 'name': 'key_2', 'value': 'value_2'},
             {'type': 2, 'name': 'key_3', 'value': '1.1.1.1,2.2.2.2'}
         ],
-        'job_task_id': 12345
+        'job_task_id': 12345,
+        'biz_cc_id': 1,
     },
     parent_data={
         'executor': 'executor_token',
@@ -453,7 +465,8 @@ INVALID_IP_CASE = ComponentTestCase(
             {'type': 1, 'name': 'key_2', 'value': 'value_2'},
             {'type': 2, 'name': 'key_3', 'value': '1.1.1.1,2.2.2.2'}
         ],
-        'job_task_id': 12345
+        'job_task_id': 12345,
+        'biz_cc_id': 1,
     },
     parent_data={
         'executor': 'executor_token',

@@ -23,6 +23,7 @@ Query a task node execution details
 |   component_code| string     | NO         | the code of Standard Plugin, this field is required when query a Standard Plugin node |
 |   subprocess_stack| string   | NO         | stack of SubProcess, format is json  |
 | component_version| string   | NO         | component version, default is 'legacy'    |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 

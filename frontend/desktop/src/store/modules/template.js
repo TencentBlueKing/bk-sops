@@ -145,7 +145,7 @@ const template = {
         start_event: {},
         template_id: '',
         constants: {},
-        businessBaseInfo: {},
+        projectBaseInfo: {},
         notify_receivers: {
             receiver_group: [],
             more_receiver: ''
@@ -229,8 +229,8 @@ const template = {
                 state[key] = val
             })
         },
-        setBusinessBaseInfo (state, data) {
-            state.businessBaseInfo = data
+        setProjectBaseInfo (state, data) {
+            state.projectBaseInfo = data
         },
         // 初始化模板数据
         initTemplateData (state) {
@@ -737,8 +737,8 @@ const template = {
         }
     },
     actions: {
-        loadBusinessBaseInfo () {
-            return api.getBusinessBaseInfo().then(response => response.data)
+        loadProjectBaseInfo () {
+            return api.getProjectBaseInfo().then(response => response.data)
         },
         loadTemplateData ({ commit }, data) {
             return api.getTemplateData(data).then(response => response.data)
@@ -747,7 +747,7 @@ const template = {
             return api.getCustomVarCollection().then(response => response.data.objects)
         },
         // 保存模板数据
-        saveTemplateData ({ state }, { templateId, ccId, common }) {
+        saveTemplateData ({ state }, { templateId, projectId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type, time_out, category
             } = state
@@ -776,7 +776,7 @@ const template = {
                 start_event
             })
             const data = {
-                ccId,
+                projectId,
                 templateId,
                 timeout: time_out,
                 category,
@@ -806,6 +806,11 @@ const template = {
         },
         loadTemplateCollectList ({ commit }) {
             return api.loadTemplateCollectList().then(response => response.data)
+        },
+        getCollectedTemplateDetail ({ commit }, ids) {
+            return api.getCollectedTemplateDetail(ids).then(
+                response => response.data
+            )
         }
     },
     getters: {

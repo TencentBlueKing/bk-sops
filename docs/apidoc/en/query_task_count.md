@@ -20,6 +20,7 @@ Query task instance classification statistics
 |   bk_biz_id    |   string     |   YES   |  the business ID |
 |   group_by     |   string     |   YES   |  classified statistical dimension, status：Statistics by task status(Created、Executing、Finished), category：Statistics by task type, flow_type：Statistics by flow type, create_method：Statistics by creation method |
 |   conditions     |   dict     |   NO   |  task filter |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 #### conditions
 

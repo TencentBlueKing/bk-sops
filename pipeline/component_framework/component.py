@@ -26,14 +26,31 @@ class Component(object):
     @classmethod
     def outputs_format(cls):
         outputs = cls.bound_service().outputs()
-        outputs = map(lambda oi: oi._asdict(), outputs)
+        outputs = map(lambda oi: oi.as_dict(), outputs)
         return outputs
 
     @classmethod
     def inputs_format(cls):
         inputs = cls.bound_service().inputs()
-        inputs = map(lambda ii: ii._asdict(), inputs)
+        inputs = map(lambda ii: ii.as_dict(), inputs)
         return inputs
+
+    @classmethod
+    def _get_item_schema(cls, type, key):
+        items = getattr(cls.bound_service(), type)()
+        for item in items:
+            if item.key == key:
+                return item
+
+        return None
+
+    @classmethod
+    def get_output_schema(cls, key):
+        return cls._get_item_schema(type='outputs', key=key).schema
+
+    @classmethod
+    def get_input_schema(cls, key):
+        return cls._get_item_schema(type='inputs', key=key).schema
 
     @classmethod
     def form_is_embedded(cls):

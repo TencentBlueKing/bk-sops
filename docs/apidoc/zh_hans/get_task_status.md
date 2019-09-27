@@ -19,6 +19,7 @@
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string   |   是   |  模板所属业务ID   |
 |   task_id     |   string   |   是   |  任务或节点ID     |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 
@@ -109,8 +110,8 @@
 | REVOKED   | 已终止   |
 | FINISHED  | 已完成   |  
 
-#### data.children.KEY
+#### data.children KEY
 任务节点执行态ID
 
-#### data.children.VALUE
+#### data.children VALUE
 同 data 格式
