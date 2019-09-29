@@ -233,20 +233,6 @@ class Analysis(TestCase):
         else:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_TEMPLATE_NODE_PARAMS), None)
 
-    def test_atom_group_by_execute(self):
-        """
-        标准插件执行耗时
-        :return:
-        """
-        self.postRequest.path = '/analysis/query_atom_by_group/'
-        self.postRequest.POST['group_by'] = AE.atom_execute
-        response = query_atom_by_group(self.postRequest)
-        response_dict = json.loads(response.content)
-        if response_dict["data"]["total"] == 0:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
-        else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_ATOM_EXECUTE_PARAMS), None)
-
     def test_atom_group_by_instance(self):
         """
         标准插件任务详情
