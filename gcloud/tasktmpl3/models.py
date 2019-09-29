@@ -371,19 +371,19 @@ class TaskTemplateManager(BaseTemplateManager):
         # 使用驼峰转下划线进行转换order_by
         camel_order_by = camel_case_to_underscore_naming(order_by)
         # 排列获取分页后的数据
-        if order_by in ['relationshipTotal', '-relationshipTotal']:
+        if order_by in '-relationshipTotal':
             # 计算流程被引用为子流程的数量
             filtered_relationship_list = relationship_list.order_by(camel_order_by)
             filtered_id_list = [template.template_id for template in filtered_relationship_list]
             template_id_list = self._group_by_template_node_sorting(
                 filtered_relationship_list, filtered_id_list, order_by, page, limit)
-        elif order_by in ['instanceTotal', '-instanceTotal']:
+        elif order_by in '-instanceTotal':
             # 计算流程创建的任务数
             filtered_taskflow_list = taskflow_list.order_by(camel_order_by)
             filtered_id_list = [template_id_map[template["template_id"]] for template in filtered_taskflow_list]
             template_id_list = self._group_by_template_node_sorting(
                 filtered_taskflow_list, filtered_id_list, order_by, page, limit)
-        elif order_by in ['periodicTotal', '-periodicTotal']:
+        elif order_by in '-periodicTotal':
             # 计算流程创建的周期任务数
             filtered_periodic_list = periodic_list.order_by(camel_order_by)
             filtered_id_list = [template["template__template_id"] for template in filtered_periodic_list]
