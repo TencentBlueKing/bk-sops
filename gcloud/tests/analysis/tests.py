@@ -233,20 +233,6 @@ class Analysis(TestCase):
         else:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_TEMPLATE_NODE_PARAMS), None)
 
-    def test_template_group_by_cite(self):
-        """
-        各流程模板被引用为子流程次数、创建轻应用个数、创建任务个数
-        :return:
-        """
-        self.postRequest.path = '/analysis/query_template_by_group/'
-        self.postRequest.POST['group_by'] = AE.template_cite
-        response = query_template_by_group(self.postRequest)
-        response_dict = json.loads(response.content)
-        if response_dict["data"]["total"] == 0:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
-        else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_TEMPLATE_CITE_PARAMS), None)
-
     def test_atom_group_by_execute(self):
         """
         标准插件执行耗时
@@ -288,20 +274,6 @@ class Analysis(TestCase):
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
         else:
             self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_ATOM_TEMPLATE_PARAMS), None)
-
-    def test_atom_group_by_cite(self):
-        """
-        标准插件引用次数
-        :return:
-        """
-        self.postRequest.path = '/analysis/query_atom_by_group/'
-        self.postRequest.POST['group_by'] = AE.atom_cite
-        response = query_atom_by_group(self.postRequest)
-        response_dict = json.loads(response.content)
-        if response_dict["data"]["total"] == 0:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_NO_DATA_PARAMS), None)
-        else:
-            self.assertEqual(jsonschema.validate(response_dict, ANALYSIS_CATEGORY_AND_BUSINESS_PARAMS), None)
 
     def test_task_category(self):
         """
