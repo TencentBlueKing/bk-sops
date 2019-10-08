@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-25 17:07+0800\n"
+"POT-Creation-Date: 2019-10-08 10:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -562,10 +562,8 @@ msgstr "Sorry, you have no access permissions of this operation"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:38
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:35
-#, fuzzy
-#| msgid "1.联系业务运维为您添加"
 msgid "1.联系项目运维为您添加"
-msgstr "1.Contact business maintainers to add "
+msgstr "1.Contact project maintainers to add "
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:39
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:36
@@ -574,16 +572,12 @@ msgstr "Conf System "
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:40
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:37
-#, fuzzy
-#| msgid "对应业务的角色，如运维人员、开发人员、产品人员、测试人员"
 msgid "对应项目的角色，如运维人员、开发人员、产品人员、测试人员"
-msgstr "business roles like maintainer, productor, developer, tester"
+msgstr "project roles like maintainer, productor, developer, tester"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:41
-#, fuzzy
-#| msgid "2.联系业务运维为您添加需要操作的流程模板的权限"
 msgid "2.联系项目运维为您添加需要操作的流程模板的权限"
-msgstr "2.Contact business maintainers to add flow permissions for you"
+msgstr "2.Contact project maintainers to add flow permissions for you"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:42
 msgid "3.或者前往"
@@ -591,16 +585,12 @@ msgstr "3.Or goto "
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:43
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:39
-#, fuzzy
-#| msgid "创建属于自己的业务"
 msgid "创建属于自己的项目"
-msgstr "to Creating you own business"
+msgstr "to Creating you own project"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:34
-#, fuzzy
-#| msgid "对不起，您没有业务权限"
 msgid "对不起，您没有项目权限"
-msgstr "Sorry, you have no access permissions of business"
+msgstr "Sorry, you have no access to project"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:38
 msgid "2.或者前往"
@@ -628,26 +618,24 @@ msgstr "System error occurred. Please record error scenario and contact develope
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:76
 msgid "没有权限访问或操作此资源"
-msgstr ""
+msgstr "No access to or operation of this resource"
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:77
-#, fuzzy
-#| msgid "继续"
 msgid "系统"
-msgstr "Continue"
+msgstr "System"
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:78
 msgid "资源"
-msgstr ""
+msgstr "Resource"
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:79
 msgid "需要申请的权限"
-msgstr ""
+msgstr "Permission to apply"
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:81
 #: frontend/desktop/src/components/layout/permissionApply.vue:59
 msgid "去申请"
-msgstr ""
+msgstr "Apply"
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:83
 #: frontend/desktop/src/components/layout/ProjectSelector.vue:47
@@ -656,10 +644,8 @@ msgstr ""
 #: frontend/desktop/src/pages/project/index.vue:424
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:232
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:574
-#, fuzzy
-#| msgid "项"
 msgid "项目"
-msgstr " "
+msgstr "Project"
 
 #: frontend/desktop/src/components/layout/CopyrightFooter.vue:35
 msgid "QQ咨询"
@@ -700,7 +686,7 @@ msgstr "Flows"
 #: frontend/desktop/src/pages/functor/index.vue:337
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:347
 msgid "项目流程"
-msgstr ""
+msgstr "Project Flow"
 
 #: frontend/desktop/src/components/layout/Navigator.vue:114
 #: frontend/desktop/src/components/layout/Navigator.vue:158
@@ -733,7 +719,7 @@ msgstr "Mini-APP"
 #: frontend/desktop/src/components/layout/Navigator.vue:137
 #: frontend/desktop/src/pages/project/index.vue:236
 msgid "项目管理"
-msgstr ""
+msgstr "Project Management"
 
 #: frontend/desktop/src/components/layout/Navigator.vue:141
 msgid "管理员入口"
@@ -782,24 +768,24 @@ msgstr "Business"
 
 #: frontend/desktop/src/components/layout/permissionApply.vue:55
 msgid "无权限访问"
-msgstr ""
+msgstr "No permission"
 
 #: frontend/desktop/src/components/layout/permissionApply.vue:56
 msgid "无权限访问项目"
-msgstr ""
+msgstr "No permission to access project"
 
 #: frontend/desktop/src/components/layout/permissionApply.vue:57
 msgid "你没有相应资源的访问权限，请申请权限或联系管理员授权"
-msgstr ""
+msgstr "You do not have access to the corresponding resources, please apply for permission or contact the administrator to authorize"
 
 #: frontend/desktop/src/components/layout/permissionApply.vue:58
 msgid "你可以申请已有项目的权限，或新建项目"
-msgstr ""
+msgstr "You can apply for permission for an existing project, or create a new project"
 
 #: frontend/desktop/src/components/layout/permissionApply.vue:60
 #: frontend/desktop/src/pages/project/index.vue:237
 msgid "新建项目"
-msgstr ""
+msgstr "New project"
 
 #: frontend/desktop/src/config/setting.js:75
 msgid "提示"
@@ -1128,26 +1114,18 @@ msgid "定时流程名称不能超过"
 msgstr "Length of flow name cannot be larger than"
 
 #: frontend/desktop/src/main.js:146
-#, fuzzy
-#| msgid "流程名称不能为空"
 msgid "项目名称不能为空"
-msgstr "Flow name cannot be empty"
+msgstr "Project name cannot be empty"
 
 #: frontend/desktop/src/main.js:147
-#, fuzzy
-#| msgid "定时流程名称包含"
 msgid "项目名称包含"
-msgstr "Flow name cannot contain "
+msgstr "Project name cannot contain "
 
 #: frontend/desktop/src/main.js:148
-#, fuzzy
-#| msgid "步骤名称不能超过"
 msgid "项目名称不能超过"
 msgstr "Length cannot be larger than "
 
 #: frontend/desktop/src/main.js:151
-#, fuzzy
-#| msgid "步骤名称不能超过"
 msgid "项目描述不能超过"
 msgstr "Length cannot be larger than "
 
@@ -1325,7 +1303,7 @@ msgstr "Absolute path, multiple are separated by ,"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:271
 msgid "子模块名称"
-msgstr ""
+msgstr "Sub Module Name"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:272
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:117
@@ -1338,7 +1316,7 @@ msgstr "Modules Importing"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:276
 msgid "输入有误，请展开检查"
-msgstr "Incorrect input, please check"
+msgstr "Incorrect enter, please check"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/index.vue:104
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/index.vue:115
@@ -1358,10 +1336,8 @@ msgid "根模块"
 msgstr "Root Module"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:118
-#, fuzzy
-#| msgid "导入模块"
 msgid "已导入模块"
-msgstr "Modules Importing"
+msgstr "Modules Imported"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:119
 msgid "插件名"
@@ -1396,8 +1372,6 @@ msgid "远程插件包源"
 msgstr " Remote Plugins Package Source"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:79
-#, fuzzy
-#| msgid "远程插件包存储源，可以配置多个，注意插件包根模块名称不能冲突"
 msgid "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
 msgstr "Remote plugins package source can be multiple, but root module name cannot be same"
 
@@ -1518,7 +1492,7 @@ msgstr "Edit"
 #: frontend/desktop/src/pages/functor/index.vue:285
 #: frontend/desktop/src/pages/functor/index.vue:289
 msgid "所属项目"
-msgstr ""
+msgstr "Project"
 
 #: frontend/desktop/src/pages/admin/statistics/Appmaker/index.vue:162
 msgid "轻应用创建时间"
@@ -1540,7 +1514,7 @@ msgstr "Category"
 #: frontend/desktop/src/pages/admin/statistics/Instance/index.vue:300
 #: frontend/desktop/src/pages/admin/statistics/Template/index.vue:210
 msgid "选择项目"
-msgstr ""
+msgstr "Project"
 
 #: frontend/desktop/src/pages/admin/statistics/Appmaker/index.vue:166
 msgid "选择时间"
@@ -1570,7 +1544,7 @@ msgstr "All Categories"
 #: frontend/desktop/src/pages/admin/statistics/Instance/index.vue:305
 #: frontend/desktop/src/pages/admin/statistics/Template/index.vue:217
 msgid "全部项目"
-msgstr ""
+msgstr "All Projects"
 
 #: frontend/desktop/src/pages/admin/statistics/Appmaker/index.vue:171
 msgid "轻应用名称"
@@ -2042,10 +2016,8 @@ msgid "选择模板"
 msgstr "Flow"
 
 #: frontend/desktop/src/pages/functor/index.vue:303
-#, fuzzy
-#| msgid "如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
 msgid "如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
-msgstr "If there is no flow you want, please contact business maintainers to add 'New Task' permission for you or all the functors"
+msgstr "If there is no flow you want, please contact project maintainers to add 'New Task' permission for you or all the functors"
 
 #: frontend/desktop/src/pages/functor/index.vue:312
 msgid "请输入提单人"
@@ -2100,20 +2072,16 @@ msgid "添加常用流程"
 msgstr "Add Flows"
 
 #: frontend/desktop/src/pages/home/QuickCreateTask.vue:95
-#, fuzzy
-#| msgid "业务下无常用流程，"
 msgid "项目下无常用流程，"
-msgstr "No commonly used flow found in business. "
+msgstr "No commonly used flow found in project,"
 
 #: frontend/desktop/src/pages/home/QuickCreateTask.vue:96
 msgid "立即添加"
 msgstr "Add now"
 
 #: frontend/desktop/src/pages/home/QuickCreateTask.vue:198
-#, fuzzy
-#| msgid "业务下无流程模板，为您跳转至新建流程"
 msgid "项目下无流程模板，为您跳转至新建流程"
-msgstr "No flow found in business, jump to Flows page for you"
+msgstr "No flow found in project, jump to Flows page for you"
 
 #: frontend/desktop/src/pages/home/SelectTemplateDialog.vue:139
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:151
@@ -2137,10 +2105,8 @@ msgid "搜索结果为空"
 msgstr "Search result is empty"
 
 #: frontend/desktop/src/pages/home/SelectTemplateDialog.vue:145
-#, fuzzy
-#| msgid "该业务下暂无流程，"
 msgid "该项目下暂无流程，"
-msgstr "No flow found in business. "
+msgstr "No flow found in project, "
 
 #: frontend/desktop/src/pages/home/SelectTemplateDialog.vue:146
 msgid "立即创建"
@@ -2152,7 +2118,7 @@ msgstr "Flows selected must not more than 10"
 
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:79
 msgid "项目动态"
-msgstr ""
+msgstr "Timeline"
 
 #: frontend/desktop/src/pages/home/TaskFeeds.vue:80
 msgid "查看更多"
@@ -2268,45 +2234,41 @@ msgstr "Task delete success"
 
 #: frontend/desktop/src/pages/project/index.vue:179
 #: frontend/desktop/src/pages/project/index.vue:253
-#, fuzzy
-#| msgid "启动"
 msgid "启用"
 msgstr "Activate"
 
 #: frontend/desktop/src/pages/project/index.vue:184
 #: frontend/desktop/src/pages/project/index.vue:252
-#, fuzzy
-#| msgid "引用"
 msgid "停用"
-msgstr "Referred"
+msgstr "Stop"
 
 #: frontend/desktop/src/pages/project/index.vue:238
 msgid "编辑项目"
-msgstr ""
+msgstr "Edit Project"
 
 #: frontend/desktop/src/pages/project/index.vue:239
 msgid "显示已停用项目"
-msgstr ""
+msgstr "Show Projects Stopped"
 
 #: frontend/desktop/src/pages/project/index.vue:240
 msgid "请输入ID、名称、描述、创建人"
-msgstr ""
+msgstr "Enter ID, name, description or creator"
 
 #: frontend/desktop/src/pages/project/index.vue:241
 msgid "项目名称"
-msgstr ""
+msgstr "Project Name"
 
 #: frontend/desktop/src/pages/project/index.vue:242
 msgid "项目描述"
-msgstr ""
+msgstr "Project Description"
 
 #: frontend/desktop/src/pages/project/index.vue:254
 msgid "权限控制"
-msgstr ""
+msgstr "Access"
 
 #: frontend/desktop/src/pages/project/index.vue:256
 msgid "时区"
-msgstr ""
+msgstr "Timezone"
 
 #: frontend/desktop/src/pages/task/ParameterInfo.vue:60
 msgid "查看未引用变量"
@@ -2605,7 +2567,7 @@ msgstr "Please select a flow"
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:132
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:158
 msgid "申请权限"
-msgstr ""
+msgstr "Apply Permissions"
 
 #: frontend/desktop/src/pages/task/TaskList/TaskCreateDialog.vue:144
 msgid "业务流程"
@@ -3010,10 +2972,8 @@ msgid "只显示冲突项"
 msgstr "Show only conflicting items"
 
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:161
-#, fuzzy
-#| msgid "导入的流程会沿用文件中的流程ID，当前业务下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前业务下，则无法进行覆盖操作）"
 msgid "导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）"
-msgstr "Flows imported inherit the ID in file, and the flow with the same ID in current business will be overwritten(If the flow with the same ID is not in current business, you cannot overwrite)."
+msgstr "Flows imported inherit the ID in file, and the flow with the same ID in current project will be overwritten(If the flow with the same ID is not in current project, you cannot overwrite)."
 
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:162
 msgid "导入的流程会使用新的流程ID，不会对现有的流程造成影响"
@@ -3552,7 +3512,7 @@ msgstr "Please enter script content"
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:144
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:148
 msgid "请输入脚本内容"
-msgstr "Please input script content"
+msgstr "Please enter script content"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:174
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:250
@@ -3597,7 +3557,7 @@ msgstr "Target IP"
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:106
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
-msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the input LAN IP are unique in the business on Configuration System"
+msgstr "IP format must be one of [set name|module name|IP], [cloud area ID:IP] or [IP], multiple IP are separated by Line breaks;[IP] format must ensure the enter LAN IP are unique in the business on Configuration System"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:375
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:92
@@ -3734,27 +3694,3 @@ msgstr "Server API error:"
 #: pipeline_plugins/variables/static/variables/textarea.js:18
 msgid "文本框"
 msgstr "Textarea"
-
-#~ msgid "工具"
-#~ msgstr "Tools"
-
-#~ msgid "排版自动保存"
-#~ msgstr "Automatic saved"
-
-#~ msgid "排版完成，原内容在本地缓存中"
-#~ msgstr "Layout completed, see last version in the Local Caches"
-
-#~ msgid "业务配置"
-#~ msgstr "Configs"
-
-#~ msgid "所属业务"
-#~ msgstr "Business"
-
-#~ msgid "业务动态"
-#~ msgstr "Timeline"
-
-#~ msgid "无数据，若您不是运维人员，请尝试联系运维人员为您添加模板权限"
-#~ msgstr "No data, please contact business maintainer to add flow permissions for you if you are not a maintainer."
-
-#~ msgid "并行网关、分支网关个数和汇聚网关个数必须一致，并且必须配对使用"
-#~ msgstr "The sum of Parallel and Exclusive Gateway must be same with sum of Converge Gateway, and must be paired"
