@@ -430,9 +430,11 @@
             },
             onConnection (line) {
                 this.$nextTick(() => {
-                    const lineId = this.canvasData.lines.filter(item => {
+                    const lineInCanvasData = this.canvasData.lines.filter(item => {
                         return item.source.id === line.sourceId && item.target.id === line.targetId
-                    })[0].id
+                    })[0]
+                    const lineId = lineInCanvasData.id
+                    // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
                         name: '<i class="common-icon-dark-circle-close"></i>',
@@ -440,6 +442,7 @@
                         id: `close_${lineId}`
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
+                    // 增加分支网关 label
                     if (branchInfo && Object.keys(branchInfo).length > 0) {
                         const labelName = branchInfo[lineId].evaluate
                         const labelData = {
@@ -454,6 +457,20 @@
                             id: `condition${lineId}`
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
+                    }
+                    // 调整连线配置
+                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
+                        const config = [
+                            'Flowchart',
+                            {
+                                stub: [6, 6],
+                                alwaysRespectStub: true,
+                                gap: 8,
+                                cornerRadius: 2,
+                                midpoint: lineInCanvasData.midpoint
+                            }
+                        ]
+                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                 })
             },
