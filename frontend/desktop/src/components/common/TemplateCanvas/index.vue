@@ -72,6 +72,7 @@
     </js-flow>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
