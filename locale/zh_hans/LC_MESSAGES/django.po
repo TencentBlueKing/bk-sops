@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-09-25 17:06+0800\n"
+"POT-Creation-Date: 2019-10-08 10:43+0800\n"
 "PO-Revision-Date: 2019-02-27 23:25+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hans\n"
@@ -1816,6 +1816,7 @@ msgid "蓝鲸服务(BK)"
 msgstr "蓝鲸服务(BK)"
 
 #: pipeline_plugins/components/collections/common.py:34
+#: pipeline_plugins/components/collections/common.py:37
 msgid "HTTP 请求方法"
 msgstr "HTTP 请求方法"
 
@@ -1917,13 +1918,14 @@ msgstr "业务 ID"
 msgid "通知人员所属的 CMDB 业务 ID"
 msgstr "通知人员所属的 CMDB 业务 ID"
 
-#: pipeline_plugins/components/collections/sites/open/bk.py:81
-msgid "需要使用的通知方式"
-msgstr "需要使用的通知方式"
-
+#: pipeline_plugins/components/collections/sites/open/bk.py:78
 #: pipeline_plugins/components/collections/sites/open/bk.py:83
 msgid "通知方式"
 msgstr "通知方式"
+
+#: pipeline_plugins/components/collections/sites/open/bk.py:81
+msgid "需要使用的通知方式"
+msgstr "需要使用的通知方式"
 
 #: pipeline_plugins/components/collections/sites/open/bk.py:84
 #: pipeline_plugins/components/collections/sites/open/bk.py:90
@@ -2511,6 +2513,13 @@ msgid ""
 msgstr ""
 "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
 " details:params={params}, error={error}"
+"调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}"
 
 #: pipeline_plugins/components/utils/common.py:99
 msgid "调用{system}接口{api_name}返回失败, params={params}, error={error}"
@@ -2624,292 +2633,4 @@ msgstr "城市"
 #: weixin/core/models.py:68 weixin/core/models.py:69
 msgid "微信用户"
 msgstr "微信用户"
-
-#~ msgid "循环测试"
-#~ msgstr "循环测试"
-
-#~ msgid "循环调度测试"
-#~ msgstr "循环调度测试"
-
-#~ msgid "Agent"
-#~ msgstr "Agent"
-
-#~ msgid "Proxy"
-#~ msgstr "Proxy"
-
-#~ msgid "业务不存在"
-#~ msgstr "业务不存在"
-
-#~ msgid "GCS单据未审核，请联系DBA审核后重试"
-#~ msgstr "GCS单据未审核，请联系DBA审核后重试"
-
-#~ msgid "单据审核失败，请联系DBA查看详情"
-#~ msgstr "单据审核失败，请联系DBA查看详情"
-
-#~ msgid "调用创建app maker接口失败，错误信息:%s"
-#~ msgstr "调用创建app maker接口失败，错误信息:%s"
-
-#~ msgid "调用创建app maker接口失败"
-#~ msgstr "调用创建app maker接口失败"
-
-#~ msgid "调用修改app maker接口失败，错误信息:%s"
-#~ msgstr "调用修改app maker接口失败，错误信息:%s"
-
-#~ msgid "调用修改app maker接口失败"
-#~ msgstr "调用修改app maker接口失败"
-
-#~ msgid "调用修改 LOGO 接口失败，错误信息:%s"
-#~ msgstr "调用修改 LOGO 接口失败，错误信息:%s"
-
-#~ msgid "调用修改 LOGO 接口失败"
-#~ msgstr "调用修改 LOGO 接口失败"
-
-#~ msgid "调用远程服务失败，Http请求错误状态码：%s"
-#~ msgstr "调用远程服务失败，Http请求错误状态码：%s"
-
-#~ msgid "蓝鲸智云企业版"
-#~ msgstr "蓝鲸智云企业版"
-
-#~ msgid "TEST"
-#~ msgstr "TEST"
-
-#~ msgid "GseAgent"
-#~ msgstr "GseAgent"
-
-#~ msgid "安装"
-#~ msgstr "安装"
-
-#~ msgid "卸载"
-#~ msgstr "卸载"
-
-#~ msgid "短信通知结果"
-#~ msgstr "短信通知结果"
-
-#~ msgid "短信通知返回信息"
-#~ msgstr "短信通知返回信息"
-
-#~ msgid "邮件通知结果"
-#~ msgstr "邮件通知结果"
-
-#~ msgid "邮件通知返回信息"
-#~ msgstr "邮件通知返回信息"
-
-#~ msgid "微信通知结果"
-#~ msgstr "微信通知结果"
-
-#~ msgid "微信通知返回信息"
-#~ msgstr "微信通知返回信息"
-
-#~ msgid "消息通知"
-#~ msgstr "消息通知"
-
-#~ msgid "游戏区服管理(GCLOUD)"
-#~ msgstr "游戏区服管理(GCLOUD)"
-
-#~ msgid "批量更新区服标注"
-#~ msgstr "批量更新区服标注"
-
-#~ msgid "批量更新区服状态"
-#~ msgstr "批量更新区服状态"
-
-#~ msgid "预发布大区"
-#~ msgstr "预发布大区"
-
-#~ msgid "发布大区"
-#~ msgstr "发布大区"
-
-#~ msgid "游戏云存储平台(GCS)"
-#~ msgstr "游戏云存储平台(GCS)"
-
-#~ msgid "权限申请"
-#~ msgstr "权限申请"
-
-#~ msgid "权限回收提单"
-#~ msgstr "权限回收提单"
-
-#~ msgid "执行变更单据"
-#~ msgstr "执行变更单据"
-
-#~ msgid "数据库备份"
-#~ msgstr "数据库备份"
-
-#~ msgid "变更提单"
-#~ msgstr "变更提单"
-
-#~ msgid "无法从 JOB 读取错误信息"
-#~ msgstr "无法从 JOB 读取错误信息"
-
-#~ msgid "任务执行失败，错误信息: %s <a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
-#~ msgstr "任务执行失败，错误信息: %s <a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
-
-#~ msgid "本地文件列表为空，请确认本地文件是否已经上传"
-#~ msgstr "本地文件列表为空，请确认本地文件是否已经上传"
-
-#~ msgid "获取 S3 对象下载链接失败：%s"
-#~ msgstr "获取 S3 对象下载链接失败：%s"
-
-#~ msgid "无法从 CC 获取到 IP 列表，请确认目标 IP 是否在当前业务下"
-#~ msgstr "无法从 CC 获取到 IP 列表，请确认目标 IP 是否在当前业务下"
-
-#~ msgid "分发本地文件"
-#~ msgstr "分发本地文件"
-
-#~ msgid "蓝鲸监控(Monitor)"
-#~ msgstr "蓝鲸监控(Monitor)"
-
-#~ msgid "告警屏蔽"
-#~ msgstr "告警屏蔽"
-
-#~ msgid "GseProxy"
-#~ msgstr "GseProxy"
-
-#~ msgid "AutoTCM(TCM)"
-#~ msgstr "AutoTCM(TCM)"
-
-#~ msgid "由于 UWork 的限制，标准运维每天发送的语音通知有限，非紧急情况，请尽量避免使用语音通知"
-#~ msgstr "由于 UWork 的限制，标准运维每天发送的语音通知有限，非紧急情况，请尽量避免使用语音通知"
-
-#~ msgid "负载均衡业务(CLB)"
-#~ msgstr "负载均衡业务(CLB)"
-
-#~ msgid "扫描域名证书"
-#~ msgstr "扫描域名证书"
-
-#~ msgid "返回码说明，0: 当前证书可用 -1: 证书60天内过期 -2: 赛门铁克证书，不可信 -3: 查询失败 1: 当期域名无法扫描到证书"
-#~ msgstr "返回码说明，0: 当前证书可用 -1: 证书60天内过期 -2: 赛门铁克证书，不可信 -3: 查询失败 1: 当期域名无法扫描到证书"
-
-#~ msgid "企业微信(QYWEIXIN)"
-#~ msgstr "企业微信(QYWEIXIN)"
-
-#~ msgid "企业微信拉群失败，组件返回错误消息：%s"
-#~ msgstr "企业微信拉群失败，组件返回错误消息：%s"
-
-#~ msgid "企业微信拉群发送消息失败，组件返回错误消息：%s"
-#~ msgstr "企业微信拉群发送消息失败，组件返回错误消息：%s"
-
-#~ msgid "企业微信拉群"
-#~ msgstr "企业微信拉群"
-
-#~ msgid "消息通知服务(TOF)"
-#~ msgstr "消息通知服务(TOF)"
-
-#~ msgid "获取员工直属Leader"
-#~ msgstr "获取员工直属Leader"
-
-#~ msgid "查询配置平台(CC)的业务[biz_id=%s]信息接口cc.get_app_by_id返回失败: %s"
-#~ msgstr "查询配置平台(CC)的业务[biz_id=%s]信息接口cc.get_app_by_id返回失败: %s"
-
-#~ msgid "查询配置平台(CC)的业务[id=%s]信息接口cc.get_app_by_id返回为空"
-#~ msgstr "查询配置平台(CC)的业务[id=%s]信息接口cc.get_app_by_id返回为空"
-
-#~ msgid "查询AutoTCM的业务接口tcm.get_app_by_user返回失败: %s"
-#~ msgstr "查询AutoTCM的业务接口tcm.get_app_by_user返回失败: %s"
-
-#~ msgid "查询AutoTCM的业务[biz_id=%s, tcm_app_id=%s]模板接口tcm.get_templates返回失败: %s"
-#~ msgstr "查询AutoTCM的业务[biz_id=%s, tcm_app_id=%s]模板接口tcm.get_templates返回失败: %s"
-
-#~ msgid "查询AutoTCM的业务[biz_id=%s, tcm_app_id=%s]模板[id=%s]详情接口tcm.get_template_info返回失败: %s"
-#~ msgstr "查询AutoTCM的业务[biz_id=%s, tcm_app_id=%s]模板[id=%s]详情接口tcm.get_template_info返回失败: %s"
-
-#~ msgid "文件上传失败， 文件大小超过2GB"
-#~ msgstr "文件上传失败， 文件大小超过2GB"
-
-#~ msgid "查询配置平台(CMDB)的业务[app_id=%s]接口cc.get_app_by_id返回失败: %s"
-#~ msgstr "查询配置平台(CMDB)的业务[app_id=%s]接口cc.get_app_by_id返回失败: %s"
-
-#~ msgid "查询配置平台(CMDB)的业务[app_id=%s]的集群拓扑接口cc.get_topo_tree_by_app_id返回失败: %s"
-#~ msgstr "查询配置平台(CMDB)的业务[app_id=%s]的集群拓扑接口cc.get_topo_tree_by_app_id返回失败: %s"
-
-#~ msgid "所有集群(all)"
-#~ msgstr "所有集群(all)"
-
-#~ msgid "查询配置平台(CMDB)的业务[app_id=%s]的所有模块接口cc.get_modules返回失败: %s"
-#~ msgstr "查询配置平台(CMDB)的业务[app_id=%s]的所有模块接口cc.get_modules返回失败: %s"
-
-#~ msgid "所有模块(all)"
-#~ msgstr "所有模块(all)"
-
-#~ msgid "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
-#~ msgstr "查询配置平台(CMDB)的云区域列表接口cc.get_plat_id返回失败: %s"
-
-#~ msgid "快速执行SQL脚本"
-#~ msgstr "快速执行SQL脚本"
-
-#~ msgid "无效的节点 ID"
-#~ msgstr "无效的节点 ID"
-
-#~ msgid "无效的实例 ID"
-#~ msgstr "无效的实例 ID"
-
-#~ msgid "无效的模板 ID"
-#~ msgstr "无效的模板 ID"
-
-#~ msgid "无效的组件代码"
-#~ msgstr "无效的组件代码"
-
-#~ msgid "该字段的类型必须为 %s"
-#~ msgstr "该字段的类型必须为 %s"
-
-#~ msgid "JSON 格式不合法"
-#~ msgstr "JSON 格式不合法"
-
-#~ msgid "计时器不存在或已完成，或 pipeline 当前状态不允许重置计时器"
-#~ msgstr "计时器不存在或已完成，或 pipeline 当前状态不允许重置计时器"
-
-#~ msgid "重试计时器失败，请稍后再次尝试"
-#~ msgstr "重试计时器失败，请稍后再次尝试"
-
-#~ msgid "模板不存在"
-#~ msgstr "模板不存在"
-
-#~ msgid "停运"
-#~ msgstr "停运"
-
-#~ msgid "所属业务"
-#~ msgstr "所属业务"
-
-#~ msgid "用户默认业务切换成功"
-#~ msgstr "用户默认业务切换成功"
-
-#~ msgid "业务"
-#~ msgstr "业务"
-
-#~ msgid "业务流程"
-#~ msgstr "业务流程"
-
-#~ msgid "任务所属的CMDB业务开发商账号"
-#~ msgstr "任务所属的CMDB业务开发商账号"
-
-#~ msgid "填写参数"
-#~ msgstr "填写参数"
-
-#~ msgid "执行任务"
-#~ msgstr "执行任务"
-
-#~ msgid "测试"
-#~ msgstr "测试"
-
-#~ msgid "体验"
-#~ msgstr "体验"
-
-#~ msgid "正式"
-#~ msgstr "正式"
-
-#~ msgid "关闭"
-#~ msgstr "关闭"
-
-#~ msgid "开放"
-#~ msgstr "开放"
-
-#~ msgid "[企业]微信用户唯一标识(公众号openid/企业微信userid)"
-#~ msgstr "[企业]微信用户唯一标识(公众号openid/企业微信userid)"
-
-#~ msgid "有效的session key"
-#~ msgstr "有效的session key"
-
-#~ msgid "过期时间"
-#~ msgstr "过期时间"
-
-#~ msgid "微信用户Session记录"
-#~ msgstr "微信用户Session记录"
 

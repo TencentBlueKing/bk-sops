@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-25 17:07+0800\n"
+"POT-Creation-Date: 2019-10-08 10:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -563,10 +563,8 @@ msgstr "对不起，您没有当前操作需要的的权限"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:38
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:35
-#, fuzzy
-#| msgid "1.联系业务运维为您添加"
 msgid "1.联系项目运维为您添加"
-msgstr "1.联系业务运维为您添加"
+msgstr "1.联系项目运维为您添加"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:39
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:36
@@ -575,16 +573,12 @@ msgstr "配置平台"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:40
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:37
-#, fuzzy
-#| msgid "对应业务的角色，如运维人员、开发人员、产品人员、测试人员"
 msgid "对应项目的角色，如运维人员、开发人员、产品人员、测试人员"
-msgstr "对应业务的角色，如运维人员、开发人员、产品人员、测试人员"
+msgstr "对应项目的角色，如运维人员、开发人员、产品人员、测试人员"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:41
-#, fuzzy
-#| msgid "2.联系业务运维为您添加需要操作的流程模板的权限"
 msgid "2.联系项目运维为您添加需要操作的流程模板的权限"
-msgstr "2.联系业务运维为您添加需要操作的流程模板的权限"
+msgstr "2.联系项目运维为您添加需要操作的流程模板的权限"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:42
 msgid "3.或者前往"
@@ -592,16 +586,12 @@ msgstr "3.或者前往"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode405.vue:43
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:39
-#, fuzzy
-#| msgid "创建属于自己的业务"
 msgid "创建属于自己的项目"
-msgstr "创建属于自己的业务"
+msgstr "创建属于自己的项目"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:34
-#, fuzzy
-#| msgid "对不起，您没有业务权限"
 msgid "对不起，您没有项目权限"
-msgstr "对不起，您没有业务权限"
+msgstr "对不起，您没有项目权限"
 
 #: frontend/desktop/src/components/common/modal/ErrorCode406.vue:38
 msgid "2.或者前往"
@@ -632,10 +622,8 @@ msgid "没有权限访问或操作此资源"
 msgstr "没有权限访问或操作此资源"
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:77
-#, fuzzy
-#| msgid "继续"
 msgid "系统"
-msgstr "继续"
+msgstr "系统"
 
 #: frontend/desktop/src/components/common/modal/PermissionModal.vue:78
 msgid "资源"
@@ -657,10 +645,8 @@ msgstr "去申请"
 #: frontend/desktop/src/pages/project/index.vue:424
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateHeader.vue:232
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:574
-#, fuzzy
-#| msgid "项"
 msgid "项目"
-msgstr "项"
+msgstr "项目"
 
 #: frontend/desktop/src/components/layout/CopyrightFooter.vue:35
 msgid "QQ咨询"
@@ -1129,28 +1115,20 @@ msgid "定时流程名称不能超过"
 msgstr "定时流程名称不能超过"
 
 #: frontend/desktop/src/main.js:146
-#, fuzzy
-#| msgid "流程名称不能为空"
 msgid "项目名称不能为空"
-msgstr "流程名称不能为空"
+msgstr "项目名称不能为空"
 
 #: frontend/desktop/src/main.js:147
-#, fuzzy
-#| msgid "定时流程名称包含"
 msgid "项目名称包含"
-msgstr "定时流程名称包含"
+msgstr "项目名称包含"
 
 #: frontend/desktop/src/main.js:148
-#, fuzzy
-#| msgid "步骤名称不能超过"
 msgid "项目名称不能超过"
-msgstr "步骤名称不能超过"
+msgstr "项目名称不能超过"
 
 #: frontend/desktop/src/main.js:151
-#, fuzzy
-#| msgid "步骤名称不能超过"
 msgid "项目描述不能超过"
-msgstr "步骤名称不能超过"
+msgstr "项目描述不能超过"
 
 #: frontend/desktop/src/main.js:154
 msgid "定时表达式不能为空"
@@ -1359,10 +1337,8 @@ msgid "根模块"
 msgstr "根模块"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:118
-#, fuzzy
-#| msgid "导入模块"
 msgid "已导入模块"
-msgstr "导入模块"
+msgstr "已导入模块"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/PackageTable.vue:119
 msgid "插件名"
@@ -1397,10 +1373,8 @@ msgid "远程插件包源"
 msgstr "远程插件包源"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:79
-#, fuzzy
-#| msgid "远程插件包存储源，可以配置多个，注意插件包根模块名称不能冲突"
 msgid "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
-msgstr "远程插件包存储源，可以配置多个，注意插件包根模块名称不能冲突"
+msgstr "远程插件包存储源，可以配置多个，注意插件包根模块名字不能冲突"
 
 #: frontend/desktop/src/pages/admin/manage/SourceManage/index.vue:80
 msgid "可选配置，所有远程插件源都可以同步到本地进行缓存，避免在不能访问远程插件源时无法加载标准插件"
@@ -2043,10 +2017,8 @@ msgid "选择模板"
 msgstr "选择模板"
 
 #: frontend/desktop/src/pages/functor/index.vue:303
-#, fuzzy
-#| msgid "如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
 msgid "如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
-msgstr "如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
+msgstr "如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”"
 
 #: frontend/desktop/src/pages/functor/index.vue:312
 msgid "请输入提单人"
@@ -2101,20 +2073,16 @@ msgid "添加常用流程"
 msgstr "添加常用流程"
 
 #: frontend/desktop/src/pages/home/QuickCreateTask.vue:95
-#, fuzzy
-#| msgid "业务下无常用流程，"
 msgid "项目下无常用流程，"
-msgstr "业务下无常用流程，"
+msgstr "项目下无常用流程，"
 
 #: frontend/desktop/src/pages/home/QuickCreateTask.vue:96
 msgid "立即添加"
 msgstr "立即添加"
 
 #: frontend/desktop/src/pages/home/QuickCreateTask.vue:198
-#, fuzzy
-#| msgid "业务下无流程模板，为您跳转至新建流程"
 msgid "项目下无流程模板，为您跳转至新建流程"
-msgstr "业务下无流程模板，为您跳转至新建流程"
+msgstr "项目下无流程模板，为您跳转至新建流程"
 
 #: frontend/desktop/src/pages/home/SelectTemplateDialog.vue:139
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:151
@@ -2138,10 +2106,8 @@ msgid "搜索结果为空"
 msgstr "搜索结果为空"
 
 #: frontend/desktop/src/pages/home/SelectTemplateDialog.vue:145
-#, fuzzy
-#| msgid "该业务下暂无流程，"
 msgid "该项目下暂无流程，"
-msgstr "该业务下暂无流程，"
+msgstr "该项目下暂无流程，"
 
 #: frontend/desktop/src/pages/home/SelectTemplateDialog.vue:146
 msgid "立即创建"
@@ -2269,17 +2235,13 @@ msgstr "删除周期任务成功"
 
 #: frontend/desktop/src/pages/project/index.vue:179
 #: frontend/desktop/src/pages/project/index.vue:253
-#, fuzzy
-#| msgid "启动"
 msgid "启用"
-msgstr "启动"
+msgstr "启用"
 
 #: frontend/desktop/src/pages/project/index.vue:184
 #: frontend/desktop/src/pages/project/index.vue:252
-#, fuzzy
-#| msgid "引用"
 msgid "停用"
-msgstr "引用"
+msgstr "停用"
 
 #: frontend/desktop/src/pages/project/index.vue:238
 msgid "编辑项目"
@@ -3011,10 +2973,8 @@ msgid "只显示冲突项"
 msgstr "只显示冲突项"
 
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:161
-#, fuzzy
-#| msgid "导入的流程会沿用文件中的流程ID，当前业务下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前业务下，则无法进行覆盖操作）"
 msgid "导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）"
-msgstr "导入的流程会沿用文件中的流程ID，当前业务下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前业务下，则无法进行覆盖操作）"
+msgstr "导入的流程会沿用文件中的流程ID，当前项目下具有相同ID的流程将会被覆盖（若任一具有相同ID的流程不在当前项目下，则无法进行覆盖操作）"
 
 #: frontend/desktop/src/pages/template/TemplateList/ImportTemplateDialog.vue:162
 msgid "导入的流程会使用新的流程ID，不会对现有的流程造成影响"

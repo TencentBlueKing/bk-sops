@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-09-25 17:06+0800\n"
+"POT-Creation-Date: 2019-10-08 10:43+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -1816,6 +1816,7 @@ msgid "蓝鲸服务(BK)"
 msgstr "BK Service(BK)"
 
 #: pipeline_plugins/components/collections/common.py:34
+#: pipeline_plugins/components/collections/common.py:37
 msgid "HTTP 请求方法"
 msgstr "HTTP Request Method"
 
@@ -1879,7 +1880,7 @@ msgstr "Timing"
 #: pipeline_plugins/components/collections/controller.py:72
 #, python-format
 msgid "定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)"
-msgstr "Timing, seconds(s) or datetime(%Y-%m-%d %H:%M:%S)"
+msgstr "Timing, seconds(s) or datetime(%%Y-%%m-%%d %%H:%%M:%%S)"
 
 #: pipeline_plugins/components/collections/controller.py:96
 #, python-format
@@ -1917,13 +1918,14 @@ msgstr "Business ID"
 msgid "通知人员所属的 CMDB 业务 ID"
 msgstr "CMDB business ID which notification receivers belongs to "
 
-#: pipeline_plugins/components/collections/sites/open/bk.py:81
-msgid "需要使用的通知方式"
-msgstr "Notification method to be used"
-
+#: pipeline_plugins/components/collections/sites/open/bk.py:78
 #: pipeline_plugins/components/collections/sites/open/bk.py:83
 msgid "通知方式"
 msgstr "Notification Method"
+
+#: pipeline_plugins/components/collections/sites/open/bk.py:81
+msgid "需要使用的通知方式"
+msgstr "Notification method to be used"
 
 #: pipeline_plugins/components/collections/sites/open/bk.py:84
 #: pipeline_plugins/components/collections/sites/open/bk.py:90
@@ -2440,7 +2442,7 @@ msgstr "Timing rules"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:463
 msgid "待创建的定时作业定时规则"
-msgstr ""
+msgstr "Timing rules of JOB to be creating"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:464
 #: pipeline_plugins/components/collections/sites/open/job.py:477
@@ -2449,7 +2451,7 @@ msgstr "JOB status"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:468
 msgid "待创建的定时作业状态，暂停(1) 启动(2)"
-msgstr ""
+msgstr "Status of timing JOB to be creating, suspended(1) or run(2)"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:473
 msgid "定时作业ID"
@@ -2457,11 +2459,11 @@ msgstr "Timed JOB ID"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:476
 msgid "成功创建的定时作业 ID"
-msgstr ""
+msgstr "Timing JOB ID created successfully"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:480
 msgid "成功创建的定时作业状态"
-msgstr ""
+msgstr "Timing JOB status created successfully"
 
 #: pipeline_plugins/components/collections/sites/open/job.py:521
 msgid "启动"
@@ -2505,8 +2507,12 @@ msgid "文件"
 msgstr "File"
 
 #: pipeline_plugins/components/utils/common.py:88
-msgid "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n details:params={params}, error={error}"
-msgstr "{system} API {api_name} returned no permission: <a href='{url}' target='_blank'> Apply for permission </a>。\n details:params={params}, error={error}"
+msgid ""
+"调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
+" details:params={params}, error={error}"
+msgstr ""
+"{system} API {api_name} returned no permission: <a href='{url}' target='_blank'> Apply for permission </a>。\n"
+" details:params={params}, error={error}"
 
 #: pipeline_plugins/components/utils/common.py:99
 msgid "调用{system}接口{api_name}返回失败, params={params}, error={error}"
@@ -2620,3 +2626,4 @@ msgstr "City"
 #: weixin/core/models.py:68 weixin/core/models.py:69
 msgid "微信用户"
 msgstr "Wechat User"
+
