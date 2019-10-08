@@ -549,7 +549,7 @@
             }
             .common-icon-dark-circle-close{
                 font-size: 16px;
-                color: #ff5757;
+                color: #63656e;
                 background: #ffffff;
                 border-radius: 50%;
             }
