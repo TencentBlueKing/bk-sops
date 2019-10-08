@@ -149,13 +149,10 @@
         &:hover {
             box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
         }
-        .node-name {
-            border-color: $color;
-        }
-        .stage-name {
+        .node-icon-wrapper {
             background-color: $color;
         }
-        .subflow-node-icon {
+        .node-status-block {
             background-color: $color;
         }
     }
@@ -177,7 +174,7 @@
             top: -8px;
             right: -8px;
             font-size: 16px;
-            color: #ff5757;
+            color: #63656e;
             background: #ffffff;
             border-radius: 50%;
             z-index: 2;
@@ -187,10 +184,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 60px;
-            height: 60px;
-            background: #ffffff;
-            border: 1px dashed #b1b5bc;
+            width: 40px;
+            height: 40px;
+            background: #96a1b9;
             border-radius: 50%;
             &:hover {
                 box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
@@ -206,26 +202,42 @@
             }
         }
         .circle-node-text {
-            width: 50px;
-            height: 50px;
-            line-height: 50px;
             font-size: 12px;
-            background: $blueDark;
             color: #ffffff;
+        }
+        .gateway-node {
+            position: relative;
+            height: 36px;
+            width: 36px;
             text-align: center;
-            border-radius: 50%;
+            &:before {
+                content: '';
+                position: absolute;
+                top: 4px;
+                left: 4px;
+                width: 28px;
+                height: 28px;
+                background: #ffffff;
+                border-radius: 3px;
+                transform: rotate(45deg);
+                z-index: -1;
+            }
         }
         .node-type-icon {
-            font-size: 30px;
+            height: 36px;
+            line-height: 36px;
+            font-size: 24px;
             color: $blueDark;
             text-align: center;
         }
-        .task-node,
-        .subflow-node {
+        .process-node {
             position: relative;
-            width: 152px;
-            height: 90px;
+            width: 150px;
+            height: 42px;
+            line-height: 42px;
             text-align: center;
+            background: #ffffff;
+            border-radius: 4px;
             cursor: pointer;
             &:hover {
                 box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
@@ -242,51 +254,17 @@
             &.finished {
                 @include taskNodeStyle ($greenDark, $greenShadow)
             }
-        }
-        .subflow-node .node-name {
-            border-top: 5px solid $blueDark;
+            
         }
         .subflow-node-icon {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 24px;
-            height: 19px;
-            line-height: 19px;
-            font-size: 18px;
-            color: #ffffff;
+            bottom: 0;
+            right: 0;
+            width: 17px;
+            height: 8px;
             background: $blueDark;
-        }
-        .node-name {
-            display: table;
-            width: 100%;
-            font-size: 12px;
-            height: 60px;
-            background: #fafafa;
-            border: 1px solid #a9adb5;
-            border-bottom: none;
-            table-layout: fixed;
-            overflow: hidden;
-            & > p {
-                display: table-cell;
-                padding: 0 10px;
-                width: 100%;
-                vertical-align: middle;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow: hidden;
-            }
-        }
-        .stage-name {
-            height: 30px;
-            line-height: 30px;
-            font-size: 14px;
-            color: #ffffff;
-            background: $blueDark;
-            border-top: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            border-top-left-radius: 4px;
+            border-bottom-right-radius: 4px;
         }
         .task-status-icon {
             position: absolute;

@@ -236,15 +236,24 @@
                 return {
                     activities: this.activities,
                     lines: this.lines,
-                    locations: this.locations.map(item => {
-                        const data = { ...item, mode: 'edit' }
+                    locations: this.locations.map(location => {
+                        let groupIcon
+                        const atom = this.singleAtom.find(item => {
+                            if (location.type === 'tasknode') {
+                                return this.activities[location.id].component.code === item.code
+                            }
+                        })
+                        if (atom) {
+                            groupIcon = atom.group_icon
+                        }
+                        const data = { ...location, mode: 'edit', icon: groupIcon }
                         if (
                             this.subprocess_info
                             && this.subprocess_info.details
-                            && item.type === 'subflow'
+                            && location.type === 'subflow'
                         ) {
                             this.subprocess_info.details.some(subflow => {
-                                if (subflow.subprocess_node_id === item.id && subflow.expired) {
+                                if (subflow.subprocess_node_id === location.id && subflow.expired) {
                                     data.hasUpdated = true
                                     return true
                                 }

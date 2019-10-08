@@ -14,16 +14,15 @@
         <div
             :class="[
                 'subflow-node',
+                'process-node',
                 node.status ? node.status.toLowerCase() : '',
                 { 'isActived': node.isActived }
             ]">
+            <div class="node-status-block"></div>
             <div class="node-name">
-                <div class="subflow-node-icon">
-                    <i class="common-icon-add"></i>
-                </div>
+                <div class="subflow-node-icon"></div>
                 <p>{{ node.name }}</p>
             </div>
-            <div class="stage-name">{{ node.stage_name }}</div>
             <div class="node-options-icon">
                 <template v-if="node.optional">
                     <div v-if="node.mode === 'edit'" class="optional-icon"></div>
@@ -77,6 +76,22 @@
     }
 </script>
 <style lang="scss" scoped>
+    .node-status-block {
+        float: left;
+        width: 16px;
+        height: 42px;
+        background: #52699d;
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+    }
+    .node-name {
+        margin-left: 16px;
+        width: 132px;
+        font-size: 12px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
     .node-options-icon {
         display: inline-block;
         position: absolute;
