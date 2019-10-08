@@ -88,7 +88,7 @@
                 :editable="false"
                 :is-node-check-open="isSchemeShow"
                 :is-all-selected="isAllSelected"
-                :is-show-select-all-tool="true"
+                :is-show-select-all-tool="viewMode !== 'appmaker'"
                 :canvas-data="canvasData"
                 @onNodeCheckClick="onNodeCheckClick"
                 @onToggleAllNode="onToggleAllNode">
@@ -100,7 +100,7 @@
                 :canvas-data="formatCanvasData('perview', previewData)"
                 :preview-bread="previewBread"
                 :is-all-selected="isAllSelected"
-                :is-show-select-all-tool="true"
+                :is-show-select-all-tool="viewMode !== 'appmaker'"
                 :is-select-all-tool-disabled="isPreviewMode"
                 @onNodeClick="onNodeClick"
                 @onSelectSubflow="onSelectSubflow">
