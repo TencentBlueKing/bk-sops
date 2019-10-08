@@ -29,7 +29,7 @@
  */
 export const endpointOptions = {
     endpoint: 'Dot',
-    connector: ['Flowchart', { stub: [1, 6], alwaysRespectStub: true, gap: 8, cornerRadius: 2 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
+    connector: ['Flowchart', { stub: [6, 10], alwaysRespectStub: true, gap: 8, cornerRadius: 2 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
     ],
