@@ -559,8 +559,9 @@
                 max-width: 200px;
                 font-size: 12px;
                 text-align: center;
-                background: #e1f3ff;
-                border: 1px solid #c3cdd7;
+                color: #978e4d;
+                background: #fcf9e2;
+                border: 1px solid #ccc79f;
                 border-radius: 2px;
                 outline: none;
                 cursor: pointer;

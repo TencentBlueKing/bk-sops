@@ -16,9 +16,7 @@
         :data-config-version="type === 'tasknode' ? '' : node.version"
         :data-config-name="node.name.replace(/\s/g, '')"
         :data-type="type">
-        <div class="name-wrapper">
-            <p>{{node.name}}</p>
-        </div>
+        <div class="name-wrapper">{{node.name}}</div>
     </div>
 </template>
 <script>
@@ -41,20 +39,15 @@
 <style lang="scss" scoped>
     @import '@/scss/config.scss';
     @import '@/scss/mixins/scrollbar.scss';
-    @import '@/scss/mixins/multiLineEllipsis.scss';
 
     .node-item {
-        float: left;
-        margin-right: 8px;
-        margin-bottom: 10px;
-        background: $whiteNodeBg;
-        border: 1px solid $commonBorderColor;
+        margin-bottom: 8px;
+        background: #e1ecff;
+        border: 1px solid #cbddf9;
+        border-radius: 2px;
         overflow: hidden;
         cursor: move;
         user-select: none;
-        &:nth-child(2n) {
-            margin-right: 0;
-        }
         &:hover {
             background: $blueDashBg;
             border-color: $blueDefault;
@@ -64,22 +57,19 @@
                 }
             }
         }
+        &:first-child {
+            margin-top: 16px;
+        }
+        &:last-child {
+            margin-bottom: 16px;
+        }
         .name-wrapper {
-            display: table-cell;
             padding: 0 10px;
-            width: 130px;
-            height: 58px;
-            vertical-align: middle;
-            p {
-                @include multiLineEllipsis($lineHeight: 1.2em, $lineCount: 2, $bgColor: #fafafa);
-                font-size: 12px;
-                color: $greyDefault;
-                text-align: center;
-                word-break: break-all;
-                &:before {
-                    right: 3px;
-                }
-            }
+            height: 32px;
+            line-height: 32px;
+            color: #313238;
+            font-size: 12px;
+            text-align: center;
         }
     }
 </style>

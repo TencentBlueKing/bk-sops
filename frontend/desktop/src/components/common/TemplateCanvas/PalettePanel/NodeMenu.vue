@@ -172,7 +172,7 @@
         position: absolute;
         top: 0;
         margin-left: 60px;
-        width: 300px;
+        width: 293px;
         height: 100%;
         background: #fefcfc;
         border-right: 1px solid #dddddd;
@@ -204,8 +204,16 @@
     }
     .bk-collapse-item {
         border-bottom: 1px solid #ccd0dd;
+        /deep/ .bk-collapse-item-header {
+            background: #fafbfd;
+        }
+        /deep/ .bk-collapse-item-content {
+            border-top: 1px solid #ccd0dd;
+        }
     }
     .group-header {
+        height: 42px;
+        overflow: hidden;
         .header-icon {
             float: left;
             margin-top: 13px;
