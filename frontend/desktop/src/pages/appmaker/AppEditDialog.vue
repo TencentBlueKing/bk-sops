@@ -124,7 +124,7 @@
                     :class="{
                         'btn-permission-disable': !hasConfirmPerm
                     }"
-                    v-cursor="{ active: !hasConfirmPerm }"
+                    v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
                     @click="onConfirm">
                     {{i18n.confirm}}
                 </bk-button>
@@ -309,8 +309,9 @@
                     return
                 }
                 if (!this.hasConfirmPerm) {
+                    const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
                     const resourceData = {
-                        name: this.appData.appName,
+                        name: templateName,
                         id: this.appData.appTemplate,
                         auth_actions: this.appData.appActions
                     }

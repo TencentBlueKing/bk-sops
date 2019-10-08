@@ -74,8 +74,12 @@
                     @page-change="onPageChange"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.periodicName" prop="name"></bk-table-column>
-                    <bk-table-column :label="i18n.periodicTemplate" prop="category_name">
+                    <bk-table-column :label="i18n.periodicName" prop="name">
+                        <template slot-scope="props">
+                            <span :title="props.row.name">{{props.row.name}}</span>
+                        </template>
+                    </bk-table-column>
+                    <bk-table-column :label="i18n.periodicTemplate">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, periodicOperations)"
@@ -104,8 +108,8 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column :label="i18n.creator" prop="creator" width="120"></bk-table-column>
-                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count"></bk-table-column>
-                    <bk-table-column :label="i18n.enabled" width="80">
+                    <bk-table-column :label="i18n.totalRunCount" prop="total_run_count" width="130"></bk-table-column>
+                    <bk-table-column :label="i18n.enabled" width="120">
                         <template slot-scope="props" class="periodic-status">
                             <span :class="props.row.enabled ? 'bk-icon icon-check-circle-shape' : 'common-icon-dark-circle-pause'"></span>
                             {{props.row.enabled ? i18n.start : i18n.pause}}
