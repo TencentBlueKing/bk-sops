@@ -21,7 +21,6 @@
                                 v-model="businessSelected"
                                 class="chart-select-item"
                                 :popover-width="260"
-
                                 :searchable="true"
                                 @selected="onTemplateCategory">
                                 <bk-option
@@ -216,7 +215,7 @@
         choiceAllCategory: gettext('全部分类'),
         choiceAllBusiness: gettext('全部项目'),
         templateName: gettext('流程名称'),
-        businessName: gettext('项目'),
+        projectName: gettext('项目'),
         category: gettext('分类'),
         atomTotal: gettext('标准插件数'),
         subprocessTotal: gettext('子流程数'),
@@ -248,7 +247,7 @@
                 isDetailLoading: true,
                 datePickerRefShow: false,
                 businessPickerRefShow: false,
-                choiceBusinessName: '',
+                choiceProjectName: '',
                 category: undefined,
                 classiFicationArray: [],
                 taskStatistArray: [],
@@ -280,12 +279,12 @@
                         width: 285,
                         title: 'templateName',
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}template/edit/${row.businessId}/?template_id=${row.templateId}">${row.templateName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}template/edit/${row.projectId}/?template_id=${row.templateId}">${row.templateName}</a>`
                         }
                     },
                     {
-                        prop: 'businessName', // 识别id
-                        label: i18n.businessName, // 表头显示名称
+                        prop: 'projectName', // 识别id
+                        label: i18n.projectName, // 表头显示名称
                         align: 'center' // 对其格式，可选（right，left，center）
                     },
                     {
@@ -345,7 +344,7 @@
                         label: i18n.templateName,
                         width: 285,
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}template/edit/${row.businessId}/?template_id=${row.templateId}">${row.templateName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}template/edit/${row.projectId}/?template_id=${row.templateId}">${row.templateName}</a>`
                         }
                     },
                     {
@@ -622,7 +621,7 @@
                 this.businessTime[0] = startTime
             },
             onInstanceHandleView (index, row) {
-                window.open(this.site_url + 'taskflow/home/' + row.businessId + '/?template_id=' + row.templateId)
+                window.open(this.site_url + 'taskflow/home/' + row.projectId + '/?template_id=' + row.templateId)
             },
             onShutTimeSelector () {
                 this.showClassifyDatePanel = this.$refs.datePickerRef.showDatePanel
