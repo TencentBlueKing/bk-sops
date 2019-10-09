@@ -460,6 +460,10 @@
             left: 0;
             width: 100%;
             height: 100%;
+            text-align: center;
+            .bk-button {
+                margin-top: 15px;
+            }
         }
         &:nth-child(2n) {
             margin-right: 0;
