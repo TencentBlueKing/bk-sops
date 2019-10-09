@@ -476,9 +476,28 @@
             }
         },
         watch: {
+            // 打开节点或切换节点
             idOfNodeInConfigPanel (val) {
+                if (!val) return
                 this.nodeId = val
+                // 清空验证
+                this.currentVersion = ''
+                this.taskTypeEmpty = false
+                this.taskVersionEmpty = false
+                this.errors.clear()
+
                 this.initData()
+                this.$nextTick(() => {
+                    // 只验证错误节点（正确节点关闭时会验证）
+                    if (
+                        document.querySelector(`#${val} .task-node.failed`)
+                        || document.querySelector(`#${val} .subflow-node.failed`)
+                    ) {
+                        this.$validator.validateAll()
+                        this.taskTypeEmpty = !this.currentAtom
+                        this.taskVersionEmpty = !this.currentVersion
+                    }
+                })
             },
             isRetry (val) {
                 this.manuallyEmpty = !val && !this.isSkip && !this.errorCouldBeIgnored
@@ -1021,7 +1040,8 @@
             },
             // 输入参数勾选、反勾选
             onInputHookChange (tagCode, val) {
-                let key, source_tag, source_info, custom_type, value, validation
+                let key, source_tag, source_info, custom_type, value
+                let validation = ''
                 // 变量 key 值，统一格式为 ${xxx}
                 let variableKey = varKeyReg.test(tagCode) ? tagCode : '${' + tagCode + '}'
                 const formConfig = this.renderInputConfig.filter(item => {
@@ -1080,11 +1100,11 @@
                      * 新建变量（全局变量中有key相同version不同的项）
                      */
                     if (variableList.length) { // input arguments include ip selector have same soure_tag
-                        this.reuseVariable = { name, key, source_tag, source_info, value, useNewKey: false }
+                        this.reuseVariable = { name, key, source_tag, source_info, value, validation, useNewKey: false }
                         this.reuseableVarList = variableList
                         this.isReuseVarDialogShow = true
                     } else if (isKeyUsedInConstants) { // the variable's key is used in other global variable
-                        this.reuseVariable = { name, key, source_tag, source_info, value, useNewKey: true }
+                        this.reuseVariable = { name, key, source_tag, source_info, value, validation, useNewKey: true }
                         this.reuseableVarList = variableList
                         this.isReuseVarDialogShow = true
                     } else {
