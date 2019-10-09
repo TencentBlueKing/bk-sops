@@ -37,8 +37,8 @@
                                 <bk-option
                                     v-for="(option, index) in business.list"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -121,7 +121,7 @@
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.business" prop="business.cc_name" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.business" prop="project.name" width="120"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
                             <a
@@ -133,6 +133,7 @@
                                 {{props.row.name}}
                             </a>
                             <router-link
+                                v-else
                                 class="task-name"
                                 :title="props.row.name"
                                 :to="`/taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
@@ -157,7 +158,7 @@
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="i18n.status" width="120">
                         <template slot-scope="props">
                             <div class="audit-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -165,7 +166,7 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="80">
+                    <bk-table-column :label="i18n.operation" width="100">
                         <template slot-scope="props">
                             <a
                                 v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
@@ -175,6 +176,7 @@
                                 {{i18n.view}}
                             </a>
                             <router-link
+                                v-else
                                 class="audit-operation-btn"
                                 :to="`/taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
                                 {{ i18n.view }}
@@ -311,7 +313,7 @@
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        project_id: this.projectId,
+                        project__id: this.projectId,
                         category: this.activeTaskCategory,
                         audit__pipeline_instance__name__contains: this.searchStr,
                         pipeline_instance__is_started: this.isStarted,
