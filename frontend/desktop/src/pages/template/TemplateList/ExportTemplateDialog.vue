@@ -462,7 +462,7 @@
             height: 100%;
             text-align: center;
             .bk-button {
-                margin-top: 15px;
+                margin-top: 12px;
             }
         }
         &:nth-child(2n) {
@@ -486,7 +486,6 @@
                 }
             }
             .apply-permission-mask {
-                padding: 12px 0;
                 background: rgba(255, 255, 255, 0.6);
                 text-align: center;
             }
