@@ -111,7 +111,7 @@
                                 v-cursor
                                 class="text-permission-disable"
                                 :title="props.row.name"
-                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                @click="onTaskPermissonCheck(props.row, $event)">
                                 {{props.row.name}}
                             </a>
                             <router-link
@@ -260,7 +260,7 @@
                 'loadProjectBaseInfo'
             ]),
             ...mapMutations('template/', [
-                'setBusinessBaseInfo'
+                'setProjectBaseInfo'
             ]),
             async getAppmakerList () {
                 this.listLoading = true
@@ -356,7 +356,7 @@
                 try {
                     const projectBasicInfo = await this.loadProjectBaseInfo()
                     this.taskCategory = projectBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
-                    this.setBusinessBaseInfo(projectBasicInfo)
+                    this.setProjectBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
