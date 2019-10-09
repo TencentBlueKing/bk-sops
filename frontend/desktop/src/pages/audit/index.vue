@@ -27,18 +27,18 @@
                         <div class="query-content">
                             <span class="query-span">{{i18n.business}}</span>
                             <bk-select
-                                v-model="selectedCcId"
+                                v-model="selectedProject"
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
                                 :placeholder="i18n.choice"
                                 :clearable="true"
-                                @selected="onSelectedBizCcId">
+                                @selected="onSelectProject">
                                 <bk-option
                                     v-for="(option, index) in business.list"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -121,13 +121,22 @@
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange">
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
-                    <bk-table-column :label="i18n.business" prop="business.cc_name" width="120"></bk-table-column>
+                    <bk-table-column :label="i18n.business" prop="project.name" width="120"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                :title="props.row.name"
+                                @click="onTemplatePermissonCheck(props.row)">
+                                {{props.row.name}}
+                            </a>
                             <router-link
+                                v-else
                                 class="task-name"
                                 :title="props.row.name"
-                                :to="`/taskflow/execute/${props.row.business.cc_id}/?instance_id=${props.row.id}`">
+                                :to="`/taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
                                 {{props.row.name}}
                             </router-link>
                         </template>
@@ -149,7 +158,7 @@
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.status" width="100">
+                    <bk-table-column :label="i18n.status" width="120">
                         <template slot-scope="props">
                             <div class="audit-status">
                                 <span :class="executeStatus[props.$index] && executeStatus[props.$index].cls"></span>
@@ -157,11 +166,19 @@
                             </div>
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.operation" width="80">
+                    <bk-table-column :label="i18n.operation" width="100">
                         <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                @click="onTemplatePermissonCheck(props.row)">
+                                {{i18n.view}}
+                            </a>
                             <router-link
+                                v-else
                                 class="audit-operation-btn"
-                                :to="`/taskflow/execute/${props.row.business.cc_id}/?instance_id=${props.row.id}`">
+                                :to="`/taskflow/execute/${props.row.project.id}/?instance_id=${props.row.id}`">
                                 {{ i18n.view }}
                             </router-link>
                         </template>
@@ -175,8 +192,9 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapActions } from 'vuex'
+    import { mapState, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
@@ -192,12 +210,13 @@
             AdvanceSearch,
             NoData
         },
+        mixins: [permission],
         data () {
             return {
                 i18n: {
                     auditList: gettext('审计中心'),
                     placeholder: gettext('请输入ID或流程名称'),
-                    business: gettext('所属业务'),
+                    business: gettext('所属项目'),
                     startedTime: gettext('执行开始'),
                     finishedTime: gettext('执行结束'),
                     name: gettext('任务名称'),
@@ -226,11 +245,11 @@
                 taskBasicInfoLoading: true,
                 listLoading: true,
                 isAdvancedSerachShow: false,
-                selectedCcId: '',
+                selectedProject: '',
                 taskSync: '',
                 statusSync: '',
                 searchStr: '',
-                bizCcId: undefined,
+                projectId: undefined,
                 creator: undefined,
                 executor: undefined,
                 activeTaskCategory: undefined,
@@ -259,35 +278,42 @@
                     limit: 15,
                     'limit-list': [15],
                     'show-limit': false
-                }
+                },
+                taskOperations: [],
+                taskResource: {}
             }
         },
+        computed: {
+            ...mapState('project', {
+                'timeZone': state => state.timezone
+            })
+        },
         created () {
-            this.loadFunctionTask()
+            this.loadAuditTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            this.getBusinessList()
-            this.getBusinessBaseInfo()
+            this.getProjectList()
+            this.getProjectBaseInfo()
         },
         methods: {
             ...mapActions('auditTask/', [
                 'loadAuditTaskList'
             ]),
-            ...mapActions('functionTask/', [
-                'loadFunctionBusinessList'
-            ]),
             ...mapActions('task/', [
                 'getInstanceStatus'
             ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
-            async loadFunctionTask () {
+            ...mapActions('project/', [
+                'loadProjectList'
+            ]),
+            async loadAuditTask () {
                 this.listLoading = true
                 try {
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
-                        business__cc_id: this.bizCcId,
+                        project__id: this.projectId,
                         category: this.activeTaskCategory,
                         audit__pipeline_instance__name__contains: this.searchStr,
                         pipeline_instance__is_started: this.isStarted,
@@ -300,16 +326,20 @@
                             data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const auditListData = await this.loadAuditTaskList(data)
                     const list = auditListData.objects
                     this.auditList = list
                     this.pagination.count = auditListData.meta.total_count
+                    this.taskOperations = auditListData.meta.auth_operations
+                    this.taskResource = auditListData.meta.auth_resource
+                    this.totalCount = auditListData.meta.total_count
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
+                       
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
@@ -330,16 +360,16 @@
             },
             onPageChange (page) {
                 this.pagination.current = page
-                this.loadFunctionTask()
+                this.loadAuditTask()
             },
             searchInputhandler () {
                 this.pagination.current = 1
-                this.loadFunctionTask()
+                this.loadAuditTask()
             },
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)
@@ -379,10 +409,10 @@
                     errorHandler(e, this)
                 }
             },
-            async getBusinessList () {
+            async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadFunctionBusinessList()
+                    const businessData = await this.loadProjectList({ limit: 0 })
                     this.business.list = businessData.objects
                 } catch (e) {
                     errorHandler(e, this)
@@ -390,10 +420,10 @@
                     this.business.loading = false
                 }
             },
-            async getBusinessBaseInfo () {
+            async getProjectBaseInfo () {
                 this.taskBasicInfoLoading = true
                 try {
-                    const data = await this.loadBusinessBaseInfo()
+                    const data = await this.loadProjectBaseInfo()
                     this.taskCategory = data.task_categories.map(m => ({ name: m.name, id: m.value }))
                 } catch (e) {
                     errorHandler(e, this)
@@ -421,7 +451,7 @@
                 this.executor = undefined
                 this.searchStr = undefined
                 this.statusSync = ''
-                this.selectedCcId = ''
+                this.selectedProject = ''
                 this.taskSync = ''
                 this.activeTaskCategory = undefined
                 this.executeStartTime = undefined
@@ -436,11 +466,16 @@
                 this.isStarted = undefined
                 this.isFinished = undefined
             },
-            onSelectedBizCcId (name, value) {
-                if (this.bizCcId === name) {
+            onSelectProject (name, value) {
+                if (this.projectId === name) {
                     return
                 }
-                this.bizCcId = name
+                this.projectId = name
+            },
+            onTemplatePermissonCheck (task) {
+                if (!this.hasPermission(['view'], task.auth_actions, this.taskOperations)) {
+                    this.applyForPermission(['view'], task, this.taskOperations, this.taskResource)
+                }
             }
         }
     }
@@ -536,7 +571,7 @@
             input:-ms-input-placeholder {
                 color: $formBorderColor;
             }
-            input,.bk-selector,.bk-date-range {
+            input{
                 min-width: 260px;
             }
             .search-input {
@@ -559,10 +594,6 @@
             }
             .bk-selector-search-item > input {
                 min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
             }
         }
         .query-button {

@@ -32,7 +32,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
 
     TEMPLATE_GROUP_BY_METHODS = {
         AE.state: TaskTemplate.objects.group_by_state,  # 按流程模板执行状态查询流程个数
-        AE.business__cc_id: TaskTemplate.objects.group_by_biz_cc_id,  # 查询不同业务的模板个数
+        AE.project_id: TaskTemplate.objects.group_by_biz_cc_id,  # 查询不同业务的模板个数
         AE.atom_cite: TaskTemplate.objects.group_by_atom_cite,  # 查询不同原子引用的模板个数
         # 按起始时间、业务（可选）、类型（可选）、标准插件查询被引用的流程模板列表(dataTable)
         AE.atom_template: TaskTemplate.objects.group_by_atom_template,

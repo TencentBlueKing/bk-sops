@@ -144,7 +144,7 @@ const template = {
         start_event: {},
         template_id: '',
         constants: {},
-        businessBaseInfo: {},
+        projectBaseInfo: {},
         notify_receivers: {
             receiver_group: [],
             more_receiver: ''
@@ -185,26 +185,13 @@ const template = {
                 }
             })
         },
-        // 更新模板各相关字段数据
-        setTemplateData (state, data) {
-            const { name, template_id, pipeline_tree, notify_receivers,
-                notify_type, time_out, category, subprocess_info
-            } = data
+        setPipelineTree (state, data) {
             const pipelineTreeOrder = [
                 'activities', 'constants', 'end_event', 'flows', 'gateways',
                 'line', 'location', 'outputs', 'start_event'
             ]
-            const pipelineData = JSON.parse(pipeline_tree)
-            const receiver = JSON.parse(notify_receivers)
-            state.name = name
-            state.template_id = template_id
-            state.notify_receivers.receiver_group = receiver.receiver_group || []
-            state.notify_type = notify_type ? JSON.parse(notify_type) : []
-            state.time_out = time_out
-            state.category = category
-            state.subprocess_info = subprocess_info
             pipelineTreeOrder.forEach(key => {
-                let val = pipelineData[key]
+                let val = data[key]
                 if (key !== 'constants') {
                     val = nodeFilter.convertInvalidIdData(key, val) // convert old invalid data =_=!
                 }
@@ -228,8 +215,25 @@ const template = {
                 state[key] = val
             })
         },
-        setBusinessBaseInfo (state, data) {
-            state.businessBaseInfo = data
+        // 更新模板各相关字段数据
+        setTemplateData (state, data) {
+            const { name, template_id, pipeline_tree, notify_receivers,
+                notify_type, time_out, category, subprocess_info
+            } = data
+            
+            const pipelineData = JSON.parse(pipeline_tree)
+            const receiver = JSON.parse(notify_receivers)
+            state.name = name
+            state.template_id = template_id
+            state.notify_receivers.receiver_group = receiver.receiver_group || []
+            state.notify_type = notify_type ? JSON.parse(notify_type) : []
+            state.time_out = time_out
+            state.category = category
+            state.subprocess_info = subprocess_info
+            this.commit('template/setPipelineTree', pipelineData)
+        },
+        setProjectBaseInfo (state, data) {
+            state.projectBaseInfo = data
         },
         // 初始化模板数据
         initTemplateData (state) {
@@ -736,8 +740,8 @@ const template = {
         }
     },
     actions: {
-        loadBusinessBaseInfo () {
-            return api.getBusinessBaseInfo().then(response => response.data)
+        loadProjectBaseInfo () {
+            return api.getProjectBaseInfo().then(response => response.data)
         },
         loadTemplateData ({ commit }, data) {
             return api.getTemplateData(data).then(response => response.data)
@@ -746,7 +750,7 @@ const template = {
             return api.getCustomVarCollection().then(response => response.data.objects)
         },
         // 保存模板数据
-        saveTemplateData ({ state }, { templateId, ccId, common }) {
+        saveTemplateData ({ state }, { templateId, projectId, common }) {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type, time_out, category
             } = state
@@ -775,7 +779,7 @@ const template = {
                 start_event
             })
             const data = {
-                ccId,
+                projectId,
                 templateId,
                 timeout: time_out,
                 category,
@@ -788,6 +792,9 @@ const template = {
             return api.saveTemplate(data).then(response => {
                 return response.data
             })
+        },
+        getLayoutedPipeline ({ commit }, data) {
+            return api.getLayoutedPipeline(data).then(response => response.data)
         },
         // 收藏模板，批量操作
         templateCollectSelect ({ commit }, list) {
@@ -805,12 +812,46 @@ const template = {
         },
         loadTemplateCollectList ({ commit }) {
             return api.loadTemplateCollectList().then(response => response.data)
+        },
+        getCollectedTemplateDetail ({ commit }, ids) {
+            return api.getCollectedTemplateDetail(ids).then(
+                response => response.data
+            )
         }
     },
     getters: {
         // 获取所有模板数据
         getLocalTemplateData (state) {
             return tools.deepClone(state)
+        },
+        getPipelineTree (state) {
+            const {
+                activities, constants, end_event, flows, gateways,
+                line, location, outputs, start_event
+            } = state
+            // 剔除 location 的冗余字段
+            const pureLocation = location.map(item => {
+                return {
+                    id: item.id,
+                    type: item.type,
+                    name: item.name,
+                    stage_name: item.stage_name,
+                    status: item.status,
+                    x: item.x,
+                    y: item.y
+                }
+            })
+            return {
+                activities,
+                constants,
+                end_event,
+                flows,
+                gateways,
+                line,
+                location: pureLocation,
+                outputs,
+                start_event
+            }
         }
     }
 }

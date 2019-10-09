@@ -97,15 +97,15 @@ def _replace_id_in_data(pipeline_data, node_map):
 
 
 def _replace_front_end_data_id(pipeline_data, node_map, flow_map):
-    if PE.line in pipeline_data:
-        for line in pipeline_data[PE.line]:
+    if 'line' in pipeline_data:
+        for line in pipeline_data['line']:
             line[PE.id] = flow_map[line[PE.id]]
             line[PE.source][PE.id] = node_map[line[PE.source][PE.id]]
             line[PE.target][PE.id] = node_map[line[PE.target][PE.id]]
-    if PE.location in pipeline_data:
-        for location in pipeline_data[PE.location]:
+    if 'location' in pipeline_data:
+        for location in pipeline_data['location']:
             location[PE.id] = node_map[location[PE.id]]
-    if PE.constants in pipeline_data:
+    if 'constants' in pipeline_data:
         for key, constant in pipeline_data[PE.constants].items():
             source_info = constant.get('source_info', None)
             if source_info:

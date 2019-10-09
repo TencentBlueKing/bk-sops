@@ -19,6 +19,7 @@ Query flow templates list of the business
 |---------------|------------|--------|-------------------|
 | bk_biz_id     |  string    | YES     | the business ID     |
 |   template_source | string   | NO    | source of flow，default value is business. business: from business, common: from common flow |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
@@ -91,7 +92,7 @@ Query flow templates list of the business
 |  bk_biz_name   |    string    |      the business name    |
 |  id            |    int       |      flow template ID             |
 |  name          |    string    |      flow template name            |
-|  category      |    string    |      template type，the value is described below    |
+|  category      |    string    |      flow template type, the value is described below    |
 |  creator       |    string    |      person who created this flow template      |
 |  create_time   |    string    |      datetime when this flow template created   |
 |  editor        |    string or null | person who edited this flow template last |

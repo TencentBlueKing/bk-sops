@@ -12,14 +12,18 @@
 <template>
     <div class="template-container">
         <div class="list-wrapper">
-            <BaseTitle :title="common ? i18n.commonFlow : i18n.businessFlow"></BaseTitle>
+            <BaseTitle :title="common ? i18n.commonFlow : i18n.projectFlow"></BaseTitle>
             <div class="operation-area clearfix">
-                <router-link
-                    class="bk-button bk-primary create-template"
+                <bk-button
                     v-show="showOperationBtn"
-                    :to="getJumpUrl('newTemplate')">
+                    v-cursor="{ active: !hasPermission(createTplRequired, createTplActions, createTplOperations) }"
+                    theme="primary"
+                    :class="['create-template', {
+                        'btn-permission-disable': !hasPermission(createTplRequired, createTplActions, createTplOperations)
+                    }]"
+                    @click="checkCreatePermission">
                     {{i18n.new}}
-                </router-link>
+                </bk-button>
                 <bk-button
                     theme="default"
                     class="template-btn"
@@ -112,13 +116,22 @@
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
-                            <router-link
-                                v-if="!common || !common_template"
-                                class="template-name"
-                                :title="props.row.name"
-                                :to="getJumpUrl('edit', props.row.id)">
-                                {{props.row.name}}
-                            </router-link>
+                            <template v-if="!common || !common_template">
+                                <a
+                                    v-if="!hasPermission(['view'], props.row.auth_actions, tplOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTemplatePermissonCheck(['view'], props.row, $event)">
+                                    {{props.row.name}}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="template-name"
+                                    :title="props.row.name"
+                                    :to="getJumpUrl('edit', props.row.id)">
+                                    {{props.row.name}}
+                                </router-link>
+                            </template>
                             <p v-else class="template-name">{{props.row.name}}</p>
                         </template>
                     </bk-table-column>
@@ -139,48 +152,85 @@
                         <template slot-scope="props">
                             <div class="template-operation">
                                 <template v-if="!common && !common_template">
-                                    <!-- 业务流程按钮 -->
+                                    <!-- 项目流程按钮 -->
+                                    <a
+                                        v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTemplatePermissonCheck(['create_task'], props.row, $event)">
+                                        {{i18n.newTemplate}}
+                                    </a>
                                     <router-link
+                                        v-else
                                         class="template-operate-btn"
                                         :to="getJumpUrl('newTask', props.row.id)">
-                                        {{ i18n.newTemplate }}
+                                        {{i18n.newTemplate}}
                                     </router-link>
+                                    <a
+                                        v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
+                                        {{i18n.edit}}
+                                    </a>
                                     <router-link
+                                        v-else
                                         class="template-operate-btn"
                                         :to="getJumpUrl('edit', props.row.id)">
-                                        {{ i18n.edit }}
+                                        {{i18n.edit}}
                                     </router-link>
                                     <bk-dropdown-menu>
                                         <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
                                             <li>
-                                                <router-link :to="getJumpUrl('clone', props.row.id)">{{ i18n.clone }}</router-link>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" @click="onManageAuthority(props.row.id)">{{ i18n.authority }}</a>
+                                                <a
+                                                    v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
+                                                    v-cursor
+                                                    class="text-permission-disable"
+                                                    @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
+                                                    {{i18n.clone}}
+                                                </a>
+                                                <router-link
+                                                    v-else
+                                                    :to="getJumpUrl('clone', props.row.id)">
+                                                    {{i18n.clone}}
+                                                </router-link>
                                             </li>
                                             <li>
                                                 <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
                                             </li>
                                             <li>
-                                                <a href="javascript:void(0);" @click="onDeleteTemplate(props.row.id, props.row.name)">{{ i18n.delete }}</a>
+                                                <a
+                                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                                    href="javascript:void(0);"
+                                                    :class="{
+                                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                                    }"
+                                                    @click="onDeleteTemplate(props.row, $event)">
+                                                    {{ i18n.delete }}
+                                                </a>
                                             </li>
                                         </ul>
                                     </bk-dropdown-menu>
                                 </template>
                                 <template v-else-if="common_template || !common">
-                                    <!-- 嵌套在业务流程页面中的公共流程，通过查询条件切换 -->
+                                    <!-- 嵌套在项目流程页面中的公共流程，通过查询条件切换 -->
+                                    <a
+                                        v-if="!hasPermission(['create_task'], props.row.auth_actions, tplOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTemplatePermissonCheck(['create_task'], props.row, $event)">
+                                        {{i18n.newTemplate}}
+                                    </a>
                                     <router-link
+                                        v-else
                                         class="template-operate-btn"
                                         :to="getJumpUrl('newTask', props.row.id)">
-                                        {{ i18n.newTemplate }}
+                                        {{i18n.newTemplate}}
                                     </router-link>
                                     <bk-dropdown-menu>
                                         <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
                                         <ul class="bk-dropdown-list" slot="dropdown-content">
-                                            <li>
-                                                <a href="javascript:void(0);" @click="onManageAuthority(props.row.id)">{{ i18n.authority }}</a>
-                                            </li>
                                             <li>
                                                 <router-link :to="getExecuteHistoryUrl(props.row.id)">{{ i18n.executeHistory }}</router-link>
                                             </li>
@@ -189,18 +239,42 @@
                                 </template>
                                 <template v-else-if="common">
                                     <!-- 公共流程首页 -->
-                                    <router-link class="template-operate-btn" :to="getJumpUrl('edit', props.row.id)">{{ i18n.edit}}</router-link>
-                                    <bk-dropdown-menu>
-                                        <i slot="dropdown-trigger" class="bk-icon icon-more drop-icon-ellipsis"></i>
-                                        <ul class="bk-dropdown-list" slot="dropdown-content">
-                                            <li>
-                                                <router-link :to="getJumpUrl('clone', props.row.id)">{{ i18n.clone }}</router-link>
-                                            </li>
-                                            <li>
-                                                <a href="javascript:void(0);" @click="onDeleteTemplate(props.row.id, props.row.name)">{{i18n.delete}}</a>
-                                            </li>
-                                        </ul>
-                                    </bk-dropdown-menu>
+                                    <a
+                                        v-if="!hasPermission(['edit'], props.row.auth_actions, tplOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTemplatePermissonCheck(['edit'], props.row, $event)">
+                                        {{i18n.edit}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="template-operate-btn"
+                                        :to="getJumpUrl('edit', props.row.id)">
+                                        {{i18n.edit}}
+                                    </router-link>
+                                    <a
+                                        v-if="!hasPermission(['clone'], props.row.auth_actions, tplOperations)"
+                                        v-cursor
+                                        class="text-permission-disable"
+                                        @click="onTemplatePermissonCheck(['clone'], props.row, $event)">
+                                        {{i18n.clone}}
+                                    </a>
+                                    <router-link
+                                        v-else
+                                        class="template-operate-btn"
+                                        :to="getJumpUrl('clone', props.row.id)">
+                                        {{i18n.clone}}
+                                    </router-link>
+                                    <a
+                                        v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, tplOperations) }"
+                                        href="javascript:void(0);"
+                                        class="template-operate-btn"
+                                        :class="{
+                                            'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, tplOperations)
+                                        }"
+                                        @click="onDeleteTemplate(props.row, $event)">
+                                        {{i18n.delete}}
+                                    </a>
                                 </template>
                             </div>
                         </template>
@@ -219,7 +293,7 @@
         <ExportTemplateDialog
             :common="common"
             :is-export-dialog-show="isExportDialogShow"
-            :business-info-loading="businessInfoLoading"
+            :project-info-loading="projectInfoLoading"
             :pending="pending.export"
             @onExportConfirm="onExportConfirm"
             @onExportCancel="onExportCancel">
@@ -237,14 +311,6 @@
                 {{i18n.deleleTip + '"' + deleteTemplateName + '"' + '?' }}
             </div>
         </bk-dialog>
-        <AuthorityManageDialog
-            :is-authority-dialog-show="isAuthorityDialogShow"
-            :template-id="theAuthorityManageId"
-            :pending="pending.authority"
-            :common="common_template"
-            @onAuthorityConfirm="onAuthorityConfirm"
-            @onAuthorityCancel="onAuthorityCancel">
-        </AuthorityManageDialog>
     </div>
 </template>
 <script>
@@ -255,29 +321,30 @@
     import CopyrightFooter from '@/components/layout/CopyrightFooter.vue'
     import ImportTemplateDialog from './ImportTemplateDialog.vue'
     import ExportTemplateDialog from './ExportTemplateDialog.vue'
-    import AuthorityManageDialog from './AuthorityManageDialog.vue'
     import BaseTitle from '@/components/common/base/BaseTitle.vue'
     import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import permission from '@/mixins/permission.js'
     // moment用于时区使用
     import moment from 'moment-timezone'
+
     export default {
         name: 'TemplateList',
         components: {
             CopyrightFooter,
             ImportTemplateDialog,
             ExportTemplateDialog,
-            AuthorityManageDialog,
             BaseTitle,
             AdvanceSearch,
             NoData
         },
-        props: ['cc_id', 'common', 'common_template'],
+        mixins: [permission],
+        props: ['project_id', 'common', 'common_template'],
         data () {
             return {
                 i18n: {
                     placeholder: gettext('请输入ID或流程名称'),
-                    businessFlow: gettext('业务流程'),
+                    projectFlow: gettext('项目流程'),
                     commonFlow: gettext('公共流程'),
                     new: gettext('新建'),
                     name: gettext('流程名称'),
@@ -289,7 +356,6 @@
                     newTemplate: gettext('新建任务'),
                     edit: gettext('编辑'),
                     clone: gettext('克隆'),
-                    authority: gettext('使用权限'),
                     delete: gettext('删除'),
                     executeHistory: gettext('执行历史'),
                     deleleTip: gettext('确认删除'),
@@ -303,7 +369,7 @@
                     page: gettext('页'),
                     yes: gettext('是'),
                     no: gettext('否'),
-                    empty: gettext('无数据，若您不是运维人员，请尝试联系运维人员为您添加模板权限'),
+                    empty: gettext('无数据'),
                     templateNamePlaceholder: gettext('请输入流程名称'),
                     templateCategoryPlaceholder: gettext('请选择分类'),
                     subprocessUpdatePlaceholder: gettext('请选择子流程更新'),
@@ -319,7 +385,7 @@
                     dateRange: gettext('选择日期时间范围')
                 },
                 listLoading: true,
-                businessInfoLoading: true, // 模板分类信息 loading
+                projectInfoLoading: true, // 模板分类信息 loading
                 searchStr: '',
                 totalPage: 1,
                 isDeleteDialogShow: false,
@@ -329,10 +395,10 @@
                 theDeleteTemplateId: undefined,
                 theAuthorityManageId: undefined,
                 isAdvancedSerachShow: false,
+                active: true,
                 pending: {
                     export: false, // 导出
-                    delete: false, // 删除
-                    authority: false // 使用权限
+                    delete: false // 删除
                 },
                 flowName: undefined,
                 templateCategorySync: '',
@@ -357,7 +423,10 @@
                     limit: 15,
                     'limit-list': [15],
                     'show-limit': false
-                }
+                },
+                tplOperations: [], // 模板权限字典
+                tplResource: {}, // 模板资源信息
+                createCommonTplAction: [] // 创建公共流程权限
             }
         },
         computed: {
@@ -365,25 +434,49 @@
                 'site_url': state => state.site_url,
                 'templateList': state => state.templateList.templateListData,
                 'commonTemplateData': state => state.templateList.commonTemplateData,
-                'businessBaseInfo': state => state.template.businessBaseInfo,
-                'v1_import_flag': state => state.v1_import_flag,
-                'businessTimezone': state => state.businessTimezone
+                'projectBaseInfo': state => state.template.projectBaseInfo,
+                'v1_import_flag': state => state.v1_import_flag
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone,
+                'authActions': state => state.authActions,
+                'authOperations': state => state.authOperations,
+                'authResource': state => state.authResource,
+                'projectName': state => state.projectName
             }),
             listData () {
                 return this.common === 1 ? this.commonTemplateData : this.templateList
             },
             showOperationBtn () {
                 return this.common === 1 ? this.common_template === undefined : true
+            },
+            createTplRequired () {
+                return this.common === 1 ? ['create'] : ['create_template']
+            },
+            createTplActions () {
+                return this.common === 1 ? this.createCommonTplAction : this.authActions
+            },
+            createTplResource () {
+                return this.common === 1 ? this.tplResource : this.authResource
+            },
+            createTplOperations () {
+                return this.common === 1 ? this.tplOperations : this.authOperations
             }
         },
         created () {
             this.getTemplateList()
-            this.getBusinessBaseInfo()
+            this.getProjectBaseInfo()
+            if (this.common) {
+                this.queryCreateCommonTplPerm()
+            }
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
         },
         methods: {
+            ...mapActions([
+                'queryUserPermission'
+            ]),
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -393,11 +486,27 @@
                 'templateExport'
             ]),
             ...mapMutations('template/', [
-                'setBusinessBaseInfo'
+                'setProjectBaseInfo'
             ]),
             ...mapMutations('templateList/', [
                 'setTemplateListData'
             ]),
+            async queryCreateCommonTplPerm () {
+                try {
+                    const res = await this.queryUserPermission({
+                        resource_type: 'common_flow',
+                        action_ids: JSON.stringify(['create'])
+                    })
+                    const hasCreatePerm = !!res.data.details.find(item => {
+                        return item.action_id === 'create' && item.is_pass
+                    })
+                    if (hasCreatePerm) {
+                        this.createCommonTplAction = ['create']
+                    }
+                } catch (err) {
+                    errorHandler(err, this)
+                }
+            },
             async getTemplateList () {
                 this.listLoading = true
                 const isCommon = this.common === 1
@@ -422,8 +531,8 @@
                             data['pipeline_template__edit_time__lte'] = moment(this.queryTime[1]).add('1', 'd').format('YYYY-MM-DD')
                         // 无时区的公共流程使用本地的时间
                         } else {
-                            data['pipeline_template__edit_time__gte'] = moment.tz(this.queryTime[0], this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_template__edit_time__lte'] = moment.tz(this.queryTime[1], this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__gte'] = moment.tz(this.queryTime[0], this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_template__edit_time__lte'] = moment.tz(this.queryTime[1], this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
 
@@ -432,6 +541,8 @@
                     this.setTemplateListData({ list, isCommon })
                     this.pagination.count = templateListData.meta.total_count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
+                    this.tplOperations = templateListData.meta.auth_operations
+                    this.tplResource = templateListData.meta.auth_resource
                     if (!totalPage) {
                         this.totalPage = 1
                     } else {
@@ -443,18 +554,31 @@
                     this.listLoading = false
                 }
             },
-            async getBusinessBaseInfo () {
-                this.businessInfoLoading = true
+            async getProjectBaseInfo () {
+                this.projectInfoLoading = true
                 this.categoryLoading = true
                 try {
-                    const data = await this.loadBusinessBaseInfo()
-                    this.setBusinessBaseInfo(data)
+                    const data = await this.loadProjectBaseInfo()
+                    this.setProjectBaseInfo(data)
                     this.templateCategoryList = data.task_categories
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.businessInfoLoading = false
+                    this.projectInfoLoading = false
                     this.categoryLoading = false
+                }
+            },
+            checkCreatePermission () {
+                if (!this.hasPermission(this.createTplRequired, this.createTplActions, this.createTplOperations)) {
+                    const resourceData = {
+                        name: this.common === 1 ? gettext('公共流程') : gettext('项目'),
+                        id: this.common === 1 ? '' : this.project_id,
+                        auth_actions: this.createTplActions
+                    }
+                    this.applyForPermission(this.createTplRequired, resourceData, this.createTplOperations, this.createTplResource)
+                } else {
+                    const url = this.getNewTemplateUrl()
+                    this.$router.push(url)
                 }
             },
             searchInputhandler () {
@@ -497,18 +621,28 @@
             onExportCancel () {
                 this.isExportDialogShow = false
             },
-            onDeleteTemplate (id, name) {
-                this.theDeleteTemplateId = id
-                this.deleteTemplateName = name
+            onDeleteTemplate (template, event) {
+                if (!this.hasPermission(['delete'], template.auth_actions, this.tplOperations)) {
+                    this.onTemplatePermissonCheck(['delete'], template, event)
+                    return
+                }
+                this.theDeleteTemplateId = template.id
+                this.deleteTemplateName = template.name
                 this.isDeleteDialogShow = true
             },
             onPageChange (page) {
                 this.pagination.current = page
                 this.getTemplateList()
             },
-            onManageAuthority (id) {
-                this.isAuthorityDialogShow = true
-                this.theAuthorityManageId = id
+            /**
+             * 单个模板操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} template 模板数据对象
+             * @params {Object} event 事件对象
+             */
+            onTemplatePermissonCheck (required, template, event) {
+                this.applyForPermission(required, template, this.tplOperations, this.tplResource)
+                event.preventDefault()
             },
             async onDeleteConfirm () {
                 if (this.pending.delete) return
@@ -540,6 +674,14 @@
                 this.theDeleteTemplateId = undefined
                 this.isDeleteDialogShow = false
             },
+            // 获取新建模板的跳转链接
+            getNewTemplateUrl () {
+                let url = `/template/new/${this.project_id}`
+                if (this.common) {
+                    url += '/?&common=1'
+                }
+                return url
+            },
             async onAuthorityConfirm (data) {
                 if (this.pending.authority) return
                 this.pending.authority = true
@@ -563,45 +705,26 @@
              * @param {Number} template_id -模版id(可选)
              */
             getJumpUrl (name, template_id) {
+                const routerHead = this.common ? '/admin' : ''
+                let url
                 const urlMap = {
                     // 编辑按钮的跳转链接
-                    'edit': {
-                        path: `/template/edit/${this.cc_id}/`,
-                        query: ['template_id', 'common'] },
+                    'edit': `${routerHead}/template/edit/${this.project_id}/?template_id=${template_id}`,
                     // 新建模板的跳转链接
-                    'newTemplate': {
-                        path: `/template/new/${this.cc_id}/`,
-                        query: ['common'] },
+                    'newTemplate': `${routerHead}/template/new/${this.project_id}/`,
                     // 新建任务的跳转链接
-                    'newTask': {
-                        path: `/template/newtask/${this.cc_id}/selectnode/`,
-                        query: ['template_id', 'common'] },
+                    'newTask': `/template/newtask/${this.project_id}/selectnode/?template_id=${template_id}`,
                     // 克隆
-                    'clone': {
-                        path: `/template/clone/${this.cc_id}/`,
-                        query: ['template_id', 'common'] }
+                    'clone': `${routerHead}/template/clone/${this.project_id}/?template_id=${template_id}`
                 }
-                let querys = ''
-                const entrance = this.getEntrance(name)
-                urlMap[name].query.forEach(item => {
-                    if (template_id && item === 'template_id') {
-                        querys += `&template_id=${template_id}`
-                    }
-                    if ((this.common || this.common_template) && item === 'common') {
-                        querys += `&common=1`
-                    }
-                })
-                return `${urlMap[name].path}?entrance=${entrance}${querys}`
-            },
-            // 获取入口信息
-            getEntrance (name) {
-                return (new RegExp('/admin/').test(this.$route.path) ? 'admin' : 'template')
-                    + (new RegExp('/common/').test(this.$route.path) ? '_common' : '_business')
-                    + '_'
-                    + name
+                url = urlMap[name]
+                if (this.common) {
+                    url += url.indexOf('?') > -1 ? '&common=1' : '?common=1'
+                }
+                return url
             },
             getExecuteHistoryUrl (id) {
-                let url = `/taskflow/home/${this.cc_id}/?template_id=${id}`
+                let url = `/taskflow/home/${this.project_id}/?template_id=${id}`
                 if (this.common || this.common_template) {
                     url += '&common=1'
                 }
@@ -703,14 +826,6 @@
                 height: 32px;
                 line-height: 32px;
             }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
             input::-webkit-input-placeholder{
                 color: $formBorderColor;
             }
@@ -723,21 +838,11 @@
             input:-ms-input-placeholder {
                 color: $formBorderColor;
             }
-            input, .bk-selector, .bk-date-range {
+            input{
                 min-width: 260px;
             }
             .bk-selector-search-item > input {
                 min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
-                height: 32px;
-                line-height: 32px;
-            }
-            /deep/ .bk-date-range input {
-                height: 32px;
-                line-height: 32px;
             }
             .search-input {
                 width: 260px;
@@ -754,12 +859,6 @@
                 &:focus {
                     border-color: $blueDefault;
                 }
-            }
-            .ommon-icon-search {
-                position: relative;
-                right: 15px;
-                top: 11px;
-                color:#dddddd;
             }
             .search-input.placeholder {
                 color: $formBorderColor;
@@ -794,12 +893,6 @@
     .template-search {
         height: 156px;
         background: #fff;
-    }
-    .common-icon-search {
-        position: absolute;
-        right: 15px;
-        top: 8px;
-        color: $commonBorderColor;
     }
     .template-advanced-search {
         float: right;
@@ -838,6 +931,9 @@
         td.is-last .cell {
             overflow: visible;
         }
+    }
+    .template-operation > .text-permission-disable {
+        padding: 5px;
     }
     .template-operate-btn {
         padding: 5px;

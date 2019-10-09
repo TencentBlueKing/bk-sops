@@ -76,9 +76,7 @@
                 },
                 set (val) {
                     // 验证后更新
-                    if (this.customValidate()) {
-                        this.updateForm(val)
-                    }
+                    this.updateForm(val)
                 }
             },
             viewValue () {

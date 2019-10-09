@@ -30,7 +30,7 @@ logger = logging.getLogger('celery')
 @receiver(pre_periodic_task_start, sender=PipelinePeriodicTask)
 def pre_periodic_task_start_handler(sender, periodic_task, pipeline_instance, **kwargs):
     TaskFlowInstance.objects.create(
-        business_id=periodic_task.extra_info['business_id'],
+        project_id=periodic_task.extra_info['project_id'],
         pipeline_instance=pipeline_instance,
         category=periodic_task.extra_info['category'],
         template_id=periodic_task.extra_info['template_num_id'],
@@ -51,7 +51,7 @@ def periodic_task_history_post_save_handler(sender, instance, created, **kwargs)
 def periodic_task_start_failed_handler(sender, periodic_task, history, **kwargs):
     extra_info = periodic_task.extra_info
     try:
-        template = TaskTemplate.objects.get(business_id=extra_info['business_id'],
+        template = TaskTemplate.objects.get(project_id=extra_info['project_id'],
                                             id=extra_info['template_num_id'])
         send_periodic_task_message(template, periodic_task, history)
     except Exception as e:

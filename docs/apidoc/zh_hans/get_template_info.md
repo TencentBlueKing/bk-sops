@@ -20,6 +20,7 @@
 | bk_biz_id     | string     |   是   |  模板所属业务ID |
 | template_id   | string     |   是   |  模板ID        |
 | template_source | string   | 否     | 流程模板来源，business:默认值，业务流程，common：公共流程 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 
@@ -233,11 +234,11 @@
 |  constants      |    dict    |  全局变量信息，详情见下面    |
 |  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
 
-#### data.pipeline_tree.constants.KEY
+#### data.pipeline_tree.constants KEY
 
 全局变量 KEY，${key} 格式
 
-#### data.pipeline_tree.constants.VALUE
+#### data.pipeline_tree.constants VALUE
 
 | 字段      | 类型      | 描述      |
 |-----------|----------|-----------|

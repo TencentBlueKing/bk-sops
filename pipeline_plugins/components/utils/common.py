@@ -19,7 +19,10 @@ import os
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 
-from gcloud.core.models import Business
+from auth_backend.constants import AUTH_FORBIDDEN_CODE
+
+from gcloud.core.models import Business, Project
+from gcloud.core.utils import apply_permission_url
 
 logger = logging.getLogger('root')
 
@@ -28,13 +31,34 @@ ip_re = r'(([12][0-9][0-9]|[1-9][0-9]|[0-9])\.){3,3}' \
 ip_pattern = re.compile(ip_re)
 
 
+def supplier_account_for_project(project_id):
+    try:
+        proj = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        return 0
+
+    if not proj.from_cmdb:
+        return 0
+
+    return supplier_account_for_business(proj.bk_biz_id)
+
+
+def supplier_account_for_business(biz_cc_id):
+    try:
+        supplier_account = Business.objects.supplier_account_for_business(biz_cc_id)
+    except Business.DoesNotExist:
+        supplier_account = 0
+
+    return supplier_account
+
+
 def supplier_account_inject(func):
     def wrapper(*args, **kwargs):
-        if 'biz_cc_id' in kwargs:
-            try:
-                kwargs['supplier_account'] = Business.objects.supplier_account_for_business(kwargs['biz_cc_id'])
-            except Business.DoesNotExist:
-                kwargs['supplier_account'] = 0
+        if 'project_id' in kwargs:
+            kwargs['supplier_account'] = supplier_account_for_project(kwargs['project_id'])
+        elif 'biz_cc_id' in kwargs:
+            kwargs['supplier_account'] = supplier_account_for_business(kwargs['biz_cc_id'])
+
         return func(*args, **kwargs)
 
     return wrapper
@@ -42,24 +66,45 @@ def supplier_account_inject(func):
 
 def supplier_id_inject(func):
     def wrapper(*args, **kwargs):
-        if 'biz_cc_id' in kwargs:
-            try:
-                kwargs['supplier_id'] = Business.objects.supplier_id_for_business(kwargs['biz_cc_id'])
-            except Business.DoesNotExist:
-                kwargs['supplier_id'] = 0
+        if 'project_id' in kwargs:
+            kwargs['supplier_id'] = supplier_account_for_project(kwargs['project_id'])
+        elif 'biz_cc_id' in kwargs:
+            kwargs['supplier_id'] = supplier_account_for_business(kwargs['biz_cc_id'])
+
         return func(*args, **kwargs)
 
     return wrapper
 
 
-def handle_api_error(system, api_name, params, error):
-    message = _(u"调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
-        system=system,
-        api_name=api_name,
-        params=json.dumps(params),
-        error=error
-    )
+def handle_api_error(system, api_name, params, result):
+    if result.get('code') == AUTH_FORBIDDEN_CODE:
+        permission = result.get('permission', [])
+        apply_result = apply_permission_url(permission)
+        if not apply_result['result']:
+            logger.error(u"获取申请权限链接失败: {msg}".format(msg=apply_result['message']))
+
+        url = apply_result.get('data', {}).get('url', '')
+
+        message = _(u"调用{system}接口{api_name}无权限: "
+                    u"<a href='{url}' target='_blank'>申请权限</a>。\n details:"
+                    u"params={params}, error={error}").format(
+            system=system,
+            api_name=api_name,
+            url=url,
+            params=json.dumps(params),
+            error=result.get('message', '')
+        )
+
+    else:
+        message = _(u"调用{system}接口{api_name}返回失败, params={params}, error={error}").format(
+            system=system,
+            api_name=api_name,
+            params=json.dumps(params),
+            error=result.get('message', '')
+        )
+
     logger.error(message)
+
     return message
 
 
@@ -83,3 +128,15 @@ def get_s3_file_path_of_time(biz_cc_id, time_str):
                         'bkupload',
                         str(biz_cc_id),
                         time_str)
+
+
+def format_sundry_ip(ip):
+    """
+    @summary: IP 格式化，如果是多 IP 的主机，只取第一个 IP 作为代表
+    @param ip:
+    @return:
+    """
+    if ',' in ip:
+        logger.info('HOST[%s] has multiple ip' % ip)
+        return ip.split(',')[0]
+    return ip

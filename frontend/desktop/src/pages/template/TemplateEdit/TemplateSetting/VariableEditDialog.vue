@@ -100,7 +100,4 @@
         font-size: 12px;
     }
 }
-/deep/ .common-dialog .bk-dialog-body{
-    padding: 20px;
-}
 </style>

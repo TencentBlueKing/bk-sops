@@ -52,21 +52,22 @@ from pipeline_web.parser.format import format_node_io_to_list
 
 from gcloud.conf import settings
 from gcloud.core.constant import TASK_FLOW_TYPE, TASK_CATEGORY, AE
-from gcloud.core.models import Business
+from gcloud.core.models import Project
 from gcloud.core.utils import (
     convert_readable_username,
-    strftime_with_timezone,
     timestamp_to_datetime,
     format_datetime,
     camel_case_to_underscore_naming,
     gen_day_dates,
     get_month_dates
 )
-from gcloud.commons.template.models import replace_template_id, CommonTemplate, CommonTmplPerm
+from gcloud.commons.template.models import replace_template_id, CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.constants import (
     TASK_CREATE_METHOD,
     TEMPLATE_SOURCE,
+    PROJECT,
+    ONETIME
 )
 from gcloud.taskflow3.signals import taskflow_started
 from gcloud.contrib.appmaker.models import AppMaker
@@ -109,7 +110,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree)
 
         pipeline_instance = PipelineInstance.objects.create_instance(
-            template.pipeline_template,
+            template.pipeline_template if template else None,
             pipeline_tree,
             spread=True,
             **pipeline_template_data
@@ -362,8 +363,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         if exclude_task_nodes_id is None:
             exclude_task_nodes_id = []
 
-        locations = {item['id']: item for item in pipeline_tree.get(PE.location, [])}
-        lines = {item['id']: item for item in pipeline_tree.get(PE.line, [])}
+        locations = {item['id']: item for item in pipeline_tree.get('location', [])}
+        lines = {item['id']: item for item in pipeline_tree.get('line', [])}
 
         for act_id in exclude_task_nodes_id:
             if act_id not in pipeline_tree[PE.activities]:
@@ -383,8 +384,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         TaskFlowInstanceManager._remove_useless_parallel(pipeline_tree, lines, locations)
 
-        pipeline_tree[PE.line] = lines.values()
-        pipeline_tree[PE.location] = locations.values()
+        pipeline_tree['line'] = lines.values()
+        pipeline_tree['location'] = locations.values()
 
         TaskFlowInstanceManager._remove_useless_constants(exclude_task_nodes_id=exclude_task_nodes_id,
                                                           pipeline_tree=pipeline_tree)
@@ -452,13 +453,13 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
     def group_by_biz_cc_id(self, taskflow, *args):
         # 查询不同业务对应的流程数
         total = taskflow.count()
-        taskflow_list = taskflow.values(AE.business__cc_id, AE.business__cc_name).annotate(
+        taskflow_list = taskflow.values(AE.project_id, AE.project__name).annotate(
             value=Count('business__cc_id')).order_by()
         groups = []
         for data in taskflow_list:
             groups.append({
-                'code': data.get(AE.business__cc_id),
-                'name': data.get(AE.business__cc_name),
+                'code': data.get(AE.project_id),
+                'name': data.get(AE.project__name),
                 'value': data.get('value', 0)
             })
         return total, groups
@@ -868,21 +869,21 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
 
 class TaskFlowInstance(models.Model):
-    business = models.ForeignKey(Business,
-                                 verbose_name=_(u"业务"),
-                                 blank=True,
-                                 null=True,
-                                 on_delete=models.SET_NULL)
+    project = models.ForeignKey(Project,
+                                verbose_name=_(u"所属项目"),
+                                null=True,
+                                blank=True,
+                                on_delete=models.SET_NULL)
     pipeline_instance = models.ForeignKey(PipelineInstance,
                                           blank=True,
                                           null=True,
                                           on_delete=models.SET_NULL)
     category = models.CharField(_(u"任务类型，继承自模板"), choices=TASK_CATEGORY,
                                 max_length=255, default='Other')
-    template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255)
+    template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255, blank=True)
     template_source = models.CharField(_(u"流程模板来源"), max_length=32,
                                        choices=TEMPLATE_SOURCE,
-                                       default='business')
+                                       default=PROJECT)
     create_method = models.CharField(_(u"创建方式"),
                                      max_length=30,
                                      choices=TASK_CREATE_METHOD,
@@ -899,7 +900,7 @@ class TaskFlowInstance(models.Model):
     objects = TaskFlowInstanceManager()
 
     def __unicode__(self):
-        return u"%s_%s" % (self.business, self.pipeline_instance.name)
+        return u"%s_%s" % (self.project, self.pipeline_instance.name)
 
     class Meta:
         verbose_name = _(u"流程实例 TaskFlowInstance")
@@ -964,18 +965,20 @@ class TaskFlowInstance(models.Model):
 
     @property
     def template(self):
-        if self.template_source == 'business':
+        if self.template_source == ONETIME:
+            return None
+        elif self.template_source == PROJECT:
             return TaskTemplate.objects.get(pk=self.template_id)
         else:
             return CommonTemplate.objects.get(pk=self.template_id)
 
     @property
     def url(self):
-        return '%staskflow/execute/%s/?instance_id=%s' % (settings.APP_HOST, self.business.cc_id, self.id)
+        return '%staskflow/execute/%s/?instance_id=%s' % (settings.APP_HOST, self.project.id, self.id)
 
     @property
     def subprocess_info(self):
-        return self.pipeline_instance.template.subprocess_version_info
+        return self.pipeline_instance.template.subprocess_version_info if self.template else {}
 
     @property
     def raw_state(self):
@@ -995,10 +998,10 @@ class TaskFlowInstance(models.Model):
         status_tree.setdefault('children', {})
         status_tree.pop('created_time', '')
 
-        status_tree['start_time'] = strftime_with_timezone(status_tree.pop('started_time'))
-        status_tree['finish_time'] = strftime_with_timezone(status_tree.pop('archived_time'))
+        status_tree['start_time'] = format_datetime(status_tree.pop('started_time'))
+        status_tree['finish_time'] = format_datetime(status_tree.pop('archived_time'))
         child_status = []
-        for identifier_code, child_tree in status_tree['children'].iteritems():
+        for identifier_code, child_tree in status_tree['children'].items():
             TaskFlowInstance.format_pipeline_status(child_tree)
             child_status.append(child_tree['state'])
 
@@ -1028,7 +1031,7 @@ class TaskFlowInstance(models.Model):
         TaskFlowInstance.format_pipeline_status(status_tree)
         return status_tree
 
-    def get_node_data(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_data(self, node_id, username, component_code=None, subprocess_stack=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -1054,10 +1057,12 @@ class TaskFlowInstance(models.Model):
                     subprocess_stack=subprocess_stack,
                     root_pipeline_data=get_pipeline_context(self.pipeline_instance,
                                                             obj_type='instance',
-                                                            data_type='data'),
+                                                            data_type='data',
+                                                            username=username),
                     root_pipeline_context=get_pipeline_context(self.pipeline_instance,
                                                                obj_type='instance',
-                                                               data_type='context')
+                                                               data_type='context',
+                                                               username=username)
                 )
                 outputs = {}
             except Exception as e:
@@ -1124,7 +1129,7 @@ class TaskFlowInstance(models.Model):
         }
         return {'result': result, 'data': data, 'message': '' if result else data['ex_data']}
 
-    def get_node_detail(self, node_id, component_code=None, subprocess_stack=None):
+    def get_node_detail(self, node_id, username, component_code=None, subprocess_stack=None):
         if not self.has_node(node_id):
             message = 'node[node_id={node_id}] not found in task[task_id={task_id}]'.format(
                 node_id=node_id,
@@ -1132,7 +1137,7 @@ class TaskFlowInstance(models.Model):
             )
             return {'result': False, 'message': message, 'data': {}}
 
-        ret_data = self.get_node_data(node_id, component_code, subprocess_stack)
+        ret_data = self.get_node_data(node_id, username, component_code, subprocess_stack)
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:
@@ -1144,25 +1149,6 @@ class TaskFlowInstance(models.Model):
             TaskFlowInstance.format_pipeline_status(his)
         detail.update(ret_data['data'])
         return {'result': True, 'data': detail, 'message': ''}
-
-    def user_has_perm(self, user, perm):
-        """
-        @summary: 判断用户是否有操作当前流程权限
-        @param user:
-        @param perm: create_task、fill_params、execute_task
-        @return:
-        """
-        business = self.business
-        if user.is_superuser or user.has_perm('manage_business', business):
-            return True
-        if self.template_source == 'business':
-            template = TaskTemplate.objects.get(pk=self.template_id)
-            return user.has_perm(perm, template)
-        else:
-            perm = 'common_%s' % perm
-            template_perm, _ = CommonTmplPerm.objects.get_or_create(common_template_id=self.template_id,
-                                                                    biz_cc_id=self.business.cc_id)
-            return user.has_perm(perm, template_perm)
 
     def task_claim(self, username, constants, name):
         if self.flow_type != 'common_func':
@@ -1195,7 +1181,7 @@ class TaskFlowInstance(models.Model):
                 action_result = self.pipeline_instance.start(username)
                 if action_result.result:
                     taskflow_started.send(sender=self, username=username)
-                return {'result': action_result.result, 'data': action_result.message, 'message': action_result.message}
+                return {'result': action_result.result, 'message': action_result.message}
 
             except ConvergeMatchError as e:
                 message = u"task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id,
@@ -1283,7 +1269,7 @@ class TaskFlowInstance(models.Model):
     def reset_pipeline_instance_data(self, constants, name):
         exec_data = self.pipeline_tree
         try:
-            for key, value in constants.iteritems():
+            for key, value in constants.items():
                 if key in exec_data['constants']:
                     exec_data['constants'][key]['value'] = value
             self.pipeline_instance.set_execution_data(exec_data)
@@ -1351,8 +1337,8 @@ class TaskFlowInstance(models.Model):
     def get_task_detail(self):
         data = {
             'id': self.id,
-            'business_id': int(self.business.cc_id),
-            'business_name': self.business.cc_name,
+            'project_id': int(self.project.id),
+            'project_name': self.project.name,
             'name': self.name,
             'create_time': format_datetime(self.create_time),
             'creator': self.creator,

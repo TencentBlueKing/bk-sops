@@ -10,23 +10,26 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import functools
+
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST, require_GET
 
+from auth_backend.plugins.decorators import verify_perms
+
+from gcloud.contrib.analysis.permissions import statistics_resource
 from gcloud.core.constant import AE
 from gcloud.core.constant import TASK_CATEGORY
-from gcloud.core.decorators import check_is_superuser
 from gcloud.core.utils import check_and_rename_params
 from gcloud.contrib.analysis.analyse_items import app_maker, task_flow_instance, task_template
 
 
-@check_is_superuser()
 @require_GET
 def get_task_category(request):
     """
-    @summary 获取所有模板列表
+    @summary 获取所有模板分类列表
     :param request:
     :return:
     """
@@ -39,7 +42,7 @@ def get_task_category(request):
     return JsonResponse({'result': True, 'data': groups})
 
 
-@check_is_superuser()
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 def analysis_home(request):
     """
     @param request:
@@ -76,8 +79,8 @@ def standardize_params(func):
     return wrapper
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 @standardize_params
 def query_instance_by_group(*args):
     """
@@ -88,8 +91,8 @@ def query_instance_by_group(*args):
     return success, content
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 @standardize_params
 def query_template_by_group(*args):
     """
@@ -100,8 +103,8 @@ def query_template_by_group(*args):
     return success, content
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 @standardize_params
 def query_atom_by_group(*args):
     """
@@ -120,8 +123,8 @@ def query_atom_by_group(*args):
     return success, content
 
 
-@check_is_superuser()
 @require_POST
+@verify_perms(auth_resource=statistics_resource, resource_get=None, actions=[statistics_resource.actions.view])
 @standardize_params
 def query_appmaker_by_group(*args):
     """

@@ -67,15 +67,15 @@ class TestComponent(TestCase):
     def test_outputs_format(self):
         outputs_format = self.component({}).outputs_format()
         self.assertEqual(outputs_format, [
-            {'name': 'key_1', 'key': 'key_1', 'type': 'int'},
-            {'name': 'key_2', 'key': 'key_2', 'type': 'str'}
+            {'name': 'key_1', 'key': 'key_1', 'type': 'int', 'schema': {}},
+            {'name': 'key_2', 'key': 'key_2', 'type': 'str', 'schema': {}}
         ])
 
     def test_inputs_format(self):
         inputs_format = self.component({}).inputs_format()
         self.assertEqual(inputs_format, [
-            {'name': 'key_3', 'key': 'key_3', 'type': 'int', 'required': True},
-            {'name': 'key_4', 'key': 'key_4', 'type': 'int', 'required': False}
+            {'name': 'key_3', 'key': 'key_3', 'type': 'int', 'required': True, 'schema': {}},
+            {'name': 'key_4', 'key': 'key_4', 'type': 'int', 'required': False, 'schema': {}}
         ])
 
     def test_clean_execution_data(self):

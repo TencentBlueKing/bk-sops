@@ -59,7 +59,7 @@
                                 <bk-option
                                     v-for="(option, index) in taskCategory"
                                     :key="index"
-                                    :id="option.id"
+                                    :id="option.value"
                                     :name="option.name">
                                 </bk-option>
                             </bk-select>
@@ -136,11 +136,20 @@
                     <bk-table-column label="ID" prop="id" width="80"></bk-table-column>
                     <bk-table-column :label="i18n.task_name" prop="name">
                         <template slot-scope="props">
-                            <router-link
-                                class="task-name"
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, taskOperations)"
+                                v-cursor
+                                class="text-permission-disable"
                                 :title="props.row.name"
-                                :to="`/taskflow/execute/${cc_id}/?instance_id=${props.row.id}`">
-                                {{ props.row.name }}
+                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                {{props.row.name}}
+                            </a>
+                            <router-link
+                                v-else
+                                class="template-operate-btn"
+                                :title="props.row.name"
+                                :to="`/taskflow/execute/${project_id}/?instance_id=${props.row.id}`">
+                                {{props.row.name}}
                             </router-link>
                         </template>
                     </bk-table-column>
@@ -178,15 +187,21 @@
                         <template slot-scope="props">
                             <div class="task-operation">
                                 <a
-                                    class="task-operation-clone"
+                                    v-cursor="{ active: !hasPermission(['clone'], props.row.auth_actions, taskOperations) }"
+                                    :class="['task-operation-clone', {
+                                        'text-permission-disable': !hasPermission(['clone'], props.row.auth_actions, taskOperations)
+                                    }]"
                                     href="javascript:void(0);"
-                                    @click.prevent="onCloneTaskClick(props.row.id, props.row.name)">
+                                    @click="onCloneTaskClick(props.row, $event)">
                                     {{ i18n.clone }}
                                 </a>
                                 <a
-                                    class="task-operation-delete"
+                                    v-cursor="{ active: !hasPermission(['delete'], props.row.auth_actions, taskOperations) }"
+                                    :class="['task-operation-delete', {
+                                        'text-permission-disable': !hasPermission(['delete'], props.row.auth_actions, taskOperations)
+                                    }]"
                                     href="javascript:void(0);"
-                                    @click.prevent="onDeleteTask(props.row.id, props.row.name)">
+                                    @click="onDeleteTask(props.row, $event)">
                                     {{ i18n.delete }}
                                 </a>
                             </div>
@@ -198,11 +213,11 @@
         </div>
         <CopyrightFooter></CopyrightFooter>
         <TaskCreateDialog
+            type="normal"
             :common="common"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :is-new-task-dialog-show="isNewTaskDialogShow"
             :business-info-loading="businessInfoLoading"
-            :create-entrance="true"
             :task-category="taskCategory"
             @onCreateTaskCancel="onCreateTaskCancel">
         </TaskCreateDialog>
@@ -241,6 +256,8 @@
     import NoData from '@/components/common/base/NoData.vue'
     import moment from 'moment-timezone'
     import TaskCloneDialog from './TaskCloneDialog.vue'
+    import permission from '@/mixins/permission.js'
+
     export default {
         name: 'TaskList',
         components: {
@@ -251,7 +268,21 @@
             TaskCreateDialog,
             TaskCloneDialog
         },
-        props: ['cc_id', 'common', 'create_method'],
+        mixins: [permission],
+        props: {
+            project_id: {
+                type: String,
+                default: ''
+            },
+            common: {
+                type: String,
+                default: ''
+            },
+            create_method: {
+                type: String,
+                default: ''
+            }
+        },
         data () {
             return {
                 listLoading: true,
@@ -276,6 +307,8 @@
                     delete: false,
                     clone: false
                 },
+                taskOperations: [],
+                taskResource: {},
                 i18n: {
                     allCategory: gettext('全部'),
                     placeholder: gettext('请输入ID或任务名称'),
@@ -342,8 +375,10 @@
         },
         computed: {
             ...mapState({
-                taskList: state => state.taskList.taskListData,
-                businessTimezone: state => state.businessTimezone
+                taskList: state => state.taskList.taskListData
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             })
         },
         created () {
@@ -352,7 +387,7 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadBusinessBaseInfo'
+                'loadProjectBaseInfo'
             ]),
             ...mapActions('task/', [
                 'getInstanceStatus',
@@ -364,7 +399,7 @@
                 'cloneTask'
             ]),
             ...mapMutations('template/', [
-                'setBusinessBaseInfo'
+                'setProjectBaseInfo'
             ]),
             ...mapMutations('taskList/', [
                 'setTaskListData'
@@ -382,7 +417,6 @@
                         offset: (this.pagination.current - 1) * this.pagination.limit,
                         category: this.activeTaskCategory,
                         template_id: this.templateId,
-                        common: this.common,
                         pipeline_instance__creator__contains: this.creator,
                         pipeline_instance__executor__contains: this.executor,
                         pipeline_instance__name__contains: this.flowName,
@@ -390,18 +424,22 @@
                         pipeline_instance__is_finished: this.isFinished,
                         create_method: this.createMethod || undefined
                     }
+
                     if (this.executeEndTime) {
                         if (this.common) {
                             data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['pipeline_instance__start_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const taskListData = await this.loadTaskList(data)
                     const list = taskListData.objects
                     this.pagination.count = taskListData.meta.total_count
+                    this.totalCount = taskListData.meta.total_count
+                    this.taskOperations = taskListData.meta.auth_operations
+                    this.taskResource = taskListData.meta.auth_resource
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
                         this.totalPage = 1
@@ -410,6 +448,7 @@
                     }
                     this.executeStatus = list.map((item, index) => {
                         const status = {}
+                        
                         if (item.is_finished) {
                             status.cls = 'finished bk-icon icon-check-circle-shape'
                             status.text = gettext('完成')
@@ -432,7 +471,7 @@
             async getExecuteDetail (task, index) {
                 const data = {
                     instance_id: task.id,
-                    cc_id: task.business.cc_id
+                    project_id: task.project.id
                 }
                 try {
                     const detailInfo = await this.getInstanceStatus(data)
@@ -474,9 +513,9 @@
             },
             async getBizBaseInfo () {
                 try {
-                    const bizBasicInfo = await this.loadBusinessBaseInfo()
-                    this.taskCategory = bizBasicInfo.task_categories.map(m => ({ id: m.value, name: m.name }))
-                    this.setBusinessBaseInfo(bizBasicInfo)
+                    const projectBasicInfo = await this.loadProjectBaseInfo()
+                    this.taskCategory = projectBasicInfo.task_categories
+                    this.setProjectBaseInfo(projectBasicInfo)
                     this.taskBasicInfoLoading = false
                 } catch (e) {
                     errorHandler(e, this)
@@ -491,9 +530,23 @@
                 this.pagination.current = 1
                 this.getTaskList()
             },
-            onDeleteTask (id, name) {
-                this.theDeleteTaskId = id
-                this.theDeleteTaskName = name
+            /**
+             * 单个任务操作项点击时校验
+             * @params {Array} required 需要的权限
+             * @params {Object} task 任务数据对象
+             * @params {Object} event 事件对象
+             */
+            onTaskPermissonCheck (required, task, event) {
+                this.applyForPermission(required, task, this.taskOperations, this.taskResource)
+                event.preventDefault()
+            },
+            onDeleteTask (task, event) {
+                if (!this.hasPermission(['delete'], task.auth_actions, this.taskOperations)) {
+                    this.onTaskPermissonCheck(['delete'], task, event)
+                    return
+                }
+                this.theDeleteTaskId = task.id
+                this.theDeleteTaskName = task.name
                 this.isDeleteDialogShow = true
             },
             async onDeleteConfirm () {
@@ -524,10 +577,14 @@
                 this.theDeleteTaskName = ''
                 this.isDeleteDialogShow = false
             },
-            onCloneTaskClick (id, name) {
+            onCloneTaskClick (task, event) {
+                if (!this.hasPermission(['clone'], task.auth_actions, this.taskOperations)) {
+                    this.onTaskPermissonCheck(['clone'], task, event)
+                    return
+                }
                 this.isTaskCloneDialogShow = true
-                this.theCloneTaskId = id
-                this.theCloneTaskName = name
+                this.theCloneTaskId = task.id
+                this.theCloneTaskName = task.name
             },
             async onCloneConfirm (name) {
                 if (this.pending.clone) return
@@ -538,7 +595,7 @@
                 }
                 try {
                     const data = await this.cloneTask(config)
-                    this.$router.push({ path: `/taskflow/execute/${this.cc_id}/`, query: { instance_id: data.data.new_instance_id } })
+                    this.$router.push({ path: `/taskflow/execute/${this.project_id}/`, query: { instance_id: data.data.new_instance_id } })
                 } catch (e) {
                     errorHandler(e, this)
                 }
@@ -698,7 +755,7 @@
         }
         .common-icon-dark-circle-close {
             color: $redDefault;
-            font-size: 16px;
+            font-size: 14px;
             vertical-align: middle;
         }
         &.revoke {
@@ -736,6 +793,9 @@
     }
     .empty-data {
         padding: 120px 0;
+    }
+    .template-operate-btn {
+        color: $blueDefault;
     }
 }
 .panagation {

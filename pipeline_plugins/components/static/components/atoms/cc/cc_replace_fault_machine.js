@@ -12,6 +12,33 @@
 (function () {
     $.atoms.cc_replace_fault_machine = [
         {
+            tag_code: "biz_cc_id",
+            type: "select",
+            attrs: {
+                name: gettext("业务"),
+                hookable: true,
+                remote: true,
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
+                remote_data_init: function (resp) {
+                    return resp.data;
+                },
+                disabled: !$.context.canSelectBiz(),
+                validation: [
+                    {
+                        type: "required"
+                    }
+                ]
+            },
+            methods: {
+                _tag_init: function () {
+                    if (this.value) {
+                        return
+                    }
+                    this._set_value($.context.getBkBizId())
+                }
+            }
+        },
+        {
             tag_code: "cc_host_replace_detail",
             type: "datatable",
             attrs: {

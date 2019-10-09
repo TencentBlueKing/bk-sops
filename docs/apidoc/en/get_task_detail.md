@@ -19,6 +19,7 @@ Query a task execution details
 |---------------|------------|--------|------------------|
 |   bk_biz_id   |   string   |   YES   |  the business ID             |
 |   task_id     |   string   |   YES   |  the task ID   |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
@@ -137,8 +138,8 @@ Query a task execution details
                         }
                     },
                     "stage_name": "stage1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": false,
                     "id": "node9b5ae13799d63e179f0ce3088b62",
@@ -154,8 +155,8 @@ Query a task execution details
                         "data": {}
                     },
                     "stage_name": "stage1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": true,
                     "id": "node880ded556c6c3c269be3cedc64b6",
@@ -301,12 +302,12 @@ Query a task execution details
 |  task_url     |    str     |    task instance url     |
 |  pipeline_tree     |    dict     |    task pipeline tree     |
 
-#### data.constants.KEY
+#### data.constants KEY
 
 KEY, the format is like ${key}
 
 
-#### data.constants.VALUE
+#### data.constants VALUE
 | Field      | Type      | Description      |
 | ------------ | ---------- | ------------------------------ |
 |  key      |    string    |      same with KEY     |

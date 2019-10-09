@@ -1,0 +1,27 @@
+@mixin common-input-error {
+    &{
+        position: relative;
+    }
+    &.error-border {
+        border:1px double #ea3636;
+        &:hover {
+            border-color: #ea3636;
+        }
+    }
+    &[aria-invalid="true"] + .common-error-tip{
+        display: inline-block;
+    }
+    & > input[aria-invalid="true"] + .common-error-tip {
+        display: inline-block;
+    }
+}
+.common-error-tip {
+    display: none;
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    margin-top: -6px;
+    height: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+}

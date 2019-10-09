@@ -20,7 +20,6 @@ from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_GET
 
 from gcloud.conf import settings
-from gcloud.core.decorators import check_user_perm_of_business
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.schema import APP_MAKER_PARAMS_SCHEMA
 from gcloud.core.utils import check_and_rename_params
@@ -29,8 +28,7 @@ from gcloud.contrib.analysis.analyse_items import app_maker
 logger = logging.getLogger("root")
 
 
-@check_user_perm_of_business('manage_business')
-def save(request, biz_cc_id):
+def save(request, project_id):
     """
     @summary: 创建或编辑app maker
     @param:
@@ -79,9 +77,7 @@ def save(request, biz_cc_id):
         params['link_prefix'] = '%sappmaker/' % settings.APP_HOST
         fake = False
 
-    result, data = AppMaker.objects.save_app_maker(
-        biz_cc_id, params, fake
-    )
+    result, data = AppMaker.objects.save_app_maker(project_id, params, fake)
     if not result:
         return JsonResponse({'result': False, 'message': data})
 
@@ -94,12 +90,12 @@ def save(request, biz_cc_id):
 
 
 @require_GET
-def get_appmaker_count(request, biz_cc_id):
+def get_appmaker_count(request, project_id):
     group_by = request.GET.get('group_by', 'category')
     result_dict = check_and_rename_params('{}', group_by)
     if not result_dict['success']:
         return JsonResponse({'result': False, 'message': result_dict['content']})
-    filters = {'is_deleted': False, 'business__cc_id': biz_cc_id}
+    filters = {'is_deleted': False, 'project_id': project_id}
     success, content = app_maker.dispatch(result_dict['group_by'], filters)
     if not success:
         return JsonResponse({'result': False, 'message': content})

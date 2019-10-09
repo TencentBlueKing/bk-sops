@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="config-wrapper" v-bkloading="{ isLoading: businessInfoLoading, opacity: 1 }">
+    <div class="config-wrapper" v-bkloading="{ isLoading: projectInfoLoading, opacity: 1 }">
         <div class="config-title">
             <span>{{i18n.basic_information}}</span>
         </div>
@@ -47,7 +47,7 @@
         <div class="common-form-item hide">
             <label>{{ i18n.timeout }}</label>
             <div class="common-form-content">
-                <BaseInput :value="timeout" @input="onChangeTimeout" />
+                <bk-input :value="timeout" @input="onChangeTimeout" />
             </div>
         </div>
         <div class="common-form-item">
@@ -69,13 +69,9 @@
 <script>
     import '@/utils/i18n.js'
     import { mapState, mapMutations } from 'vuex'
-    import BaseInput from '@/components/common/base/BaseInput.vue'
     export default {
         name: 'TabTemplateConfig',
-        components: {
-            BaseInput
-        },
-        props: ['businessInfoLoading', 'isTemplateConfigValid'],
+        props: ['projectInfoLoading', 'isTemplateConfigValid'],
         data () {
             return {
                 i18n: {
@@ -91,12 +87,12 @@
         },
         computed: {
             ...mapState({
-                'businessBaseInfo': state => state.template.businessBaseInfo,
+                'projectBaseInfo': state => state.template.projectBaseInfo,
                 'timeout': state => state.template.time_out
             }),
             notifyGroup () {
-                if (this.businessBaseInfo.notify_group) {
-                    return this.businessBaseInfo.notify_group.map(item => {
+                if (this.projectBaseInfo.notify_group) {
+                    return this.projectBaseInfo.notify_group.map(item => {
                         return {
                             id: item.value,
                             name: item.text
@@ -106,8 +102,8 @@
                 return []
             },
             notifyTypeList () {
-                if (this.businessBaseInfo.notify_type_list) {
-                    return this.businessBaseInfo.notify_type_list.map(item => {
+                if (this.projectBaseInfo.notify_type_list) {
+                    return this.projectBaseInfo.notify_type_list.map(item => {
                         return {
                             id: item.value,
                             name: item.name
@@ -117,8 +113,8 @@
                 return []
             },
             taskCategories () {
-                if (this.businessBaseInfo.task_categories) {
-                    return this.businessBaseInfo.task_categories.map(item => {
+                if (this.projectBaseInfo.task_categories) {
+                    return this.projectBaseInfo.task_categories.map(item => {
                         return {
                             id: item.value,
                             name: item.name
@@ -193,6 +189,7 @@
     }
     .common-form-item > label {
         width: 70px;
+        font-size: 12px;
         font-weight: normal;
     }
     .common-form-content {
@@ -206,11 +203,11 @@
         font-size: 14px;
     }
     .bk-form-checkbox {
+        margin: 0 30px 0 0;
         min-width: 96px;
-        margin-left: 0px;
-        margin-right: 30px;
-        .bk-checkbox-text {
+        /deep/ .bk-checkbox-text {
             color: $greyDefault;
+            font-size: 12px;
         }
     }
     .hide {

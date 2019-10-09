@@ -10,22 +10,40 @@
 * specific language governing permissions and limitations under the License.
 */
 import bus from '@/utils/bus.js'
+import store from '@/store/index.js'
 
 /**
  * 兼容之前版本的标准插件配置项里的异步请求
  * @param {String} site_url
- * @param {String} BIZ_CC_ID
+ * @param {Object} project
  */
-export function setAtomConfigApiUrls (SITE_URL, BIZ_CC_ID) {
+export function setConfigContext (site_url, project) {
     $.context = {
-        site_url: SITE_URL,
-        biz_cc_id: BIZ_CC_ID,
-        homelist: SITE_URL + 'template/home/' + BIZ_CC_ID + '/',
-        component: SITE_URL + 'api/v3/component/',
-        variable: SITE_URL + 'api/v3/variable/',
-        template: SITE_URL + 'api/v3/template/',
-        subform: SITE_URL + 'template/api/form/' + BIZ_CC_ID + '/',
-        instance: SITE_URL + 'api/v3/taskflow/'
+        project: project || undefined,
+        biz_cc_id: project ? (project.from_cmdb ? project.bk_biz_id : undefined) : undefined,
+        site_url: site_url,
+        component: site_url + 'api/v3/component/',
+        variable: site_url + 'api/v3/variable/',
+        template: site_url + 'api/v3/template/',
+        instance: site_url + 'api/v3/taskflow/',
+        get (attr) { // 获取 $.context 对象上属性
+            return $.context[attr]
+        },
+        getBkBizId () { // 项目来自 cmdb，则获取对应的业务 id
+            if ($.context.project) {
+                return $.context.project.from_cmdb ? $.context.project.bk_biz_id : ''
+            }
+            return ''
+        },
+        canSelectBiz () { // 是否可以选择业务
+            if ($.context.project) {
+                return !$.context.project.from_cmdb
+            }
+            return true
+        },
+        getConstants () { // 获取流程模板下的全局变量
+            return store.state.template.constants
+        }
     }
 }
 
@@ -64,6 +82,11 @@ export function setJqueryAjaxConfig () {
             },
             406: function (xhr) {
                 bus.$emit('showErrorModal', '406')
+            },
+            499: function (xhr) {
+                const resData = JSON.parse(xhr.responseText)
+                const permission = resData.permission
+                bus.$emit('showPermissionModal', permission)
             },
             500: function (xhr, textStatus) {
                 bus.$emit('showErrorModal', '500', xhr.responseText)

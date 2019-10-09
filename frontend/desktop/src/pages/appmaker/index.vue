@@ -60,7 +60,9 @@
                         v-for="item in appList"
                         :key="item.id"
                         :app-data="item"
-                        :cc_id="cc_id"
+                        :app-resource="appResource"
+                        :app-operations="appOperations"
+                        :project_id="project_id"
                         @onCardEdit="onCardEdit"
                         @onCardDelete="onCardDelete"
                         @onOpenPermissions="onOpenPermissions" />
@@ -75,7 +77,7 @@
         <AppEditDialog
             :is-edit-dialog-show="isEditDialogShow"
             :is-create-new-app="isCreateNewApp"
-            :cc_id="cc_id"
+            :project_id="project_id"
             :current-app-data="currentAppData"
             @onEditConfirm="onEditConfirm"
             @onEditCancel="onEditCancel">
@@ -149,7 +151,7 @@
             AppEditDialog,
             AdvanceSearch
         },
-        props: ['cc_id', 'common'],
+        props: ['project_id', 'common'],
         data () {
             return {
                 loading: true,
@@ -175,6 +177,8 @@
                     edit: false,
                     delete: false
                 },
+                appOperations: [],
+                appResource: {},
                 i18n: {
                     title: gettext('轻应用'),
                     addApp: gettext('新建'),
@@ -197,8 +201,8 @@
             }
         },
         computed: {
-            ...mapState({
-                'businessTimezone': state => state.businessTimezone
+            ...mapState('project', {
+                'timeZone': state => state.timezone
             }),
             appList () {
                 return this.searchMode ? this.searchList : this.list
@@ -230,11 +234,13 @@
                         editor: this.editor || undefined
                     }
                     if (this.editEndTime) {
-                        data['edit_time__gte'] = moment.tz(this.editStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                        data['edit_time__lte'] = moment.tz(this.editEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                        data['edit_time__gte'] = moment.tz(this.editStartTime, this.timeZone).format('YYYY-MM-DD')
+                        data['edit_time__lte'] = moment.tz(this.editEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                     }
                     const resp = await this.loadAppmaker(data)
                     this.list = resp.objects
+                    this.appOperations = resp.meta.auth_operations
+                    this.appResource = resp.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -403,7 +409,7 @@
         }
     }
     .operation-wrapper {
-        margin: 18px 0 20px;
+        margin: 20px 0px;
         .bk-button {
             width: 120px;
             height: 32px;
@@ -485,21 +491,11 @@
                 input:-ms-input-placeholder {
                     color: $formBorderColor;
                 }
-                input, .bk-selector, .bk-date-range {
+                input{
                     min-width: 260px;
                 }
                 .bk-selector-search-item > input {
                     min-width: 249px;
-                }
-                .bk-date-range {
-                    display: inline-block;
-                    width: 260px;
-                    height: 32px;
-                    line-height: 32px;
-                }
-                /deep/ .bk-date-range input {
-                    height: 32px;
-                    line-height: 32px;
                 }
                 .search-input {
                     width: 260px;

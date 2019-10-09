@@ -26,8 +26,9 @@ from tastypie.resources import (
     convert_post_to_patch
 )
 
+from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
+
 from gcloud.webservice3.resources import (
-    SuperAuthorization,
     GCloudModelResource,
     AppSerializer,
 )
@@ -38,6 +39,7 @@ from gcloud.external_plugins.models import (
     SyncTask,
     RUNNING
 )
+from gcloud.core.permissions import admin_operate_resource
 
 from gcloud.external_plugins.schemas import ADD_SOURCE_SCHEMA, UPDATE_SOURCE_SCHEMA
 
@@ -98,6 +100,13 @@ class PackageSourceResource(Resource):
         return filters
 
     def obj_get_list(self, bundle, **kwargs):
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=admin_operate_resource,
+                                           action_ids=[admin_operate_resource.actions.view.id],
+                                           instance=None)
+
         filters = {}
 
         if hasattr(bundle.request, 'GET'):
@@ -115,6 +124,13 @@ class PackageSourceResource(Resource):
             raise BadRequest('Invalid resource lookup params provided')
 
     def obj_create(self, bundle, **kwargs):
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=admin_operate_resource,
+                                           action_ids=[admin_operate_resource.actions.edit.id],
+                                           instance=None)
+
         try:
             origins = bundle.data.pop('origins')
             caches = bundle.data.pop('caches')
@@ -169,6 +185,7 @@ class PackageSourceResource(Resource):
                                                          **base_kwargs)
 
     def patch_list(self, request, **kwargs):
+
         request = convert_post_to_patch(request)
         deserialized = self.deserialize(request,
                                         request.body,
@@ -177,6 +194,13 @@ class PackageSourceResource(Resource):
         return self.obj_update(bundle)
 
     def obj_update(self, bundle, skip_errors=False, **kwargs):
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=admin_operate_resource,
+                                           action_ids=[admin_operate_resource.actions.edit.id],
+                                           instance=None)
+
         try:
             origins = bundle.data.pop('origins')
             caches = bundle.data.pop('caches')
@@ -270,6 +294,13 @@ class PackageSourceResource(Resource):
         raise NotFound("Invalid resource uri, please use obj_get_list")
 
     def obj_delete_list(self, bundle, **kwargs):
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=admin_operate_resource,
+                                           action_ids=[admin_operate_resource.actions.edit.id],
+                                           instance=None)
+
         with transaction.atomic():
             caches = CachePackageSource.objects.all()
             # 需要单独调用自定义 delete 方法
@@ -309,7 +340,7 @@ class SyncTaskResource(GCloudModelResource):
     class Meta:
         queryset = SyncTask.objects.all()
         resource_name = 'sync_task'
-        authorization = SuperAuthorization()
+        # authorization = SuperAuthorization()
         always_return_data = True
         serializer = AppSerializer()
         filtering = {
@@ -323,7 +354,23 @@ class SyncTaskResource(GCloudModelResource):
         q_fields = ["id", "pipeline_template__name"]
         limit = 0
 
+    def obj_get_list(self, bundle, **kwargs):
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=admin_operate_resource,
+                                           action_ids=[admin_operate_resource.actions.view.id],
+                                           instance=None)
+
+        return super(SyncTaskResource, self).obj_get_list(bundle, **kwargs)
+
     def obj_create(self, bundle, **kwargs):
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=admin_operate_resource,
+                                           action_ids=[admin_operate_resource.actions.edit.id],
+                                           instance=None)
+
         model = bundle.obj.__class__
         if model.objects.filter(status=RUNNING).exists():
             raise BadRequest('There is already a running sync task, please wait for it to complete and try again')

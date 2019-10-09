@@ -18,6 +18,7 @@ from django.utils import timezone
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from pipeline.engine import api
+from pipeline.constants import PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.gateway import ParallelGateway, ExclusiveGateway
 from pipeline.engine.models import (Status,
@@ -29,6 +30,7 @@ from pipeline.engine.models import (Status,
                                     ProcessCeleryTask)
 from pipeline.engine import exceptions, states
 from pipeline.engine.utils import calculate_elapsed_time
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
@@ -114,9 +116,20 @@ class TestEngineAPI(TestCase):
 
             PipelineProcess.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance)
 
-            PipelineModel.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance, process)
+            PipelineModel.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance, process,
+                                                                               PIPELINE_DEFAULT_PRIORITY)
 
             PipelineModel.objects.pipeline_ready.assert_called_once_with(process_id=process.id)
+
+    @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
+    @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    def test_start_pipeline__raise_invalid_operation(self):
+        pipeline_instance = 'pipeline_instance'
+
+        self.assertRaises(exceptions.InvalidOperationException, api.start_pipeline, pipeline_instance,
+                          priority=PIPELINE_MAX_PRIORITY + 1)
+        self.assertRaises(exceptions.InvalidOperationException, api.start_pipeline, pipeline_instance,
+                          priority=PIPELINE_MIN_PRIORITY - 1)
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))
@@ -316,7 +329,6 @@ class TestEngineAPI(TestCase):
         act_result = api.retry_node(self.node_id)
 
         self.assertFalse(act_result.result)
-        self.assertEqual(act_result.message, 'can\'t not retry a subprocess or this process has been revoked')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -329,7 +341,6 @@ class TestEngineAPI(TestCase):
             act_result = api.retry_node(self.node_id)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'can\'t retry this type of node')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -338,18 +349,17 @@ class TestEngineAPI(TestCase):
         # with service activity
         top_pipeline = PipelineObject(nodes={self.node_id: ServiceActivity(id=self.node_id,
                                                                            service=None,
-                                                                           can_retry=False)})
+                                                                           retryable=False)})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
         with patch(PIPELINE_PROCESS_GET, MagicMock(return_value=process)):
             act_result = api.retry_node(self.node_id)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'the node is set to not be retried, try skip it please.')
 
         # with parallel gateway
         pg = ParallelGateway(id=self.node_id, converge_gateway_id=uniqid())
-        setattr(pg, 'can_retry', False)
+        setattr(pg, 'retryable', False)
         top_pipeline = PipelineObject(nodes={self.node_id: pg})
         process = MockPipelineProcess(top_pipeline=top_pipeline)
 
@@ -357,7 +367,6 @@ class TestEngineAPI(TestCase):
             act_result = api.retry_node(self.node_id)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'the node is set to not be retried, try skip it please.')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -378,7 +387,6 @@ class TestEngineAPI(TestCase):
                                                          None)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'retry fail')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -411,7 +419,6 @@ class TestEngineAPI(TestCase):
         act_result = api.skip_node(self.node_id)
 
         self.assertFalse(act_result.result)
-        self.assertEqual(act_result.message, 'can\'t not skip a subprocess or this process has been revoked')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -424,7 +431,6 @@ class TestEngineAPI(TestCase):
             act_result = api.skip_node(self.node_id)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'can\'t skip this type of node')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -439,7 +445,6 @@ class TestEngineAPI(TestCase):
             act_result = api.skip_node(self.node_id)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'this node can not be skipped')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -459,7 +464,6 @@ class TestEngineAPI(TestCase):
                                                         node)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'skip fail')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -498,8 +502,6 @@ class TestEngineAPI(TestCase):
         act_result = api.skip_exclusive_gateway(self.node_id, uniqid())
 
         self.assertFalse(act_result.result)
-        self.assertEqual(act_result.message,
-                         'invalid operation, this gateway is finished or pipeline have been revoked')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -512,7 +514,6 @@ class TestEngineAPI(TestCase):
             act_result = api.skip_exclusive_gateway(self.node_id, uniqid())
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'invalid operation, this node is not a exclusive gateway')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -532,7 +533,6 @@ class TestEngineAPI(TestCase):
             Status.objects.skip.assert_called_once_with(process, eg)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'skip fail')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -679,8 +679,6 @@ class TestEngineAPI(TestCase):
             ScheduleService.objects.schedule_for.assert_called_once_with(self.node_id, self.version)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message,
-                             'invalid operation, this node is finished or pipeline have been revoked')
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
@@ -748,7 +746,6 @@ class TestEngineAPI(TestCase):
         act_result = api.forced_fail(self.node_id)
 
         self.assertFalse(act_result.result)
-        self.assertEqual(act_result.message, 'invalid operation, this node is finished or pipeline have been revoked')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -760,7 +757,6 @@ class TestEngineAPI(TestCase):
             act_result = api.forced_fail(self.node_id, uniqid())
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'can\'t not forced fail this type of node')
 
     @patch(PIPELINE_STATUS_GET, MagicMock())
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
@@ -775,7 +771,6 @@ class TestEngineAPI(TestCase):
             act_result = api.forced_fail(self.node_id)
 
             self.assertFalse(act_result.result)
-            self.assertEqual(act_result.message, 'transit fail')
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))

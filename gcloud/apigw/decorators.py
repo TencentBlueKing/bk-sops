@@ -11,246 +11,177 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
-import sys
 from functools import wraps
 
+import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.decorators import available_attrs
 
-from gcloud.commons.template.models import CommonTemplate, CommonTmplPerm
-from gcloud.core.models import Business
-from gcloud.core.utils import prepare_user_business
-from gcloud.commons.template.constants import PermNm
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.conf import settings
+from auth_backend.plugins.shortcuts import verify_or_raise_auth_failed
 
-if not sys.argv[1:2] == ['test'] and settings.USE_BK_OAUTH:
-    try:
-        from bkoauth.decorators import apigw_required
-    except ImportError:
-        apigw_required = None
-else:
-    apigw_required = None
+from gcloud.conf import settings
+from gcloud.core.models import Project
+from gcloud.core.permissions import project_resource
+from gcloud.apigw.utils import get_project_with
+from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
+from gcloud.apigw.exceptions import UserNotExistError
 
 WHITE_APPS = {'bk_fta', 'bk_bcs'}
 WHETHER_PREPARE_BIZ = getattr(settings, 'WHETHER_PREPARE_BIZ_IN_API_CALL', True)
 
 
 def check_white_apps(request):
-    if apigw_required is not None:
-        app_code = request.jwt.app.app_code
-    else:
-        app_code = request.META.get('HTTP_BK_APP_CODE')
+    app_code = getattr(request.jwt.app, settings.APIGW_APP_CODE_KEY)
     if app_code in WHITE_APPS:
         return True
     return False
 
 
-def is_request_from_trust_apps_and_inject_user(request, prepare_biz=False):
-    result = check_white_apps(request)
-    if result:
-        if apigw_required is not None:
-            username = request.jwt.user.username
-        else:
-            username = request.META.get('HTTP_BK_USERNAME')
-        user_model = get_user_model()
-        user, _ = user_model.objects.get_or_create(username=username)
-        setattr(request, 'user', user)
-        if prepare_biz:
-            prepare_user_business(request)
-
-    return result
-
-
-def business_exist(kwargs):
-    bk_biz_id = kwargs.get('bk_biz_id')
-    try:
-        Business.objects.get(cc_id=bk_biz_id)
-    except Business.DoesNotExist:
-        return False
-
-    return True
-
-
-def get_user_and_biz_info_and_inject_user(request, kwargs, prepare_biz=False):
-    if apigw_required is not None:
-        username = request.jwt.user.username
-    else:
-        username = request.META.get('HTTP_BK_USERNAME')
+def inject_user(request):
+    username = getattr(request.jwt.user, settings.APIGW_USER_USERNAME_KEY)
     user_model = get_user_model()
     try:
         user = user_model.objects.get(username=username)
     except user_model.DoesNotExist:
-        result = {
-            'result': False,
-            'message': 'user[username=%s] does not exist or has not logged in this APP' % username
-        }
-        return result
+        if request.is_trust:
+            user, _ = user_model.objects.get_or_create(username=username)
+        else:
+            raise UserNotExistError('user[username=%s] does not exist or has not logged in this APP' % username)
 
     setattr(request, 'user', user)
-    if prepare_biz:
-        prepare_user_business(request)
-
-    bk_biz_id = kwargs.get('bk_biz_id')
-    try:
-        biz = Business.objects.get(cc_id=bk_biz_id)
-    except Business.DoesNotExist:
-        result = {
-            'result': False,
-            'message': 'business[bk_biz_id=%s] does not exist' % bk_biz_id
-        }
-        return result
-
-    result = {
-        'result': True,
-        'data': {
-            'user': user,
-            'biz': biz
-        }
-    }
-    return result
 
 
-def check_user_has_perm_of_template(user, perm, biz, template_source, template_id):
-    """
-    @summary: 判断用户是否有流程模板/公共流程权限
-    @param user:
-    @param perm:
-    @param biz:
-    @param template_source: business or common
-    @param template_id:
-    @return:
-    """
-    # 通过业务流程模板创建任务
-    if template_source == 'business':
+def mark_request_whether_is_trust(view_func):
+    @wraps(view_func, assigned=available_attrs(view_func))
+    def wrapper(request, *args, **kwargs):
+
+        setattr(request, 'is_trust', check_white_apps(request))
+
         try:
-            tmpl = TaskTemplate.objects.get(id=template_id, business=biz, is_deleted=False)
-        except TaskTemplate.DoesNotExist:
-            result = {
+            inject_user(request)
+        except UserNotExistError as e:
+            return JsonResponse({
                 'result': False,
-                'message': 'template[id=%s] does not exist' % template_id
-            }
-            return result
-        if not user.has_perm(perm, tmpl):
-            result = {
-                'result': False,
-                'message': ('user[username={username}] does not have perm[perm={perm}] '
-                            'of template[id={template_id}]').format(username=user.username,
-                                                                    perm=perm,
-                                                                    template_id=template_id)
-            }
-            return result
-    # 公共流程
+                'message': e.message
+            })
+
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def _get_project_scope_from_request(request):
+    if request.method == 'GET':
+        obj_scope = request.GET.get('scope', PROJECT_SCOPE_CMDB_BIZ)
     else:
+        params = json.loads(request.body)
+        obj_scope = params.get('scope', PROJECT_SCOPE_CMDB_BIZ)
+
+    return obj_scope
+
+
+def project_inject(view_func):
+    @wraps(view_func, assigned=available_attrs(view_func))
+    def wrapper(request, *args, **kwargs):
+
+        obj_id = kwargs.get('project_id')
         try:
-            tmpl = CommonTemplate.objects.get(id=template_id, is_deleted=False)
-        except CommonTemplate.DoesNotExist:
-            result = {
+            obj_scope = _get_project_scope_from_request(request)
+        except Exception:
+            return JsonResponse({
                 'result': False,
-                'message': 'common template[id=%s] does not exist' % template_id
-            }
-            return result
-        template_perm, _ = CommonTmplPerm.objects.get_or_create(common_template_id=template_id,
-                                                                biz_cc_id=biz.cc_id)
-        perm_name = 'common_%s' % perm
-        if not user.has_perm(perm_name, template_perm):
-            result = {
+                'message': 'invalid param format'
+            })
+
+        try:
+            project = get_project_with(obj_id=obj_id, scope=obj_scope)
+        except Project.DoesNotExist:
+            return JsonResponse({
                 'result': False,
-                'message': ('user[username={username}] does not have perm[perm={perm}] '
-                            'of common template[id={template_id}]').format(username=user.username,
-                                                                           perm=perm_name,
-                                                                           template_id=template_id)
-            }
-            return result
-    return {'result': True, 'data': {}}
+                'message': 'project({id}) with scope({scope}) does not exist.'.format(id=obj_id, scope=obj_scope)
+            })
+
+        setattr(request, 'project', project)
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
 
 
-def api_check_user_perm_of_business(permit):
+def api_verify_proj_perms(actions):
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
-        def _wrapped_view(request, *args, **kwargs):
-            # 应用白名单，免用户校验
-            if is_request_from_trust_apps_and_inject_user(request, prepare_biz=WHETHER_PREPARE_BIZ):
-                if not business_exist(kwargs):
-                    return JsonResponse({
-                        'result': False,
-                        'message': 'business[bk_biz_id=%s] does not exist' % kwargs.get('bk_biz_id')
-                    })
-                return view_func(request, *args, **kwargs)
+        def wrapper(request, *args, **kwargs):
+            if not getattr(request, 'is_trust', False):
 
-            info = get_user_and_biz_info_and_inject_user(request, kwargs, prepare_biz=WHETHER_PREPARE_BIZ)
-            if not info['result']:
-                return JsonResponse(info)
-            user = info['data']['user']
-            biz = info['data']['biz']
+                project = getattr(request, 'project', None)
 
-            if not user.has_perm(permit, biz):
-                result = {
-                    'result': False,
-                    'message': ('user[username={username}] does not have perm of '
-                                'business:[bk_biz_id={bk_biz_id}]').format(username=user.username,
-                                                                           bk_biz_id=biz.cc_id)
-                }
-                return JsonResponse(result)
+                if not project:
+                    obj_id = kwargs.get('project_id')
+                    try:
+                        obj_scope = _get_project_scope_from_request(request)
+                    except Exception:
+                        return JsonResponse({
+                            'result': False,
+                            'message': 'invalid param format'
+                        })
+
+                    try:
+                        project = get_project_with(obj_id=obj_id, scope=obj_scope)
+                    except Project.DoesNotExist:
+                        return JsonResponse({
+                            'result': False,
+                            'message': 'project{id} with scope{scope} does not exist.'.format(id=obj_id,
+                                                                                              scope=obj_scope)
+                        })
+
+                verify_or_raise_auth_failed(principal_type='user',
+                                            principal_id=request.user.username,
+                                            resource=project_resource,
+                                            action_ids=[act.id for act in actions],
+                                            instance=project,
+                                            status=200)
 
             return view_func(request, *args, **kwargs)
 
-        return _wrapped_view
+        return wrapper
 
     return decorator
 
 
-def api_check_user_perm_of_task(perm):
+def api_verify_perms(auth_resource, actions, get_kwargs):
     def decorator(view_func):
         @wraps(view_func, assigned=available_attrs(view_func))
-        def _wrapped_view(request, *args, **kwargs):
-            # 应用白名单，免用户校验
-            if is_request_from_trust_apps_and_inject_user(request):
-                return view_func(request, *args, **kwargs)
+        def wrapper(request, *args, **kwargs):
+            if not getattr(request, 'is_trust', False):
+                get_filters = {}
+                for kwarg, filter_arg in get_kwargs.items():
+                    get_filters[filter_arg] = kwargs.get(kwarg)
 
-            info = get_user_and_biz_info_and_inject_user(request, kwargs)
-            if not info['result']:
-                return JsonResponse(info)
-            user = info['data']['user']
-            biz = info['data']['biz']
+                # project_id value replace
+                if 'project_id' in get_filters:
+                    obj_id = get_filters['project_id']
+                    scope = _get_project_scope_from_request(request)
+                    try:
+                        project = get_project_with(obj_id=obj_id, scope=scope)
+                    except Project.DoesNotExist:
+                        return JsonResponse({
+                            'result': False,
+                            'message': 'project{id} with scope{scope} does not exist.'.format(id=obj_id, scope=scope)
+                        })
+                    get_filters['project_id'] = project.id
 
-            if perm == PermNm.CREATE_TASK_PERM_NAME:
-                try:
-                    params = json.loads(request.body)
-                except Exception:
-                    return JsonResponse({'result': False, 'message': 'invalid param format'})
+                instance = auth_resource.resource_cls.objects.get(**get_filters)
 
-                template_source = params.get('template_source', 'business')
-                template_id = kwargs.get('template_id')
-                result = check_user_has_perm_of_template(user, perm, biz, template_source, template_id)
-                if not result['result']:
-                    return JsonResponse(result)
-            else:
-                task_id = kwargs.get('task_id') or request.POST.get('task_id')
-                try:
-                    taskflow = TaskFlowInstance.objects.get(id=task_id, business=biz, is_deleted=False)
-                except TaskFlowInstance.DoesNotExist:
-                    result = {
-                        'result': False,
-                        'message': 'task[id=%s] does not exist' % task_id
-                    }
-                    return JsonResponse(result)
-                # 判断权限
-                if not taskflow.user_has_perm(user, perm):
-                    result = {
-                        'result': False,
-                        'message': ('user[username={username}] does not have perm[perm={perm}] '
-                                    'of task[id={task_id}]').format(username=user.username,
-                                                                    perm=perm,
-                                                                    task_id=task_id)
-                    }
-                    return JsonResponse(result)
+                verify_or_raise_auth_failed(principal_type='user',
+                                            principal_id=request.user.username,
+                                            resource=auth_resource,
+                                            action_ids=[act.id for act in actions],
+                                            instance=instance,
+                                            status=200)
 
             return view_func(request, *args, **kwargs)
 
-        return _wrapped_view
+        return wrapper
 
     return decorator
