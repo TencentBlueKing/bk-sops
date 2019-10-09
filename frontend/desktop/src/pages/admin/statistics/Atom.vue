@@ -449,7 +449,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness
+                        project_id: this.choiceBusiness
                     })
                 }
                 this.atomData(data)
@@ -477,7 +477,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.bizCcId,
                         category: this.category,
                         component_code: this.atom,
                         order_by: this.templateOrderBy
@@ -537,7 +537,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.bizCcId,
                         category: this.category,
                         component_code: this.atom,
                         order_by: this.instanceOrderBy

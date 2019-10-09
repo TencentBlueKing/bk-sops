@@ -34,7 +34,7 @@ def dispatch(group_by, filters=None):
 
     # 按起始时间、项目（可选）查询各类型轻应用个数和占比√(echarts)
     if group_by == AE.project_id:
-        total, groups = app_maker_manager.group_by_biz_cc_id(appmaker, group_by)
+        total, groups = app_maker_manager.group_by_project_id(appmaker, group_by)
 
     # 按起始时间、类型（可选）查询各业务下新增轻应用个数（排序）
     elif group_by == AE.category:

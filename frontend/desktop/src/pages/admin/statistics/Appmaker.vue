@@ -285,7 +285,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness
+                        project_id: this.choiceBusiness
                     })
                 }
                 this.appMakerData(data)
@@ -308,7 +308,7 @@
                 }
                 const time = this.getUTCTime(this.timeRange)
                 const data = {
-                    group_by: 'biz_cc_id',
+                    group_by: 'project_id',
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
@@ -369,7 +369,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.bizCcId,
                         category: this.category,
                         order_by: this.appmakerOrderBy
                     }),
