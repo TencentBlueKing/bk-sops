@@ -46,6 +46,7 @@
                     :class="['common-icon-ashcan-delete', 'operate-btn', {
                         'permission-disable': !hasPermission(['delete'], appData.auth_actions, appOperations)
                     }]"
+                    :title="i18n.delete"
                     v-cursor="{ active: !hasPermission(['delete'], appData.auth_actions, appOperations) }"
                     @click="onCardDelete">
                 </span>
@@ -178,7 +179,7 @@
         padding: 5px;
         font-size: 14px;
         color: #ffffff;
-        background: #dcdee4;
+        background: #d8dadc;
         border-radius: 2px;
         cursor: pointer;
         &:not(.permission-disable):hover {

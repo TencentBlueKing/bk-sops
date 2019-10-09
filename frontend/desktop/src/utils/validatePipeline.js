@@ -163,10 +163,10 @@ const validatePipeline = {
         return this.getMessage()
     },
     /**
-     * 画布节点数目校验
+     * 画布节点连线数目校验
      * @param {Object} data
      */
-    isNodeNumValida (data) {
+    isNodeLineNumValid (data) {
         let message
         let tasknode = 0
         let subflow = 0

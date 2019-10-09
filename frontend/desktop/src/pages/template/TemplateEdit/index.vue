@@ -708,6 +708,11 @@
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
                 if (this.canvasDataLoading) {
                     return
                 }
@@ -786,6 +791,9 @@
                 this.isGlobalVariableUpdate = val
             },
             onUpdateNodeInfo (id, data) {
+                const location = this.canvasData.locations.find(item => item.id === id)
+                const updatedLocation = Object.assign(location, data)
+                this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             onDeleteConstant (key) {
@@ -867,7 +875,7 @@
             // 校验节点配置
             checkNodeAndSaveTemplate () {
                 // 校验节点数目
-                const validateMessage = validatePipeline.isNodeNumValida(this.canvasData)
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
                 if (!validateMessage.result) {
                     errorHandler({ message: validateMessage.message }, this)
                     return
