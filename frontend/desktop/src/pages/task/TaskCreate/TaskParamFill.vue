@@ -132,7 +132,7 @@
             LoopRuleSelect
         },
         mixins: [permission],
-        props: ['project_id', 'template_id', 'common', 'previewData', 'entrance', 'excludeNode'],
+        props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
         data () {
             return {
                 i18n: {
