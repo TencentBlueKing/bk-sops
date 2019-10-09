@@ -33,7 +33,7 @@ def dispatch(group_by, filters=None, page=None, limit=None):
 
     TASK_GROUP_BY_METHODS = {
         AE.state: TaskFlowInstance.objects.group_by_state,  # 按流程执行状态查询流程个数
-        AE.project_id: TaskFlowInstance.objects.group_by_biz_cc_id,  # 查询不同业务对应的流程数
+        AE.project_id: TaskFlowInstance.objects.group_by_project_id,  # 查询不同业务对应的流程数
         AE.appmaker_instance: TaskFlowInstance.objects.group_by_appmaker_instance,  # 查询不同轻应用对应的流程数
         AE.atom_execute_times: TaskFlowInstance.objects.group_by_atom_execute_times,  # 查询各标准插件被执行次数
         AE.atom_execute_fail_times: TaskFlowInstance.objects.group_by_atom_execute_fail_times,  # 查询各标准插件失败次数

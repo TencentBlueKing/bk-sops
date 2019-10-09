@@ -256,7 +256,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
             message = u"query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
             return False, None, message
 
-    def group_by_biz_cc_id(self, appmaker, group_by):
+    def group_by_project_id(self, appmaker, group_by):
         # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)
         total = appmaker.count()
         appmaker_list = appmaker.values(AE.project_id, AE.project__name).annotate(

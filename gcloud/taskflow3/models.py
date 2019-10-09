@@ -450,11 +450,11 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         ]
         return total, groups
 
-    def group_by_biz_cc_id(self, taskflow, *args):
+    def group_by_project_id(self, taskflow, *args):
         # 查询不同业务对应的流程数
         total = taskflow.count()
         taskflow_list = taskflow.values(AE.project_id, AE.project__name).annotate(
-            value=Count('business__cc_id')).order_by()
+            value=Count('project_id')).order_by()
         groups = []
         for data in taskflow_list:
             groups.append({
@@ -472,15 +472,15 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         taskflow_values = taskflow.values("create_info")
         order_by = filters.get("order_by", "-templateId")
-        business_id = filters.get("business__cc_id", '')
+        project_id = filters.get("project_id", '')
         category = filters.get("category", '')
         started_time = timestamp_to_datetime(filters["create_time"])
         end_time = timestamp_to_datetime(filters["finish_time"]) + datetime.timedelta(days=1)
         appmaker_data = AppMaker.objects.filter(is_deleted=False,
                                                 create_time__gte=started_time,
                                                 create_time__lte=end_time)
-        if business_id != '':
-            appmaker_data = appmaker_data.filter(business__cc_id=business_id)
+        if project_id != '':
+            appmaker_data = appmaker_data.filter(project_id=project_id)
         if category != '':
             appmaker_data = appmaker_data.filter(task_template__category=category)
         # 获取所有轻应用数据数量
@@ -504,8 +504,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             "create_time",
             "edit_time",
             "creator",
-            "business__cc_id",
-            "business__cc_name",
+            "project_id",
+            "project__name",
             "task_template__category"
         )
         groups = []
@@ -519,8 +519,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 'editTime': format_datetime(data.get('edit_time')),
                 'creator': data.get('creator'),
                 'templateName': data.get('name'),
-                'businessId': data.get('business__cc_id'),
-                'businessName': data.get('business__cc_name'),
+                'projectId': data.get('project_id'),
+                'projectName': data.get('project__name'),
                 'category': category_dict[data.get('task_template__category')],
                 # 需要将 code 转为字符型
                 'instanceTotal': total_dict.get(str(appmaker_id), 0)
@@ -679,8 +679,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             taskflow_list = taskflow_list.order_by('id')
         taskflow_list = taskflow_list.values(
             'id',
-            'business__cc_id',
-            'business__cc_name',
+            'project_id',
+            'project__name',
             'pipeline_instance__name',
             'category',
             'pipeline_instance__create_time',
@@ -691,8 +691,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         for data in taskflow_list:
             groups.append({
                 'instanceId': data.get("id"),
-                'businessId': data.get("business__cc_id"),
-                'businessName': data.get("business__cc_name"),
+                'projectId': data.get("project_id"),
+                'projectName': data.get("project__name"),
                 'instanceName': data.get("pipeline_instance__name"),
                 'category': category_dict[data.get("category")],  # 需要将code转为名称
                 "createTime": format_datetime(data.get("pipeline_instance__create_time")),
@@ -733,8 +733,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             # 插入信息
             groups.append({
                 'instanceId': instance_id,
-                'businessId': flow.business.cc_id,
-                'businessName': flow.business.cc_name,
+                'projectId': flow.project.id,
+                'projectName': flow.project.name,
                 'instanceName': pipeline_instance.name,
                 'category': category_dict[flow.category],
                 "createTime": format_datetime(pipeline_instance.create_time),
@@ -786,8 +786,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_list).values(
             'id',
             'pipeline_instance__instance_id',
-            'business__cc_id',
-            'business__cc_name',
+            'project_id',
+            'project__name',
             'pipeline_instance__name',
             'category',
             'pipeline_instance__create_time',
@@ -798,8 +798,8 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
             instance_id = data.get("pipeline_instance__instance_id")
             groups.append({
                 'instanceId': data.get("id"),
-                'businessId': data.get("business__cc_id"),
-                'businessName': data.get("business__cc_name"),
+                'projectId': data.get("project_id"),
+                'projectName': data.get("project__name"),
                 'instanceName': data.get("pipeline_instance__name"),
                 'category': category_dict[data.get("category")],  # 需要将code转为名称
                 "createTime": format_datetime(data.get("pipeline_instance__create_time")),

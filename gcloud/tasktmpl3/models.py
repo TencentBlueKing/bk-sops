@@ -174,11 +174,11 @@ class TaskTemplateManager(BaseTemplateManager):
         ]
         return total, groups
 
-    def group_by_biz_cc_id(self, tasktmpl, *args):
+    def group_by_project_id(self, tasktmpl, *args):
         # 查询不同业务的模板个数
         total = tasktmpl.count()
         template_list = tasktmpl.values(AE.project_id, AE.project__name).annotate(
-            value=Count('business__cc_id')).order_by("value")
+            value=Count('project_id')).order_by("value")
         groups = []
         for data in template_list:
             groups.append({
@@ -237,8 +237,8 @@ class TaskTemplateManager(BaseTemplateManager):
             template_list = template_list.order_by('id')
         template_list = template_list.values(
             "id",
-            "business__cc_id",
-            "business__cc_name",
+            "project_id",
+            "project__name",
             "pipeline_template__name",
             "category",
             "pipeline_template__create_time",
@@ -249,8 +249,8 @@ class TaskTemplateManager(BaseTemplateManager):
         for data in template_list:
             groups.append({
                 'templateId': data.get("id"),
-                'businessId': data.get("business__cc_id"),
-                'businessName': data.get("business__cc_name"),
+                'projectId': data.get("project_id"),
+                'projectName': data.get("project__name"),
                 'templateName': data.get("pipeline_template__name"),
                 'category': category_dict[data.get("category")],  # 需要将code转为名称
                 "createTime": format_datetime(data.get("pipeline_template__create_time")),
@@ -272,8 +272,8 @@ class TaskTemplateManager(BaseTemplateManager):
         total = template_id_list.count()
         template_list = tasktmpl.filter(pipeline_template__template_id__in=template_id_list).values(
             "id",
-            "business__cc_name",
-            "business__cc_id",
+            "project__name",
+            "project_id",
             "pipeline_template__name",
             "category",
             "pipeline_template__edit_time",
@@ -283,8 +283,8 @@ class TaskTemplateManager(BaseTemplateManager):
         for data in template_list:
             groups.append({
                 'templateId': data.get("id"),
-                'businessId': data.get("business__cc_id"),
-                'businessName': data.get("business__cc_name"),
+                'projectId': data.get("project_id"),
+                'projectName': data.get("project__name"),
                 'templateName': data.get("pipeline_template__name"),
                 'category': category_dict[data.get("category")],
                 "editTime": data.get("pipeline_template__edit_time").strftime("%Y-%m-%d %H:%M:%S"),
@@ -392,8 +392,8 @@ class TaskTemplateManager(BaseTemplateManager):
             # 插入信息
             groups.append({
                 'templateId': template_id,
-                'businessId': template.business.cc_id,
-                'businessName': template.business.cc_name,
+                'projectId': template.project.id,
+                'projectName': template.project.name,
                 'templateName': pipeline_template.name,
                 'category': category_dict[template.category],
                 "createTime": format_datetime(pipeline_template.create_time),
