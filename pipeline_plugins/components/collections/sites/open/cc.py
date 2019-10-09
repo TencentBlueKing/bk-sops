@@ -626,7 +626,7 @@ class CCUpdateSetServiceStatusService(Service):
                 self.InputItem(name=_(u'服务状态'),
                                key='cc_set_status',
                                type='string',
-                               schema=StringItemSchema(description=_(u'集群服务器状态，开放(1)，关闭(2)'),
+                               schema=StringItemSchema(description=_(u'集群服务器状态，开放(1)或关闭(2)'),
                                                        enum=['1', '2']))]
 
     def outputs_format(self):

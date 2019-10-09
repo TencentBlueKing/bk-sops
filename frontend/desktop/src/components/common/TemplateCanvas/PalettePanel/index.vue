@@ -66,6 +66,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import NodeMenu from './NodeMenu.vue'
 
     export default {

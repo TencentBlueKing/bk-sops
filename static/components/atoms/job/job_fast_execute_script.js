@@ -18,17 +18,24 @@
                 name: gettext("业务"),
                 hookable: true,
                 remote: true,
-                remote_url: $.context.site_url + 'pipeline/cc_get_business_list/',
+                remote_url: $.context.get('site_url') + 'pipeline/cc_get_business_list/',
                 remote_data_init: function (resp) {
                     return resp.data;
                 },
-                disabled: $.context.project.from_cmdb,
-                value: $.context.project.from_cmdb ? $.context.project.bk_biz_id : '',
+                disabled: !$.context.canSelectBiz(),
                 validation: [
                     {
                         type: "required"
                     }
                 ]
+            },
+            methods: {
+                _tag_init: function () {
+                    if (this.value) {
+                        return
+                    }
+                    this._set_value($.context.getBkBizId())
+                }
             }
         },
         {
@@ -168,7 +175,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/job_get_script_list/' + $.context.project.bk_biz_id + '/?type=public' : '';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -207,9 +214,9 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         if (cc_id !== '') {
-                            this.remote_url = $.context.site_url + 'pipeline/job_get_script_list/' + cc_id + '/?type=public';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=public';
                             this.remoteMethod();
                         }
                     }
@@ -218,7 +225,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        this.remote_url = $.context.site_url + 'pipeline/job_get_script_list/' + value + '/?type=public';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=public';
                         this.remoteMethod();
                     }
                 },
@@ -244,7 +251,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    url = $.context.project.from_cmdb ? $.context.site_url + 'pipeline/job_get_script_list/' + $.context.project.bk_biz_id + '/?type=general' : '';
+                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=general';
                     return url;
                 },
                 remote_data_init: function (resp) {
@@ -283,9 +290,9 @@
                     source: "biz_cc_id",
                     type: "init",
                     action: function () {
-                        cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
+                        const cc_id = this.get_parent && this.get_parent().get_child('biz_cc_id').value;
                         if (cc_id !== '') {
-                            this.remote_url = $.context.site_url + 'pipeline/job_get_script_list/' + cc_id + '/?type=general';
+                            this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + cc_id + '/?type=general';
                             this.remoteMethod();
                         }
                     }
@@ -294,7 +301,7 @@
                     source: "biz_cc_id",
                     type: "change",
                     action: function (value) {
-                        this.remote_url = $.context.site_url + 'pipeline/job_get_script_list/' + value + '/?type=general';
+                        this.remote_url = $.context.get('site_url') + 'pipeline/job_get_script_list/' + value + '/?type=general';
                         this._set_value('');
                         this.remoteMethod();
                     }
