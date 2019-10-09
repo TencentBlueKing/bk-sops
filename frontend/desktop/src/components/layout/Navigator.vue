@@ -77,7 +77,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { mapState, mapMutations, mapActions } from 'vuex'
+    import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import { errorHandler } from '@/utils/errorHandler.js'
 
@@ -195,11 +195,13 @@
                 isSuperUser: state => state.isSuperUser
             }),
             ...mapState('project', {
-                projectList: state => state.projectList,
                 project_id: state => state.project_id
             }),
             ...mapState('appmaker', {
                 appmakerTemplateId: state => state.appmakerTemplateId
+            }),
+            ...mapGetters('project', {
+                projectList: 'userCanViewProjects'
             }),
             showHeaderRight () {
                 return this.userType === 'maintainer' && this.view_mode !== 'appmaker' && this.projectList.length > 0
@@ -231,16 +233,7 @@
             },
             disabled () {
                 const route = this.$route
-                if (route.path.indexOf('/statistics/') > -1
-                    || (route.query
-                    && route.query.common
-                    && !route.query.common_template
-                    && route.name !== 'templateStep'
-                    && route.name !== 'taskList')
-                ) {
-                    return true
-                }
-                return false
+                return route.path.indexOf('/admin/') === 0
             }
         },
         mounted () {
@@ -354,6 +347,7 @@
              */
             jumpToFirstPath (route) {
                 const firstPath = this.getPath(route.children[0])
+                if (this.$route.path === firstPath.path) return
                 this.$router.push(firstPath)
             }
         }

@@ -86,12 +86,13 @@ const routers = new VueRouter({
             path: '/',
             redirect: function () {
                 const { userType, viewMode, project } = store.state
+                const { project_id } = project
                 const pageType = viewMode === 'appmaker' ? 'appmaker' : userType
                 
                 if (PAGE_MAP[pageType]) {
                     return PAGE_MAP[pageType].getIndex()
                 } else {
-                    return `/home/${project.project_id}`
+                    return (project_id && project_id === 0) ? `/home/${project_id}/` : '/home/'
                 }
             }
         },
@@ -326,7 +327,6 @@ const routers = new VueRouter({
                             path: '',
                             component: NotFoundComponent
                         },
-                       
                         {
                             path: 'edit/:cc_id?/',
                             component: TemplateEdit,

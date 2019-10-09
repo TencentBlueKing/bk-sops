@@ -38,8 +38,8 @@
                                 <bk-option
                                     v-for="(option, index) in business.list"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -93,7 +93,7 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange">
-                    <bk-table-column :label="i18n.business" prop="task.business.cc_name" width="160"></bk-table-column>
+                    <bk-table-column :label="i18n.business" prop="task.project.name" width="160"></bk-table-column>
                     <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
@@ -106,6 +106,7 @@
                                 {{props.row.task.name}}
                             </a>
                             <router-link
+                                v-else
                                 class="task-name"
                                 :title="props.row.task.name"
                                 :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
@@ -197,8 +198,8 @@
                             <bk-option
                                 v-for="(option, index) in business.list"
                                 :key="index"
-                                :id="option.cc_id"
-                                :name="option.cc_name">
+                                :id="option.id"
+                                :name="option.name">
                             </bk-option>
                         </bk-select>
                         <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
@@ -239,16 +240,18 @@
                 </div>
             </div>
             <div slot="footer" class="dialog-footer">
-                <bk-button
-                    theme="primary"
-                    :class="{
-                        'btn-permission-disable': !hasConfirmPerm
-                    }"
-                    v-cursor="{ active: !hasConfirmPerm }"
-                    @click="onConfirmlNewTask">
-                    {{i18n.confirm}}
-                </bk-button>
-                <bk-button theme="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
+                <div class="bk-button-group">
+                    <bk-button
+                        theme="primary"
+                        :class="{
+                            'btn-permission-disable': !hasConfirmPerm
+                        }"
+                        v-cursor="{ active: !hasConfirmPerm }"
+                        @click="onConfirmlNewTask">
+                        {{i18n.confirm}}
+                    </bk-button>
+                    <bk-button theme="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
+                </div>
             </div>
         </bk-dialog>
     </div>
@@ -418,7 +421,7 @@
                         creator: this.creator || undefined,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
-                        project_id: this.projectId,
+                        project__id: this.projectId,
                         status: this.status
                     }
                     if (this.executeEndTime) {
@@ -815,13 +818,9 @@
     }
 }
 .dialog-footer {
-    padding: 0 10px;
-    text-align: right;
     .bk-button {
         margin-left: 10px;
         width: 90px;
-        height: 32px;
-        line-height: 30px;
     }
 }
 </style>

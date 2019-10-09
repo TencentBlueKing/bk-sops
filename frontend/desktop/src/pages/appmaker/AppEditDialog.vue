@@ -16,7 +16,7 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.title"
+        :title="dialogTitle"
         :auto-close="false"
         :value="isEditDialogShow"
         @confirm="onConfirm"
@@ -27,7 +27,7 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appTemplate"
-                        class="bk-select-inline"
+                        class="ui-form-item"
                         :searchable="true"
                         :placeholder="i18n.statusPlaceholder"
                         :clearable="true"
@@ -50,7 +50,7 @@
                         v-model="appData.appName"
                         v-validate.disable="appNameRule"
                         name="appName"
-                        class="bk-input-inline"
+                        class="ui-form-item"
                         :clearable="true">
                     </bk-input>
                     <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
@@ -61,7 +61,7 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appScheme"
-                        class="bk-select-inline"
+                        class="ui-form-item"
                         :searchable="true"
                         :placeholder="i18n.statusPlaceholder"
                         :clearable="true"
@@ -118,16 +118,18 @@
             </div>
         </div>
         <div slot="footer" class="dialog-footer">
-            <bk-button
-                theme="primary"
-                :class="{
-                    'btn-permission-disable': !hasConfirmPerm
-                }"
-                v-cursor="{ active: !hasConfirmPerm }"
-                @click="onConfirm">
-                {{i18n.confirm}}
-            </bk-button>
-            <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+            <div class="bk-button-group">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasConfirmPerm
+                    }"
+                    v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
+                    @click="onConfirm">
+                    {{i18n.confirm}}
+                </bk-button>
+                <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+            </div>
         </div>
     </bk-dialog>
 </template>
@@ -186,7 +188,8 @@
                 tplOperations: [],
                 tplResource: {},
                 i18n: {
-                    title: this.isCreateNewApp ? gettext('新建轻应用') : gettext('修改轻应用'),
+                    new: gettext('新建轻应用'),
+                    edit: gettext('修改轻应用'),
                     template: gettext('流程模板'),
                     templateTips: gettext('流程模板不能为空'),
                     appName: gettext('应用名称'),
@@ -202,6 +205,9 @@
             }
         },
         computed: {
+            dialogTitle () {
+                return this.isCreateNewApp ? this.i18n.new : this.i18n.edit
+            },
             btnPermission () {
                 return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
             },
@@ -303,8 +309,9 @@
                     return
                 }
                 if (!this.hasConfirmPerm) {
+                    const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
                     const resourceData = {
-                        name: this.appData.appName,
+                        name: templateName,
                         id: this.appData.appTemplate,
                         auth_actions: this.appData.appActions
                     }
@@ -328,6 +335,14 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+.common-error-tip {
+    position: absolute;
+    left: 0;
+    bottom: -14px;
+}
+.common-form-item > label {
+    font-weight: normal;
+}
 .app-edit-content {
     padding: 30px;
     .common-form-content {
@@ -336,7 +351,7 @@
     }
     .scheme-tooltip {
         position: absolute;
-        right: -20px;
+        right: -24px;
         top: 10px;
         color: #c4c6cc;
         &:hover {
@@ -346,7 +361,7 @@
     .app-desc {
         width: 100%;
         height: 80px;
-        border: 1px solid $commonBorderColor;
+        border: 1px solid #c4c6cc;
         outline: none;
         resize: none;
         &:hover {
@@ -430,13 +445,9 @@
     }
 }
 .dialog-footer {
-    padding: 0 10px;
-    text-align: right;
     .bk-button {
         margin-left: 10px;
-        width: 90px;
-        height: 32px;
-        line-height: 30px;
+        min-width: 90px;
     }
 }
 </style>

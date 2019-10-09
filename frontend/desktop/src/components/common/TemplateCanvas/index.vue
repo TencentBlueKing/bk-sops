@@ -72,6 +72,7 @@
     </js-flow>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
@@ -79,7 +80,6 @@
     import ToolPanel from './ToolPanel/index.vue'
     import tools from '@/utils/tools.js'
     import { endpointOptions, connectorOptions } from './options.js'
-    import formatPositionUtils from '@/utils/formatPosition.js'
     import validatePipeline from '@/utils/validatePipeline.js'
 
     export default {
@@ -168,9 +168,6 @@
                 connectorOptions
             }
         },
-        created () {
-            this.onFormatPosition = tools.debounce(this.formatPositionHandler, 500)
-        },
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
@@ -193,6 +190,9 @@
             },
             onResetPosition () {
                 this.$refs.jsFlow.resetPosition()
+            },
+            onFormatPosition () {
+                this.$emit('onFormatPosition')
             },
             onOpenFrameSelect () {
                 this.isSelectionOpen = true
@@ -281,55 +281,6 @@
                 })
                 return { locations, lines }
             },
-            formatPositionHandler () {
-                const validateMessage = validatePipeline.isDataValid(this.canvasData)
-                // 判断是否结构完整
-                if (!validateMessage.result) {
-                    this.$bkMessage({
-                        message: validateMessage.message,
-                        theme: 'error'
-                    })
-                    return false
-                }
-                // 恢复大小后进行编排
-                this.onResetPosition()
-
-                // 需要做深拷贝一次 防止改变vue store内容
-                const lines = tools.deepClone(this.canvasData.lines)
-                const locations = this.canvasData.locations
-                const data = formatPositionUtils.formatPosition(lines, locations)
-
-                this.$emit('onNewDraft', gettext('排版自动保存'))
-                const message = gettext('排版完成，原内容在本地缓存中')
-                this.$refs.jsFlow.removeAllConnector()
-                // 改变store中的line和location内容
-                this.$emit('onReplaceLineAndLocation', data)
-                // 重绘Canvas
-                this.$refs.jsFlow.updateCanvas({ nodes: data.locations, lines: data.lines })
-                const { overBorderLine } = data
-                if (overBorderLine.length !== 0) {
-                    overBorderLine.forEach(line => {
-                        const config = [
-                            'Flowchart', // 流程图种类
-                            {
-                                stub: [5, 20], // 起始端点连接线的最小长度
-                                gap: 8, // 线与端点点最小间隔
-                                cornerRadius: 2, // 折线弧度
-                                alwaysRespectStubs: true, // 允许 stub 配置生效
-                                midpoint: line.midpoint// 折线比例
-                            // todo:需要增加midpoint数据的source,target,midpoint数据进行后台和前端保存
-                            }
-                        ]
-                        this.$refs.jsFlow.setConnector(line.source, line.target, config)
-                    })
-                }
-                this.$nextTick(() => {
-                    this.$bkMessage({
-                        message: message,
-                        theme: 'success'
-                    })
-                })
-            },
             branchConditionEditHandler (e) {
                 const $branchEl = e.target
                 if ($branchEl.classList.contains('branch-condition')) {
@@ -355,6 +306,13 @@
             },
             updateNodeMenuState (val) {
                 this.showNodeMenu = val
+            },
+            updateCanvas () {
+                const { locations: nodes, lines } = this.canvasData
+                this.$refs.jsFlow.updateCanvas({ nodes, lines })
+            },
+            removeAllConnector () {
+                this.$refs.jsFlow.removeAllConnector()
             },
             onNodeClick (id) {
                 this.$emit('onNodeClick', id)
@@ -473,9 +431,11 @@
             },
             onConnection (line) {
                 this.$nextTick(() => {
-                    const lineId = this.canvasData.lines.filter(item => {
+                    const lineInCanvasData = this.canvasData.lines.filter(item => {
                         return item.source.id === line.sourceId && item.target.id === line.targetId
-                    })[0].id
+                    })[0]
+                    const lineId = lineInCanvasData.id
+                    // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
                         name: '<i class="common-icon-dark-circle-close"></i>',
@@ -483,6 +443,7 @@
                         id: `close_${lineId}`
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
+                    // 增加分支网关 label
                     if (branchInfo && Object.keys(branchInfo).length > 0) {
                         const labelName = branchInfo[lineId].evaluate
                         const labelData = {
@@ -497,6 +458,20 @@
                             id: `condition${lineId}`
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
+                    }
+                    // 调整连线配置
+                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
+                        const config = [
+                            'Flowchart',
+                            {
+                                stub: [6, 6],
+                                alwaysRespectStub: true,
+                                gap: 8,
+                                cornerRadius: 2,
+                                midpoint: lineInCanvasData.midpoint
+                            }
+                        ]
+                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
                     }
                 })
             },
@@ -581,9 +556,12 @@
                 z-index: 6;
             }
         }
+        .jtk-connector {
+            z-index: 2;
+        }
         .jtk-overlay {
             cursor: pointer;
-            z-index: 4;
+            z-index: 2;
             &:not(.branch-condition) {
                 display: none;
             }
