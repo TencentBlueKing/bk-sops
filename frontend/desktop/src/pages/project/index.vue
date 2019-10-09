@@ -557,9 +557,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 520px;
             .switch-status {
                 display: inline-block;
+            }
+            .bk-form-checkbox {
+                margin-right: 30px;
             }
         }
         .search-input {
