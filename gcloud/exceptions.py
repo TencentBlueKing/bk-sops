@@ -14,24 +14,30 @@ specific language governing permissions and limitations under the License.
 from django.utils.translation import ugettext_lazy as _
 
 
-class Unauthorized(Exception):
+class BkSopsError(Exception):
     pass
 
 
-class Forbidden(Exception):
+class Unauthorized(BkSopsError):
     pass
 
 
-class NotFound(Exception):
+class Forbidden(BkSopsError):
     pass
 
 
-class APIError(Exception):
+class NotFound(BkSopsError):
+    pass
 
-    def __init__(self, system, api, message):
+
+class APIError(BkSopsError):
+
+    def __init__(self, system, api, message, result=None):
         self.system = system
         self.api = api
         self.message = message
+        self.result = result
+        super(APIError, self).__init__(message)
 
     @property
     def error(self):
@@ -45,13 +51,13 @@ class APIError(Exception):
             _(u'请联系第三方系统负责人处理'))
 
 
-class BadTaskOperation(Exception):
+class BadTaskOperation(BkSopsError):
     pass
 
 
-class BadResourceClass(Exception):
+class BadResourceClass(BkSopsError):
     pass
 
 
-class FlowExportError(Exception):
+class FlowExportError(BkSopsError):
     pass

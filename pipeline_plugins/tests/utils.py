@@ -196,7 +196,7 @@ def mock_get_client_by_user(username):
             info = [
                 {
                     'host': {
-                        'bk_host_innerip': '1.1.1.1',
+                        'bk_host_innerip': '1.1.1.1,1.1.1.2',
                         'bk_host_outerip': '1.1.1.1',
                         'bk_host_name': '1.1.1.1',
                         'bk_host_id': 1,
@@ -249,7 +249,9 @@ def mock_get_client_by_user(username):
                     if cond['bk_obj_id'] == 'host' and cond.get('condition') \
                             and cond['condition'][0]['operator'] == '$in':
                         in_host = cond['condition'][0]['value']
-                        info = [host for host in info if host['host']['bk_host_innerip'] in in_host]
+                        info = [host for host in info
+                                if [single_ip for single_ip in host['host']['bk_host_innerip'].split(',')
+                                    if single_ip in in_host]]
             return {
                 'result': self.success,
                 'data': {

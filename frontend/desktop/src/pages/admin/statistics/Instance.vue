@@ -19,18 +19,18 @@
                     <div class="content-instance-time">
                         <!--业务选择-->
                         <bk-select
-                            v-model="timeBusinessSelected"
-                            class="bk-select-inline"
+                            v-model="timeProjectSelected"
+                            class="chart-select-item"
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.businessPlaceholder"
                             @selected="onChangeTimeTypeBusiness"
                             @clear="onClearTimeTypeBusiness">
                             <bk-option
-                                v-for="(option, index) in allBusinessList"
+                                v-for="(option, index) in allProjectList"
                                 :key="index"
-                                :id="option.cc_id"
-                                :name="option.cc_name">
+                                :id="option.id"
+                                :name="option.name">
                             </bk-option>
                         </bk-select>
                     </div>
@@ -38,7 +38,7 @@
                         <!--分类选择-->
                         <bk-select
                             v-model="timeCategorySelected"
-                            class="bk-select-inline"
+                            class="chart-select-item"
                             :popover-width="260"
                             :searchable="true"
                             :placeholder="i18n.categoryPlaceholder"
@@ -56,8 +56,9 @@
                         <!--时间维度选择-->
                         <bk-select
                             v-model="choiceDate"
-                            class="bk-select-date-scope"
-                            :popover-width="80"
+                            class="chart-select-item"
+                            :popover-width="260"
+                            :searchable="true"
                             :placeholder="i18n.choice"
                             :clearable="false"
                             @selected="onChangeTimeType">
@@ -78,9 +79,10 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import ChartCard from '../common/ChartCard'
+    import tools from '@/utils/tools.js'
+    import { mapActions, mapState, mapGetters } from 'vuex'
     import VerticalBarChart from './verticalBarChart.vue'
-    import { mapActions, mapState } from 'vuex'
+    import ChartCard from '../common/ChartCard'
     import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import TablePanel from '../common/TablePanel'
     import { errorHandler } from '@/utils/errorHandler.js'
@@ -88,18 +90,18 @@
     const i18n = {
         taskCategory: gettext('分类统计'),
         taskBusiness: gettext('分业务统计'),
-        ownBusiness: gettext('所属业务'),
+        ownBusiness: gettext('所属项目'),
         taskDetail: gettext('任务详情'),
         executionName: gettext('归档任务耗时'),
         timeLimit: gettext('时间范围'),
         choiceCategory: gettext('分类'),
-        choiceBusiness: gettext('所属业务'),
+        choiceBusiness: gettext('选择项目'),
         instanceTime: gettext('分时间统计'),
         day: gettext('天'),
         categoryPlaceholder: gettext('请选择类别'),
         businessPlaceholder: gettext('请选择业务'),
         choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
+        choiceAllBusiness: gettext('全部项目'),
         instanceName: gettext('任务名称'),
         createTime: gettext('创建时间'),
         creator: gettext('创建人'),
@@ -124,6 +126,8 @@
         data () {
             return {
                 i18n: i18n,
+                projectId: undefined,
+                category: undefined,
                 isInstanceLoading: true,
                 isBuinsessLoading: true,
                 isDetailsLoading: true,
@@ -265,20 +269,33 @@
                         align: 'center'
                     }
                 ],
+                selectedProject: '',
+                selectedCategory: '',
+                categoryTime: [],
+                choiceBusiness: undefined,
+                tableTime: [],
+                businessTime: [],
+                choiceCategory: '',
                 choiceTimeTypeName: '',
                 choiceTimeType: 'day',
                 choiceTimeTypeCategory: undefined,
                 choiceTimeTypeBusiness: undefined,
                 isInstanceTypeLoading: false,
                 instanceTypeTotal: 0,
-                timeBusinessSelected: '',
+                taskProjectSelected: 'all',
+                timeProjectSelected: 'all',
+                taskCategorySelected: 'all',
                 choiceDate: 'day',
                 timeCategorySelected: ''
             }
         },
         computed: {
             ...mapState({
-                site_url: state => state.site_url
+                site_url: state => state.site_url,
+                categorys: state => state.categorys
+            }),
+            ...mapGetters('project', {
+                projectList: 'userCanViewProjects'
             }),
             charts () {
                 const charts = [
@@ -310,7 +327,7 @@
                                 placeholder: this.i18n.categoryPlaceholder,
                                 clearable: true,
                                 searchable: true,
-                                onSelected: this.onInstanceBizCcId,
+                                onSelected: this.onSelectCategory,
                                 onClear: this.onClearInstanceBizCcId,
                                 options: this.categorys,
                                 option: {
@@ -326,6 +343,14 @@
                     }
                 ]
                 return charts
+            },
+            allProjectList () {
+                if (this.projectList.length === 0) {
+                    this.loadProjectList({ limit: 0 })
+                }
+                const list = tools.deepClone(this.projectList)
+                list.unshift({ id: 'all', name: i18n.choiceAllBusiness })
+                return list
             },
             tabPanels () {
                 const tabPanels = {
@@ -424,7 +449,7 @@
         watch: {
             'timeRange': function (val) {
                 this.onInstanceCategory(null)
-                this.onInstanceBizCcId(null)
+                this.onSelectCategory(null)
                 this.onInstanceNode(null)
                 this.onInstanceTime(null)
                 this.onInstanceDetailsData(null)
@@ -433,7 +458,7 @@
         created () {
             this.choiceTimeTypeName = this.i18n.day
             this.onInstanceCategory(null)
-            this.onInstanceBizCcId()
+            this.onSelectCategory()
             this.onInstanceTime()
             this.onInstanceNode()
         },
@@ -442,8 +467,10 @@
                 'queryInstanceData'
             ]),
             ...mapActions([
-                'getBizList',
                 'getCategorys'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             onNodeHandleSizeChange (limit) {
                 this.nodePageIndex = 1
@@ -478,7 +505,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceBusiness
+                        project_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
                     })
                 }
                 this.statisticsCategory(data)
@@ -486,7 +513,7 @@
             onClearInstanceCategory () {
                 this.onInstanceCategory()
             },
-            onInstanceBizCcId (category) {
+            onSelectCategory (category) {
                 if (category) {
                     if (category === this.choiceCategory) {
                         // 相同的内容不需要再次查询
@@ -501,17 +528,17 @@
                 }
                 const time = this.getUTCTime(this.timeRange)
                 const data = {
-                    group_by: 'biz_cc_id',
+                    group_by: 'project_id',
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
                         category: this.choiceCategory
                     })
                 }
-                this.statisticsBizCcId(data)
+                this.statisticsProjectData(data)
             },
             onClearInstanceBizCcId () {
-                this.onInstanceBizCcId('')
+                this.onSelectCategory('')
             },
             onInstanceNode (value) {
                 if (this.tabName !== 'taskDetails') {
@@ -528,7 +555,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.bizCcId,
+                        project_id: this.projectId,
                         category: this.category,
                         order_by: this.nodeOrderBy
                     }),
@@ -549,7 +576,7 @@
                     conditions: JSON.stringify({
                         create_time: time[0],
                         finish_time: time[1],
-                        biz_cc_id: this.choiceTimeTypeBusiness === 'all' ? '' : this.choiceTimeTypeBusiness,
+                        project_id: this.choiceTimeTypeBusiness === 'all' ? '' : this.choiceTimeTypeBusiness,
                         category: this.choiceTimeTypeCategory === 'all' ? '' : this.choiceTimeTypeCategory,
                         type: this.choiceTimeType
                     })
@@ -575,7 +602,7 @@
                     errorHandler(e, this)
                 }
             },
-            async statisticsBizCcId (data) {
+            async statisticsProjectData (data) {
                 this.isBuinsessLoading = true
                 try {
                     const templateData = await this.queryInstanceData(data)
@@ -640,7 +667,7 @@
                         conditions: JSON.stringify({
                             create_time: time[0],
                             finish_time: time[1],
-                            biz_cc_id: this.bizCcId,
+                            project_id: this.projectId,
                             category: this.category,
                             order_by: this.detailsOrderBy
                         }),
@@ -737,9 +764,8 @@
     width: 260px;
     background-color: #ffffff;
 }
-.bk-select-date-scope {
-    width: 80px;
-    margin-right: 30px;
+.content-date-picker {
+    vertical-align: top;
 }
 .content-business-picker {
     vertical-align: top;

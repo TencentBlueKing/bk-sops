@@ -15,35 +15,32 @@ import ujson as json
 
 from django.db import transaction
 from django.contrib.auth import get_user_model
-from django.http.response import HttpResponseForbidden
 from tastypie import fields
-from tastypie.authorization import Authorization, ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
-from tastypie.exceptions import BadRequest, ImmediateHttpResponse, NotFound
+from tastypie.exceptions import BadRequest, NotFound
+
+from auth_backend.plugins.tastypie.authorization import BkSaaSLooseAuthorization
+from auth_backend.plugins.tastypie.shortcuts import verify_or_raise_immediate_response
 
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate, TemplateScheme
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
-from gcloud.core.models import Business
 from gcloud.commons.template.models import CommonTemplate
+from gcloud.commons.template.permissions import common_template_resource
 from gcloud.core.constant import TEMPLATE_NODE_NAME_MAX_LENGTH
 from gcloud.core.utils import name_handler
-from gcloud.webservice3.resources import (
-    GCloudModelResource,
-    AppSerializer,
-    pipeline_node_name_handle,
-    TemplateFilterPaginator,
-    get_business_for_user
-)
+from gcloud.webservice3.resources import GCloudModelResource
+from gcloud.webservice3.paginator import TemplateFilterPaginator
+from gcloud.core.utils import pipeline_node_name_handle
 
 
 class PipelineTemplateResource(GCloudModelResource):
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = PipelineTemplate.objects.filter(is_deleted=False)
         resource_name = 'pipeline_template'
         authorization = ReadOnlyAuthorization()
-        serializer = AppSerializer()
         filtering = {
             'name': ALL,
             'creator': ALL,
@@ -51,38 +48,6 @@ class PipelineTemplateResource(GCloudModelResource):
             'subprocess_has_update': ALL,
             'edit_time': ['gte', 'lte']
         }
-        limit = 0
-
-
-class CommonAuthorization(Authorization):
-    """
-    @summary: common authorization
-        create/update/delete: only superuser
-        read: all users
-    """
-
-    def is_superuser(self, bundle):
-        if bundle.request.user.is_superuser:
-            return True
-        raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to write common flows'))
-
-    def create_list(self, object_list, bundle):
-        return []
-
-    def create_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def update_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_list(self, object_list, bundle):
-        return self.is_superuser(bundle)
-
-    def delete_detail(self, object_list, bundle):
-        return self.is_superuser(bundle)
 
 
 class CommonTemplateResource(GCloudModelResource):
@@ -141,12 +106,13 @@ class CommonTemplateResource(GCloudModelResource):
         readonly=True
     )
 
-    class Meta:
+    class Meta(GCloudModelResource.Meta):
         queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
         resource_name = 'common_template'
-        authorization = CommonAuthorization()
-        always_return_data = True
-        serializer = AppSerializer()
+        auth_resource = common_template_resource
+        authorization = BkSaaSLooseAuthorization(auth_resource=auth_resource,
+                                                 read_action_id='view',
+                                                 update_action_id='edit')
         filtering = {
             "id": ALL,
             "name": ALL,
@@ -156,7 +122,6 @@ class CommonTemplateResource(GCloudModelResource):
             "has_subprocess": ALL
         }
         q_fields = ["id", "pipeline_template__name"]
-        limit = 0
         paginator_class = TemplateFilterPaginator
 
     @staticmethod
@@ -169,6 +134,7 @@ class CommonTemplateResource(GCloudModelResource):
         return json.dumps(bundle.data['pipeline_tree'])
 
     def alter_list_data_to_serialize(self, request, data):
+        data = super(CommonTemplateResource, self).alter_list_data_to_serialize(request, data)
         user_model = get_user_model()
         user = request.user
         collected_templates = user_model.objects.get(username=user.username) \
@@ -260,13 +226,15 @@ class CommonTemplateResource(GCloudModelResource):
 
 
 class CommonTemplateSchemeResource(GCloudModelResource):
-    class Meta:
+    data = fields.CharField(
+        attribute='data',
+        use_in='detail',
+    )
+
+    class Meta(GCloudModelResource.Meta):
         queryset = TemplateScheme.objects.all()
         resource_name = 'common_scheme'
         authorization = Authorization()
-        always_return_data = True
-        serializer = AppSerializer()
-
         filtering = {
             'template': ALL,
         }
@@ -274,56 +242,52 @@ class CommonTemplateSchemeResource(GCloudModelResource):
 
     def build_filters(self, filters=None, **kwargs):
         orm_filters = super(CommonTemplateSchemeResource, self).build_filters(filters, **kwargs)
-        if 'biz_cc_id' in filters and 'template_id' in filters:
+        if 'project__id' in filters and 'template_id' in filters:
             template_id = filters.pop('template_id')[0]
-            biz_cc_id = filters.pop('biz_cc_id')[0]
+            project__id = filters.pop('project__id')[0]
             template = CommonTemplate.objects.get(pk=template_id)
             orm_filters.update({
                 'template__template_id': template.pipeline_template.template_id,
-                # 这里通过业务ID前缀隔离不同业务在同一个公共流程下的执行方案
-                'unique_id__startswith': '%s-' % biz_cc_id,
+                # 这里通过项目ID前缀隔离不同业务在同一个公共流程下的执行方案
+                'unique_id__startswith': '%s-' % project__id,
             })
         elif 'pk' not in filters:
             # 不允许请求全部执行方案
             orm_filters.update({'unique_id': ''})
         return orm_filters
 
-    def alter_list_data_to_serialize(self, request, data):
-        for bundle in data['objects']:
-            bundle.data.pop('data')
-
-        return data
-
     def obj_create(self, bundle, **kwargs):
-        biz_cc_id = bundle.data.pop('biz_cc_id', None)
-        template_id = bundle.data.pop('template_id', None)
         try:
-            template = CommonTemplate.objects.get(pk=template_id)
+            project_id = bundle.data.pop('project__id')
+            template_id = bundle.data.pop('template_id')
+            common_template = CommonTemplate.objects.get(pk=template_id)
         except Exception:
             raise BadRequest('common template does not exist')
-        business = get_business_for_user(bundle.request.user, ['view_business'])
-        if not business.filter(cc_id=biz_cc_id).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to make such operation'))
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=common_template_resource,
+                                           action_ids=[common_template_resource.actions.edit.id],
+                                           instance=common_template)
+
         bundle.data['name'] = name_handler(bundle.data['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
-        kwargs['unique_id'] = '%s-%s-%s' % (biz_cc_id, template_id, bundle.data['name'])
+        kwargs['unique_id'] = '%s-%s-%s' % (project_id, template_id, bundle.data['name'])
         if TemplateScheme.objects.filter(unique_id=kwargs['unique_id']).exists():
             raise BadRequest('common template scheme name has existed, please change the name')
-        kwargs['template'] = template.pipeline_template
+        kwargs['template'] = common_template.pipeline_template
         return super(CommonTemplateSchemeResource, self).obj_create(bundle, **kwargs)
 
     def obj_delete(self, bundle, **kwargs):
         try:
             scheme_id = kwargs['pk']
             scheme = TemplateScheme.objects.get(pk=scheme_id)
-            CommonTemplate.objects.get(pipeline_template=scheme.template)
+            common_template = CommonTemplate.objects.get(pipeline_template=scheme.template)
         except Exception:
             raise BadRequest('common scheme or template does not exist')
-        try:
-            biz_cc_id = int(scheme['unique_id'].split('-')[0])
-        except Exception:
-            # maybe old unique id rule
-            biz_cc_id = None
-        business = get_business_for_user(bundle.request.user, ['manage_business'])
-        if Business.objects.filter(cc_id=biz_cc_id) and not business.filter(cc_id=biz_cc_id).exists():
-            raise ImmediateHttpResponse(HttpResponseForbidden('you have no permission to make such operation'))
+
+        verify_or_raise_immediate_response(principal_type='user',
+                                           principal_id=bundle.request.user.username,
+                                           resource=common_template_resource,
+                                           action_ids=[common_template_resource.actions.edit.id],
+                                           instance=common_template)
         return super(CommonTemplateSchemeResource, self).obj_delete(bundle, **kwargs)

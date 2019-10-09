@@ -20,6 +20,7 @@ modify crontab for periodic task
 |   task_id    |   string     |   YES   |  task ID |
 |   bk_biz_id    |   string     |   YES   |  business ID |
 |   cron    |   dict     |   YES   |  crontab dict |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 #### cron
  

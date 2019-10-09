@@ -19,7 +19,7 @@ Query periodic task detail
 |---------------|------------|--------|------------------|
 |   task_id    |   string     |   YES   |  task ID |
 |   bk_biz_id    |   string     |   YES   |  business ID |
-
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 
@@ -266,11 +266,11 @@ Query periodic task detail
 |  constants      |    dict    |  global variables, details are described below    |
 |  outputs      |    list    |    outputs info, indicate outputs field of global variables|
 
-#### data.form.KEY, data.pipeline_tree.constants.KEY
+#### data.form KEY, data.pipeline_tree.constants KEY
 
 KEY, the format is like ${key}
 
-#### data.form.VALUE, data.pipeline_tree.constants.VALUE
+#### data.form VALUE, data.pipeline_tree.constants VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|

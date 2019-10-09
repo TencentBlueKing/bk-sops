@@ -42,18 +42,13 @@ const store = new Vuex.Store({
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id
         view_mode: window.VIEW_MODE,
-        cc_id: window.BIZ_CC_ID,
         lang: getAppLang(),
-        bizList: [],
-        templateId: '', // 轻应用页面全局 template_id
         notFoundPage: false,
         categorys: [],
         components: [],
         isSuperUser: window.IS_SUPERUSER === 1,
         v1_import_flag: window.IMPORT_V1_FLAG,
-        rsa_pub_key: window.RSA_PUB_KEY,
-        businessTimezone: window.BUSINESS_TIMEZONE,
-        allBusinessList: []
+        rsa_pub_key: window.RSA_PUB_KEY
     },
     mutations: {
         setAppId (state, id) {
@@ -61,15 +56,6 @@ const store = new Vuex.Store({
         },
         setViewMode (state, mode) {
             state.view_mode = mode
-        },
-        setBizId (state, id) {
-            state.cc_id = id
-        },
-        setBizList (state, data) {
-            state.bizList = data
-        },
-        setTemplateId (state, id) {
-            state.templateId = id
         },
         setNotFoundPage (state, val) {
             state.notFoundPage = val
@@ -79,27 +65,9 @@ const store = new Vuex.Store({
         },
         setSingleAtomList (state, data) {
             state.components = data
-        },
-        setBusinessTimezone (state, data) {
-            state.businessTimezone = data
-        },
-        setAllBusinessList (state, data) {
-            state.allBusinessList = data
         }
     },
     actions: {
-        getBizList ({ commit }, isAll) {
-            api.getBizList(isAll).then(response => {
-                if (isAll) {
-                    commit('setAllBusinessList', response.data.objects)
-                } else {
-                    commit('setBizList', response.data.objects)
-                }
-            })
-        },
-        changeDefaultBiz ({ commit }, ccId) {
-            return api.changeDefaultBiz(ccId).then(response => response.data)
-        },
         getCategorys ({ commit }) {
             api.getCategorys().then(response => {
                 commit('setCategorys', response.data.data)
@@ -110,16 +78,6 @@ const store = new Vuex.Store({
                 commit('setSingleAtomList', response.data.objects)
             })
         },
-        getBusinessTimezone ({ commit }) {
-            api.getBusinessTimezone().then(response => {
-                const data = response.data
-                if (data.time_zone === undefined) {
-                    commit('setBusinessTimezone', undefined)
-                } else {
-                    commit('setBusinessTimezone', data.time_zone)
-                }
-            })
-        },
         getHostInCC ({ commmit }, fields) {
             return api.loadHostInCC(fields).then(response => response.data)
         },
@@ -128,6 +86,12 @@ const store = new Vuex.Store({
         },
         getTopoModelInCC ({ commit }) {
             return api.loadTopoModelInCC().then(response => response.data)
+        },
+        getPermissionUrl ({ commit }, data) {
+            return api.getPermissionUrl(data).then(response => response.data)
+        },
+        queryUserPermission ({ commit }, data) {
+            return api.queryUserPermission(data).then(response => response.data)
         }
     },
     getters: {},

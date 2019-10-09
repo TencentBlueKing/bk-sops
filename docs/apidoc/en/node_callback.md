@@ -21,6 +21,7 @@ callback specific node
 |   task_id     |   string   |   YES   |  the task ID     |
 |   node_id        | string     | YES         | node id                        |
 |   callback_data        | dict     | NO         | callback data          |           |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
 

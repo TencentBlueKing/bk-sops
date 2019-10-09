@@ -28,18 +28,18 @@
                         <div class="query-content">
                             <span class="query-span">{{i18n.ownBusiness}}</span>
                             <bk-select
-                                v-model="selectedCcId"
+                                v-model="selectedProject"
                                 class="bk-select-inline"
                                 :popover-width="260"
                                 :searchable="true"
                                 :placeholder="i18n.choice"
                                 :clearable="true"
-                                @selected="onSelectedBizCcId">
+                                @selected="onSelectProject">
                                 <bk-option
                                     v-for="(option, index) in business.list"
                                     :key="index"
-                                    :id="option.cc_id"
-                                    :name="option.cc_name">
+                                    :id="option.id"
+                                    :name="option.name">
                                 </bk-option>
                             </bk-select>
                         </div>
@@ -93,14 +93,23 @@
                     :pagination="pagination"
                     v-bkloading="{ isLoading: listLoading, opacity: 1 }"
                     @page-change="onPageChange">
-                    <bk-table-column :label="i18n.business" prop="task.business.cc_name" width="160"></bk-table-column>
+                    <bk-table-column :label="i18n.business" prop="task.project.name" width="160"></bk-table-column>
                     <bk-table-column :label="i18n.taskId" prop="task.id" width="100"></bk-table-column>
                     <bk-table-column :label="i18n.name">
                         <template slot-scope="props">
+                            <a
+                                v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                v-cursor
+                                class="text-permission-disable"
+                                :title="props.row.task.name"
+                                @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                {{props.row.task.name}}
+                            </a>
                             <router-link
+                                v-else
                                 class="task-name"
                                 :title="props.row.task.name"
-                                :to="`/taskflow/execute/${props.row.task.business.cc_id}/?instance_id=${props.row.task.id}`">
+                                :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
                                 {{props.row.task.name}}
                             </router-link>
                         </template>
@@ -125,16 +134,36 @@
                     </bk-table-column>
                     <bk-table-column :label="i18n.operation" width="100">
                         <template slot-scope="props">
-                            <router-link v-if="props.row.status === 'submitted'"
-                                class="functor-operation-btn"
-                                :to="`/taskflow/execute/${props.row.task.business.cc_id}/?instance_id=${props.row.task.id}`">
-                                {{ i18n.claim }}
-                            </router-link>
-                            <router-link v-else
-                                class="functor-operation-btn"
-                                :to="`/taskflow/execute/${props.row.task.business.cc_id}/?instance_id=${props.row.task.id}`">
-                                {{ i18n.view }}
-                            </router-link>
+                            <template v-if="props.row.status === 'submitted'">
+                                <a
+                                    v-if="!hasPermission(['claim'], props.row.auth_actions, tplAuthOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTaskPermissonCheck(['claim'], props.row, $event)">
+                                    {{ i18n.claim }}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="functor-operation-btn"
+                                    :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
+                                    {{ i18n.claim }}
+                                </router-link>
+                            </template>
+                            <template v-else>
+                                <a
+                                    v-if="!hasPermission(['view'], props.row.auth_actions, tplAuthOperations)"
+                                    v-cursor
+                                    class="text-permission-disable"
+                                    @click="onTaskPermissonCheck(['view'], props.row, $event)">
+                                    {{ i18n.view }}
+                                </a>
+                                <router-link
+                                    v-else
+                                    class="functor-operation-btn"
+                                    :to="`/taskflow/execute/${props.row.task.project.id}/?instance_id=${props.row.task.id}`">
+                                    {{ i18n.view }}
+                                </router-link>
+                            </template>
                         </template>
                     </bk-table-column>
                     <div class="empty-data" slot="empty"><NoData :message="i18n.empty" /></div>
@@ -169,8 +198,8 @@
                             <bk-option
                                 v-for="(option, index) in business.list"
                                 :key="index"
-                                :id="option.cc_id"
-                                :name="option.cc_name">
+                                :id="option.id"
+                                :name="option.name">
                             </bk-option>
                         </bk-select>
                         <span v-show="business.empty" class="common-error-tip error-msg">{{i18n.choiceBusiness}}</span>
@@ -201,13 +230,27 @@
                                 </bk-option>
                             </bk-option-group>
                         </bk-select>
-                        <i class="bk-icon icon-info-circle template-selector-tips"
+                        <i class="common-icon-info template-selector-tips"
                             v-bk-tooltips="{
                                 width: 400,
                                 placement: 'top',
                                 content: i18n.tips }"></i>
                         <span v-show="template.empty" class="common-error-tip error-msg">{{i18n.choiceTemplate}}</span>
                     </div>
+                </div>
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <div class="bk-button-group">
+                    <bk-button
+                        theme="primary"
+                        :class="{
+                            'btn-permission-disable': !hasConfirmPerm
+                        }"
+                        v-cursor="{ active: !hasConfirmPerm }"
+                        @click="onConfirmlNewTask">
+                        {{i18n.confirm}}
+                    </bk-button>
+                    <bk-button theme="default" @click="onCancelNewTask">{{i18n.cancel}}</bk-button>
                 </div>
             </div>
         </bk-dialog>
@@ -223,6 +266,7 @@
     import AdvanceSearch from '@/components/common/base/AdvanceSearch.vue'
     import toolsUtils from '@/utils/tools.js'
     import moment from 'moment-timezone'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'functorTaskHome',
@@ -232,17 +276,18 @@
             BaseTitle,
             NoData
         },
-        props: ['cc_id', 'app_id'],
+        mixins: [permission],
+        props: ['project_id', 'app_id'],
         data () {
             return {
                 i18n: {
                     functorList: gettext('职能化中心'),
                     placeholder: gettext('请输入ID或流程名称'),
-                    business: gettext('所属业务'),
+                    business: gettext('所属项目'),
                     taskId: gettext('任务ID'),
                     createdTime: gettext('提单时间'),
                     claimedTime: gettext('认领时间'),
-                    ownBusiness: gettext('所属业务'),
+                    ownBusiness: gettext('所属项目'),
                     finishedTime: gettext('执行结束'),
                     name: gettext('任务名称'),
                     billTime: gettext('提单时间'),
@@ -256,7 +301,7 @@
                     new: gettext('新建'),
                     choiceBusiness: gettext('选择业务'),
                     choiceTemplate: gettext('选择模板'),
-                    tips: gettext('如果未找到模板，请联系业务运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
+                    tips: gettext('如果未找到模板，请联系项目运维在流程模板的使用权限中对你或所有职能化人员授予“新建任务权限”'),
                     total: gettext('共'),
                     item: gettext('条记录'),
                     comma: gettext('，'),
@@ -268,10 +313,12 @@
                     creatorPlaceholder: gettext('请输入提单人'),
                     query: gettext('搜索'),
                     reset: gettext('清空'),
-                    dateRange: gettext('选择日期时间范围')
+                    dateRange: gettext('选择日期时间范围'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
                 },
                 listLoading: true,
-                selectedCcId: '',
+                selectedProject: '',
                 functorSync: 0,
                 statusSync: '',
                 searchStr: undefined,
@@ -288,7 +335,7 @@
                 template: {
                     list: [
                         {
-                            name: gettext('业务流程'),
+                            name: gettext('项目流程'),
                             children: []
                         },
                         {
@@ -299,10 +346,11 @@
                     loading: false,
                     searchable: true,
                     id: '',
+                    name: '',
                     empty: false,
                     disabled: false
                 },
-                bizCcId: undefined,
+                projectId: undefined,
                 billTime: undefined,
                 creator: undefined,
                 executeStartTime: undefined,
@@ -325,31 +373,43 @@
                     limit: 15,
                     'limit-list': [15],
                     'show-limit': false
-                }
+                },
+                tplAuthResource: {},
+                commonTplAuthResource: {},
+                tplAuthOperations: [],
+                commonTplAuthOperations: [],
+                tplAction: []
             }
         },
         computed: {
             ...mapState({
-                bizList: state => state.bizList,
                 categorys: state => state.categorys
-            })
+            }),
+            ...mapState('project', {
+                'timeZone': state => state.timezone
+            }),
+            hasConfirmPerm () {
+                const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
+                return this.hasPermission(['create_task'], this.tplAction, authOperations)
+            }
         },
         created () {
             this.loadFunctionTask()
             this.onSearchInput = toolsUtils.debounce(this.searchInputhandler, 500)
-            this.getBusinessList()
+            this.getProjectList()
         },
         methods: {
             ...mapActions('functionTask/', [
-                'loadFunctionTaskList',
-                'loadFunctionBusinessList',
-                'loadFunctionTemplateList'
+                'loadFunctionTaskList'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
+            ]),
+            ...mapActions('project/', [
+                'loadProjectList'
             ]),
             async loadFunctionTask () {
                 this.listLoading = true
@@ -361,7 +421,7 @@
                         creator: this.creator || undefined,
                         pipeline_instance__is_started: this.isStarted,
                         pipeline_instance__is_finished: this.isFinished,
-                        task__business__cc_id: this.bizCcId,
+                        project__id: this.projectId,
                         status: this.status
                     }
                     if (this.executeEndTime) {
@@ -369,12 +429,14 @@
                             data['pipeline_template__start_time__gte'] = moment(this.executeStartTime).format('YYYY-MM-DD')
                             data['pipeline_template__start_time__lte'] = moment(this.executeEndTime).add('1', 'd').format('YYYY-MM-DD')
                         } else {
-                            data['create_time__gte'] = moment.tz(this.executeStartTime, this.businessTimezone).format('YYYY-MM-DD')
-                            data['create_time__lte'] = moment.tz(this.executeEndTime, this.businessTimezone).add('1', 'd').format('YYYY-MM-DD')
+                            data['create_time__gte'] = moment.tz(this.executeStartTime, this.timeZone).format('YYYY-MM-DD')
+                            data['create_time__lte'] = moment.tz(this.executeEndTime, this.timeZone).add('1', 'd').format('YYYY-MM-DD')
                         }
                     }
                     const functorListData = await this.loadFunctionTaskList(data)
                     const list = functorListData.objects
+                    this.tplAuthOperations = functorListData.meta.auth_operations
+                    this.tplAuthResource = functorListData.meta.auth_resource
                     this.functorList = list
                     this.pagination.count = functorListData.meta.total_count
                 } catch (e) {
@@ -417,7 +479,7 @@
                         cls = 'common-icon-dark-circle-close'
                         break
                     case 'finished': // 完成
-                        cls = 'bk-icon icon-check-circle-shape default'
+                        cls = 'bk-icon icon-check-circle-shape'
                         break
                     default:
                         cls = ''
@@ -428,10 +490,10 @@
             onCreateTask () {
                 this.isShowNewTaskDialog = true
             },
-            async getBusinessList () {
+            async getProjectList () {
                 this.business.loading = true
                 try {
-                    const businessData = await this.loadFunctionBusinessList()
+                    const businessData = await this.loadProjectList({ limit: 0 })
                     this.business.list = businessData.objects
                 } catch (e) {
                     errorHandler(e, this)
@@ -444,11 +506,15 @@
                 try {
                     // 查询职能化数据及公共流程数据
                     await Promise.all([
-                        this.loadFunctionTemplateList(this.business.id),
+                        this.loadTemplateList({ project__id: this.business.id }),
                         this.loadTemplateList({ common: 1 })
                     ]).then(value => {
                         this.template.list[0].children = value[0].objects
                         this.template.list[1].children = value[1].objects
+                        this.tplAuthResource = value[0].meta.auth_resource
+                        this.tplAuthOperations = value[0].meta.auth_operations
+                        this.commonTplAuthResource = value[1].meta.auth_resource
+                        this.commonTplAuthOperations = value[1].meta.auth_operations
                         this.clearAtomForm()
                     })
                 } catch (e) {
@@ -457,43 +523,50 @@
                     this.template.loading = false
                 }
             },
-            onSelectedBizCcId (value) {
-                if (this.bizCcId === value) {
+            onSelectProject (id) {
+                if (this.projectId === id) {
                     return
                 }
-                this.bizCcId = value
+                this.projectId = id
             },
             onSelectedBusiness (id, data) {
                 this.business.id = id
                 this.getTemplateList()
                 this.business.empty = false
+                this.template.id = ''
+                this.template.name = ''
                 this.template.disabled = false
                 this.template.id = ''
             },
             onSelectedTemplate (id) {
                 const templateList = this.template.list
                 let resource_uri = ''
+                let name, tplAction
+                
                 if (id === undefined) {
                     return
                 }
-                // 查找id对应的resource_uri
-                for (const gloup in templateList) {
-                    const childrens = templateList[gloup].children
-                    for (const item in childrens) {
-                        if (childrens[item].id === id) {
-                            resource_uri = childrens[item].resource_uri
-                            break
+                
+                templateList.some(group => {
+                    return group.children.some(item => {
+                        if (item.id === id) {
+                            resource_uri = item.resource_uri
+                            name = item.name
+                            tplAction = item.auth_actions
+                            return true
                         }
-                    }
-                    if (resource_uri !== '') break
-                }
+                    })
+                })
+
                 this.isCommonTemplate = false
                 // 通过resource_uri查找是否是公共流程
                 if (resource_uri.search('common_template') !== -1) {
                     this.isCommonTemplate = true
                 }
                 this.template.id = id
+                this.template.name = name
                 this.template.empty = false
+                this.tplAction = tplAction
             },
             onConfirmlNewTask () {
                 if (this.business.id === '') {
@@ -504,6 +577,18 @@
                     this.template.empty = true
                     return
                 }
+                if (!this.hasConfirmPerm) {
+                    const authResource = this.isCommonTemplate ? this.commonTplAuthResource : this.tplAuthResource
+                    const authOperations = this.isCommonTemplate ? this.commonTplAuthOperations : this.tplAuthOperations
+                    const resourceData = {
+                        name: this.template.name,
+                        id: this.template.id,
+                        auth_actions: this.tplAction
+                    }
+                    this.applyForPermission(['create_task'], resourceData, authOperations, authResource)
+                    return
+                }
+
                 if (this.isCommonTemplate) {
                     this.$router.push({ path: `/template/newtask/${this.business.id}/selectnode/`, query: { template_id: this.template.id, common: 1 } })
                 } else {
@@ -519,10 +604,12 @@
             },
             onClearTemplate () {
                 this.template.id = ''
+                this.template.name = ''
             },
             onClearBusiness () {
                 this.business.id = ''
                 this.template.id = ''
+                this.template.name = ''
                 this.template.disabled = true
             },
             onAdvanceShow () {
@@ -540,7 +627,7 @@
                 this.status = undefined
                 this.creator = undefined
                 this.statusSync = ''
-                this.selectedCcId = 0
+                this.selectedProject = 0
                 this.funtorSync = 0
                 this.executeStartTime = undefined
                 this.executeEndTime = undefined
@@ -548,6 +635,10 @@
             },
             onSelectedStatus (id, name) {
                 this.status = id
+            },
+            onTaskPermissonCheck (required, template, event) {
+                this.applyForPermission(required, template.task, this.tplAuthOperations, this.tplAuthResource)
+                event.preventDefault()
             }
         }
     }
@@ -608,17 +699,6 @@
                 height: 32px;
                 line-height: 32px;
             }
-            .bk-date-range:after {
-                height: 32px;
-                line-height: 32px;
-            }
-            .bk-selector-icon.clear-icon {
-                top:6px;
-            }
-            /deep/ .bk-selector {
-                max-width: 260px;
-                display: inline-block;
-            }
             input::-webkit-input-placeholder{
                 color: $formBorderColor;
             }
@@ -631,7 +711,7 @@
             input:-ms-input-placeholder {
                 color: $formBorderColor;
             }
-            input,.bk-selector,.bk-date-range {
+            input{
                 min-width: 260px;
             }
             .search-input {
@@ -654,10 +734,6 @@
             }
             .bk-selector-search-item > input {
                 min-width: 249px;
-            }
-            .bk-date-range {
-                display: inline-block;
-                width: 260px;
             }
         }
         .query-button {
@@ -739,6 +815,12 @@
     }
     .bk-select-inline {
         width: 430px;
+    }
+}
+.dialog-footer {
+    .bk-button {
+        margin-left: 10px;
+        width: 90px;
     }
 }
 </style>

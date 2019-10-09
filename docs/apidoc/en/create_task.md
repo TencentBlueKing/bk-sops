@@ -15,17 +15,18 @@ Create a task with a flow template
 
 #### Interface Parameters
 
-| Field         |  Type      | Required   |  Description             |
+| Field         |  Type      | Required   |  Description |
 |---------------|------------|--------|------------------|
 |   bk_biz_id    |   string     |   YES   |  the business ID |
 |   template_id  |   string     |   YES   |  the flow template ID |
 |   template_source | string   | NO    | source of flow，default value is business. business: from business, common: from common flow |
-|   name         |   string     |   YES   |  Task name |
-|   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow |
+|   name         |   string     |   YES   |  task name |
+|   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow. Default is common |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
 |   exclude_task_nodes_id | list |   NO   |  nodes id not be executed, which are set ignore in flow |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
-#### constants.KEY
+#### constants KEY
 
 constant KEY, the format is like ${key}
 
@@ -57,7 +58,7 @@ constant value, the type of value should be same with data from API[get_template
     "result": true,
     "data": {
         "task_id": 10,
-        "task_url": "http://bk_sops_host/taskflow/execute/3/?instance_id=15364",
+        "task_url": "http://bk_sops_host/taskflow/execute/3/?instance_id=10",
         "pipeline_tree": {
             "activities": {
                 "node9b5ae13799d63e179f0ce3088b62": {
@@ -75,8 +76,8 @@ constant value, the type of value should be same with data from API[get_template
                         }
                     },
                     "stage_name": "stage1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": false,
                     "id": "node9b5ae13799d63e179f0ce3088b62",
@@ -92,8 +93,8 @@ constant value, the type of value should be same with data from API[get_template
                         "data": {}
                     },
                     "stage_name": "stage1",
-                    "can_retry": true,
-                    "isSkipped": true,
+                    "retryable": true,
+                    "skippable": true,
                     "type": "ServiceActivity",
                     "optional": true,
                     "id": "node880ded556c6c3c269be3cedc64b6",
@@ -221,7 +222,7 @@ constant value, the type of value should be same with data from API[get_template
 | Field      | Type      | Description      |
 |-----------|----------|-----------|
 |  task_id      |    int    |   the task instance ID    |
-|  task_url     |    str     |    task instance url     |
+|  task_url     |    string |    task instance url     |
 |  pipeline_tree     |    dict     |    task pipeline tree     |
 
 #### data.pipeline_tree
@@ -236,11 +237,11 @@ constant value, the type of value should be same with data from API[get_template
 |  constants      |    dict    |  global variables, details are described below    |
 |  outputs      |    list    |    outputs info, indicate outputs field of global  |
 
-#### data.pipeline_tree.constants.KEY
+#### data.pipeline_tree.constants KEY
 
 KEY, the format is like ${key}
 
-#### data.pipeline_tree.constants.VALUE
+#### data.pipeline_tree.constants VALUE
 
 | Field      | Type      | Description      |
 |-----------|----------|-----------|

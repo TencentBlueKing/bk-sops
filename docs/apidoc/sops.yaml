@@ -132,7 +132,7 @@
 
 - path: /v2/sops/get_periodic_task_list/
   name: get_periodic_task_list
-  label: 查询业务下的周期任务列表
+  label: 查询项目下的周期任务列表
   label_en: Query periodic task list
   method: GET
   api_type: query
@@ -142,7 +142,7 @@
 
 - path: /v2/sops/get_periodic_task_info/
   name: get_periodic_task_info
-  label: 查询业务下的某个周期任务详情
+  label: 查询项目下的某个周期任务详情
   label_en: Query periodic task detail
   method: GET
   api_type: query
@@ -189,3 +189,23 @@
   comp_codename: generic.v2.sops.sops_component
   dest_path: /o/bk_sops/apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/
   dest_http_method: POST
+
+- path: /v2/sops/fast_create_task/
+  name: fast_create_task
+  label: 快速新建一次性任务
+  label_en: create onetime task quickly
+  method: POST
+  api_type: operate
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/fast_create_task/{project_id}/
+  dest_http_method: POST
+
+- path: /v2/sops/get_plugin_list/
+  name: get_component_list
+  label: 查询某个项目下的插件列表
+  label_en: Query component list
+  method: GET
+  api_type: query
+  comp_codename: generic.v2.sops.sops_component
+  dest_path: /o/bk_sops/apigw/get_plugin_list/{project_id}/
+  dest_http_method: GET

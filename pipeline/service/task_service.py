@@ -14,12 +14,13 @@ specific language governing permissions and limitations under the License.
 import importlib
 
 from pipeline.conf import settings
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 
 adapter_api = importlib.import_module(settings.PIPELINE_ENGINE_ADAPTER_API)
 
 
-def run_pipeline(pipeline, instance_id=None, check_workers=True):
-    return adapter_api.run_pipeline(pipeline, instance_id, check_workers=check_workers)
+def run_pipeline(pipeline, instance_id=None, check_workers=True, priority=PIPELINE_DEFAULT_PRIORITY):
+    return adapter_api.run_pipeline(pipeline, instance_id, check_workers=check_workers, priority=priority)
 
 
 def pause_pipeline(pipeline_id):
@@ -80,3 +81,7 @@ def get_activity_histories(act_id):
 
 def callback(act_id, data=None):
     return adapter_api.callback(act_id, data)
+
+
+def get_plain_log_for_node(node_id, history_id=-1):
+    return adapter_api.get_plain_log_for_node(node_id, history_id)

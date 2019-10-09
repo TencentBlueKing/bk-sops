@@ -13,7 +13,7 @@
     <div class="cache-form">
         <bk-button
             theme="default"
-            size="mini"
+            size="small"
             class="delete-btn"
             @click="onDeleteCache">
             {{i18n.delete}}
@@ -33,14 +33,11 @@
                                 class="cache-name"
                                 name="cacheName"
                                 :disabled="isEditing"
+                                :class="{ 'error-border': errors.first('cacheName') }"
                                 v-model="name"
                                 v-validate="nameRule"
                                 @blur="updateValue">
-                            <span
-                                v-show="errors.has('cacheName')"
-                                class="common-error-tip error-msg">
-                                {{ errors.first('cacheName') }}
-                            </span>
+                            <i class="common-icon-info common-error-tip" v-bk-tooltips.top=" errors.first('cacheName')"></i>
                         </div>
                     </td>
                 </tr>
@@ -97,15 +94,17 @@
                             <tbody>
                                 <tr v-for="field in detailFields" :key="field.id">
                                     <th>{{field.name}}</th>
-                                    <td class="td-with-input">
+                                    <td class="td-with-input"
+                                        :class="{ 'error-border': errors.first('detailValue' + field.id) }">
                                         <input
                                             type="text"
                                             class="table-input"
-                                            name="detailValue"
-                                            :placeholder="i18n.placeholder"
+                                            :name="'detailValue' + field.id"
+                                            :placeholder="field.placeholder"
                                             v-model="details[field.id]"
-                                            v-validate="valueRule"
+                                            v-validate="valueRule "
                                             @blur="updateValue">
+                                        <i class="common-icon-info common-error-tip" v-bk-tooltips.top="i18n.required"></i>
                                         <span
                                             class="common-error-tip error-msg">
                                             {{ i18n.required }}
@@ -124,7 +123,7 @@
 <script>
     import '@/utils/i18n.js'
     import { SOURCE_TYPE } from '@/constants/manage.js'
-    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
+    import { PACKAGE_NAME_REG, STRING_LENGTH } from '@/constants/index.js'
 
     export default {
         name: 'CacheForm',
@@ -165,7 +164,7 @@
                 nameRule: {
                     required: true,
                     max: STRING_LENGTH.SOURCE_NAME_MAX_LENGTH,
-                    regex: NAME_REG
+                    regex: PACKAGE_NAME_REG
                 },
                 valueRule: {
                     required: true
@@ -203,7 +202,8 @@
                 for (const key in source.keys) {
                     detailFields.push({
                         id: key,
-                        name: source.keys[key]
+                        name: source.keys[key].name,
+                        placeholder: source.keys[key].placeholder
                     })
                     detailValues[key] = ''
                 }
@@ -240,6 +240,13 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@/scss/mixins/input-error.scss';
+    /deep/ .bk-select {
+        background-color: #ffffff;
+        &.is-disabled {
+            background-color: #fafafa;
+        }
+    }
     .cache-form {
         position: relative;
         margin-bottom: 30px;
@@ -304,6 +311,7 @@
                         border-color: #c3cdd7;
                     }
                 }
+                @include common-input-error;
             }
             .cache-desc {
                 display: inline-block;
@@ -339,25 +347,17 @@
                 font-weight: 700;
                 text-align: center;
             }
-            input[aria-invalid="true"] + .common-error-tip {
-                display: inline-block;
-            }
-            .common-error-tip {
-                position: absolute;
-                display: none;
-                left: 0;
-                bottom: 0;
-                font-size: 12px;
-                white-space: nowrap;
-            }
-            .td-with-input:hover {
-                border-style: double;
-                border-color: #3c96ff;
+            .td-with-input {
+                &:hover {
+                    border-style: double;
+                    border-color: #3c96ff;
+                }
+                @include common-input-error;
             }
         }
         .table-input {
             width: 100%;
-            color: #63656e;
+            color: #333333;
             border: none;
             outline: none;
         }

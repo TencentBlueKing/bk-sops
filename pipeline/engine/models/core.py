@@ -24,6 +24,7 @@ from celery.task.control import revoke
 from pipeline.django_signal_valve import valve
 
 from pipeline.engine import exceptions
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 from pipeline.core.data.base import DataObject
 from pipeline.core.pipeline import Pipeline
 from pipeline.engine import states, utils, signals
@@ -149,6 +150,14 @@ class ProcessManager(models.Manager):
         :return:
         """
         valve.send(signals, 'child_process_ready', sender=PipelineProcess, child_id=child_id)
+
+    def priority_for_process(self, process_id):
+        """
+        查询进程对应的 pipeline 的优先级
+        :param process_id: 进程 ID
+        :return:
+        """
+        return PipelineModel.objects.get(id=self.get(id=process_id).root_pipeline_id).priority
 
 
 class PipelineProcess(models.Model):
@@ -518,16 +527,20 @@ def _destroy_recursively(process):
 
 
 class PipelineModelManager(models.Manager):
-    def prepare_for_pipeline(self, pipeline, process):
-        return self.create(id=pipeline.id, process=process)
+    def prepare_for_pipeline(self, pipeline, process, priority):
+        return self.create(id=pipeline.id, process=process, priority=priority)
 
     def pipeline_ready(self, process_id):
         valve.send(signals, 'pipeline_ready', sender=Pipeline, process_id=process_id)
+
+    def priority_for_pipeline(self, pipeline_id):
+        return self.get(id=pipeline_id).priority
 
 
 class PipelineModel(models.Model):
     id = models.CharField('pipeline ID', unique=True, primary_key=True, max_length=32)
     process = models.ForeignKey(PipelineProcess, null=True, on_delete=models.SET_NULL)
+    priority = models.IntegerField(_(u"流程优先级"), default=PIPELINE_DEFAULT_PRIORITY)
 
     objects = PipelineModelManager()
 
@@ -897,8 +910,9 @@ class HistoryManager(models.Manager):
                            skip=status.skip)
 
     def get_histories(self, identifier):
-        histories = self.model.objects.filter(identifier=identifier).order_by('started_time')
+        histories = self.filter(identifier=identifier).order_by('started_time')
         data = [{
+            'history_id': item.id,
             'started_time': item.started_time,
             'archived_time': item.archived_time,
             'elapsed_time': calculate_elapsed_time(item.started_time, item.archived_time),

@@ -534,9 +534,10 @@ class InstanceManager(models.Manager):
         exec_data['id'] = instance_id
         exec_snapshot, _ = Snapshot.objects.create_or_get_snapshot(exec_data)
         TreeInfo.objects.create()
-        kwargs['template'] = template
+        if template is not None:
+            kwargs['template'] = template
+            kwargs['snapshot_id'] = template.snapshot.id
         kwargs['instance_id'] = instance_id
-        kwargs['snapshot_id'] = template.snapshot.id
         kwargs['execution_snapshot_id'] = exec_snapshot.id
         return self.create(**kwargs)
 
@@ -592,8 +593,9 @@ class PipelineInstance(models.Model):
     """
     流程实例对象
     """
-    template = models.ForeignKey(PipelineTemplate, verbose_name=_(u"Pipeline模板"))
     instance_id = models.CharField(_(u"实例ID"), max_length=32, unique=True)
+    template = models.ForeignKey(PipelineTemplate, verbose_name=_(u"Pipeline模板"),
+                                 null=True, blank=True, on_delete=models.SET_NULL)
     name = models.CharField(_(u"实例名称"), max_length=MAX_LEN_OF_NAME, default='default_instance')
     creator = models.CharField(_(u"创建者"), max_length=32, blank=True)
     create_time = models.DateTimeField(_(u"创建时间"), auto_now_add=True)
@@ -610,17 +612,21 @@ class PipelineInstance(models.Model):
     )
     snapshot = models.ForeignKey(
         Snapshot,
+        blank=True,
+        null=True,
         related_name='snapshot_instances',
         verbose_name=_(u"实例结构数据，指向实例对应的模板的结构数据")
     )
     execution_snapshot = models.ForeignKey(
         Snapshot,
+        blank=True,
         null=True,
         related_name='execution_snapshot_instances',
         verbose_name=_(u"用于实例执行的结构数据")
     )
     tree_info = models.ForeignKey(
         TreeInfo,
+        blank=True,
         null=True,
         related_name='tree_info_instances',
         verbose_name=_(u"提前计算好的一些流程结构数据")
@@ -725,10 +731,12 @@ class PipelineInstance(models.Model):
             parser = parser_cls(pipeline_data)
             pipeline = parser.parse(root_pipeline_data=get_pipeline_context(instance,
                                                                             obj_type='instance',
-                                                                            data_type='data'),
+                                                                            data_type='data',
+                                                                            username=executor),
                                     root_pipeline_context=get_pipeline_context(instance,
                                                                                obj_type='instance',
-                                                                               data_type='context')
+                                                                               data_type='context',
+                                                                               username=executor)
                                     )
 
             # calculate tree info
@@ -736,7 +744,7 @@ class PipelineInstance(models.Model):
 
             instance.save()
 
-        act_result = task_service.run_pipeline(pipeline)
+        act_result = task_service.run_pipeline(pipeline, check_workers=check_workers)
 
         if not act_result.result:
             with transaction.atomic():

@@ -11,29 +11,43 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.contrib.auth.models import Group
+import json
+import logging
+
 from django.http import JsonResponse
+from django.contrib.auth.models import Group
 from django.views.decorators.http import require_POST, require_GET
 from django.utils.translation import ugettext_lazy as _
 
+from auth_backend.backends import get_backend_from_config
+from auth_backend.resources import resource_type_lib
+
 from gcloud.core import roles
 from gcloud.core.constant import TASK_CATEGORY, TASK_FLOW_TYPE, NOTIFY_TYPE
-from gcloud.core.models import UserBusiness
-from gcloud.core.utils import convert_group_name
+from gcloud.core.models import UserDefaultProject
+from gcloud.core.utils import convert_group_name, apply_permission_url
+from gcloud.core.permissions import project_resource
+
+auth_backend = get_backend_from_config()
+logger = logging.getLogger('root')
 
 
 @require_POST
-def change_default_business(request, biz_cc_id):
+def change_default_project(request, project_id):
     """
-    @summary: 切换用户默认业务
+    @summary: 切换用户默认项目
     """
-    UserBusiness.objects.update_or_create(
-        user=request.user.username,
-        defaults={'default_buss': biz_cc_id})
+    UserDefaultProject.objects.update_or_create(
+        username=request.user.username,
+        defaults={
+            'default_project_id': project_id
+        }
+    )
+
     return JsonResponse({
         'result': True,
         'data': {},
-        'message': _(u"用户默认业务切换成功")
+        'message': _(u"用户默认项目切换成功")
     })
 
 
@@ -99,3 +113,69 @@ def get_basic_info(request):
         "notify_type_list": notify_type_list
     }
     return JsonResponse(ctx, safe=False)
+
+
+@require_POST
+def query_apply_permission_url(request):
+    """
+    @summary: 获取无权限时申请权限的URL，该接口无需鉴权，获取到申请URL后在很短时间内（可能1分钟）将失效
+    @param request:
+    @return:
+    """
+    try:
+        permission = json.loads(request.POST.get('permission'))
+    except Exception:
+        ctx = {
+            'result': False,
+            'data': {},
+            'message': _(u"请求参数错误，permission不是json格式的列表"),
+            'code': -1
+        }
+        return JsonResponse(ctx)
+    return JsonResponse(apply_permission_url(permission))
+
+
+@require_POST
+def query_resource_verify_perms(request):
+    """
+    @summary: 查询用户是否有某个资源的某些权限
+    @param request:
+    @return:
+    """
+    resource_type = request.POST.get('resource_type')
+    action_ids = json.loads(request.POST.get('action_ids'))
+    instance_id = request.POST.get('instance_id') or None
+    if resource_type not in resource_type_lib:
+        ctx = {
+            'result': False,
+            'data': {},
+            'message': _(u"请求资源[resource_type=%s]未注册" % resource_type),
+            'code': -1
+        }
+        return JsonResponse(ctx)
+
+    resource = resource_type_lib[resource_type]
+    verify_result = auth_backend.verify_perms(resource=resource,
+                                              principal_type='user',
+                                              principal_id=request.user.username,
+                                              action_ids=action_ids,
+                                              instance=instance_id)
+    if not verify_result['result']:
+        logger.error(u"Search authorized resources of Resource[{resource}] return error: {error}".format(
+            resource=project_resource.name,
+            error=verify_result['message']
+        ))
+        return JsonResponse(verify_result)
+
+    verified_resources = verify_result['data']
+    is_pass = all([action_resource['is_pass'] for action_resource in verified_resources])
+    ctx = {
+        'result': True,
+        'data': {
+            'is_pass': is_pass,
+            'details': verified_resources
+        },
+        'message': '',
+        'code': -1
+    }
+    return JsonResponse(ctx)

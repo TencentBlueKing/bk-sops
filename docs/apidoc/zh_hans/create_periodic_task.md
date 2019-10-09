@@ -23,12 +23,13 @@
 |   cron    |   dict     |   是   |  要创建的周期任务调度策略 |
 |   constants    |   dict     |   否   | 任务全局参数，详细信息见下面说明 |
 |   exclude_task_nodes_id    |   list     |   否   |  跳过执行的节点ID列表 |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
-#### constants.KEY
+#### constants KEY
 
 变量 KEY，${key} 格式
 
-#### constants.VALUE
+#### constants VALUE
 
 变量值
 
@@ -258,11 +259,11 @@
 |  constants      |    dict    |  全局变量信息，详情见下面    |
 |  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
 
-#### data.form.KEY, data.pipeline_tree.constants.KEY
+#### data.form KEY, data.pipeline_tree.constants KEY
 
 全局变量 KEY，${key} 格式
 
-#### data.form.VALUE, data.pipeline_tree.constants.VALUE
+#### data.form VALUE, data.pipeline_tree.constants VALUE
 
 |   名称   |  类型  |           说明             |
 | ------------ | ---------- | ------------------------------ |

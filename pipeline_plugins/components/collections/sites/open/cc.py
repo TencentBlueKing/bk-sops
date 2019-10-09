@@ -12,13 +12,20 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.utils import get_ip_by_regex, handle_api_error
+from pipeline_plugins.components.utils import (
+    get_ip_by_regex,
+    handle_api_error,
+    supplier_account_for_business
+)
+
 from gcloud.conf import settings
 
 logger = logging.getLogger('celery')
@@ -27,10 +34,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 __group_name__ = _(u"配置平台(CMDB)")
 __group_icon__ = '%scomponents/atoms/cc/cc.png' % settings.STATIC_URL
 
-
-def cc_handle_api_error(api_name, params, error):
-    message = handle_api_error(__group_name__, api_name, params, error)
-    return message
+cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
 def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
@@ -61,7 +65,7 @@ def cc_get_host_id_by_innerip(executor, bk_biz_id, ip_list, supplier_account):
     cc_result = client.cc.search_host(cc_kwargs)
 
     if not cc_result['result']:
-        message = cc_handle_api_error('cc.search_host', cc_kwargs, cc_result['message'])
+        message = cc_handle_api_error('cc.search_host', cc_kwargs, cc_result)
         return {'result': False, 'message': message}
 
     # change bk_host_id to str to use str.join() function
@@ -120,7 +124,7 @@ def cc_format_prop_data(executor, obj_id, prop_id, language, supplier_account):
 
     cc_result = client.cc.search_object_attribute(cc_kwargs)
     if not cc_result['result']:
-        message = cc_handle_api_error('cc.search_object_attribute', cc_kwargs, cc_result['message'])
+        message = cc_handle_api_error('cc.search_object_attribute', cc_kwargs, cc_result)
         ret['result'] = False
         ret['message'] = message
         return ret
@@ -142,15 +146,41 @@ def cc_format_tree_mode_id(front_id_list):
 
 class CCTransferHostModuleService(Service):
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'主机内网 IP'),
+                           key='cc_host_ip',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'待转移的主机内网 IP，以 "," 分隔'))),
+            self.InputItem(name=_(u'模块 ID'),
+                           key='cc_module_select',
+                           type='array',
+                           schema=ArrayItemSchema(description=_(u'转移目标模块 ID 列表'),
+                                                  item_schema=IntItemSchema(description=_(u'模块 ID')))),
+            self.InputItem(name=_(u'转移方式'),
+                           key='cc_is_increment',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'主机转移方式，覆盖(false)或追加(true)'),
+                                                   enum=['false', 'true'])),
+        ]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
@@ -159,7 +189,7 @@ class CCTransferHostModuleService(Service):
             data.set_outputs('ex_data', host_result['message'])
             return False
 
-        cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_module_select'))
+        cc_module_select = data.get_one_of_inputs('cc_module_select')
         cc_is_increment = data.get_one_of_inputs('cc_is_increment')
 
         cc_kwargs = {
@@ -173,12 +203,10 @@ class CCTransferHostModuleService(Service):
         if cc_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_module', cc_kwargs, cc_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_module', cc_kwargs, cc_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
-
-    def outputs_format(self):
-        return []
 
 
 class CCTransferHostModuleComponent(Component):
@@ -190,15 +218,38 @@ class CCTransferHostModuleComponent(Component):
 
 class CCUpdateHostService(Service):
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'主机内网 IP'),
+                           key='cc_host_ip',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'待转移的主机内网 IP，以 "," 分隔'))),
+            self.InputItem(name=_(u'主机属性'),
+                           key='cc_host_property',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'待修改主机属性'))),
+            self.InputItem(name=_(u'主机属性值'),
+                           key='cc_host_prop_value',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'更新后的属性值')))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
@@ -265,12 +316,10 @@ class CCUpdateHostService(Service):
         if cc_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.update_host', cc_kwargs, cc_result['message'])
+            message = cc_handle_api_error('cc.update_host', cc_kwargs, cc_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
-
-    def outputs_format(self):
-        return []
 
 
 class CCUpdateHostComponent(Component):
@@ -282,16 +331,38 @@ class CCUpdateHostComponent(Component):
 
 class CCReplaceFaultMachineService(Service):
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'主机替换信息'),
+                           key='cc_host_replace_detail',
+                           type='object',
+                           schema=ArrayItemSchema(description=_(u'主机替换信息'),
+                                                  item_schema=ObjectItemSchema(
+                                                      description=_(u'替换机与被替换机信息'),
+                                                      property_schemas={
+                                                          'cc_fault_ip': StringItemSchema(
+                                                              description=_(u'故障机 内网IP')),
+                                                          'cc_new_ip': StringItemSchema(
+                                                              description=_(u'替换机 内网IP'))
+                                                      })))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_hosts = data.get_one_of_inputs('cc_host_replace_detail')
 
         # 查询主机可编辑属性
@@ -301,11 +372,8 @@ class CCReplaceFaultMachineService(Service):
         }
         search_attr_result = client.cc.search_object_attribute(search_attr_kwargs)
         if not search_attr_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.search_object_attribute',
-                                       search_attr_kwargs,
-                                       search_attr_result['message'])
-            logger.error(message)
+            message = cc_handle_api_error('cc.search_object_attribute', search_attr_kwargs, search_attr_result)
+            self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
@@ -341,11 +409,8 @@ class CCReplaceFaultMachineService(Service):
         hosts_result = client.cc.search_host(search_kwargs)
 
         if not hosts_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.search_host',
-                                       search_attr_kwargs,
-                                       hosts_result['message'])
-            logger.error(message)
+            message = cc_handle_api_error('cc.search_host', search_attr_kwargs, hosts_result)
+            self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
@@ -388,11 +453,8 @@ class CCReplaceFaultMachineService(Service):
         update_result = client.cc.batch_update_inst(batch_update_kwargs)
 
         if not update_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.batch_update_inst',
-                                       batch_update_kwargs,
-                                       update_result['message'])
-            logger.error(message)
+            message = cc_handle_api_error('cc.batch_update_inst', batch_update_kwargs, update_result)
+            self.logger.error(message)
             data.outputs.ex_data = message
             return False
 
@@ -404,10 +466,10 @@ class CCReplaceFaultMachineService(Service):
         }
         fault_transfer_result = client.cc.transfer_host_to_faultmodule(fault_transfer_kwargs)
         if not fault_transfer_result['result']:
-            message = handle_api_error(__group_name__,
-                                       'cc.transfer_host_to_faultmodule',
-                                       fault_transfer_kwargs,
-                                       fault_transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_faultmodule',
+                                          fault_transfer_kwargs,
+                                          fault_transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -429,20 +491,14 @@ class CCReplaceFaultMachineService(Service):
         for kwargs in transfer_kwargs_list:
             transfer_result = client.cc.transfer_host_module(kwargs)
             if not transfer_result['result']:
-                message = handle_api_error(__group_name__,
-                                           'cc.transfer_host_module',
-                                           kwargs,
-                                           transfer_result['message'])
-                logger.error(message)
+                message = cc_handle_api_error('cc.transfer_host_module', kwargs, transfer_result)
+                self.logger.error(message)
                 data.outputs.ex_data = u"{msg}\n{success}".format(
                     msg=message,
                     success=_(u"成功替换的机器: %s") % ','.join(success))
                 return False
 
             success.append(host_id_to_ip[kwargs['bk_host_id'][0]])
-
-    def outputs_format(self):
-        return []
 
 
 class CCReplaceFaultMachineComponent(Component):
@@ -454,15 +510,31 @@ class CCReplaceFaultMachineComponent(Component):
 
 class CCEmptySetHostsService(Service):
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'业务 ID'),
+                           key='biz_cc_id',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_(u'集群列表'),
+                           key='cc_set_select',
+                           type='array',
+                           schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
+                                                  item_schema=IntItemSchema(description=_(u'集群 ID'))))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
         for set_id in cc_set_select:
@@ -473,15 +545,11 @@ class CCEmptySetHostsService(Service):
             }
             cc_result = client.cc.transfer_sethost_to_idle_module(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.transfer_sethost_to_idle_module',
-                                              cc_kwargs,
-                                              cc_result['message'])
+                message = cc_handle_api_error('cc.transfer_sethost_to_idle_module', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class CCEmptySetHostsComponent(Component):
@@ -493,15 +561,30 @@ class CCEmptySetHostsComponent(Component):
 
 class CCBatchDeleteSetService(Service):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'集群列表'),
+                               key='cc_set_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'集群 ID'))))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
@@ -514,15 +597,11 @@ class CCBatchDeleteSetService(Service):
         }
         cc_result = client.cc.batch_delete_set(cc_kwargs)
         if not cc_result['result']:
-            message = cc_handle_api_error('cc.batch_delete_set',
-                                          cc_kwargs,
-                                          cc_result['message'])
+            message = cc_handle_api_error('cc.batch_delete_set', cc_kwargs, cc_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class CCBatchDeleteSetComponent(Component):
@@ -534,16 +613,35 @@ class CCBatchDeleteSetComponent(Component):
 
 class CCUpdateSetServiceStatusService(Service):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'集群列表'),
+                               key='cc_set_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'需要清空的集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'集群 ID')))),
+                self.InputItem(name=_(u'服务状态'),
+                               key='cc_set_status',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'集群服务器状态，开放(1)或关闭(2)'),
+                                                       enum=['1', '2']))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
         for set_id in cc_set_select:
@@ -557,15 +655,11 @@ class CCUpdateSetServiceStatusService(Service):
             }
             cc_result = client.cc.update_set(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_set',
-                                              cc_kwargs,
-                                              cc_result['message'])
+                message = cc_handle_api_error('cc.update_set', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class CCUpdateSetServiceStatusComponent(Component):
@@ -577,16 +671,36 @@ class CCUpdateSetServiceStatusComponent(Component):
 
 class CCCreateSetService(Service):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'父实例'),
+                               key='cc_set_parent_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'父实例 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'实例 ID')))),
+                self.InputItem(name=_(u'集群信息'),
+                               key='cc_set_info',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'新集群信息对象列表'),
+                                                      item_schema=ObjectItemSchema(description=_(u'集群信息描述对象'),
+                                                                                   property_schemas={})))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_parent_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_parent_select'))
         cc_set_info = data.get_one_of_inputs('cc_set_info')
         cc_kwargs = {
@@ -634,15 +748,11 @@ class CCCreateSetService(Service):
 
                 cc_result = client.cc.create_set(cc_kwargs)
                 if not cc_result['result']:
-                    message = cc_handle_api_error('cc.create_set',
-                                                  cc_kwargs,
-                                                  cc_result['message'])
+                    message = cc_handle_api_error('cc.create_set', cc_kwargs, cc_result)
+                    self.logger.error(message)
                     data.set_outputs('ex_data', message)
                     return False
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class CCCreateSetComponent(Component):
@@ -654,16 +764,38 @@ class CCCreateSetComponent(Component):
 
 class CCUpdateSetService(Service):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'集群列表'),
+                               key='cc_set_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'集群 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'集群 ID')))),
+                self.InputItem(name=_(u'集群属性'),
+                               key='cc_set_property',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'需要修改的集群属性'))),
+                self.InputItem(name=_(u'属性值'),
+                               key='cc_set_prop_value',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'集群属性更新后的值')))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
         cc_set_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_set_select'))
 
         cc_set_property = data.get_one_of_inputs('cc_set_property')
@@ -711,15 +843,11 @@ class CCUpdateSetService(Service):
             }
             cc_result = client.cc.update_set(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_set',
-                                              cc_kwargs,
-                                              cc_result['message'])
+                message = cc_handle_api_error('cc.update_set', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class CCUpdateSetComponent(Component):
@@ -731,25 +859,46 @@ class CCUpdateSetComponent(Component):
 
 class CCUpdateModuleService(Service):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'模块'),
+                               key='cc_module_select',
+                               type='array',
+                               schema=ArrayItemSchema(description=_(u'模块 ID 列表'),
+                                                      item_schema=IntItemSchema(description=_(u'模块 ID')))),
+                self.InputItem(name=_(u'模块属性'),
+                               key='cc_module_property',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'需要修改的模块属性'))),
+                self.InputItem(name=_(u'属性值'),
+                               key='cc_module_prop_value',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'模块属性更新后的值')))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
 
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
         kwargs = {
             "bk_biz_id": biz_cc_id,
             "bk_supplier_account": supplier_account
         }
         tree_data = client.cc.search_biz_inst_topo(kwargs)
         if not tree_data['result']:
-            message = cc_handle_api_error('cc.search_biz_inst_topo',
-                                          kwargs,
-                                          tree_data['message'])
+            message = cc_handle_api_error('cc.search_biz_inst_topo', kwargs, tree_data)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
 
@@ -784,15 +933,11 @@ class CCUpdateModuleService(Service):
             }
             cc_result = client.cc.update_module(cc_kwargs)
             if not cc_result['result']:
-                message = cc_handle_api_error('cc.update_module',
-                                              cc_kwargs,
-                                              cc_result['message'])
+                message = cc_handle_api_error('cc.update_module', cc_kwargs, cc_result)
+                self.logger.error(message)
                 data.set_outputs('ex_data', message)
                 return False
         return True
-
-    def outputs_format(self):
-        return []
 
 
 class CCUpdateModuleComponent(Component):
@@ -804,15 +949,29 @@ class CCUpdateModuleComponent(Component):
 
 class CCTransferHostToIdleService(Service):
 
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'主机 IP'),
+                               key='cc_host_ip',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'转移到空闲机的主机内网 IP，多个以 "," 分隔')))]
+
+    def outputs_format(self):
+        return []
+
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
-        biz_cc_id = parent_data.get_one_of_inputs('biz_cc_id')
-        supplier_account = parent_data.get_one_of_inputs('biz_supplier_account')
 
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs('language'):
             setattr(client, 'language', parent_data.get_one_of_inputs('language'))
             translation.activate(parent_data.get_one_of_inputs('language'))
+
+        biz_cc_id = data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id)
+        supplier_account = supplier_account_for_business(biz_cc_id)
 
         # 查询主机id
         ip_list = get_ip_by_regex(data.get_one_of_inputs('cc_host_ip'))
@@ -832,12 +991,10 @@ class CCTransferHostToIdleService(Service):
         if transfer_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_to_idlemodule', transfer_kwargs, transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_idlemodule', transfer_kwargs, transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
-
-    def outputs_format(self):
-        return []
 
 
 class CCTransferHostToIdleComponent(Component):
@@ -848,6 +1005,19 @@ class CCTransferHostToIdleComponent(Component):
 
 
 class CmdbTransferFaultHostService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'主机 IP'),
+                               key='cc_host_ip',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'转移到故障机的主机内网 IP，多个以 "," 分隔')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -874,13 +1044,10 @@ class CmdbTransferFaultHostService(Service):
         if transfer_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_to_fault_module',
-                                          transfer_params, transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_fault_module', transfer_params, transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
-
-    def outputs_format(self):
-        return []
 
 
 class CmdbTransferFaultHostComponent(Component):
@@ -891,6 +1058,19 @@ class CmdbTransferFaultHostComponent(Component):
 
 
 class CmdbTransferHostResourceModuleService(Service):
+
+    def inputs_format(self):
+        return [self.InputItem(name=_(u'业务 ID'),
+                               key='biz_cc_id',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_(u'主机 IP'),
+                               key='cc_host_ip',
+                               type='string',
+                               schema=StringItemSchema(description=_(u'转移到资源池的主机内网 IP，多个以 "," 分隔')))]
+
+    def outputs_format(self):
+        return []
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -917,13 +1097,10 @@ class CmdbTransferHostResourceModuleService(Service):
         if transfer_result['result']:
             return True
         else:
-            message = cc_handle_api_error('cc.transfer_host_to_resource_module',
-                                          transfer_params, transfer_result['message'])
+            message = cc_handle_api_error('cc.transfer_host_to_resource_module', transfer_params, transfer_result)
+            self.logger.error(message)
             data.set_outputs('ex_data', message)
             return False
-
-    def outputs_format(self):
-        return []
 
 
 class CmdbTransferHostResourceModuleComponent(Component):

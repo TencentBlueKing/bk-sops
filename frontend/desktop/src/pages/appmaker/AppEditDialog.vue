@@ -16,7 +16,7 @@
         :theme="'primary'"
         :mask-close="false"
         :header-position="'left'"
-        :title="i18n.title"
+        :title="dialogTitle"
         :auto-close="false"
         :value="isEditDialogShow"
         @confirm="onConfirm"
@@ -27,7 +27,7 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appTemplate"
-                        class="bk-select-inline"
+                        class="ui-form-item"
                         :searchable="true"
                         :placeholder="i18n.statusPlaceholder"
                         :clearable="true"
@@ -50,7 +50,7 @@
                         v-model="appData.appName"
                         v-validate.disable="appNameRule"
                         name="appName"
-                        class="bk-input-inline"
+                        class="ui-form-item"
                         :clearable="true">
                     </bk-input>
                     <span v-show="errors.has('appName')" class="common-error-tip error-msg">{{ errors.first('appName') }}</span>
@@ -61,7 +61,7 @@
                 <div class="common-form-content">
                     <bk-select
                         v-model="appData.appScheme"
-                        class="bk-select-inline"
+                        class="ui-form-item"
                         :searchable="true"
                         :placeholder="i18n.statusPlaceholder"
                         :clearable="true"
@@ -75,7 +75,7 @@
                         </bk-option>
                     </bk-select>
                     <i
-                        class="bk-icon icon-info-circle scheme-tooltip"
+                        class="common-icon-info scheme-tooltip"
                         v-bk-tooltips="{
                             content: i18n.schemeTips,
                             placements: ['left'],
@@ -117,6 +117,20 @@
                 </div>
             </div>
         </div>
+        <div slot="footer" class="dialog-footer">
+            <div class="bk-button-group">
+                <bk-button
+                    theme="primary"
+                    :class="{
+                        'btn-permission-disable': !hasConfirmPerm
+                    }"
+                    v-cursor="{ active: appData.appTemplate && !hasConfirmPerm }"
+                    @click="onConfirm">
+                    {{i18n.confirm}}
+                </bk-button>
+                <bk-button type="default" @click="onCancel">{{i18n.cancel}}</bk-button>
+            </div>
+        </div>
     </bk-dialog>
 </template>
 <script>
@@ -124,10 +138,12 @@
     import { mapActions } from 'vuex'
     import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     export default {
         name: 'AppEditDialog',
+        mixins: [permission],
         props: {
-            'cc_id': String,
+            'project_id': String,
             'isCreateNewApp': Boolean,
             'isEditDialogShow': Boolean,
             'currentAppData': {
@@ -155,10 +171,11 @@
                     appName: '',
                     appScheme: '',
                     appDesc: '',
+                    appActions: this.currentAppData ? this.currentAppData.auth_actions : [],
                     appLogo: undefined
                 },
                 logoUrl: '',
-                isShowDefaultLogo: false,
+                isLogoLoadingError: false,
                 isLogoEmpty: !!this.isCreateNewApp,
                 appNameRule: {
                     required: true,
@@ -168,8 +185,11 @@
                 appDescRule: {
                     max: STRING_LENGTH.APP_DESCRIPTION_MAX_LENGTH
                 },
+                tplOperations: [],
+                tplResource: {},
                 i18n: {
-                    title: this.isCreateNewApp ? gettext('新建轻应用') : gettext('修改轻应用'),
+                    new: gettext('新建轻应用'),
+                    edit: gettext('修改轻应用'),
                     template: gettext('流程模板'),
                     templateTips: gettext('流程模板不能为空'),
                     appName: gettext('应用名称'),
@@ -178,8 +198,24 @@
                     appDesc: gettext('应用简介'),
                     appLogo: gettext('应用LOGO'),
                     change: gettext('点击更换'),
-                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K')
+                    uploadTips: gettext('只能上传JPG/PNG类型文件，建议大小为100px*100px，不能超过 100K'),
+                    confirm: gettext('确认'),
+                    cancel: gettext('取消')
                 }
+            }
+        },
+        computed: {
+            dialogTitle () {
+                return this.isCreateNewApp ? this.i18n.new : this.i18n.edit
+            },
+            btnPermission () {
+                return this.isCreateNewApp ? ['create_mini_app'] : ['edit']
+            },
+            hasConfirmPerm () {
+                return this.hasPermission(this.btnPermission, this.appData.appActions, this.tplOperations)
+            },
+            isShowDefaultLogo () {
+                return this.isLogoLoadingError || !this.logoUrl
             }
         },
         watch: {
@@ -209,13 +245,15 @@
                 'loadTaskScheme'
             ]),
             useDefaultLogo () {
-                this.isShowDefaultLogo = true
+                this.isLogoLoadingError = true
             },
             async getTemplateList () {
                 this.templateLoading = true
                 try {
                     const templateListData = await this.loadTemplateList()
                     this.templateList = templateListData.objects
+                    this.tplOperations = templateListData.meta.auth_operations
+                    this.tplResource = templateListData.meta.auth_resource
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
@@ -226,7 +264,7 @@
                 this.schemeLoading = true
                 try {
                     const data = {
-                        cc_id: this.cc_id,
+                        project_id: this.project_id,
                         template_id: this.appData.appTemplate
                     }
                     this.schemeList = await this.loadTaskScheme(data)
@@ -236,9 +274,12 @@
                 }
             },
             onSelectTemplate (id) {
+                const template = this.templateList.find(item => item.id === id)
                 this.appData.appTemplate = id
-                this.appData.appName = this.templateList.find(item => item.id === id).name
+                this.appData.appName = template.name
                 this.appTemplateEmpty = false
+                this.appData.appScheme = ''
+                this.appData.appActions = template.auth_actions
                 this.getTemplateScheme()
             },
             onSelectScheme (id) {
@@ -257,7 +298,7 @@
                     })
                 } else {
                     this.isLogoEmpty = false
-                    this.isShowDefaultLogo = false
+                    this.isLogoLoadingError = false
                     this.logoUrl = window.URL.createObjectURL(pic)
                     this.appData.appLogo = pic
                 }
@@ -267,6 +308,17 @@
                     this.appTemplateEmpty = true
                     return
                 }
+                if (!this.hasConfirmPerm) {
+                    const templateName = this.templateList.find(item => item.id === this.appData.appTemplate).name
+                    const resourceData = {
+                        name: templateName,
+                        id: this.appData.appTemplate,
+                        auth_actions: this.appData.appActions
+                    }
+                    this.applyForPermission(['create_mini_app'], resourceData, this.tplOperations, this.tplResource)
+                    return
+                }
+                
                 this.appData.appName = this.appData.appName.trim()
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
@@ -283,6 +335,14 @@
 </script>
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
+.common-error-tip {
+    position: absolute;
+    left: 0;
+    bottom: -14px;
+}
+.common-form-item > label {
+    font-weight: normal;
+}
 .app-edit-content {
     padding: 30px;
     .common-form-content {
@@ -291,7 +351,7 @@
     }
     .scheme-tooltip {
         position: absolute;
-        right: -20px;
+        right: -24px;
         top: 10px;
         color: #c4c6cc;
         &:hover {
@@ -301,7 +361,7 @@
     .app-desc {
         width: 100%;
         height: 80px;
-        border: 1px solid $commonBorderColor;
+        border: 1px solid #c4c6cc;
         outline: none;
         resize: none;
         &:hover {
@@ -382,6 +442,12 @@
     }
     #app-logo {
         visibility: hidden;
+    }
+}
+.dialog-footer {
+    .bk-button {
+        margin-left: 10px;
+        min-width: 90px;
     }
 }
 </style>

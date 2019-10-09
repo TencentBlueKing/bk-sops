@@ -117,20 +117,22 @@
         margin-bottom: 20px;
         padding: 0px 60px 0 60px;
         min-width: 1320px;
-        box-shadow:0px 3px 6px rgba(0, 0, 0, 0.06);
     }
     .nav-content {
+        border-bottom: 1px solid #dde4eb;
         .nav-title {
             float: left;
             margin-right: 20px;
-            padding: 21px 0;
+            padding: 20px 0;
             h3 {
                 margin: 0;
-                padding-right: 20px;
+                padding: 0 25px 0 12px;
                 border-right: 1px solid #c4c6cc;
-                line-height: 1;
-                font-size: 18px;
-                font-weight: 400;
+                border-left: 2px solid #a3c5fd;
+                height: 20px;
+                line-height: 20px;
+                font-size: 14px;
+                font-weight: bold;
                 color: #313238;
             }
         }
@@ -164,10 +166,7 @@
         }
     }
     .statistics-content {
-        padding: 0 10px;
-        .content-wrapper {
-            min-width: 1320px;
-        }
+        padding: 0 60px;
         .template-router {
             color: #3a84ff;
             white-space: nowrap;

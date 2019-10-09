@@ -12,7 +12,6 @@ exclude =
     */node_modules/*,
     */templates_module*,
     */bin/*,
-    packages/*
 max-line-length = 120
 max-complexity = 12
 format = pylint

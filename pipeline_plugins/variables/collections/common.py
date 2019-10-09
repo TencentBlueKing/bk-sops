@@ -21,6 +21,7 @@ from pipeline.core.data.var import (
     LazyVariable,
     RegisterVariableMeta
 )
+from pipeline.core.flow.io import StringItemSchema, IntItemSchema
 
 logger = logging.getLogger('root')
 
@@ -35,6 +36,7 @@ class Input(CommonPlainVariable):
     type = 'general'
     tag = 'input.input'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_(u'输入框变量'))
 
 
 class Textarea(CommonPlainVariable):
@@ -43,6 +45,7 @@ class Textarea(CommonPlainVariable):
     type = 'general'
     tag = 'textarea.textarea'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_(u'文本框变量'))
 
 
 class Datetime(CommonPlainVariable):
@@ -51,6 +54,7 @@ class Datetime(CommonPlainVariable):
     type = 'general'
     tag = 'datetime.datetime'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_(u'日期时间变量'))
 
 
 class Int(CommonPlainVariable):
@@ -59,6 +63,7 @@ class Int(CommonPlainVariable):
     type = 'general'
     tag = 'int.int'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+    schema = IntItemSchema(description=_(u'整数变量'))
 
 
 class Password(LazyVariable):
@@ -67,6 +72,7 @@ class Password(LazyVariable):
     type = 'general'
     tag = 'password.password'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_(u'密码变量'))
 
     def get_value(self):
         return self.value
@@ -79,6 +85,7 @@ class Select(LazyVariable):
     tag = 'select.select'
     meta_tag = 'select.select_meta'
     form = '%svariables/%s.js' % (settings.STATIC_URL, code)
+    schema = StringItemSchema(description=_(u'下拉框变量'))
 
     def get_value(self):
         # multiple select

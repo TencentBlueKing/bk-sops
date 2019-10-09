@@ -13,22 +13,17 @@
     <div class="local-draft-panel">
         <div class="local-title">
             <span> {{i18n.localCache}} </span>
-            <i
-                class="bk-icon icon-info-circle draft-tooltip"
+            <i class="common-icon-info draft-tooltip"
                 v-bk-tooltips="{
                     allowHtml: true,
                     content: '#draft-desc',
                     placement: 'bottom-end',
                     duration: 0,
-                    width: 400
-                }">
-            </i>
+                    width: 400 }"></i>
             <div id="draft-desc">
                 <div class="tips-item" style="white-space: normal;">
                     <h4>{{ i18n.sketch }}</h4>
-                    <p>
-                        {{ i18n.draftSketch }}
-                    </p>
+                    <p>{{ i18n.draftSketch }}</p>
                 </div>
             </div>
         </div>
@@ -47,7 +42,6 @@
             <bk-button class="add-draft-btn" v-else theme="default" @click="onShowDraftForm">
                 {{ i18n.newDraft }}
             </bk-button>
-            
             <span class="common-error-tip error-msg">{{ errors.first('draftName') }}</span>
         </div>
         <div class="local-draft-content">
@@ -234,16 +228,15 @@
             padding: 0 10px;
             height: 40px;
             line-height: 40px;
+            font-size: 12px;
             border-bottom: 1px solid $commonBorderColor;
             text-align: left;
         }
         th {
-            font-size: 14px;
             font-weight: normal;
             background: #ecf0f4;
         }
         td {
-            font-size: 12px;
             .content {
                 width: 100%;
                 overflow: hidden;

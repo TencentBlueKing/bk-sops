@@ -17,19 +17,35 @@
                 v-loading="loading"
                 clearable
                 filterable
-                :disabled="!editable"
+                :disabled="!selectEditable"
                 :remote="remote"
                 :multiple-limit="multiple_limit"
                 :multiple="multiple"
                 :no-data-text="empty_text"
                 :placeholder="placeholder">
-                <el-option
-                    v-for="item in items"
-                    v-loading="loading"
-                    :key="item.text"
-                    :label="item.text"
-                    :value="item.value">
-                </el-option>
+                <template v-if="!hasGroup">
+                    <el-option
+                        v-for="item in items"
+                        v-loading="loading"
+                        :key="item.text"
+                        :label="item.text"
+                        :value="item.value">
+                    </el-option>
+                </template>
+                <template v-else>
+                    <el-option-group
+                        v-for="group in items"
+                        :key="group.text"
+                        :label="group.text">
+                        <el-option
+                            v-for="item in group.options"
+                            v-loading="loading"
+                            :key="item.text"
+                            :label="item.text"
+                            :value="item.value">
+                        </el-option>
+                    </el-option-group>
+                </template>
             </el-select>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
@@ -85,6 +101,18 @@
             },
             desc: 'how to process data after getting remote data'
         },
+        hasGroup: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'whether the options in group'
+        },
+        disabled: {
+            type: Boolean,
+            required: false,
+            default: false,
+            desc: 'selector is disabled'
+        },
         placeholder: {
             type: String,
             required: false,
@@ -104,11 +132,13 @@
         data () {
             return {
                 loading: false,
-                remote_cache: null,
                 loading_text: gettext('加载中')
             }
         },
         computed: {
+            selectEditable () {
+                return this.editable && !this.disabled
+            },
             seletedValue: {
                 get () {
                     return this.value
@@ -170,26 +200,21 @@
                 if (!remote_url) return
 
                 // 请求远程数据
-                if (!this.remote_cache && remote_url) {
-                    this.loading = true
-                    $.ajax({
-                        url: remote_url,
-                        method: 'GET',
-                        success: function (res) {
-                            const data = self.remote_data_init(res) || []
+                this.loading = true
+                $.ajax({
+                    url: remote_url,
+                    method: 'GET',
+                    success: function (res) {
+                        const data = self.remote_data_init(res) || []
 
-                            self.items = data
-                            self.remote_cache = data
-                            self.loading = false
-                        },
-                        error: function (resp) {
-                            self.placeholder = gettext('请求数据失败')
-                            self.loading = false
-                        }
-                    })
-                } else {
-                    this.items = this.remote_cache || []
-                }
+                        self.items = data
+                        self.loading = false
+                    },
+                    error: function (resp) {
+                        self.placeholder = gettext('请求数据失败')
+                        self.loading = false
+                    }
+                })
             }
         }
     }

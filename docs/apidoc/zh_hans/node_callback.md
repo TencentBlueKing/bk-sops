@@ -21,6 +21,7 @@
 |   task_id     |   string   |   是   |  任务ID     |
 |   node_id        | string     | 是         | 节点 ID                        |
 |   callback_data        | dict     | 否         | 回调数据           |           |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例
 

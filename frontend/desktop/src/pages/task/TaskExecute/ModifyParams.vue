@@ -15,7 +15,13 @@
         v-bkloading="{ isLoading: loading, opacity: 1 }"
         @click="e => e.stopPropagation()">
         <div class="panel-title">
-            <h3>{{ i18n.change_params }}</h3>
+            <h3>{{ i18n.changeParams }}</h3>
+        </div>
+        <div v-if="!paramsCanBeModify" class="panel-notice-task-run">
+            <p>
+                <i class="common-icon-info ui-notice"></i>
+                {{ i18n.editTaskDisable }}
+            </p>
         </div>
         <div class="edit-wrapper">
             <TaskParamEdit
@@ -28,7 +34,15 @@
             <NoData v-else></NoData>
         </div>
         <div class="action-wrapper" v-if="!isParamsEmpty && paramsCanBeModify">
-            <bk-button theme="success" @click="onModifyParams">{{ i18n.save }}</bk-button>
+            <bk-button
+                theme="success"
+                :class="{
+                    'btn-permission-disable': !hasSavePermission
+                }"
+                v-cursor="{ active: !hasSavePermission }"
+                @click="onModifyParams">
+                {{ i18n.save }}
+            </bk-button>
         </div>
     </div>
 </template>
@@ -36,15 +50,18 @@
     import '@/utils/i18n.js'
     import { mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import permission from '@/mixins/permission.js'
     import NoData from '@/components/common/base/NoData.vue'
     import TaskParamEdit from '../TaskParamEdit.vue'
+
     export default {
         name: 'ModifyParams',
         components: {
             TaskParamEdit,
             NoData
         },
-        props: ['instance_id', 'paramsCanBeModify'],
+        mixins: [permission],
+        props: ['instanceName', 'instance_id', 'paramsCanBeModify', 'instanceActions', 'instanceOperations', 'instanceResource'],
         data () {
             return {
                 bkMessageInstance: null,
@@ -53,7 +70,8 @@
                 configLoading: true, // 变量配置项加载
                 pending: false, // 提交修改中
                 i18n: {
-                    change_params: gettext('修改全局参数'),
+                    editTaskDisable: gettext('已开始执行的任务不能修改参数'),
+                    changeParams: gettext('修改全局参数'),
                     save: gettext('保存')
                 }
             }
@@ -61,6 +79,9 @@
         computed: {
             isParamsEmpty () {
                 return !Object.keys(this.constants).length
+            },
+            hasSavePermission () {
+                return this.hasPermission(['edit'], this.instanceActions, this.instanceOperations)
             },
             loading () {
                 return this.isParamsEmpty ? this.cntLoading : (this.cntLoading || this.configLoading)
@@ -94,6 +115,15 @@
                 }
             },
             async onModifyParams () {
+                if (!this.hasSavePermission) {
+                    const resourceData = {
+                        id: this.instance_id,
+                        name: this.instanceName,
+                        auth_actions: this.instanceActions
+                    }
+                    this.applyForPermission(['edit'], resourceData, this.instanceOperations, this.instanceResource)
+                }
+
                 if (this.pending) {
                     return
                 }
@@ -144,11 +174,25 @@
         height: 100%;
         overflow: hidden;
         .panel-title {
-            padding: 20px;
+            margin: 20px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #cacedb;
             h3 {
                 margin: 0;
-                font-size: 22px;
-                font-weight: normal;
+                font-size: 14px;
+                font-weight: bold;
+            }
+        }
+        .panel-notice-task-run {
+            margin: 20px 20px 10px 20px;
+            padding: 0 10px;
+            font-size: 12px;
+            line-height: 36px;
+            background: $blueNavBg;
+            border: 1px solid #a3c5fd;
+            .ui-notice {
+                margin-right: 10px;
+                color: $blueDefault;
             }
         }
         .edit-wrapper {

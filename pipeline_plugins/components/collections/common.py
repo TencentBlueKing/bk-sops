@@ -20,6 +20,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from pipeline.conf import settings
 from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
 __group_name__ = _(u"蓝鲸服务(BK)")
@@ -28,6 +29,34 @@ logger = logging.getLogger(__name__)
 
 class HttpRequestService(Service):
 
+    def inputs_format(self):
+        return [
+            self.InputItem(name=_(u'HTTP 请求方法'),
+                           key='bk_http_request_method',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'HTTP 请求方法'))),
+            self.InputItem(name=_(u'HTTP 请求目标地址'),
+                           key='bk_http_request_url',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'HTTP 请求目标地址'))),
+            self.InputItem(name=_(u'HTTP 请求 body'),
+                           key='bk_http_request_body',
+                           type='string',
+                           schema=StringItemSchema(description=_(u'HTTP 请求 body'))),
+        ]
+
+    def outputs_format(self):
+        return [
+            self.OutputItem(name=_(u'响应内容'),
+                            key='data',
+                            type='object',
+                            schema=ObjectItemSchema(description=_(u'HTTP 请求响应内容，内部结构不固定'),
+                                                    property_schemas={})),
+            self.OutputItem(name=_(u'状态码'),
+                            key='status_code',
+                            type='int',
+                            schema=IntItemSchema(description=_(u'HTTP 请求响应状态码')))]
+
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
             translation.activate(parent_data.get_one_of_inputs('language'))
@@ -35,9 +64,7 @@ class HttpRequestService(Service):
         method = data.get_one_of_inputs('bk_http_request_method')
         url = data.get_one_of_inputs('bk_http_request_url')
         body = data.get_one_of_inputs('bk_http_request_body')
-        other = {
-
-        }
+        other = {}
 
         if method.upper() not in ["GET", "HEAD"]:
             other["data"] = body.encode('utf-8')
@@ -78,12 +105,6 @@ class HttpRequestService(Service):
         data.set_outputs('data', resp)
         data.set_outputs('status_code', response.status_code)
         return True
-
-    def outputs_format(self):
-        return [
-            self.OutputItem(name=_(u'响应内容'), key='data', type='str'),
-            self.OutputItem(name=_(u'状态码'), key='status_code', type='int')
-        ]
 
 
 class HttpComponent(Component):
