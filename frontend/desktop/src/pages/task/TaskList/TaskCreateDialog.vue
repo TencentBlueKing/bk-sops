@@ -462,7 +462,6 @@
                 text-align: center;
             }
             .bk-button {
-                width: 80px;
                 height: 32px;
                 line-height: 30px;
             }
