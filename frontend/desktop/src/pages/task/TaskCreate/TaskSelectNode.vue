@@ -233,7 +233,7 @@
              */
             async getLayoutedPosition (data) {
                 try {
-                    const canvasEl = document.getElementsByClassName('preview-canvas-wrapper')[0]
+                    const canvasEl = document.body.scrollWidth
                     const width = canvasEl.offsetWidth
                     const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
                     if (res.result) {
