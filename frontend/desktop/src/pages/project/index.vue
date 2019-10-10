@@ -60,11 +60,15 @@
                                     v-cursor="{ active: !hasPermission([item.power], props.row.auth_actions, projectOperations) }"
                                     :key="index"
                                     :class="['operate-btn', {
-                                        'btn-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
+                                        'text-permission-disable': !hasPermission([item.power], props.row.auth_actions, projectOperations)
                                     }]"
                                     theme="default"
                                     @click="onClickOptBtn(props.row, item.name)">
-                                    {{item.text}}
+                                    {{
+                                        item.name === 'view'
+                                            ? (!hasPermission([item.power], props.row.auth_actions, projectOperations) ? item.text : item.enter )
+                                            : item.text
+                                    }}
                                 </bk-button>
                             </template>
                         </template>
@@ -166,7 +170,8 @@
         {
             name: 'view',
             power: 'view',
-            text: gettext('查看')
+            text: gettext('查看'),
+            enter: gettext('进入')
         },
         {
             name: 'edit',
@@ -435,7 +440,7 @@
                     this.applyForPermission(['view'], project, this.projectOperations, this.projectResource)
                     return
                 }
-                this.$router.push(`/template/home/${this.project_id}/`)
+                this.$router.push(`/home/${project.id}/`)
             },
             onEditProject (project) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
@@ -472,7 +477,6 @@
             },
             onChangeProjectStatus (project, type) {
                 if (!this.hasPermission(['edit'], project.auth_actions, this.projectOperations)) {
-                    console.log('dsadsa')
                     this.applyForPermission(['edit'], project, this.projectOperations, this.projectResource)
                     return
                 }

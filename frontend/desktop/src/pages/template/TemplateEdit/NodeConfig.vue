@@ -24,6 +24,7 @@
                             <bk-select
                                 v-model="currentAtom"
                                 class="node-select"
+                                font-size="14"
                                 :searchable="true"
                                 @selected="onAtomSelect">
                                 <bk-option
@@ -31,8 +32,10 @@
                                     :key="index"
                                     :id="option.id"
                                     :name="option.name">
-                                    <span v-if="!isSingleAtom" class="bk-option-name">{{option.name}}</span>
-                                    <i v-if="!isSingleAtom" class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
+                                    <template v-if="!isSingleAtom">
+                                        <span class="subflow-option-name">{{option.name}}</span>
+                                        <i class="bk-icon common-icon-box-top-right-corner" @click.stop="onJumpToProcess(index)"></i>
+                                    </template>
                                 </bk-option>
                             </bk-select>
                             <!-- 标准插件节点说明 -->
@@ -76,7 +79,12 @@
                     <div class="form-item">
                         <label class="required">{{ i18n.node_name }}</label>
                         <div class="form-content">
-                            <bk-input v-model="nodeName" name="nodeName" class="node-name" v-validate="nodeNameRule" />
+                            <bk-input
+                                v-model="nodeName"
+                                name="nodeName"
+                                class="node-name"
+                                v-validate="nodeNameRule"
+                                data-vv-validate-on=" " />
                             <span v-show="errors.has('nodeName')" class="common-error-tip error-msg">{{ errors.first('nodeName') }}</span>
                         </div>
                     </div>
@@ -115,7 +123,7 @@
                                     {{ i18n.failureHandlingRetry }}
                                 </p>
                             </div>
-                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info"></i>
+                            <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info ui-failure-info"></i>
                             <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
@@ -123,7 +131,7 @@
                         <label>{{ i18n.optional }}</label>
                         <div class="form-content">
                             <bk-switcher
-                                size="min"
+                                size="small"
                                 v-model="nodeCouldBeSkipped">
                             </bk-switcher>
                         </div>
@@ -323,6 +331,7 @@
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'location': state => state.template.location,
                 'atomForm': state => state.atomForm.form,
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormOutput': state => state.atomForm.output,
@@ -553,14 +562,17 @@
              * 加载标准插件配置文件或子流程表单配置
              * @param {String} version 子流程版本/标准插件配置文件版本
              */
-            getConfig (version) {
+            async getConfig (version) {
                 if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
                     || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
-                        return this.getAtomConfig(this.currentAtom, version)
+                        await this.getAtomConfig(this.currentAtom, version)
                     } else {
-                        return this.getSubflowConfig(this.currentAtom, version)
+                        await this.getSubflowConfig(this.currentAtom, version)
                     }
+                    this.$nextTick(() => {
+                        this.markInvalidForm()
+                    })
                 } else {
                     this.markInvalidForm()
                 }
@@ -569,11 +581,14 @@
              * 加载标准插件节点数据
              */
             async getAtomConfig (atomType, version) {
+                this.atomConfigLoading = true
                 if (atomFilter.isConfigExists(atomType, version, this.atomFormConfig)) {
-                    this.setNodeConfigData(atomType, version)
+                    this.setNodeConfigData(atomType)
+                    this.$nextTick(() => {
+                        this.atomConfigLoading = false
+                    })
                     return
                 }
-                this.atomConfigLoading = true
                 try {
                     await this.loadAtomConfig({ atomType, version })
                     this.setNodeConfigData(atomType, version)
@@ -676,7 +691,6 @@
                     this.getNodeFormData()
                     this.$nextTick(() => {
                         this.updateActivities()
-                        this.markInvalidForm()
                     })
                 } catch (e) {
                     errorHandler(e, this)
@@ -707,7 +721,6 @@
                 // this.getNodeFormData()
                 this.$nextTick(() => {
                     this.updateActivities()
-                    this.markInvalidForm()
                 })
             },
             /**
@@ -885,9 +898,9 @@
                 })
             },
             markInvalidForm () {
-                const nodeEls = document.querySelector('#' + this.nodeId).querySelector('.node-with-text')
-                if (nodeEls && !this.isAtomChanged) {
-                    const status = nodeEls.dataset.status
+                const nodeEl = this.location.find(item => item.id === this.idOfNodeInConfigPanel)
+                if (nodeEl && !this.isAtomChanged) {
+                    const status = nodeEl.status
                     if (status === 'FAILED') {
                         this.$validator.validateAll()
                         this.$refs.renderForm && this.$refs.renderForm.validate()
@@ -1338,6 +1351,10 @@
         }
     }
 }
+// 子流程选择下拉框字号
+.subflow-option-name {
+    font-size: 14px;
+}
 .form-item {
     margin-bottom: 20px;
     @include clearfix;
@@ -1370,11 +1387,13 @@
         }
         .common-icon-info {
             display: inline-block;
-            vertical-align: middle;
             color: #c4c6cc;
             &:hover {
                 color: #f4aa1a;
             }
+        }
+        .ui-failure-info {
+            vertical-align: middle;
         }
     }
     &.form-name {

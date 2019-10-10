@@ -46,6 +46,7 @@
                 @onLocationChange="onLocationChange"
                 @onLineChange="onLineChange"
                 @onLocationMoveDone="onLocationMoveDone"
+                @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
             <div class="atom-node">
@@ -111,6 +112,7 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
@@ -302,7 +304,8 @@
                 'loadTemplateData',
                 'saveTemplateData',
                 'loadCommonTemplateData',
-                'loadCustomVarCollection'
+                'loadCustomVarCollection',
+                'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
                 'loadAtomConfig',
@@ -328,7 +331,8 @@
                 'setEndpoint',
                 'setBranchCondition',
                 'replaceTemplate',
-                'replaceLineAndLocation'
+                'replaceLineAndLocation',
+                'setPipelineTree'
             ]),
             ...mapMutations('atomForm/', [
                 'setAtomConfig',
@@ -336,7 +340,8 @@
                 'setVersionMap'
             ]),
             ...mapGetters('template/', [
-                'getLocalTemplateData'
+                'getLocalTemplateData',
+                'getPipelineTree'
             ]),
             async getSingleAtomList () {
                 this.singleAtomListLoading = true
@@ -705,6 +710,41 @@
                 this.variableDataChanged()
                 this.setBranchCondition(labelData)
             },
+            async onFormatPosition () {
+                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
+                if (this.canvasDataLoading) {
+                    return
+                }
+                this.canvasDataLoading = true // @todo 支持画布单独loading
+                try {
+                    const pipelineTree = this.getPipelineTree()
+                    const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
+                    const width = canvasEl.offsetWidth
+                    const res = await this.getLayoutedPipeline({ width, pipelineTree })
+                    if (res.result) {
+                        this.onNewDraft(undefined, false)
+                        this.$refs.templateCanvas.removeAllConnector()
+                        this.setPipelineTree(res.data.pipeline_tree)
+                        this.$nextTick(() => {
+                            this.$refs.templateCanvas.updateCanvas()
+                            this.$bkMessage({
+                                message: gettext('排版完成，原内容在本地缓存中'),
+                                theme: 'success'
+                            })
+                        })
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
+                } finally {
+                    this.canvasDataLoading = false
+                }
+            },
             onLocationChange (changeType, location) {
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
@@ -754,6 +794,9 @@
                 this.isGlobalVariableUpdate = val
             },
             onUpdateNodeInfo (id, data) {
+                const location = this.canvasData.locations.find(item => item.id === id)
+                const updatedLocation = Object.assign(location, data)
+                this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             onDeleteConstant (key) {
@@ -834,6 +877,12 @@
             },
             // 校验节点配置
             checkNodeAndSaveTemplate () {
+                // 校验节点数目
+                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
                 // 节点配置是否错误
                 const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
                 if (nodeWithErrors && nodeWithErrors.length) {

@@ -19,8 +19,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
-
-from pipeline_plugins.components.utils import handle_api_error
+from pipeline_plugins.components.utils import (
+    handle_api_error,
+    format_sundry_ip
+)
 from gcloud.conf import settings
 
 from .utils import get_cmdb_topo_tree
@@ -82,38 +84,42 @@ def cmdb_search_host(request, bk_biz_id, bk_supplier_account='', bk_supplier_id=
 
     host_info = host_result['data']['info']
     data = []
-    default_fields = ['bk_host_innerip', 'bk_host_name', 'bk_host_id']
-    fields = list(set(default_fields + fields))
-    for host in host_info:
-        host_detail = {field: host['host'][field] for field in fields if field in host['host']}
-        if 'set' in fields:
-            host_detail['set'] = host['set']
-        if 'module' in fields:
-            host_detail['module'] = host['module']
-        if 'cloud' in fields or 'agent' in fields:
-            host_detail['cloud'] = host['host']['bk_cloud_id']
-        data.append(host_detail)
 
-    if 'agent' in fields:
-        agent_kwargs = {
-            'bk_biz_id': bk_biz_id,
-            'bk_supplier_id': bk_supplier_id,
-            'hosts': [{'bk_cloud_id': host['cloud'][0]['id'], 'ip': host['bk_host_innerip']} for host in data]
-        }
-        agent_result = client.gse.get_agent_status(agent_kwargs)
-        if not agent_result['result']:
-            message = handle_api_error(_(u"管控平台(GSE)"),
-                                       'gse.get_agent_status',
-                                       agent_kwargs,
-                                       agent_result)
-            result = {'result': False, 'code': ERROR_CODES.API_GSE_ERROR, 'message': message}
-            return JsonResponse(result)
+    if host_info:
+        default_fields = ['bk_host_innerip', 'bk_host_name', 'bk_host_id']
+        fields = set(default_fields + fields)
+        for host in host_info:
+            host_detail = {field: host['host'][field] for field in fields if field in host['host']}
+            host_detail['bk_host_innerip'] = format_sundry_ip(host_detail['bk_host_innerip'])
+            if 'set' in fields:
+                host_detail['set'] = host['set']
+            if 'module' in fields:
+                host_detail['module'] = host['module']
+            if 'cloud' in fields or 'agent' in fields:
+                host_detail['cloud'] = host['host']['bk_cloud_id']
+            data.append(host_detail)
 
-        agent_data = agent_result['data']
-        for host in data:
-            # agent在线状态，0为不在线，1为在线，-1为未知
-            agent_info = agent_data.get('%s:%s' % (host['cloud'][0]['id'], host['bk_host_innerip']), {})
-            host['agent'] = agent_info.get('bk_agent_alive', -1)
+        if 'agent' in fields:
+            agent_kwargs = {
+                'bk_biz_id': bk_biz_id,
+                'bk_supplier_id': bk_supplier_id,
+                'hosts': [{'bk_cloud_id': host['cloud'][0]['id'], 'ip': host['bk_host_innerip']} for host in data]
+            }
+            agent_result = client.gse.get_agent_status(agent_kwargs)
+            if not agent_result['result']:
+                message = handle_api_error(_(u"管控平台(GSE)"),
+                                           'gse.get_agent_status',
+                                           agent_kwargs,
+                                           agent_result)
+                result = {'result': False, 'code': ERROR_CODES.API_GSE_ERROR, 'message': message}
+                return JsonResponse(result)
+
+            agent_data = agent_result['data']
+            for host in data:
+                # agent在线状态，0为不在线，1为在线，-1为未知
+                agent_info = agent_data.get('{cloud}:{ip}'.format(cloud=host['cloud'][0]['id'],
+                                                                  ip=host['bk_host_innerip']), {})
+                host['agent'] = agent_info.get('bk_agent_alive', -1)
 
     result = {'result': True, 'code': NO_ERROR, 'data': data}
     return JsonResponse(result)

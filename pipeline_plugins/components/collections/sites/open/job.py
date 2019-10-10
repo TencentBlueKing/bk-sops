@@ -473,7 +473,7 @@ class JobCronTaskService(Service):
             self.OutputItem(name=_(u'定时作业ID'),
                             key='cron_id',
                             type='int',
-                            schema=IntItemSchema(description=_(u'成功创建的定时作业 Id'))),
+                            schema=IntItemSchema(description=_(u'成功创建的定时作业 ID'))),
             self.OutputItem(name=_(u'定时作业状态'),
                             key='status',
                             type='string',

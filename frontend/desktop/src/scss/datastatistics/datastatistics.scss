@@ -2,7 +2,6 @@
     .content-box {
         position: relative;
         width: 100%;
-        min-width: 1320px;
         height: 100%;
         .content-wrap {
             min-height: 340px;
@@ -17,7 +16,7 @@
                 border: solid 1px #dcdee5;
                 .content-date-business {
                     display: inline-block;
-                    margin-right: 70px;
+                    margin-right: 40px;
                     .icon-angle-down {
                         margin-left: 5px;
                     }
@@ -59,7 +58,7 @@
         }
         .content-wrap-right {
             float: right;
-            width: 50%;
+            width: 49%;
             background-color: $whiteDefault;
             box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.06);
             border-radius: 2px;
@@ -72,7 +71,7 @@
             }
             .content-business {
                 display: inline-block;
-                margin-right: 80px;
+                margin-right: 40px;
                 .icon-angle-down {
                     margin-left: 5px;
                 }
@@ -105,9 +104,7 @@
             width: 100%;
             height: 100%;
             margin-top: 30px;
-            min-width: 1320px;
             background: #ffffff;
-            border: 1px solid #dcdee5;
             box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
             border-radius: 2px;
             position: relative;
@@ -181,21 +178,12 @@
                 }
             }
         }
-        .bk-tab2 {
-            border: none;
-            .bk-tab2-head {
-                height: 42px;
-                .bk-tab2-nav {
-                    border-bottom: 1px solid #dcdee5;
-                    & > .tab2-nav-item {
-                        height: 42px;
-                        line-height: 42px;
-                        &.active {
-                            border-color: #dcdee5;
-                        }
-                    }
-                }
-            }
+        .bk-tab-label-wrapper {
+            border-top: 1px solid #dcdee5;
+            border-right: 1px solid #dcdee5;
+        }
+        .bk-tab-label-list {
+            border-top: none;
         }
         .bk-dropdown-menu1 {
             cursor: pointer;
@@ -205,6 +193,9 @@
         .bk-icon:hover {
             cursor: pointer;
         }
+    }
+    .chart-select-item {
+        width: 160px;
     }
     .table .btn-size-mini {
         margin-left: 30px;

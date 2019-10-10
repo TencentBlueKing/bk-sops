@@ -18,6 +18,7 @@ from django.utils import timezone
 from redis.exceptions import ConnectionError as RedisConnectionError
 
 from pipeline.engine import api
+from pipeline.constants import PIPELINE_MAX_PRIORITY, PIPELINE_MIN_PRIORITY
 from pipeline.core.flow.activity import ServiceActivity
 from pipeline.core.flow.gateway import ParallelGateway, ExclusiveGateway
 from pipeline.engine.models import (Status,
@@ -29,6 +30,7 @@ from pipeline.engine.models import (Status,
                                     ProcessCeleryTask)
 from pipeline.engine import exceptions, states
 from pipeline.engine.utils import calculate_elapsed_time
+from pipeline.constants import PIPELINE_DEFAULT_PRIORITY
 
 from pipeline.tests.mock import *  # noqa
 from pipeline.tests.mock_settings import *  # noqa
@@ -114,9 +116,20 @@ class TestEngineAPI(TestCase):
 
             PipelineProcess.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance)
 
-            PipelineModel.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance, process)
+            PipelineModel.objects.prepare_for_pipeline.assert_called_once_with(pipeline_instance, process,
+                                                                               PIPELINE_DEFAULT_PRIORITY)
 
             PipelineModel.objects.pipeline_ready.assert_called_once_with(process_id=process.id)
+
+    @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
+    @patch(PIPELINE_ENGINE_API_WORKERS, MagicMock(return_value=True))
+    def test_start_pipeline__raise_invalid_operation(self):
+        pipeline_instance = 'pipeline_instance'
+
+        self.assertRaises(exceptions.InvalidOperationException, api.start_pipeline, pipeline_instance,
+                          priority=PIPELINE_MAX_PRIORITY + 1)
+        self.assertRaises(exceptions.InvalidOperationException, api.start_pipeline, pipeline_instance,
+                          priority=PIPELINE_MIN_PRIORITY - 1)
 
     @patch(PIPELINE_FUNCTION_SWITCH_IS_FROZEN, MagicMock(return_value=False))
     @patch(PIPELINE_STATUS_TRANSIT, MagicMock(return_value=MockActionResult(result=True)))

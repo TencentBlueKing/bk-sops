@@ -256,8 +256,10 @@
                     checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
+                isloadCacheStatus: false,
                 isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
+                cacheNodeId: '',
                 nodeInfoType: '',
                 state: '',
                 selectedFlowPath: path, // 选择面包屑路径
@@ -394,17 +396,19 @@
                 'pauseNodeResume'
             ]),
             async loadTaskStatus () {
-                const data = {
-                    instance_id: this.taskId,
-                    project_id: this.project_id
-                }
-                if (this.selectedFlowPath.length > 1) {
-                    data.instance_id = this.instance_id
-                    data.subprocess_id = this.taskId
-                }
                 try {
                     this.$emit('taskStatusLoadChange', true)
-                    const instanceStatus = await this.getInstanceStatus(data)
+                    const data = {
+                        instance_id: this.taskId,
+                        project_id: this.project_id
+                    }
+                    if (this.selectedFlowPath.length > 1) {
+                        data.instance_id = this.instance_id
+                        data.subprocess_id = this.taskId
+                    }
+                    const instanceStatus = !this.isloadCacheStatus
+                        ? await this.getInstanceStatus(data)
+                        : this.getCacheStatusData()
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
@@ -421,6 +425,15 @@
                     errorHandler(e, this)
                 } finally {
                     this.$emit('taskStatusLoadChange', false)
+                }
+            },
+            // 获取缓存状态数据
+            getCacheStatusData () {
+                this.isloadCacheStatus = false
+                const cacheStatus = this.instanceStatus.children
+                return {
+                    data: cacheStatus[this.cacheNodeId],
+                    result: true
                 }
             },
             async taskExecute () {
@@ -889,6 +902,11 @@
                     type: 'SubProcess'
                 })
                 this.pipelineData = this.pipelineData.activities[id].pipeline
+                // 子流程完成或失败时，点击获取接口缓存的数据
+                if (['FINISHED', 'FAILED'].includes(this.state)) {
+                    this.isloadCacheStatus = true
+                    this.cacheNodeId = id
+                }
                 this.updateTaskStatus(id)
             },
             // 面包屑点击

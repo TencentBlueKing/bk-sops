@@ -128,3 +128,15 @@ def get_s3_file_path_of_time(biz_cc_id, time_str):
                         'bkupload',
                         str(biz_cc_id),
                         time_str)
+
+
+def format_sundry_ip(ip):
+    """
+    @summary: IP 格式化，如果是多 IP 的主机，只取第一个 IP 作为代表
+    @param ip:
+    @return:
+    """
+    if ',' in ip:
+        logger.info('HOST[%s] has multiple ip' % ip)
+        return ip.split(',')[0]
+    return ip
