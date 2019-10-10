@@ -13,7 +13,7 @@
     <div class="select-node-wrapper" v-bkloading="{ isLoading: loading, opacity: 1 }">
         <div class="canvas-content">
             <TemplateCanvas
-                v-if="!loading && !isPreviewMode"
+                v-if="!isPreviewMode && !templateLoading"
                 ref="templateCanvas"
                 :preview-data-loading="previewDataLoading"
                 :show-palette="false"
@@ -26,7 +26,7 @@
                 @onToggleAllNode="onToggleAllNode">
             </TemplateCanvas>
             <NodePreview
-                v-else
+                v-else-if="isPreviewMode"
                 ref="nodePreview"
                 :preview-data-loading="previewDataLoading"
                 :canvas-data="formatCanvasData('perview', previewData)"
@@ -61,7 +61,6 @@
     import '@/utils/i18n.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
-    import tools from '@/utils/tools.js'
     import TaskScheme from './TaskScheme.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import NodePreview from '@/pages/task/NodePreview.vue'
@@ -81,12 +80,10 @@
                     cancel: gettext('取消全选'),
                     next: gettext('下一步')
                 },
-                loading: true,
-                selectedNodes: [],
-                allSelectableNodes: [],
-                selectedScheme: '',
+                selectedNodes: [], // 已选中节点
+                allSelectableNodes: [], // 所有可选节点
+                isAllSelected: true,
                 isPreviewMode: false,
-                previewDataLoading: false,
                 version: '',
                 previewBread: [],
                 previewData: {
@@ -96,9 +93,8 @@
                     constants: []
                 },
                 templateName: '',
-                pipelineData: '',
-                isPreview: false,
-                isAllSelected: true,
+                templateLoading: true,
+                previewDataLoading: true,
                 tplActions: [],
                 tplOperations: [],
                 tplResource: {}
@@ -116,10 +112,7 @@
                 'viewMode': state => state.view_mode
             }),
             canvasData () {
-                let mode = 'select'
-                if (this.viewMode === 'appmaker') {
-                    mode = 'selectDisabled'
-                }
+                const mode = 'select'
                 return this.formatCanvasData(mode, this)
             },
             isSchemeShow () {
@@ -127,9 +120,15 @@
             },
             isCommonProcess () {
                 return Number(this.$route.query.common) === 1
+            },
+            loading () {
+                return this.isPreviewMode ? (this.previewDataLoading || this.templateLoading) : this.templateLoading
             }
         },
         created () {
+            if (this.viewMode === 'appmaker') {
+                this.isPreviewMode = true
+            }
             this.getTemplateData()
         },
         methods: {
@@ -152,7 +151,7 @@
              * 获取模板数据，并设置至store中
              */
             async getTemplateData () {
-                this.loading = true
+                this.templateLoading = true
                 try {
                     const data = {
                         templateId: this.template_id,
@@ -168,8 +167,12 @@
 
                     if (this.viewMode === 'appmaker') {
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
-                        const schemeId = Number(appmakerData.template_scheme_id)
-                        schemeId && this.onSelectScheme(schemeId)
+                        const schemeId = appmakerData.template_scheme_id
+                        if (schemeId === '') {
+                            await this.getPreviewNodeData(this.template_id)
+                        } else {
+                            this.selectScheme(schemeId)
+                        }
                     }
                     this.setTemplateData(templateData)
                     this.allSelectableNodes = this.location.filter(item => item.optional)
@@ -187,38 +190,34 @@
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.loading = false
+                    this.templateLoading = false
                 }
             },
             /**
              * 获取画布预览节点和全局变量表单项(接口已去掉未选择的节点、未使用的全局变量)
              * @params {String} templateId  模板 ID
-             * @params {Boolean} isSubflow  是否为子流程预览
              */
-            async getPreviewNodeData (templateId, isSubflow = false, inExcludeNode) {
+            async getPreviewNodeData (templateId) {
                 this.previewDataLoading = true
-                const excludeNode = isSubflow ? [] : this.getExcludeNode()
-                const templateSource = this.common ? 'common' : 'business'
+                const excludeNodes = this.getExcludeNode()
                 const params = {
                     templateId: templateId,
-                    excludeTaskNodesId: JSON.stringify(excludeNode),
+                    excludeTaskNodesId: JSON.stringify(excludeNodes),
                     common: this.common,
-                    cc_id: this.cc_id,
-                    template_source: templateSource,
                     version: this.version
                 }
                 try {
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
                         const previewNodeData = resp.data.pipeline_tree
-                        const layoutedData = await this.getLayoutedPosition(previewNodeData)
-                        previewNodeData['line'] = layoutedData.line
-                        previewNodeData['location'] = layoutedData.location
-                        this.previewData = previewNodeData
-
-                        if (!isSubflow) {
-                            this.pipelineData = tools.deepClone(previewNodeData)
+                        // 如果画布有未选中节点，启用自动编排
+                        if (this.excludeNode.length > 0) {
+                            const layoutedData = await this.getLayoutedPosition(previewNodeData)
+                            previewNodeData.line = layoutedData.line
+                            previewNodeData.location = layoutedData.location
                         }
+
+                        this.previewData = previewNodeData
                     } else {
                         errorHandler(resp, this)
                     }
@@ -234,7 +233,7 @@
              */
             async getLayoutedPosition (data) {
                 try {
-                    const canvasEl = document.getElementsByClassName('canvas-wrapper')[0]
+                    const canvasEl = document.getElementsByClassName('preview-canvas-wrapper')[0]
                     const width = canvasEl.offsetWidth
                     const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
                     if (res.result) {
@@ -250,34 +249,27 @@
              * 进入参数填写阶段，设置执行节点
              */
             async onGotoParamFill () {
-                this.loading = true
-                const excludeNode = this.getExcludeNode()
-                try {
-                    if (!this.isPreviewMode) {
-                        await this.getPreviewNodeData(this.template_id)
-                    }
-                
-                    this.$emit('setExcludeNode', excludeNode)
-                
-                    this.loading = false
-                    if (this.viewMode === 'appmaker') {
-                        if (this.common) {
-                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`, query: { 'template_id': this.template_id, common: this.common } })
-                        } else {
-                            this.$router.push({ path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`, query: { 'template_id': this.template_id } })
-                        }
+                if (this.viewMode === 'appmaker') {
+                    if (this.common) {
+                        this.$router.push({
+                            path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`,
+                            query: { 'template_id': this.template_id, common: this.common }
+                        })
                     } else {
                         this.$router.push({
-                            path: `/template/newtask/${this.project_id}/paramfill/`,
-                            query: {
-                                template_id: this.template_id,
-                                common: this.common || undefined,
-                                entrance: this.entrance
-                            }
+                            path: `/appmaker/${this.app_id}/newtask/${this.project_id}/paramfill/`,
+                            query: { 'template_id': this.template_id }
                         })
                     }
-                } catch (e) {
-                    errorHandler(e, this)
+                } else {
+                    this.$router.push({
+                        path: `/template/newtask/${this.project_id}/paramfill/`,
+                        query: {
+                            template_id: this.template_id,
+                            common: this.common || undefined,
+                            entrance: this.entrance
+                        }
+                    })
                 }
             },
             /**
@@ -313,14 +305,6 @@
                     this.previewDataLoading = false
                 })
             },
-            /**
-             * 在没有画布时，获取执行节点
-             */
-            getExecuteNodeList () {
-                return this.allSelectableNodes.filter(item => {
-                    return !this.selectedNodes.includes(item)
-                })
-            },
             onToggleAllNode (val) {
                 this.isAllSelected = val
                 this.canvasData.locations.forEach(item => {
@@ -334,6 +318,7 @@
                 } else {
                     this.selectedNodes = []
                 }
+                this.updateExcludeNodes()
             },
             /**
              * 点击子流程节点，并进入新的canvas画面
@@ -341,7 +326,7 @@
              */
             onNodeClick (id) {
                 const activity = this.previewData.activities[id]
-                if (!activity || activity.type !== 'SubProcess') {
+                if (this.viewMode === 'appmaker' || !activity || activity.type !== 'SubProcess') {
                     return
                 }
                 const templateId = activity.template_id
@@ -349,7 +334,7 @@
                     data: templateId,
                     name: activity.name
                 })
-                this.getPreviewNodeData(templateId, true)
+                this.getPreviewNodeData(templateId)
             },
             /**
              * 选中节点
@@ -370,6 +355,7 @@
                     }
                     this.selectedNodes.push(id)
                 }
+                this.updateExcludeNodes()
             },
             /**
              * 点击预览模式下的面包屑
@@ -377,12 +363,7 @@
              * @params {Number} index  点击的面包屑的下标
              */
             onSelectSubflow (id, index) {
-                if (id === this.template_id) {
-                    this.previewData = this.pipelineData
-                    this.updateCanvas()
-                } else {
-                    this.getPreviewNodeData(id, true)
-                }
+                this.getPreviewNodeData(id)
                 this.previewBread.splice(index + 1, this.previewBread.length)
             },
             getExcludeNode () {
@@ -401,35 +382,32 @@
              * 选择执行方案
              */
             async selectScheme (scheme) {
+                // 取消已选择方案
                 if (scheme === undefined) {
-                    if (this.isPreviewMode) {
-                        await this.getPreviewNodeData(this.template_id, true)
-                    }
+                    this.selectedNodes = this.allSelectableNodes.map(item => item.id)
                 } else {
                     try {
                         const data = await this.getSchemeDetail({ id: scheme, isCommon: this.isCommonProcess })
                         this.selectedNodes = JSON.parse(data.data)
-                        const excludeNode = this.getExcludeNode()
-                        this.$emit('setExcludeNode', excludeNode)
-                        this.canvasData.locations.forEach(item => {
-                            if (this.isSelectableNode(item.id)) {
-                                const checked = this.selectedNodes.indexOf(item.id) > -1
-                                this.$set(item, 'checked', checked)
-                            }
-                        })
-                        if (this.isPreviewMode) {
-                            await this.getPreviewNodeData(this.template_id, false, excludeNode)
-                        }
                     } catch (e) {
                         errorHandler(e, this)
                     }
+                }
+
+                this.updateExcludeNodes()
+                this.canvasData.locations.forEach(item => {
+                    if (this.isSelectableNode(item.id)) {
+                        const checked = this.selectedNodes.indexOf(item.id) > -1
+                        this.$set(item, 'checked', checked)
+                    }
+                })
+                if (this.isPreviewMode) {
+                    this.getPreviewNodeData(this.template_id)
                 }
             },
             togglePreviewMode (isPreview) {
                 this.isPreviewMode = isPreview
                 if (isPreview) {
-                    const excludeNode = this.getExcludeNode()
-                    this.$emit('setExcludeNode', excludeNode)
                     this.previewBread.push({
                         data: this.template_id,
                         name: this.templateName
@@ -438,6 +416,10 @@
                 } else {
                     this.previewBread = []
                 }
+            },
+            updateExcludeNodes () {
+                const excludeNodes = this.getExcludeNode()
+                this.$emit('setExcludeNode', excludeNodes)
             }
         }
     }

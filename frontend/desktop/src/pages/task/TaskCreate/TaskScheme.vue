@@ -77,7 +77,7 @@
         mixins: [permission],
         props: {
             template_id: {
-                type: String,
+                type: [String, Number],
                 default: ''
             },
             project_id: {
@@ -285,7 +285,7 @@
              * @params {Boolean} isPreview  是否是预览模式
              */
             onChangePreviewNode (isPreview) {
-                this.$emit('togglePreviewModeChange', isPreview)
+                this.$emit('togglePreviewMode', isPreview)
             }
         }
     }

@@ -28,8 +28,10 @@
                 <template v-if="node.optional">
                     <div v-if="node.mode === 'edit'" class="optional-icon"></div>
                     <bk-checkbox
-                        v-else-if="node.mode === 'select' || ndoe.mode === 'selectDisabled'"
-                        :disabled="node.mode === 'selectDisabled'">
+                        v-else-if="node.mode === 'select'"
+                        :value="node.checked"
+                        :disabled="node.checkDisable"
+                        @change="onNodeCheckClick">
                     </bk-checkbox>
                 </template>
             </div>
@@ -74,6 +76,12 @@
         methods: {
             onSubflowPauseResumeClick (value) {
                 this.$emit('onSubflowPauseResumeClick', this.node.id, value)
+            },
+            onNodeCheckClick () {
+                if (this.node.checkDisable) {
+                    return
+                }
+                this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
             }
         }
     }

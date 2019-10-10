@@ -591,8 +591,9 @@ const api = {
      */
     getPreviewNodeData (data) {
         const prefixUrl = this.getPrefix('instancePreview')
-        const { templateId, excludeTaskNodesId, common } = data
+        const { templateId, excludeTaskNodesId, common, version } = data
         const dataJson = {
+            version,
             template_id: templateId,
             exclude_task_nodes_id: excludeTaskNodesId,
             template_source: 'project'
