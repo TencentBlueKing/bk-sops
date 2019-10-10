@@ -49,9 +49,6 @@
                 @onFormatPosition="onFormatPosition"
                 @onReplaceLineAndLocation="onReplaceLineAndLocation">
             </TemplateCanvas>
-            <div class="atom-node">
-                <span class="atom-number">{{i18n.added}} {{Object.keys(activities).length}} {{i18n.node}}</span>
-            </div>
             <NodeConfig
                 ref="nodeConfig"
                 :project_id="project_id"
@@ -129,9 +126,7 @@
         delete_fail: gettext('该本地缓存不存在，删除失败'),
         replace_success: gettext('替换流程成功'),
         add_cache: gettext('新增流程本地缓存成功'),
-        replace_save: gettext('替换流程自动保存'),
-        added: gettext('已添加'),
-        node: gettext('个任务节点')
+        replace_save: gettext('替换流程自动保存')
     }
 
     export default {
@@ -1019,20 +1014,6 @@
         position: relative;
         height: 100%;
         overflow: hidden;
-    }
-    .atom-node {
-        position: absolute;
-        top: 86px;
-        left: 50%;
-        padding: 2px 9px;
-        border-radius: 1px;
-        transform: translateX(-50%);
-        background: rgba(225, 228, 232, 0.95);
-        z-index: 4;
-        .atom-number {
-            color: #a9b2bd;
-            font-size: 14px;
-        }
     }
     .pipeline-canvas-wrapper {
         height: 100%;
