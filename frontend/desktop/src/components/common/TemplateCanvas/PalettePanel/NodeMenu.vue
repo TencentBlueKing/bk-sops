@@ -12,13 +12,9 @@
 <template>
     <transition name="slideLeft">
         <div class="node-menu" v-if="showNodeMenu" v-bk-clickoutside="handleClickOutSide">
-            <i
-                :class="[
-                    'common-icon-left-pin',
-                    'node-list-pin',
-                    { 'actived': isFixedNodeMenu }
-                ]"
-                @click.stop="onClickPin"></i>
+            <div :class="['panel-fixed-pin', { 'actived': isFixedNodeMenu }]" @click.stop="onClickPin">
+                <i class="common-icon-pin"></i>
+            </div>
             <div class="search-wrap">
                 <bk-input
                     class="search-input"
@@ -47,6 +43,9 @@
                                         :type="activeNodeListType"
                                         :node="node">
                                     </node-item>
+                                    <div class="node-empty" v-if="group.list.length === 0">
+                                        <no-data></no-data>
+                                    </div>
                                 </div>
                             </bk-collapse-item>
                         </bk-collapse>
@@ -178,11 +177,17 @@
         border-right: 1px solid #dddddd;
         z-index: 2;
     }
-    .node-list-pin {
+    .panel-fixed-pin {
         position: absolute;
-        top: 0;
-        right: 0;
-        font-size: 24px;
+        top: 16px;
+        right: 14px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        font-size: 14px;
+        text-align: center;
         color: #999999;
         cursor: pointer;
         z-index: 1;
@@ -190,11 +195,11 @@
             color: #727272;
         }
         &.actived {
-            color: #30d878;
+            color: #52699d;
         }
     }
     .search-wrap {
-        padding: 20px;
+        padding: 16px 56px 16px 14px;
         border-bottom: 1px solid #ccd0dd;
     }
     .node-list-wrap {
@@ -203,12 +208,13 @@
         @include scrollbar;
     }
     .bk-collapse-item {
-        border-bottom: 1px solid #ccd0dd;
+        border-bottom: 1px solid #e2e4ed;
         /deep/ .bk-collapse-item-header {
-            background: #fafbfd;
+            background: #ffffff;
         }
         /deep/ .bk-collapse-item-content {
-            border-top: 1px solid #ccd0dd;
+            padding: 0;
+            border-top: 1px solid #e2e4ed;
         }
     }
     .group-header {
@@ -235,6 +241,9 @@
     }
     .node-item-wrap {
         overflow: hidden;
+    }
+    .node-empty {
+        padding: 16px 0;
     }
     .search-result {
         padding: 20px 10px;

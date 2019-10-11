@@ -41,35 +41,24 @@
     @import '@/scss/mixins/scrollbar.scss';
 
     .node-item {
-        margin-bottom: 8px;
-        background: #e1ecff;
-        border: 1px solid #cbddf9;
+        background: #f0f1f5;
+        border-top: 1px solid #e2e4ed;
         border-radius: 2px;
         overflow: hidden;
         cursor: move;
         user-select: none;
-        &:hover {
-            background: $blueDashBg;
-            border-color: $blueDefault;
-            .name-wrapper p{
-                &:after {
-                    background: $blueDashBg;
-                }
-            }
-        }
         &:first-child {
-            margin-top: 16px;
+            border-top: none;
         }
-        &:last-child {
-            margin-bottom: 16px;
+        &:hover {
+            background: #fafbfd;
         }
         .name-wrapper {
-            padding: 0 10px;
-            height: 32px;
-            line-height: 32px;
-            color: #313238;
+            padding: 0 14px;
+            height: 40px;
+            line-height: 40px;
+            color: #63656e;
             font-size: 12px;
-            text-align: center;
         }
     }
 </style>
