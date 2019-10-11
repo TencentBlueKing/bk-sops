@@ -524,12 +524,12 @@
             background: #c4c6cc;
             border-radius: 18px;
             opacity: 0.8;
-            z-index: 4;
+            z-index: 5;
             transition: all 0.5s ease;
             user-select: none;
         }
         .jtk-endpoint {
-            z-index: 1;
+            z-index: 4;
             cursor: pointer;
         }
         .jsflow-node {

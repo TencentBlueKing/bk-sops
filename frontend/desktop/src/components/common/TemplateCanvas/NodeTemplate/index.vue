@@ -126,7 +126,8 @@
     $redDark: #ff5757;
     $yellowDark: #f8b53f;
     $greenDark: #30d878;
-    $greyShadow: rgba(83, 105, 157, 0.15);
+    $defaultShadow: rgba(0, 0, 0, 0.15);
+    $activeShadow: rgba(0, 0, 0, 0.3);
     $redShadow: rgba(255, 87, 87, 0.15);
     $yellowShadow: rgba(248, 181, 63, 0.15);
     $greenShadow: rgba(48, 216, 120, 0.15);
@@ -145,13 +146,8 @@
         }
     }
 
-    @mixin taskNodeStyle ($color, $shadow) {
-        &:hover {
-            box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
-        }
-        .node-icon-wrapper {
-            background-color: $color;
-        }
+    @mixin taskNodeStyle ($color) {
+        .subflow-node-icon,
         .node-status-block {
             background-color: $color;
         }
@@ -189,7 +185,7 @@
             background: #96a1b9;
             border-radius: 50%;
             &:hover {
-                box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
+                box-shadow: -1px 1px 8px $activeShadow, 1px -1px 8px $activeShadow;
             }
             &.finished {
                 @include circleStatusStyle($greenDark, $greenShadow)
@@ -238,21 +234,44 @@
             text-align: center;
             background: #ffffff;
             border-radius: 4px;
+            box-shadow: 0px 0px 20px 0px  $defaultShadow;
             cursor: pointer;
+            &.actived {
+                box-shadow: 0px 0px 20px 0px $activeShadow;
+            }
+            .node-status-block {
+                float: left;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 32px;
+                height: 100%;
+                background: #52699d;
+                border-top-left-radius: 4px;
+                border-bottom-left-radius: 4px;
+            }
+            .node-name {
+                margin-left: 32px;
+                width: 116px;
+                font-size: 12px;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
             &:hover {
-                box-shadow: -1px 1px 8px $greyShadow, 1px -1px 8px $greyShadow;
+                box-shadow: 0px 0px 20px 0px $activeShadow;
             }
             &.failed {
-                @include taskNodeStyle ($redDark, $redShadow)
+                @include taskNodeStyle ($redDark)
             }
             &.suspended {
-                @include taskNodeStyle ($yellowDark, $yellowShadow)
+                @include taskNodeStyle ($yellowDark)
             }
             &.running {
-                @include taskNodeStyle ($yellowDark, $yellowShadow)
+                @include taskNodeStyle ($yellowDark)
             }
             &.finished {
-                @include taskNodeStyle ($greenDark, $greenShadow)
+                @include taskNodeStyle ($greenDark)
             }
             
         }

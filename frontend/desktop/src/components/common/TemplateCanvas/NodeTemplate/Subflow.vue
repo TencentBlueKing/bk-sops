@@ -16,9 +16,11 @@
                 'subflow-node',
                 'process-node',
                 node.status ? node.status.toLowerCase() : '',
-                { 'isActived': node.isActived }
+                { 'actived': node.isActived }
             ]">
-            <div class="node-status-block"></div>
+            <div class="node-status-block">
+                <i class="node-icon common-icon-subflow-mark"></i>
+            </div>
             <div class="node-name">
                 <div class="subflow-node-icon"></div>
                 <p>{{ node.name }}</p>
@@ -77,20 +79,10 @@
 </script>
 <style lang="scss" scoped>
     .node-status-block {
-        float: left;
-        width: 16px;
-        height: 42px;
-        background: #52699d;
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-    }
-    .node-name {
-        margin-left: 16px;
-        width: 132px;
-        font-size: 12px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
+        .node-icon {
+            font-size: 20px;
+            color: #ffffff;
+        }
     }
     .node-options-icon {
         display: inline-block;
