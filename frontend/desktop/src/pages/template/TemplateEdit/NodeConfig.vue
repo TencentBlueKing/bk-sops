@@ -1111,7 +1111,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .node-config-panel {
     position: absolute;
-    top: 60px;
+    top: 59px;
     right: 476px;
     padding: 20px;
     width: 694px;

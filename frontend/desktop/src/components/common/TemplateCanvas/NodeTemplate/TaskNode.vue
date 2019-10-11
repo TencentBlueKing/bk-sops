@@ -16,9 +16,9 @@
                 'task-node',
                 'process-node',
                 node.status ? node.status.toLowerCase() : '',
-                { 'isActived': node.isActived }
+                { 'actived': node.isActived }
             ]">
-            <div class="node-icon-wrapper">
+            <div class="node-status-block">
                 <img class="node-icon" :src="node.icon || defaultTypeIcon" />
             </div>
             <div class="node-name">
@@ -148,26 +148,10 @@
     }
 </script>
 <style lang="scss" scoped>
-    .node-icon-wrapper {
-        float: left;
-        width: 32px;
-        height: 100%;
-        background: #52699d;
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-        text-align: center;
-        vertical-align: middle;
+    .node-status-block {
         .node-icon {
             width: 16px;
         }
-    }
-    .node-name {
-        margin-left: 32px;
-        width: 116px;
-        font-size: 12px;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
     }
     .node-options-icon {
         position: absolute;

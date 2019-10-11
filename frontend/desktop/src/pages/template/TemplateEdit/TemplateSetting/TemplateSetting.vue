@@ -207,7 +207,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .setting-area-wrap {
     position: absolute;
-    top: 60px;
+    top: 59px;
     right: 0px;
     height: calc(100% - 50px);
     z-index: 4;
