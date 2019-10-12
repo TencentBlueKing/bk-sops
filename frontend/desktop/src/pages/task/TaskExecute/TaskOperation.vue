@@ -414,7 +414,10 @@
                         if (this.state === 'RUNNING') {
                             this.setTaskStatusTimer()
                         }
-                        this.updateNodeInfo()
+                        // 异步更新节点状态（在画布更新后）
+                        setTimeout(() => {
+                            this.updateNodeInfo()
+                        }, 0)
                     } else {
                         this.cancelTaskStatusTimer()
                         errorHandler(instanceStatus, this)
