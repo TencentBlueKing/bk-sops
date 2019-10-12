@@ -58,7 +58,7 @@
         size: {
             type: String,
             required: false,
-            default: 'mini',
+            default: 'small',
             description: 'button size medium / small / mini'
 
         },
