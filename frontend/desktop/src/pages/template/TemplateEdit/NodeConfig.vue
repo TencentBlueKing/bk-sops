@@ -397,7 +397,8 @@
                 if (
                     this.singleAtom
                     && this.atomForm[this.currentAtom]
-                    && this.atomForm[this.currentAtom][this.currentVersion]) {
+                    && this.atomForm[this.currentAtom][this.currentVersion]
+                ) {
                     return this.atomForm[this.currentAtom][this.currentVersion].desc
                 }
                 return ''
