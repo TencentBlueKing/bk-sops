@@ -27,6 +27,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='tasktemplate',
             name='pipeline_template',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, to_field=b'template_id', blank=True, to='pipeline.PipelineTemplate', null=True),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.SET_NULL, to_field='template_id', blank=True, to='pipeline.PipelineTemplate', null=True),
         ),
     ]

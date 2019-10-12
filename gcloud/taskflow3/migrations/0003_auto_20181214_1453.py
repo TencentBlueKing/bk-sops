@@ -26,6 +26,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='taskflowinstance',
             name='create_method',
-            field=models.CharField(default=b'app', max_length=30, verbose_name='\u521b\u5efa\u65b9\u5f0f', choices=[(b'app', 'APP'), (b'api', 'API'), (b'app_maker', 'App_maker'), (b'periodic', 'Periodic_task')]),
+            field=models.CharField(default='app', max_length=30, verbose_name='\u521b\u5efa\u65b9\u5f0f', choices=[(b'app', 'APP'), (b'api', 'API'), (b'app_maker', 'App_maker'), (b'periodic', 'Periodic_task')]),
         ),
     ]

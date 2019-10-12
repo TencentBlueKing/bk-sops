@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='appmaker',
             name='default_viewer',
-            field=models.TextField(default=b'{}', verbose_name='\u6dfb\u52a0\u5230\u684c\u9762'),
+            field=models.TextField(default='{}', verbose_name='\u6dfb\u52a0\u5230\u684c\u9762'),
         ),
         migrations.AlterField(
             model_name='appmaker',
