@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 import datetime
 import hashlib
 import copy
+from functools import cmp_to_key
+
 import ujson as json
 
 from pipeline.core.constants import PE
@@ -207,7 +209,7 @@ class PipelineTemplateWebWrapper(object):
                 # 被引用者权重 +1
                 referenced_weight[ref] += 1
 
-        return [i[0] for i in sorted(referenced_weight.items(), cmp=lambda x, y: cmp(x[1], y[1]), reverse=True)]
+        return [i[0] for i in sorted(referenced_weight.items(), key=cmp_to_key(lambda x, y: y[1] - x[1]))]
 
     @classmethod
     def _update_or_create_version(cls, template, order):
