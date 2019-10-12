@@ -49,12 +49,12 @@
                         :class="['scheme-item', { 'selected': item.id === selectedScheme }]"
                         :key="item.id"
                         @click="onSelectScheme(item.id)">
-                        <a class="scheme-name" :title="item.name">{{item.name}}</a>
-                        <i class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
+                        <span class="scheme-name" :title="item.name">{{item.name}}</span>
+                        <i v-if="isSchemeEditable" class="bk-icon icon-close-circle-shape" @click.stop="onDeleteScheme(item.id)"></i>
                     </li>
                 </ul>
             </div>
-            <div class="scheme-preview-mode">
+            <div class="scheme-preview-mode" v-if="isSchemeEditable">
                 <div class="scheme-header-division-line scheme-header-division-line-last"></div>
                 <div class="preview-mode-switcher">
                     <span>
@@ -93,6 +93,10 @@
                 default: false
             },
             isSchemeShow: {
+                type: Boolean,
+                default: false
+            },
+            isSchemeEditable: {
                 type: Boolean,
                 default: false
             },
