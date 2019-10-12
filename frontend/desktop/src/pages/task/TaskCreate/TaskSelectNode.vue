@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="select-node-wrapper" v-bkloading="{ isLoading: loading, opacity: 1 }">
+    <div class="select-node-wrapper" v-bkloading="{ isLoading: templateLoading, opacity: 1 }">
         <div class="canvas-content">
             <TemplateCanvas
                 v-if="!isPreviewMode && !templateLoading"
@@ -39,6 +39,7 @@
                 :template_id="template_id"
                 :template-name="templateName"
                 :is-scheme-show="isSchemeShow"
+                :is-scheme-editable="viewMode !== 'appmaker'"
                 :is-preview-mode="isPreviewMode"
                 :selected-nodes="selectedNodes"
                 :tpl-actions="tplActions"
@@ -84,6 +85,7 @@
                 allSelectableNodes: [], // 所有可选节点
                 isAllSelected: true,
                 isPreviewMode: false,
+                isAppmakerHasScheme: true,
                 version: '',
                 previewBread: [],
                 previewData: {
@@ -116,7 +118,10 @@
                 return this.formatCanvasData(mode, this)
             },
             isSchemeShow () {
-                return this.viewMode !== 'appmaker' && this.location.some(item => item.optional)
+                if (this.location.some(item => item.optional)) {
+                    return this.viewMode === 'appmaker' ? !this.isAppmakerHasScheme : true
+                }
+                return false
             },
             isCommonProcess () {
                 return Number(this.$route.query.common) === 1
@@ -169,6 +174,7 @@
                         const appmakerData = await this.loadAppmakerDetail(this.app_id)
                         const schemeId = appmakerData.template_scheme_id
                         if (schemeId === '') {
+                            this.isAppmakerHasScheme = false
                             await this.getPreviewNodeData(this.template_id)
                         } else {
                             this.selectScheme(schemeId)
@@ -293,17 +299,6 @@
                     }),
                     branchConditions
                 }
-            },
-            /**
-             * 更新画布信息，触发v-if重新渲染
-             */
-            updateCanvas () {
-                this.loading = true
-                this.previewDataLoading = true
-                this.$nextTick(() => {
-                    this.loading = false
-                    this.previewDataLoading = false
-                })
             },
             onToggleAllNode (val) {
                 this.isAllSelected = val
