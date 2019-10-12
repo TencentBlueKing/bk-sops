@@ -53,7 +53,7 @@ def with_cache(seconds=60, prefix="", ex=None, check=lambda data: True, pre_get=
             # 计算缓存key
             cache_key = prefix
             if not cache_key:
-                cache_key = func.func_name
+                cache_key = func.__name__
             cache_key = generate_cache_key(cache_key, ex, args, kwargs)
 
             task_running = kwargs.pop("__in_celery", False)
@@ -72,7 +72,7 @@ def with_cache(seconds=60, prefix="", ex=None, check=lambda data: True, pre_get=
                 if celery is None:
                     raise Exception('pre_get need installing celery first')
                 kwargs["__func_module"] = func.__module__
-                kwargs["__func_name"] = func.func_name
+                kwargs["__func_name"] = func.__name__
                 kwargs["__cache_key"] = cache_key
                 pre_get_task.apply_async(countdown=countdown, args=args, kwargs=kwargs)
             return data
@@ -88,15 +88,15 @@ def to_sorted_str(params):
     """
     if isinstance(params, dict):
         data = [(key, params[key]) for key in sorted(params.keys())]
-        s = u""
+        s = ""
         for k, v in data:
-            s += u"-%s:%s" % (k, to_sorted_str(v))
+            s += "-%s:%s" % (k, to_sorted_str(v))
         return s
     elif isinstance(params, list) or isinstance(params, tuple):
-        data = map(lambda x: to_sorted_str(x), params)
-        return u"[%s]" % (u",".join(data))
+        data = [to_sorted_str(x) for x in params]
+        return "[%s]" % (",".join(data))
     else:
-        return u"%s" % params
+        return "%s" % params
 
 
 def generate_cache_key(prefix, ex, args, kwargs):
@@ -123,12 +123,12 @@ def generate_cache_key(prefix, ex, args, kwargs):
         for item in ex:
             if isinstance(item, int):
                 ex_item = args[item]
-            elif isinstance(item, basestring):
+            elif isinstance(item, str):
                 ex_item = kwargs.get(item)
             else:
                 raise Exception("unexpected ex type")
             ex_item = to_sorted_str(ex_item)
-            cache_key += u"-%s" % ex_item
+            cache_key += "-%s" % ex_item
 
     # 如果如果cache_key太长，则对参数部分用md5表示
     if len(prefix) + len(cache_key) >= 200:

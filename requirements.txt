@@ -9,7 +9,7 @@ httplib2==0.9.1
 Mako==1.0.6
 MarkupSafe==1.0
 pytz==2016.6.1
-suds==0.4
+suds-jurko==0.6
 
 # Extra
 jsonschema==2.5.1
@@ -24,6 +24,7 @@ python-magic==0.4.15
 cryptography==2.3.1
 GitPython==2.1.11
 PyJWT==1.6.1
+future==0.17.1
 
 # pipeline
 ujson==1.35

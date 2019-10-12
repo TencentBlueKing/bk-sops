@@ -37,7 +37,7 @@ def send_message(biz_cc_id, executor, notify_type, receivers, title, content):
     if 'sms' in notify_type:
         kwargs = {
             'receiver__username': receivers,
-            'content': u"%s\n%s" % (title, content),
+            'content': "%s\n%s" % (title, content),
         }
         result = client.cmsi.send_sms(kwargs)
         if not result['result']:
@@ -58,7 +58,7 @@ def send_message(biz_cc_id, executor, notify_type, receivers, title, content):
     if 'voice' in notify_type:
         kwargs = {
             'receiver__username': receivers,
-            'auto_read_message': u"%s\n%s" % (title, content),
+            'auto_read_message': "%s\n%s" % (title, content),
         }
         result = client.cmsi.send_voice_msg(kwargs)
         if not result['result']:

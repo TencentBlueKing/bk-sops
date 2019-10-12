@@ -26,7 +26,7 @@ from pipeline.component_framework.component import Component
 
 from gcloud.core.models import Project
 
-__group_name__ = _(u"蓝鲸服务(BK)")
+__group_name__ = _("蓝鲸服务(BK)")
 
 LOGGER = logging.getLogger('celery')
 
@@ -45,7 +45,7 @@ class PauseService(Service):
 
 
 class PauseComponent(Component):
-    name = _(u'暂停')
+    name = _('暂停')
     code = 'pause_node'
     bound_service = PauseService
     form = settings.STATIC_URL + 'components/atoms/bk/pause.js'
@@ -66,10 +66,10 @@ class SleepTimerService(Service):
 
     def inputs_format(self):
         return [
-            self.InputItem(name=_(u'定时时间'),
+            self.InputItem(name=_('定时时间'),
                            key='bk_timing',
                            type='string',
-                           schema=StringItemSchema(description=_(u'定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)')))]
+                           schema=StringItemSchema(description=_('定时时间，格式为秒(s) 或 (%%Y-%%m-%%d %%H:%%M:%%S)')))]
 
     def outputs_format(self):
         return []
@@ -93,7 +93,7 @@ class SleepTimerService(Service):
             eta = datetime.datetime.now(tz=project_tz) + datetime.timedelta(
                 seconds=int(timing))
         else:
-            message = _(u"输入参数%s不符合【秒(s) 或 时间(%%Y-%%m-%%d %%H:%%M:%%S)】格式") % timing
+            message = _("输入参数%s不符合【秒(s) 或 时间(%%Y-%%m-%%d %%H:%%M:%%S)】格式") % timing
             data.set_outputs('ex_data', message)
             return False
 
@@ -117,7 +117,7 @@ class SleepTimerService(Service):
 
 
 class SleepTimerComponent(Component):
-    name = _(u'定时')
+    name = _('定时')
     code = 'sleep_timer'
     bound_service = SleepTimerService
     form = settings.STATIC_URL + 'components/atoms/bk/timer.js'

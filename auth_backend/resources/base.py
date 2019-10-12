@@ -11,14 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 import abc
 import copy
 
-from auth_backend import conf
-from auth_backend import exceptions
+from builtins import object
+from future.utils import with_metaclass
+
+from auth_backend import conf, exceptions
 from auth_backend.backends import get_backend_from_config
-from auth_backend.resources.interfaces import InstanceIterableResource
 from auth_backend.resources.inspect import DummyInspect
+from auth_backend.resources.interfaces import InstanceIterableResource
 
 resource_type_lib = {}
 
@@ -43,9 +47,7 @@ class ActionCollection(object):
         return iter(self._actions)
 
 
-class Resource(object):
-    __metaclass__ = abc.ABCMeta
-
+class Resource(with_metaclass(abc.ABCMeta, object)):
     def __init__(self, rtype, name, scope_type, scope_name, actions, inspect, scope_id=None, parent=None,
                  operations=None, backend=None):
         self.rtype = rtype
@@ -68,9 +70,6 @@ class Resource(object):
         self.operations = _operations
 
         resource_type_lib[rtype] = self
-
-    def __repr__(self):
-        return '<Resource> {rtype}'.format(rtype=self.rtype)
 
     def base_info(self):
         return {
@@ -250,8 +249,6 @@ class NeverInitiateResource(Resource):
 
 
 class ObjectResource(Resource, InstanceIterableResource):
-    __metaclass__ = abc.ABCMeta
-
     def __init__(self, resource_cls, *args, **kwargs):
         super(ObjectResource, self).__init__(*args, **kwargs)
         self.resource_cls = resource_cls

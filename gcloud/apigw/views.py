@@ -281,7 +281,7 @@ def create_task(request, template_id, project_id):
         params.setdefault('exclude_task_nodes_id', [])
         jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
     except jsonschema.ValidationError as e:
-        logger.warning(u"apigw create_task raise prams error: %s" % e)
+        logger.warning("apigw create_task raise prams error: %s" % e)
         message = 'task params is invalid: %s' % e
         return JsonResponse({'result': False, 'message': message})
 
@@ -432,11 +432,11 @@ def query_task_count(request, project_id):
     conditions = params.get('conditions', {})
     group_by = params.get('group_by')
     if not isinstance(conditions, dict):
-        message = u"query_task_list params conditions[%s] are invalid dict data" % conditions
+        message = "query_task_list params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
     if group_by not in ['category', 'create_method', 'flow_type', 'status']:
-        message = u"query_task_list params group_by[%s] is invalid" % group_by
+        message = "query_task_list params group_by[%s] is invalid" % group_by
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
 
@@ -542,7 +542,7 @@ def create_periodic_task(request, template_id, project_id):
         params.setdefault('exclude_task_nodes_id', [])
         jsonschema.validate(params, APIGW_CREATE_PERIODIC_TASK_PARAMS)
     except jsonschema.ValidationError as e:
-        logger.warning(u"apigw create_periodic_task raise prams error: %s" % e)
+        logger.warning("apigw create_periodic_task raise prams error: %s" % e)
         message = 'task params is invalid: %s' % e
         return JsonResponse({'result': False, 'message': message})
 
@@ -554,7 +554,7 @@ def create_periodic_task(request, template_id, project_id):
         logger.exception(e)
         return JsonResponse({'result': False, 'message': e.message})
 
-    for key, val in params['constants'].items():
+    for key, val in list(params['constants'].items()):
         if key in pipeline_tree['constants']:
             pipeline_tree['constants'][key]['value'] = val
 
@@ -901,7 +901,7 @@ def fast_create_task(request, project_id):
         draw_pipeline(pipeline_tree)
         validate_web_pipeline_tree(pipeline_tree)
     except Exception as e:
-        message = u'invalid param pipeline_tree: %s' % e.message
+        message = 'invalid param pipeline_tree: %s' % e.message
         logger.exception(message)
         return JsonResponse({
             'result': False,
@@ -918,7 +918,7 @@ def fast_create_task(request, project_id):
     except (KeyError, ValueError) as e:
         return JsonResponse({
             'result': False,
-            'message': u'invalid params: %s' % e.message
+            'message': 'invalid params: %s' % e.message
         })
 
     try:
@@ -927,7 +927,7 @@ def fast_create_task(request, project_id):
             **pipeline_instance_kwargs
         )
     except PipelineException as e:
-        message = u'create pipeline instance error: %s' % e.message
+        message = 'create pipeline instance error: %s' % e.message
         logger.exception(message)
         return JsonResponse({
             'result': False,

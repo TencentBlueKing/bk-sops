@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations
 from django.db.models.signals import post_save
@@ -31,7 +31,7 @@ def forward_func(apps, schema_editor):
     
     for template in template_list:
         TemplateRelationship.objects.using(db_alias).filter(ancestor_template_id=template.template_id).delete()
-        acts = template.snapshot.data['activities'].values()
+        acts = list(template.snapshot.data['activities'].values())
         subprocess_nodes = [act for act in acts if act["type"] == 'SubProcess']
         rs = []
         for sp in subprocess_nodes:

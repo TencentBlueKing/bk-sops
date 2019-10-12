@@ -30,9 +30,9 @@ def name_handler(name, max_length):
 
 
 def pipeline_node_name_handle(pipeline_tree):
-    for value in pipeline_tree.values():
+    for value in list(pipeline_tree.values()):
         if isinstance(value, dict):
-            for info in value.values():
+            for info in list(value.values()):
                 if isinstance(info, dict) and 'name' in info:
                     info['name'] = name_handler(info['name'], TEMPLATE_NODE_NAME_MAX_LENGTH)
             if 'name' in value:

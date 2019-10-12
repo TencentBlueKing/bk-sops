@@ -54,7 +54,7 @@ from gcloud.conf import settings
 JOB_SUCCESS = {3}
 JOB_VAR_TYPE_IP = 2
 
-__group_name__ = _(u"作业平台(JOB)")
+__group_name__ = _("作业平台(JOB)")
 __group_icon__ = '%scomponents/atoms/job/job.png' % settings.STATIC_URL
 
 LOGGER = logging.getLogger('celery')
@@ -112,7 +112,7 @@ class JobService(Service):
         else:
             data.set_outputs('ex_data', {
                 'exception_msg': _(
-                    u"任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
+                    "任务执行失败，<a href='%s' target='_blank'>前往作业平台(JOB)查看详情</a>"
                 ) % data.outputs.job_inst_url,
                 'task_inst_id': job_instance_id,
                 'show_ip_log': True
@@ -122,38 +122,38 @@ class JobService(Service):
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'JOB任务ID'),
+            self.OutputItem(name=_('JOB任务ID'),
                             key='job_inst_id',
                             type='int',
-                            schema=IntItemSchema(description=_(u'提交的任务在 JOB 平台的实例 ID'))),
-            self.OutputItem(name=_(u'JOB任务链接'),
+                            schema=IntItemSchema(description=_('提交的任务在 JOB 平台的实例 ID'))),
+            self.OutputItem(name=_('JOB任务链接'),
                             key='job_inst_url',
                             type='string',
-                            schema=StringItemSchema(description=_(u'提交的任务在 JOB 平台的 URL')))]
+                            schema=StringItemSchema(description=_('提交的任务在 JOB 平台的 URL')))]
 
 
 class JobExecuteTaskService(JobService):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'作业模板 ID'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('作业模板 ID'),
                                key='job_task_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'需要执行的 JOB 作业模板 ID'))),
-                self.InputItem(name=_(u'全局变量'),
+                               schema=StringItemSchema(description=_('需要执行的 JOB 作业模板 ID'))),
+                self.InputItem(name=_('全局变量'),
                                key='job_global_var',
                                type='array',
                                schema=ArrayItemSchema(
-                                   description=_(u'作业模板执行所需的全局变量列表'),
+                                   description=_('作业模板执行所需的全局变量列表'),
                                    item_schema=ObjectItemSchema(
-                                       description=_(u'全局变量'),
+                                       description=_('全局变量'),
                                        property_schemas={
-                                           'type': IntItemSchema(description=_(u'变量类型，字符串(1) IP(2)')),
-                                           'name': StringItemSchema(description=_(u'变量名')),
-                                           'value': StringItemSchema(description=_(u'变量值'))})))]
+                                           'type': IntItemSchema(description=_('变量类型，字符串(1) IP(2)')),
+                                           'name': StringItemSchema(description=_('变量名')),
+                                           'value': StringItemSchema(description=_('变量值'))})))]
 
     def outputs_format(self):
         return super(JobExecuteTaskService, self).outputs_format()
@@ -179,7 +179,7 @@ class JobExecuteTaskService(JobService):
                     use_cache=False)
                 ip_list = [{'ip': _ip['InnerIP'], 'bk_cloud_id': _ip['Source']} for _ip in var_ip['ip_result']]
                 if _value['value'].strip() and not ip_list:
-                    data.outputs.ex_data = _(u"无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
+                    data.outputs.ex_data = _("无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法")
                     return False
                 if ip_list:
                     global_vars.append({
@@ -219,7 +219,7 @@ class JobExecuteTaskService(JobService):
 
 
 class JobExecuteTaskComponent(Component):
-    name = _(u'执行作业')
+    name = _('执行作业')
     code = 'job_execute_task'
     bound_service = JobExecuteTaskService
     form = '%scomponents/atoms/job/job_execute_task.js' % settings.STATIC_URL
@@ -228,29 +228,29 @@ class JobExecuteTaskComponent(Component):
 class JobFastPushFileService(JobService):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'源文件'),
+        return [self.InputItem(name=_('源文件'),
                                key='job_source_files',
                                type='array',
                                schema=ArrayItemSchema(
-                                   description=_(u'待分发文件列表'),
+                                   description=_('待分发文件列表'),
                                    item_schema=ObjectItemSchema(
-                                       description=_(u'待分发文件信息'),
+                                       description=_('待分发文件信息'),
                                        property_schemas={
-                                           'ip': StringItemSchema(description=_(u'机器 IP')),
-                                           'files': StringItemSchema(description=_(u'文件路径')),
-                                           'account': StringItemSchema(description=_(u'执行账户'))}))),
-                self.InputItem(name=_(u'目标 IP'),
+                                           'ip': StringItemSchema(description=_('机器 IP')),
+                                           'files': StringItemSchema(description=_('文件路径')),
+                                           'account': StringItemSchema(description=_('执行账户'))}))),
+                self.InputItem(name=_('目标 IP'),
                                key='job_ip_list',
                                type='string',
-                               schema=StringItemSchema(description=_(u'文件分发目标机器 IP，多个以 "," 分隔'))),
-                self.InputItem(name=_(u'目标账户'),
+                               schema=StringItemSchema(description=_('文件分发目标机器 IP，多个以 "," 分隔'))),
+                self.InputItem(name=_('目标账户'),
                                key='job_account',
                                type='string',
-                               schema=StringItemSchema(description=_(u'文件分发目标机器账户'))),
-                self.InputItem(name=_(u'目标路径'),
+                               schema=StringItemSchema(description=_('文件分发目标机器账户'))),
+                self.InputItem(name=_('目标路径'),
                                key='job_target_path',
                                type='string',
-                               schema=StringItemSchema(description=_(u'文件分发目标路径')))]
+                               schema=StringItemSchema(description=_('文件分发目标路径')))]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -315,7 +315,7 @@ class JobFastPushFileService(JobService):
 
 
 class JobFastPushFileComponent(Component):
-    name = _(u'快速分发文件')
+    name = _('快速分发文件')
     code = 'job_fast_push_file'
     bound_service = JobFastPushFileService
     form = '%scomponents/atoms/sites/%s/job/job_fast_push_file.js' % (settings.STATIC_URL, settings.RUN_VER)
@@ -324,53 +324,53 @@ class JobFastPushFileComponent(Component):
 class JobFastExecuteScriptService(JobService):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'脚本来源'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('脚本来源'),
                                key='job_script_source',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'待执行的脚本来源，手动(manual)，业务脚本(general)，公共脚本(public)'),
+                                   description=_('待执行的脚本来源，手动(manual)，业务脚本(general)，公共脚本(public)'),
                                    enum=['manual', 'general', 'public'])),
-                self.InputItem(name=_(u'脚本类型'),
+                self.InputItem(name=_('脚本类型'),
                                key='job_script_type',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)'
-                                                 u'，仅在脚本来源为手动时生效'),
+                                   description=_('待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)'
+                                                 '，仅在脚本来源为手动时生效'),
                                    enum=['1', '2', '3', '4', '5'])),
-                self.InputItem(name=_(u'脚本内容'),
+                self.InputItem(name=_('脚本内容'),
                                key='job_content',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'待执行的脚本内容，仅在脚本来源为手动时生效'))),
-                self.InputItem(name=_(u'公共脚本'),
+                                   description=_('待执行的脚本内容，仅在脚本来源为手动时生效'))),
+                self.InputItem(name=_('公共脚本'),
                                key='job_script_list_public',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'待执行的公共脚本 ID，仅在脚本来源为公共脚本时生效'))),
-                self.InputItem(name=_(u'业务脚本'),
+                                   description=_('待执行的公共脚本 ID，仅在脚本来源为公共脚本时生效'))),
+                self.InputItem(name=_('业务脚本'),
                                key='job_script_list_general',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'待执行的业务脚本 ID，仅在脚本来源为业务脚本时生效'))),
-                self.InputItem(name=_(u'脚本执行参数'),
+                                   description=_('待执行的业务脚本 ID，仅在脚本来源为业务脚本时生效'))),
+                self.InputItem(name=_('脚本执行参数'),
                                key='job_script_param',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'脚本执行参数'))),
-                self.InputItem(name=_(u'目标 IP'),
+                                   description=_('脚本执行参数'))),
+                self.InputItem(name=_('目标 IP'),
                                key='job_ip_list',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'执行脚本的目标机器 IP，多个以 "," 分隔'))),
-                self.InputItem(name=_(u'目标账户'),
+                                   description=_('执行脚本的目标机器 IP，多个以 "," 分隔'))),
+                self.InputItem(name=_('目标账户'),
                                key='job_account',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'执行脚本的目标机器账户'))),
+                                   description=_('执行脚本的目标机器账户'))),
                 ]
 
     def outputs_format(self):
@@ -438,7 +438,7 @@ class JobFastExecuteScriptService(JobService):
 
 
 class JobFastExecuteScriptComponent(Component):
-    name = _(u'快速执行脚本')
+    name = _('快速执行脚本')
     code = 'job_fast_execute_script'
     bound_service = JobFastExecuteScriptService
     form = '%scomponents/atoms/job/job_fast_execute_script.js' % settings.STATIC_URL
@@ -447,37 +447,37 @@ class JobFastExecuteScriptComponent(Component):
 class JobCronTaskService(Service):
 
     def inputs_format(self):
-        return [self.InputItem(name=_(u'业务 ID'),
+        return [self.InputItem(name=_('业务 ID'),
                                key='biz_cc_id',
                                type='string',
-                               schema=StringItemSchema(description=_(u'当前操作所属的 CMDB 业务 ID'))),
-                self.InputItem(name=_(u'定时作业名称'),
+                               schema=StringItemSchema(description=_('当前操作所属的 CMDB 业务 ID'))),
+                self.InputItem(name=_('定时作业名称'),
                                key='job_cron_name',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'待创建的定时作业名称'))),
-                self.InputItem(name=_(u'定时规则'),
+                                   description=_('待创建的定时作业名称'))),
+                self.InputItem(name=_('定时规则'),
                                key='job_cron_expression',
                                type='string',
                                schema=StringItemSchema(
-                                   description=_(u'待创建的定时作业定时规则'))),
-                self.InputItem(name=_(u'定时作业状态'),
+                                   description=_('待创建的定时作业定时规则'))),
+                self.InputItem(name=_('定时作业状态'),
                                key='job_cron_status',
                                type='string',
                                schema=IntItemSchema(
-                                   description=_(u'待创建的定时作业状态，暂停(1) 启动(2)'),
+                                   description=_('待创建的定时作业状态，暂停(1) 启动(2)'),
                                    enum=[1, 2]))]
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'定时作业ID'),
+            self.OutputItem(name=_('定时作业ID'),
                             key='cron_id',
                             type='int',
-                            schema=IntItemSchema(description=_(u'成功创建的定时作业 ID'))),
-            self.OutputItem(name=_(u'定时作业状态'),
+                            schema=IntItemSchema(description=_('成功创建的定时作业 ID'))),
+            self.OutputItem(name=_('定时作业状态'),
                             key='status',
                             type='string',
-                            schema=StringItemSchema(description=_(u'成功创建的定时作业状态')))]
+                            schema=StringItemSchema(description=_('成功创建的定时作业状态')))]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -507,7 +507,7 @@ class JobCronTaskService(Service):
             return False
 
         data.outputs.cron_id = job_save_result['data']['cron_id']
-        data.outputs.status = _(u'暂停')
+        data.outputs.status = _('暂停')
         # 更新作业状态
         job_cron_status = data.get_one_of_inputs('job_cron_status')
         if job_cron_status == 1:
@@ -518,9 +518,9 @@ class JobCronTaskService(Service):
             }
             job_update_result = client.job.update_cron_status(job_update_cron_kwargs)
             if job_update_result['result']:
-                data.outputs.status = _(u'启动')
+                data.outputs.status = _('启动')
             else:
-                message = _(u'新建定时任务成功但是启动失败：{error}').format(
+                message = _('新建定时任务成功但是启动失败：{error}').format(
                     error=job_handle_api_error('job.update_cron_status', job_update_cron_kwargs, job_update_result))
                 self.logger.error(message)
                 data.outputs.ex_data = message
@@ -530,7 +530,7 @@ class JobCronTaskService(Service):
 
 
 class JobCronTaskComponent(Component):
-    name = _(u'新建定时作业')
+    name = _('新建定时作业')
     code = 'job_cron_task'
     bound_service = JobCronTaskService
     form = '%scomponents/atoms/job/job_cron_task.js' % settings.STATIC_URL

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
+
 import logging
 import traceback
 
@@ -37,8 +37,8 @@ class ConvergeGatewayHandler(FlowElementHandler):
         if process.children:
             try:
                 process.sync_with_children()
-            except exceptions.ChildDataSyncError as e:
-                logger.error(traceback.format_exc(e))
+            except exceptions.ChildDataSyncError:
+                logger.error(traceback.format_exc())
                 # clean children and update current_node to prevent re execute child process
                 process.clean_children()
                 Status.objects.fail(element,

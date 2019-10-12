@@ -32,12 +32,12 @@ class TestSyncTaskModel(TestCase):
         SyncTask.objects.all().delete()
 
     def test_creator_name(self):
-        self.assertEquals(self.sync_task.creator_name, 'user1')
+        self.assertEqual(self.sync_task.creator_name, 'user1')
 
     def test_status_display(self):
-        self.assertEquals(self.sync_task.status_display, _(u"执行中"))
+        self.assertEqual(self.sync_task.status_display, _("执行中"))
 
     def test_finish_task(self):
         self.sync_task.finish_task(status=FAILED, details='error')
-        self.assertEquals(self.sync_task.status, FAILED)
-        self.assertEquals(self.sync_task.details, 'error')
+        self.assertEqual(self.sync_task.status, FAILED)
+        self.assertEqual(self.sync_task.details, 'error')

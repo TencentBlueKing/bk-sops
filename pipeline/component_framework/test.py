@@ -117,13 +117,13 @@ class ComponentTestMixin(object):
             ))
 
     def case_pass(self, case):
-        logger.info(u"[√] <{component}> - [{case_name}]".format(
+        logger.info("[√] <{component}> - [{case_name}]".format(
             component=self._component_cls_name,
             case_name=case.name,
         ))
 
     def case_fail(self, case):
-        logger.info(u"[×] <{component}> - [{case_name}]".format(
+        logger.info("[×] <{component}> - [{case_name}]".format(
             component=self._component_cls_name,
             case_name=case.name,
         ))

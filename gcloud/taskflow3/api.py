@@ -127,7 +127,7 @@ def get_job_instance_log(request, biz_cc_id):
     }
     job_result = client.job.get_job_instance_log(log_kwargs)
     if not job_result['result']:
-        message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
             biz_cc_id, job_result['message'])
 
         if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
@@ -274,7 +274,7 @@ def preview_task_tree(request, project_id):
     except Exception as e:
         logger.exception(e)
         return JsonResponse({'result': False, 'message': e.message})
-    constants_not_referred = {key: value for key, value in template_constants.items()
+    constants_not_referred = {key: value for key, value in list(template_constants.items())
                               if key not in pipeline_tree['constants']}
     return JsonResponse({
         'result': True,
@@ -293,11 +293,11 @@ def query_task_count(request, project_id):
     conditions = request.POST.get('conditions', {})
     group_by = request.POST.get('group_by')
     if not isinstance(conditions, dict):
-        message = u"query_task_list params conditions[%s] are invalid dict data" % conditions
+        message = "query_task_list params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
     if group_by not in ['category', 'create_method', 'flow_type', 'status']:
-        message = u"query_task_list params group_by[%s] is invalid" % group_by
+        message = "query_task_list params group_by[%s] is invalid" % group_by
         logger.error(message)
         return JsonResponse({'result': False, 'message': message})
 

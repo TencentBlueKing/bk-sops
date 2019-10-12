@@ -11,13 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 import copy
 import json
 import logging
-import jsonschema
 
+import jsonschema
 from django.test import TestCase, Client
 
 from pipeline.exceptions import PipelineException
@@ -28,7 +26,6 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.commons.template.models import CommonTemplate
 from gcloud.periodictask.models import PeriodicTask
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 

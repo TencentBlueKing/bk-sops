@@ -59,7 +59,7 @@ class FlowNodeClsFactory(object):
     @classmethod
     def _nodes_types_filter(cls, cls_filter):
         types = []
-        for node_type, node_cls in cls.nodes_cls.items():
+        for node_type, node_cls in list(cls.nodes_cls.items()):
             if not cls_filter(node_cls):
                 types.append(node_type)
 

@@ -176,7 +176,7 @@ class ExternalPackageSourceTestCase(TestCase):
         source = GitRepoSource.objects.get(name=SOURCE_NAME)
 
         modules = []
-        for package_info in PACKAGES.values():
+        for package_info in list(PACKAGES.values()):
             modules.extend(package_info['modules'])
 
         self.assertEqual(source.modules, modules)
@@ -184,7 +184,7 @@ class ExternalPackageSourceTestCase(TestCase):
     @patch(MODELS_SOURCE_MANAGER_UPDATE_SOURCE_FROM_CONFIG, MagicMock())
     def test_update_package_source_from_config__empty_configs(self):
         ExternalPackageSource.update_package_source_from_config([])
-        for source_model_cls in source_cls_factory.values():
+        for source_model_cls in list(source_cls_factory.values()):
             source_model_cls.objects.update_source_from_config.assert_called_with(configs=[])
 
     @patch(MODELS_SOURCE_MANAGER_UPDATE_SOURCE_FROM_CONFIG, MagicMock())
@@ -209,8 +209,8 @@ class ExternalPackageSourceTestCase(TestCase):
         ]
         ExternalPackageSource.update_package_source_from_config(source_configs)
         GitRepoSource.objects.update_source_from_config.assert_has_calls([
-            call(configs=[{'name': '3'}]),
             call(configs=[{'name': '1'}, {'name': '2'}]),
+            call(configs=[{'name': '3'}]),
             call(configs=[{'name': '4'}])
         ])
 

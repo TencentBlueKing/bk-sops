@@ -44,7 +44,7 @@ def model_instance_inject(model_cls, inject_attr, field_maps):
         def wrapper(request, *args, **kwargs):
             get_kwargs = {}
 
-            for field, arg in field_maps.items():
+            for field, arg in list(field_maps.items()):
                 field_value = kwargs.get(arg, None)
                 if field_value is None:
                     return JsonResponse({

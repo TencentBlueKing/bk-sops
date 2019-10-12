@@ -39,14 +39,14 @@ class LogEntryManager(models.Manager):
 
 
 class LogEntry(models.Model):
-    id = models.BigAutoField(_(u"ID"), primary_key=True)
-    logger_name = models.SlugField(_(u"logger 名称"), max_length=128)
-    level_name = models.SlugField(_(u"日志等级"), max_length=32)
-    message = models.TextField(_(u"日志内容"), null=True)
-    exception = models.TextField(_(u"异常信息"), null=True)
-    logged_at = models.DateTimeField(_(u"输出时间"), auto_now_add=True)
+    id = models.BigAutoField(_("ID"), primary_key=True)
+    logger_name = models.SlugField(_("logger 名称"), max_length=128)
+    level_name = models.SlugField(_("日志等级"), max_length=32)
+    message = models.TextField(_("日志内容"), null=True)
+    exception = models.TextField(_("异常信息"), null=True)
+    logged_at = models.DateTimeField(_("输出时间"), auto_now_add=True)
 
-    node_id = models.CharField(_(u"节点 ID"), max_length=32, db_index=True)
-    history_id = models.IntegerField(_(u"节点执行历史 ID"), default=-1)
+    node_id = models.CharField(_("节点 ID"), max_length=32, db_index=True)
+    history_id = models.IntegerField(_("节点执行历史 ID"), default=-1)
 
     objects = LogEntryManager()

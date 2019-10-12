@@ -114,9 +114,9 @@ def double_equals_trans(lval, rval, operator):
                 rval = int(rval)
             elif isinstance(rval, int):
                 lval = int(lval)
-            if isinstance(lval, basestring):
+            if isinstance(lval, str):
                 rval = str(rval)
-            elif isinstance(rval, basestring):
+            elif isinstance(rval, str):
                 lval = str(lval)
         except Exception:
             pass
@@ -129,7 +129,7 @@ def double_equals_trans(lval, rval, operator):
                         transed_rval.append(int(item))
                     except Exception:
                         pass
-            elif isinstance(lval, basestring):
+            elif isinstance(lval, str):
                 for item in rval:
                     try:
                         transed_rval.append(str(item))

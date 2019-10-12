@@ -51,7 +51,7 @@ def get_ip_picker_result(username, bk_biz_id, bk_supplier_account, kwargs):
     client = get_client_by_user(username)
     host_result = client.cc.search_host(cmdb_kwargs)
     if not host_result:
-        message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.search_host', cmdb_kwargs, host_result)
+        message = handle_api_error(_("配置平台(CMDB)"), 'cc.search_host', cmdb_kwargs, host_result)
         return {'result': False, 'data': [], 'message': message}
     host_info = host_result['data']['info']
 
@@ -278,13 +278,13 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
     }
     topo_result = client.cc.search_biz_inst_topo(kwargs)
     if not topo_result['result']:
-        message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.search_biz_inst_topo', kwargs, topo_result)
+        message = handle_api_error(_("配置平台(CMDB)"), 'cc.search_biz_inst_topo', kwargs, topo_result)
         result = {'result': False, 'code': ERROR_CODES.API_CMDB_ERROR, 'message': message, 'data': []}
         return result
 
     inter_result = client.cc.get_biz_internal_module(kwargs)
     if not inter_result['result']:
-        message = handle_api_error(_(u"配置平台(CMDB)"), 'cc.get_biz_internal_module', kwargs, inter_result)
+        message = handle_api_error(_("配置平台(CMDB)"), 'cc.get_biz_internal_module', kwargs, inter_result)
         result = {'result': False, 'code': ERROR_CODES.API_CMDB_ERROR, 'message': message, 'data': []}
         return result
 
@@ -294,13 +294,13 @@ def get_cmdb_topo_tree(username, bk_biz_id, bk_supplier_account):
         default_set = {
             'default': 1,
             'bk_obj_id': 'set',
-            'bk_obj_name': _(u"集群"),
+            'bk_obj_name': _("集群"),
             'bk_inst_id': inter_data['bk_set_id'],
             'bk_inst_name': inter_data['bk_set_name'],
             'child': [{
                 'default': 1,
                 'bk_obj_id': 'module',
-                'bk_obj_name': _(u"模块"),
+                'bk_obj_name': _("模块"),
                 'bk_inst_id': mod['bk_module_id'],
                 'bk_inst_name': mod['bk_module_name'],
             } for mod in inter_data['module']]

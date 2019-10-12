@@ -25,15 +25,15 @@ AUDITOR = 'Auditor'
 NORMAL = 'Normal'
 
 ROLES_DECS = {
-    MAINTAINERS: _(u"运维人员"),
-    PRODUCTPM: _(u"产品人员"),
-    COOPERATION: _(u"合作商"),
-    OWNER: _(u"业务创建人"),
-    ADMIN: _(u"超级管理员"),
-    FUNCTOR: _(u"职能化人员"),
-    TESTER: _(u"测试人员"),
-    DEVELOPER: _(u"开发人员"),
-    AUDITOR: _(u"审计人员"),
+    MAINTAINERS: _("运维人员"),
+    PRODUCTPM: _("产品人员"),
+    COOPERATION: _("合作商"),
+    OWNER: _("业务创建人"),
+    ADMIN: _("超级管理员"),
+    FUNCTOR: _("职能化人员"),
+    TESTER: _("测试人员"),
+    DEVELOPER: _("开发人员"),
+    AUDITOR: _("审计人员"),
 
 }
 

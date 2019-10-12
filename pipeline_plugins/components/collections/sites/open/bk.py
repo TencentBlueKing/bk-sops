@@ -24,7 +24,7 @@ from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
 from pipeline_plugins.components.utils.common import supplier_account_for_business
 
-__group_name__ = _(u"蓝鲸服务(BK)")
+__group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
@@ -50,7 +50,7 @@ def get_notify_receivers(client, biz_cc_id, supplier_account, receiver_group, mo
 
     biz_count = cc_result['data']['count']
     if biz_count != 1:
-        return False, _(u"从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}".format(biz_cc_id, biz_count)), None
+        return False, _("从 CMDB 查询到业务不唯一，业务ID:{}, 返回数量: {}".format(biz_cc_id, biz_count)), None
 
     biz_data = cc_result['data']['info'][0]
     receivers = []
@@ -71,46 +71,46 @@ class NotifyService(Service):
 
     def inputs_format(self):
         return [
-            self.InputItem(name=_(u'业务 ID'),
+            self.InputItem(name=_('业务 ID'),
                            key='biz_cc_id',
                            type='string',
-                           schema=StringItemSchema(description=_(u'通知人员所属的 CMDB 业务 ID'))),
-            self.InputItem(name=_(u'通知方式'),
+                           schema=StringItemSchema(description=_('通知人员所属的 CMDB 业务 ID'))),
+            self.InputItem(name=_('通知方式'),
                            key='bk_notify_type',
                            type='array',
-                           schema=ArrayItemSchema(description=_(u'需要使用的通知方式'),
+                           schema=ArrayItemSchema(description=_('需要使用的通知方式'),
                                                   enum=['weixin', 'email', 'sms'],
-                                                  item_schema=StringItemSchema(description=_(u'通知方式')))),
-            self.InputItem(name=_(u'通知分组'),
+                                                  item_schema=StringItemSchema(description=_('通知方式')))),
+            self.InputItem(name=_('通知分组'),
                            key='bk_receiver_group',
                            type='array',
                            required=False,
-                           schema=ArrayItemSchema(description=_(u'需要进行通知的业务人员分组'),
+                           schema=ArrayItemSchema(description=_('需要进行通知的业务人员分组'),
                                                   enum=['Maintainers', 'ProductPm', 'Developer', 'Tester'],
-                                                  item_schema=StringItemSchema(description=_(u'通知分组')))),
-            self.InputItem(name=_(u'额外通知人'),
+                                                  item_schema=StringItemSchema(description=_('通知分组')))),
+            self.InputItem(name=_('额外通知人'),
                            key='bk_more_receiver',
                            type='string',
-                           schema=StringItemSchema(description=_(u'除了通知分组外需要额外通知的人员'))),
-            self.InputItem(name=_(u'通知标题'),
+                           schema=StringItemSchema(description=_('除了通知分组外需要额外通知的人员'))),
+            self.InputItem(name=_('通知标题'),
                            key='bk_notify_title',
                            type='string',
-                           schema=StringItemSchema(description=_(u'通知的标题'))),
-            self.InputItem(name=_(u'通知内容'),
+                           schema=StringItemSchema(description=_('通知的标题'))),
+            self.InputItem(name=_('通知内容'),
                            key='bk_notify_content',
                            type='string',
-                           schema=StringItemSchema(description=_(u'通知的内容')))]
+                           schema=StringItemSchema(description=_('通知的内容')))]
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'返回码'),
+            self.OutputItem(name=_('返回码'),
                             key='code',
                             type='string',
-                            schema=StringItemSchema(description=_(u'通知接口的返回码'))),
-            self.OutputItem(name=_(u'信息'),
+                            schema=StringItemSchema(description=_('通知接口的返回码'))),
+            self.OutputItem(name=_('信息'),
                             key='message',
                             type='string',
-                            schema=StringItemSchema(description=_(u'通知接口返回的信息')))]
+                            schema=StringItemSchema(description=_('通知接口返回的信息')))]
 
     def execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs('executor')
@@ -164,7 +164,7 @@ class NotifyService(Service):
             'receiver__username': receivers,
             'title': title,
             # 保留通知内容中的换行和空格
-            'content': u"<pre>%s</pre>" % content
+            'content': "<pre>%s</pre>" % content
         }
 
     def _weixin_args(self, receivers, title, content):
@@ -179,7 +179,7 @@ class NotifyService(Service):
     def _sms_args(self, receivers, title, content):
         return {
             'receiver__username': receivers,
-            'content': u"%s\n%s" % (title, content)
+            'content': "%s\n%s" % (title, content)
         }
 
     _send_func = {
@@ -196,10 +196,10 @@ class NotifyService(Service):
 
 
 class NotifyComponent(Component):
-    name = _(u'发送通知')
+    name = _('发送通知')
     code = 'bk_notify'
     bound_service = NotifyService
     form = '%scomponents/atoms/bk/notify.js' % settings.STATIC_URL
-    desc = _(u"API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。"
-             u"API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网"
-             u"关->使用指南。")
+    desc = _("API 网关定义了这些消息通知组件的接口协议，但是，并没有完全实现组件内容，用户可根据接口协议，重写此部分组件。"
+             "API网关为降低实现消息通知组件的难度，提供了在线更新组件配置，不需编写组件代码的方案。详情请查阅PaaS->API网"
+             "关->使用指南。")

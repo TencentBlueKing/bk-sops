@@ -88,29 +88,29 @@ class TestGitRepoOriginalSource(TestCase):
 
     def test_base_source(self):
         base_source = GitRepoSource.objects.get(id=self.original_source.base_source_id)
-        self.assertEquals(self.original_source.base_source, base_source)
-        self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
+        self.assertEqual(self.original_source.base_source, base_source)
+        self.assertEqual(base_source.packages, self.SOURCE_PACKAGES)
 
     def test_get_base_source_fields(self):
-        self.assertEquals(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
-                          {'id', 'name', 'from_config', 'packages', 'repo_raw_address', 'branch'})
+        self.assertEqual(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+                         {'id', 'name', 'from_config', 'packages', 'repo_raw_address', 'branch'})
 
     def test_divide_details_parts(self):
         details = {}
         details.update(self.ORIGINAL_KWARGS)
         details.update(self.SOURCE_KWARGS)
         original_kwargs, base_kwargs = GitRepoOriginalSource.objects.divide_details_parts(self.SOURCE_TYPE, details)
-        self.assertEquals(original_kwargs, self.ORIGINAL_KWARGS)
-        self.assertEquals(base_kwargs, self.SOURCE_KWARGS)
+        self.assertEqual(original_kwargs, self.ORIGINAL_KWARGS)
+        self.assertEqual(base_kwargs, self.SOURCE_KWARGS)
 
     def test_details(self):
         details = {}
         details.update(self.ORIGINAL_KWARGS)
         details.update(self.SOURCE_KWARGS)
-        self.assertEquals(self.original_source.details, details)
+        self.assertEqual(self.original_source.details, details)
 
     def test_original_type(self):
-        self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
+        self.assertEqual(self.original_source.original_type(), self.SOURCE_TYPE)
 
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_ORIGIN_READER_CLS_FACTORY, MockClsFactory())
     def test_read(self):
@@ -124,8 +124,8 @@ class TestGitRepoOriginalSource(TestCase):
             **self.UPDATED_SOURCE_KWARGS
         )
         self.original_source = GitRepoOriginalSource.objects.get(id=self.original_source.id)
-        self.assertEquals(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
-        self.assertEquals(self.original_source.repo_address, self.UPDATED_ORIGINAL_KWARGS['repo_address'])
+        self.assertEqual(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
+        self.assertEqual(self.original_source.repo_address, self.UPDATED_ORIGINAL_KWARGS['repo_address'])
 
 
 class TestS3OriginalSource(TestCase):
@@ -181,21 +181,21 @@ class TestS3OriginalSource(TestCase):
 
     def test_base_source(self):
         base_source = S3Source.objects.get(id=self.original_source.base_source_id)
-        self.assertEquals(self.original_source.base_source, base_source)
-        self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
+        self.assertEqual(self.original_source.base_source, base_source)
+        self.assertEqual(base_source.packages, self.SOURCE_PACKAGES)
 
     def test_get_base_source_fields(self):
-        self.assertEquals(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
-                          {'id', 'name', 'from_config', 'packages', 'service_address', 'bucket', 'access_key',
-                           'secret_key'})
+        self.assertEqual(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+                         {'id', 'name', 'from_config', 'packages', 'service_address', 'bucket', 'access_key',
+                          'secret_key'})
 
     def test_details(self):
         details = {}
         details.update(self.SOURCE_KWARGS)
-        self.assertEquals(self.original_source.details, details)
+        self.assertEqual(self.original_source.details, details)
 
     def test_original_type(self):
-        self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
+        self.assertEqual(self.original_source.original_type(), self.SOURCE_TYPE)
 
     @patch(GCLOUD_EXTERNAL_PLUGINS_MODELS_ORIGIN_READER_CLS_FACTORY, MockClsFactory())
     def test_read(self):
@@ -208,7 +208,7 @@ class TestS3OriginalSource(TestCase):
             **self.UPDATED_SOURCE_KWARGS
         )
         self.original_source = S3OriginalSource.objects.get(id=self.original_source.id)
-        self.assertEquals(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
+        self.assertEqual(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
 
 
 class TestFileSystemOriginalSource(TestCase):
@@ -258,20 +258,20 @@ class TestFileSystemOriginalSource(TestCase):
 
     def test_base_source(self):
         base_source = FileSystemSource.objects.get(id=self.original_source.base_source_id)
-        self.assertEquals(self.original_source.base_source, base_source)
-        self.assertEquals(base_source.packages, self.SOURCE_PACKAGES)
+        self.assertEqual(self.original_source.base_source, base_source)
+        self.assertEqual(base_source.packages, self.SOURCE_PACKAGES)
 
     def test_get_base_source_fields(self):
-        self.assertEquals(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
-                          {'id', 'name', 'from_config', 'packages', 'path'})
+        self.assertEqual(set(GitRepoOriginalSource.objects.get_base_source_fields(self.SOURCE_TYPE)),
+                         {'id', 'name', 'from_config', 'packages', 'path'})
 
     def test_details(self):
         details = {}
         details.update(self.SOURCE_KWARGS)
-        self.assertEquals(self.original_source.details, details)
+        self.assertEqual(self.original_source.details, details)
 
     def test_original_type(self):
-        self.assertEquals(self.original_source.original_type(), self.SOURCE_TYPE)
+        self.assertEqual(self.original_source.original_type(), self.SOURCE_TYPE)
 
     def test_read__exception(self):
         self.assertRaises(exceptions.OriginalSourceTypeError, self.original_source.read)
@@ -283,4 +283,4 @@ class TestFileSystemOriginalSource(TestCase):
             **self.UPDATED_SOURCE_KWARGS
         )
         self.original_source = FileSystemOriginalSource.objects.get(id=self.original_source.id)
-        self.assertEquals(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
+        self.assertEqual(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)

@@ -15,7 +15,7 @@ import json
 import re
 import logging
 
-from urllib import urlencode
+from urllib.parse import urlencode
 from cryptography.fernet import Fernet
 from django.core.cache import cache
 
@@ -60,9 +60,7 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         'Source': , 'SetID': , 'SetName': , 'ModuleID': , 'ModuleName': },{}]}
     """
     plat_ip_reg = re.compile(r'\d+:' + ip_re)
-    set_module_ip_reg = re.compile(
-        ur'[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|' + ip_re
-    )  # 中文字符或者其他字符
+    set_module_ip_reg = re.compile(r'[\u4e00-\u9fa5\w]+\|[\u4e00-\u9fa5\w]+\|' + ip_re)  # 中文字符或者其他字符
     ip_input_list = get_ip_by_regex(ip_str)
     ip_result = []
     # 如果是格式2，可以返回IP的集群、模块、平台信息
@@ -74,17 +72,17 @@ def cc_get_ips_info_by_str(username, biz_cc_id, ip_str, use_cache=True):
         ip_list = cc_get_ip_list_by_biz_and_user(username=username, biz_cc_id=biz_cc_id, use_cache=use_cache)
         for ip_info in ip_list:
             set_dict = {s['bk_set_id']: s for s in ip_info['set']}
-            for module in ip_info['module']:
-                if '%s|%s|%s' % (set_dict[module['bk_set_id']]['bk_set_name'],
-                                 module['bk_module_name'],
+            for mod in ip_info['module']:
+                if '%s|%s|%s' % (set_dict[mod['bk_set_id']]['bk_set_name'],
+                                 mod['bk_module_name'],
                                  ip_info['host']['bk_host_innerip']) in set_module_ip:
                     ip_result.append({'InnerIP': ip_info['host']['bk_host_innerip'],
                                       'HostID': ip_info['host']['bk_host_id'],
                                       'Source': ip_info['host']['bk_cloud_id'][0]['id'],
-                                      'SetID': module['bk_set_id'],
-                                      'SetName': set_dict[module['bk_set_id']]['bk_set_name'],
-                                      'ModuleID': module['bk_module_id'],
-                                      'ModuleName': module['bk_module_name'],
+                                      'SetID': mod['bk_set_id'],
+                                      'SetName': set_dict[mod['bk_set_id']]['bk_set_name'],
+                                      'ModuleID': mod['bk_module_id'],
+                                      'ModuleName': mod['bk_module_name'],
                                       })
 
     # 如果是格式3，返回IP的平台信息
@@ -172,9 +170,10 @@ def cc_get_ip_list_by_biz_and_user(username, biz_cc_id, supplier_account, use_ca
                 host['host']['bk_host_innerip'] = format_sundry_ip(host['host']['bk_host_innerip'])
             cache.set(cache_key, data, 60)
         else:
-            logger.warning((u"search_host ERROR###biz_cc_id=%s"
-                            u"###cc_result=%s") % (biz_cc_id,
-                                                   json.dumps(cc_result)))
+            logger.warning("search_host ERROR###biz_cc_id={biz_cc_id}###cc_result={cc_result}".format(
+                biz_cc_id=biz_cc_id,
+                cc_result=json.dumps(cc_result)
+            ))
     if not data:
         return []
     return data
@@ -226,13 +225,13 @@ def cc_get_inner_ip_by_module_id(username, biz_cc_id, module_id_list, supplier_a
     if cc_result['result']:
         result = cc_result['data']['info']
     else:
-        logger.warning(u"client.cc.search_host ERROR###biz_cc_id=%s"
-                       u"###cc_result=%s" % (biz_cc_id, json.dumps(cc_result)))
+        logger.warning("client.cc.search_host ERROR###biz_cc_id=%s"
+                       "###cc_result=%s" % (biz_cc_id, json.dumps(cc_result)))
     return result
 
 
 def get_job_instance_url(biz_cc_id, job_instance_id):
-    url_format = u'%s?taskInstanceList&appId=%s#taskInstanceId=%s'
+    url_format = '%s?taskInstanceList&appId=%s#taskInstanceId=%s'
 
     if settings.OPEN_VER == 'community':
         return url_format % (

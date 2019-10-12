@@ -47,7 +47,7 @@ JOB_VAR_TYPE_STR = 1
 JOB_VAR_TYPE_IP = 2
 JOB_VAR_TYPE_INDEX_ARRAY = 3
 JOB_VAR_TYPE_ARRAY = 4
-CHINESE_REGEX = re.compile(u'[\u4e00-\u9fa5\\/:*?"<>|,]')
+CHINESE_REGEX = re.compile('[\u4e00-\u9fa5\\/:*?"<>|,]')
 
 
 @supplier_account_inject
@@ -213,10 +213,10 @@ def cc_get_host_by_module_id(request, biz_cc_id, supplier_account):
     """
     select_module_id = request.GET.getlist('query', [])
     # 查询module对应的主机
-    module_hosts = cc_format_module_hosts(request.user.username, biz_cc_id, map(lambda x: int(x), select_module_id),
+    module_hosts = cc_format_module_hosts(request.user.username, biz_cc_id, [int(x) for x in select_module_id],
                                           supplier_account)
 
-    for del_id in (set(module_hosts.keys()) - set(map(lambda x: 'module_%s' % x, select_module_id))):
+    for del_id in (set(module_hosts.keys()) - set(['module_%s' % x for x in select_module_id])):
         del module_hosts[del_id]
 
     return JsonResponse({'result': True, 'data': module_hosts})
@@ -256,7 +256,7 @@ def job_get_script_list(request, biz_cc_id):
         script_dict.setdefault(script['name'], []).append(script['id'])
 
     version_data = []
-    for name, version in script_dict.items():
+    for name, version in list(script_dict.items()):
         version_data.append({
             "text": name,
             "value": max(version)
@@ -305,13 +305,13 @@ def file_upload(request, biz_cc_id):
         file_size = file_obj.size
         # 文件名不能包含中文， 文件大小不能大于500M
         if file_size > 500 * 1024 * 1024:
-            message = _(u"文件上传失败， 文件大小超过500M")
+            message = _("文件上传失败， 文件大小超过500M")
             response = JsonResponse({'result': False, 'message': message})
             response.status_code = 400
             return response
 
         if CHINESE_REGEX.findall(file_name):
-            message = _(u"文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符")
+            message = _("文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符")
             response = JsonResponse({'result': False, 'message': message})
             response.status_code = 400
             return response
@@ -321,7 +321,7 @@ def file_upload(request, biz_cc_id):
         if not isinstance(biz_cc_id, int):
             return JsonResponse({
                 'result': False,
-                'message': _(u"非法业务 ID")
+                'message': _("非法业务 ID")
             })
 
         now_str = timezone.datetime.now().strftime('%Y%m%d%H%M%S')
@@ -330,7 +330,7 @@ def file_upload(request, biz_cc_id):
                                'bkupload',
                                str(biz_cc_id),
                                now_str)
-        logger.info(u"/components/query/file_upload file path: %s" % bk_path)
+        logger.info("/components/query/file_upload file path: %s" % bk_path)
 
         if not os.path.exists(bk_path):
             os.makedirs(bk_path)
@@ -347,8 +347,8 @@ def file_upload(request, biz_cc_id):
         return JsonResponse(result)
 
     except Exception as e:
-        logger.error(u"/components/query/file_upload exception, error=%s" % e)
-        message = _(u"文件上传失败，路径不合法或者程序异常")
+        logger.error("/components/query/file_upload exception, error=%s" % e)
+        message = _("文件上传失败，路径不合法或者程序异常")
         response = JsonResponse({'result': False, 'message': message})
         response.status_code = 400
         return response
@@ -358,7 +358,7 @@ def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_list({'bk_biz_id': biz_cc_id})
     if not job_result['result']:
-        message = _(u"查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
+        message = _("查询作业平台(JOB)的作业模板[app_id=%s]接口job.get_task返回失败: %s") % (
             biz_cc_id, job_result['message'])
 
         if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
@@ -387,7 +387,7 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
                                             'bk_job_id': task_id})
     if not job_result['result']:
 
-        message = _(u"查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
+        message = _("查询作业平台(JOB)的作业模板详情[app_id=%s]接口job.get_task_detail返回失败: %s") % (
             biz_cc_id, job_result['message'])
 
         if job_result.get('code', 0) == AUTH_FORBIDDEN_CODE:
@@ -403,9 +403,9 @@ def job_get_job_task_detail(request, biz_cc_id, task_id):
         return JsonResponse(result)
 
     job_step_type_name = {
-        1: _(u"脚本"),
-        2: _(u"文件"),
-        4: u"SQL"
+        1: _("脚本"),
+        2: _("文件"),
+        4: "SQL"
     }
     task_detail = job_result['data']
     global_var = []

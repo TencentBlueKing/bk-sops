@@ -26,37 +26,3 @@ def get_backend_from_config():
         return ImportError('can not import backend class from path: {path}'.format(path=backend_path))
 
     return backend_cls()
-
-
-def resource_id_for(resource, instance):
-    resource_id = []
-    __gen_complete_id(resource, instance, resource_id)
-    return resource_id
-
-
-def resource_actions_for(resource, action_ids, instances, ignore_relate_instance_act=True):
-    actions = []
-    for action_id in action_ids:
-
-        if resource.is_instance_related_action(action_id):
-            if instances:
-                actions.extend({'action_id': action_id,
-                                'resource_type': resource.rtype,
-                                'resource_id': resource_id_for(resource, instance)} for instance in instances)
-            elif not ignore_relate_instance_act:
-                actions.append({'action_id': action_id,
-                                'resource_type': resource.rtype})
-        else:
-            actions.append({'action_id': action_id,
-                            'resource_type': resource.rtype})
-
-    return actions
-
-
-def __gen_complete_id(resource, instance, id_tree):
-    if resource.parent:
-        parent_resource = resource.parent
-        __gen_complete_id(parent_resource, resource.parent_instance(instance), id_tree)
-
-    # bk_iam only accept str type id
-    id_tree.append({'resource_type': resource.rtype, 'resource_id': str(resource.resource_id(instance))})

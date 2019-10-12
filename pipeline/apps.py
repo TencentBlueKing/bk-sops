@@ -11,15 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 
-import redis
 import logging
 import traceback
 
-from redis.sentinel import Sentinel
+import redis
 from django.apps import AppConfig
 from django.conf import settings
+from redis.sentinel import Sentinel
 from rediscluster import StrictRedisCluster
 
 logger = logging.getLogger('root')
@@ -82,8 +81,8 @@ class PipelineConfig(AppConfig):
             mode = settings.REDIS.get('mode') or 'single'
             try:
                 settings.redis_inst = CLIENT_GETTER[mode]()
-            except Exception as e:
+            except Exception:
                 # fall back to single node mode
-                logger.error("redis client init error: %s" % traceback.format_exc(e))
+                logger.error("redis client init error: %s" % traceback.format_exc())
         else:
             logger.error("can not find REDIS in settings!")

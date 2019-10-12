@@ -51,7 +51,7 @@ class Context(object):
 
     def update_global_var(self, var_dict):
         self.variables.update(var_dict)
-        self.change_keys.update(var_dict.keys())
+        self.change_keys.update(list(var_dict.keys()))
 
     def mark_as_output(self, key):
         self._output_key.add(key)
@@ -81,12 +81,12 @@ class Context(object):
 
         # collect all act output key
         act_outputs_keys = set()
-        for global_outputs in self.act_outputs.values():
-            for output_key in global_outputs.values():
+        for global_outputs in list(self.act_outputs.values()):
+            for output_key in list(global_outputs.values()):
                 act_outputs_keys.add(output_key)
 
         # recover to Variable for which key not in act output
-        for key, var in self.raw_variables.items():
+        for key, var in list(self.raw_variables.items()):
             if key not in act_outputs_keys:
                 self.variables[key] = deepcopy(var)
 

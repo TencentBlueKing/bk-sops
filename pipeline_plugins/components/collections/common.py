@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
+
 import logging
 
 import requests
@@ -23,7 +23,7 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
-__group_name__ = _(u"蓝鲸服务(BK)")
+__group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 
 
@@ -31,31 +31,31 @@ class HttpRequestService(Service):
 
     def inputs_format(self):
         return [
-            self.InputItem(name=_(u'HTTP 请求方法'),
+            self.InputItem(name=_('HTTP 请求方法'),
                            key='bk_http_request_method',
                            type='string',
-                           schema=StringItemSchema(description=_(u'HTTP 请求方法'))),
-            self.InputItem(name=_(u'HTTP 请求目标地址'),
+                           schema=StringItemSchema(description=_('HTTP 请求方法'))),
+            self.InputItem(name=_('HTTP 请求目标地址'),
                            key='bk_http_request_url',
                            type='string',
-                           schema=StringItemSchema(description=_(u'HTTP 请求目标地址'))),
-            self.InputItem(name=_(u'HTTP 请求 body'),
+                           schema=StringItemSchema(description=_('HTTP 请求目标地址'))),
+            self.InputItem(name=_('HTTP 请求 body'),
                            key='bk_http_request_body',
                            type='string',
-                           schema=StringItemSchema(description=_(u'HTTP 请求 body'))),
+                           schema=StringItemSchema(description=_('HTTP 请求 body'))),
         ]
 
     def outputs_format(self):
         return [
-            self.OutputItem(name=_(u'响应内容'),
+            self.OutputItem(name=_('响应内容'),
                             key='data',
                             type='object',
-                            schema=ObjectItemSchema(description=_(u'HTTP 请求响应内容，内部结构不固定'),
+                            schema=ObjectItemSchema(description=_('HTTP 请求响应内容，内部结构不固定'),
                                                     property_schemas={})),
-            self.OutputItem(name=_(u'状态码'),
+            self.OutputItem(name=_('状态码'),
                             key='status_code',
                             type='int',
-                            schema=IntItemSchema(description=_(u'HTTP 请求响应状态码')))]
+                            schema=IntItemSchema(description=_('HTTP 请求响应状态码')))]
 
     def execute(self, data, parent_data):
         if parent_data.get_one_of_inputs('language'):
@@ -81,7 +81,7 @@ class HttpRequestService(Service):
             )
         except Exception as e:
             self.logger.error('request error: %s' % str(e))
-            data.set_outputs('ex_data', _(u"请求异常，详细信息: %s") % str(e))
+            data.set_outputs('ex_data', _("请求异常，详细信息: %s") % str(e))
             return False
 
         try:
@@ -89,16 +89,16 @@ class HttpRequestService(Service):
         except Exception:
             try:
                 content = response.content.decode(response.encoding)
-                self.logger.error(u"response data is not a valid JSON: %s" % content[:500])
+                self.logger.error("response data is not a valid JSON: %s" % content[:500])
             except Exception:
                 self.logger.error('response data is not a valid JSON')
-            data.set_outputs('ex_data', _(u"请求响应数据格式非 JSON"))
+            data.set_outputs('ex_data', _("请求响应数据格式非 JSON"))
             data.set_outputs('status_code', response.status_code)
             return False
 
         if not (200 <= response.status_code < 300):
             self.logger.error('request error with status code: %s, response %s' % (response.status_code, response))
-            data.set_outputs('ex_data', _(u"请求失败，状态码: %s，响应: %s") % (response.status_code, resp))
+            data.set_outputs('ex_data', _("请求失败，状态码: %s，响应: %s") % (response.status_code, resp))
             data.set_outputs('status_code', response.status_code)
             return False
 
@@ -108,9 +108,9 @@ class HttpRequestService(Service):
 
 
 class HttpComponent(Component):
-    name = _(u'HTTP 请求')
-    desc = _(u"提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 "
-             u"2.响应状态码在200-300(不包括300)之间，并且相应内容是 JSON 格式才会执行成功")
+    name = _('HTTP 请求')
+    desc = _("提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 "
+             "2.响应状态码在200-300(不包括300)之间，并且相应内容是 JSON 格式才会执行成功")
     code = 'bk_http_request'
     bound_service = HttpRequestService
     form = settings.STATIC_URL + 'components/atoms/bk/http.js'

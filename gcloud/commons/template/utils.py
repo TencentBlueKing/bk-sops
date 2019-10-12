@@ -34,7 +34,7 @@ logger = logging.getLogger("root")
 def assign_tmpl_perms(perms, groups, tmpl):
     # 先删除有当前要授权权限的分组权限
     perm_groups = get_groups_with_perms(tmpl, attach_perms=True)
-    for group, perm_list in perm_groups.items():
+    for group, perm_list in list(perm_groups.items()):
         for perm in perm_list:
             if perm in perms:
                 remove_perm(perm, group, tmpl)
@@ -47,7 +47,7 @@ def assign_tmpl_perms(perms, groups, tmpl):
 def assign_tmpl_perms_user(perms, users, tmpl):
     # 先删除有当前要授权权限的用户权限
     perm_users = get_users_with_perms(tmpl, attach_perms=True)
-    for user, perm_list in perm_users.items():
+    for user, perm_list in list(perm_users.items()):
         for perm in perm_list:
             if perm in perms:
                 remove_perm(perm, user, tmpl)

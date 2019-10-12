@@ -257,6 +257,6 @@ class TaskFlowInstanceResource(GCloudModelResource):
         raw_state = taskflow.raw_state
 
         if raw_state and raw_state not in states.ARCHIVED_STATES:
-            raise BadRequest(_(u"无法删除未进入完成或撤销状态的流程"))
+            raise BadRequest(_("无法删除未进入完成或撤销状态的流程"))
 
         return super(TaskFlowInstanceResource, self).obj_delete(bundle, **kwargs)

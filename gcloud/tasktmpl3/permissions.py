@@ -23,17 +23,17 @@ from gcloud.core.permissions import project_resource
 
 task_template_resource = DjangoModelResource(
     rtype='flow',
-    name=_(u"流程模板"),
+    name=_("流程模板"),
     scope_type='system',
     scope_id='bk_sops',
-    scope_name=_(u"标准运维"),
+    scope_name=_("标准运维"),
     actions=[
-        Action(id='view', name=_(u"查看"), is_instance_related=True),
-        Action(id='edit', name=_(u"编辑"), is_instance_related=True),
-        Action(id='delete', name=_(u"删除"), is_instance_related=True),
-        Action(id='create_task', name=_(u"新建任务"), is_instance_related=True),
-        Action(id='create_mini_app', name=_(u"新建轻应用"), is_instance_related=True),
-        Action(id='create_periodic_task', name=_(u"新建周期任务"), is_instance_related=True),
+        Action(id='view', name=_("查看"), is_instance_related=True),
+        Action(id='edit', name=_("编辑"), is_instance_related=True),
+        Action(id='delete', name=_("删除"), is_instance_related=True),
+        Action(id='create_task', name=_("新建任务"), is_instance_related=True),
+        Action(id='create_mini_app', name=_("新建轻应用"), is_instance_related=True),
+        Action(id='create_periodic_task', name=_("新建周期任务"), is_instance_related=True),
     ],
     operations=[
         {

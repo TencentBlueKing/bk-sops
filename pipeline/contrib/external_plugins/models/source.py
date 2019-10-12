@@ -31,8 +31,8 @@ from pipeline.contrib.external_plugins.models.base import (
 
 @package_source
 class GitRepoSource(ExternalPackageSource):
-    repo_raw_address = models.TextField(_(u"文件托管仓库链接"))
-    branch = models.CharField(_(u"分支名"), max_length=128)
+    repo_raw_address = models.TextField(_("文件托管仓库链接"))
+    branch = models.CharField(_("分支名"), max_length=128)
 
     @staticmethod
     def type():
@@ -42,7 +42,7 @@ class GitRepoSource(ExternalPackageSource):
         return GitRepoModuleImporter(name=self.name,
                                      repo_raw_url=self.repo_raw_address,
                                      branch=self.branch,
-                                     modules=self.packages.keys(),
+                                     modules=list(self.packages.keys()),
                                      proxy=settings.EXTERNAL_PLUGINS_SOURCE_PROXY,
                                      secure_only=settings.EXTERNAL_PLUGINS_SOURCE_SECURE_RESTRICT)
 
@@ -55,10 +55,10 @@ class GitRepoSource(ExternalPackageSource):
 
 @package_source
 class S3Source(ExternalPackageSource):
-    service_address = models.TextField(_(u"对象存储服务地址"))
-    bucket = models.TextField(_(u"bucket 名"))
-    access_key = models.TextField(_(u"access key"))
-    secret_key = models.TextField(_(u"secret key"))
+    service_address = models.TextField(_("对象存储服务地址"))
+    bucket = models.TextField(_("bucket 名"))
+    access_key = models.TextField(_("access key"))
+    secret_key = models.TextField(_("secret key"))
 
     @staticmethod
     def type():
@@ -66,7 +66,7 @@ class S3Source(ExternalPackageSource):
 
     def importer(self):
         return S3ModuleImporter(name=self.name,
-                                modules=self.packages.keys(),
+                                modules=list(self.packages.keys()),
                                 service_address=self.service_address,
                                 bucket=self.bucket,
                                 access_key=self.access_key,
@@ -84,7 +84,7 @@ class S3Source(ExternalPackageSource):
 
 @package_source
 class FileSystemSource(ExternalPackageSource):
-    path = models.TextField(_(u"文件系统路径"))
+    path = models.TextField(_("文件系统路径"))
 
     @staticmethod
     def type():
@@ -92,7 +92,7 @@ class FileSystemSource(ExternalPackageSource):
 
     def importer(self):
         return FSModuleImporter(name=self.name,
-                                modules=self.packages.keys(),
+                                modules=list(self.packages.keys()),
                                 path=self.path)
 
     def details(self):

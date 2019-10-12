@@ -47,9 +47,9 @@ def open_valve(signal_mod):
         try:
             response.append(getattr(signal_mod, signal.name).send(**signal.kwargs))
             signal.delete()
-        except Exception as e:
+        except Exception:
             logger.error('signal(%s - %s) resend failed: %s' %
-                         (signal.module_path, signal.name, traceback.format_exc(e)))
+                         (signal.module_path, signal.name, traceback.format_exc()))
     return response
 
 

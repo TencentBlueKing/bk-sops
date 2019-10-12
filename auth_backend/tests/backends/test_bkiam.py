@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch, call
+from __future__ import absolute_import, unicode_literals
 
 from django.test import TestCase
+from mock import MagicMock, call, patch
+from six.moves import range
 
 from auth_backend.backends.bkiam import BKIAMBackend
-
 from auth_backend.tests.mock_path import *  # noqa
 
 
@@ -69,8 +70,35 @@ class BKIAMBackendTestCase(TestCase):
 
         self.instances = [MagicMock() for _ in range(3)]
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    def test_resource_id_for__no_parent(self):
+        resource = MagicMock()
+        resource.parent = None
+        resource.rtype = 'child'
+        resource.resource_id = MagicMock(return_value='child_id')
+
+        instance = MagicMock()
+
+        self.assertEqual(self.backend._resource_id_for(resource, instance),
+                         [{'resource_type': 'child', 'resource_id': 'child_id'}])
+
+    def test_resource_id_for__with_parent(self):
+        parent_resource = MagicMock()
+        parent_resource.parent = None
+        parent_resource.rtype = 'parent'
+        parent_resource.resource_id = MagicMock(return_value='parent_id')
+
+        child_resource = MagicMock()
+        child_resource.parent = parent_resource
+        child_resource.rtype = 'child'
+        child_resource.resource_id = MagicMock(return_value='child_id')
+
+        instance = MagicMock()
+
+        self.assertEqual(self.backend._resource_id_for(child_resource, instance),
+                         [{'resource_type': 'parent', 'resource_id': 'parent_id'},
+                          {'resource_type': 'child', 'resource_id': 'child_id'}])
+
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_register_instance__with_scope_id(self):
         self.backend.register_instance(resource=self.resource, instance=self.instance, scope_id=self.scope_id)
 
@@ -86,8 +114,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                       resource_name=self.resource_name,
                                                                       resource_id=self.resource_id)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_register_instance__without_scope_id(self):
         self.backend.register_instance(resource=self.resource, instance=self.instance)
 
@@ -107,8 +134,7 @@ class BKIAMBackendTestCase(TestCase):
         self.assertRaises(ValueError, self.backend.batch_register_instance, self.resource, None)
         self.assertRaises(ValueError, self.backend.batch_register_instance, self.resource, [])
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_register_instance__with_scope_id(self):
         self.backend.batch_register_instance(resource=self.resource, instances=self.instances, scope_id=self.scope_id)
 
@@ -126,8 +152,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                 'resource_name': self.resource_name
                                                                             } for _ in self.instances])
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_register_instance__without_scope_id(self):
         self.backend.batch_register_instance(resource=self.resource, instances=self.instances)
 
@@ -145,8 +170,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                 'resource_name': self.resource_name
                                                                             } for _ in self.instances])
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_update_instance__with_scope_id(self):
         self.backend.update_instance(resource=self.resource, instance=self.instance, scope_id=self.scope_id)
 
@@ -158,8 +182,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                     resource_id=self.resource_id,
                                                                     resource_name=self.resource_name)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_update_instance__without_scope_id(self):
         self.backend.update_instance(resource=self.resource, instance=self.instance)
 
@@ -171,8 +194,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                     resource_id=self.resource_id,
                                                                     resource_name=self.resource_name)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_delete_instance__with_scope_id(self):
         self.backend.delete_instance(resource=self.resource, instance=self.instance, scope_id=self.scope_id)
 
@@ -182,8 +204,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                     resource_type=self.resource_type,
                                                                     resource_id=self.resource_id)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_delete_instance__without_scope_id(self):
         self.backend.delete_instance(resource=self.resource, instance=self.instance)
 
@@ -197,8 +218,7 @@ class BKIAMBackendTestCase(TestCase):
         self.assertRaises(ValueError, self.backend.batch_delete_instance, self.resource, None)
         self.assertRaises(ValueError, self.backend.batch_delete_instance, self.resource, [])
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_delete_instance__with_scope_id(self):
         self.backend.batch_delete_instance(resource=self.resource, instances=self.instances, scope_id=self.scope_id)
 
@@ -212,8 +232,7 @@ class BKIAMBackendTestCase(TestCase):
             'resource_name': self.resource_name
         } for _ in self.instances])
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_delete_instance__without_scope_id(self):
         self.backend.batch_delete_instance(resource=self.resource, instances=self.instances)
 
@@ -227,8 +246,7 @@ class BKIAMBackendTestCase(TestCase):
             'resource_name': self.resource_name
         } for _ in self.instances])
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_verify_perms__with_scope_id_and_instance(self):
         self.backend.verify_perms(resource=self.resource,
                                   principal_type=self.principal_type,
@@ -254,8 +272,7 @@ class BKIAMBackendTestCase(TestCase):
             scope_id=self.scope_id,
             resources_actions=resource_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_verify_perms__with_scope_id_and_none_instance(self):
         self.backend.verify_perms(resource=self.resource,
                                   principal_type=self.principal_type,
@@ -278,8 +295,7 @@ class BKIAMBackendTestCase(TestCase):
             scope_id=self.scope_id,
             resources_actions=resource_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_verify_perms__without_scope_id(self):
         self.backend.verify_perms(resource=self.resource,
                                   principal_type=self.principal_type,
@@ -304,8 +320,7 @@ class BKIAMBackendTestCase(TestCase):
             scope_id=self.real_scope_id,
             resources_actions=resource_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_verify_perms__with_scope_id_and_instances(self):
         self.instances = [MagicMock() for _ in range(2)]
         self.backend.batch_verify_perms(resource=self.resource,
@@ -337,8 +352,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                  scope_id=self.scope_id,
                                                                                  resources_actions=resources_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_verify_perms__with_scope_id_and_none_instances(self):
         self.backend.batch_verify_perms(resource=self.resource,
                                         principal_type=self.principal_type,
@@ -356,8 +370,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                  scope_id=self.scope_id,
                                                                                  resources_actions=resources_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_verify_perms__without_scope_id_and_instances(self):
         self.instances = [MagicMock() for _ in range(2)]
         self.backend.batch_verify_perms(resource=self.resource,
@@ -388,8 +401,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                  scope_id=self.real_scope_id,
                                                                                  resources_actions=resources_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_batch_verify_perms__without_scope_id_and_none_instances(self):
         self.backend.batch_verify_perms(resource=self.resource,
                                         principal_type=self.principal_type,
@@ -406,8 +418,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                  scope_id=self.real_scope_id,
                                                                                  resources_actions=resources_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_verify_multiple_resource_perms__with_scope_id(self):
         perms_tuples = [(self.resource, ['new', 'view'], self.instance),
                         (self.resource, ['new'], None),
@@ -442,8 +453,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                  scope_id=self.scope_id,
                                                                                  resources_actions=resources_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_verify_multiple_resource_perms__without_scope_id(self):
         perms_tuples = [(self.resource, ['new', 'view'], self.instance),
                         (self.resource, ['new'], None),
@@ -512,8 +522,7 @@ class BKIAMBackendTestCase(TestCase):
                                                                                 resource_data_type='array',
                                                                                 is_exact_resource=True)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_search_resources_perms_principals__with_scope_id(self):
         resources_actions_param = [{'action_id': 'new',
                                     'resource_type': self.resource_type},
@@ -543,8 +552,7 @@ class BKIAMBackendTestCase(TestCase):
             scope_id=self.scope_id,
             resources_actions=resources_actions)
 
-    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
-    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BK_IAM_BACKEND_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     def test_search_resources_perms_principals__without_scope_id(self):
         resources_actions_param = [{'action_id': 'new',
                                     'resource_type': self.resource_type},

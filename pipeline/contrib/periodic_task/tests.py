@@ -101,5 +101,5 @@ class PeriodicTestCase(TestCase):
         self.assertRaises(InvalidOperationException, self.task.modify_constants, {})
 
     def test_form(self):
-        expect_form = {k: v for k, v in self.data['constants'].items() if v['show_type'] == 'show'}
+        expect_form = {k: v for k, v in list(self.data['constants'].items()) if v['show_type'] == 'show'}
         self.assertEqual(self.task.form, expect_form)

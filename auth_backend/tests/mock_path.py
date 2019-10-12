@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import unicode_literals
+
 FINDER_CODECS_OPEN = 'auth_backend.resources.migrations.finder.codecs.open'
 FINDER_JSON_LOAD = 'auth_backend.resources.migrations.finder.json.load'
 FINDER_JSON_DUMP = 'auth_backend.resources.migrations.finder.json.dump'
@@ -24,6 +26,7 @@ LOADER_APP_LABEL = 'auth_backend.resources.migrations.loader.APP_LABEL'
 
 MIGRATION_MIGRATION_CLASS = 'auth_backend.resources.migrations.migration.settings.AUTH_BACKEND_RESOURCE_MIGRATION_CLASS'
 MIGRATION_IMPORT_STRING = 'auth_backend.resources.migrations.migration.import_string'
+MIGRATION_DIFFER_SETTINGS = 'auth_backend.resources.migrations.differ.settings'
 
 SNAPPER_RESOURCE_TYPE_LIB = 'auth_backend.resources.migrations.snapper.resource_type_lib'
 
@@ -40,8 +43,7 @@ RESOURCE_UPDATE_INSTANCE = 'auth_backend.resources.base.Resource.update_instance
 
 DJANGO_MODEL_RESOURCE_DISPATCH_HANDLERS = 'auth_backend.resources.django.DjangoModelResource._dispatch_handlers'
 
-BACKEND_BKIAM_RESOURCE_ID_FOR = 'auth_backend.backends.bkiam.resource_id_for'
-BACKEND_UTILS_RESOURCE_ID_FOR = 'auth_backend.backends.utils.resource_id_for'
+BK_IAM_BACKEND_RESOURCE_ID_FOR = 'auth_backend.backends.bkiam.BKIAMBackend._resource_id_for'
 
 SHORTCUTS_VERIFY_OR_RETURN_PERMS = 'auth_backend.plugins.shortcuts.verify_or_return_insufficient_perms'
 SHORTCUTS_GET_BACKEND_FROM_CONFIG = 'auth_backend.plugins.shortcuts.get_backend_from_config'

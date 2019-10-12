@@ -48,7 +48,7 @@ def template_post_save_handler(sender, instance, created, **kwargs):
     with transaction.atomic():
         try:
             # act_id 节点 act 标准插件数据
-            for act_id, act in data[PE.activities].items():
+            for act_id, act in list(data[PE.activities].items()):
                 # 是标准插件节点 不是子流程引用
                 if act['type'] == PE.ServiceActivity:
                     component = ComponentInTemplate(
@@ -77,7 +77,7 @@ def template_post_save_handler(sender, instance, created, **kwargs):
             # 批量插入
             ComponentInTemplate.objects.bulk_create(component_list)
         except Exception as e:
-            logger.exception(u"template_post_save_handler raise error: %s" % e)
+            logger.exception("template_post_save_handler raise error: %s" % e)
     # 统计流程标准插件个数，子流程个数，网关个数
     template_id = template.template_id
     TemplateInPipeline.objects.filter(template_id=template_id).delete()
@@ -103,7 +103,7 @@ def template_post_save_handler(sender, instance, created, **kwargs):
                                           subprocess_total=subprocess_total,
                                           gateways_total=gateways_total)
     except Exception as e:
-        logger.exception(u"template_post_save_handler raise error: %s" % e)
+        logger.exception("template_post_save_handler raise error: %s" % e)
 
 
 @receiver(post_save, sender=PipelineInstance)
@@ -120,7 +120,7 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
         with transaction.atomic():
             try:
                 # act_id 节点 act 标准插件数据
-                for act_id, act in data[PE.activities].items():
+                for act_id, act in list(data[PE.activities].items()):
                     is_retry = False
                     if act['type'] == PE.ServiceActivity:
                         # 标准插件重试
@@ -163,7 +163,7 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
                                                                    act[PE.pipeline][PE.activities], None)
                 ComponentExecuteData.objects.bulk_create(component_list)
             except Exception as e:
-                logger.exception(u"instance_post_save_handler raise error: %s" % e)
+                logger.exception("instance_post_save_handler raise error: %s" % e)
             # 统计流程标准插件个数，子流程个数，网关个数
             instance_id = instance.instance_id
             # 获取pipeline_tree
@@ -188,7 +188,7 @@ def pipeline_post_save_handler(sender, instance, created, **kwargs):
                                                   subprocess_total=subprocess_total,
                                                   gateways_total=gateways_total)
             except Exception as e:
-                logger.exception(u"instance_post_save_handler raise error: %s" % e)
+                logger.exception("instance_post_save_handler raise error: %s" % e)
 
 
 def recursive_subprocess_tree(children_tree_dict, act_id, instance_id, component_list, activities=None, stack=None):
@@ -208,7 +208,7 @@ def recursive_subprocess_tree(children_tree_dict, act_id, instance_id, component
     other_stack = stack[:]
     # 插入上一个模板的id
     other_stack.insert(0, act_id)
-    for act_id, act in activities.items():
+    for act_id, act in list(activities.items()):
         is_skip = False
         is_retry = False
         # 属于标准插件节点

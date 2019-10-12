@@ -31,8 +31,8 @@ class TestSourceReader(TestCase):
         self.TEST_TYPE = 'TEST'
 
     def test_cls_factory(self):
-        self.assertEquals(reader_cls_factory[GIT], GitReader)
-        self.assertEquals(reader_cls_factory[S3], S3Reader)
+        self.assertEqual(reader_cls_factory[GIT], GitReader)
+        self.assertEqual(reader_cls_factory[S3], S3Reader)
         self.assertNotIn(FILE_SYSTEM, reader_cls_factory)
 
     def test_reader(self):
@@ -43,7 +43,7 @@ class TestSourceReader(TestCase):
             def read(self):
                 pass
 
-        self.assertEquals(reader_cls_factory[self.TEST_TYPE], TestReader)
+        self.assertEqual(reader_cls_factory[self.TEST_TYPE], TestReader)
         reader_cls_factory.pop(self.TEST_TYPE)
 
     @patch(OS_PATH_EXISTS, MagicMock(return_value=False))
@@ -77,7 +77,7 @@ class TestGitReader(TestCase):
         with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_REPO, mock_git):
             git_reader.read()
             details.update({'to_path': self.to_path})
-            self.assertEquals(mock_git.repo_info, details)
+            self.assertEqual(mock_git.repo_info, details)
 
 
 class TestS3Reader(TestCase):
@@ -112,4 +112,4 @@ class TestS3Reader(TestCase):
         )
         with patch(GCLOUD_EXTERNAL_PLUGINS_PROTOCOL_READERS_BOTO3, mock_s3):
             s3_reader.read()
-            self.assertEquals(set(mock_s3.files), set(['%s%s' % (self.to_path, _file) for _file in files]))
+            self.assertEqual(set(mock_s3.files), set(['%s%s' % (self.to_path, _file) for _file in files]))

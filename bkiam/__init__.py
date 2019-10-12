@@ -11,9 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import unicode_literals
+
 from .client import BKIAMClient
 
-VERSION = '0.9.0'
+VERSION = '1.0.0rc1'
 
 __version__ = VERSION
 

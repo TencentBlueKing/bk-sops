@@ -15,7 +15,6 @@ specific language governing permissions and limitations under the License.
 
 import time
 import random
-import urlparse
 import urllib
 import logging
 
@@ -86,7 +85,7 @@ class WeixinAccount(WeixinAccountSingleton):
             'scope': weixin_settings.WEIXIN_SCOPE,
             'state': state
         }
-        params = urllib.urlencode(params)
+        params = urllib.parse.urlencode(params)
         redirect_uri = '%s?%s#wechat_redirect' % (self.WEIXIN_OAUTH_URL, params)
         return redirect_uri
 
@@ -94,10 +93,10 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         跳转到微信登录
         """
-        url = urlparse.urlparse(request.build_absolute_uri())
+        url = urllib.parse.urlparse(request.build_absolute_uri())
         path = weixin_settings.WEIXIN_LOGIN_URL
-        query = urllib.urlencode({'c_url': request.get_full_path()})
-        callback_url = urlparse.urlunsplit((url.scheme, url.netloc, path, query, url.fragment))
+        query = urllib.parse.urlencode({'c_url': request.get_full_path()})
+        callback_url = urllib.parse.urlunsplit((url.scheme, url.netloc, path, query, url.fragment))
         state = self.set_weixin_oauth_state(request)
         redirect_uri = self.get_oauth_redirect_url(callback_url, state)
         return HttpResponseRedirect(redirect_uri)
@@ -120,8 +119,8 @@ class WeixinAccount(WeixinAccountSingleton):
             request.session['WEIXIN_OAUTH_STATE'] = None
             request.session['WEIXIN_OAUTH_STATE_TIMESTAMP'] = None
             return True
-        except Exception, e:
-            logger.exception(_(u"验证请求weixin code的 state参数出错： %s") % e)
+        except Exception as e:
+            logger.exception(_("验证请求weixin code的 state参数出错： %s") % e)
             return False
 
     def verfiy_weixin_oauth_code(self, request):
@@ -154,16 +153,16 @@ class WeixinAccount(WeixinAccountSingleton):
         """
         if not self.is_weixin_visit(request):
             # TODO 改造为友好页面
-            return HttpResponse(_(u"非微信访问，或应用未启动微信访问"))
+            return HttpResponse(_("非微信访问，或应用未启动微信访问"))
         # 验证回调state
         if not self.verify_weixin_oauth_state(request):
             # TODO 改造为友好页面
-            return HttpResponse(_(u"State验证失败"))
+            return HttpResponse(_("State验证失败"))
         # 验证code有效性
         is_code_valid, base_data = self.verfiy_weixin_oauth_code(request)
         if not is_code_valid:
             # TODO 改造为友好页面
-            return HttpResponse(_(u"登录失败"))
+            return HttpResponse(_("登录失败"))
 
         # 获取用户信息并设置用户
         userinfo = self.get_user_info(base_data)

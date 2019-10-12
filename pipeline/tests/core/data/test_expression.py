@@ -36,7 +36,7 @@ class TestConstantTemplate(TestCase):
 
     def test_get_templates(self):
         cons_tmpl = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])
-        self.assertEqual(cons_tmpl.get_templates(), ['${a}', '${a+int(b)}'])
+        self.assertEqual(set(cons_tmpl.get_templates()), {'${a+int(b)}', '${a}'})
 
     def test_resolve_data(self):
         list_template = expression.ConstantTemplate(['${a}', ['${a}', '${a+int(b)}']])

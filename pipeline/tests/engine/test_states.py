@@ -96,9 +96,9 @@ class StatesTestCase(TestCase):
 
     def test_can_transit(self):
 
-        for is_pipeline, appoint_case in TRANSITION_MAP.items():
-            for is_appoint, from_to_map in appoint_case.items():
-                for from_, to_set in from_to_map.items():
+        for is_pipeline, appoint_case in list(TRANSITION_MAP.items()):
+            for is_appoint, from_to_map in list(appoint_case.items()):
+                for from_, to_set in list(from_to_map.items()):
                     valid_transit = to_set
                     invalid_transit = ALL_STATES.difference(to_set)
 

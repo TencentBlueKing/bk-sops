@@ -60,19 +60,19 @@ class ConstantTemplate(object):
     def get_templates(self):
         templates = []
         data = self.data
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             templates += self.get_string_templates(data)
         if isinstance(data, (list, tuple)):
             for item in data:
                 templates += ConstantTemplate(item).get_templates()
         if isinstance(data, dict):
-            for value in data.values():
+            for value in list(data.values()):
                 templates += ConstantTemplate(value).get_templates()
         return list(set(templates))
 
     def resolve_data(self, value_maps):
         data = self.data
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             return self.resolve_string(data, value_maps)
         if isinstance(data, list):
             ldata = [''] * len(data)
@@ -85,7 +85,7 @@ class ConstantTemplate(object):
                 ldata[index] = ConstantTemplate(copy.deepcopy(item)).resolve_data(value_maps)
             return tuple(ldata)
         if isinstance(data, dict):
-            for key, value in data.items():
+            for key, value in list(data.items()):
                 data[key] = ConstantTemplate(copy.deepcopy(value)).resolve_data(value_maps)
             return data
         return data
@@ -115,7 +115,7 @@ class ConstantTemplate(object):
 
     @staticmethod
     def resolve_string(string, value_maps):
-        if not isinstance(string, basestring):
+        if not isinstance(string, str):
             return string
         templates = ConstantTemplate.get_string_templates(string)
 
@@ -130,7 +130,7 @@ class ConstantTemplate(object):
 
     @staticmethod
     def resolve_template(template, value_maps):
-        if not isinstance(template, basestring):
+        if not isinstance(template, str):
             raise exceptions.ConstantTypeException('constant resolve error, template[%s] is not a string' % template)
         try:
             tm = Template(template)

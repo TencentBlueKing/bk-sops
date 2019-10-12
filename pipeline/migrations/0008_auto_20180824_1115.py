@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -19,6 +19,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('pipeline', '0007_templaterelationship'),
         ('pipeline', '0007_templateversion'),
     ]
 
@@ -35,7 +36,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='templateversion',
             name='template',
-            field=models.ForeignKey(default='', verbose_name='\u6a21\u677f ID', to='pipeline.PipelineTemplate'),
+            field=models.ForeignKey(default='', verbose_name='\u6a21\u677f ID', to='pipeline.PipelineTemplate', on_delete=models.CASCADE),
             preserve_default=False,
         ),
     ]

@@ -47,7 +47,7 @@ def change_default_project(request, project_id):
     return JsonResponse({
         'result': True,
         'data': {},
-        'message': _(u"用户默认项目切换成功")
+        'message': _("用户默认项目切换成功")
     })
 
 
@@ -82,7 +82,7 @@ def get_roles_and_personnel(request, biz_cc_id):
                 "id": user.username,
             })
         personnel_list.insert(0, {
-            "text": _(u"所有%s") % name,
+            "text": _("所有%s") % name,
             "id": key
         })
         data.append({
@@ -128,7 +128,7 @@ def query_apply_permission_url(request):
         ctx = {
             'result': False,
             'data': {},
-            'message': _(u"请求参数错误，permission不是json格式的列表"),
+            'message': _("请求参数错误，permission不是json格式的列表"),
             'code': -1
         }
         return JsonResponse(ctx)
@@ -149,7 +149,7 @@ def query_resource_verify_perms(request):
         ctx = {
             'result': False,
             'data': {},
-            'message': _(u"请求资源[resource_type=%s]未注册" % resource_type),
+            'message': _("请求资源[resource_type=%s]未注册" % resource_type),
             'code': -1
         }
         return JsonResponse(ctx)
@@ -161,7 +161,7 @@ def query_resource_verify_perms(request):
                                               action_ids=action_ids,
                                               instance=instance_id)
     if not verify_result['result']:
-        logger.error(u"Search authorized resources of Resource[{resource}] return error: {error}".format(
+        logger.error("Search authorized resources of Resource[{resource}] return error: {error}".format(
             resource=project_resource.name,
             error=verify_result['message']
         ))
