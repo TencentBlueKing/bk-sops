@@ -76,6 +76,7 @@
     /deep/ .el-textarea__inner {
         padding-left: 10px;
         padding-right: 10px;
+        font-size: 12px;
         word-break: break-all;
         @include scrollbar;
     }

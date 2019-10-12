@@ -14,8 +14,6 @@
         <div class="select-field">
             <bk-select
                 v-model="condition.field"
-                class="bk-select-inline"
-                :popover-width="260"
                 :disabled="!editable"
                 :placeholder="i18n.select"
                 @selected="onConditionSelect">
@@ -150,7 +148,7 @@
         padding: 9px 10px 0;
         line-height: 1.2;
         width: 100%;
-        font-size: 14px;
+        font-size: 12px;
         border: 1px solid #c3cdd7;
         border-radius: 2px;
     }
@@ -158,7 +156,7 @@
         margin: 0;
         min-height: 58px;
         max-height: 400px;
-        font-size: 14px;
+        font-size: 12px;
         line-height: 1.2;
         white-space: pre-wrap;
         word-wrap: break-word;
