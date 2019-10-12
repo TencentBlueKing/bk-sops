@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import copy
 from pipeline.utils.uniqid import node_uniqid
 
-id_list = [node_uniqid() for i in xrange(10)]
+id_list = [node_uniqid() for i in range(10)]
 PIPELINE_DATA = {
     'id': id_list[0],
     'name': 'name',
@@ -268,7 +268,7 @@ WEB_PIPELINE_DATA = {
     'outputs': ['${demo_input_test}', '${global_key1}'],
 }
 
-id_list3 = [node_uniqid() for i in xrange(10)]
+id_list3 = [node_uniqid() for i in range(10)]
 sub_pipeline = {
     'id': id_list3[0],
     'name': 'name',
@@ -547,7 +547,7 @@ WEB_PIPELINE_WITH_SUB_PROCESS['activities'][id_list[4]] = {
 }
 
 # 子流程 全局输入部分show，并且引用了父流程的全局变量，无引用到父流程 输出全部无引用到父流程
-id_list2 = [node_uniqid() for i in xrange(20)]
+id_list2 = [node_uniqid() for i in range(20)]
 sub_web_pipeline2 = {
     'id': id_list2[0],
     'name': 'name',
