@@ -12,12 +12,14 @@
 <template>
     <div class="tag-int">
         <div v-if="formMode">
-            <el-input
-                type="number"
+            <el-input-number
+                :min="min"
+                :max="max"
+                :controls="false"
                 :disabled="!editable"
                 :placeholder="placeholder"
                 v-model="intValue">
-            </el-input>
+            </el-input-number>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
@@ -33,6 +35,14 @@
             required: false,
             default: '',
             desc: 'placeholder'
+        },
+        min: {
+            type: Number,
+            default: -Infinity
+        },
+        max: {
+            type: Number,
+            default: Infinity
         },
         value: {
             type: [Number, String],
@@ -57,10 +67,14 @@
     }
 </script>
 <style lang="scss" scoped>
-.tag-input {
+.tag-int {
+    .el-input-number {
+        width: 100%;
+    }
     /deep/ .el-input__inner {
         height: 36px;
         line-height: 36px;
+        text-align: left;
     }
 }
 </style>
