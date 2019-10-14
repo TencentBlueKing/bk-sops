@@ -289,7 +289,8 @@
         },
         computed: {
             ...mapState({
-                userType: state => state.userType
+                userType: state => state.userType,
+                view_mode: state => state.view_mode
             }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
@@ -358,9 +359,9 @@
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
             },
-            // 职能化/审计中心时,隐藏[查看流程]按钮
+            // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return this.userType !== 'functor' && this.userType !== 'auditor'
+                return this.userType !== 'functor' && this.userType !== 'auditor' && this.view_mode !== 'appmaker'
             }
         },
         watch: {
@@ -817,7 +818,8 @@
             },
             getTplURL () {
                 let routerData = ''
-                if (this.templateSource === 'business') {
+                // business 兼容老数据
+                if (this.templateSource === 'business' || this.templateSource === 'project') {
                     routerData = `/template/edit/${this.project_id}/?template_id=${this.template_id}`
                 } else if (this.templateSource === 'common') {
                     routerData = `/template/home/${this.project_id}/?common=1&common_template=common`
