@@ -407,7 +407,7 @@
                     }
                     const instanceStatus = !this.isloadCacheStatus
                         ? await this.getInstanceStatus(data)
-                        : this.getCacheStatusData()
+                        : await this.getCacheStatusData()
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
@@ -426,14 +426,23 @@
                     this.$emit('taskStatusLoadChange', false)
                 }
             },
-            // 获取缓存状态数据
+            /**
+             * 获取缓存状态数据
+             * @description
+             * 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
+             * 然后使用 updateCanvas 替代 v-if
+             */
             getCacheStatusData () {
-                this.isloadCacheStatus = false
-                const cacheStatus = this.instanceStatus.children
-                return {
-                    data: cacheStatus[this.cacheNodeId],
-                    result: true
-                }
+                return new Promise((resolve) => {
+                    this.isloadCacheStatus = false
+                    const cacheStatus = this.instanceStatus.children
+                    setTimeout(() => {
+                        resolve({
+                            data: cacheStatus[this.cacheNodeId],
+                            result: true
+                        })
+                    }, 0)
+                })
             },
             async taskExecute () {
                 try {
