@@ -158,20 +158,20 @@ class CommonTemplateResource(GCloudModelResource):
                 'description': bundle.data.pop('description', ''),
             }
         except (KeyError, ValueError) as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         # XSS handle
         self.handle_template_name_attr(pipeline_template_kwargs)
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_template_kwargs['pipeline_tree'])
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         # Note: tastypie won't use model's create method
         try:
             pipeline_template = model.objects.create_pipeline_template(
                 **pipeline_template_kwargs)
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         except CommonTemplate.DoesNotExist:
             raise BadRequest('flow template referred as SubProcess does not exist')
         kwargs['pipeline_template_id'] = pipeline_template.template_id
@@ -189,13 +189,13 @@ class CommonTemplateResource(GCloudModelResource):
                 if 'description' in bundle.data:
                     pipeline_template_kwargs['description'] = bundle.data.pop('description')
             except (KeyError, ValueError) as e:
-                raise BadRequest(e.message)
+                raise BadRequest(str(e))
             # XSS handle
             self.handle_template_name_attr(pipeline_template_kwargs)
             try:
                 obj.update_pipeline_template(**pipeline_template_kwargs)
             except PipelineException as e:
-                raise BadRequest(e.message)
+                raise BadRequest(str(e))
             bundle.data['pipeline_template'] = '/api/v3/pipeline_template/%s/' % obj.pipeline_template.pk
             return super(CommonTemplateResource, self).obj_update(bundle, **kwargs)
 

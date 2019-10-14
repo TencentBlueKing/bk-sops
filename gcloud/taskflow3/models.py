@@ -746,7 +746,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         except Exception as e:
             return {
                 'result': False,
-                'message': e.message
+                'message': str(e)
             }
 
         return {
@@ -1028,7 +1028,7 @@ class TaskFlowInstance(models.Model):
         try:
             detail = pipeline_api.get_status_tree(node_id)
         except exceptions.InvalidOperationException as e:
-            return {'result': False, 'message': e.message, 'data': {}}
+            return {'result': False, 'message': str(e), 'data': {}}
         TaskFlowInstance.format_pipeline_status(detail)
         detail['histories'] = pipeline_api.get_activity_histories(node_id)
         for his in detail['histories']:
@@ -1072,16 +1072,16 @@ class TaskFlowInstance(models.Model):
 
             except ConvergeMatchError as e:
                 message = "task[id=%s] has invalid converge, message: %s, node_id: %s" % (self.id,
-                                                                                          e.message,
+                                                                                          str(e),
                                                                                           e.gateway_id)
                 logger.exception(message)
 
             except StreamValidateError as e:
-                message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, e.message, e.node_id)
+                message = "task[id=%s] stream is invalid, message: %s, node_id: %s" % (self.id, str(e), e.node_id)
                 logger.exception(message)
 
             except IsolateNodeError as e:
-                message = "task[id=%s] has isolate structure, message: %s" % (self.id, e.message)
+                message = "task[id=%s] has isolate structure, message: %s" % (self.id, str(e))
                 logger.exception(message)
 
             except ConnectionValidateError as e:

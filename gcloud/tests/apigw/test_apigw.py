@@ -931,7 +931,6 @@ class APITest(TestCase):
                                     content_type='application/json')
 
         data = json.loads(response.content)
-
         self.assertFalse(data['result'])
         self.assertTrue('message' in data)
 

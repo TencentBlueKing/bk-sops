@@ -300,7 +300,7 @@ def create_task(request, template_id, project_id):
         result, data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
             tmpl, pipeline_instance_kwargs, params['constants'], params['exclude_task_nodes_id'])
     except PipelineException as e:
-        return JsonResponse({'result': False, 'message': e.message})
+        return JsonResponse({'result': False, 'message': str(e)})
     if not result:
         return JsonResponse({'result': False, 'message': data})
 
@@ -552,7 +552,7 @@ def create_periodic_task(request, template_id, project_id):
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': e.message})
+        return JsonResponse({'result': False, 'message': str(e)})
 
     for key, val in list(params['constants'].items()):
         if key in pipeline_tree['constants']:
@@ -565,7 +565,7 @@ def create_periodic_task(request, template_id, project_id):
         replace_template_id(TaskTemplate, pipeline_tree)
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': e.message})
+        return JsonResponse({'result': False, 'message': str(e)})
 
     try:
         task = PeriodicTask.objects.create(
@@ -578,7 +578,7 @@ def create_periodic_task(request, template_id, project_id):
         )
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': e.message})
+        return JsonResponse({'result': False, 'message': str(e)})
 
     data = info_data_from_period_task(task)
     return JsonResponse({
@@ -660,7 +660,7 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
     except Exception as e:
         return JsonResponse({
             'result': False,
-            'message': e.message
+            'message': str(e)
         })
 
     return JsonResponse({
@@ -705,7 +705,7 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
     except Exception as e:
         return JsonResponse({
             'result': False,
-            'message': e.message
+            'message': str(e)
         })
 
     return JsonResponse({
@@ -901,7 +901,7 @@ def fast_create_task(request, project_id):
         draw_pipeline(pipeline_tree)
         validate_web_pipeline_tree(pipeline_tree)
     except Exception as e:
-        message = 'invalid param pipeline_tree: %s' % e.message
+        message = 'invalid param pipeline_tree: %s' % str(e)
         logger.exception(message)
         return JsonResponse({
             'result': False,
@@ -918,7 +918,7 @@ def fast_create_task(request, project_id):
     except (KeyError, ValueError) as e:
         return JsonResponse({
             'result': False,
-            'message': 'invalid params: %s' % e.message
+            'message': 'invalid params: %s' % str(e)
         })
 
     try:
@@ -927,7 +927,7 @@ def fast_create_task(request, project_id):
             **pipeline_instance_kwargs
         )
     except PipelineException as e:
-        message = 'create pipeline instance error: %s' % e.message
+        message = 'create pipeline instance error: %s' % str(e)
         logger.exception(message)
         return JsonResponse({
             'result': False,

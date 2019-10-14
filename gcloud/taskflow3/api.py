@@ -273,7 +273,7 @@ def preview_task_tree(request, project_id):
         TaskFlowInstance.objects.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)
     except Exception as e:
         logger.exception(e)
-        return JsonResponse({'result': False, 'message': e.message})
+        return JsonResponse({'result': False, 'message': str(e)})
     constants_not_referred = {key: value for key, value in list(template_constants.items())
                               if key not in pipeline_tree['constants']}
     return JsonResponse({
@@ -346,7 +346,7 @@ def get_task_create_method(request):
 def node_callback(request, token):
     try:
         f = Fernet(settings.CALLBACK_KEY)
-        node_id = f.decrypt(bytes(token))
+        node_id = f.decrypt(bytes(token, encoding='utf8')).decode()
     except Exception:
         logger.warning('invalid token %s' % token)
         return JsonResponse({

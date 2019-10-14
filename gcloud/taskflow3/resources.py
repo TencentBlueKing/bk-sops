@@ -177,14 +177,14 @@ class TaskFlowInstanceResource(GCloudModelResource):
             if 'description' in bundle.data:
                 pipeline_instance_kwargs['description'] = bundle.data.pop('description')
         except (KeyError, ValueError) as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         # XSS handle
         self.handle_task_name_attr(pipeline_instance_kwargs)
         # validate pipeline tree
         try:
             validate_web_pipeline_tree(pipeline_instance_kwargs['pipeline_tree'])
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
 
         if template_source == PROJECT:
             try:
@@ -238,7 +238,7 @@ class TaskFlowInstanceResource(GCloudModelResource):
                 **pipeline_instance_kwargs
             )
         except PipelineException as e:
-            raise BadRequest(e.message)
+            raise BadRequest(str(e))
         kwargs['category'] = template.category
         if bundle.data['flow_type'] == 'common_func':
             kwargs['current_flow'] = 'func_claim'

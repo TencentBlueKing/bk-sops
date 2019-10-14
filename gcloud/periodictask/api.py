@@ -65,7 +65,7 @@ def modify_cron(request, project_id, task_id):
     except Exception as e:
         return JsonResponse({
             'result': False,
-            'message': e.message
+            'message': str(e)
         })
 
     return JsonResponse({
@@ -91,7 +91,7 @@ def modify_constants(request, project_id, task_id):
     except Exception as e:
         return JsonResponse({
             'result': False,
-            'message': e.message
+            'message': str(e)
         })
 
     return JsonResponse({

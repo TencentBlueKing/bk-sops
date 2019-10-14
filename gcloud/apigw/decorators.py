@@ -63,7 +63,7 @@ def mark_request_whether_is_trust(view_func):
         except UserNotExistError as e:
             return JsonResponse({
                 'result': False,
-                'message': e.message
+                'message': str(e)
             })
 
         return view_func(request, *args, **kwargs)

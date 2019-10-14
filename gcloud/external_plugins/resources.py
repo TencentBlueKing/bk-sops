@@ -256,7 +256,7 @@ class PackageSourceResource(Resource):
                                                                         cache.get('desc', ''),
                                                                         **cache['details'])
                         except exceptions.GcloudExternalPluginsError as e:
-                            message = 'Create cache source raise error: %s' % e.message
+                            message = 'Create cache source raise error: %s' % str(e)
                             logger.error(message)
                             raise BadRequest(message)
             else:

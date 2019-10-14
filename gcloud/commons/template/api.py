@@ -80,7 +80,7 @@ def export_templates(request):
     except FlowExportError as e:
         return JsonResponse({
             'result': False,
-            'message': e.message
+            'message': str(e)
         })
 
     digest = hashlib.md5(json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).hexdigest()

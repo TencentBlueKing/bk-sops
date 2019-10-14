@@ -52,4 +52,4 @@ def upsert_perm_templates():
     try:
         shortcuts.upsert_perms_templates(raw_templates)
     except PermTemplateUpsertFailedError as e:
-        sys.stdout.write('bk_iam perm templates upsert failed: %s' % e.message)
+        sys.stdout.write('bk_iam perm templates upsert failed: %s' % str(e))

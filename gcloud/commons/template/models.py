@@ -67,7 +67,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         try:
             pipeline_temp_data = PipelineTemplateWebWrapper.export_templates(pipeline_template_id_list)
         except SubprocessExpiredError as e:
-            raise FlowExportError(e.message)
+            raise FlowExportError(str(e))
 
         all_template_ids = set(pipeline_temp_data['template'].keys())
         additional_template_id = all_template_ids - set(pipeline_template_id_list)
