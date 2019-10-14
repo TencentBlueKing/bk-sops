@@ -51,7 +51,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         nodeActInfo: SITE_URL + 'taskflow/api/nodes/data/' + PROJECT_ID + '/',
         // 执行详情
         nodeActDetails: SITE_URL + 'taskflow/api/nodes/detail/' + PROJECT_ID + '/',
-        jobInstanceLog: SITE_URL + 'taskflow/api/nodes/get_job_instance_log/' + PROJECT_ID + '/',
+        jobInstanceLog: SITE_URL + 'taskflow/api/nodes/get_job_instance_log/',
         nodeRetry: SITE_URL + 'taskflow/api/nodes/action/retry/' + PROJECT_ID + '/',
         nodeSkip: SITE_URL + 'taskflow/api/nodes/action/skip/' + PROJECT_ID + '/',
         nodeRevoke: SITE_URL + 'taskflow/api/nodes/action/revoke/' + PROJECT_ID + '/',
