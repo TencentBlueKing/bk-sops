@@ -272,7 +272,7 @@
             margin: 0;
             margin-bottom: -1px;
             padding: 5px 14px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             color: #313238;
         }
@@ -287,7 +287,7 @@
         }
         .rf-group-desc {
             color: #c4c6cc;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             &:hover {
                 color: #f4aa1a;

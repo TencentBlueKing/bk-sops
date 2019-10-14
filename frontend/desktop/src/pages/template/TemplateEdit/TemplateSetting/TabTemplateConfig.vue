@@ -199,9 +199,6 @@
             line-height: 32px;
         }
     }
-    .category-select {
-        font-size: 14px;
-    }
     .bk-form-checkbox {
         margin: 0 30px 0 0;
         min-width: 96px;

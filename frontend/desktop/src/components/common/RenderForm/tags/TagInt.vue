@@ -72,8 +72,8 @@
         width: 100%;
     }
     /deep/ .el-input__inner {
-        height: 36px;
-        line-height: 36px;
+        height: 32px;
+        line-height: 32px;
         text-align: left;
     }
 }

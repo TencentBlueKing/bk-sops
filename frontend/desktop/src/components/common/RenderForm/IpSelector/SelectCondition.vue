@@ -96,7 +96,7 @@
     margin: 18px 0;
     line-height: 20px;
     color: #313138;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 400;
     &.disabled {
         color: #cccccc;
@@ -106,7 +106,7 @@
     padding: 21px;
     line-height: 20px;
     color: #c4c6cc;
-    font-size: 14px;
+    font-size: 12px;
     text-align: center;
     border: 1px dotted #c4c6cc;
     &:not(.disabled) {
