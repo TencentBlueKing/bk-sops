@@ -245,6 +245,7 @@
                     case 'text':
                     case 'datetime':
                     case 'password':
+                    case 'member_selector':
                         valueFormat = {
                             type: ['String', 'Number', 'Boolean'],
                             value: ''
