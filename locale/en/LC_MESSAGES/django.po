@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-10-08 18:03+0800\n"
+"POT-Creation-Date: 2019-10-14 11:23+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -2507,14 +2507,10 @@ msgid "文件"
 msgstr "File"
 
 #: pipeline_plugins/components/utils/common.py:88
-msgid ""
-"调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
-" details:params={params}, error={error}"
-msgstr ""
-"{system} API {api_name} returned no permission: <a href='{url}' target='_blank'> Apply for permission </a>. \n"
-" details:params={params}, error={error}"
+msgid "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。"
+msgstr "{system} API {api_name} returned no permission: <a href='{url}' target='_blank'> Apply for permission </a>. "
 
-#: pipeline_plugins/components/utils/common.py:99
+#: pipeline_plugins/components/utils/common.py:100
 msgid "调用{system}接口{api_name}返回失败, params={params}, error={error}"
 msgstr "{system} API {api_name} returned false, params={params}, error={error}"
 
