@@ -361,7 +361,7 @@
             },
             // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return this.userType === 'maintainer' && this.view_mode === 'app'
+                return this.userType !== 'functor' && this.userType !== 'auditor' && this.view_mode !== 'appmaker'
             }
         },
         watch: {
