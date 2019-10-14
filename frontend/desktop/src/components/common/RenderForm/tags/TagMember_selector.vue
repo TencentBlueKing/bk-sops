@@ -12,38 +12,57 @@
 <template>
     <div class="tag-member-selector">
         <div v-if="formMode" class="tag-member-selector-wrap">
-            <bk-member-selector
+            <MemberSelect
                 v-model="memberValue"
-                :type="'all'">
-            </bk-member-selector>
+                :placeholder="placeholder">
+            </MemberSelect>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
+        <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
     </div>
 </template>
 <script>
     import '@/utils/i18n.js'
-    import { getFormMixins } from '../formMixins.js'
-
+    import { getFormMixins } from '@/components/common/RenderForm/formMixins.js'
+    import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
     const intAttrs = {
         value: {
-            type: Array,
+            type: String,
             required: false,
-            default () {
-                return []
-            }
+            default: ''
+        },
+        placeholder: {
+            type: String,
+            required: false,
+            default: '',
+            desc: 'placeholder'
+        },
+        showVarList: {
+            type: Boolean,
+            default: false
         }
     }
     export default {
         name: 'TagMember_selector',
+        components: {
+            MemberSelect
+        },
         mixins: [getFormMixins(intAttrs)],
+        data () {
+            return {
+            }
+        },
         computed: {
             memberValue: {
                 get () {
-                    return this.value.slice(0)
+                    return this.value.split(',')
                 },
                 set (val) {
-                    this.updateForm(val)
+                    this.updateForm(val.join(','))
                 }
+            },
+            viewValue () {
+                return this.value || '--'
             }
         }
     }
