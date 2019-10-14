@@ -831,10 +831,10 @@ const api = {
      */
     getJobInstanceLog (data) {
         const prefixUrl = this.getPrefix('jobInstanceLog')
-        const { job_instance_id } = data
+        const { job_instance_id, project_id } = data
         const opts = {
             method: 'GET',
-            url: prefixUrl,
+            url: `${prefixUrl}${project_id}/`,
             params: {
                 job_instance_id
             }
