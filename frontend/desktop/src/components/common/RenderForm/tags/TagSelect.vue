@@ -224,6 +224,9 @@
         width: 100%;
         /deep/ .el-input__inner {
             padding-left: 10px;
+            height: 32px;
+            line-height: 32px;
+            font-size: 12px;
         }
     }
 </style>

@@ -332,7 +332,8 @@
 .rf-form-item {
     position: relative;
     margin: 15px 0;
-    min-height: 36px;
+    min-height: 32px;
+    font-size: 12px;
     &:first-child {
         margin-top: 0;
     }
@@ -353,7 +354,7 @@
         position: relative;
         margin-top: 8px;
         width: 100px;
-        font-size: 14px;
+        font-size: 12px;
         color: #313238;
         text-align: right;
         word-wrap: break-word;
@@ -374,15 +375,15 @@
     }
     .rf-tag-hook {
         position: absolute;
-        top: 8px;
+        top: 4px;
         right: 0;
         z-index: 1;
     }
     .rf-view-value {
         display: inline-block;
-        height: 36px;
-        line-height: 36px;
-        font-size: 14px;
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
         word-wrap: break-word;
         word-break: break-all;
     }
@@ -390,5 +391,22 @@
         line-height: 20px;
         width: 100%;
     }
+    .el-input__inner {
+        height: 32px;
+        line-height: 32px;
+        font-size: 12px;
+    }
+    .el-radio__label,
+    .el-checkbox__label {
+        font-size: 12px;
+        font-weight: normal;
+        color: #63656e;
+    }
+    .el-tree-node__label {
+        font-size: 12px;
+    }
+}
+.el-select-dropdown .el-select-dropdown__item {
+    font-size: 12px;
 }
 </style>
