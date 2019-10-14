@@ -92,7 +92,7 @@ const routers = new VueRouter({
                 if (PAGE_MAP[pageType]) {
                     return PAGE_MAP[pageType].getIndex()
                 } else {
-                    return (project_id && project_id === 0) ? `/home/${project_id}/` : '/home/'
+                    return (project_id || project_id === 0) ? `/home/${project_id}/` : '/home/'
                 }
             }
         },
