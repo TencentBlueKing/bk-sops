@@ -140,8 +140,6 @@
 
 .tag-input {
     /deep/ .el-input__inner {
-        height: 36px;
-        line-height: 36px;
         padding: 0 10px;
     }
     .rf-form-wrapper {
@@ -165,7 +163,7 @@
         .rf-select-item {
             padding: 0 10px;
             line-height: 32px;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
             &:hover {
                 background: #eef6fe;
