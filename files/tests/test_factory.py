@@ -39,10 +39,10 @@ class ManagerFactoryTestCase(TestCase):
             'BKAPP_NFS_HOST_ROOT',
         ]:
             with patch('files.factory.os.getenv', get_env_wrapper(lack_var)):
-                self.assertRaises(EnvironmentError, ManagerFactory.get_manager, 'nfs')
+                self.assertRaises(EnvironmentError, ManagerFactory.get_manager, 'host_nfs')
 
     @patch('files.factory.os.getenv', get_env_wrapper(None))
     def test_get_nfs_manager(self):
-        manager = ManagerFactory.get_manager('nfs')
+        manager = ManagerFactory.get_manager('host_nfs')
         self.assertEqual(manager.location, 'BKAPP_NFS_CONTAINER_ROOT')
         self.assertEqual(manager.server_location, 'BKAPP_NFS_HOST_ROOT')
