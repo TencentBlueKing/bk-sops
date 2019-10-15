@@ -12,5 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from pipeline.core.flow.activity.base import *  # noqa
+from pipeline.core.flow.activity.base import _empty_method  # noqa
 from pipeline.core.flow.activity.service_activity import *  # noqa
 from pipeline.core.flow.activity.subprocess import *  # noqa
