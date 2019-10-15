@@ -15,6 +15,11 @@ from abc import ABCMeta
 
 from pipeline.core.flow.base import FlowNode
 
+__all__ = [
+    '_empty_method',
+    'Activity'
+]
+
 
 def _empty_method(data, parent_data):
     return
