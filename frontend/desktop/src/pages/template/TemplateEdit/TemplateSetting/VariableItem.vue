@@ -20,7 +20,11 @@
             <i v-if="!isSystemVar" class="col-item-drag bk-icon icon-sort"></i>
             <i v-else class="common-icon-lock-disable"></i>
             <span class="col-item col-name">
-                <p :title="constant.name" class="col-constant-name">{{constant.name}}</p>
+                <p
+                    class="col-constant-name"
+                    :title="constant.name">
+                    {{constant.name}}
+                </p>
             </span>
             <span class="col-item col-key">
                 <p class="col-constant-key">{{constant.key}}</p>
