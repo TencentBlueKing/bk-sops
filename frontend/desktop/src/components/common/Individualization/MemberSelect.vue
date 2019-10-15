@@ -27,7 +27,7 @@
 </template>
 <script>
     import { errorHandler } from '@/utils/errorHandler.js'
-    const BASE_URL = location.origin + window.MEMBER_URL
+    const BASE_URL = window.MEMBER_URL
     export default {
         name: 'MemberSelector',
         model: {
