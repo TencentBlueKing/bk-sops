@@ -99,3 +99,8 @@ webpack_cache
 
 # Editor setting file
 .vscode/
+
+# local dev file
+static/dev
+static/images
+frontend/desktop/static
