@@ -606,6 +606,9 @@ $localBorderColor: #d8e2e7;
         }
         .empty-variable-tip {
             margin-top: 120px;
+            /deep/ .no-data-wording {
+                font-size: 12px;
+            }
         }
     }
 }
