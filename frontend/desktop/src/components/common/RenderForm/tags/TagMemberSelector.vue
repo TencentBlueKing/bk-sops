@@ -39,7 +39,7 @@
         }
     }
     export default {
-        name: 'TagMember_selector',
+        name: 'TagMemberSelector',
         components: {
             MemberSelect
         },
