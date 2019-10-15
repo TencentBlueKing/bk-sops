@@ -23,6 +23,8 @@ from ..exceptions import InvalidOperationError
 
 class HostNFSManager(Manager):
 
+    type = 'host_nfs'
+
     def __init__(self, location, server_location):
         self.location = location
         self.server_location = server_location
@@ -45,7 +47,6 @@ class HostNFSManager(Manager):
 
     def save(self, name, content, shims=None, max_length=None):
         uid = self._uniqid()
-        ip = self._get_host_ip()
 
         self.storage.save(
             name=self._get_file_path(self.location, name, uid, shims),
@@ -54,12 +55,11 @@ class HostNFSManager(Manager):
         )
 
         return {
-            'type': 'nfs',
+            'type': 'host_nfs',
             'tags': {
                 'uid': uid,
                 'shims': shims,
                 'name': name,
-                'ip': ip
             }
         }
 
@@ -74,27 +74,26 @@ class HostNFSManager(Manager):
             callback_url=None
     ):
 
-        if not all([tag['type'] == 'nfs' for tag in file_tags]):
+        if not all([tag['type'] == 'host_nfs' for tag in file_tags]):
             raise InvalidOperationError('can not du files push operation on different types files')
 
-        host_files = {}
-
-        for tag in file_tags:
-            host_files.setdefault(tag['tags']['ip'], []).append(self._get_file_path(
-                self.server_location,
-                tag['tags']['name'],
-                tag['tags']['uid'],
-                tag['tags']['shims']
-            ))
+        host_ip = self._get_host_ip()
 
         file_source = [{
-            'files': paths,
+            'files': [
+                self._get_file_path(
+                    self.server_location,
+                    tag['tags']['name'],
+                    tag['tags']['uid'],
+                    tag['tags']['shims']
+                ) for tag in file_tags
+            ],
             'account': 'root',
             'ip_list': [{
                 'bk_cloud_id': 0,
                 'ip': host_ip
             }]
-        } for host_ip, paths in host_files.items()]
+        }]
 
         job_kwargs = {
             'bk_biz_id': bk_biz_id,

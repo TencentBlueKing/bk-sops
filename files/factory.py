@@ -27,7 +27,7 @@ class ManagerFactory(object):
         return creator()
 
     @classmethod
-    def _create_nfs_manager(cls):
+    def _create_host_nfs_manager(cls):
         location = os.getenv('BKAPP_NFS_CONTAINER_ROOT')
         server_location = os.getenv('BKAPP_NFS_HOST_ROOT')
 

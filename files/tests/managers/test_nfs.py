@@ -66,12 +66,11 @@ class HostNFSManagerTestCase(TestCase):
         )
 
         self.assertEqual(tag, {
-            'type': 'nfs',
+            'type': 'host_nfs',
             'tags': {
                 'uid': uid,
                 'shims': shims,
                 'name': file_name,
-                'ip': ip
             }
         })
 
@@ -103,12 +102,11 @@ class HostNFSManagerTestCase(TestCase):
         )
 
         self.assertEqual(tag, {
-            'type': 'nfs',
+            'type': 'host_nfs',
             'tags': {
                 'uid': uid,
                 'shims': None,
                 'name': file_name,
-                'ip': ip
             }
         })
 
@@ -117,30 +115,27 @@ class HostNFSManagerTestCase(TestCase):
         bk_biz_id = 'bk_biz_id_token'
         file_tags = [
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_1',
                     'shims': 'shims_1',
                     'name': 'file_1',
-                    'ip': '1.1.1.1'
                 }
             },
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_2',
                     'shims': 'shims_2',
                     'name': 'file_2',
-                    'ip': '1.1.1.2'
                 }
             },
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_3',
                     'shims': 'shims_3',
                     'name': 'file_3',
-                    'ip': '1.1.1.1'
                 }
             }
         ]
@@ -148,6 +143,7 @@ class HostNFSManagerTestCase(TestCase):
         ips = 'ips_token'
         account = 'account_token'
         callback_url = 'callback_url_token'
+        host_ip = '1.1.1.1'
 
         job_id = '12345'
         esb_client = MagicMock()
@@ -158,6 +154,7 @@ class HostNFSManagerTestCase(TestCase):
             location=self.location,
             server_location=self.server_location
         )
+        manager._get_host_ip = MagicMock(return_value=host_ip)
 
         result = manager.push_files_to_ips(
             esb_client=esb_client,
@@ -177,25 +174,15 @@ class HostNFSManagerTestCase(TestCase):
                 {
                     'files': [
                         '/server_location_token/shims_1/uid_1/file_1',
+                        '/server_location_token/shims_2/uid_2/file_2',
                         '/server_location_token/shims_3/uid_3/file_3',
                     ],
                     'account': 'root',
                     'ip_list': [{
                         'bk_cloud_id': 0,
-                        'ip': '1.1.1.1'
+                        'ip': host_ip
                     }]
-                },
-                {
-                    'files': [
-                        '/server_location_token/shims_2/uid_2/file_2',
-                    ],
-                    'account': 'root',
-                    'ip_list': [{
-                        'bk_cloud_id': 0,
-                        'ip': '1.1.1.2'
-                    }]
-                }
-            ],
+                }],
             'ip_list': ips,
             'bk_callback_url': callback_url
         })
@@ -207,36 +194,34 @@ class HostNFSManagerTestCase(TestCase):
         bk_biz_id = 'bk_biz_id_token'
         file_tags = [
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_1',
                     'shims': 'shims_1',
                     'name': 'file_1',
-                    'ip': '1.1.1.1'
                 }
             },
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_2',
                     'shims': 'shims_2',
                     'name': 'file_2',
-                    'ip': '1.1.1.2'
                 }
             },
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_3',
                     'shims': 'shims_3',
                     'name': 'file_3',
-                    'ip': '1.1.1.1'
                 }
             }
         ]
         target_path = '/user/data'
         ips = 'ips_token'
         account = 'account_token'
+        host_ip = '1.1.1.1'
 
         job_id = '12345'
         esb_client = MagicMock()
@@ -247,6 +232,7 @@ class HostNFSManagerTestCase(TestCase):
             location=self.location,
             server_location=self.server_location
         )
+        manager._get_host_ip = MagicMock(return_value=host_ip)
 
         result = manager.push_files_to_ips(
             esb_client=esb_client,
@@ -265,22 +251,13 @@ class HostNFSManagerTestCase(TestCase):
                 {
                     'files': [
                         '/server_location_token/shims_1/uid_1/file_1',
+                        '/server_location_token/shims_2/uid_2/file_2',
                         '/server_location_token/shims_3/uid_3/file_3',
                     ],
                     'account': 'root',
                     'ip_list': [{
                         'bk_cloud_id': 0,
-                        'ip': '1.1.1.1'
-                    }]
-                },
-                {
-                    'files': [
-                        '/server_location_token/shims_2/uid_2/file_2',
-                    ],
-                    'account': 'root',
-                    'ip_list': [{
-                        'bk_cloud_id': 0,
-                        'ip': '1.1.1.2'
+                        'ip': host_ip
                     }]
                 }
             ],
@@ -293,12 +270,11 @@ class HostNFSManagerTestCase(TestCase):
         bk_biz_id = 'bk_biz_id_token'
         file_tags = [
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_1',
                     'shims': 'shims_1',
                     'name': 'file_1',
-                    'ip': '1.1.1.1'
                 }
             },
             {
@@ -307,7 +283,6 @@ class HostNFSManagerTestCase(TestCase):
                     'uid': 'uid_2',
                     'shims': 'shims_2',
                     'name': 'file_2',
-                    'ip': '1.1.1.2'
                 }
             }
         ]
@@ -337,36 +312,34 @@ class HostNFSManagerTestCase(TestCase):
         bk_biz_id = 'bk_biz_id_token'
         file_tags = [
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_1',
                     'shims': 'shims_1',
                         'name': 'file_1',
-                        'ip': '1.1.1.1'
                 }
             },
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_2',
                     'shims': 'shims_2',
                     'name': 'file_2',
-                    'ip': '1.1.1.2'
                 }
             },
             {
-                'type': 'nfs',
+                'type': 'host_nfs',
                 'tags': {
                     'uid': 'uid_3',
                     'shims': 'shims_3',
                     'name': 'file_3',
-                    'ip': '1.1.1.1'
                 }
             }
         ]
         target_path = '/user/data'
         ips = 'ips_token'
         account = 'account_token'
+        host_ip = '1.1.1.1'
 
         esb_client = MagicMock()
         esb_client.job.fast_push_file = MagicMock(return_value={'result': False,
@@ -376,6 +349,7 @@ class HostNFSManagerTestCase(TestCase):
             location=self.location,
             server_location=self.server_location
         )
+        manager._get_host_ip = MagicMock(return_value=host_ip)
 
         result = manager.push_files_to_ips(
             esb_client=esb_client,
@@ -394,22 +368,13 @@ class HostNFSManagerTestCase(TestCase):
                 {
                     'files': [
                         '/server_location_token/shims_1/uid_1/file_1',
+                        '/server_location_token/shims_2/uid_2/file_2',
                         '/server_location_token/shims_3/uid_3/file_3',
                     ],
                     'account': 'root',
                     'ip_list': [{
                         'bk_cloud_id': 0,
-                        'ip': '1.1.1.1'
-                    }]
-                },
-                {
-                    'files': [
-                        '/server_location_token/shims_2/uid_2/file_2',
-                    ],
-                    'account': 'root',
-                    'ip_list': [{
-                        'bk_cloud_id': 0,
-                        'ip': '1.1.1.2'
+                        'ip': host_ip
                     }]
                 }
             ],
