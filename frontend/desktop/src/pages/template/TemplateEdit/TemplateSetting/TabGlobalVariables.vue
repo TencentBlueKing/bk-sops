@@ -417,6 +417,12 @@ $localBorderColor: #d8e2e7;
         overflow-y: auto;
         @include scrollbar;
     }
+    .empty-variable-tip {
+        margin-top: 120px;
+        /deep/ .no-data-wording {
+            font-size: 12px;
+        }
+    }
 }
 .tooltip-content {
     margin-bottom: 20px;
