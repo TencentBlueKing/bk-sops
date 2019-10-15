@@ -12,14 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 
 import re
-import os
 import logging
 import traceback
 
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 from django.conf.urls import url
+
+from gcloud.core.models import EnvironmentVariables
 
 from pipeline_plugins.components.utils import (
     cc_get_inner_ip_by_module_id,
@@ -34,6 +34,8 @@ from pipeline_plugins.cmdb_ip_picker.query import (
 )
 from auth_backend.constants import AUTH_FORBIDDEN_CODE
 from auth_backend.exceptions import AuthFailedException
+
+from files.factory import ManagerFactory
 
 from gcloud.conf import settings
 from gcloud.exceptions import APIError
@@ -292,68 +294,6 @@ def job_get_own_db_account_list(request, biz_cc_id):
     return JsonResponse({'result': True, 'data': data})
 
 
-def file_upload(request, biz_cc_id):
-    """
-    @summary: 本地文件上传
-    @param request:
-    @param biz_cc_id:
-    @return:
-    """
-    try:
-        file_obj = request.FILES['file']
-        file_name = file_obj.name
-        file_size = file_obj.size
-        # 文件名不能包含中文， 文件大小不能大于500M
-        if file_size > 500 * 1024 * 1024:
-            message = _(u"文件上传失败， 文件大小超过500M")
-            response = JsonResponse({'result': False, 'message': message})
-            response.status_code = 400
-            return response
-
-        if CHINESE_REGEX.findall(file_name):
-            message = _(u"文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符")
-            response = JsonResponse({'result': False, 'message': message})
-            response.status_code = 400
-            return response
-
-        file_content = file_obj.read()
-
-        if not isinstance(biz_cc_id, int):
-            return JsonResponse({
-                'result': False,
-                'message': _(u"非法业务 ID")
-            })
-
-        now_str = timezone.datetime.now().strftime('%Y%m%d%H%M%S')
-        bk_path = os.path.join(settings.BASE_DIR,
-                               'USERRES',
-                               'bkupload',
-                               str(biz_cc_id),
-                               now_str)
-        logger.info(u"/components/query/file_upload file path: %s" % bk_path)
-
-        if not os.path.exists(bk_path):
-            os.makedirs(bk_path)
-
-        with open(r'%s%s' % (bk_path, file_name), 'w') as file_obj:
-            file_obj.write(file_content)
-
-        result = {
-            'result': True,
-            'time_str': now_str,
-            'name': file_name,
-            'size': file_size,
-        }
-        return JsonResponse(result)
-
-    except Exception as e:
-        logger.error(u"/components/query/file_upload exception, error=%s" % e)
-        message = _(u"文件上传失败，路径不合法或者程序异常")
-        response = JsonResponse({'result': False, 'message': message})
-        response.status_code = 400
-        return response
-
-
 def job_get_job_tasks_by_biz(request, biz_cc_id):
     client = get_client_by_user(request.user.username)
     job_result = client.job.get_job_list({'bk_biz_id': biz_cc_id})
@@ -515,6 +455,60 @@ def cc_get_business(request):
     })
 
 
+def file_upload(request, project_id):
+    """
+    @summary: 本地文件上传
+    @param request:
+    @param project_id:
+    @return:
+    """
+
+    file_manager_type = EnvironmentVariables.objects.get_var('BKAPP_FILE_MANAGER_TYPE')
+    if not file_manager_type:
+        return JsonResponse({
+            'result': False,
+            'message': 'File Manager 未配置，请联系管理员进行配置'
+        })
+
+    try:
+        file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
+    except Exception as e:
+        logger.error('can not get file manager for type: {}\n err: {}'.format(
+            file_manager_type,
+            traceback.format_exc()
+        ))
+        return JsonResponse({'result': False, 'message': str(e)})
+
+    file_obj = request.FILES['file']
+    file_name = file_obj.name
+    file_size = file_obj.size
+    # 文件名不能包含中文， 文件大小不能大于500M
+    if file_size > 500 * 1024 * 1024:
+        message = _(u"文件上传失败， 文件大小超过500M")
+        response = JsonResponse({'result': False, 'message': message})
+        response.status_code = 400
+        return response
+
+    if CHINESE_REGEX.findall(file_name):
+        message = _(u"文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符")
+        response = JsonResponse({'result': False, 'message': message})
+        response.status_code = 400
+        return response
+
+    shims = 'plugins_upload/job_push_local_files/{}'.format(project_id)
+
+    try:
+        file_tag = file_manager.save(name=file_name, content=file_obj, shims=shims)
+    except Exception:
+        logger.error('file upload save err: {}'.format(traceback.format_exc()))
+        return JsonResponse({'result': False, 'message': _(u"文件上归档失败，请联系管理员")})
+
+    return JsonResponse({
+        'result': True,
+        'tag': file_tag
+    })
+
+
 urlpatterns = [
     url(r'^cc_search_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_object_attribute),
     url(r'^cc_search_create_object_attribute/(?P<obj_id>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_create_object_attribute),
@@ -522,7 +516,7 @@ urlpatterns = [
     url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cc_get_host_by_module_id),
     url(r'^job_get_script_list/(?P<biz_cc_id>\d+)/$', job_get_script_list),
     url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
-    url(r'^file_upload/(?P<biz_cc_id>\d+)/$', file_upload),
+    url(r'^file_upload/(?P<project_id>\d+)/$', file_upload),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
     url(r'^job_get_job_detail_by_biz/(?P<biz_cc_id>\d+)/(?P<task_id>\d+)/$', job_get_job_task_detail),
 
