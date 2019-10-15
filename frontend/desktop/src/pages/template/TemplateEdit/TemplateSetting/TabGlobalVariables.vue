@@ -53,7 +53,8 @@
             </div>
             <ul class="variable-list" ref="variableList">
                 <VariableItem
-                    v-for="(constant, index) in systemConstants"
+                    v-for="(constant, index) in systemConstantsList"
+                    class="system-constants-item"
                     :key="index"
                     :outputs="outputs"
                     :is-variable-editing="isVariableEditing"
@@ -181,6 +182,14 @@
             },
             isShowNodata () {
                 return !this.isVariableEditing && !this.constantsArray.length && !this.systemConstants
+            },
+            systemConstantsList () {
+                const list = []
+                Object.keys(this.systemConstants).forEach(key => {
+                    list.push(this.systemConstants[key])
+                })
+                list.sort((a, b) => b.index - a.index)
+                return list
             }
         },
         watch: {

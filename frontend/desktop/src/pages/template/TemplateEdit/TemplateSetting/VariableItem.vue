@@ -342,9 +342,11 @@ $localBorderColor: #d8e2e7;
 }
 .common-icon-lock-disable {
     position: absolute;
-    top: 15px;
+    top: 18px;
     left: 20px;
     color: #979ba5;
-    cursor: no-drop;
+}
+.system-constants-item {
+    cursor: default;
 }
 </style>
