@@ -48,6 +48,7 @@ export function getUrlSetting (SITE_URL, PROJECT_ID) {
         instanceClaim: SITE_URL + 'taskflow/api/flow/claim/',
         instanceDetail: SITE_URL + 'taskflow/detail/' + PROJECT_ID + '/',
         instanceStatus: SITE_URL + 'taskflow/api/status/',
+        internalVariable: SITE_URL + 'taskflow/api/context/',
         nodeActInfo: SITE_URL + 'taskflow/api/nodes/data/' + PROJECT_ID + '/',
         // 执行详情
         nodeActDetails: SITE_URL + 'taskflow/api/nodes/detail/' + PROJECT_ID + '/',

@@ -75,14 +75,19 @@
         },
         computed: {
             ...mapState({
-                'constants': state => state.template.constants
+                'constants': state => state.template.constants,
+                'systemConstants': state => state.template.systemConstants
             }),
             constantArr: {
                 get () {
+                    let Keylist = []
                     if (this.constants) {
-                        return Object.keys(this.constants)
+                        Keylist = [...Object.keys(this.constants)]
                     }
-                    return []
+                    if (this.systemConstants) {
+                        Keylist = [...Keylist, ...Object.keys(this.systemConstants)]
+                    }
+                    return Keylist
                 },
                 set (val) {
                     this.varList = val
