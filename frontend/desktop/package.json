@@ -12,7 +12,7 @@
   "dependencies": {
     "art-template": "^4.13.0",
     "axios": "^0.18.0",
-    "bk-magic-vue": "2.1.5",
+    "bk-magic-vue": "^2.1.4",
     "element-ui": "^2.4.1",
     "file-saver": "^2.0.2",
     "jquery": "^3.3.1",
