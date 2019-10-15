@@ -197,7 +197,7 @@
             },
             updateForm (fieldArr, val) {
                 const field = fieldArr.slice(-1)[0]
-                let fieldDataObj = this.value
+                let fieldDataObj = tools.deepClone(this.formData)
                 fieldArr.slice(0, -1).forEach(item => {
                     if (item in fieldDataObj) {
                         fieldDataObj = fieldDataObj[item]
@@ -207,7 +207,7 @@
                 })
 
                 this.$set(fieldDataObj, field, val)
-                this.$emit('change', this.value)
+                this.$emit('change', fieldDataObj)
             },
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
