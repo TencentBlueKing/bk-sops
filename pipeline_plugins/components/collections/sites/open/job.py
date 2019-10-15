@@ -31,6 +31,7 @@ TASK_RESULT = [
 
 import base64
 import logging
+import traceback
 from functools import partial
 
 from django.utils import translation
@@ -47,7 +48,10 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
+from files.factory import ManagerFactory
+
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -73,10 +77,16 @@ class JobService(Service):
 
     def schedule(self, data, parent_data, callback_data=None):
 
-        job_instance_id = callback_data.get('job_instance_id', None)
-        status = callback_data.get('status', None)
+        try:
+            job_instance_id = callback_data.get('job_instance_id', None)
+            status = callback_data.get('status', None)
+        except Exception as e:
+            err_msg = 'invalid callback_data: {}'
+            self.loggger.error(err_msg.format(traceback.format_exc()))
+            self.outputs.ex_dta = err_msg.format(e)
+            return False
+
         client = data.outputs.client
-        # step_instances = callback_data.get('step_instances', None)
 
         if not job_instance_id or not status:
             data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
@@ -534,3 +544,90 @@ class JobCronTaskComponent(Component):
     code = 'job_cron_task'
     bound_service = JobCronTaskService
     form = '%scomponents/atoms/job/job_cron_task.js' % settings.STATIC_URL
+
+
+class JobPushLocalFilesService(Service):
+    __need_schedule__ = True
+
+    def inputs_format(self):
+        return []
+
+    def outputs_format(self):
+        return []
+
+    def execute(self, data, parent_data):
+        executor = parent_data.inputs.executor
+        biz_cc_id = data.inputs.biz_cc_id
+        local_files = data.inputs.job_local_files
+        target_ip_list = data.inputs.job_target_ip_list
+        target_account = data.inputs.job_target_account
+        target_path = data.inputs.job_target_path
+
+        file_manager_type = EnvironmentVariables.objects.get_var('BKAPP_FILE_MANAGER_TYPE')
+        if not file_manager_type:
+            data.outputs.ex_data = 'File Manager not configurate correctly, contact administrator please.'
+            return False
+
+        try:
+            file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
+        except Exception as e:
+            err_msg = 'can not get file manager for type: {}\n err: {}'
+            self.logger.error(err_msg.format(file_manager_type, traceback.format_exc()))
+            data.outputs.ex_data = err_msg.format(file_manager_type, e)
+            return False
+
+        client = get_client_by_user(executor)
+
+        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
+        ip_list = [{'ip': _ip['InnerIP'],
+                    'bk_cloud_id': _ip['Source']} for _ip in ip_info['ip_result']]
+
+        file_tags = [_file['tag'] for _file in local_files]
+
+        push_result = file_manager.push_files_to_ips(
+            esb_client=client,
+            bk_biz_id=biz_cc_id,
+            file_tags=file_tags,
+            target_path=target_path,
+            ips=ip_list,
+            account=target_account,
+            callback_url=get_node_callback_url(self.id)
+        )
+
+        if not push_result['result']:
+            data.outputs.ex_data = push_result['message']
+            return False
+
+        data.outputs['job_id'] = push_result['data']['job_id']
+        return True
+
+    def schedule(self, data, parent_data, callback_data=None):
+
+        try:
+            status = callback_data.get('status', None)
+        except Exception as e:
+            err_msg = 'invalid callback_data: {}, err: {}'
+            self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
+            data.outputs.ex_data = err_msg.format(callback_data, e)
+            return False
+
+        if not status:
+            data.outputs.ex_data = 'invalid callback_data, {}'.format(callback_data)
+            self.finish_schedule()
+            return False
+
+        if status not in JOB_SUCCESS:
+            data.outputs.ex_data = 'file push failed: {}'.format(callback_data)
+            self.finish_schedule()
+            return False
+
+        self.finish_schedule()
+        return True
+
+
+class JobPushLocalFilesComponent(Component):
+    name = _(u'分发本地文件')
+    code = 'job_push_local_files'
+    bound_service = JobPushLocalFilesService
+    form = '%scomponents/atoms/job/job_push_local_files.js' % settings.STATIC_URL
+    version = '1.0.0'
