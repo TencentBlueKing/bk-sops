@@ -12,7 +12,7 @@
 <template>
     <bk-tag-input
         v-model="setValue"
-        :list="list"
+        :list="memberlist"
         :placeholder="placeholder"
         :has-delete-icon="hasDeleteIcon"
         :max-data="maxData"
@@ -26,10 +26,9 @@
     </bk-tag-input>
 </template>
 <script>
-    import { errorHandler } from '@/utils/errorHandler.js'
-    const BASE_URL = window.MEMBER_URL
+    import { mapState, mapActions, mapMutations } from 'vuex'
     export default {
-        name: 'MemberSelector',
+        name: 'MemberSelect',
         model: {
             prop: 'value',
             event: 'change'
@@ -44,46 +43,37 @@
              */
             type: {
                 type: String,
-                required: false,
                 default: 'rtx'
             },
             value: {
                 type: Array,
-                required: false,
-                default: () => []
+                default: () => ([])
             },
             placeholder: {
                 type: String,
-                required: false,
                 default: ''
             },
             disabled: {
                 type: Boolean,
-                required: false,
                 default: false
             },
             hasDeleteIcon: {
                 type: Boolean,
-                required: false,
                 default: true
             },
             maxData: {
                 type: Number,
-                required: false,
                 default: -1
             },
             maxResult: {
                 type: Number,
-                required: false,
                 default: 5
             }
         },
-        data () {
-            return {
-                list: []
-            }
-        },
         computed: {
+            ...mapState({
+                'memberlist': state => state.member.memberlist
+            }),
             setValue: {
                 get () {
                     return this.value
@@ -94,10 +84,15 @@
             }
         },
         created () {
-            this.getRtxData()
             this.initData()
         },
         methods: {
+            ...mapActions('member/', [
+                'loadMemberList'
+            ]),
+            ...mapMutations('member/', [
+                'setMemberList'
+            ]),
             initData () {
                 switch (this.type) {
                     case 'email':
@@ -119,30 +114,17 @@
             remove (tag) {
                 this.$emit('remove', tag)
             },
-            getRtxData () {
-                $.ajax({
-                    url: BASE_URL,
-                    methods: 'GET',
-                    data: {
-                        fields: 'username,id',
-                        no_page: true
-                    },
-                    dataType: 'json',
-                    success: res => {
-                        if (res.result) {
-                            this.list = Object.freeze(res.data)
-                        } else {
-                            errorHandler(res)
-                        }
-                    },
-                    error: (err) => {
-                        errorHandler(err)
-                    }
-                })
+            async getRtxData () {
+                if (this.memberlist && this.memberlist.length === 0) {
+                    const result = await this.loadMemberList()
+                    this.setMemberList(result.data)
+                }
             },
+            // 暂未支持邮件组
             getEmailData () {
-
+                
             },
+            // 暂未支持邮件组 + 人员列表
             getAllData () {
 
             }

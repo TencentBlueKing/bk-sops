@@ -12,10 +12,10 @@
 <template>
     <div class="tag-member-selector">
         <div v-if="formMode" class="tag-member-selector-wrap">
-            <MemberSelect
+            <member-select
                 v-model="memberValue"
                 :placeholder="placeholder">
-            </MemberSelect>
+            </member-select>
         </div>
         <span v-else class="rf-view-value">{{viewValue}}</span>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
@@ -36,10 +36,6 @@
             required: false,
             default: '',
             desc: 'placeholder'
-        },
-        showVarList: {
-            type: Boolean,
-            default: false
         }
     }
     export default {
@@ -48,14 +44,10 @@
             MemberSelect
         },
         mixins: [getFormMixins(intAttrs)],
-        data () {
-            return {
-            }
-        },
         computed: {
             memberValue: {
                 get () {
-                    return this.value.split(',')
+                    return (this.value && this.value.split(',')) || []
                 },
                 set (val) {
                     this.updateForm(val.join(','))
