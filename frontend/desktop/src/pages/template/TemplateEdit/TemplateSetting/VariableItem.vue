@@ -267,8 +267,9 @@ $localBorderColor: #d8e2e7;
 .col-item-drag {
     display: none;
     position: absolute;
-    top: 15px;
+    top: 50%;
     left: 20px;
+    transform: translate(0, -50%);
     color: #979ba5;
     cursor: move;
     &:hover {
@@ -342,8 +343,9 @@ $localBorderColor: #d8e2e7;
 }
 .common-icon-lock-disable {
     position: absolute;
-    top: 18px;
+    top: 50%;
     left: 20px;
+    transform: translate(0, -50%);
     color: #979ba5;
 }
 .system-constants-item {
