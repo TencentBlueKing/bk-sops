@@ -13,4 +13,6 @@ specific language governing permissions and limitations under the License.
 用来兼容企业版国际化翻译
 """
 
+from django.utils.translation import ugettext_lazy as _
+
 EE_RUN_VER_NAME = _(u"蓝鲸智云企业版")
