@@ -151,6 +151,17 @@ const api = {
         return request(opts)
     },
     /**
+     * 获取内置变量变量列表
+     */
+    getInternalVariableList () {
+        const prefixUrl = this.getPrefix('internalVariable')
+        const opts = {
+            method: 'GET',
+            url: prefixUrl
+        }
+        return request(opts)
+    },
+    /**
      * 获取子流程列表
      */
     getSubAtomList (data) {
