@@ -52,9 +52,17 @@
     import { mapActions } from 'vuex'
     export default {
         name: 'IpLogContent',
-        props: [
-            'nodeInfo'
-        ],
+        props: {
+            nodeInfo: {
+                type: Object,
+                default () {
+                    return {}
+                }
+            },
+            projectId: {
+                type: Number
+            }
+        },
         data () {
             return {
                 i18n: {
@@ -95,7 +103,10 @@
                         && this.nodeInfo.ex_data.hasOwnProperty('show_ip_log')
                         && this.nodeInfo.ex_data.show_ip_log
                     ) {
-                        this.failDetail = await this.getJobInstanceLog({ 'job_instance_id': this.nodeInfo.ex_data.task_inst_id })
+                        this.failDetail = await this.getJobInstanceLog({
+                            job_instance_id: this.nodeInfo.ex_data.task_inst_id,
+                            project_id: this.projectId
+                        })
                         let ipTotal = []
                         const ipResults = this.failDetail.data[0].step_results
                         for (const i in ipResults) {
