@@ -24,7 +24,6 @@
                             <bk-select
                                 v-model="currentAtom"
                                 class="node-select"
-                                font-size="14"
                                 :searchable="true"
                                 :clearable="false"
                                 @selected="onAtomSelect">
