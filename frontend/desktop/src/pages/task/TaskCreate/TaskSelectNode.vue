@@ -41,6 +41,7 @@
                 :is-scheme-show="isSchemeShow"
                 :is-scheme-editable="viewMode !== 'appmaker'"
                 :is-preview-mode="isPreviewMode"
+                :is-common-process="isCommonProcess"
                 :selected-nodes="selectedNodes"
                 :tpl-actions="tplActions"
                 :tpl-operations="tplOperations"
