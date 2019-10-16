@@ -792,6 +792,7 @@
                     this.$emit('onUpdateNodeInfo', this.nodeId, {
                         status,
                         name: this.nodeName,
+                        mode: 'edit',
                         stage_name: this.stageName,
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
