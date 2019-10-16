@@ -122,3 +122,41 @@ class TestRegistry(TestCase):
                 '2': component_cls
             }
         })
+
+    def test_component_list(self):
+        class TestService(Service):
+            pass
+
+        class TestComponent(Component):
+            name = 'name'
+            code = 'code'
+            bound_service = TestService
+            form = 'form path'
+
+            def clean_execute_data(self, context):
+                pass
+
+            def outputs_format(self):
+                pass
+
+        class TestComponent2(Component):
+            name = 'name'
+            code = 'code_2'
+            bound_service = TestService
+            form = 'form path'
+            version = '1.0'
+
+            def clean_execute_data(self, context):
+                pass
+
+            def outputs_format(self):
+                pass
+
+        expect_list = []
+        for _, component_map in ComponentLibrary.components.items():
+            expect_list.extend(component_map.values())
+
+        component_list = ComponentLibrary.component_list()
+
+        self.assertEqual(component_list, expect_list)
+        self.assertEqual(len(component_list), 3)

@@ -108,11 +108,11 @@ class ExternalPackageSource(models.Model):
         except ValueError as e:
             logger.exception(u"ExternalPackageSource[name=%s] call importer error: %s" % (self.name, e))
             return plugins
-        for code, component in ComponentLibrary.components.items():
+        for component in ComponentLibrary.component_list():
             component_importer = getattr(sys.modules[component.__module__], '__loader__', None)
             if isinstance(component_importer, type(importer)) and component_importer.name == self.name:
                 plugins.append({
-                    'code': code,
+                    'code': component.code,
                     'name': component.name,
                     'group_name': component.group_name,
                     'class_name': component.__name__,

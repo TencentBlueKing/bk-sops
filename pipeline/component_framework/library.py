@@ -30,6 +30,14 @@ class ComponentLibrary(object):
         return cls.get_component_class(component_code=component_code, version=version)
 
     @classmethod
+    def component_list(cls):
+        components = []
+        for _, component_map in cls.components.items():
+            components.extend(component_map.values())
+
+        return components
+
+    @classmethod
     def get_component_class(cls, component_code, version=None):
         version = version or LEGACY_PLUGINS_VERSION
         component_cls = cls.components.get(component_code, {}).get(version)
