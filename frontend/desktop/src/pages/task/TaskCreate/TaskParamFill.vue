@@ -132,7 +132,7 @@
             LoopRuleSelect
         },
         mixins: [permission],
-        props: ['project_id', 'template_id', 'common', 'previewData', 'entrance', 'excludeNode'],
+        props: ['project_id', 'template_id', 'common', 'entrance', 'excludeNode'],
         data () {
             return {
                 i18n: {
@@ -226,7 +226,8 @@
         },
         methods: {
             ...mapActions('template/', [
-                'loadTemplateData'
+                'loadTemplateData',
+                'getLayoutedPipeline'
             ]),
             ...mapActions('task/', [
                 'loadPreviewNodeData',
@@ -265,13 +266,36 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    this.pipelineData = previewData.data.pipeline_tree
+                    const pipelineTree = previewData.data.pipeline_tree
+                    if (this.excludeNode.length > 0) {
+                        const layoutedData = await this.getLayoutedPosition(pipelineTree)
+                        pipelineTree.line = layoutedData.line
+                        pipelineTree.location = layoutedData.location
+                    }
+                    this.pipelineData = pipelineTree
                     this.unreferenced = previewData.data.constants_not_referred
                     this.taskName = this.getDefaultTaskName()
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
                     this.taskMessageLoading = false
+                }
+            },
+            /**
+             * 从接口获取编排后的画布数据
+             * @params {Object} data pipeline_tree 数据
+             */
+            async getLayoutedPosition (data) {
+                try {
+                    const width = document.body.getScrollWidth
+                    const res = await this.getLayoutedPipeline({ width, pipelineTree: data })
+                    if (res.result) {
+                        return res.data.pipeline_tree
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (error) {
+                    errorHandler(error, this)
                 }
             },
             getDefaultTaskName () {

@@ -170,7 +170,7 @@
                             {{ props.row.executor_name || '--' }}
                         </template>
                     </bk-table-column>
-                    <bk-table-column :label="i18n.createMethod" width="80">
+                    <bk-table-column :label="i18n.createMethod">
                         <template slot-scope="props">
                             {{ transformCreateMethod(props.row.create_method) }}
                         </template>

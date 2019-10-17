@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-10-08 10:43+0800\n"
+"POT-Creation-Date: 2019-10-15 16:50+0800\n"
 "PO-Revision-Date: 2017-11-17 11:28+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -229,6 +229,10 @@ msgstr "Delete"
 #: gcloud/contrib/appmaker/permissions.py:34 gcloud/tasktmpl3/permissions.py:34
 msgid "新建任务"
 msgstr "New Task"
+
+#: gcloud/conf/i18n.py:16
+msgid "蓝鲸智云企业版"
+msgstr "BK Enterprise Edition"
 
 #: gcloud/conf/sites/community/ver_settings.py:22
 msgid "蓝鲸智云社区版"
@@ -2507,14 +2511,10 @@ msgid "文件"
 msgstr "File"
 
 #: pipeline_plugins/components/utils/common.py:88
-msgid ""
-"调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。\n"
-" details:params={params}, error={error}"
-msgstr ""
-"{system} API {api_name} returned no permission: <a href='{url}' target='_blank'> Apply for permission </a>。\n"
-" details:params={params}, error={error}"
+msgid "调用{system}接口{api_name}无权限: <a href='{url}' target='_blank'>申请权限</a>。"
+msgstr "{system} API {api_name} returned no permission: <a href='{url}' target='_blank'> Apply for permission </a>. "
 
-#: pipeline_plugins/components/utils/common.py:99
+#: pipeline_plugins/components/utils/common.py:100
 msgid "调用{system}接口{api_name}返回失败, params={params}, error={error}"
 msgstr "{system} API {api_name} returned false, params={params}, error={error}"
 
