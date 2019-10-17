@@ -49,7 +49,7 @@ JOB_VAR_TYPE_STR = 1
 JOB_VAR_TYPE_IP = 2
 JOB_VAR_TYPE_INDEX_ARRAY = 3
 JOB_VAR_TYPE_ARRAY = 4
-CHINESE_REGEX = re.compile(u'[\u4e00-\u9fa5\\/:*?"<>|,]')
+INVALID_CHAR_REGEX = re.compile(u'[\u4e00-\u9fa5\\/:*?"<>|,]')
 
 
 @supplier_account_inject
@@ -467,7 +467,7 @@ def file_upload(request, project_id):
     if not file_manager_type:
         return JsonResponse({
             'result': False,
-            'message': 'File Manager 未配置，请联系管理员进行配置'
+            'message': u"File Manager 未配置，请联系管理员进行配置"
         })
 
     try:
@@ -489,7 +489,7 @@ def file_upload(request, project_id):
         response.status_code = 400
         return response
 
-    if CHINESE_REGEX.findall(file_name):
+    if INVALID_CHAR_REGEX.findall(file_name):
         message = _(u"文件上传失败，文件名不能包含中文和\\/:*?\"<>|等特殊字符")
         response = JsonResponse({'result': False, 'message': message})
         response.status_code = 400
@@ -501,7 +501,7 @@ def file_upload(request, project_id):
         file_tag = file_manager.save(name=file_name, content=file_obj, shims=shims)
     except Exception:
         logger.error('file upload save err: {}'.format(traceback.format_exc()))
-        return JsonResponse({'result': False, 'message': _(u"文件上归档失败，请联系管理员")})
+        return JsonResponse({'result': False, 'message': _(u"文件上传归档失败，请联系管理员")})
 
     return JsonResponse({
         'result': True,

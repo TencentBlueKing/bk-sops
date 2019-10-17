@@ -75,7 +75,7 @@ class HostNFSManager(Manager):
     ):
 
         if not all([tag['type'] == 'host_nfs' for tag in file_tags]):
-            raise InvalidOperationError('can not du files push operation on different types files')
+            raise InvalidOperationError('can not do files push operation on different types files')
 
         host_ip = self._get_host_ip()
 
