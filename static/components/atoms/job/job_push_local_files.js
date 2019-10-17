@@ -35,7 +35,7 @@
                 hookable: true,
                 auto_upload: true,
                 url: $.context.get('site_url') + 'pipeline/file_upload/' + $.context.get('project').id + '/',
-                placeholder: gettext("文件名不能包含中文和特殊字符且大小不能超过500M"),
+                placeholder: gettext("文件名不能包含中文和特殊字符且大小不能超过2G"),
             },
             methods: {
                 beforeUpload(file, fileList) {
