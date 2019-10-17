@@ -31,6 +31,7 @@ TASK_RESULT = [
 
 import base64
 import logging
+import traceback
 from functools import partial
 
 from django.utils import translation
@@ -47,7 +48,10 @@ from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema, IntItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
 
+from files.factory import ManagerFactory
+
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -66,17 +70,21 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 class JobService(Service):
     __need_schedule__ = True
 
-    # interval = StaticIntervalGenerator(5)
+    reload_outputs = True
 
     def execute(self, data, parent_data):
         pass
 
     def schedule(self, data, parent_data, callback_data=None):
 
-        job_instance_id = callback_data.get('job_instance_id', None)
-        status = callback_data.get('status', None)
-        client = data.outputs.client
-        # step_instances = callback_data.get('step_instances', None)
+        try:
+            job_instance_id = callback_data.get('job_instance_id', None)
+            status = callback_data.get('status', None)
+        except Exception as e:
+            err_msg = 'invalid callback_data: {}, err: {}'
+            self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
+            data.outputs.ex_data = err_msg.format(callback_data, e)
+            return False
 
         if not job_instance_id or not status:
             data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
@@ -85,27 +93,31 @@ class JobService(Service):
 
         if status in JOB_SUCCESS:
 
-            # 全局变量重载
-            get_var_kwargs = {
-                "bk_biz_id": data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id),
-                "job_instance_id": job_instance_id
-            }
-            global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
+            if self.reload_outputs:
 
-            if not global_var_result['result']:
-                message = job_handle_api_error('job.get_job_instance_global_var_value',
-                                               get_var_kwargs,
-                                               global_var_result)
-                self.logger.error(message)
-                data.outputs.ex_data = message
-                self.finish_schedule()
-                return False
+                client = data.outputs.client
 
-            global_var_list = global_var_result['data'].get('job_instance_var_values', [])
-            if global_var_list:
-                for global_var in global_var_list[-1]['step_instance_var_values']:
-                    if global_var['category'] != JOB_VAR_TYPE_IP:
-                        data.set_outputs(global_var['name'], global_var['value'])
+                # 全局变量重载
+                get_var_kwargs = {
+                    "bk_biz_id": data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id),
+                    "job_instance_id": job_instance_id
+                }
+                global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
+
+                if not global_var_result['result']:
+                    message = job_handle_api_error('job.get_job_instance_global_var_value',
+                                                   get_var_kwargs,
+                                                   global_var_result)
+                    self.logger.error(message)
+                    data.outputs.ex_data = message
+                    self.finish_schedule()
+                    return False
+
+                global_var_list = global_var_result['data'].get('job_instance_var_values', [])
+                if global_var_list:
+                    for global_var in global_var_list[-1]['step_instance_var_values']:
+                        if global_var['category'] != JOB_VAR_TYPE_IP:
+                            data.set_outputs(global_var['name'], global_var['value'])
 
             self.finish_schedule()
             return True
@@ -534,3 +546,71 @@ class JobCronTaskComponent(Component):
     code = 'job_cron_task'
     bound_service = JobCronTaskService
     form = '%scomponents/atoms/job/job_cron_task.js' % settings.STATIC_URL
+
+
+class JobPushLocalFilesService(JobService):
+    __need_schedule__ = True
+
+    reload_outputs = False
+
+    def inputs_format(self):
+        return []
+
+    def outputs_format(self):
+        return []
+
+    def execute(self, data, parent_data):
+        executor = parent_data.inputs.executor
+        biz_cc_id = data.inputs.biz_cc_id
+        local_files = data.inputs.job_local_files
+        target_ip_list = data.inputs.job_target_ip_list
+        target_account = data.inputs.job_target_account
+        target_path = data.inputs.job_target_path
+
+        file_manager_type = EnvironmentVariables.objects.get_var('BKAPP_FILE_MANAGER_TYPE')
+        if not file_manager_type:
+            data.outputs.ex_data = 'File Manager configuration error, contact administrator please.'
+            return False
+
+        try:
+            file_manager = ManagerFactory.get_manager(manager_type=file_manager_type)
+        except Exception as e:
+            err_msg = 'can not get file manager for type: {}\n err: {}'
+            self.logger.error(err_msg.format(file_manager_type, traceback.format_exc()))
+            data.outputs.ex_data = err_msg.format(file_manager_type, e)
+            return False
+
+        client = get_client_by_user(executor)
+
+        ip_info = cc_get_ips_info_by_str(executor, biz_cc_id, target_ip_list)
+        ip_list = [{'ip': _ip['InnerIP'],
+                    'bk_cloud_id': _ip['Source']} for _ip in ip_info['ip_result']]
+
+        file_tags = [_file['tag'] for _file in local_files]
+
+        push_result = file_manager.push_files_to_ips(
+            esb_client=client,
+            bk_biz_id=biz_cc_id,
+            file_tags=file_tags,
+            target_path=target_path,
+            ips=ip_list,
+            account=target_account,
+            callback_url=get_node_callback_url(self.id)
+        )
+
+        if not push_result['result']:
+            data.outputs.ex_data = push_result['message']
+            return False
+
+        job_instance_id = push_result['data']['job_id']
+        data.outputs.job_inst_id = job_instance_id
+        data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
+        return True
+
+
+class JobPushLocalFilesComponent(Component):
+    name = _(u'分发本地文件')
+    code = 'job_push_local_files'
+    bound_service = JobPushLocalFilesService
+    form = '%scomponents/atoms/job/job_push_local_files.js' % settings.STATIC_URL
+    version = '1.0.0'
