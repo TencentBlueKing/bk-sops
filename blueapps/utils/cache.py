@@ -58,10 +58,9 @@ def with_cache(seconds=60, prefix="", ex=None, check=lambda data: True, pre_get=
 
             task_running = kwargs.pop("__in_celery", False)
 
-            # 检查cache， 如果命中直接获取cache，否则重新计算
-            if cache_key in cache:
-                data = cache.get(cache_key)
-            else:
+            # 直接获取cache，无效重新计算
+            data = cache.get(cache_key)
+            if data is None:
                 data = func(*args, **kwargs)
                 if not check(data):
                     return data
