@@ -569,7 +569,7 @@ class JobPushLocalFilesService(JobService):
 
         file_manager_type = EnvironmentVariables.objects.get_var('BKAPP_FILE_MANAGER_TYPE')
         if not file_manager_type:
-            data.outputs.ex_data = 'File Manager not configurate correctly, contact administrator please.'
+            data.outputs.ex_data = 'File Manager configuration error, contact administrator please.'
             return False
 
         try:
