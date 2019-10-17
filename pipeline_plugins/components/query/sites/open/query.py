@@ -483,7 +483,7 @@ def file_upload(request, project_id):
     file_name = file_obj.name
     file_size = file_obj.size
     # 文件名不能包含中文， 文件大小不能大于500M
-    if file_size > 500 * 1024 * 1024:
+    if file_size > 2048 * 1024 * 1024:
         message = _(u"文件上传失败， 文件大小超过500M")
         response = JsonResponse({'result': False, 'message': message})
         response.status_code = 400

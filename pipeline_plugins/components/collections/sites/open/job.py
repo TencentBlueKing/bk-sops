@@ -70,7 +70,7 @@ job_handle_api_error = partial(handle_api_error, __group_name__)
 class JobService(Service):
     __need_schedule__ = True
 
-    # interval = StaticIntervalGenerator(5)
+    reload_outputs = True
 
     def execute(self, data, parent_data):
         pass
@@ -81,12 +81,10 @@ class JobService(Service):
             job_instance_id = callback_data.get('job_instance_id', None)
             status = callback_data.get('status', None)
         except Exception as e:
-            err_msg = 'invalid callback_data: {}'
-            self.loggger.error(err_msg.format(traceback.format_exc()))
-            self.outputs.ex_dta = err_msg.format(e)
+            err_msg = 'invalid callback_data: {}, err: {}'
+            self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
+            data.outputs.ex_data = err_msg.format(callback_data, e)
             return False
-
-        client = data.outputs.client
 
         if not job_instance_id or not status:
             data.outputs.ex_data = "invalid callback_data, job_instance_id: %s, status: %s" % (job_instance_id, status)
@@ -95,27 +93,31 @@ class JobService(Service):
 
         if status in JOB_SUCCESS:
 
-            # 全局变量重载
-            get_var_kwargs = {
-                "bk_biz_id": data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id),
-                "job_instance_id": job_instance_id
-            }
-            global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
+            if self.reload_outputs:
 
-            if not global_var_result['result']:
-                message = job_handle_api_error('job.get_job_instance_global_var_value',
-                                               get_var_kwargs,
-                                               global_var_result)
-                self.logger.error(message)
-                data.outputs.ex_data = message
-                self.finish_schedule()
-                return False
+                client = data.outputs.client
 
-            global_var_list = global_var_result['data'].get('job_instance_var_values', [])
-            if global_var_list:
-                for global_var in global_var_list[-1]['step_instance_var_values']:
-                    if global_var['category'] != JOB_VAR_TYPE_IP:
-                        data.set_outputs(global_var['name'], global_var['value'])
+                # 全局变量重载
+                get_var_kwargs = {
+                    "bk_biz_id": data.get_one_of_inputs('biz_cc_id', parent_data.inputs.biz_cc_id),
+                    "job_instance_id": job_instance_id
+                }
+                global_var_result = client.job.get_job_instance_global_var_value(get_var_kwargs)
+
+                if not global_var_result['result']:
+                    message = job_handle_api_error('job.get_job_instance_global_var_value',
+                                                   get_var_kwargs,
+                                                   global_var_result)
+                    self.logger.error(message)
+                    data.outputs.ex_data = message
+                    self.finish_schedule()
+                    return False
+
+                global_var_list = global_var_result['data'].get('job_instance_var_values', [])
+                if global_var_list:
+                    for global_var in global_var_list[-1]['step_instance_var_values']:
+                        if global_var['category'] != JOB_VAR_TYPE_IP:
+                            data.set_outputs(global_var['name'], global_var['value'])
 
             self.finish_schedule()
             return True
@@ -546,8 +548,10 @@ class JobCronTaskComponent(Component):
     form = '%scomponents/atoms/job/job_cron_task.js' % settings.STATIC_URL
 
 
-class JobPushLocalFilesService(Service):
+class JobPushLocalFilesService(JobService):
     __need_schedule__ = True
+
+    reload_outputs = False
 
     def inputs_format(self):
         return []
@@ -598,30 +602,9 @@ class JobPushLocalFilesService(Service):
             data.outputs.ex_data = push_result['message']
             return False
 
-        data.outputs['job_id'] = push_result['data']['job_id']
-        return True
-
-    def schedule(self, data, parent_data, callback_data=None):
-
-        try:
-            status = callback_data.get('status', None)
-        except Exception as e:
-            err_msg = 'invalid callback_data: {}, err: {}'
-            self.logger.error(err_msg.format(callback_data, traceback.format_exc()))
-            data.outputs.ex_data = err_msg.format(callback_data, e)
-            return False
-
-        if not status:
-            data.outputs.ex_data = 'invalid callback_data, {}'.format(callback_data)
-            self.finish_schedule()
-            return False
-
-        if status not in JOB_SUCCESS:
-            data.outputs.ex_data = 'file push failed: {}'.format(callback_data)
-            self.finish_schedule()
-            return False
-
-        self.finish_schedule()
+        job_instance_id = push_result['data']['job_id']
+        data.outputs.job_inst_id = job_instance_id
+        data.outputs.job_inst_url = get_job_instance_url(biz_cc_id, job_instance_id)
         return True
 
 
