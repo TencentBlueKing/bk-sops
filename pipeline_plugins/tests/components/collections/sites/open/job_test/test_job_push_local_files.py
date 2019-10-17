@@ -69,7 +69,7 @@ def FILE_MANAGER_NOT_CONFIG_CASE():
         },
         execute_assertion=ExecuteAssertion(
             success=False,
-            outputs={'ex_data': 'File Manager not configurate correctly, contact administrator please.'}
+            outputs={'ex_data': 'File Manager configuration error, contact administrator please.'}
         ),
         schedule_assertion=None,
         patchers=[
