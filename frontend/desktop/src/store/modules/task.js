@@ -13,14 +13,6 @@ import api from '@/api/index.js'
 
 const task = {
     namespaced: true,
-    state: {
-        taskScheme: []
-    },
-    mutations: {
-        setTaskScheme (state, data) {
-            state.taskScheme = data
-        }
-    },
     actions: {
         loadTaskScheme ({ commit }, payload) {
             const { project_id, template_id, isCommon } = payload

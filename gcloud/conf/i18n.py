@@ -9,9 +9,10 @@ http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
+
+用来兼容企业版国际化翻译
 """
 
-from pipeline.core.flow.activity.base import *  # noqa
-from pipeline.core.flow.activity.base import _empty_method  # noqa
-from pipeline.core.flow.activity.service_activity import *  # noqa
-from pipeline.core.flow.activity.subprocess import *  # noqa
+from django.utils.translation import ugettext_lazy as _
+
+EE_RUN_VER_NAME = _(u"蓝鲸智云企业版")

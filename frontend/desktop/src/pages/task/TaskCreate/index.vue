@@ -31,10 +31,8 @@
             :entrance="entrance"
             :template_id="template_id"
             :exclude-node="excludeNode"
-            :preview-data="previewData"
             @setFunctionalStep="setFunctionalStep"
             @setPeriodicStep="setPeriodicStep"
-            @setPreviewData="setPreviewData"
             @setExcludeNode="setExcludeNode">
         </component>
     </div>
@@ -45,7 +43,6 @@
     import TaskStep from '../TaskStep.vue'
     import TaskSelectNode from './TaskSelectNode.vue'
     import TaskParamFill from './TaskParamFill.vue'
-    import tools from '@/utils/tools.js'
 
     const STEP_DICT = [
         {
@@ -157,9 +154,6 @@
                 while (this.stepList.length !== 2) {
                     this.stepList.pop()
                 }
-            },
-            setPreviewData (previewData) {
-                this.previewData = tools.deepClone(previewData)
             },
             setExcludeNode (excludeNode) {
                 this.excludeNode = excludeNode

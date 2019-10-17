@@ -59,8 +59,8 @@
 <style lang="scss" scoped>
 .tag-input {
     /deep/ .el-input__inner {
-        height: 36px;
-        line-height: 36px;
+        height: 32px;
+        line-height: 32px;
     }
 }
 </style>
