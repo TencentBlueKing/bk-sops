@@ -69,6 +69,7 @@
                 <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
                     <VariableItem
                         v-for="(constant, index) in constantsArray"
+                        :ref="`variableKey_${constant.key}`"
                         :key="index"
                         :outputs="outputs"
                         :is-variable-editing="isVariableEditing"
@@ -226,7 +227,9 @@
             },
             saveVariable () {
                 if (this.theKeyOfEditing) {
-                    return this.$refs.editVariablePanel[0].saveVariable()
+                    const target = `variableKey_${this.theKeyOfEditing}`
+                    const targetComponent = this.$refs[target][0].$refs.editVariablePanel
+                    return targetComponent && targetComponent.saveVariable()
                 }
 
                 return this.$refs.addVariablePanel.saveVariable()
