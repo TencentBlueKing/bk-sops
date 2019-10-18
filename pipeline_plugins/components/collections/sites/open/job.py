@@ -189,7 +189,7 @@ class JobExecuteTaskService(JobService):
             else:
                 global_vars.append({
                     'name': _value['name'],
-                    'value': str(_value['value']).strip(),
+                    'value': _value['value'].strip(),
                 })
 
         job_kwargs = {
@@ -270,12 +270,12 @@ class JobFastPushFileService(JobService):
                 ip_str=item['ip'],
                 use_cache=False)
             file_source.append({
-                'files': str(item['files']).strip().split("\n"),
+                'files': [_file.strip() for _file in item['files'].split('\n') if _file.strip()],
                 'ip_list': [{
                     'ip': _ip['InnerIP'],
                     'bk_cloud_id': _ip['Source']
                 } for _ip in ip_info['ip_result']],
-                'account': str(item['account']).strip(),
+                'account': item['account'].strip(),
             })
 
         original_ip_list = data.get_one_of_inputs('job_ip_list')
