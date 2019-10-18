@@ -175,7 +175,7 @@
                 hookable: true,
                 remote: true,
                 remote_url: function () {
-                    const url = $.context.canSelectBiz() ? '' : $.context.get('site_url') + 'pipeline/job_get_script_list/' + $.context.getBkBizId() + '/?type=public';
+                    const url = $.context.get('site_url') + 'pipeline/job_get_public_script_list/'
                     return url;
                 },
                 remote_data_init: function (resp) {
