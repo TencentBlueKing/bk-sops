@@ -265,7 +265,7 @@ def job_get_script_list(request, biz_cc_id):
     return JsonResponse({'result': True, 'data': version_data})
 
 
-def get_public_script_list(request):
+def job_get_public_script_list(request):
     """
     查询公共脚本
     :param request:
@@ -553,7 +553,7 @@ urlpatterns = [
     url(r'^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_topo),
     url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cc_get_host_by_module_id),
     url(r'^job_get_script_list/(?P<biz_cc_id>\d+)/$', job_get_script_list),
-    url(r'^job_get_public_script_list/$', get_public_script_list),
+    url(r'^job_get_public_script_list/$', job_get_public_script_list),
     url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
     url(r'^file_upload/(?P<biz_cc_id>\d+)/$', file_upload),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
