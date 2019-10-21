@@ -129,7 +129,7 @@
                 placeholder: gettext("填写执行脚本内容"),
                 validation: [
                     {
-                        type: "custom",
+                        type: "required",
                         args: function (value) {
                             var self = this
                             var result = {
