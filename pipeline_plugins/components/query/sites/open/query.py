@@ -234,48 +234,18 @@ def job_get_script_list(request, biz_cc_id):
     source_type = request.GET.get('type')
     script_type = request.GET.get('script_type')
 
-    kwargs = {
-        'bk_biz_id': biz_cc_id,
-        'is_public': True if source_type == 'public' else False,
-        'script_type': script_type or 0,
-    }
-
-    script_result = client.job.get_script_list(kwargs)
+    if source_type == 'public':
+        script_result = client.job.get_public_script_list()
+    else:
+        kwargs = {
+            'bk_biz_id': biz_cc_id,
+            'is_public': False,
+            'script_type': script_type or 0,
+        }
+        script_result = client.job.get_script_list(kwargs)
 
     if not script_result['result']:
         message = handle_api_error('job', 'job.get_script_list', kwargs, script_result)
-        logger.error(message)
-        result = {
-            'result': False,
-            'message': message
-        }
-        return JsonResponse(result)
-
-    script_dict = {}
-    for script in script_result['data']['data']:
-        script_dict.setdefault(script['name'], []).append(script['id'])
-
-    version_data = []
-    for name, version in script_dict.items():
-        version_data.append({
-            "text": name,
-            "value": max(version)
-        })
-
-    return JsonResponse({'result': True, 'data': version_data})
-
-
-def job_get_public_script_list(request):
-    """
-    查询公共脚本
-    :param request:
-    :return:
-    """
-    client = get_client_by_user(request.user.username)
-    script_result = client.job.get_public_script_list()
-
-    if not script_result['result']:
-        message = handle_api_error('job', 'job.get_public_script_list', '', script_result['message'])
         logger.error(message)
         result = {
             'result': False,
@@ -522,6 +492,9 @@ def cc_get_business(request):
     try:
         business = get_user_business_list(username=request.user.username)
     except APIError as e:
+        return JsonResponse({
+
+        })
         message = 'an error occurred when fetch user business: %s' % traceback.format_exc()
 
         if e.result and e.result.get('code', 0) == AUTH_FORBIDDEN_CODE:
@@ -553,7 +526,6 @@ urlpatterns = [
     url(r'^cc_search_topo/(?P<obj_id>\w+)/(?P<category>\w+)/(?P<biz_cc_id>\d+)/$', cc_search_topo),
     url(r'^cc_get_host_by_module_id/(?P<biz_cc_id>\d+)/$', cc_get_host_by_module_id),
     url(r'^job_get_script_list/(?P<biz_cc_id>\d+)/$', job_get_script_list),
-    url(r'^job_get_public_script_list/$', job_get_public_script_list),
     url(r'^job_get_own_db_account_list/(?P<biz_cc_id>\d+)/$', job_get_own_db_account_list),
     url(r'^file_upload/(?P<biz_cc_id>\d+)/$', file_upload),
     url(r'^job_get_job_tasks_by_biz/(?P<biz_cc_id>\d+)/$', job_get_job_tasks_by_biz),
