@@ -26,7 +26,7 @@ for func_name in ['create_maker_app', 'edit_maker_app', 'del_maker_app', 'modify
 for func_name in ['get_operate_user_list', 'get_auditor_user_list', 'is_user_functor', 'is_user_auditor']:
     locals()[func_name] = getattr(user_role, func_name)
 
-for func_name in ['get_user_info']:
+for func_name in ['get_user_info', 'get_all_users']:
     locals()[func_name] = getattr(user_info, func_name)
 
 for func_name in ['adapt_get_user_data']:
@@ -34,4 +34,4 @@ for func_name in ['adapt_get_user_data']:
 
 __all__ = ['create_maker_app', 'edit_maker_app', 'del_maker_app', 'get_operate_user_list',
            'get_auditor_user_list', 'is_user_functor', 'is_user_auditor', 'modify_app_logo',
-           'get_user_info', 'adapt_get_user_data', 'get_app_logo_url']
+           'get_user_info', 'get_all_users', 'adapt_get_user_data', 'get_app_logo_url']
