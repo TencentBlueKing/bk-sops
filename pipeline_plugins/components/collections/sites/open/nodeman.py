@@ -72,23 +72,23 @@ class NodemanCreateTaskService(Service):
         for host in nodeman_hosts:
             conn_ips = get_ip_by_regex(host['conn_ips'])
             if len(conn_ips) == 0:
-                data.set_outputs('error', u'conn_ips为空或输入格式错误.')
+                data.set_outputs('ex_data', u'conn_ips %s.' % _(u'为空或输入格式错误'))
                 return False
 
             try:
                 login_ip = get_ip_by_regex(host['login_ip'])[0]
             except IndexError:
-                data.set_outputs('error', u'login_ip为空或输入格式错误.')
+                data.set_outputs('ex_data', u'login_ip %s.' % _(u'为空或输入格式错误'))
                 return False
             try:
                 data_ip = get_ip_by_regex(host['data_ip'])[0]
             except IndexError:
-                data.set_outputs('error', u'data_ip为空或输入格式错误.')
+                data.set_outputs('ex_data', u'data_ip %s.' % _(u'为空或输入格式错误'))
                 return False
             try:
                 cascade_ip = get_ip_by_regex(host['cascade_ip'])[0]
             except IndexError:
-                data.set_outputs('error', u'cascade_ip为空或输入格式错误.')
+                data.set_outputs('ex_data', u'cascade_ip %s.' % _(u'为空或输入格式错误'))
                 return False
 
             one = {
@@ -178,7 +178,7 @@ class NodemanCreateTaskService(Service):
 
         # 任务执行失败
         if job_result['message'] != 'success':
-            data.set_outputs('ex_data', '查询失败，未能获得任务执行结果')
+            data.set_outputs('ex_data', _(u'查询失败，未能获得任务执行结果'))
             self.finish_schedule()
             return False
 
@@ -201,7 +201,7 @@ class NodemanCreateTaskService(Service):
             else:
                 data.set_outputs('success_num', success_num)
                 data.set_outputs('fail_num', fail_num)
-                error_log = u"<br>日志信息为：</br>"
+                error_log = u"<br>%s</br>" % _(u'日志信息为：')
                 for i in range(len(fail_ids)):
                     log_kwargs = {
                         'host_id': fail_ids[i],
@@ -209,8 +209,13 @@ class NodemanCreateTaskService(Service):
                     }
                     result = client.nodeman.get_log(log_kwargs)
                     log_info = result['data']['logs']
-                    error_log = error_log + "<br><b>" + u"主机：" + fail_hosts[i] + "</b></br>"\
-                                          + "<br>" + u"日志：" + "</br>" + log_info
+                    error_log = u'{error_log}<br><b>{host}{fail_host}</b></br><br>{log}</br>{log_info}'.format(
+                        error_log=error_log,
+                        host=_(u'主机：'),
+                        fail_host=fail_hosts[i],
+                        log=_(u'日志：'),
+                        log_info=log_info
+                    )
 
                 data.set_outputs('ex_data', error_log)
                 self.finish_schedule()
