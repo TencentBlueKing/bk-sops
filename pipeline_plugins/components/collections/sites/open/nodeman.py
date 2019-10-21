@@ -74,7 +74,6 @@ class NodemanCreateTaskService(Service):
             if len(conn_ips) == 0:
                 data.set_outputs('ex_data', u'conn_ips %s.' % _(u'为空或输入格式错误'))
                 return False
-
             try:
                 login_ip = get_ip_by_regex(host['login_ip'])[0]
             except IndexError:
