@@ -171,6 +171,8 @@ Tag 组件的使用非常简单，只需要在标准插件配置项中定义好 
 
 **属性**
   - `placeholder`：占位文本
+  - `min`：最小值，默认为 -Infinity
+  - `max`：最大值，默认为 Infinity
   - `value`：文本框值
 
 **方法**
