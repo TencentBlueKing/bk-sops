@@ -13,4 +13,4 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import unicode_literals
 
-__version__ = '1.0.1rc1'
+__version__ = '1.2.0rc1'

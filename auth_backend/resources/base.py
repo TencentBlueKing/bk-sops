@@ -71,6 +71,9 @@ class Resource(with_metaclass(abc.ABCMeta, object)):
 
         resource_type_lib[rtype] = self
 
+    def __repr__(self):
+        return '<Resource> {rtype}'.format(rtype=self.rtype)
+
     def base_info(self):
         return {
             'system_id': conf.SYSTEM_ID,

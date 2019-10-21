@@ -27,7 +27,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param resource: 实例对应的资源对象
         :param instance: 资源实例
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -38,7 +43,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param resource: 实例对应的资源对象
         :param instances: 资源实例列表
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -49,7 +59,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param resource: 实例对应的资源对象
         :param instance: 资源实例
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -60,7 +75,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param resource: 实例对应的资源对象
         :param instance: 资源实例
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -71,7 +91,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param resource: 实例对应的资源对象
         :param instances: 资源实例列表
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -85,7 +110,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param action_ids: 资源对象中的操作 ID
         :param instance: 关联实例的操作中所关联的实例
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -99,7 +129,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param action_ids: 资源对象中的操作 ID
         :param instances: 关联实例的操作中所关联的实例
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -111,7 +146,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param principal_id: 主体 ID
         :param perms_tuples: 待校验权限元组 (资源对象, [操作 ID 列表], 资源实例)
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -124,7 +164,12 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param principal_id: 主题 ID
         :param action_ids: 资源对象中的操作 ID
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()
 
@@ -135,6 +180,11 @@ class AuthBackend(with_metaclass(abc.ABCMeta, object)):
         :param resource: 资源对象
         :param resources_actions: 资源操作列表
         :param scope_id: 作用域 ID
-        :return:
+        :return: {
+            'result': True / False, 是否执行成功
+            'code': 0, 错误码
+            'message': '', 提示信息
+            'data': {}
+        }
         """
         raise NotImplementedError()

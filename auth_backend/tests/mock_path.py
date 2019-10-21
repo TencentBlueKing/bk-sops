@@ -43,7 +43,8 @@ RESOURCE_UPDATE_INSTANCE = 'auth_backend.resources.base.Resource.update_instance
 
 DJANGO_MODEL_RESOURCE_DISPATCH_HANDLERS = 'auth_backend.resources.django.DjangoModelResource._dispatch_handlers'
 
-BK_IAM_BACKEND_RESOURCE_ID_FOR = 'auth_backend.backends.bkiam.BKIAMBackend._resource_id_for'
+BACKEND_BKIAM_RESOURCE_ID_FOR = 'auth_backend.backends.bkiam.resource_id_for'
+BACKEND_UTILS_RESOURCE_ID_FOR = 'auth_backend.backends.utils.resource_id_for'
 
 SHORTCUTS_VERIFY_OR_RETURN_PERMS = 'auth_backend.plugins.shortcuts.verify_or_return_insufficient_perms'
 SHORTCUTS_GET_BACKEND_FROM_CONFIG = 'auth_backend.plugins.shortcuts.get_backend_from_config'
@@ -51,3 +52,7 @@ SHORTCUTS_BUILD_NEED_PERMISSION = 'auth_backend.plugins.shortcuts.build_need_per
 SHORTCUTS_RESOURCE_TYPE_LIB = 'auth_backend.plugins.shortcuts.resource_type_lib'
 
 CONF_SCOPE_TYPE_NAMES = 'auth_backend.conf.SCOPE_TYPE_NAMES'
+
+DUMMY_BACKEND_UTILS_RESOURCE_ID_FOR = 'auth_backend.backends.dummy.utils.resource_id_for'
+DUMMY_BACKEND_UTILS_RESOURCE_ACTIONS_FOR = 'auth_backend.backends.dummy.utils.resource_actions_for'
+DUMMY_BACKEND_GET_USER_MODEL = 'auth_backend.backends.dummy.get_user_model'
