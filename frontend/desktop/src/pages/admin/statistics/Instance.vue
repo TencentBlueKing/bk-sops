@@ -10,765 +10,491 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="content-box">
-        <chart-card :charts="charts"></chart-card>
-        <div class="content-task-wrap" v-bkloading="{ isLoading: isInstanceTypeLoading, opacity: 1 }">
-            <div class="clearfix">
-                <div class="content-title">{{i18n.instanceTime}}</div>
-                <div class="content-task-instance">
-                    <div class="content-instance-time">
-                        <!--业务选择-->
-                        <bk-select
-                            v-model="timeProjectSelected"
-                            class="chart-select-item"
-                            :popover-width="260"
-                            :searchable="true"
-                            :placeholder="i18n.businessPlaceholder"
-                            @selected="onChangeTimeTypeBusiness"
-                            @clear="onClearTimeTypeBusiness">
-                            <bk-option
-                                v-for="(option, index) in allProjectList"
-                                :key="index"
-                                :id="option.id"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                    <div class="content-instance-time">
-                        <!--分类选择-->
-                        <bk-select
-                            v-model="timeCategorySelected"
-                            class="chart-select-item"
-                            :popover-width="260"
-                            :searchable="true"
-                            :placeholder="i18n.categoryPlaceholder"
-                            @selected="onChangeTimeTypeCategory"
-                            @clear="onClearTimeTypeCategory">
-                            <bk-option
-                                v-for="(option, index) in categorys"
-                                :key="index"
-                                :id="option.value"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                    <div class="content-instance-time date-scope">
-                        <!--时间维度选择-->
-                        <bk-select
-                            v-model="choiceDate"
-                            class="chart-select-item"
-                            :popover-width="260"
-                            :searchable="true"
-                            :placeholder="i18n.choice"
-                            :clearable="false"
-                            @selected="onChangeTimeType">
-                            <bk-option
-                                v-for="(option, index) in taskDimensionArray"
-                                :key="index"
-                                :id="option.value"
-                                :name="option.name">
-                            </bk-option>
-                        </bk-select>
-                    </div>
-                </div>
-            </div>
-            <vertical-bar-chart :time-type-list="instanceTypeData" :total-value="instanceTypeTotal"></vertical-bar-chart>
+    <div class="statistics-template">
+        <div class="bar-chart-area">
+            <horizontal-bar-chart
+                :title="i18n.categoryTitle"
+                :selector-list="projectSelector"
+                :data-list="categoryData"
+                :data-loading="categoryDataLoading"
+                @onFilterClick="categoryFilterChange">
+            </horizontal-bar-chart>
+            <horizontal-bar-chart
+                :title="i18n.projectTitle"
+                :selector-list="categorySelector"
+                :data-list="projectData"
+                :data-loading="projectDataLoading"
+                @onFilterClick="projectFilterChange">
+            </horizontal-bar-chart>
         </div>
-        <table-panel :tabpanels="tabPanels"></table-panel>
+        <div class="vertical-bar-chart-area">
+            <vertical-bar-chart
+                :title="i18n.timeTitle"
+                :selector-list="timeSelectorList"
+                :data-list="timeDataList"
+                :data-loading="timeDataLoading"
+                @onFilterClick="timeFilterChange">
+            </vertical-bar-chart>
+        </div>
+        <div class="tab-content-area">
+            <bk-tab :active.sync="activeTab" @tab-change="onTabChange">
+                <bk-form form-type="inline">
+                    <bk-form-item :label="i18n.projectBeLongTo">
+                        <bk-select
+                            v-model="instanceProject"
+                            class="statistics-select"
+                            :placeholder="i18n.selectProject"
+                            :disabled="projectList.length === 0"
+                            @change="instanceFilterChange">
+                            <bk-option
+                                v-for="option in projectList"
+                                :key="option.id"
+                                :name="option.name"
+                                :id="option.id">
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                    <bk-form-item :label="i18n.categoryBeLongTo">
+                        <bk-select
+                            v-model="instanceCategory"
+                            class="statistics-select"
+                            :placeholder="i18n.selectCategory"
+                            :disabled="categoryList.length === 0"
+                            @change="instanceFilterChange">
+                            <bk-option
+                                v-for="option in categoryList"
+                                :key="option.id"
+                                :name="option.name"
+                                :id="option.id">
+                            </bk-option>
+                        </bk-select>
+                    </bk-form-item>
+                </bk-form>
+                <bk-tab-panel v-for="tab in tabs" :key="tab.id" v-bind="{ name: tab.id, label: tab.name }">
+                    <bk-table
+                        class="tab-data-table"
+                        v-bkloading="{ isLoading: instanceDataLoading, opacity: 1 }"
+                        :data="instanceData"
+                        :pagination="pagination"
+                        @sort-change="handleSortChange"
+                        @page-change="handlePageChange">
+                        <bk-table-column
+                            v-for="item in tableColumn[activeTab]"
+                            :key="item.prop"
+                            :label="item.label"
+                            :prop="item.prop"
+                            :sortable="item.sortable">
+                            <template slot-scope="props">
+                                <a
+                                    v-if="item.prop === 'templateName'"
+                                    class="table-link"
+                                    target="_blank"
+                                    :title="props.row.templateName"
+                                    :href="`${site_url}template/edit/${props.row.projectId}/?template_id=${props.row.templateId}`">
+                                    {{props.row.templateName}}
+                                </a>
+                                <a
+                                    v-else-if="item.prop === 'instanceName'"
+                                    class="table-link"
+                                    target="_blank"
+                                    :title="props.row.templateName"
+                                    :href="`${site_url}taskflow/execute/${props.row.projectId}/?instance_id=${props.row.instanceId}`">
+                                    {{props.row.instanceName}}
+                                </a>
+                                <template v-else>{{ props.row[item.prop] }}</template>
+                            </template>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><no-data></no-data></div>
+                    </bk-table>
+                </bk-tab-panel>
+            </bk-tab>
+        </div>
     </div>
 </template>
+
 <script>
     import '@/utils/i18n.js'
-    import tools from '@/utils/tools.js'
-    import { mapActions, mapState, mapGetters } from 'vuex'
-    import VerticalBarChart from './verticalBarChart.vue'
-    import ChartCard from '../common/ChartCard'
-    import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
-    import TablePanel from '../common/TablePanel'
+    import { mapActions, mapState } from 'vuex'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import HorizontalBarChart from './HorizontalBarChart.vue'
+    import VerticalBarChart from './VerticalBarChart.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
-    const i18n = {
-        taskCategory: gettext('分类统计'),
-        taskBusiness: gettext('分业务统计'),
-        ownBusiness: gettext('所属项目'),
-        taskDetail: gettext('任务详情'),
-        executionName: gettext('归档任务耗时'),
-        timeLimit: gettext('时间范围'),
-        choiceCategory: gettext('分类'),
-        choiceBusiness: gettext('选择项目'),
-        instanceTime: gettext('分时间统计'),
-        day: gettext('天'),
-        categoryPlaceholder: gettext('请选择类别'),
-        businessPlaceholder: gettext('请选择业务'),
-        choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部项目'),
-        instanceName: gettext('任务名称'),
-        createTime: gettext('创建时间'),
-        creator: gettext('创建人'),
-        atomTotal: gettext('标准插件数'),
-        subprocessTotal: gettext('子流程数'),
-        gatewaysTotal: gettext('网关数'),
-        category: gettext('分类'),
-        month: gettext('月'),
-        executeTime: gettext('耗时(秒)'),
-        instanceId: gettext('任务ID')
+    const SELECTORS = [
+        {
+            id: 'project',
+            options: [],
+            selected: '',
+            placeholder: gettext('请选择项目'),
+            clearable: true
+        },
+        {
+            id: 'category',
+            options: [],
+            selected: '',
+            placeholder: gettext('请选择分类'),
+            clearable: true
+        },
+        {
+            id: 'time',
+            options: [
+                {
+                    id: 'day',
+                    name: gettext('天')
+                },
+                {
+                    id: 'month',
+                    name: gettext('月')
+                }
+            ],
+            selected: 'day',
+            clearable: false
+        }
+    ]
+    
+    const TABS = [
+        {
+            id: 'instance_details',
+            name: gettext('任务详情')
+        },
+        {
+            id: 'instance_node',
+            name: gettext('归档任务耗时')
+        }
+    ]
+
+    const TABLE_COLUMN = {
+        instance_details: [
+            {
+                label: gettext('任务ID'),
+                prop: 'intanceId',
+                sortable: true
+            },
+            {
+                label: gettext('任务名称'),
+                prop: 'instanceName'
+            },
+            {
+                label: gettext('所属项目'),
+                prop: 'projectName'
+            },
+            {
+                label: gettext('分类'),
+                prop: 'category'
+            },
+            {
+                label: gettext('创建人'),
+                prop: 'creator'
+            },
+            {
+                label: gettext('创建时间'),
+                prop: 'createTime'
+            },
+            {
+                label: gettext('标准插件数'),
+                prop: 'atomTotal',
+                sortable: true
+            },
+            {
+                label: gettext('子流程数'),
+                prop: 'subprocessTotal'
+            },
+            {
+                label: gettext('网关数'),
+                prop: 'gatewaysTotal'
+            }
+        ],
+        instance_node: [
+            {
+                label: gettext('任务ID'),
+                prop: 'intanceId',
+                sortable: true
+            },
+            {
+                label: gettext('任务名称'),
+                prop: 'instanceName'
+            },
+            {
+                label: gettext('所属项目'),
+                prop: 'projectName'
+            },
+            {
+                label: gettext('分类'),
+                prop: 'category'
+            },
+            {
+                label: gettext('创建人'),
+                prop: 'creator'
+            },
+            {
+                label: gettext('创建时间'),
+                prop: 'createTime'
+            },
+            {
+                label: gettext('耗时'),
+                prop: 'executeTime'
+            }
+        ]
     }
 
     export default {
-        name: 'StatisticsInstance',
+        name: 'StatisticsIntance',
         components: {
-            ChartCard,
+            HorizontalBarChart,
             VerticalBarChart,
-            TablePanel
+            NoData
         },
-        mixins: [AnalysisMixins],
-        props: ['timeRange'],
+        props: {
+            dateRange: {
+                type: Array,
+                default () {
+                    return ['', '']
+                }
+            },
+            projectList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            categoryList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            }
+        },
         data () {
             return {
-                i18n: i18n,
-                projectId: undefined,
-                category: undefined,
-                isInstanceLoading: true,
-                isBuinsessLoading: true,
-                isDetailsLoading: true,
-                isNodeLoading: true,
-                taskPlotData: [],
-                ownBusinessData: [],
-                instanceTypeData: [],
-                nodeData: [],
-                nodeTotal: 0,
-                taskTotal: 0,
-                ownBusinessTotal: 0,
-                nodePageIndex: 1,
-                nodeLimit: 15,
-                nodeOrderBy: '-instanceId',
-                detailsOrderBy: '-instanceId',
-                tabName: 'taskDetails',
-                nodePagination: {
-                    // 分页操作
-                    limit: this.nodeLimit,
-                    pageIndex: this.nodePageIndex,
-                    pageArray: this.dataTablePageArray // 公共js文件获取
+                categoryData: [],
+                categoryDataProject: '',
+                categorySelector: [{
+                    id: 'category',
+                    options: this.categoryList,
+                    placeholder: gettext('请选择分类')
+                }],
+                categoryDataLoading: true,
+                projectData: [],
+                projectDataCategory: '',
+                projectSelector: [{
+                    id: 'project',
+                    options: this.projectList,
+                    placeholder: gettext('请选择项目')
+                }],
+                projectDataLoading: true,
+                timeSelectorList: [
+                    {
+                        ...SELECTORS[0],
+                        options: this.projectList
+                    },
+                    {
+                        ...SELECTORS[1],
+                        options: this.categoryList
+                    },
+                    {
+                        ...SELECTORS[2]
+                    }
+                ],
+                timeDataProject: '',
+                timeDataCategory: '',
+                timeDataType: SELECTORS[2].options[0].id,
+                timeDataList: [],
+                timeDataLoading: true,
+                tabs: TABS,
+                activeTab: TABS[0].id,
+                instanceData: [],
+                instanceProject: '',
+                instanceCategory: '',
+                instanceSort: '-instanceId',
+                instanceDataLoading: true,
+                tableColumn: TABLE_COLUMN,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    'limit-list': [15],
+                    'show-limit': false,
+                    limit: 15
                 },
-                nodeColumns: [
-                    {
-                        prop: 'instanceId',
-                        label: i18n.instanceId,
-                        width: '100',
-                        sortable: 'custom',
-                        align: 'center'
-                    },
-                    {
-                        prop: 'instanceName',
-                        label: i18n.instanceName,
-                        width: '285',
-                        title: 'instanceName',
-                        formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.projectId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
-                        }
-                    },
-                    {
-                        prop: 'projectName', // 识别id
-                        label: i18n.ownBusiness, // 表头显示名称
-                        align: 'center' // 对其格式，可选（right，left，center）
-                    },
-                    {
-                        prop: 'category',
-                        label: i18n.category,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'creator',
-                        label: i18n.creator,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'createTime',
-                        label: i18n.createTime,
-                        align: 'center',
-                        width: 210
-                    },
-                    {
-                        prop: 'atomTotal',
-                        label: i18n.atomTotal,
-                        sortable: 'custom',
-                        align: 'center'
-                    },
-                    {
-                        prop: 'subprocessTotal',
-                        label: i18n.subprocessTotal,
-                        sortable: 'custom',
-                        align: 'center'
-                    },
-                    {
-                        prop: 'gatewaysTotal',
-                        label: i18n.gatewaysTotal,
-                        sortable: 'custom',
-                        align: 'center'
-                    }
-                ],
-                detailsData: [],
-                detailsTotal: 0,
-                detailsPageIndex: 1,
-                detailsLimit: 15,
-                detailsPagination: {
-                    limit: this.detailsLimit,
-                    pageIndex: this.detailsPageIndex,
-                    pageArray: this.dataTablePageArray
-                },
-                taskDimensionArray: [
-                    {
-                        name: i18n.day,
-                        value: 'day'
-                    },
-                    {
-                        name: i18n.month,
-                        value: 'month'
-                    }
-                ],
-                detailsColumns: [
-                    {
-                        prop: 'instanceId',
-                        label: i18n.instanceId,
-                        width: '100',
-                        sortable: 'custom',
-                        align: 'center'
-                    },
-                    {
-                        prop: 'instanceName',
-                        label: i18n.instanceName,
-                        title: 'instanceName',
-                        formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.projectId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
-                        }
-                    },
-                    {
-                        prop: 'projectName',
-                        label: i18n.ownBusiness,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'category',
-                        label: i18n.category,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'creator',
-                        label: i18n.creator,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'createTime',
-                        label: i18n.createTime,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'executeTime',
-                        label: i18n.executeTime,
-                        sortable: 'custom',
-                        align: 'center'
-                    }
-                ],
-                selectedProject: '',
-                selectedCategory: '',
-                categoryTime: [],
-                choiceBusiness: undefined,
-                tableTime: [],
-                businessTime: [],
-                choiceCategory: '',
-                choiceTimeTypeName: '',
-                choiceTimeType: 'day',
-                choiceTimeTypeCategory: undefined,
-                choiceTimeTypeProjectName: '',
-                choiceTimeTypeBusiness: undefined,
-                isInstanceTypeLoading: false,
-                instanceTypeTotal: 0,
-                taskProjectSelected: 'all',
-                timeProjectSelected: 'all',
-                taskCategorySelected: 'all',
-                choiceDate: 'day',
-                timeCategorySelected: ''
+                i18n: {
+                    categoryTitle: gettext('分类统计'),
+                    projectTitle: gettext('分项目统计'),
+                    timeTitle: gettext('分时间统计'),
+                    templateTitle: gettext('流程详情'),
+                    projectBeLongTo: gettext('所属项目'),
+                    categoryBeLongTo: gettext('所属分类'),
+                    selectProject: gettext('请选择项目'),
+                    selectCategory: gettext('请选择分类')
+                }
             }
         },
         computed: {
             ...mapState({
-                site_url: state => state.site_url,
-                categorys: state => state.categorys
-            }),
-            ...mapGetters('project', {
-                projectList: 'userCanViewProjects'
-            }),
-            charts () {
-                const charts = [
-                    {
-                        selects: [
-                            {
-                                model: this.businessSelected,
-                                placeholder: this.i18n.businessPlaceholder,
-                                clearable: true,
-                                searchable: true,
-                                onSelected: this.onInstanceCategory,
-                                onClear: this.onClearInstanceCategory,
-                                options: this.allBusinessList,
-                                option: {
-                                    key: 'cc_id',
-                                    name: 'cc_name'
-                                }
-                            }
-                        ],
-                        title: this.i18n.taskCategory,
-                        dimensionList: this.taskPlotData,
-                        totalValue: this.taskTotal,
-                        isLoading: this.isInstanceLoading
-                    },
-                    {
-                        selects: [
-                            {
-                                model: this.categorySelected,
-                                placeholder: this.i18n.categoryPlaceholder,
-                                clearable: true,
-                                searchable: true,
-                                onSelected: this.onSelectCategory,
-                                onClear: this.onClearInstanceBizCcId,
-                                options: this.categorys,
-                                option: {
-                                    key: 'value',
-                                    name: 'name'
-                                }
-                            }
-                        ],
-                        title: this.i18n.taskBusiness,
-                        dimensionList: this.ownBusinessData,
-                        totalValue: this.ownBusinessTotal,
-                        isLoading: this.isBuinsessLoading
-                    }
-                ]
-                return charts
-            },
-            allProjectList () {
-                if (this.projectList.length === 0) {
-                    this.loadProjectList({ limit: 0 })
-                }
-                const list = tools.deepClone(this.projectList)
-                list.unshift({ id: 'all', name: i18n.choiceAllBusiness })
-                return list
-            },
-            tabPanels () {
-                const tabPanels = {
-                    onTabChange: this.onChangeTabPanel,
-                    active: this.tabName,
-                    panels: [
-                        {
-                            selects: [
-                                {
-                                    label: this.i18n.choiceBusiness,
-                                    model: this.selectedCcId,
-                                    placeholder: this.i18n.businessPlaceholder,
-                                    clearable: true,
-                                    searchable: true,
-                                    onSelected: this.onSelectedBizCcId,
-                                    onClear: this.onClearBizCcId,
-                                    options: this.allBusinessList,
-                                    option: {
-                                        key: 'cc_id',
-                                        name: 'cc_name'
-                                    }
-                                },
-                                {
-                                    label: this.i18n.choiceCategory,
-                                    model: this.selectedCategory,
-                                    placeholder: this.i18n.categoryPlaceholder,
-                                    clearable: true,
-                                    searchable: true,
-                                    onSelected: this.onSelectedCategory,
-                                    onClear: this.onClearCategory,
-                                    options: this.categorys,
-                                    option: {
-                                        key: 'value',
-                                        name: 'name'
-                                    }
-                                }
-                            ],
-                            name: 'taskDetails',
-                            label: this.i18n.taskDetail,
-                            data: this.nodeData,
-                            total: this.nodeTotal,
-                            pagination: this.nodePagination,
-                            columns: this.nodeColumns,
-                            loading: this.isNodeLoading,
-                            handleSortChange: this.onNodeSortChange,
-                            handleSizeChange: this.onNodeHandleSizeChange,
-                            handleIndexChange: this.onNodeHandleIndexChange
-                        },
-                        {
-                            selects: [
-                                {
-                                    label: this.i18n.choiceBusiness,
-                                    model: this.selectedCcId,
-                                    placeholder: this.i18n.businessPlaceholder,
-                                    clearable: true,
-                                    searchable: true,
-                                    onSelected: this.onSelectedBizCcId,
-                                    onClear: this.onClearBizCcId,
-                                    options: this.allBusinessList,
-                                    option: {
-                                        key: 'cc_id',
-                                        name: 'cc_name'
-                                    }
-                                },
-                                {
-                                    label: this.i18n.choiceCategory,
-                                    model: this.selectedCategory,
-                                    placeholder: this.i18n.categoryPlaceholder,
-                                    clearable: true,
-                                    searchable: true,
-                                    onSelected: this.onSelectedCategory,
-                                    onClear: this.onClearCategory,
-                                    options: this.categorys,
-                                    option: {
-                                        key: 'value',
-                                        name: 'name'
-                                    }
-                                }
-                            ],
-                            name: 'exectionTime',
-                            label: this.i18n.executionName,
-                            data: this.detailsData,
-                            total: this.detailsTotal,
-                            pagination: this.detailsPagination,
-                            columns: this.detailsColumns,
-                            loading: this.isDetailsLoading,
-                            handleSortChange: this.detailsHandleSortChange,
-                            handleSizeChange: this.onDetailsHandleSizeChange,
-                            handleIndexChange: this.onDetailsHandleIndexChange
-                        }
-                    ]
-                }
-                return tabPanels
-            }
+                site_url: state => state.site_url
+            })
         },
         watch: {
-            'timeRange': function (val) {
-                this.onInstanceCategory(null)
-                this.onSelectCategory(null)
-                this.onInstanceNode(null)
-                this.onInstanceTime(null)
-                this.onInstanceDetailsData(null)
+            dateRange (val) {
+                this.pagination.current = 1
+                this.getData()
+            },
+            projectList (val) {
+                this.projectSelector[0].options = val
+                this.timeSelectorList[0].options = val
+            },
+            categoryList (val) {
+                this.categorySelector[0].options = val
+                this.timeSelectorList[1].options = val
             }
         },
         created () {
-            this.choiceTimeTypeName = this.i18n.day
-            this.onInstanceCategory(null)
-            this.onSelectCategory()
-            this.onInstanceTime()
-            this.onInstanceNode()
+            this.getData()
         },
         methods: {
-            ...mapActions('task/', [
+            ...mapActions('task', [
                 'queryInstanceData'
             ]),
-            ...mapActions([
-                'getCategorys'
-            ]),
-            ...mapActions('project/', [
-                'loadProjectList'
-            ]),
-            onNodeHandleSizeChange (limit) {
-                this.nodePageIndex = 1
-                this.nodeLimit = limit
-                this.onInstanceNode()
+            getData () {
+                this.getCategoryData()
+                this.getProjectData()
+                this.getTimeData()
+                this.getTableData()
             },
-            onNodeHandleIndexChange (pageIndex) {
-                this.nodePageIndex = pageIndex
-                this.onInstanceNode()
-            },
-            onNodeSortChange (column, prop, order) {
-                order = column[0].order === 'ascending' ? '' : '-'
-                this.nodeOrderBy = column[0].prop ? order + column[0].prop : '-instanceId'
-                this.onInstanceNode()
-            },
-            onInstanceCategory (business) {
-                if (business) {
-                    if (business === this.choiceBusiness) {
-                        // 相同的内容不需要再次查询
-                        return
-                    }
-                    this.choiceBusiness = business
-                } else if (business === undefined) {
-                    if (this.choiceBusiness === undefined) {
-                        return
-                    }
-                    this.choiceBusiness = business
-                }
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'category',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        project_id: this.choiceBusiness === 'all' ? '' : this.choiceBusiness
-                    })
-                }
-                this.statisticsCategory(data)
-            },
-            onClearInstanceCategory () {
-                this.onInstanceCategory()
-            },
-            onSelectCategory (category) {
-                if (category) {
-                    if (category === this.choiceCategory) {
-                        // 相同的内容不需要再次查询
-                        return
-                    }
-                    this.choiceCategory = category
-                } else if (category === '') {
-                    if (this.choiceCategory === '') {
-                        return
-                    }
-                    this.choiceCategory = category
-                }
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'project_id',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        category: this.choiceCategory
-                    })
-                }
-                this.statisticsProjectData(data)
-            },
-            onClearInstanceBizCcId () {
-                this.onSelectCategory('')
-            },
-            onInstanceNode (value) {
-                if (this.tabName !== 'taskDetails') {
-                    // 防止不同界面进行触发接口调用
-                    return
-                }
-                this.isNodeLoading = true
-                if (value instanceof Array) {
-                    this.resetPageIndex()
-                }
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'instance_node',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        project_id: this.projectId,
-                        category: this.category,
-                        order_by: this.nodeOrderBy
-                    }),
-                    pageIndex: this.nodePageIndex,
-                    limit: this.nodeLimit
-                }
+            async loadAnalysisData (query, type = '') {
                 try {
-                    this.instanceDataTableData(data)
-                } catch (e) {
-                    errorHandler(e, this)
-                }
-            },
-            onInstanceTime (value) {
-                this.isInstanceTypeLoading = true
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'instance_time',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        project_id: this.choiceTimeTypeBusiness === 'all' ? '' : this.choiceTimeTypeBusiness,
-                        category: this.choiceTimeTypeCategory === 'all' ? '' : this.choiceTimeTypeCategory,
-                        type: this.choiceTimeType
-                    })
-                }
-                this.instanceTimeData(data)
-            },
-            async instanceDataTableData (data) {
-                try {
-                    const templateData = await this.queryInstanceData(data)
-                    switch (data.group_by) {
-                        case 'instance_node':
-                            this.nodeData = templateData.data.groups
-                            this.nodeTotal = templateData.data.total
-                            this.isNodeLoading = false
-                            break
-                        case 'instance_details':
-                            this.detailsData = templateData.data.groups
-                            this.detailsTotal = templateData.data.total
-                            this.isDetailsLoading = false
-                            break
+                    const res = await this.queryInstanceData(query)
+                    if (res.result) {
+                        if (type === 'instance') {
+                            this.pagination.count = res.data.total
+                        }
+                        return res.data.groups
+                    } else {
+                        errorHandler(res, this)
                     }
                 } catch (e) {
-                    errorHandler(e, this)
+                    errorHandler(e)
                 }
             },
-            async statisticsProjectData (data) {
-                this.isBuinsessLoading = true
+            async getCategoryData () {
                 try {
-                    const templateData = await this.queryInstanceData(data)
-                    this.ownBusinessData = templateData.data.groups
-                    this.ownBusinessTotal = templateData.data.total
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.isBuinsessLoading = false
-                }
-            },
-            async instanceTimeData (data) {
-                try {
-                    const templateData = await this.queryInstanceData(data)
-                    this.instanceTypeData = templateData.data.groups
-                    this.instanceTypeTotal = templateData.data.total
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.isInstanceTypeLoading = false
-                }
-            },
-            async statisticsCategory (data) {
-                this.isInstanceLoading = true
-                try {
-                    const templateData = await this.queryInstanceData(data)
-                    this.taskPlotData = templateData.data.groups
-                    this.taskTotal = templateData.data.total
-                } catch (e) {
-                    errorHandler(e, this)
-                } finally {
-                    this.isInstanceLoading = false
-                }
-            },
-            onDetailsHandleSizeChange (limit) {
-                this.detailsPageIndex = 1
-                this.detailsLimit = limit
-                this.onInstanceDetailsData()
-            },
-            onDetailsHandleIndexChange (pageIndex) {
-                this.detailsPageIndex = pageIndex
-                this.onInstanceDetailsData()
-            },
-            detailsHandleSortChange (column, prop, order) {
-                order = column[0].order === 'ascending' ? '' : '-'
-                this.detailsOrderBy = column[0].prop ? order + column[0].prop : '-instanceId'
-                this.onInstanceDetailsData()
-            },
-            onInstanceDetailsData (value) {
-                if (this.tabName !== 'exectionTime') {
-                    // 防止不同界面进行触发接口调用
-                    return
-                }
-                this.isDetailsLoading = true
-                if (value instanceof Array) {
-                    this.resetPageIndex()
-                }
-                try {
-                    const time = this.getUTCTime(this.timeRange)
-                    const data = {
-                        group_by: 'instance_details',
+                    this.categoryDataLoading = true
+                    const query = {
+                        group_by: 'category',
                         conditions: JSON.stringify({
-                            create_time: time[0],
-                            finish_time: time[1],
-                            project_id: this.projectId,
-                            category: this.category,
-                            order_by: this.detailsOrderBy
-                        }),
-                        pageIndex: this.detailsPageIndex,
-                        limit: this.detailsLimit
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1],
+                            project_id: this.categoryDataProject
+                        })
                     }
-                    this.instanceDataTableData(data)
+                    this.categoryData = await this.loadAnalysisData(query)
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.categoryDataLoading = false
                 }
             },
-            onChangeTabPanel (name) {
-                this.tabName = name
-                if (name === 'taskDetails') {
-                    this.onInstanceNode()
+            async getProjectData () {
+                try {
+                    this.projectDataLoading = true
+                    const query = {
+                        group_by: 'project_id',
+                        conditions: JSON.stringify({
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1],
+                            category: this.projectDataCategory
+                        })
+                    }
+                    this.projectData = await this.loadAnalysisData(query)
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.projectDataLoading = false
+                }
+            },
+            async getTimeData () {
+                try {
+                    this.timeDataLoading = true
+                    const query = {
+                        group_by: 'instance_time',
+                        conditions: JSON.stringify({
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1],
+                            project: this.timeDataProject,
+                            category: this.timeDataCategory,
+                            type: this.timeDataType
+                        })
+                    }
+                    this.timeDataList = await this.loadAnalysisData(query)
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.timeDataLoading = false
+                }
+            },
+            async getTableData () {
+                try {
+                    this.instanceDataLoading = true
+                    const query = {
+                        group_by: this.activeTab,
+                        conditions: JSON.stringify({
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1],
+                            project_id: this.instanceProject,
+                            category: this.instanceCategory,
+                            order_by: this.instanceSort
+                        }),
+                        pageIndex: this.pagination.current,
+                        limit: this.pagination.limit
+                    }
+                    this.instanceData = await this.loadAnalysisData(query, 'instance')
+                } catch (e) {
+                    errorHandler(e, this)
+                } finally {
+                    this.instanceDataLoading = false
+                }
+            },
+            categoryFilterChange (val) {
+                this.categoryDataProject = val
+                this.getCategoryData()
+            },
+            projectFilterChange (val) {
+                this.projectDataCategory = val
+                this.getProjectData()
+            },
+            timeFilterChange (val, selector) {
+                if (selector === 'project') {
+                    this.timeDataProject = val
+                } else if (selector === 'category') {
+                    this.timeDataCategory = val
                 } else {
-                    this.onInstanceDetailsData()
+                    this.timeDataType = val
                 }
+                this.getTimeData()
             },
-            resetPageIndex () {
-                switch (this.tabName) {
-                    case 'taskDetails':
-                        this.nodePageIndex = 1
-                        this.nodePagination.pageIndex = 1
-                        break
-                    case 'exectionTime':
-                        this.detailsPageIndex = 1
-                        this.detailsPagination.pageIndex = 1
-                        break
+            instanceFilterChange () {
+                this.pagination.current = 1
+                this.getTableData()
+            },
+            handleSortChange (val) {
+                if (val.order === 'ascending') {
+                    this.instanceSort = val.prop
+                } else {
+                    this.instanceSort = `-${val.prop}`
                 }
+                this.getTableData()
             },
-            onChangeTimeTypeCategory (category, name) {
-                if (category) {
-                    if (category === this.choiceTimeTypeCategory) {
-                        // 相同的内容不需要再次查询
-                        return
-                    }
-                    this.choiceTimeTypeCategory = category
-                } else if (category === undefined) {
-                    if (this.choiceTimeTypeCategory === undefined) {
-                        return
-                    }
-                    this.choiceTimeTypeCategory = category
-                }
-                this.onInstanceTime()
+            handlePageChange (val) {
+                this.pagination.current = val
+                this.getTableData()
             },
-            onClearTimeTypeCategory () {
-                this.onChangeTimeTypeCategory()
-            },
-            onChangeTimeTypeBusiness (business, name) {
-                if (business) {
-                    if (business === this.choiceTimeTypeBusiness) {
-                        // 相同的内容不需要再次查询
-                        return
-                    }
-                    this.choiceTimeTypeBusiness = business
-                } else if (business === undefined) {
-                    if (this.choiceTimeTypeBusiness === undefined) {
-                        return
-                    }
-                    this.choiceTimeTypeBusiness = business
-                }
-                this.onInstanceTime()
-            },
-            onClearTimeTypeBusiness () {
-                this.onChangeTimeTypeBusiness()
-            },
-            onChangeTimeType (type, name) {
-                if (type) {
-                    if (type === this.choiceTimeType) {
-                        // 相同的内容不需要再次查询
-                        return
-                    }
-                    this.choiceTimeType = type
-                    this.choiceTimeTypeName = name
-                } else if (type === undefined) {
-                    if (this.choiceTimeType === undefined) {
-                        return
-                    }
-                    this.choiceTimeType = type
-                    if (name) {
-                        this.choiceTimeTypeName = name
-                    }
-                }
-                this.onInstanceTime()
+            onTabChange (val) {
+                this.pagination.current = 1
+                this.getTableData()
             }
         }
     }
 </script>
-
-<style lang="scss">
-.bk-select-inline,.bk-input-inline {
-    display: inline-block;
-    width: 260px;
-    background-color: #ffffff;
-}
-.content-date-picker {
-    vertical-align: top;
-}
-.content-business-picker {
-    vertical-align: top;
-}
+<style lang="scss" scoped>
+    .vertical-bar-chart-area {
+        margin-top: 20px;
+    }
 </style>

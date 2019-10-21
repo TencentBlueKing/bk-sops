@@ -17,7 +17,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
-    import NaviHeader from '../components/NaviHeader.vue'
+    import NaviHeader from '../common/NaviHeader.vue'
 
     const ROUTERS = [
         {

@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="vertical-bar-chart">
+    <div class="horizontal-bar-chart">
         <h3 class="chart-title">{{title}}</h3>
         <bk-form class="select-wrapper" form-type="inline">
             <bk-form-item
@@ -34,19 +34,29 @@
                 </bk-select>
             </bk-form-item>
         </bk-form>
-        <div class="chart-wrapper" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
-            <div id="chart-mount-el" v-if="dataList.length > 0"></div>
+        <div class="chart-content" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
+            <template v-if="dataLoading || dataList.length > 0">
+                <div
+                    v-for="(item, index) in dataList"
+                    class="data-item"
+                    :key="index">
+                    <span class="data-label" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
+                    <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
+                        <div class="block" :style="getBlockStyle(item.value)">
+                            <span class="num">{{ item.value }}</span>
+                        </div>
+                    </div>
+                </div>
+            </template>
             <no-data v-else></no-data>
         </div>
     </div>
 </template>
 <script>
-    import '@/utils/i18n.js'
-    import Plotly from 'plotly.js/dist/plotly-basic.min.js'
     import NoData from '@/components/common/base/NoData.vue'
 
     export default {
-        name: 'VerticalBarChart',
+        name: 'HorizontalBarChart',
         components: {
             NoData
         },
@@ -61,88 +71,42 @@
                     return []
                 }
             },
+            dataLoading: {
+                type: Boolean,
+                default: false
+            },
             dataList: {
                 type: Array,
                 default () {
                     return []
                 }
             },
-            dataLoading: {
-                type: Boolean,
-                default: true
+            labelWidth: {
+                type: Number,
+                default: 150
             }
         },
         data () {
             return {
-                i18n: {
-                    date: gettext('日期'),
-                    task: gettext('任务')
-                }
+                selectedValue: ''
             }
         },
-        watch: {
-            dataList (val) {
-                if (val.length > 0) {
-                    this.$nextTick(() => {
-                        this.initChart()
-                    })
-                }
-            }
-        },
-        created () {
-            if (this.dataList.length > 0) {
-                this.initChart()
+        computed: {
+            totalNumber () {
+                return this.dataList.reduce((acc, cur) => acc + cur.value, 0)
             }
         },
         methods: {
-            initChart () {
-                const x = []
-                const y = []
-                const text = []
-                this.dataList.forEach(item => {
-                    x.push(item.time)
-                    y.push(item.value)
-                    text.push(`${this.i18n.date}：${item.time}    ${this.i18n.task}：${item.value}`)
-                })
-                const max = Math.max(...y)
-                const RangeMax = max < 100 ? Math.floor((max / 10 + 1)) * 10 : Math.floor((max / 100 + 1)) * 100
-                const data = [{
-                    x,
-                    y,
-                    text,
-                    marker: {
-                        color: '#3a84ff'
-                    },
-                    hoverinfo: 'text',
-                    hoverlabel: {
-                        bgcolor: '#000',
-                        font: {
-                            color: '#fff'
-                        }
-                    },
-                    type: 'bar'
-                }]
-                const layout = {
-                    height: 365,
-                    font: {
-                        size: 12,
-                        color: '#63656e'
-                    },
-                    margin: {
-                        t: 10,
-                        b: 80
-                    },
-                    yaxis: {
-                        fixedrange: true,
-                        range: [0, RangeMax]
-                    },
-                    xaxis: {
-                        fixedrange: true,
-                        type: 'category',
-                        tickmode: 'auto'
+            getBlockStyle (val) {
+                if (this.totalNumber === 0 || val === 0) {
+                    return {
+                        width: '3px',
+                        background: '#c0c4cc'
                     }
                 }
-                this.chart = Plotly.newPlot('chart-mount-el', data, layout, { displayModeBar: false })
+                return {
+                    width: val / this.totalNumber * 100 + '%'
+                }
             },
             onOptionClick (selector, id) {
                 this.$emit('onFilterClick', id, selector)
@@ -151,29 +115,63 @@
     }
 </script>
 <style lang="scss" scoped>
-    .vertical-bar-chart {
+    .horizontal-bar-chart {
         position: relative;
         padding: 20px 20px 0;
+        height: 340px;
         background: #ffffff;
         border: 1px solid #dcdee5;
         border-radius: 2px;
         box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.06);
         overflow: hidden;
-        .chart-title {
-            margin: 0;
-            font-size: 14px;
+    }
+    .chart-title {
+        margin: 0;
+        font-size: 14px;
+    }
+    .select-wrapper {
+        position: absolute;
+        top: 14px;
+        right: 20px;
+    }
+    .chart-content {
+        margin-top: 28px;
+        height: 245px;
+        overflow-y: auto;
+    }
+    .data-item {
+        height: 34px;
+        line-height: 34px;
+        border-top: 1px dashed #dcdee5;
+        &:last-child {
+            border-bottom: 1px dashed #dcdee5;
         }
-        .select-wrapper {
+    }
+    .data-label {
+        display: inline-block;
+        font-size: 14px;
+        color: #737987;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .data-bar {
+        display: inline-block;
+        vertical-align: top;
+        .block {
+            position: relative;
+            display: inline-block;
+            background: #3a84ff;
+            height: 12px;
+        }
+        .num {
             position: absolute;
-            top: 14px;
-            right: 20px;
-        }
-        .chart-wrapper {
-            margin-top: 20px;
-            height: 365px;
-        }
-        .no-data-wrapper {
-            padding-top: 130px;
+            top: -10px;
+            right: 0;
+            padding-left: 10px;
+            font-size: 12px;
+            color: #63656e;
+            transform: translateX(100%);
         }
     }
 </style>
