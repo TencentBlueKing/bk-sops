@@ -235,6 +235,7 @@ def job_get_script_list(request, biz_cc_id):
     script_type = request.GET.get('script_type')
 
     if source_type == 'public':
+        kwargs = None
         script_result = client.job.get_public_script_list()
     else:
         kwargs = {
