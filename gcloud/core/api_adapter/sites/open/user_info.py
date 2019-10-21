@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from gcloud.conf import settings
+from gcloud.core.models import EnvironmentVariables
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
@@ -25,7 +26,10 @@ def get_user_info(username):
     client = get_client_by_user(username)
     user_info = client.usermanage.retrieve_user(id=username)
     if 'data' in user_info:
-        user_info['data']['bk_supplier_account'] = 0
+        user_info['data']['bk_supplier_account'] = EnvironmentVariables.objects.get_var(
+            'BKAPP_DEFAULT_SUPPLIER_ACCOUNT',
+            0
+        )
         user_info['data']['bk_role'] = user_info['data']['role']
         user_info['data']['bk_username'] = user_info['data']['username']
         user_info['data']['phone'] = user_info['data']['telephone']
