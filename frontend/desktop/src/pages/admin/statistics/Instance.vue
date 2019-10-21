@@ -41,11 +41,11 @@
                 <bk-form form-type="inline">
                     <bk-form-item :label="i18n.projectBeLongTo">
                         <bk-select
-                            v-model="tplProject"
+                            v-model="instanceProject"
                             class="statistics-select"
                             :placeholder="i18n.selectProject"
                             :disabled="projectList.length === 0"
-                            @change="tplFilterChange">
+                            @change="instanceFilterChange">
                             <bk-option
                                 v-for="option in projectList"
                                 :key="option.id"
@@ -56,11 +56,11 @@
                     </bk-form-item>
                     <bk-form-item :label="i18n.categoryBeLongTo">
                         <bk-select
-                            v-model="tplCategory"
+                            v-model="instanceCategory"
                             class="statistics-select"
                             :placeholder="i18n.selectCategory"
                             :disabled="categoryList.length === 0"
-                            @change="tplFilterChange">
+                            @change="instanceFilterChange">
                             <bk-option
                                 v-for="option in categoryList"
                                 :key="option.id"
@@ -73,8 +73,8 @@
                 <bk-tab-panel v-for="tab in tabs" :key="tab.id" v-bind="{ name: tab.id, label: tab.name }">
                     <bk-table
                         class="tab-data-table"
-                        v-bkloading="{ isLoading: tplDataLoading, opacity: 1 }"
-                        :data="tplData"
+                        v-bkloading="{ isLoading: instanceDataLoading, opacity: 1 }"
+                        :data="instanceData"
                         :pagination="pagination"
                         @sort-change="handleSortChange"
                         @page-change="handlePageChange">
@@ -302,11 +302,11 @@
                 timeDataLoading: true,
                 tabs: TABS,
                 activeTab: TABS[0].id,
-                tplData: [],
-                tplProject: '',
-                tplCategory: '',
-                tplSort: '-instanceId',
-                tplDataLoading: true,
+                instanceData: [],
+                instanceProject: '',
+                instanceCategory: '',
+                instanceSort: '-instanceId',
+                instanceDataLoading: true,
                 tableColumn: TABLE_COLUMN,
                 pagination: {
                     current: 1,
@@ -363,7 +363,7 @@
                 try {
                     const res = await this.queryInstanceData(query)
                     if (res.result) {
-                        if (type === 'tpl') {
+                        if (type === 'instance') {
                             this.pagination.count = res.data.total
                         }
                         return res.data.groups
@@ -432,24 +432,24 @@
             },
             async getTableData () {
                 try {
-                    this.tplDataLoading = true
+                    this.instanceDataLoading = true
                     const query = {
                         group_by: this.activeTab,
                         conditions: JSON.stringify({
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
-                            project_id: this.tplProject,
-                            category: this.tplCategory,
-                            order_by: this.tplSort
+                            project_id: this.instanceProject,
+                            category: this.instanceCategory,
+                            order_by: this.instanceSort
                         }),
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
-                    this.tplData = await this.loadAnalysisData(query, 'tpl')
+                    this.instanceData = await this.loadAnalysisData(query, 'instance')
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.tplDataLoading = false
+                    this.instanceDataLoading = false
                 }
             },
             categoryFilterChange (val) {
@@ -470,15 +470,15 @@
                 }
                 this.getTimeData()
             },
-            tplFilterChange () {
+            instanceFilterChange () {
                 this.pagination.current = 1
                 this.getTableData()
             },
             handleSortChange (val) {
                 if (val.order === 'ascending') {
-                    this.tplSort = val.prop
+                    this.instanceSort = val.prop
                 } else {
-                    this.tplSort = `-${val.prop}`
+                    this.instanceSort = `-${val.prop}`
                 }
                 this.getTableData()
             },
