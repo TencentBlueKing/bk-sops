@@ -11,22 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.conf import settings
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
+from ..base import ComponentAPI
 
 
-def get_user_info(username):
-    """
-    @summary: 获取用户信息，通过APIGW请求也会调用该函数，请确保开通了ESB白名单并通过get_client_by_user获取client
-    @param username:
-    @return:
-    """
-    client = get_client_by_user(username)
-    user_info = client.usermanage.retrieve_user(id=username)
-    if 'data' in user_info:
-        user_info['data']['bk_supplier_account'] = 0
-        user_info['data']['bk_role'] = user_info['data']['role']
-        user_info['data']['bk_username'] = user_info['data']['username']
-        user_info['data']['phone'] = user_info['data']['telephone']
-    return user_info
+class CollectionsUserManage(object):
+    """Collections of SOPS APIS"""
+
+    def __init__(self, client):
+        self.client = client
+
+        self.retrieve_user = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
+            description=u'查询用户具体详情'
+        )
