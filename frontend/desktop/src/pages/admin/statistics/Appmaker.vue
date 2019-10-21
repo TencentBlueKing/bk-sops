@@ -10,396 +10,320 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div class="content-box">
-        <chart-card :charts="charts"></chart-card>
-        <table-panel :tabpanels="tabPanels"></table-panel>
+    <div class="statistics-appmaker">
+        <div class="bar-chart-area">
+            <horizontal-bar-chart
+                :title="i18n.categoryTitle"
+                :selector-list="projectSelector"
+                :data-list="categoryData"
+                :data-loading="categoryDataLoading"
+                @onFilterClick="categoryFilterChange">
+            </horizontal-bar-chart>
+            <horizontal-bar-chart
+                :title="i18n.projectTitle"
+                :selector-list="categorySelector"
+                :data-list="projectData"
+                :data-loading="projectDataLoading"
+                @onFilterClick="projectFilterChange">
+            </horizontal-bar-chart>
+        </div>
+        <div class="tab-content-area">
+            <bk-tab>
+                <bk-tab-panel v-bind="{ name: 'appmaker', label: i18n.appmakerTitle }">
+                    <bk-form form-type="inline">
+                        <bk-form-item :label="i18n.projectBeLongTo">
+                            <bk-select
+                                v-model="appmakerProject"
+                                class="statistics-select"
+                                :placeholder="i18n.selectProject"
+                                :disabled="projectList.length === 0"
+                                @change="appmakerFilterChange">
+                                <bk-option
+                                    v-for="option in projectList"
+                                    :key="option.id"
+                                    :name="option.name"
+                                    :id="option.id">
+                                </bk-option>
+                            </bk-select>
+                        </bk-form-item>
+                        <bk-form-item :label="i18n.categoryBeLongTo">
+                            <bk-select
+                                v-model="appmakerCategory"
+                                class="statistics-select"
+                                :placeholder="i18n.selectCategory"
+                                :disabled="categoryList.length === 0"
+                                @change="appmakerFilterChange">
+                                <bk-option
+                                    v-for="option in categoryList"
+                                    :key="option.id"
+                                    :name="option.name"
+                                    :id="option.id">
+                                </bk-option>
+                            </bk-select>
+                        </bk-form-item>
+                    </bk-form>
+                    <bk-table
+                        class="tab-data-table"
+                        v-bkloading="{ isLoading: appmakerDataLoading, opacity: 1 }"
+                        :data="appmakerData"
+                        :pagination="pagination"
+                        @sort-change="handleSortChange"
+                        @page-change="handlePageChange">
+                        <bk-table-column
+                            v-for="item in tableColumn"
+                            :key="item.prop"
+                            :label="item.label"
+                            :prop="item.prop"
+                            :sortable="item.sortable">
+                            <template slot-scope="props">
+                                <a
+                                    v-if="item.prop === 'templateName'"
+                                    class="table-link"
+                                    target="_blank"
+                                    :title="props.row.templateName"
+                                    :href="`${site_url}appmaker/home/${props.row.projectId}/`">
+                                    {{props.row.templateName}}
+                                </a>
+                                <template v-else>{{ props.row[item.prop] }}</template>
+                            </template>
+                        </bk-table-column>
+                        <div class="empty-data" slot="empty"><no-data></no-data></div>
+                    </bk-table>
+                </bk-tab-panel>
+            </bk-tab>
+        </div>
     </div>
 </template>
+
 <script>
     import '@/utils/i18n.js'
-    import ChartCard from '../common/ChartCard'
-    import TablePanel from '../common/TablePanel'
     import { mapActions, mapState } from 'vuex'
-    import { AnalysisMixins } from '@/mixins/js/analysisMixins.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import HorizontalBarChart from './HorizontalBarChart.vue'
+    import NoData from '@/components/common/base/NoData.vue'
 
-    const i18n = {
-        ownBusiness: gettext('所属业务'),
-        appmakerBusiness: gettext('分业务统计'),
-        applicationTime: gettext('轻应用创建时间'),
-        applicationDetails: gettext('轻应用详情'),
-        choiceCategory: gettext('分类'),
-        choiceBusiness: gettext('所属业务'),
-        choiceTime: gettext('选择时间'),
-        categoryPlaceholder: gettext('请选择类别'),
-        businessPlaceholder: gettext('请选择业务'),
-        atom: gettext('标准插件'),
-        choiceAllCategory: gettext('全部分类'),
-        choiceAllBusiness: gettext('全部业务'),
-        templateName: gettext('轻应用名称'),
-        createTime: gettext('创建时间'),
-        editTime: gettext('更新时间'),
-        creator: gettext('创建人'),
-        category: gettext('分类'),
-        appmakerCategory: gettext('分类统计'),
-        instanceTotal: gettext('创建任务数')
-    }
+    const TABLE_COLUMN = [
+        {
+            label: gettext('轻应用名称'),
+            prop: 'templateName'
+        },
+        {
+            label: gettext('所属项目'),
+            prop: 'projectName'
+        },
+        {
+            label: gettext('分类'),
+            prop: 'category'
+        },
+        {
+            label: gettext('创建人'),
+            prop: 'creator'
+        },
+        {
+            label: gettext('创建时间'),
+            prop: 'createTime'
+        },
+        {
+            label: gettext('创建任务数'),
+            prop: 'instanceTotal',
+            sortable: true
+        }
+    ]
 
     export default {
         name: 'StatisticsAppmaker',
         components: {
-            ChartCard,
-            TablePanel
+            HorizontalBarChart,
+            NoData
         },
-        mixins: [AnalysisMixins],
-        props: ['timeRange'],
+        props: {
+            dateRange: {
+                type: Array,
+                default () {
+                    return ['', '']
+                }
+            },
+            projectList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            },
+            categoryList: {
+                type: Array,
+                default () {
+                    return []
+                }
+            }
+        },
         data () {
             return {
-                i18n: i18n,
-                choiceBusinessName: '',
-                choiceCategoryName: '',
-                isAppLicationLoading: true,
-                isCategoryLoading: true,
-                isAppmakerLoading: true,
-                time: [0, 0],
-                taskPlotData: [],
-                ownBusinessData: [],
-                templateData: [],
-                taskToatal: 0,
-                businessTotal: 0,
-                tabName: 'appmakerDetails',
-                atom: '',
-                components: [],
+                categoryData: [],
+                categoryDataProject: '',
+                categorySelector: [{
+                    id: 'category',
+                    options: this.categoryList,
+                    placeholder: gettext('请选择分类')
+                }],
+                categoryDataLoading: true,
+                projectData: [],
+                projectDataCategory: '',
+                projectSelector: [{
+                    id: 'project',
+                    options: this.projectList,
+                    placeholder: gettext('请选择项目')
+                }],
+                projectDataLoading: true,
                 appmakerData: [],
-                appmakerTotal: 0,
-                appmakerPageIndex: 1,
-                appmakerLimit: 15,
-                appmakerPagination: {
-                    limit: this.appmakerLimit,
-                    pageIndex: this.appmakerPageIndex,
-                    pageArray: this.dataTablePageArray
+                appmakerProject: '',
+                appmakerCategory: '',
+                appmakerSort: '-templateId',
+                appmakerDataLoading: true,
+                tableColumn: TABLE_COLUMN,
+                pagination: {
+                    current: 1,
+                    count: 0,
+                    'limit-list': [15],
+                    'show-limit': false,
+                    limit: 15
                 },
-                appmakerColumns: [
-                    {
-                        prop: 'templateName',
-                        label: i18n.templateName,
-                        formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}appmaker/home/${row.businessId}">${row.templateName}</a>`
-                        }
-                    },
-                    {
-                        prop: 'businessName', // 识别id
-                        label: i18n.ownBusiness, // 表头显示名称
-                        align: 'center' // 对其格式，可选（right，left，center）
-                    },
-                    {
-                        prop: 'category',
-                        label: i18n.category,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'creator',
-                        label: i18n.creator,
-                        align: 'center',
-                        formatter: (row, column, cellValue) => {
-                            return `<span>${row.creator || '--'}</span>`
-                        }
-                    },
-                    {
-                        prop: 'createTime',
-                        label: i18n.createTime,
-                        align: 'center'
-                    },
-                    {
-                        prop: 'instanceTotal',
-                        label: i18n.instanceTotal,
-                        sortable: 'custom',
-                        align: 'center'
-                    }
-                ],
-                endDateMax: '',
-                appmakerOrderBy: '-templateId'
+                i18n: {
+                    categoryTitle: gettext('分类统计'),
+                    projectTitle: gettext('分项目统计'),
+                    appmakerTitle: gettext('轻应用详情'),
+                    projectBeLongTo: gettext('所属项目'),
+                    categoryBeLongTo: gettext('所属分类'),
+                    selectProject: gettext('请选择项目'),
+                    selectCategory: gettext('请选择分类')
+                }
             }
         },
         computed: {
             ...mapState({
                 site_url: state => state.site_url
-            }),
-            charts () {
-                const charts = [
-                    {
-                        selects: [
-                            {
-                                model: this.businessSelected,
-                                placeholder: this.i18n.businessPlaceholder,
-                                clearable: true,
-                                searchable: true,
-                                onSelected: this.onAppMakerCategory,
-                                onClear: this.onClearAppMakerCategory,
-                                options: this.allBusinessList,
-                                option: {
-                                    key: 'cc_id',
-                                    name: 'cc_name'
-                                }
-                            }
-                        ],
-                        title: this.i18n.appmakerCategory,
-                        dimensionList: this.taskPlotData,
-                        totalValue: this.taskToatal,
-                        isLoading: this.isAppLicationLoading
-                    },
-                    {
-                        selects: [
-                            {
-                                model: this.categorySelected,
-                                placeholder: this.i18n.categoryPlaceholder,
-                                clearable: true,
-                                searchable: true,
-                                onSelected: this.onAppMakerBizCcid,
-                                onClear: this.onClearAppMakerBizCcid,
-                                options: this.categorys,
-                                option: {
-                                    key: 'value',
-                                    name: 'name'
-                                }
-                            }
-                        ],
-                        title: this.i18n.appmakerBusiness,
-                        dimensionList: this.ownBusinessData,
-                        totalValue: this.businessTotal,
-                        isLoading: this.isCategoryLoading
-                    }
-                ]
-                return charts
-            },
-            tabPanels () {
-                const tabPanels = {
-                    onTabChange: () => {},
-                    active: 'applicationDetails',
-                    panels: [
-                        {
-                            selects: [
-                                {
-                                    label: this.i18n.choiceBusiness,
-                                    model: this.selectedCcId,
-                                    placeholder: this.i18n.businessPlaceholder,
-                                    clearable: true,
-                                    searchable: true,
-                                    onSelected: this.onSelectedBizCcId,
-                                    onClear: this.onClearBizCcId,
-                                    options: this.allBusinessList,
-                                    option: {
-                                        key: 'cc_id',
-                                        name: 'cc_name'
-                                    }
-                                },
-                                {
-                                    label: this.i18n.choiceCategory,
-                                    model: this.selectedCategory,
-                                    placeholder: this.i18n.categoryPlaceholder,
-                                    clearable: true,
-                                    searchable: true,
-                                    onSelected: this.onSelectedCategory,
-                                    onClear: this.onClearCategory,
-                                    options: this.categorys,
-                                    option: {
-                                        key: 'value',
-                                        name: 'name'
-                                    }
-                                }
-                            ],
-                            name: 'applicationDetails',
-                            label: this.i18n.applicationDetails,
-                            data: this.appmakerData,
-                            total: this.appmakerTotal,
-                            pagination: this.appmakerPagination,
-                            columns: this.appmakerColumns,
-                            loading: this.isAppmakerLoading,
-                            handleSortChange: this.onAppmakerHandleSort,
-                            handleSizeChange: this.onAppmakerHandleSizeChange,
-                            handleIndexChange: this.onAppmakerHandleIndexChange
-                        }
-                    ]
-                }
-                return tabPanels
-            }
+            })
         },
         watch: {
-            timeRange (val) {
-                this.onAppMakerCategory(null)
-                this.onAppMakerBizCcid(null)
-                this.onAppMakerInstance()
+            dateRange (val) {
+                this.pagination.current = 1
+                this.getData()
+            },
+            projectList (val) {
+                this.projectSelector[0].options = val
+            },
+            categoryList (val) {
+                this.categorySelector[0].options = val
             }
         },
         created () {
-            this.choiceBusinessName = this.i18n.choiceAllBusiness
-            this.choiceCategoryName = this.i18n.choiceAllCategory
-            this.onAppMakerCategory(null)
-            this.onAppMakerBizCcid(null)
-            this.onAppMakerInstance()
+            this.getData()
         },
         methods: {
-            ...mapActions('appmaker/', [
+            ...mapActions('appmaker', [
                 'queryAppmakerData'
             ]),
-            ...mapActions([
-                'getBizList',
-                'getCategorys'
-            ]),
-            handleSizeChange (limit) {
-                this.limit = limit
+            getData () {
+                this.getCategoryData()
+                this.getProjectData()
+                this.getAppmakerData()
             },
-            handleIndexChange (pageIndex) {
-                this.pageIndex = pageIndex
-            },
-            onAppmakerHandleSizeChange (limit) {
-                this.appmakerPageIndex = 1
-                this.appmakerLimit = limit
-                this.onAppMakerInstance()
-            },
-            onAppmakerHandleIndexChange (pageIndex) {
-                this.appmakerPageIndex = pageIndex
-                this.onAppMakerInstance()
-            },
-            onAppmakerHandleSort (column, prop, order) {
-                order = column[0].order === 'ascending' ? '' : '-'
-                this.appmakerOrderBy = column[0].prop ? order + column[0].prop : '-templateId'
-                this.onAppMakerInstance()
-            },
-            onAppMakerCategory (business, name) {
-                if (business) {
-                    if (business === this.choiceBusiness) {
-                        // 相同的内容不需要再次查询
-                        return
-                    }
-                    this.choiceBusiness = business
-                } else if (business === undefined) {
-                    if (this.choiceBusiness === undefined) {
-                        return
-                    }
-                    this.choiceBusiness = business
-                }
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'category',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        project_id: this.choiceBusiness
-                    })
-                }
-                this.appMakerData(data)
-            },
-            onClearAppMakerCategory () {
-                this.onAppMakerCategory()
-            },
-            onAppMakerBizCcid (category, name) {
-                if (category) {
-                    if (category === this.choiceCategory) {
-                        // 相同的内容不需要再次查询
-                        return
-                    }
-                    this.choiceCategory = category
-                } else if (category === undefined) {
-                    if (this.choiceCategory === undefined) {
-                        return
-                    }
-                    this.choiceCategory = category
-                }
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'project_id',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        category: this.choiceCategory
-                    })
-                }
-                this.appMakerBusinessData(data)
-            },
-            onClearAppMakerBizCcid () {
-                this.onAppMakerBizCcid()
-            },
-            async appMakerData (data) {
-                this.isAppLicationLoading = true
+            async loadAnalysisData (query, type = '') {
                 try {
-                    const templateData = await this.queryAppmakerData(data)
-                    this.taskPlotData = templateData.data.groups
-                    this.taskToatal = templateData.data.total
+                    const res = await this.queryAppmakerData(query)
+                    if (res.result) {
+                        if (type === 'appmaker') {
+                            this.pagination.count = res.data.total
+                        }
+                        return res.data.groups
+                    } else {
+                        errorHandler(res, this)
+                    }
+                } catch (e) {
+                    errorHandler(e)
+                }
+            },
+            async getCategoryData () {
+                try {
+                    this.categoryDataLoading = true
+                    const query = {
+                        group_by: 'category',
+                        conditions: JSON.stringify({
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1],
+                            project_id: this.categoryDataProject
+                        })
+                    }
+                    this.categoryData = await this.loadAnalysisData(query)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.isAppLicationLoading = false
+                    this.categoryDataLoading = false
                 }
             },
-            async appMakerBusinessData (data) {
-                this.isCategoryLoading = true
+            async getProjectData () {
                 try {
-                    const templateData = await this.queryAppmakerData(data)
-                    this.ownBusinessData = templateData.data.groups
-                    this.businessTotal = templateData.data.total
+                    this.projectDataLoading = true
+                    const query = {
+                        group_by: 'project_id',
+                        conditions: JSON.stringify({
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1],
+                            category: this.projectDataCategory
+                        })
+                    }
+                    this.projectData = await this.loadAnalysisData(query)
                 } catch (e) {
                     errorHandler(e, this)
                 } finally {
-                    this.isCategoryLoading = false
+                    this.projectDataLoading = false
                 }
             },
-            async appMakerInstanceData (data) {
-                this.isAppmakerLoading = true
+            async getAppmakerData () {
                 try {
-                    const templateData = await this.queryAppmakerData(data)
-                    switch (data.group_by) {
-                        case 'appmaker_instance':
-                            this.appmakerData = templateData.data.groups
-                            this.appmakerTotal = templateData.data.total
-                            this.isAppmakerLoading = false
-                            break
+                    this.appmakerDataLoading = true
+                    const query = {
+                        group_by: 'appmaker_instance',
+                        conditions: JSON.stringify({
+                            create_time: this.dateRange[0],
+                            finish_time: this.dateRange[1],
+                            project_id: this.appmakerProject,
+                            category: this.appmakerCategory,
+                            order_by: this.appmakerSort
+                        }),
+                        pageIndex: this.pagination.current,
+                        limit: this.pagination.limit
                     }
+                    this.appmakerData = await this.loadAnalysisData(query, 'appmaker')
                 } catch (e) {
                     errorHandler(e, this)
+                } finally {
+                    this.appmakerDataLoading = false
                 }
             },
-            onAppMakerInstance (value) {
-                if (value) {
-                    this.resetPageIndex()
-                }
-                const time = this.getUTCTime(this.timeRange)
-                const data = {
-                    group_by: 'appmaker_instance',
-                    conditions: JSON.stringify({
-                        create_time: time[0],
-                        finish_time: time[1],
-                        project_id: this.bizCcId,
-                        category: this.category,
-                        order_by: this.appmakerOrderBy
-                    }),
-                    pageIndex: this.appmakerPageIndex,
-                    limit: this.appmakerLimit
-                }
-                this.appMakerInstanceData(data)
+            categoryFilterChange (val) {
+                this.categoryDataProject = val
+                this.getCategoryData()
             },
-            onChangeTabPanel (name) {
-                this.tabName = name
-                this.onAppMakerInstance()
+            projectFilterChange (val) {
+                this.projectDataCategory = val
+                this.getProjectData()
             },
-            resetPageIndex () {
-                this.appmakerPageIndex = 1
-                this.appmakerPagination.pageIndex = 1
+            appmakerFilterChange () {
+                this.pagination.current = 1
+                this.getAppmakerData()
+            },
+            handleSortChange (val) {
+                if (val.order === 'ascending') {
+                    this.appmakerSort = val.prop
+                } else {
+                    this.appmakerSort = `-${val.prop}`
+                }
+                this.getAppmakerData()
+            },
+            handlePageChange (val) {
+                this.pagination.current = val
+                this.getAppmakerData()
             }
         }
     }
 </script>
-
-<style lang="scss">
-.bk-select-inline,.bk-input-inline {
-    display: inline-block;
-    width: 260px;
-    background-color: #ffffff;
-}
-.content-date-picker {
-    vertical-align: top;
-}
-.content-business-picker {
-    vertical-align: top;
-}
-</style>
