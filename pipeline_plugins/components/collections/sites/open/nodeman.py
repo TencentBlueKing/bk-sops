@@ -72,22 +72,22 @@ class NodemanCreateTaskService(Service):
         for host in nodeman_hosts:
             conn_ips = get_ip_by_regex(host['conn_ips'])
             if len(conn_ips) == 0:
-                data.set_outputs('ex_data', u'conn_ips %s.' % _(u'为空或输入格式错误'))
+                data.set_outputs('ex_data', _(u'conn_ips 为空或输入格式错误'))
                 return False
             try:
                 login_ip = get_ip_by_regex(host['login_ip'])[0]
             except IndexError:
-                data.set_outputs('ex_data', u'login_ip %s.' % _(u'为空或输入格式错误'))
+                data.set_outputs('ex_data', _(u' login_ip为空或输入格式错误'))
                 return False
             try:
                 data_ip = get_ip_by_regex(host['data_ip'])[0]
             except IndexError:
-                data.set_outputs('ex_data', u'data_ip %s.' % _(u'为空或输入格式错误'))
+                data.set_outputs('ex_data', _(u'data_ip 为空或输入格式错误'))
                 return False
             try:
                 cascade_ip = get_ip_by_regex(host['cascade_ip'])[0]
             except IndexError:
-                data.set_outputs('ex_data', u'cascade_ip %s.' % _(u'为空或输入格式错误'))
+                data.set_outputs('ex_data', _(u'cascade_ip 为空或输入格式错误'))
                 return False
 
             one = {
