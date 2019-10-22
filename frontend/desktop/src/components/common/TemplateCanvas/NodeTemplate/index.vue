@@ -13,7 +13,7 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
-        @click="onNodeClick">
+        @click.stop="onNodeClick">
         <component
             :is="nodeTemplate"
             :node="node"
@@ -29,6 +29,14 @@
             class="common-icon-dark-circle-close close-icon"
             @click.stop="onNodeRemove">
         </i>
+        <ShortcutPanel
+            :node="node"
+            :id-of-node-shortcut-panel="idOfNodeShortcutPanel"
+            :canvas-data="canvasData"
+            @onAppendNode="onAppendNode"
+            @onInsertNode="onInsertNode"
+            @onShowNodeConfig="onShowNodeConfig">
+        </ShortcutPanel>
     </div>
 </template>
 <script>
@@ -39,9 +47,12 @@
     import BranchGateway from './BranchGateway.vue'
     import ParallelGateway from './ParallelGateway.vue'
     import ConvergeGateway from './ConvergeGateway.vue'
-
+    import ShortcutPanel from './ShortcutPanel.vue'
     export default {
         name: 'NodeTemplate',
+        components: {
+            ShortcutPanel
+        },
         props: {
             node: {
                 type: Object,
@@ -52,6 +63,16 @@
             editable: {
                 type: Boolean,
                 default: true
+            },
+            idOfNodeShortcutPanel: {
+                type: String,
+                default: ''
+            },
+            canvasData: {
+                type: Object,
+                default () {
+                    return {}
+                }
             }
         },
         data () {
@@ -88,9 +109,17 @@
                     Math.abs(x - this.moveFlag.x) < moveBuffer
                     && Math.abs(y - this.moveFlag.y) < moveBuffer
                 ) {
-                    if (['tasknode', 'subflow'].indexOf(this.node.type) > -1) {
-                        this.$emit('onNodeClick', this.node.id)
-                        e.stopPropagation()
+                    if (
+                        [
+                            'startpoint',
+                            'tasknode',
+                            'subflow',
+                            'parallelgateway',
+                            'branchgateway',
+                            'convergegateway'
+                        ].indexOf(this.node.type) > -1) {
+                        this.$emit('onNodeWrapClick', this.node.id)
+                        // e.stopPropagation()
                     }
                 }
             },
@@ -117,6 +146,15 @@
             },
             onSubflowPauseResumeClick (id, value) {
                 this.$emit('onSubflowPauseResumeClick', id, value)
+            },
+            onAppendNode (data) {
+                this.$emit('onAppendNode', data)
+            },
+            onShowNodeConfig (id) {
+                this.$emit('onShowNodeConfig', id)
+            },
+            onInsertNode (data) {
+                this.$emit('onInsertNode', data)
             }
         }
     }
@@ -163,6 +201,9 @@
             .close-icon {
                 display: inline-block;
             }
+        }
+        &>.subflow-node + .close-icon{
+            right: 14px;
         }
         .close-icon {
             display: none;
@@ -318,6 +359,11 @@
                 to {
                     transform: rotate(360deg);
                 }
+            }
+            &.subflow-status {
+                right: 12px;
+                top: -14px;
+                z-index: 1;
             }
         }
     }

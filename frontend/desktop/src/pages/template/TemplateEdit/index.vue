@@ -41,6 +41,7 @@
                 :common="common"
                 :template_id="template_id"
                 :canvas-data="canvasData"
+                @onConditionClick="onOpenConditionEdit"
                 @onNodeClick="onNodeClick"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
@@ -64,6 +65,14 @@
                 @globalVariableUpdate="globalVariableUpdate"
                 @onUpdateNodeInfo="onUpdateNodeInfo">
             </NodeConfig>
+            <ConditionEdit
+                ref="conditionEdit"
+                :condition-data="conditionData"
+                :is-setting-panel-show="isSettingPanelShow"
+                :is-show-condition-edit="isShowConditionEdit"
+                v-show="isShowConditionEdit"
+                @onCloseConditionEdit="onCloseConditionEdit">
+            </ConditionEdit>
             <TemplateSetting
                 ref="templateSetting"
                 :draft-array="draftArray"
@@ -83,7 +92,8 @@
                 @onReplaceTemplate="onReplaceTemplate"
                 @onNewDraft="onNewDraft"
                 @updateLocalTemplateData="updateLocalTemplateData"
-                @hideConfigPanel="hideConfigPanel">
+                @hideConfigPanel="hideConfigPanel"
+                @updataConditionData="updataConditionData">
             </TemplateSetting>
             <bk-dialog
                 width="400"
@@ -113,6 +123,7 @@
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
     import NodeConfig from './NodeConfig.vue'
+    import ConditionEdit from './ConditionEdit.vue'
     import draft from '@/utils/draft.js'
     import { STRING_LENGTH } from '@/constants/index.js'
 
@@ -135,6 +146,7 @@
             TemplateHeader,
             TemplateCanvas,
             NodeConfig,
+            ConditionEdit,
             TemplateSetting
         },
         props: ['project_id', 'template_id', 'type', 'common'],
@@ -159,8 +171,10 @@
                 variableTypeList: [], // 自定义变量类型列表
                 customVarCollectionLoading: false,
                 allowLeave: false,
+                isShowConditionEdit: false,
                 leaveToPath: '',
                 idOfNodeInConfigPanel: '',
+                idOfNodeShortcutPanel: '',
                 subAtomGrouped: [],
                 draftArray: [],
                 intervalSaveTemplate: null,
@@ -170,7 +184,8 @@
                 isClickDraft: false,
                 tplOperations: [],
                 tplActions: [],
-                tplResource: {}
+                tplResource: {},
+                conditionData: {}
             }
         },
         computed: {
@@ -565,9 +580,6 @@
                 this.idOfNodeInConfigPanel = id
             },
             hideConfigPanel () {
-                if (this.idOfNodeInConfigPanel) {
-                    this.onUpdateNodeInfo(this.idOfNodeInConfigPanel, { isActived: false })
-                }
                 this.isNodeConfigPanelShow = false
                 this.idOfNodeInConfigPanel = ''
             },
@@ -684,18 +696,12 @@
              * 任务节点点击
              */
             onNodeClick (id) {
+                this.isShowConditionEdit = false
                 this.toggleSettingPanel(false)
-                const currentId = this.idOfNodeInConfigPanel
                 const nodeType = this.locations.filter(item => {
                     return item.id === id
                 })[0].type
                 if (nodeType === 'tasknode' || nodeType === 'subflow') {
-                    // 清除当前节点选中态
-                    if (currentId) {
-                        this.onUpdateNodeInfo(currentId, { isActived: false })
-                    }
-                    this.onUpdateNodeInfo(id, { isActived: true })
-
                     if (this.isNodeConfigPanelShow) {
                         this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
                             this.showConfigPanel(id)
@@ -859,7 +865,18 @@
             // 同步节点配置面板数据
             asyncNodeConfig () {
                 if (this.isNodeConfigPanelShow) {
-                    this.$refs.nodeConfig.syncNodeDataToActivities().then((isValid) => {
+                    this.$refs.nodeConfig.syncNodeDataToActivities().then(isValid => {
+                        if (!isValid) return
+                        this.asyncConditionData()
+                    })
+                } else {
+                    this.asyncConditionData()
+                }
+            },
+            // 同步分支条件面板数据
+            asyncConditionData () {
+                if (this.isShowConditionEdit) {
+                    this.onSaveConditionData().then(isValid => {
                         if (!isValid) return
                         this.checkNodeAndSaveTemplate()
                     })
@@ -878,8 +895,8 @@
                     return
                 }
                 const isAllNodeValid = this.validateAtomNode()
-
-                if (isAllNodeValid) {
+                const isAllConditionValid = this.checkConditionData(true)
+                if (isAllNodeValid && isAllConditionValid) {
                     this.saveTemplate()
                 }
             },
@@ -987,6 +1004,56 @@
                         isSkipped: nodes[node].isSkipped
                     })
                 })
+            },
+            // 打开分支条件编辑
+            onOpenConditionEdit (data) {
+                this.toggleSettingPanel(false)
+                this.isNodeConfigPanelShow = false
+                this.isShowConditionEdit = true
+                this.$refs.conditionEdit.updateConditionData(data)
+            },
+            // 更新分支数据
+            updataConditionData (data) {
+                // 更新 store 数据
+                this.onLabelBlur(data)
+                // 更新 cavans 页面数据
+                this.$refs.templateCanvas.updataConditionCanvasData(data)
+                this.$nextTick(() => {
+                    this.checkConditionData()
+                })
+            },
+            // 校验分支数据
+            checkConditionData (isShowError = false) {
+                let checkResult = true
+                const branchConditionDoms = document.querySelectorAll('.jtk-overlay .branch-condition')
+                branchConditionDoms.forEach(dom => {
+                    const name = dom.textContent
+                    const value = dom.dataset.value
+                    if (!name || !value) {
+                        dom.classList.add('failed')
+                        checkResult = false
+                    }
+                })
+                if (!checkResult && isShowError) {
+                    this.$bkMessage({
+                        'message': i18n.error,
+                        'theme': 'error'
+                    })
+                }
+                return checkResult
+            },
+            onCloseConditionEdit (data) {
+                if (this.isShowConditionEdit) {
+                    this.isShowConditionEdit = false
+                    this.updataConditionData(data)
+                    // 删除分支条件节点选中样式
+                    document.querySelectorAll('.branch-condition.editing').forEach(dom => {
+                        dom.classList.remove('editing')
+                    })
+                }
+            },
+            onSaveConditionData () {
+                return this.$refs.conditionEdit.checkCurrentConditionData()
             }
         },
         beforeRouteLeave (to, from, next) { // leave or reload page

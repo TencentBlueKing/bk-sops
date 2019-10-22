@@ -72,7 +72,6 @@
     import TabGlobalVariables from './TabGlobalVariables.vue'
     import TabTemplateConfig from './TabTemplateConfig.vue'
     import TabLocalDraft from './TabLocalDraft.vue'
-
     export default {
         name: 'TemplateSetting',
         components: {
