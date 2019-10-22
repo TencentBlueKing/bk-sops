@@ -21,12 +21,12 @@ class VariableModel(models.Model):
     """
     注册的变量
     """
-    code = models.CharField(_(u"变量编码"), max_length=255, unique=True)
-    status = models.BooleanField(_(u"变量是否可用"), default=True)
+    code = models.CharField(_("变量编码"), max_length=255, unique=True)
+    status = models.BooleanField(_("变量是否可用"), default=True)
 
     class Meta:
-        verbose_name = _(u"Variable变量")
-        verbose_name_plural = _(u"Variable变量")
+        verbose_name = _("Variable变量")
+        verbose_name_plural = _("Variable变量")
 
     def __unicode__(self):
         return self.code

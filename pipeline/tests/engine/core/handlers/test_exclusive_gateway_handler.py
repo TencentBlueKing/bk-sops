@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 
 from django.test import TestCase
 
@@ -75,7 +74,7 @@ class ExclusiveGatewayHandlerTestCase(TestCase):
 
             exclusive_gateway.next.assert_called_once_with(hydrate_data_return)
 
-            Status.objects.fail.assert_called_once_with(exclusive_gateway, ex_data=e.message)
+            Status.objects.fail.assert_called_once_with(exclusive_gateway, ex_data=str(e))
 
             Status.objects.finish.assert_not_called()
 

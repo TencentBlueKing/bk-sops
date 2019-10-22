@@ -38,7 +38,7 @@ class ComponentFrameworkConfig(AppConfig):
         from pipeline.component_framework.models import ComponentModel
         from pipeline.component_framework.library import ComponentLibrary
         try:
-            ComponentModel.objects.exclude(code__in=ComponentLibrary.components.keys()).update(status=False)
+            ComponentModel.objects.exclude(code__in=list(ComponentLibrary.components.keys())).update(status=False)
         except (ProgrammingError, OperationalError) as e:
             # first migrate
             logger.exception(e)

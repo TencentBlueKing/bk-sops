@@ -118,8 +118,8 @@ def turn_off_function(modeladmin, request, queryset):
             switch_hook[item.name][off]()
 
 
-turn_on_function.short_description = _(u"打开所选的功能")
-turn_off_function.short_description = _(u"关闭所选的功能")
+turn_on_function.short_description = _("打开所选的功能")
+turn_off_function.short_description = _("关闭所选的功能")
 
 
 @admin.register(models.FunctionSwitch)

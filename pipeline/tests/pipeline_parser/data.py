@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 import copy
 from pipeline.utils.uniqid import node_uniqid
 
-id_list = [node_uniqid() for i in xrange(10)]
+id_list = [node_uniqid() for i in range(10)]
 PIPELINE_DATA = {
     'id': id_list[0],
     'name': 'name',
@@ -268,7 +268,7 @@ WEB_PIPELINE_DATA = {
     'outputs': ['${demo_input_test}', '${global_key1}'],
 }
 
-id_list3 = [node_uniqid() for i in xrange(10)]
+id_list3 = [node_uniqid() for i in range(10)]
 sub_pipeline = {
     'id': id_list3[0],
     'name': 'name',

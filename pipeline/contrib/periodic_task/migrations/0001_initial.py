@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 import django.db.models.deletion
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                 ('total_run_count', models.PositiveIntegerField(default=0, editable=False)),
                 ('date_changed', models.DateTimeField(auto_now=True)),
                 ('description', models.TextField(verbose_name='description', blank=True)),
-                ('crontab', models.ForeignKey(blank=True, to='periodic_task.CrontabSchedule', help_text='Use one of interval/crontab', null=True, verbose_name='crontab')),
+                ('crontab', models.ForeignKey(blank=True, to='periodic_task.CrontabSchedule', help_text='Use one of interval/crontab', null=True, verbose_name='crontab', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'periodic task',
@@ -97,9 +97,9 @@ class Migration(migrations.Migration):
                 ('last_run_at', models.DateTimeField(null=True, verbose_name='\u4e0a\u6b21\u8fd0\u884c\u65f6\u95f4')),
                 ('creator', models.CharField(default=b'', max_length=32, verbose_name='\u521b\u5efa\u8005')),
                 ('extra_info', pipeline.models.CompressJSONField(verbose_name='\u989d\u5916\u4fe1\u606f', null=True)),
-                ('celery_task', models.ForeignKey(verbose_name='celery \u5468\u671f\u4efb\u52a1\u5b9e\u4f8b', to='periodic_task.DjCeleryPeriodicTask', null=True)),
-                ('snapshot', models.ForeignKey(related_name='periodic_tasks', verbose_name='\u7528\u4e8e\u521b\u5efa\u6d41\u7a0b\u5b9e\u4f8b\u7684\u7ed3\u6784\u6570\u636e', to='pipeline.Snapshot')),
-                ('template', models.ForeignKey(related_name='periodic_tasks', on_delete=django.db.models.deletion.SET_NULL, verbose_name='\u5468\u671f\u4efb\u52a1\u5bf9\u5e94\u7684\u6a21\u677f', to_field=b'template_id', to='pipeline.PipelineTemplate', null=True)),
+                ('celery_task', models.ForeignKey(verbose_name='celery \u5468\u671f\u4efb\u52a1\u5b9e\u4f8b', to='periodic_task.DjCeleryPeriodicTask', null=True, on_delete=models.SET_NULL)),
+                ('snapshot', models.ForeignKey(related_name='periodic_tasks', verbose_name='\u7528\u4e8e\u521b\u5efa\u6d41\u7a0b\u5b9e\u4f8b\u7684\u7ed3\u6784\u6570\u636e', to='pipeline.Snapshot', on_delete=models.DO_NOTHING)),
+                ('template', models.ForeignKey(related_name='periodic_tasks', on_delete=django.db.models.deletion.SET_NULL, verbose_name='\u5468\u671f\u4efb\u52a1\u5bf9\u5e94\u7684\u6a21\u677f', to_field='template_id', to='pipeline.PipelineTemplate', null=True)),
             ],
         ),
         migrations.CreateModel(
@@ -109,13 +109,13 @@ class Migration(migrations.Migration):
                 ('ex_data', models.TextField(verbose_name='\u5f02\u5e38\u4fe1\u606f')),
                 ('start_at', models.DateTimeField(auto_now_add=True, verbose_name='\u5f00\u59cb\u65f6\u95f4')),
                 ('start_success', models.BooleanField(default=True, verbose_name='\u662f\u5426\u542f\u52a8\u6210\u529f')),
-                ('periodic_task', models.ForeignKey(related_name='instance_rel', verbose_name='\u5468\u671f\u4efb\u52a1', to='periodic_task.PeriodicTask', null=True)),
-                ('pipeline_instance', models.ForeignKey(related_name='periodic_task_rel', verbose_name='Pipeline \u5b9e\u4f8b', to_field=b'instance_id', to='pipeline.PipelineInstance', null=True)),
+                ('periodic_task', models.ForeignKey(related_name='instance_rel', verbose_name='\u5468\u671f\u4efb\u52a1', to='periodic_task.PeriodicTask', null=True, on_delete=models.DO_NOTHING)),
+                ('pipeline_instance', models.ForeignKey(related_name='periodic_task_rel', verbose_name='Pipeline \u5b9e\u4f8b', to_field='instance_id', to='pipeline.PipelineInstance', null=True, on_delete=models.DO_NOTHING)),
             ],
         ),
         migrations.AddField(
             model_name='djceleryperiodictask',
             name='interval',
-            field=models.ForeignKey(verbose_name='interval', blank=True, to='periodic_task.IntervalSchedule', null=True),
+            field=models.ForeignKey(verbose_name='interval', blank=True, to='periodic_task.IntervalSchedule', null=True, on_delete=models.CASCADE),
         ),
     ]

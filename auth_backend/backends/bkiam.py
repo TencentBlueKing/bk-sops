@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 from bkiam import bkiam_client
+from builtins import str  # noqa
 
 from auth_backend.backends.base import AuthBackend
-from auth_backend.backends.utils import resource_id_for, resource_actions_for
+from auth_backend.backends.utils import resource_actions_for, resource_id_for
 
 
 class BKIAMBackend(AuthBackend):

@@ -47,7 +47,7 @@ class ServiceActivity(Element):
     def component_dict(self):
         return {
             'code': self.component.code,
-            'inputs': {key: var.to_dict() for key, var in self.component.inputs.items()}
+            'inputs': {key: var.to_dict() for key, var in list(self.component.inputs.items())}
         }
 
 

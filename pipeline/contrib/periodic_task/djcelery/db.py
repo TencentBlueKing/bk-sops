@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 
 import django
 
@@ -69,10 +68,8 @@ else:
             with transaction.atomic(using):
                 yield
 
-
     def commit_unless_managed(*args, **kwargs):  # noqa
         pass
-
 
     def rollback_unless_managed(*args, **kwargs):  # noqa
         pass

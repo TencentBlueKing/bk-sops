@@ -19,7 +19,7 @@ from packages.blueking.component.shortcuts import (
     get_client_by_user
 )
 
-RUN_VER_NAME = _(u"蓝鲸智云社区版")
+RUN_VER_NAME = _("蓝鲸智云社区版")
 
 ESB_GET_CLIENT_BY_REQUEST = get_client_by_request
 ESB_GET_CLIENT_BY_USER = get_client_by_user

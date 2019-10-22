@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch, call
+from __future__ import absolute_import, unicode_literals
 
 from django.test import TestCase
+from mock import MagicMock, call, patch
+from six.moves import range
 
 from auth_backend.backends.bkiam import BKIAMBackend
-
 from auth_backend.tests.mock_path import *  # noqa
 
 

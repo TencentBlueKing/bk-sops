@@ -132,7 +132,7 @@ class ComponentDataLackException(ComponentDataFormatException):
 # tag exception
 #
 
-class PipelineError(StandardError):
+class PipelineError(Exception):
     pass
 
 

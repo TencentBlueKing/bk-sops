@@ -30,7 +30,7 @@ from gcloud.core.utils import convert_readable_username
 
 def replace_template_id(template_model, pipeline_data, reverse=False):
     activities = pipeline_data[PE.activities]
-    for act_id, act in activities.items():
+    for act_id, act in list(activities.items()):
         if act['type'] == PE.SubProcess:
             if not reverse:
                 act['template_id'] = template_model.objects.get(pk=act['template_id']).pipeline_template.template_id
@@ -56,7 +56,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         return pipeline_template
 
     def export_templates(self, template_id_list):
-        templates = self.filter(id__in=template_id_list).select_related('pipeline_template').values()
+        templates = list(self.filter(id__in=template_id_list).select_related('pipeline_template').values())
         pipeline_template_id_list = []
         template = {}
         for tmpl in templates:
@@ -67,13 +67,12 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         try:
             pipeline_temp_data = PipelineTemplateWebWrapper.export_templates(pipeline_template_id_list)
         except SubprocessExpiredError as e:
-            raise FlowExportError(e.message)
+            raise FlowExportError(str(e))
 
         all_template_ids = set(pipeline_temp_data['template'].keys())
         additional_template_id = all_template_ids - set(pipeline_template_id_list)
-        subprocess_temp_list = self.filter(pipeline_template_id__in=additional_template_id) \
-            .select_related('pipeline_template') \
-            .values()
+        subprocess_temp_list = self.filter(pipeline_template_id__in=additional_template_id)\
+            .select_related('pipeline_template').values()
         for sub_temp in subprocess_temp_list:
             sub_temp['pipeline_template_str_id'] = sub_temp['pipeline_template_id']
             template[sub_temp['id']] = sub_temp
@@ -90,7 +89,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         pipeline_template = template_data['pipeline_template_data']['template']
 
         new_template = []
-        for tmpl in template.values():
+        for tmpl in list(template.values()):
             str_id = tmpl['pipeline_template_str_id']
             pipeline = pipeline_template[str_id]
             new_template.append({
@@ -99,7 +98,7 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             })
 
         override_template = []
-        existed_templates = self.filter(pk__in=template.keys(), is_deleted=False) \
+        existed_templates = self.filter(pk__in=list(template.keys()), is_deleted=False) \
             .select_related('pipeline_template')
         for tmpl in existed_templates:
             override_template.append({
@@ -137,10 +136,10 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
 
         # find templates which had been deleted
         if override:
-            new_objects_template_ids = set(self.model.objects.filter(id__in=template.keys(), is_deleted=True)
+            new_objects_template_ids = set(self.model.objects.filter(id__in=list(template.keys()), is_deleted=True)
                                            .values_list('pipeline_template_id', flat=True))
 
-        for tid, template_dict in template.items():
+        for tid, template_dict in list(template.items()):
             template_dict['pipeline_template_id'] = old_id_to_new_id[template_dict['pipeline_template_str_id']]
             defaults = defaults_getter(template_dict)
             # use update or create to avoid id conflict
@@ -169,7 +168,7 @@ class BaseTemplate(models.Model):
     """
     @summary: base abstract template，without containing business info
     """
-    category = models.CharField(_(u"模板类型"),
+    category = models.CharField(_("模板类型"),
                                 choices=TASK_CATEGORY,
                                 max_length=255,
                                 default='Other')
@@ -179,20 +178,20 @@ class BaseTemplate(models.Model):
                                           on_delete=models.SET_NULL,
                                           to_field='template_id')
     collector = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                       verbose_name=_(u"收藏模板的人"),
+                                       verbose_name=_("收藏模板的人"),
                                        blank=True)
-    notify_type = models.CharField(_(u"流程事件通知方式"),
+    notify_type = models.CharField(_("流程事件通知方式"),
                                    max_length=128,
                                    default='[]'
                                    )
     # 形如 json.dumps({'receiver_group': ['Maintainers'], 'more_receiver': 'username1,username2'})
-    notify_receivers = models.TextField(_(u"流程事件通知人"),
+    notify_receivers = models.TextField(_("流程事件通知人"),
                                         default='{}'
                                         )
-    time_out = models.IntegerField(_(u"流程超时时间(分钟)"),
+    time_out = models.IntegerField(_("流程超时时间(分钟)"),
                                    default=20
                                    )
-    is_deleted = models.BooleanField(_(u"是否删除"), default=False)
+    is_deleted = models.BooleanField(_("是否删除"), default=False)
 
     class Meta:
         # abstract would not be inherited automatically
@@ -333,7 +332,7 @@ class CommonTemplateManager(BaseTemplateManager):
         data = super(CommonTemplateManager, self).import_operation_check(template_data)
 
         # business template cannot override common template
-        has_business_template = any([tmpl.get('business_id') for _, tmpl in template_data['template'].items()])
+        has_business_template = any([tmpl.get('business_id') for _, tmpl in list(template_data['template'].items())])
         if has_business_template:
             data['can_override'] = False
             data['override_template'] = []
@@ -374,8 +373,8 @@ class CommonTemplate(BaseTemplate):
     objects = CommonTemplateManager()
 
     class Meta(BaseTemplate.Meta):
-        verbose_name = _(u"公共流程模板 CommonTemplate")
-        verbose_name_plural = _(u"公共流程模板 CommonTemplate")
+        verbose_name = _("公共流程模板 CommonTemplate")
+        verbose_name_plural = _("公共流程模板 CommonTemplate")
 
     def get_notify_receivers_list(self, executor):
         return []
@@ -385,11 +384,11 @@ class CommonTmplPerm(models.Model):
     """
     @summary: common templates permissions, to handle person has different perms in different businesses
     """
-    common_template_id = models.CharField(_(u"通用流程模板ID"), max_length=255)
-    biz_cc_id = models.CharField(_(u"通用流程模板ID"), max_length=255)
+    common_template_id = models.CharField(_("通用流程模板ID"), max_length=255)
+    biz_cc_id = models.CharField(_("通用流程模板ID"), max_length=255)
 
     class Meta:
         unique_together = ('common_template_id', 'biz_cc_id')
         index_together = ['common_template_id', 'biz_cc_id']
-        verbose_name = _(u"公共流程模板权限 CommonTmplPerm")
-        verbose_name_plural = _(u"公共流程模板权限 CommonTmplPerm")
+        verbose_name = _("公共流程模板权限 CommonTmplPerm")
+        verbose_name_plural = _("公共流程模板权限 CommonTmplPerm")

@@ -764,7 +764,7 @@ class TestPipelineProcess(TestCase):
 
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
-        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc(e))
+        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc())
         Status.objects.raw_fail.assert_not_called()
         process.sleep.assert_called_with(adjust_status=True)
 
@@ -775,7 +775,7 @@ class TestPipelineProcess(TestCase):
         mock_snapshot.data['_pipeline_stack'] = Stack([PipelineObject()])
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
-        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc(e))
+        Status.objects.fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc())
         Status.objects.raw_fail.assert_not_called()
         process.sleep.assert_called_with(adjust_status=True)
 
@@ -789,7 +789,7 @@ class TestPipelineProcess(TestCase):
         process.current_node_id = uniqid()
         process.exit_gracefully(e)
         Status.objects.fail.assert_not_called()
-        Status.objects.raw_fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc(e))
+        Status.objects.raw_fail.assert_called_with(process.current_node_id, ex_data=traceback.format_exc())
         process.sleep.assert_called_with(adjust_status=True)
 
     def test_refresh_current_node(self):

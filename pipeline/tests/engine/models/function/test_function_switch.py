@@ -27,17 +27,17 @@ class TestFunctionSwitch(TestCase):
         fs.switch_list = [
             {
                 'name': 'test_1',
-                'description': u"unit_test_switch_1",
+                'description': "unit_test_switch_1",
                 'is_active': False
             },
             {
                 'name': 'test_2',
-                'description': u"unit_test_switch_2",
+                'description': "unit_test_switch_2",
                 'is_active': False
             },
             {
                 'name': 'test_3',
-                'description': u"unit_test_switch_3",
+                'description': "unit_test_switch_3",
                 'is_active': True
             }
         ]
@@ -51,22 +51,22 @@ class TestFunctionSwitch(TestCase):
         fs.switch_list = [
             {
                 'name': 'test_1',
-                'description': u"unit_test_switch_1_1",
+                'description': "unit_test_switch_1_1",
                 'is_active': False
             },
             {
                 'name': 'test_2',
-                'description': u"unit_test_switch_2_2",
+                'description': "unit_test_switch_2_2",
                 'is_active': False
             },
             {
                 'name': 'test_3',
-                'description': u"unit_test_switch_3_3",
+                'description': "unit_test_switch_3_3",
                 'is_active': True
             },
             {
                 'name': 'test_4',
-                'description': u"unit_test_switch_3",
+                'description': "unit_test_switch_3",
                 'is_active': True
             }
         ]

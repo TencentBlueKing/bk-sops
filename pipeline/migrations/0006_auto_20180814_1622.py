@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 import pipeline.models
@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='pipelineinstance',
             name='tree_info',
-            field=models.ForeignKey(related_name='tree_info', verbose_name='\u63d0\u524d\u8ba1\u7b97\u597d\u7684\u4e00\u4e9b\u6d41\u7a0b\u7ed3\u6784\u6570\u636e', to='pipeline.TreeInfo', null=True),
+            field=models.ForeignKey(related_name='tree_info', verbose_name='\u63d0\u524d\u8ba1\u7b97\u597d\u7684\u4e00\u4e9b\u6d41\u7a0b\u7ed3\u6784\u6570\u636e', to='pipeline.TreeInfo', null=True, on_delete=models.SET_NULL),
         ),
     ]

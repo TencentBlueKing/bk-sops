@@ -12,21 +12,21 @@ specific language governing permissions and limitations under the License.
 """
 
 import traceback
+
 from django.utils.module_loading import import_string
 
 from pipeline.conf import settings
-from pipeline.core.pipeline import Pipeline
 from pipeline.core.flow.activity import ServiceActivity
-from pipeline.engine import models
-from pipeline.engine import signals
-from pipeline.engine.signals import handlers
+from pipeline.core.pipeline import Pipeline
+from pipeline.engine import models, signals
 from pipeline.engine.exceptions import InvalidPipelineEndHandleError
+from pipeline.engine.signals import handlers
 
 try:
     end_handler = import_string(settings.PIPELINE_END_HANDLER)
-except ImportError as e:
-    raise InvalidPipelineEndHandleError('pipeline end handler (%s) import error with exception: %s' % (
-        settings.PIPELINE_END_HANDLER, traceback.format_exc(e)))
+except ImportError:
+    raise InvalidPipelineEndHandleError('pipeline end handler ({}) import error with exception: {}'.format(
+        settings.PIPELINE_END_HANDLER, traceback.format_exc()))
 
 
 # DISPATCH_UID = __name__.replace('.', '_')

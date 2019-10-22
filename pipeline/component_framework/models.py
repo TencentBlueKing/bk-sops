@@ -37,15 +37,15 @@ class ComponentModel(models.Model):
     """
     注册的组件
     """
-    code = models.CharField(_(u"组件编码"), max_length=255, unique=True)
-    name = models.CharField(_(u"组件名称"), max_length=255)
-    status = models.BooleanField(_(u"组件是否可用"), default=True)
+    code = models.CharField(_("组件编码"), max_length=255, unique=True)
+    name = models.CharField(_("组件名称"), max_length=255)
+    status = models.BooleanField(_("组件是否可用"), default=True)
 
     objects = ComponentManager()
 
     class Meta:
-        verbose_name = _(u"组件 Component")
-        verbose_name_plural = _(u"组件 Component")
+        verbose_name = _("组件 Component")
+        verbose_name_plural = _("组件 Component")
         ordering = ['-id']
 
     def __unicode__(self):

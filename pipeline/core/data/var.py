@@ -64,7 +64,7 @@ class SpliceVariable(Variable):
             try:
                 self._resolve()
             except exceptions as e:
-                logger.error(u"get value[%s] of Variable[%s] error[%s]" % (self.value, self.name, e))
+                logger.error("get value[%s] of Variable[%s] error[%s]" % (self.value, self.name, e))
                 return self.value
         return self._value
 
@@ -123,9 +123,7 @@ class RegisterVariableMeta(type):
         return new_class
 
 
-class LazyVariable(SpliceVariable):
-    __metaclass__ = RegisterVariableMeta
-
+class LazyVariable(SpliceVariable, metaclass=RegisterVariableMeta):
     def __init__(self, name, value, context, pipeline_data):
         super(LazyVariable, self).__init__(name, value, context)
         self.context = context
@@ -137,7 +135,7 @@ class LazyVariable(SpliceVariable):
         try:
             return self.get_value()
         except exceptions as e:
-            logger.error(u"get value[%s] of Variable[%s] error[%s]" % (self.value, self.name, e))
+            logger.error("get value[%s] of Variable[%s] error[%s]" % (self.value, self.name, e))
             return self.value
 
     # get real value by user code

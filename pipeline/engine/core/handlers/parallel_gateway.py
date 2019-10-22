@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
+
 import logging
 import traceback
 
@@ -45,8 +45,8 @@ class ParallelGatewayHandler(FlowElementHandler):
                                                            current_node_id=target.id,
                                                            destination_id=element.converge_gateway_id)
             except PipelineException as e:
-                logger.error(traceback.format_exc(e))
-                Status.objects.fail(element, e.message)
+                logger.error(traceback.format_exc())
+                Status.objects.fail(element, str(e))
                 return self.HandleResult(next_node=None, should_return=True, should_sleep=True)
 
             children.append(child)

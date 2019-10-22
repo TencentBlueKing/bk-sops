@@ -21,8 +21,7 @@ from . import settings as weixin_settings
 logger = logging.getLogger('root')
 
 
-class API(object):
-    __metaclass__ = abc.ABCMeta
+class API(object, metaclass=abc.ABCMeta):
     timeout = 10
     ssl_verify = False
 
@@ -97,7 +96,7 @@ class WeiXinApi(ApiMixin):
         access_token = data.get('access_token')
         openid = data.get('openid')
         if access_token is None or openid is None:
-            logger.error(u"登录票据CODE接口返回无access_token或openid")
+            logger.error("登录票据CODE接口返回无access_token或openid")
             return False, {}
         return True, {'access_token': access_token, 'userid': openid}
 
@@ -204,7 +203,7 @@ class QyWeiXinApi(ApiMixin):
 
         userid = user_info.get('UserId')
         if not (access_token and userid):
-            logger.error(u"企业微信：登录票据CODE接口返回无access_token或userid")
+            logger.error("企业微信：登录票据CODE接口返回无access_token或userid")
             return False, {}
 
         return True, {'access_token': access_token, 'userid': userid}

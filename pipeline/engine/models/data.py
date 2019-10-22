@@ -40,7 +40,7 @@ class DataSnapshotManager(models.Manager):
 
 
 class DataSnapshot(models.Model):
-    key = models.CharField(_(u"对象唯一键"), max_length=255, primary_key=True)
-    obj = IOField(verbose_name=_(u"对象存储字段"))
+    key = models.CharField(_("对象唯一键"), max_length=255, primary_key=True)
+    obj = IOField(verbose_name=_("对象存储字段"))
 
     objects = DataSnapshotManager()

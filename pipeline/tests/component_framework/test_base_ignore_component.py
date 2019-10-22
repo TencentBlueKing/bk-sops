@@ -33,7 +33,7 @@ class TestBaseIgnoreComponent(TestCase):
                 pass
 
         class IgnoreComponent(Component):
-            name = u'ignore_service'
+            name = 'ignore_service'
             bound_service = IgnoreService
             code = 'ignore_component'
             form = 'form path'

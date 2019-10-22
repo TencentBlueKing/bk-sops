@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -26,6 +26,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='pipelinetemplate',
             name='snapshot',
-            field=models.ForeignKey(related_name='snapshot_templates', verbose_name='\u6a21\u677f\u7ed3\u6784\u6570\u636e', to='pipeline.Snapshot'),
+            field=models.ForeignKey(related_name='snapshot_templates', verbose_name='\u6a21\u677f\u7ed3\u6784\u6570\u636e', to='pipeline.Snapshot', on_delete=models.DO_NOTHING),
         ),
     ]

@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -19,7 +19,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('engine', '0009_loopactivityhistory_loopactivitystatus'),
+        ('engine', '0009_status_error_ignorable'),
     ]
 
     operations = [

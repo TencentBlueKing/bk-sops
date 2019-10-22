@@ -11,12 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 import abc
 
+from builtins import object
+from future.utils import with_metaclass
 
-class AuthBackend(object):
-    __metaclass__ = abc.ABCMeta
 
+class AuthBackend(with_metaclass(abc.ABCMeta, object)):
     @abc.abstractmethod
     def register_instance(self, resource, instance, scope_id=None):
         """
@@ -111,21 +114,7 @@ class AuthBackend(object):
             'result': True / False, 是否执行成功
             'code': 0, 错误码
             'message': '', 提示信息
-            'data': [
-                {
-                    'action_id': 'action_id', 操作 ID
-                    'resource_type': 'resource_type', 资源类型
-                    'resource_id': [ 资源实例 ID
-                        {
-                            'resource_type': 'resource_type', 资源类型
-                            'resource_id': 'resource_id' 资源实例 ID
-                        },
-                        ...
-                    ],
-                    'is_pass': True
-                },
-                ...
-            ]
+            'data': {}
         }
         """
         raise NotImplementedError()
@@ -144,21 +133,7 @@ class AuthBackend(object):
             'result': True / False, 是否执行成功
             'code': 0, 错误码
             'message': '', 提示信息
-            'data': [
-                {
-                    'action_id': 'action_id', 操作 ID
-                    'resource_type': 'resource_type', 资源类型
-                    'resource_id': [ 资源实例 ID
-                        {
-                            'resource_type': 'resource_type', 资源类型
-                            'resource_id': 'resource_id' 资源实例 ID
-                        },
-                        ...
-                    ],
-                    'is_pass': True
-                },
-                ...
-            ]
+            'data': {}
         }
         """
         raise NotImplementedError()
@@ -175,21 +150,7 @@ class AuthBackend(object):
             'result': True / False, 是否执行成功
             'code': 0, 错误码
             'message': '', 提示信息
-            'data': [
-                {
-                    'action_id': 'action_id', 操作 ID
-                    'resource_type': 'resource_type', 资源类型
-                    'resource_id': [ 资源实例 ID
-                        {
-                            'resource_type': 'resource_type', 资源类型
-                            'resource_id': 'resource_id' 资源实例 ID
-                        },
-                        ...
-                    ],
-                    'is_pass': True
-                },
-                ...
-            ]
+            'data': {}
         }
         """
         raise NotImplementedError()
@@ -207,22 +168,7 @@ class AuthBackend(object):
             'result': True / False, 是否执行成功
             'code': 0, 错误码
             'message': '', 提示信息
-            'data': [
-                {
-                    'action_id': 'action_id', 操作 ID
-                    'resource_type': 'resource_type', 资源类型
-                    'resource_ids': [ 资源实例 ID
-                        [{
-                            'resource_type': 'resource_type', 资源类型
-                            'resource_id': 'resource_id' 资源实例 ID
-                        },
-                        ...
-                        ],
-                        ...
-                    ]
-                },
-                ...
-            ]
+            'data': {}
         }
         """
         raise NotImplementedError()
@@ -232,33 +178,13 @@ class AuthBackend(object):
         """
 
         :param resource: 资源对象
-        :param resources_actions: 资源操作列表 [{'action_id': 'action_id', 'instance': instance or None}]
+        :param resources_actions: 资源操作列表
         :param scope_id: 作用域 ID
         :return: {
             'result': True / False, 是否执行成功
             'code': 0, 错误码
             'message': '', 提示信息
-            'data': [
-                {
-                    'action_id': 'action_id', 操作 ID
-                    'resource_type': 'resource_type', 资源类型
-                    'resource_id': [ 资源实例 ID
-                        {
-                            'resource_type': 'resource_type', 资源类型
-                            'resource_id': 'resource_id' 资源实例 ID
-                        },
-                        ...
-                    ],
-                    'principals': [
-                        {
-                            'principal_type': 'user', 主体类型
-                            'principal_id': 'principal_id' 主体 ID
-                        },
-                        ...
-                    ]
-                },
-                ...
-            ]
+            'data': {}
         }
         """
         raise NotImplementedError()

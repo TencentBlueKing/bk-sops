@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
 
 import ujson as json
 from datetime import timedelta
@@ -248,8 +247,10 @@ class DjCeleryPeriodicTask(models.Model):
             return self.crontab.schedule
 
 
-signals.pre_delete.connect(DjCeleryPeriodicTasks.changed, sender=DjCeleryPeriodicTask)
-signals.pre_save.connect(DjCeleryPeriodicTasks.changed, sender=DjCeleryPeriodicTask)
+signals.pre_delete.connect(
+    DjCeleryPeriodicTasks.changed, sender=DjCeleryPeriodicTask)
+signals.pre_save.connect(DjCeleryPeriodicTasks.changed,
+                         sender=DjCeleryPeriodicTask)
 
 
 # Create your models here.
@@ -290,30 +291,32 @@ class PeriodicTaskManager(models.Manager):
 
 
 class PeriodicTask(models.Model):
-    name = models.CharField(_(u"周期任务名称"), max_length=64)
+    name = models.CharField(_("周期任务名称"), max_length=64)
     template = models.ForeignKey(
         PipelineTemplate,
         related_name='periodic_tasks',
         to_field='template_id',
-        verbose_name=_(u"周期任务对应的模板"),
+        verbose_name=_("周期任务对应的模板"),
         null=True,
         on_delete=models.deletion.SET_NULL)
-    cron = models.CharField(_(u"调度策略"), max_length=128)
-    celery_task = models.ForeignKey(DjCeleryPeriodicTask, verbose_name=_(u"celery 周期任务实例"), null=True)
+    cron = models.CharField(_("调度策略"), max_length=128)
+    celery_task = models.ForeignKey(DjCeleryPeriodicTask, verbose_name=_(
+        "celery 周期任务实例"), null=True, on_delete=models.SET_NULL)
     snapshot = models.ForeignKey(
         Snapshot,
         related_name='periodic_tasks',
-        verbose_name=_(u"用于创建流程实例的结构数据")
+        verbose_name=_("用于创建流程实例的结构数据"),
+        on_delete=models.DO_NOTHING
     )
-    total_run_count = models.PositiveIntegerField(_(u"执行次数"), default=0)
-    last_run_at = models.DateTimeField(_(u"上次运行时间"), null=True)
-    creator = models.CharField(_(u"创建者"), max_length=32, default='')
-    extra_info = CompressJSONField(verbose_name=_(u"额外信息"), null=True)
+    total_run_count = models.PositiveIntegerField(_("执行次数"), default=0)
+    last_run_at = models.DateTimeField(_("上次运行时间"), null=True)
+    creator = models.CharField(_("创建者"), max_length=32, default='')
+    extra_info = CompressJSONField(verbose_name=_("额外信息"), null=True)
 
     objects = PeriodicTaskManager()
 
     def __unicode__(self):
-        return u"{name}({id})".format(name=self.name, id=self.id)
+        return "{name}({id})".format(name=self.name, id=self.id)
 
     @property
     def enabled(self):
@@ -325,15 +328,15 @@ class PeriodicTask(models.Model):
 
     @property
     def form(self):
-        form = {key: var_info for key, var_info in self.execution_data['constants'].items() if
+        form = {key: var_info for key, var_info in list(self.execution_data['constants'].items()) if
                 var_info['show_type'] == 'show'}
         return form
 
     def delete(self, using=None):
         self.set_enabled(False)
         self.celery_task.delete()
-        super(PeriodicTask, self).delete(using)
         PeriodicTaskHistory.objects.filter(periodic_task=self).delete()
+        return super(PeriodicTask, self).delete(using)
 
     def set_enabled(self, enabled):
         self.celery_task.enabled = enabled
@@ -341,7 +344,8 @@ class PeriodicTask(models.Model):
 
     def modify_cron(self, cron, timezone=None):
         if self.enabled:
-            raise InvalidOperationException('can not modify cron when task is enabled')
+            raise InvalidOperationException(
+                'can not modify cron when task is enabled')
         schedule, _ = CrontabSchedule.objects.get_or_create(
             minute=cron.get('minute', '*'),
             hour=cron.get('hour', '*'),
@@ -359,9 +363,10 @@ class PeriodicTask(models.Model):
 
     def modify_constants(self, constants):
         if self.enabled:
-            raise InvalidOperationException('can not modify constants when task is enabled')
+            raise InvalidOperationException(
+                'can not modify constants when task is enabled')
         exec_data = self.execution_data
-        for key, value in constants.items():
+        for key, value in list(constants.items()):
             if key in exec_data['constants']:
                 exec_data['constants'][key]['value'] = value
         self.snapshot.data = exec_data
@@ -392,16 +397,18 @@ class PeriodicTaskHistory(models.Model):
     periodic_task = models.ForeignKey(
         PeriodicTask,
         related_name='instance_rel',
-        verbose_name=_(u"周期任务"),
-        null=True)
+        verbose_name=_("周期任务"),
+        null=True,
+        on_delete=models.DO_NOTHING)
     pipeline_instance = models.ForeignKey(
         PipelineInstance,
         related_name='periodic_task_rel',
-        verbose_name=_(u"Pipeline 实例"),
+        verbose_name=_("Pipeline 实例"),
         to_field='instance_id',
-        null=True)
-    ex_data = models.TextField(_(u"异常信息"))
-    start_at = models.DateTimeField(_(u"开始时间"), auto_now_add=True)
-    start_success = models.BooleanField(_(u"是否启动成功"), default=True)
+        null=True,
+        on_delete=models.DO_NOTHING)
+    ex_data = models.TextField(_("异常信息"))
+    start_at = models.DateTimeField(_("开始时间"), auto_now_add=True)
+    start_success = models.BooleanField(_("是否启动成功"), default=True)
 
     objects = PeriodicTaskHistoryManager()

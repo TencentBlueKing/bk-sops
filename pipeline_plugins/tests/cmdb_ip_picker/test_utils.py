@@ -36,54 +36,54 @@ class TestGetObjects(TestCase):
         self.bk_supplier_account = 0
         self.topo_tree = {
             "default": 0,
-            "bk_obj_name": u"业务",
+            "bk_obj_name": "业务",
             "bk_obj_id": "biz",
             "child": [
                 {
                     "default": 1,
-                    "bk_obj_name": u"集群",
+                    "bk_obj_name": "集群",
                     "bk_obj_id": "set",
                     "child": [
                         {
                             "default": 1,
                             "bk_obj_id": "module",
                             "bk_inst_id": 3,
-                            "bk_obj_name": u"模块",
-                            "bk_inst_name": u"空闲机"
+                            "bk_obj_name": "模块",
+                            "bk_inst_name": "空闲机"
                         },
                         {
                             "default": 1,
                             "bk_obj_id": "module",
                             "bk_inst_id": 4,
-                            "bk_obj_name": u"模块",
-                            "bk_inst_name": u"故障机"
+                            "bk_obj_name": "模块",
+                            "bk_inst_name": "故障机"
                         }
                     ],
                     "bk_inst_id": 2,
-                    "bk_inst_name": u"空闲机池"
+                    "bk_inst_name": "空闲机池"
                 },
                 {
                     "default": 0,
-                    "bk_obj_name": u"集群",
+                    "bk_obj_name": "集群",
                     "bk_obj_id": "set",
                     "child": [
                         {
                             "default": 0,
-                            "bk_obj_name": u"模块",
+                            "bk_obj_name": "模块",
                             "bk_obj_id": "module",
                             "bk_inst_id": 5,
                             "bk_inst_name": "test1"
                         },
                         {
                             "default": 0,
-                            "bk_obj_name": u"模块",
+                            "bk_obj_name": "模块",
                             "bk_obj_id": "module",
                             "bk_inst_id": 6,
                             "bk_inst_name": "test2"
                         },
                         {
                             "default": 0,
-                            "bk_obj_name": u"模块",
+                            "bk_obj_name": "模块",
                             "bk_obj_id": "module",
                             "bk_inst_id": 7,
                             "bk_inst_name": "test3"
@@ -94,19 +94,19 @@ class TestGetObjects(TestCase):
                 },
                 {
                     "default": 0,
-                    "bk_obj_name": u"集群",
+                    "bk_obj_name": "集群",
                     "bk_obj_id": "set",
                     "child": [
                         {
                             "default": 0,
-                            "bk_obj_name": u"模块",
+                            "bk_obj_name": "模块",
                             "bk_obj_id": "module",
                             "bk_inst_id": 8,
                             "bk_inst_name": "test1"
                         },
                         {
                             "default": 0,
-                            "bk_obj_name": u"模块",
+                            "bk_obj_name": "模块",
                             "bk_obj_id": "module",
                             "bk_inst_id": 9,
                             "bk_inst_name": "test2"
@@ -117,67 +117,67 @@ class TestGetObjects(TestCase):
                 },
             ],
             "bk_inst_id": 2,
-            "bk_inst_name": u"蓝鲸"
+            "bk_inst_name": "蓝鲸"
         }
 
     def test_format_condition_value(self):
-        self.assertEquals(format_condition_value(['111', '222']), ['111', '222'])
-        self.assertEquals(format_condition_value(['111', '222\n333']), ['111', '222', '333'])
-        self.assertEquals(format_condition_value(['', '222\n', ' 333  ']), ['222', '333'])
+        self.assertEqual(format_condition_value(['111', '222']), ['111', '222'])
+        self.assertEqual(format_condition_value(['111', '222\n333']), ['111', '222', '333'])
+        self.assertEqual(format_condition_value(['', '222\n', ' 333  ']), ['222', '333'])
 
     def test_get_modules_id(self):
         modules = [
             {
                 "default": 0,
-                "bk_obj_name": u"模块",
+                "bk_obj_name": "模块",
                 "bk_obj_id": "module",
                 "bk_inst_id": 8,
                 "bk_inst_name": "test1"
             },
             {
                 "default": 0,
-                "bk_obj_name": u"模块",
+                "bk_obj_name": "模块",
                 "bk_obj_id": "module",
                 "bk_inst_id": 9,
                 "bk_inst_name": "test2"
             },
         ]
-        self.assertEquals(get_modules_id(modules), [8, 9])
+        self.assertEqual(get_modules_id(modules), [8, 9])
 
     def test_process_topo_tree_by_condition(self):
         condition = {'group': [1, 3]}
         expected = {
             "default": 0,
-            "bk_obj_name": u"业务",
+            "bk_obj_name": "业务",
             "bk_obj_id": "biz",
             "child": [],
             "bk_inst_id": 2,
-            "bk_inst_name": u"蓝鲸"
+            "bk_inst_name": "蓝鲸"
         }
-        self.assertEquals(process_topo_tree_by_condition(self.topo_tree, condition), expected)
+        self.assertEqual(process_topo_tree_by_condition(self.topo_tree, condition), expected)
 
         condition = {'set': [1, 3]}
-        self.assertEquals(process_topo_tree_by_condition(self.topo_tree, condition), self.topo_tree)
+        self.assertEqual(process_topo_tree_by_condition(self.topo_tree, condition), self.topo_tree)
 
     def test_get_modules_by_condition(self):
         filters_dct = {
-            'set': [u"空闲机池", 'set3']
+            'set': ["空闲机池", 'set3']
         }
         modules1 = get_modules_by_condition(self.topo_tree, filters_dct)
-        self.assertEquals(set([mod['bk_inst_id'] for mod in modules1]), {3, 4, 8, 9})
+        self.assertEqual(set([mod['bk_inst_id'] for mod in modules1]), {3, 4, 8, 9})
 
         filters_dct = {
-            'set': [u"空闲机池", 'set3'],
-            'module': [u"空闲机", 'test1', 'test2']
+            'set': ["空闲机池", 'set3'],
+            'module': ["空闲机", 'test1', 'test2']
         }
         modules2 = get_modules_by_condition(self.topo_tree, filters_dct)
-        self.assertEquals(set([mod['bk_inst_id'] for mod in modules2]), {3, 8, 9})
+        self.assertEqual(set([mod['bk_inst_id'] for mod in modules2]), {3, 8, 9})
 
         filters_dct = {
-            'module': [u"空闲机", 'test1', 'test2']
+            'module': ["空闲机", 'test1', 'test2']
         }
         modules2 = get_modules_by_condition(self.topo_tree, filters_dct)
-        self.assertEquals(set([mod['bk_inst_id'] for mod in modules2]), {3, 5, 6, 8, 9})
+        self.assertEqual(set([mod['bk_inst_id'] for mod in modules2]), {3, 5, 6, 8, 9})
 
     def test_get_objects_of_topo_tree(self):
         obj_dct = {
@@ -189,38 +189,38 @@ class TestGetObjects(TestCase):
                 "default": 1,
                 "bk_obj_id": "module",
                 "bk_inst_id": 3,
-                "bk_obj_name": u"模块",
-                "bk_inst_name": u"空闲机"
+                "bk_obj_name": "模块",
+                "bk_inst_name": "空闲机"
             },
             {
                 "default": 0,
-                "bk_obj_name": u"模块",
+                "bk_obj_name": "模块",
                 "bk_obj_id": "module",
                 "bk_inst_id": 5,
                 "bk_inst_name": "test1"
             },
             {
                 "default": 0,
-                "bk_obj_name": u"模块",
+                "bk_obj_name": "模块",
                 "bk_obj_id": "module",
                 "bk_inst_id": 6,
                 "bk_inst_name": "test2"
             },
             {
                 "default": 0,
-                "bk_obj_name": u"集群",
+                "bk_obj_name": "集群",
                 "bk_obj_id": "set",
                 "child": [
                     {
                         "default": 0,
-                        "bk_obj_name": u"模块",
+                        "bk_obj_name": "模块",
                         "bk_obj_id": "module",
                         "bk_inst_id": 8,
                         "bk_inst_name": "test1"
                     },
                     {
                         "default": 0,
-                        "bk_obj_name": u"模块",
+                        "bk_obj_name": "模块",
                         "bk_obj_id": "module",
                         "bk_inst_id": 9,
                         "bk_inst_name": "test2"
@@ -230,24 +230,24 @@ class TestGetObjects(TestCase):
                 "bk_inst_name": "set3"
             },
         ]
-        self.assertEquals(get_objects_of_topo_tree(self.topo_tree, obj_dct), objects)
+        self.assertEqual(get_objects_of_topo_tree(self.topo_tree, obj_dct), objects)
 
     def test_get_modules_of_bk_obj(self):
         modules1 = get_modules_of_bk_obj(self.topo_tree)
-        self.assertEquals(set([mod['bk_inst_id'] for mod in modules1]), {3, 4, 5, 6, 7, 8, 9})
+        self.assertEqual(set([mod['bk_inst_id'] for mod in modules1]), {3, 4, 5, 6, 7, 8, 9})
 
         modules2 = get_modules_of_bk_obj(self.topo_tree['child'][2])
-        self.assertEquals(set([mod['bk_inst_id'] for mod in modules2]), {8, 9})
+        self.assertEqual(set([mod['bk_inst_id'] for mod in modules2]), {8, 9})
 
         modules3 = get_modules_of_bk_obj(self.topo_tree['child'][2]['child'][1])
-        self.assertEquals(set([mod['bk_inst_id'] for mod in modules3]), {9})
+        self.assertEqual(set([mod['bk_inst_id'] for mod in modules3]), {9})
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_cmdb_topo_tree(self):
         mock_get_client_by_user.success = True
         topo_tree = get_cmdb_topo_tree('admin', '2', '')
         self.assertTrue(topo_tree['result'])
-        self.assertEquals(topo_tree['data'][0], self.topo_tree)
+        self.assertEqual(topo_tree['data'][0], self.topo_tree)
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__boundary_value(self):
@@ -285,7 +285,7 @@ class TestGetObjects(TestCase):
                                        self.bk_supplier_account,
                                        topo_kwargs)['data']
         ip = [host['bk_host_innerip'] for host in ip_data]
-        self.assertEquals(ip, ['1.1.1.1'])
+        self.assertEqual(ip, ['1.1.1.1'])
 
         topo_kwargs = {
             'bk_biz_id': self.bk_biz_id,
@@ -303,7 +303,7 @@ class TestGetObjects(TestCase):
                                        self.bk_supplier_account,
                                        topo_kwargs)['data']
         ip = [host['bk_host_innerip'] for host in ip_data]
-        self.assertEquals(ip, ['2.2.2.2'])
+        self.assertEqual(ip, ['2.2.2.2'])
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__selector_ip(self):
@@ -354,7 +354,7 @@ class TestGetObjects(TestCase):
                                        self.bk_supplier_account,
                                        topo_kwargs)['data']
         ip = [host['bk_host_innerip'] for host in ip_data]
-        self.assertEquals(ip, ['1.1.1.1', '2.2.2.2'])
+        self.assertEqual(ip, ['1.1.1.1', '2.2.2.2'])
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__filters(self):
@@ -376,7 +376,7 @@ class TestGetObjects(TestCase):
                                        self.bk_supplier_account,
                                        topo_kwargs)['data']
         ip = [host['bk_host_innerip'] for host in ip_data]
-        self.assertEquals(ip, ['2.2.2.2'])
+        self.assertEqual(ip, ['2.2.2.2'])
 
     @patch('pipeline_plugins.cmdb_ip_picker.utils.get_client_by_user', mock_get_client_by_user)
     def test_get_ip_picker_result__excludes(self):
@@ -398,7 +398,7 @@ class TestGetObjects(TestCase):
                                        self.bk_supplier_account,
                                        topo_kwargs)['data']
         ip = [host['bk_host_innerip'] for host in ip_data]
-        self.assertEquals(ip, ['1.1.1.1'])
+        self.assertEqual(ip, ['1.1.1.1'])
 
     def test_build_cmdb_search_host_kwargs__boundary_value(self):
         topo_kwargs = {
@@ -443,7 +443,7 @@ class TestGetObjects(TestCase):
             'filters': [],
             'excludes': [],
         }
-        self.assertEquals(
+        self.assertEqual(
             build_cmdb_search_host_kwargs(self.bk_biz_id,
                                           self.bk_supplier_account,
                                           topo_kwargs,
@@ -505,7 +505,7 @@ class TestGetObjects(TestCase):
             'filters': [],
             'excludes': [],
         }
-        self.assertEquals(
+        self.assertEqual(
             build_cmdb_search_host_kwargs(self.bk_biz_id,
                                           self.bk_supplier_account,
                                           ip_kwargs,

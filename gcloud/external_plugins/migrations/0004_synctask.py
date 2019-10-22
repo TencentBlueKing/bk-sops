@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
+
 
 from django.db import migrations, models
 
@@ -28,10 +28,10 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('creator', models.CharField(blank=True, max_length=32, verbose_name='\u6267\u884c\u8005')),
-                ('create_method', models.CharField(choices=[(b'manual', '\u624b\u52a8\u89e6\u53d1'), (b'auto', '\u90e8\u7f72\u81ea\u52a8\u89e6\u53d1')], default=b'manual', max_length=32, verbose_name='\u521b\u5efa\u65b9\u5f0f')),
+                ('create_method', models.CharField(choices=[(b'manual', '\u624b\u52a8\u89e6\u53d1'), (b'auto', '\u90e8\u7f72\u81ea\u52a8\u89e6\u53d1')], default='manual', max_length=32, verbose_name='\u521b\u5efa\u65b9\u5f0f')),
                 ('start_time', models.DateTimeField(auto_now_add=True, verbose_name='\u542f\u52a8\u65f6\u95f4')),
                 ('finish_time', models.DateTimeField(blank=True, null=True, verbose_name='\u7ed3\u675f\u65f6\u95f4')),
-                ('status', models.CharField(choices=[(b'RUNNING', '\u6267\u884c\u4e2d'), (b'SUCCEEDED', '\u6210\u529f'), (b'FAILED', '\u5931\u8d25')], default=b'RUNNING', max_length=32, verbose_name='\u540c\u6b65\u72b6\u6001')),
+                ('status', models.CharField(choices=[(b'RUNNING', '\u6267\u884c\u4e2d'), (b'SUCCEEDED', '\u6210\u529f'), (b'FAILED', '\u5931\u8d25')], default='RUNNING', max_length=32, verbose_name='\u540c\u6b65\u72b6\u6001')),
                 ('details', models.TextField(blank=True, verbose_name='\u540c\u6b65\u8be6\u60c5\u4fe1\u606f')),
             ],
             options={

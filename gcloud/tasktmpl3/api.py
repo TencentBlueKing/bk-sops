@@ -96,7 +96,7 @@ def collect(request, project_id):
 
     if template_list:
         if len(template_list) > 10:
-            return JsonResponse({'result': False, 'message': u"template list must not larger than 10"})
+            return JsonResponse({'result': False, 'message': "template list must not larger than 10"})
         user_model = get_user_model()
         user = user_model.objects.get(username=request.user.username)
         try:
@@ -112,7 +112,7 @@ def collect(request, project_id):
             user.tasktemplate_set.remove(*collected_template)
             user.tasktemplate_set.add(*templates)
         except Exception as e:
-            message = u"collect template error: %s" % e
+            message = "collect template error: %s" % e
             ctx = {'result': False, 'message': message}
         else:
             ctx = {'result': True, 'data': ''}
@@ -124,7 +124,7 @@ def collect(request, project_id):
             collected_template = user.tasktemplate_set.filter(project_id=project_id)
             user.tasktemplate_set.remove(*collected_template)
         except Exception as e:
-            message = u"collect template error: %s" % e
+            message = "collect template error: %s" % e
             ctx = {'result': False, 'message': message}
         else:
             ctx = {'result': True, 'data': ''}
@@ -160,7 +160,7 @@ def export_templates(request, project_id):
     except FlowExportError as e:
         return JsonResponse({
             'result': False,
-            'message': e.message
+            'message': str(e)
         })
 
     digest = hashlib.md5(json.dumps(templates_data, sort_keys=True) + settings.TEMPLATE_DATA_SALT).hexdigest()
@@ -356,10 +356,10 @@ def job_id_map_convert(origin_id_maps):
 
 
 def replace_job_relate_id_in_templates_data(job_id_map, templates_data):
-    for template in templates_data['pipeline_template_data']['template'].values():
+    for template in list(templates_data['pipeline_template_data']['template'].values()):
 
         # for each act in template
-        for act in filter(lambda act: act['type'] == 'ServiceActivity', template['tree']['activities'].values()):
+        for act in [act for act in list(template['tree']['activities'].values()) if act['type'] == 'ServiceActivity']:
             act_comp = act['component']
             constants = template['tree']['constants']
 

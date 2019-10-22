@@ -98,7 +98,7 @@ class ModifiedModelMetaclass(type):
             raise ImproperlyConfigured("Helper class %s hasn't a Meta subclass!" % name)
 
         # Find model class for this helper
-        if isinstance(getattr(meta, 'model', None), basestring):
+        if isinstance(getattr(meta, 'model', None), str):
             model_class = get_model(*meta.model.split('.'))
         elif issubclass(getattr(meta, 'model', None), models.Model):
             model_class = meta.model
@@ -120,7 +120,7 @@ class ModifiedModelMetaclass(type):
                 remove_field(f_name)
 
         # Calls 'contribute_to_class' from field to sender class
-        for f_name, field in attrs.items():
+        for f_name, field in list(attrs.items()):
             if isinstance(field, models.Field):
                 # Removes the field if it already exists
                 remove_field(f_name)
@@ -129,7 +129,7 @@ class ModifiedModelMetaclass(type):
                 field.contribute_to_class(model_class, f_name)
 
         # Attaches methods
-        for m_name, func in attrs.items():
+        for m_name, func in list(attrs.items()):
             if callable(func) and isinstance(func, types.FunctionType) or isinstance(func, (classmethod, property)):
                 setattr(model_class, m_name, func)
 
@@ -138,10 +138,9 @@ class ModifiedModelMetaclass(type):
         return new_class
 
 
-class ModifiedModel(object):
+class ModifiedModel(object, metaclass=ModifiedModelMetaclass):
     """
     Make your inheritance from this class and set a Meta subclass with attribute
     'model' with the model class you want to modify: add/replace/exclude fields
     and/or add/replace methods.
     """
-    __metaclass__ = ModifiedModelMetaclass

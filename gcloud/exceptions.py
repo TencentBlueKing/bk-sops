@@ -41,14 +41,14 @@ class APIError(BkSopsError):
 
     @property
     def error(self):
-        return u'%s【%s】%s【%s】%s【%s】%s' % (
-            _(u'请求第三方系统'),
+        return '%s【%s】%s【%s】%s【%s】%s' % (
+            _('请求第三方系统'),
             self.system,
-            _(u'接口'),
+            _('接口'),
             self.api,
-            _(u'异常'),
+            _('异常'),
             self.message,
-            _(u'请联系第三方系统负责人处理'))
+            _('请联系第三方系统负责人处理'))
 
 
 class BadTaskOperation(BkSopsError):

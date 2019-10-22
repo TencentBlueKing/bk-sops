@@ -22,7 +22,7 @@ logger = logging.getLogger('root')
 
 
 def load_external_modules():
-    for source_type, source_model_cls in source_cls_factory.items():
+    for source_type, source_model_cls in list(source_cls_factory.items()):
         # get all external source
         sources = source_model_cls.objects.all()
 

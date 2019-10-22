@@ -68,12 +68,12 @@ class TaskTemplateManager(BaseTemplateManager):
 
         template = template_data['template']
 
-        relate_project_ids = self.filter(id__in=template.keys(),
+        relate_project_ids = self.filter(id__in=list(template.keys()),
                                          is_deleted=False
                                          ).values_list('project_id', flat=True)
         is_multiple_relate = len(set(relate_project_ids)) > 1
         is_across_override = relate_project_ids and relate_project_ids[0] != int(project_id)
-        has_common_template = not all([tmpl.get('project_id') for _, tmpl in template_data['template'].items()])
+        has_common_template = not all([tmpl.get('project_id') for _, tmpl in list(template_data['template'].items())])
 
         can_override = not (is_multiple_relate or is_across_override or has_common_template)
 
@@ -130,7 +130,7 @@ class TaskTemplateManager(BaseTemplateManager):
         if filters is None:
             filters = {}
         prefix_filters = {}
-        for cond, value in filters.items():
+        for cond, value in list(filters.items()):
             # component_code不加入查询条件中
             if value in ['None', ''] or cond in ['component_code', 'order_by', 'type']:
                 continue
@@ -155,25 +155,25 @@ class TaskTemplateManager(BaseTemplateManager):
         try:
             tasktmpl = self.filter(**prefix_filters)
         except Exception as e:
-            message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
+            message = "query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
             return False, message
         if group_by == AE.state:
             total = tasktmpl.count()
             groups = [
                 {
                     'code': 'CREATED',
-                    'name': _(u"未执行"),
+                    'name': _("未执行"),
                     'value': tasktmpl.filter(pipeline_template__is_started=False).count()
                 },
                 {
                     'code': 'EXECUTING',
-                    'name': _(u"执行中"),
+                    'name': _("执行中"),
                     'value': tasktmpl.filter(pipeline_template__is_started=True,
                                              pipeline_template__is_finished=False).count()
                 },
                 {
                     'code': 'FINISHED',
-                    'name': _(u"已完成"),
+                    'name': _("已完成"),
                     'value': tasktmpl.filter(pipeline_template__is_finished=True).count()
                 }
             ]
@@ -282,7 +282,7 @@ class TaskTemplateManager(BaseTemplateManager):
                          template_list.values_list("pipeline_template__template_id")[(page - 1) * limit:page * limit]]
             appmaker_list = template_list.values("id", "appmaker").annotate(appmaker_total=Count("appmaker")).order_by(
                 "-id")
-            taskflow_list = PipelineInstance.objects.filter(template_id__in=template_id_map.keys()).values(
+            taskflow_list = PipelineInstance.objects.filter(template_id__in=list(template_id_map.keys())).values(
                 "template_id").annotate(
                 instance_total=Count("template_id")).order_by()
             relationship_list = TemplateRelationship.objects.filter(descendant_template_id__in=t_id_list).values(
@@ -377,7 +377,7 @@ class TaskTemplateManager(BaseTemplateManager):
             try:
                 total, groups = self.classified_count(prefix_filters, group_by)
             except Exception as e:
-                message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
+                message = "query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
                 return False, message
         else:
             total, groups = 0, []
@@ -412,7 +412,7 @@ class TaskTemplateManager(BaseTemplateManager):
 
 class TaskTemplate(BaseTemplate):
     project = models.ForeignKey(Project,
-                                verbose_name=_(u"所属项目"),
+                                verbose_name=_("所属项目"),
                                 null=True,
                                 blank=True,
                                 on_delete=models.SET_NULL)
@@ -420,11 +420,11 @@ class TaskTemplate(BaseTemplate):
     objects = TaskTemplateManager()
 
     def __unicode__(self):
-        return u'%s_%s' % (self.project, self.pipeline_template)
+        return '%s_%s' % (self.project, self.pipeline_template)
 
     class Meta(BaseTemplate.Meta):
-        verbose_name = _(u"流程模板 TaskTemplate")
-        verbose_name_plural = _(u"流程模板 TaskTemplate")
+        verbose_name = _("流程模板 TaskTemplate")
+        verbose_name_plural = _("流程模板 TaskTemplate")
 
     def get_notify_receivers_list(self, username):
         notify_receivers = json.loads(self.notify_receivers)

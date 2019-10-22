@@ -73,22 +73,22 @@ class PeriodicTaskManager(models.Manager):
 
 class PeriodicTask(models.Model):
     project = models.ForeignKey(Project,
-                                verbose_name=_(u"所属项目"),
+                                verbose_name=_("所属项目"),
                                 null=True,
                                 blank=True,
                                 on_delete=models.SET_NULL)
-    task = models.ForeignKey(PipelinePeriodicTask, verbose_name=_(u"pipeline 层周期任务"))
-    template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255)
+    task = models.ForeignKey(PipelinePeriodicTask, verbose_name=_("pipeline 层周期任务"))
+    template_id = models.CharField(_("创建任务所用的模板ID"), max_length=255)
 
     objects = PeriodicTaskManager()
 
     class Meta:
-        verbose_name = _(u"周期任务 PeriodicTask")
-        verbose_name_plural = _(u"周期任务 PeriodicTask")
+        verbose_name = _("周期任务 PeriodicTask")
+        verbose_name_plural = _("周期任务 PeriodicTask")
         ordering = ['-id']
 
     def __unicode__(self):
-        return u"{name}({id})".format(name=self.name, id=self.id)
+        return "{name}({id})".format(name=self.name, id=self.id)
 
     @property
     def enabled(self):
@@ -128,7 +128,7 @@ class PeriodicTask(models.Model):
         try:
             name = TaskTemplate.objects.get(id=self.template_id).name
         except Exception as e:
-            logger.warning(_(u"模板不存在，错误信息：%s") % e)
+            logger.warning(_("模板不存在，错误信息：%s") % e)
         finally:
             return name
 
@@ -156,7 +156,7 @@ class PeriodicTaskHistoryManager(models.Manager):
             try:
                 flow_instance = TaskFlowInstance.objects.get(pipeline_instance=periodic_history.pipeline_instance)
             except TaskFlowInstance.DoesNotExist as e:
-                logger.error(_(u"获取周期任务历史相关任务实例失败：%s" % e))
+                logger.error(_("获取周期任务历史相关任务实例失败：%s" % e))
 
         return self.create(
             history=periodic_history,
@@ -169,11 +169,11 @@ class PeriodicTaskHistoryManager(models.Manager):
 
 
 class PeriodicTaskHistory(models.Model):
-    history = models.ForeignKey(PipelinePeriodicTaskHistory, verbose_name=_(u"pipeline 层周期任务历史"))
-    task = models.ForeignKey(PeriodicTask, verbose_name=_(u"周期任务"))
-    flow_instance = models.ForeignKey(TaskFlowInstance, verbose_name=_(u"流程实例"), null=True)
-    ex_data = models.TextField(_(u"异常信息"))
-    start_at = models.DateTimeField(_(u"开始时间"))
-    start_success = models.BooleanField(_(u"是否启动成功"), default=True)
+    history = models.ForeignKey(PipelinePeriodicTaskHistory, verbose_name=_("pipeline 层周期任务历史"))
+    task = models.ForeignKey(PeriodicTask, verbose_name=_("周期任务"))
+    flow_instance = models.ForeignKey(TaskFlowInstance, verbose_name=_("流程实例"), null=True)
+    ex_data = models.TextField(_("异常信息"))
+    start_at = models.DateTimeField(_("开始时间"))
+    start_success = models.BooleanField(_("是否启动成功"), default=True)
 
     objects = PeriodicTaskHistoryManager()

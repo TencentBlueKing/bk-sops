@@ -30,16 +30,13 @@ def extra_inject(func):
     return wrapper
 
 
-class FlowElement(object):
-    __metaclass__ = ABCMeta
-
+class FlowElement(object, metaclass=ABCMeta):
     def __init__(self, id, name=None):
         self.id = id
         self.name = name
 
 
-class FlowNode(FlowElement):
-    __metaclass__ = ABCMeta
+class FlowNode(FlowElement, metaclass=ABCMeta):
     ON_RETRY = '_on_retry'
 
     def __init__(self, id, name=None, data=None):

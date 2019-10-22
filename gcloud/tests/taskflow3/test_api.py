@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
-
 from copy import deepcopy
 
 from django.test import TestCase, Client
@@ -157,7 +155,7 @@ class APITest(TestCase):
             }
             result = api.preview_task_tree(MockRequest('POST', data1), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
-            self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key1}'])
+            self.assertEqual(list(result['data']['constants_not_referred'].keys()), ['${custom_key1}'])
 
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
@@ -169,7 +167,7 @@ class APITest(TestCase):
             }
             result = api.preview_task_tree(MockRequest('POST', data2), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
-            self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key2}'])
+            self.assertEqual(list(result['data']['constants_not_referred'].keys()), ['${custom_key2}'])
 
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
@@ -181,7 +179,7 @@ class APITest(TestCase):
             }
             result = api.preview_task_tree(MockRequest('POST', data3), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
-            self.assertEquals(result['data']['constants_not_referred'].keys(), [])
+            self.assertEqual(list(result['data']['constants_not_referred'].keys()), [])
 
         with mock.patch(TASKTEMPLATE_GET,
                         MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))):
@@ -193,4 +191,5 @@ class APITest(TestCase):
             }
             result = api.preview_task_tree(MockRequest('POST', data4), TEST_PROJECT_ID)
             self.assertTrue(result['result'])
-            self.assertEquals(result['data']['constants_not_referred'].keys(), ['${custom_key1}', '${custom_key2}'])
+            self.assertEqual(list(result['data']['constants_not_referred'].keys()),
+                             ['${custom_key1}', '${custom_key2}'])

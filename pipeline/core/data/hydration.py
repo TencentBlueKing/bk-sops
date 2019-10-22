@@ -25,7 +25,7 @@ def hydrate_node_data(node):
 
 def hydrate_data(data):
     hydrated = {}
-    for k, v in data.items():
+    for k, v in list(data.items()):
         from pipeline.core.data import var
         if issubclass(v.__class__, var.Variable):
             hydrated[k] = v.get()
@@ -41,7 +41,7 @@ def hydrate_subprocess_context(subprocess_act):
     # context injection
     data = subprocess_act.pipeline.data
     context = subprocess_act.pipeline.context
-    for k, v in data.get_inputs().items():
+    for k, v in list(data.get_inputs().items()):
         context.set_global_var(k, v)
 
     hydrated = hydrate_data(context.variables)

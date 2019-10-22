@@ -100,8 +100,8 @@ def classify_constants(constants, is_subprocess):
 
         # 输出参数
         if info['source_type'] == 'component_outputs':
-            source_key = info['source_info'].values()[0][0]
-            source_step = info['source_info'].keys()[0]
+            source_key = list(info['source_info'].values())[0][0]
+            source_step = list(info['source_info'].keys())[0]
             data_inputs[key] = {
                 'type': 'splice',
                 'source_act': source_step,

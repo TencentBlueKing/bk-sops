@@ -13,9 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import traceback
 
+from django.utils.module_loading import import_string
+
 from pipeline.conf import settings
 from pipeline.engine.exceptions import InvalidDataBackendError
-from django.utils.module_loading import import_string
 
 __all__ = [
     'set_object',
@@ -34,9 +35,9 @@ if not __backend:
     try:
         backend_cls = import_string(settings.PIPELINE_DATA_BACKEND)
         __backend = backend_cls()
-    except ImportError as e:
-        raise InvalidDataBackendError('data backend(%s) import error with exception: %s' % (
-            settings.PIPELINE_DATA_BACKEND, traceback.format_exc(e)))
+    except ImportError:
+        raise InvalidDataBackendError('data backend({}) import error with exception: {}'.format(
+            settings.PIPELINE_DATA_BACKEND, traceback.format_exc()))
 
 
 def set_object(key, obj):

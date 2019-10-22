@@ -11,16 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import traceback
-import logging
 import contextlib
+import logging
+import traceback
 
 from django.db import transaction
 
-from pipeline.engine import signals, states, exceptions
-from pipeline.engine.core.data import get_schedule_parent_data, set_schedule_data, delete_parent_data
-from pipeline.engine.models import ScheduleService, Data, Status, PipelineProcess
 from pipeline.django_signal_valve import valve
+from pipeline.engine import exceptions, signals, states
+from pipeline.engine.core.data import (delete_parent_data,
+                                       get_schedule_parent_data,
+                                       set_schedule_data)
+from pipeline.engine.models import (Data, PipelineProcess, ScheduleService,
+                                    Status)
 
 logger = logging.getLogger('celery')
 
@@ -33,11 +36,11 @@ def schedule_exception_handler(process_id, schedule_id):
         activity_id = schedule_id[:ScheduleService.SCHEDULE_ID_SPLIT_DIVISION]
         version = schedule_id[ScheduleService.SCHEDULE_ID_SPLIT_DIVISION:]
         if Status.objects.filter(id=activity_id, version=version).exists():
-            logger.error(traceback.format_exc(e))
+            logger.error(traceback.format_exc())
             process = PipelineProcess.objects.get(id=process_id)
             process.exit_gracefully(e)
         else:
-            logger.warning('schedule(%s - %s) forced exit.' % (activity_id, version))
+            logger.warning('schedule({} - {}) forced exit.'.format(activity_id, version))
 
         delete_parent_data(schedule_id)
 
@@ -58,7 +61,7 @@ def schedule(process_id, schedule_id):
 
         if not Status.objects.filter(id=act_id, version=version).exists():
             # forced failed
-            logger.warning('schedule service failed, schedule(%s - %s) had been forced exit.' % (act_id, version))
+            logger.warning('schedule service failed, schedule({} - {}) had been forced exit.'.format(act_id, version))
             sched_service.destroy()
             return
 
@@ -66,7 +69,7 @@ def schedule(process_id, schedule_id):
         parent_data = get_schedule_parent_data(sched_service.id)
         if parent_data is None:
             raise exceptions.DataRetrieveError(
-                'child process(%s) retrieve parent_data error, sched_id: %s' % (process_id, schedule_id))
+                'child process({}) retrieve parent_data error, sched_id: {}'.format(process_id, schedule_id))
 
         # schedule
         ex_data = None
@@ -75,13 +78,13 @@ def schedule(process_id, schedule_id):
             success = service_act.schedule(parent_data, sched_service.callback_data)
             if success is None:
                 success = True
-        except Exception as e:
+        except Exception:
             if service_act.error_ignorable:
                 success = True
                 service_act.ignore_error()
                 service_act.finish_schedule()
 
-            ex_data = traceback.format_exc(e)
+            ex_data = traceback.format_exc()
             logging.error(ex_data)
 
         sched_service.schedule_times += 1
@@ -91,7 +94,7 @@ def schedule(process_id, schedule_id):
         if not success:
             if not Status.objects.transit(id=act_id, version=version, to_state=states.FAILED).result:
                 # forced failed
-                logger.warning('FAILED transit failed, schedule(%s - %s) had been forced exit.' % (act_id, version))
+                logger.warning('FAILED transit failed, schedule({} - {}) had been forced exit.'.format(act_id, version))
                 sched_service.destroy()
                 return
 
@@ -99,7 +102,7 @@ def schedule(process_id, schedule_id):
                 signals.service_activity_timeout_monitor_end.send(sender=service_act.__class__,
                                                                   node_id=service_act.id,
                                                                   version=version)
-                logger.info('node %s %s timeout monitor revoke' % (service_act.id, version))
+                logger.info('node {} {} timeout monitor revoke'.format(service_act.id, version))
 
             Data.objects.write_node_data(service_act, ex_data=ex_data)
 
@@ -115,8 +118,8 @@ def schedule(process_id, schedule_id):
 
             try:
                 service_act.schedule_fail()
-            except Exception as e:
-                logger.error('schedule_fail handler fail: %s' % traceback.format_exc(e))
+            except Exception:
+                logger.error('schedule_fail handler fail: %s' % traceback.format_exc())
 
             signals.service_schedule_fail.send(sender=ScheduleService,
                                                activity_shell=service_act,
@@ -135,7 +138,8 @@ def schedule(process_id, schedule_id):
             error_ignorable = not service_act.get_result_bit()
             if not Status.objects.transit(id=act_id, version=version, to_state=states.FINISHED).result:
                 # forced failed
-                logger.warning('FINISHED transit failed, schedule(%s - %s) had been forced exit.' % (act_id, version))
+                logger.warning('FINISHED transit failed, schedule({} - {}) had been forced exit.'.format(act_id,
+                                                                                                         version))
                 sched_service.destroy()
                 return
 
@@ -143,7 +147,7 @@ def schedule(process_id, schedule_id):
                 signals.service_activity_timeout_monitor_end.send(sender=service_act.__class__,
                                                                   node_id=service_act.id,
                                                                   version=version)
-                logger.info('node %s %s timeout monitor revoke' % (service_act.id, version))
+                logger.info('node {} {} timeout monitor revoke'.format(service_act.id, version))
 
             Data.objects.write_node_data(service_act)
             if error_ignorable:
@@ -155,7 +159,7 @@ def schedule(process_id, schedule_id):
             with transaction.atomic():
                 process = PipelineProcess.objects.select_for_update().get(id=sched_service.process_id)
                 if not process.is_alive:
-                    logger.warning('schedule(%s - %s) revoked.' % (act_id, version))
+                    logger.warning('schedule({} - {}) revoked.'.format(act_id, version))
                     sched_service.destroy()
                     return
 
