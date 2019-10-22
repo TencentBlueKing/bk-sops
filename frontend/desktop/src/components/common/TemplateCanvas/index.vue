@@ -27,6 +27,7 @@
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
+            @onEndpointClick="onEndpointClick"
             @onNodeMoveStop="onNodeMoveStop"
             @onOverlayClick="onOverlayClick"
             @onFrameSelectEnd="onFrameSelectEnd"
@@ -81,6 +82,7 @@
             :is-show-hot-key="isShowHotKey"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
+        <div ref="dragReferenceLine" class="drag-reference-line"></div>
     </div>
 </template>
 <script>
@@ -169,6 +171,7 @@
                 isDisableEndPoint: false,
                 isSelectionOpen: false,
                 isShowHotKey: false,
+                isCanCreateline: false,
                 selectedNodes: [],
                 selectionOriginPos: {
                     x: 0,
@@ -177,6 +180,12 @@
                 pasteMousePos: {
                     x: 0,
                     y: 0
+                },
+                ReferenceLine: {
+                    x: 0,
+                    y: 0,
+                    id: '',
+                    arrow: ''
                 },
                 flowData,
                 endpointOptions,
@@ -193,6 +202,7 @@
             document.removeEventListener('keydown', this.nodeLinePastehandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
             document.body.removeEventListener('click', this.handerShortcutPanelHide, false)
+            document.body.removeEventListener('click', this.handerReferenceLineHide, false)
         },
         methods: {
             onZoomIn () {
@@ -525,6 +535,59 @@
                     this.isDisableEndPoint = false
                 }
             },
+            // 锚点点击回调
+            onEndpointClick (endpoint, event) {
+                // 第二次点击
+                if (this.ReferenceLine.id && endpoint.elementId !== this.ReferenceLine.id) {
+                    this.createLine(
+                        { id: this.ReferenceLine.id, arrow: this.ReferenceLine.arrow },
+                        { id: endpoint.elementId, arrow: endpoint.anchor.type }
+                    )
+                    return false
+                }
+                const line = this.$refs.dragReferenceLine
+                const { clientX, clientY } = event
+                line.style.left = clientX + 'px'
+                line.style.top = clientY - 50 + 'px'
+                this.ReferenceLine = { x: clientX, y: clientY, id: endpoint.elementId, arrow: endpoint.anchor.type }
+                document.getElementById('canvas-flow').addEventListener('mousemove', this.handerReferenceLine, false)
+            },
+            // 生成参考线
+            handerReferenceLine (e) {
+                const line = this.$refs.dragReferenceLine
+                const { x: startX, y: startY } = this.ReferenceLine
+                const { clientX, clientY } = e
+                const pX = clientX - startX
+                const pY = clientY - startY
+                let r = Math.atan2(Math.abs(pY), Math.abs(pX)) / (Math.PI / 180)
+                if (pX < 0 && pY > 0) r = 180 - r
+                if (pX < 0 && pY < 0) r = r + 180
+                if (pX > 0 && pY < 0) r = 360 - r
+                // set style
+                const len = Math.pow(Math.pow(pX, 2) + Math.pow(pY, 2), 1 / 2)
+                line.style.display = 'block'
+                line.style.width = len + 'px'
+                line.style.transformOrigin = `top left`
+                line.style.transform = 'rotate(' + r + 'deg)'
+                document.body.addEventListener('click', this.handerReferenceLineHide, false)
+            },
+            // 移出参考线
+            handerReferenceLineHide (e) {
+                const line = this.$refs.dragReferenceLine
+                this.ReferenceLine.id = ''
+                line.style.display = 'none'
+                document.getElementById('canvas-flow').removeEventListener('mousemove', this.handerReferenceLine, false)
+                document.body.removeEventListener('click', this.handerReferenceLineHide, false)
+            },
+            createLine (source, target) {
+                const line = {
+                    source,
+                    target
+                }
+                this.$refs.jsFlow.createConnector(line)
+                this.$emit('onLineChange', 'add', line)
+                this.ReferenceLine.id = ''
+            },
             onRetryClick (id) {
                 this.$emit('onRetryClick', id)
             },
@@ -742,6 +805,26 @@
         }
         .jsflow-node.actived {
             z-index: 99999;
+        }
+    }
+    .drag-reference-line {
+        display: none;
+        position: absolute;
+        width: 0px;
+        height: 2px;
+        background: #979ba5;
+        left: 120px;
+        top: 126px;
+        &::before {
+            position: absolute;
+            right: 0;
+            top: -3px;
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 4px solid transparent;
+            border-left: 8px solid #979ba5;
+            border-bottom: 4px solid transparent;
         }
     }
 </style>
