@@ -11,80 +11,82 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import unicode_literals
-from mock.mock import MagicMock
+from __future__ import absolute_import, unicode_literals
+
+from collections import OrderedDict
 
 from django.test import TestCase
+from mock.mock import MagicMock, patch
 
 from auth_backend.resources.migrations.differ import SnapshotDiffer
+from auth_backend.tests.mock_path import *  # noqa
 
 
 class SnapshotDifferTestCase(TestCase):
 
     def setUp(self):
         self.maxDiff = None
-        self.snapshot = {
-            'system': [
-                {
-                    "resource_type_name": "资源A",
-                    "actions": [
-                        {
-                            "action_name": "查看",
-                            "is_related_resource": True,
-                            "action_id": "view"
-                        },
-                        {
-                            "action_name": "编辑",
-                            "is_related_resource": True,
-                            "action_id": "edit"
-                        },
-                        {
-                            "action_name": "删除",
-                            "is_related_resource": True,
-                            "action_id": "delete"
-                        }
-                    ],
-                    "parent_resource_type": "project",
-                    "resource_type": "resource_a"
-                },
-                {
-                    "resource_type_name": "资源B",
-                    "actions": [
-                        {
-                            "action_name": "查看",
-                            "is_related_resource": True,
-                            "action_id": "view"
-                        },
-                        {
-                            "action_name": "删除",
-                            "is_related_resource": True,
-                            "action_id": "delete"
-                        }
-                    ],
-                    "parent_resource_type": "project",
-                    "resource_type": "resource_b"
-                },
-            ],
-            'business': [
-                {
-                    "resource_type_name": "资源C",
-                    "actions": [
-                        {
-                            "action_name": "查看",
-                            "is_related_resource": True,
-                            "action_id": "view"
-                        },
-                        {
-                            "action_name": "删除",
-                            "is_related_resource": True,
-                            "action_id": "delete"
-                        }
-                    ],
-                    "parent_resource_type": "",
-                    "resource_type": "resource_c"
-                },
-            ]
-        }
+        self.snapshot = OrderedDict()
+        self.snapshot['system'] = [
+            {
+                "resource_type_name": "资源A",
+                "actions": [
+                    {
+                        "action_name": "查看",
+                        "is_related_resource": True,
+                        "action_id": "view"
+                    },
+                    {
+                        "action_name": "编辑",
+                        "is_related_resource": True,
+                        "action_id": "edit"
+                    },
+                    {
+                        "action_name": "删除",
+                        "is_related_resource": True,
+                        "action_id": "delete"
+                    }
+                ],
+                "parent_resource_type": "project",
+                "resource_type": "resource_a"
+            },
+            {
+                "resource_type_name": "资源B",
+                "actions": [
+                    {
+                        "action_name": "查看",
+                        "is_related_resource": True,
+                        "action_id": "view"
+                    },
+                    {
+                        "action_name": "删除",
+                        "is_related_resource": True,
+                        "action_id": "delete"
+                    }
+                ],
+                "parent_resource_type": "project",
+                "resource_type": "resource_b"
+            },
+        ]
+        self.snapshot['business'] = [
+            {
+                "resource_type_name": "资源C",
+                "actions": [
+                    {
+                        "action_name": "查看",
+                        "is_related_resource": True,
+                        "action_id": "view"
+                    },
+                    {
+                        "action_name": "删除",
+                        "is_related_resource": True,
+                        "action_id": "delete"
+                    }
+                ],
+                "parent_resource_type": "",
+                "resource_type": "resource_c"
+            },
+        ]
 
     def test_has_change(self):
         change_differ = SnapshotDiffer(last_snapshot={'a': 1}, snapshot={'a': 2})
@@ -94,51 +96,62 @@ class SnapshotDifferTestCase(TestCase):
         self.assertFalse(no_change_differ.has_change())
 
     def test_init_diff_operations(self):
-        differ = SnapshotDiffer(last_snapshot=None, snapshot=self.snapshot)
-        operations = differ.init_diff_operations()
-        expect = [{'data': {'creator': 'admin',
-                            'desc': '',
-                            'managers': 'admin',
-                            'query_interface': '',
-                            'related_scope_types': 'system',
-                            'system_id': 'bk_sops',
-                            'system_name': '标准运维'},
-                   'operation': 'register_system'},
-                  {'data': {'resource_types': [{'actions': [{'action_id': 'view',
-                                                             'action_name': '查看',
-                                                             'is_related_resource': True},
-                                                            {'action_id': 'edit',
-                                                             'action_name': '编辑',
-                                                             'is_related_resource': True},
-                                                            {'action_id': 'delete',
-                                                             'action_name': '删除',
-                                                             'is_related_resource': True}],
-                                                'parent_resource_type': 'project',
-                                                'resource_type': 'resource_a',
-                                                'resource_type_name': '资源A'},
-                                               {'actions': [{'action_id': 'view',
-                                                             'action_name': '查看',
-                                                             'is_related_resource': True},
-                                                            {'action_id': 'delete',
-                                                             'action_name': '删除',
-                                                             'is_related_resource': True}],
-                                                'parent_resource_type': 'project',
-                                                'resource_type': 'resource_b',
-                                                'resource_type_name': '资源B'}],
-                            'scope_type': 'system'},
-                   'operation': 'batch_upsert_resource_types'},
-                  {'data': {'resource_types': [{'actions': [{'action_id': 'view',
-                                                             'action_name': '查看',
-                                                             'is_related_resource': True},
-                                                            {'action_id': 'delete',
-                                                             'action_name': '删除',
-                                                             'is_related_resource': True}],
-                                                'parent_resource_type': '',
-                                                'resource_type': 'resource_c',
-                                                'resource_type_name': '资源C'}],
-                            'scope_type': 'business'},
-                   'operation': 'batch_upsert_resource_types'}]
-        self.assertEqual(operations, expect)
+
+        setttings = MagicMock()
+        setattr(setttings, 'BK_IAM_SYSTEM_ID', 'BK_IAM_SYSTEM_ID')
+        setattr(setttings, 'BK_IAM_SYSTEM_NAME', 'BK_IAM_SYSTEM_NAME')
+        setattr(setttings, 'BK_IAM_SYSTEM_DESC', 'BK_IAM_SYSTEM_DESC')
+        setattr(setttings, 'BK_IAM_QUERY_INTERFACE', 'BK_IAM_QUERY_INTERFACE')
+        setattr(setttings, 'BK_IAM_RELATED_SCOPE_TYPES', 'BK_IAM_RELATED_SCOPE_TYPES')
+        setattr(setttings, 'BK_IAM_SYSTEM_MANAGERS', 'BK_IAM_SYSTEM_MANAGERS')
+        setattr(setttings, 'BK_IAM_SYSTEM_CREATOR', 'BK_IAM_SYSTEM_CREATOR')
+
+        with patch(MIGRATION_DIFFER_SETTINGS, setttings):
+            differ = SnapshotDiffer(last_snapshot=None, snapshot=self.snapshot)
+            operations = differ.init_diff_operations()
+            expect = [{'data': {'creator': setttings.BK_IAM_SYSTEM_CREATOR,
+                                'desc': setttings.BK_IAM_SYSTEM_DESC,
+                                'managers': setttings.BK_IAM_SYSTEM_MANAGERS,
+                                'query_interface': setttings.BK_IAM_QUERY_INTERFACE,
+                                'related_scope_types': setttings.BK_IAM_RELATED_SCOPE_TYPES,
+                                'system_id': setttings.BK_IAM_SYSTEM_ID,
+                                'system_name': setttings.BK_IAM_SYSTEM_NAME},
+                       'operation': 'register_system'},
+                      {'data': {'resource_types': [{'actions': [{'action_id': 'view',
+                                                                 'action_name': '查看',
+                                                                 'is_related_resource': True},
+                                                                {'action_id': 'edit',
+                                                                 'action_name': '编辑',
+                                                                 'is_related_resource': True},
+                                                                {'action_id': 'delete',
+                                                                 'action_name': '删除',
+                                                                 'is_related_resource': True}],
+                                                    'parent_resource_type': 'project',
+                                                    'resource_type': 'resource_a',
+                                                    'resource_type_name': '资源A'},
+                                                   {'actions': [{'action_id': 'view',
+                                                                 'action_name': '查看',
+                                                                 'is_related_resource': True},
+                                                                {'action_id': 'delete',
+                                                                 'action_name': '删除',
+                                                                 'is_related_resource': True}],
+                                                    'parent_resource_type': 'project',
+                                                    'resource_type': 'resource_b',
+                                                    'resource_type_name': '资源B'}],
+                                'scope_type': 'system'},
+                       'operation': 'batch_upsert_resource_types'},
+                      {'data': {'resource_types': [{'actions': [{'action_id': 'view',
+                                                                 'action_name': '查看',
+                                                                 'is_related_resource': True},
+                                                                {'action_id': 'delete',
+                                                                 'action_name': '删除',
+                                                                 'is_related_resource': True}],
+                                                    'parent_resource_type': '',
+                                                    'resource_type': 'resource_c',
+                                                    'resource_type_name': '资源C'}],
+                                'scope_type': 'business'},
+                       'operation': 'batch_upsert_resource_types'}, ]
+            self.assertEqual(operations, expect)
 
     def test_diff_operations__init(self):
         differ = SnapshotDiffer(last_snapshot=None, snapshot=self.snapshot)
@@ -337,7 +350,7 @@ class SnapshotDifferTestCase(TestCase):
                                                 'resource_type': 'resource_c',
                                                 'resource_type_name': '资源C'}],
                             'scope_type': 'business'},
-                   'operation': 'batch_upsert_resource_types'}]
+                   'operation': 'batch_upsert_resource_types'}, ]
         operations = differ.diff_operations()
         self.assertEqual(expect, operations)
 
@@ -465,7 +478,7 @@ class SnapshotDifferTestCase(TestCase):
                                                 'resource_type': 'resource_e',
                                                 'resource_type_name': '资源E'}],
                             'scope_type': 'business'},
-                   'operation': 'batch_upsert_resource_types'}]
+                   'operation': 'batch_upsert_resource_types'}, ]
 
         differ = SnapshotDiffer(last_snapshot=self.snapshot, snapshot=new_snapshot)
         operations = differ.diff_operations()

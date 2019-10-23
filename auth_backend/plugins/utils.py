@@ -11,9 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
 import logging
 
+import six
 from blueapps.utils.cache import with_cache
+from builtins import str
 
 from auth_backend.plugins.constants import PRINCIPAL_TYPE_USER
 
@@ -26,7 +30,7 @@ def build_need_permission(auth_resource, action_id, instance=None, scope_id=None
     resource = base_info.pop('resource')
     resources = []
     if instance is not None:
-        resource_id = instance if isinstance(instance, (basestring, int)) else auth_resource.resource_id(instance)
+        resource_id = instance if isinstance(instance, (six.string_types, int)) else auth_resource.resource_id(instance)
         resource.update({
             'resource_id': resource_id,
             'resource_name': auth_resource.resource_name(instance)
@@ -58,7 +62,7 @@ def search_all_resources_authorized_actions(username, resource_type, auth_resour
     @return:
     """
     if action_ids is None:
-        action_ids = auth_resource.actions_map.keys()
+        action_ids = list(auth_resource.actions_map.keys())
     authorized_result = auth_resource.backend.search_authorized_resources(
         resource=auth_resource,
         principal_type=PRINCIPAL_TYPE_USER,
@@ -66,7 +70,7 @@ def search_all_resources_authorized_actions(username, resource_type, auth_resour
         action_ids=action_ids,
         scope_id=scope_id)
     if not authorized_result['result']:
-        logger.error(u"Search authorized resources of Resource[{resource}] return error: {error}".format(
+        logger.error("Search authorized resources of Resource[{resource}] return error: {error}".format(
             resource=auth_resource.name,
             error=authorized_result['message']
         ))

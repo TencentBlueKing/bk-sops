@@ -11,14 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import patch, MagicMock, call
+from __future__ import absolute_import, unicode_literals
 
 from django.test import TestCase
+from mock import MagicMock, call, patch
 
 from auth_backend import exceptions
-from auth_backend.resources.interfaces import InstanceIterableResource
 from auth_backend.contrib.consistency import legacy
 from auth_backend.contrib.consistency.tests.mock_path import *  # noqa
+from auth_backend.resources.interfaces import InstanceIterableResource
 
 
 class ZeroInstanceResource(InstanceIterableResource):

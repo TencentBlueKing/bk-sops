@@ -1,0 +1,37 @@
+# -*- coding: utf-8 -*-
+
+from django.db import migrations
+from django.db.migrations.loader import MigrationLoader
+
+from auth_backend.resources.migrations import ResourceMigration
+from auth_backend.resources.migrations.finder import ResourceSnapshotReader
+from auth_backend.resources.migrations.differ import SnapshotDiffer
+
+
+def forward_func(apps, schema_editor):
+    reader = ResourceSnapshotReader(Migration.snapshot_json)
+    snapshot = reader.read()
+    last_snapshot = None
+
+    if Migration.dependencies:
+        loader = MigrationLoader(None, ignore_no_migrations=True)
+        last_migration = loader.disk_migrations[Migration.dependencies[0]]
+        last_reader = ResourceSnapshotReader(last_migration.snapshot_json)
+        last_snapshot = last_reader.read()
+
+    differ = SnapshotDiffer(last_snapshot, snapshot)
+    operations = differ.diff_operations()
+
+    migration = ResourceMigration.get_migration(operations)
+
+    migration.apply()
+
+
+class Migration(migrations.Migration):
+    snapshot_json = '0003_bk_sops_201910231718'
+
+    dependencies = [('auth_backend', '0002_201909061515')]
+
+    operations = [
+        migrations.RunPython(forward_func)
+    ]

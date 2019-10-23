@@ -11,12 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch, call
+from __future__ import absolute_import, unicode_literals
 
 from django.test import TestCase
+from mock import MagicMock, call, patch
+from six.moves import range
 
 from auth_backend.backends.bkiam import BKIAMBackend
-
 from auth_backend.tests.mock_path import *  # noqa
 
 
@@ -35,6 +36,7 @@ class BKIAMBackendTestCase(TestCase):
         self.principal_type = 'principal_type_token'
         self.principal_id = 'principal_id_token'
         self.action_ids = ['new', 'view', 'edit']
+        self.properties = {'k': 'v', 'k2': 'v2'}
 
         resource = MagicMock()
         resource.rtype = self.resource_type
@@ -43,6 +45,7 @@ class BKIAMBackendTestCase(TestCase):
         resource.creator_id = MagicMock(return_value=self.creator_id)
         resource.resource_name = MagicMock(return_value=self.resource_name)
         resource.real_scope_id = MagicMock(return_value=self.real_scope_id)
+        resource.resource_properties = MagicMock(return_value=self.properties)
 
         resource_1 = MagicMock()
         resource_1.rtype = self.resource_type + '_1'
@@ -78,13 +81,17 @@ class BKIAMBackendTestCase(TestCase):
         self.resource.creator_id.assert_called_once_with(self.instance)
         self.resource.real_scope_id.assert_not_called()
         self.resource.resource_name.assert_called_once_with(self.instance)
-        self.backend.client.register_resource.assert_called_once_with(creator_type=self.creator_type,
-                                                                      creator_id=self.creator_id,
-                                                                      scope_type=self.scope_type,
-                                                                      scope_id=self.scope_id,
-                                                                      resource_type=self.resource_type,
-                                                                      resource_name=self.resource_name,
-                                                                      resource_id=self.resource_id)
+        self.resource.resource_properties.assert_called_once_with(self.instance)
+        self.backend.client.register_resource.assert_called_once_with(
+            creator_type=self.creator_type,
+            creator_id=self.creator_id,
+            scope_type=self.scope_type,
+            scope_id=self.scope_id,
+            resource_type=self.resource_type,
+            resource_name=self.resource_name,
+            resource_id=self.resource_id,
+            properties=self.properties
+        )
 
     @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
@@ -95,13 +102,39 @@ class BKIAMBackendTestCase(TestCase):
         self.resource.creator_id.assert_called_once_with(self.instance)
         self.resource.real_scope_id.assert_called_once_with(self.instance, None)
         self.resource.resource_name.assert_called_once_with(self.instance)
-        self.backend.client.register_resource.assert_called_once_with(creator_type=self.creator_type,
-                                                                      creator_id=self.creator_id,
-                                                                      scope_type=self.scope_type,
-                                                                      scope_id=self.real_scope_id,
-                                                                      resource_type=self.resource_type,
-                                                                      resource_name=self.resource_name,
-                                                                      resource_id=self.resource_id)
+        self.resource.resource_properties.assert_called_once_with(self.instance)
+        self.backend.client.register_resource.assert_called_once_with(
+            creator_type=self.creator_type,
+            creator_id=self.creator_id,
+            scope_type=self.scope_type,
+            scope_id=self.real_scope_id,
+            resource_type=self.resource_type,
+            resource_name=self.resource_name,
+            resource_id=self.resource_id,
+            properties=self.properties
+        )
+
+    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    def test_register_instance__without_properties(self):
+        self.resource.resource_properties = MagicMock(return_value=None)
+        self.backend.register_instance(resource=self.resource, instance=self.instance)
+
+        self.resource.creator_type.assert_called_once_with(self.instance)
+        self.resource.creator_id.assert_called_once_with(self.instance)
+        self.resource.resource_name.assert_called_once_with(self.instance)
+        self.resource.resource_properties.assert_called_once_with(self.instance)
+        self.resource.resource_properties.assert_called_once_with(self.instance)
+        self.backend.client.register_resource.assert_called_once_with(
+            creator_type=self.creator_type,
+            creator_id=self.creator_id,
+            scope_type=self.scope_type,
+            scope_id=self.real_scope_id,
+            resource_type=self.resource_type,
+            resource_name=self.resource_name,
+            resource_id=self.resource_id,
+            properties={}
+        )
 
     def test_batch_register_instance__with_empty_instances(self):
         self.assertRaises(ValueError, self.backend.batch_register_instance, self.resource, None)
@@ -114,6 +147,7 @@ class BKIAMBackendTestCase(TestCase):
 
         self.resource.real_scope_id.assert_not_called()
         self.resource.resource_name.assert_has_calls([call(instance) for instance in self.instances])
+        self.resource.resource_properties.assert_has_calls([call(instance) for instance in self.instances])
         self.resource.creator_type.assert_called_once_with(self.instances[0])
         self.resource.creator_id.assert_called_once_with(self.instances[0])
         self.backend.client.batch_register_resource.assert_called_once_with(creator_type=self.creator_type,
@@ -123,7 +157,8 @@ class BKIAMBackendTestCase(TestCase):
                                                                                 'scope_id': self.scope_id,
                                                                                 'resource_type': self.resource.rtype,
                                                                                 'resource_id': self.resource_id,
-                                                                                'resource_name': self.resource_name
+                                                                                'resource_name': self.resource_name,
+                                                                                'properties': self.properties
                                                                             } for _ in self.instances])
 
     @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
@@ -133,6 +168,7 @@ class BKIAMBackendTestCase(TestCase):
 
         self.resource.real_scope_id.assert_has_calls([call(instance, None) for instance in self.instances])
         self.resource.resource_name.assert_has_calls([call(instance) for instance in self.instances])
+        self.resource.resource_properties.assert_has_calls([call(instance) for instance in self.instances])
         self.resource.creator_type.assert_called_once_with(self.instances[0])
         self.resource.creator_id.assert_called_once_with(self.instances[0])
         self.backend.client.batch_register_resource.assert_called_once_with(creator_type=self.creator_type,
@@ -142,7 +178,8 @@ class BKIAMBackendTestCase(TestCase):
                                                                                 'scope_id': self.real_scope_id,
                                                                                 'resource_type': self.resource.rtype,
                                                                                 'resource_id': self.resource_id,
-                                                                                'resource_name': self.resource_name
+                                                                                'resource_name': self.resource_name,
+                                                                                'properties': self.properties
                                                                             } for _ in self.instances])
 
     @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
@@ -156,7 +193,8 @@ class BKIAMBackendTestCase(TestCase):
                                                                     scope_id=self.scope_id,
                                                                     resource_type=self.resource_type,
                                                                     resource_id=self.resource_id,
-                                                                    resource_name=self.resource_name)
+                                                                    resource_name=self.resource_name,
+                                                                    properties=self.properties)
 
     @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
@@ -169,7 +207,23 @@ class BKIAMBackendTestCase(TestCase):
                                                                     scope_id=self.real_scope_id,
                                                                     resource_type=self.resource_type,
                                                                     resource_id=self.resource_id,
-                                                                    resource_name=self.resource_name)
+                                                                    resource_name=self.resource_name,
+                                                                    properties=self.properties)
+
+    @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
+    def test_update_instance__without_properties(self):
+        self.resource.resource_properties = MagicMock(return_value=None)
+        self.backend.update_instance(resource=self.resource, instance=self.instance, scope_id=self.scope_id)
+
+        self.resource.real_scope_id.assert_not_called()
+        self.resource.resource_name.assert_called_once_with(self.instance)
+        self.backend.client.update_resource.assert_called_once_with(scope_type=self.scope_type,
+                                                                    scope_id=self.scope_id,
+                                                                    resource_type=self.resource_type,
+                                                                    resource_id=self.resource_id,
+                                                                    resource_name=self.resource_name,
+                                                                    properties={})
 
     @patch(BACKEND_BKIAM_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
     @patch(BACKEND_UTILS_RESOURCE_ID_FOR, MagicMock(return_value=resource_id))
