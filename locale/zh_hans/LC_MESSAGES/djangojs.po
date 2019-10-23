@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-15 16:50+0800\n"
+"POT-Creation-Date: 2019-10-23 19:34+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -178,7 +178,7 @@ msgstr "请输入拓扑实例名称，多个用换行符分隔"
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/DynamicIp.vue:53
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:128
 #: frontend/desktop/src/components/common/RenderForm/formMixins.js:200
-#: frontend/desktop/src/main.js:84
+#: frontend/desktop/src/main.js:85
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/CacheForm.vue:179
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageForm.vue:277
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabTemplateConfig.vue:83
@@ -298,6 +298,7 @@ msgid "操作"
 msgstr "操作"
 
 #: frontend/desktop/src/components/common/RenderForm/IpSelector/StaticIp.vue:123
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:69
 msgid "移除"
 msgstr "移除"
 
@@ -514,7 +515,7 @@ msgid "排版"
 msgstr "排版"
 
 #: frontend/desktop/src/components/common/TemplateCanvas/ToolPanel/index.vue:121
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:80
+#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:81
 #: frontend/desktop/src/pages/template/TemplateList/ExportTemplateDialog.vue:154
 msgid "全选"
 msgstr "全选"
@@ -767,6 +768,7 @@ msgstr "没找到页面！"
 #: pipeline_plugins/components/static/components/atoms/job/job_cron_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:18
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:18
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:7
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:18
 msgid "业务"
 msgstr "业务"
@@ -962,253 +964,253 @@ msgstr "文件系统"
 msgid "服务器文件系统路径"
 msgstr "服务器文件系统路径"
 
-#: frontend/desktop/src/main.js:71 frontend/desktop/src/main.js:155
+#: frontend/desktop/src/main.js:72 frontend/desktop/src/main.js:156
 msgid "输入定时表达式非法，请校验"
 msgstr "输入定时表达式非法，请校验"
 
-#: frontend/desktop/src/main.js:77 frontend/desktop/src/main.js:159
+#: frontend/desktop/src/main.js:78 frontend/desktop/src/main.js:160
 msgid "间隔时间必须是正整数"
 msgstr "间隔时间必须是正整数"
 
-#: frontend/desktop/src/main.js:88
+#: frontend/desktop/src/main.js:89
 msgid "流程名称不能为空"
 msgstr "流程名称不能为空"
 
-#: frontend/desktop/src/main.js:89
+#: frontend/desktop/src/main.js:90
 msgid "流程名称不能包含"
 msgstr "流程名称不能包含"
 
-#: frontend/desktop/src/main.js:89 frontend/desktop/src/main.js:94
-#: frontend/desktop/src/main.js:98 frontend/desktop/src/main.js:103
-#: frontend/desktop/src/main.js:121 frontend/desktop/src/main.js:126
-#: frontend/desktop/src/main.js:134 frontend/desktop/src/main.js:142
-#: frontend/desktop/src/main.js:147 frontend/desktop/src/main.js:163
+#: frontend/desktop/src/main.js:90 frontend/desktop/src/main.js:95
+#: frontend/desktop/src/main.js:99 frontend/desktop/src/main.js:104
+#: frontend/desktop/src/main.js:122 frontend/desktop/src/main.js:127
+#: frontend/desktop/src/main.js:135 frontend/desktop/src/main.js:143
+#: frontend/desktop/src/main.js:148 frontend/desktop/src/main.js:164
 msgid "非法字符"
 msgstr "非法字符"
 
-#: frontend/desktop/src/main.js:90
+#: frontend/desktop/src/main.js:91
 msgid "流程名称长度不能超过"
 msgstr "流程名称长度不能超过"
 
-#: frontend/desktop/src/main.js:90 frontend/desktop/src/main.js:95
-#: frontend/desktop/src/main.js:99 frontend/desktop/src/main.js:104
-#: frontend/desktop/src/main.js:109 frontend/desktop/src/main.js:122
-#: frontend/desktop/src/main.js:127 frontend/desktop/src/main.js:135
-#: frontend/desktop/src/main.js:138 frontend/desktop/src/main.js:143
-#: frontend/desktop/src/main.js:148 frontend/desktop/src/main.js:151
-#: frontend/desktop/src/main.js:164 frontend/desktop/src/main.js:168
-#: frontend/desktop/src/main.js:172 frontend/desktop/src/main.js:176
+#: frontend/desktop/src/main.js:91 frontend/desktop/src/main.js:96
+#: frontend/desktop/src/main.js:100 frontend/desktop/src/main.js:105
+#: frontend/desktop/src/main.js:110 frontend/desktop/src/main.js:123
+#: frontend/desktop/src/main.js:128 frontend/desktop/src/main.js:136
+#: frontend/desktop/src/main.js:139 frontend/desktop/src/main.js:144
+#: frontend/desktop/src/main.js:149 frontend/desktop/src/main.js:152
+#: frontend/desktop/src/main.js:165 frontend/desktop/src/main.js:169
+#: frontend/desktop/src/main.js:173 frontend/desktop/src/main.js:177
 msgid "个字符"
 msgstr "个字符"
 
-#: frontend/desktop/src/main.js:93
+#: frontend/desktop/src/main.js:94
 msgid "节点名称不能为空"
 msgstr "节点名称不能为空"
 
-#: frontend/desktop/src/main.js:94
+#: frontend/desktop/src/main.js:95
 msgid "节点名称不能包含"
 msgstr "节点名称不能包含"
 
-#: frontend/desktop/src/main.js:95
+#: frontend/desktop/src/main.js:96
 msgid "节点名称长度不能超过"
 msgstr "节点名称长度不能超过"
 
-#: frontend/desktop/src/main.js:98
+#: frontend/desktop/src/main.js:99
 msgid "步骤名称不能包含"
 msgstr "步骤名称不能包含"
 
-#: frontend/desktop/src/main.js:99
+#: frontend/desktop/src/main.js:100
 msgid "步骤名称不能超过"
 msgstr "步骤名称不能超过"
 
-#: frontend/desktop/src/main.js:102
+#: frontend/desktop/src/main.js:103
 msgid "变量名称不能为空"
 msgstr "变量名称不能为空"
 
-#: frontend/desktop/src/main.js:103
+#: frontend/desktop/src/main.js:104
 msgid "变量名称不能包含"
 msgstr "变量名称不能包含"
 
-#: frontend/desktop/src/main.js:104
+#: frontend/desktop/src/main.js:105
 msgid "变量名称长度不能超过"
 msgstr "变量名称长度不能超过"
 
-#: frontend/desktop/src/main.js:107
+#: frontend/desktop/src/main.js:108
 msgid "变量KEY值不能为空"
 msgstr "变量KEY值不能为空"
 
-#: frontend/desktop/src/main.js:108
+#: frontend/desktop/src/main.js:109
 msgid "变量KEY由英文字母、数字、下划线组成，且不能以数字开头"
 msgstr "变量KEY由英文字母、数字、下划线组成，且不能以数字开头"
 
-#: frontend/desktop/src/main.js:109
+#: frontend/desktop/src/main.js:110
 msgid "变量KEY值长度不能超过"
 msgstr "变量KEY值长度不能超过"
 
-#: frontend/desktop/src/main.js:110
+#: frontend/desktop/src/main.js:111
 msgid "变量KEY值已存在"
 msgstr "变量KEY值已存在"
 
-#: frontend/desktop/src/main.js:113
+#: frontend/desktop/src/main.js:114
 msgid "变量隐藏时默认值不能为空"
 msgstr "变量隐藏时默认值不能为空"
 
-#: frontend/desktop/src/main.js:114
+#: frontend/desktop/src/main.js:115
 msgid "默认值不满足正则校验"
 msgstr "默认值不满足正则校验"
 
-#: frontend/desktop/src/main.js:117
+#: frontend/desktop/src/main.js:118
 msgid "正则校验不是合法的正则表达式"
 msgstr "正则校验不是合法的正则表达式"
 
-#: frontend/desktop/src/main.js:120 frontend/mobile/src/main.js:111
+#: frontend/desktop/src/main.js:121 frontend/mobile/src/main.js:111
 msgid "任务名称不能为空"
 msgstr "任务名称不能为空"
 
-#: frontend/desktop/src/main.js:121
+#: frontend/desktop/src/main.js:122
 msgid "任务名称不能包含"
 msgstr "任务名称不能包含"
 
-#: frontend/desktop/src/main.js:122
+#: frontend/desktop/src/main.js:123
 msgid "任务名称不能超过"
 msgstr "任务名称不能超过"
 
-#: frontend/desktop/src/main.js:125
+#: frontend/desktop/src/main.js:126
 msgid "方案名称不能为空"
 msgstr "方案名称不能为空"
 
-#: frontend/desktop/src/main.js:126
+#: frontend/desktop/src/main.js:127
 msgid "方案名称不能包含"
 msgstr "方案名称不能包含"
 
-#: frontend/desktop/src/main.js:127
+#: frontend/desktop/src/main.js:128
 msgid "方案名称不能超过"
 msgstr "方案名称不能超过"
 
-#: frontend/desktop/src/main.js:130
+#: frontend/desktop/src/main.js:131
 #: frontend/desktop/src/pages/appmaker/AppEditDialog.vue:196
 msgid "流程模板不能为空"
 msgstr "流程模板不能为空"
 
-#: frontend/desktop/src/main.js:133
+#: frontend/desktop/src/main.js:134
 msgid "应用名称不能为空"
 msgstr "应用名称不能为空"
 
-#: frontend/desktop/src/main.js:134
+#: frontend/desktop/src/main.js:135
 msgid "应用名称不能包含"
 msgstr "应用名称不能包含"
 
-#: frontend/desktop/src/main.js:135
+#: frontend/desktop/src/main.js:136
 msgid "应用名称不能超过"
 msgstr "应用名称不能超过"
 
-#: frontend/desktop/src/main.js:138
+#: frontend/desktop/src/main.js:139
 msgid "应用简介不能超过"
 msgstr "应用简介不能超过"
 
-#: frontend/desktop/src/main.js:141
+#: frontend/desktop/src/main.js:142
 msgid "定时流程名称不能为空"
 msgstr "定时流程名称不能为空"
 
-#: frontend/desktop/src/main.js:142
+#: frontend/desktop/src/main.js:143
 msgid "定时流程名称包含"
 msgstr "定时流程名称包含"
 
-#: frontend/desktop/src/main.js:143
+#: frontend/desktop/src/main.js:144
 msgid "定时流程名称不能超过"
 msgstr "定时流程名称不能超过"
 
-#: frontend/desktop/src/main.js:146
+#: frontend/desktop/src/main.js:147
 msgid "项目名称不能为空"
 msgstr "项目名称不能为空"
 
-#: frontend/desktop/src/main.js:147
+#: frontend/desktop/src/main.js:148
 msgid "项目名称包含"
 msgstr "项目名称包含"
 
-#: frontend/desktop/src/main.js:148
+#: frontend/desktop/src/main.js:149
 msgid "项目名称不能超过"
 msgstr "项目名称不能超过"
 
-#: frontend/desktop/src/main.js:151
+#: frontend/desktop/src/main.js:152
 msgid "项目描述不能超过"
 msgstr "项目描述不能超过"
 
-#: frontend/desktop/src/main.js:154
+#: frontend/desktop/src/main.js:155
 msgid "定时表达式不能为空"
 msgstr "定时表达式不能为空"
 
-#: frontend/desktop/src/main.js:158
+#: frontend/desktop/src/main.js:159
 msgid "间隔时间不能为空"
 msgstr "间隔时间不能为空"
 
-#: frontend/desktop/src/main.js:162
+#: frontend/desktop/src/main.js:163
 msgid "本地缓存名称不能为空"
 msgstr "本地缓存名称不能为空"
 
-#: frontend/desktop/src/main.js:163
+#: frontend/desktop/src/main.js:164
 msgid "本地缓存名称包含"
 msgstr "本地缓存名称包含"
 
-#: frontend/desktop/src/main.js:164
+#: frontend/desktop/src/main.js:165
 msgid "本地缓存名称不能超过"
 msgstr "本地缓存名称不能超过"
 
-#: frontend/desktop/src/main.js:167 frontend/desktop/src/main.js:171
-#: frontend/desktop/src/main.js:175
+#: frontend/desktop/src/main.js:168 frontend/desktop/src/main.js:172
+#: frontend/desktop/src/main.js:176
 msgid "名称由英文字母、数字、下划线组成，且不能以数字开头"
 msgstr "名称由英文字母、数字、下划线组成，且不能以数字开头"
 
-#: frontend/desktop/src/main.js:168 frontend/desktop/src/main.js:172
-#: frontend/desktop/src/main.js:176
+#: frontend/desktop/src/main.js:169 frontend/desktop/src/main.js:173
+#: frontend/desktop/src/main.js:177
 msgid "名称长度不能超过"
 msgstr "名称长度不能超过"
 
-#: frontend/desktop/src/main.js:179
+#: frontend/desktop/src/main.js:180
 msgid "开始分钟数不能为空"
 msgstr "开始分钟数不能为空"
 
-#: frontend/desktop/src/main.js:180
+#: frontend/desktop/src/main.js:181
 msgid "请输入 0 - 59 之间的数"
 msgstr "请输入 0 - 59 之间的数"
 
-#: frontend/desktop/src/main.js:183
+#: frontend/desktop/src/main.js:184
 msgid "开始小时数不能为空"
 msgstr "开始小时数不能为空"
 
-#: frontend/desktop/src/main.js:184
+#: frontend/desktop/src/main.js:185
 msgid "请输入 0 - 23 之间的数"
 msgstr "请输入 0 - 23 之间的数"
 
-#: frontend/desktop/src/main.js:187
+#: frontend/desktop/src/main.js:188
 msgid "开始周数不能为空"
 msgstr "开始周数不能为空"
 
-#: frontend/desktop/src/main.js:188
+#: frontend/desktop/src/main.js:189
 msgid "请输入 0 - 6 之间的数"
 msgstr "请输入 0 - 6 之间的数"
 
-#: frontend/desktop/src/main.js:191
+#: frontend/desktop/src/main.js:192
 msgid "开始天数不能为空"
 msgstr "开始天数不能为空"
 
-#: frontend/desktop/src/main.js:192
+#: frontend/desktop/src/main.js:193
 msgid "请输入 1 - 31 之间的数"
 msgstr "请输入 1 - 31 之间的数"
 
-#: frontend/desktop/src/main.js:195
+#: frontend/desktop/src/main.js:196
 msgid "开始月数不能为空"
 msgstr "开始月数不能为空"
 
-#: frontend/desktop/src/main.js:196
+#: frontend/desktop/src/main.js:197
 msgid "请输入 1 - 12 之间的数"
 msgstr "请输入 1 - 12 之间的数"
 
-#: frontend/desktop/src/main.js:199
+#: frontend/desktop/src/main.js:200
 msgid "test不能为空"
 msgstr "test不能为空"
 
-#: frontend/desktop/src/main.js:200
+#: frontend/desktop/src/main.js:201
 msgid "请输入 test 之间的数"
 msgstr "请输入 test 之间的数"
 
@@ -1228,7 +1230,7 @@ msgstr "添加本地缓存"
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:251
 #: frontend/desktop/src/pages/project/index.vue:258
 #: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:243
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:136
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:138
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:106
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:114
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableEdit.vue:178
@@ -1281,7 +1283,7 @@ msgstr "本地缓存"
 
 #: frontend/desktop/src/pages/admin/manage/SourceEdit/PackageEdit.vue:59
 #: frontend/desktop/src/pages/task/TaskCreate/TaskParamFill.vue:146
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:82
+#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:83
 msgid "下一步"
 msgstr "下一步"
 
@@ -1362,7 +1364,7 @@ msgstr "所属模块"
 #: frontend/desktop/src/pages/periodic/PeriodicList/index.vue:230
 #: frontend/desktop/src/pages/task/TaskCreate/TaskScheme.vue:149
 #: frontend/desktop/src/pages/task/TaskList/index.vue:346
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:135
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:137
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabLocalDraft.vue:105
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:349
 msgid "新建"
@@ -2343,7 +2345,7 @@ msgstr "方案添加成功"
 msgid "方案删除成功"
 msgstr "方案删除成功"
 
-#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:81
+#: frontend/desktop/src/pages/task/TaskCreate/TaskSelectNode.vue:82
 msgid "取消全选"
 msgstr "取消全选"
 
@@ -2425,6 +2427,7 @@ msgstr "序号"
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:370
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:410
 #: frontend/mobile/src/views/task/nodes.vue:110
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:159
 msgid "是"
 msgstr "是"
 
@@ -2433,6 +2436,7 @@ msgstr "是"
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:371
 #: frontend/desktop/src/pages/template/TemplateList/index.vue:411
 #: frontend/mobile/src/views/task/nodes.vue:111
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:160
 msgid "否"
 msgstr "否"
 
@@ -2691,7 +2695,7 @@ msgstr "步骤1"
 msgid "默认值不符合正则规则："
 msgstr "默认值不符合正则规则："
 
-#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1073
+#: frontend/desktop/src/pages/template/TemplateEdit/NodeConfig.vue:1074
 msgid "变量KEY已存在"
 msgstr "变量KEY已存在"
 
@@ -2727,55 +2731,55 @@ msgstr "编辑流程"
 msgid "保存并新建任务"
 msgstr "保存并新建任务"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:134
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:136
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TemplateSetting.vue:96
 #: pipeline_plugins/components/static/components/atoms/job/job_execute_task.js:94
 msgid "全局变量"
 msgstr "全局变量"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:137
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:140
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:139
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:142
 msgid "属性"
 msgstr "属性"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:138
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:140
 #: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/VariableItem.vue:121
 msgid "输出"
 msgstr "输出"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:139
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:141
 msgid "输出："
 msgstr "输出："
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:141
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:143
 msgid "属性："
 msgstr "属性："
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:142
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:144
 msgid "\"来源/是否显示\"格式，来源是输入类型"
 msgstr "\"来源/是否显示\"格式，来源是输入类型"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:143
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:145
 msgid "表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型"
 msgstr "表示变量来自用户添加的变量或者标准插件/子流程节点输入参数引用的变量，来源是输出类型"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:144
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:146
 msgid "表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，输出类型的变量一定是隐藏的。"
 msgstr "表示变量来自标准插件/子流程节点输出参数引用的变量；是否显示表示该变量在新建任务填写参数时是否展示给用户，输出类型的变量一定是隐藏的。"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:145
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:147
 msgid "表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。"
 msgstr "表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:146
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:148
 msgid "无数据，请手动新增变量或者勾选标准插件参数自动生成"
 msgstr "无数据，请手动新增变量或者勾选标准插件参数自动生成"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:147
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:149
 msgid "删除变量"
 msgstr "删除变量"
 
-#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:148
+#: frontend/desktop/src/pages/template/TemplateEdit/TemplateSetting/TabGlobalVariables.vue:150
 msgid "确认删除该变量？"
 msgstr "确认删除该变量？"
 
@@ -3555,12 +3559,14 @@ msgstr "请输入数字"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:361
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:78
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:65
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:105
 msgid "目标IP"
 msgstr "目标IP"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:362
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:79
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:66
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:106
 #: pipeline_plugins/variables/static/variables/sites/open/var_ip_picker.js:77
 msgid "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用换行符分隔；【IP】格式需要保证所填写的内网IP在配置平台(CMDB)的该业务中是唯一的"
@@ -3568,6 +3574,7 @@ msgstr "IP必须填写【云区域ID:IP】或者【IP】格式之一，多个用
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_execute_script.js:375
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:92
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:74
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:119
 msgid "目标账户"
 msgstr "目标账户"
@@ -3605,14 +3612,149 @@ msgid "执行账户"
 msgstr "执行账户"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:106
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:82
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:133
 msgid "目标路径"
 msgstr "目标路径"
 
 #: pipeline_plugins/components/static/components/atoms/job/job_fast_push_file.js:107
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:83
 #: pipeline_plugins/components/static/components/atoms/sites/open/job/job_fast_push_file.js:134
 msgid "请输入绝对路径"
 msgstr "请输入绝对路径"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:34
+msgid "本地文件"
+msgstr "本地文件"
+
+#: pipeline_plugins/components/static/components/atoms/job/job_push_local_files.js:38
+msgid "文件名不能包含中文和特殊字符且大小不能超过2G"
+msgstr "文件名不能包含中文和特殊字符且大小不能超过2G"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:19
+msgid "业务ID"
+msgstr "业务ID"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:32
+msgid "云区域ID"
+msgstr "云区域ID"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:45
+msgid "主机节点类型"
+msgstr "主机节点类型"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:48
+msgid "AGENT"
+msgstr "AGENT"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:49
+msgid "PROXY"
+msgstr "PROXY"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:50
+msgid "PAGENT"
+msgstr "PAGENT"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:64
+msgid "操作类型"
+msgstr "操作类型"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:66
+msgid "安裝"
+msgstr "安裝"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:67
+msgid "重新安装"
+msgstr "重新安装"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:68
+msgid "卸载"
+msgstr "卸载"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:70
+msgid "升级"
+msgstr "升级"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:84
+msgid "主机"
+msgstr "主机"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:92
+msgid "通信IP"
+msgstr "通信IP"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:93
+msgid "多个用英文逗号隔开"
+msgstr "多个用英文逗号隔开"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:107
+msgid "登录IP"
+msgstr "登录IP"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:108
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:118
+msgid "适配复杂网络时填写"
+msgstr "适配复杂网络时填写"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:117
+msgid "数据IP"
+msgstr "数据IP"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:128
+msgid "级联IP"
+msgstr "级联IP"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:129
+msgid "安装Proxy时必填"
+msgstr "安装Proxy时必填"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:138
+msgid "操作系统类型"
+msgstr "操作系统类型"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:141
+msgid "LINUX"
+msgstr "LINUX"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:142
+msgid "WINDOWS"
+msgstr "WINDOWS"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:143
+msgid "AIX"
+msgstr "AIX"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:157
+msgid "是否安装cygwin"
+msgstr "是否安装cygwin"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:175
+msgid "端口号"
+msgstr "端口号"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:189
+msgid "登录账号"
+msgstr "登录账号"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:198
+msgid "认证方式"
+msgstr "认证方式"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:201
+msgid "PASSWORD"
+msgstr "PASSWORD"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:202
+msgid "KEY"
+msgstr "KEY"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:216
+msgid "登录密码"
+msgstr "登录密码"
+
+#: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:225
+msgid "登录秘钥"
+msgstr "登录秘钥"
 
 #: pipeline_plugins/variables/static/variables/datetime.js:18
 msgid "日期时间"
