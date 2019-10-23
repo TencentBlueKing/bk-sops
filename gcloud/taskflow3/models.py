@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import re
 import datetime
 import json
 import logging
@@ -19,7 +18,7 @@ import traceback
 from copy import deepcopy
 
 from django.db import models, transaction
-from django.db.models import Count, Avg, Sum
+from django.db.models import Count, Avg
 from django.utils.translation import ugettext_lazy as _
 
 from blueapps.utils import managermixins
@@ -74,8 +73,6 @@ from gcloud.contrib.appmaker.models import AppMaker
 
 logger = logging.getLogger("root")
 
-PIPELINE_REGEX = re.compile(r'^name|create_time|creator|create_time|executor|'
-                            r'start_time|finish_time|is_started|is_finished')
 
 INSTANCE_ACTIONS = {
     'start': None,
@@ -392,41 +389,6 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         return True
 
-    def general_filter(self, filters):
-        """
-        @summary: 兼容按照任务状态分类的扩展
-        @param filters:
-        @return:
-        """
-        prefix_filters = {}
-        for cond, value in filters.items():
-            # 如果conditions内容为空或为空字符，不可加入查询条件中
-            if value in ['None', ''] or cond in ['component_code', 'order_by', 'type']:
-                continue
-            if PIPELINE_REGEX.match(cond):
-                filter_cond = 'pipeline_instance__%s' % cond
-                # 时间需要大于小于
-                if cond == 'create_time':
-                    filter_cond = '%s__gte' % filter_cond
-                    prefix_filters.update({filter_cond: timestamp_to_datetime(value)})
-                    continue
-                # 结束时间由创建时间来决定
-                if cond == 'finish_time':
-                    filter_cond = 'pipeline_instance__create_time__lt'
-                    prefix_filters.update(
-                        {filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
-                    continue
-            else:
-                filter_cond = cond
-            prefix_filters.update({filter_cond: value})
-
-        try:
-            taskflow = self.filter(**prefix_filters)
-        except Exception as e:
-            message = u"query_task_list params conditions[%s] have invalid key or value: %s" % (filters, e)
-            return False, message, None, None
-        return True, None, taskflow, prefix_filters
-
     def group_by_state(self, taskflow, *args):
         # 按流程执行状态查询流程个数
         total = taskflow.count()
@@ -470,12 +432,12 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         # 获得所有类型的dict列表
         category_dict = dict(TASK_CATEGORY)
 
-        taskflow_values = taskflow.values("create_info")
-        order_by = filters.get("order_by", "-templateId")
-        project_id = filters.get("project_id", '')
-        category = filters.get("category", '')
-        started_time = timestamp_to_datetime(filters["create_time"])
-        end_time = timestamp_to_datetime(filters["finish_time"]) + datetime.timedelta(days=1)
+        taskflow_values = taskflow.values('create_info')
+        order_by = filters.get('order_by', '-templateId')
+        project_id = filters.get('project_id', '')
+        category = filters.get('category', '')
+        started_time = timestamp_to_datetime(filters['create_time'])
+        end_time = timestamp_to_datetime(filters['finish_time']) + datetime.timedelta(days=1)
         appmaker_data = AppMaker.objects.filter(is_deleted=False,
                                                 create_time__gte=started_time,
                                                 create_time__lte=end_time)
@@ -488,9 +450,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         # 获得每一个轻应用的实例数量并变为 dict 字典数据进行查询
         total_dict = {
             appmaker['create_info']: appmaker['instance_total']
-            for appmaker in taskflow_values.annotate(instance_total=Count("create_info")).order_by()
+            for appmaker in taskflow_values.annotate(instance_total=Count('create_info')).order_by()
         }
-        id_list = appmaker_data.values_list("id")[:]
+        id_list = appmaker_data.values_list('id')[:]
 
         id_list = sorted(id_list,
                          key=lambda tuples_id: -total_dict.get(str(tuples_id[0]), 0))
@@ -498,21 +460,21 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         app_id_list = [tuples[0] for tuples in id_list]
         # 获得轻应用对象对应的模板和轻应用名称
         appmaker_data = appmaker_data.filter(id__in=app_id_list).values(
-            "id",
-            "task_template_id",
-            "name",
-            "create_time",
-            "edit_time",
-            "creator",
-            "project_id",
-            "project__name",
-            "task_template__category"
+            'id',
+            'task_template_id',
+            'name',
+            'create_time',
+            'edit_time',
+            'creator',
+            'project_id',
+            'project__name',
+            'task_template__category'
         )
         groups = []
 
         for data in appmaker_data:
             code = data.get('task_template_id')
-            appmaker_id = data.get("id")
+            appmaker_id = data.get('id')
             groups.append({
                 'templateId': code,
                 'createTime': format_datetime(data.get('create_time')),
@@ -525,7 +487,7 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
                 # 需要将 code 转为字符型
                 'instanceTotal': total_dict.get(str(appmaker_id), 0)
             })
-        if order_by[0] == "-":
+        if order_by[0] == '-':
             # 需要去除负号
             order_by = order_by[1:]
             groups = sorted(groups, key=lambda group: -group.get(order_by))
@@ -537,9 +499,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         # 查询各标准插件被执行次数
         # 获得标准插件dict列表
         component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
+        component_list = ComponentModel.objects.filter(status=True).values('code')
 
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+        instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
         component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
         component_data = component.values('component_code').annotate(
@@ -563,9 +525,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
     def group_by_atom_execute_fail_times(self, taskflow, *args):
         # 查询各标准插件重试次数
         component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
+        component_list = ComponentModel.objects.filter(status=True).values('code')
 
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+        instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
         component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
         component_data = component.values('component_code').annotate(
@@ -596,9 +558,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         # 查询各标准插件被执行次数
         # 获得标准插件dict列表
         component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
+        component_list = ComponentModel.objects.filter(status=True).values('code')
 
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+        instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
         component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
         component_data = component.values('component_code').annotate(
@@ -622,9 +584,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
     def group_by_atom_fail_percent(self, taskflow, *args):
         # 查询各标准插件重试次数
         component_dict = ComponentModel.objects.get_component_dict()
-        component_list = ComponentModel.objects.filter(status=True).values("code")
+        component_list = ComponentModel.objects.filter(status=True).values('code')
 
-        instance_id_list = taskflow.values_list("pipeline_instance__instance_id")
+        instance_id_list = taskflow.values_list('pipeline_instance__instance_id')
         # 获得标准插件
         component = ComponentExecuteData.objects.filter(instance_id__in=instance_id_list, is_sub=False)
         component_data = component.values('component_code').annotate(
@@ -660,19 +622,19 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         category_dict = dict(TASK_CATEGORY)
 
         # 获得参数中的标准插件code
-        component_code = filters.get("component_code")
+        component_code = filters.get('component_code')
         # 获取到组件code对应的instance_id_list
         instance_id_list = ComponentExecuteData.objects.filter(is_sub=False)
         # 对code进行二次查找
         if component_code:
             instance_id_list = instance_id_list.filter(component_code=component_code).distinct().values_list(
-                "instance_id")
+                'instance_id')
         else:
-            instance_id_list = instance_id_list.values_list("instance_id")
+            instance_id_list = instance_id_list.values_list('instance_id')
         taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
         # 获得总数
         total = taskflow_list.count()
-        order_by = filters.get("order_by", '-templateId')
+        order_by = filters.get('order_by', '-templateId')
         if order_by == '-instanceId':
             taskflow_list = taskflow_list.order_by('-id')
         elif order_by == 'instanceId':
@@ -690,128 +652,70 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
         # 循环信息
         for data in taskflow_list:
             groups.append({
-                'instanceId': data.get("id"),
-                'projectId': data.get("project_id"),
-                'projectName': data.get("project__name"),
-                'instanceName': data.get("pipeline_instance__name"),
-                'category': category_dict[data.get("category")],  # 需要将code转为名称
-                "createTime": format_datetime(data.get("pipeline_instance__create_time")),
-                "creator": data.get("pipeline_instance__creator")
+                'instanceId': data.get('id'),
+                'projectId': data.get('project_id'),
+                'projectName': data.get('project__name'),
+                'instanceName': data.get('pipeline_instance__name'),
+                'category': category_dict[data.get('category')],  # 需要将code转为名称
+                'createTime': format_datetime(data.get('pipeline_instance__create_time')),
+                'creator': data.get('pipeline_instance__creator')
             })
         return total, groups
 
     def group_by_instance_node(self, taskflow, filters, page, limit):
-        # 各任务实例执行的标准插件节点个数、子流程节点个数、网关节点数
-
-        # 获得所有类型的dict列表
-        category_dict = dict(TASK_CATEGORY)
-
-        groups = []
-        # 排序
-        instance_id_list = taskflow.values("pipeline_instance__instance_id")
+        """
+        @summary: 各任务实例执行的标准插件节点个数、子流程节点个数、网关节点数、执行耗时统计（支持排序）
+        @param taskflow:
+        @param filters:
+        @param page:
+        @param limit:
+        @return:
+        """
+        total = taskflow.count()
+        instance_id_list = list(taskflow.values_list('pipeline_instance__instance_id', flat=True))
         instance_pipeline_data = InstanceInPipeline.objects.filter(instance_id__in=instance_id_list)
-        # 总数
-        total = instance_pipeline_data.count()
-        order_by = filters.get("order_by", "-instanceId")
-        # 使用驼峰转下划线进行转换order_by
-        camel_order_by = camel_case_to_underscore_naming(order_by)
-        # 排列获取分页后的数据
-        pipeline_data = instance_pipeline_data.order_by(camel_order_by)[(page - 1) * limit:page * limit]
-        instance_id_list = [tuples.instance_id for tuples in pipeline_data]
-        taskflow = taskflow.filter(pipeline_instance__instance_id__in=instance_id_list)
+        order_by = filters.get('order_by', '-instanceId')
+        if order_by in ['elapsedTime', '-elapsedTime']:
+            ordered_data = [(task.pipeline_instance.instance_id, task.elapsed_time) for task in taskflow]
+            if order_by == 'elapsedTime':
+                ordered_data.sort(key=lambda x: x[1])
+            else:
+                ordered_data.sort(key=lambda x: - x[1])
+            pipeline_ids = [task[0] for task in ordered_data[(page - 1) * limit: page * limit]]
+            pipeline_data = list(instance_pipeline_data.filter(instance_id__in=pipeline_ids))
+            pipeline_data.sort(key=lambda x: pipeline_ids.index(x.instance_id))
 
-        pipeline_dict = {}
-        for pipeline in pipeline_data:
-            pipeline_dict[pipeline.instance_id] = {"atom_total": pipeline.atom_total,
-                                                   "subprocess_total": pipeline.subprocess_total,
-                                                   "gateways_total": pipeline.gateways_total}
-        # 需要循环执行计算相关节点
-        for flow in taskflow:
-            pipeline_instance = flow.pipeline_instance
-            instance_id = flow.id
-            pipeline_instance_id = pipeline_instance.instance_id
-            # 插入信息
-            groups.append({
-                'instanceId': instance_id,
-                'projectId': flow.project.id,
-                'projectName': flow.project.name,
-                'instanceName': pipeline_instance.name,
-                'category': category_dict[flow.category],
-                "createTime": format_datetime(pipeline_instance.create_time),
-                "creator": pipeline_instance.creator,
-                "atomTotal": pipeline_dict[pipeline_instance_id]["atom_total"],
-                "subprocessTotal": pipeline_dict[pipeline_instance_id]["subprocess_total"],
-                "gatewaysTotal": pipeline_dict[pipeline_instance_id]["gateways_total"]
-            })
-        if order_by[0] == "-":
-            # 需要去除负号
-            order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: -group.get(order_by))
         else:
-            groups = sorted(groups, key=lambda group: group.get(order_by))
-        return total, groups
+            # 使用驼峰转下划线进行转换order_by
+            camel_order_by = camel_case_to_underscore_naming(order_by)
+            # 排列获取分页后的数据
+            pipeline_data = instance_pipeline_data.order_by(camel_order_by)[(page - 1) * limit: page * limit]
+            pipeline_ids = list(pipeline_data.values_list('instance_id', flat=True))
 
-    def group_by_instance_details(self, filters, prefix_filters, page, limit):
-        # 各任务执行耗时
-
-        # 获得所有类型的dict列表
-        category_dict = dict(TASK_CATEGORY)
-
-        started_time = prefix_filters['pipeline_instance__create_time__gte']
-        archived_time = prefix_filters['pipeline_instance__create_time__lt']
-        prefix_filters.update(
-            pipeline_instance__start_time__gte=prefix_filters.pop('pipeline_instance__create_time__gte'),
-            pipeline_instance__start_time__lt=prefix_filters.pop('pipeline_instance__create_time__lt'),
-            pipeline_instance__is_finished=True
+        # taskflow 按照 pipeline__instance_id 映射
+        taskflow_dict = {}
+        taskflow = taskflow.select_related('project', 'pipeline_instance').filter(
+            pipeline_instance__instance_id__in=pipeline_ids
         )
-        taskflow = self.filter(**prefix_filters)
-        # 需要distinct去除重复的
-        instance_id_list = ComponentExecuteData.objects.filter(
-            started_time__gte=started_time,
-            archived_time__lte=archived_time).values_list(
-            "instance_id").distinct().order_by()
-        total = instance_id_list.count()
+        for task in taskflow:
+            taskflow_dict[task.pipeline_instance.instance_id] = {
+                'instanceId': task.id,
+                'instanceName': task.pipeline_instance.name,
+                'projectId': task.project.id,
+                'projectName': task.project.name,
+                'category': task.get_category_display(),
+                'createTime': format_datetime(task.pipeline_instance.create_time),
+                'creator': task.pipeline_instance.creator,
+                'elapsedTime': task.elapsed_time
+            }
 
-        # 排序
-        order_by = filters.get("order_by", "-instanceId")
-        component_list = instance_id_list.annotate(execute_time=Sum('elapsed_time')).order_by()
-        # 使用驼峰转下划线进行转换order_by
-        component_list = component_list.order_by(camel_case_to_underscore_naming(order_by))
-        # 分页
-        component_list = component_list[(page - 1) * limit:page * limit]
-        component_dict = {}
-        instance_list = [tuples[0] for tuples in component_list]
-        for component in component_list:
-            component_dict[component[0]] = component[1]
-        taskflow_list = taskflow.filter(pipeline_instance__instance_id__in=instance_list).values(
-            'id',
-            'pipeline_instance__instance_id',
-            'project_id',
-            'project__name',
-            'pipeline_instance__name',
-            'category',
-            'pipeline_instance__create_time',
-            'pipeline_instance__creator'
-        )
         groups = []
-        for data in taskflow_list:
-            instance_id = data.get("pipeline_instance__instance_id")
-            groups.append({
-                'instanceId': data.get("id"),
-                'projectId': data.get("project_id"),
-                'projectName': data.get("project__name"),
-                'instanceName': data.get("pipeline_instance__name"),
-                'category': category_dict[data.get("category")],  # 需要将code转为名称
-                "createTime": format_datetime(data.get("pipeline_instance__create_time")),
-                "creator": data.get("pipeline_instance__creator"),
-                "executeTime": component_dict[instance_id]
-            })
-        if order_by[0] == "-":
-            # 需要去除负号
-            order_by = order_by[1:]
-            groups = sorted(groups, key=lambda group: -group.get(order_by))
-        else:
-            groups = sorted(groups, key=lambda group: group.get(order_by))
+        for pipeline in pipeline_data:
+            item = {'atom_total': pipeline.atom_total,
+                    'subprocess_total': pipeline.subprocess_total,
+                    'gateways_total': pipeline.gateways_total}
+            item.update(taskflow_dict[pipeline.instance_id])
+            groups.append(item)
         return total, groups
 
     def group_by_instance_time(self, taskflow, filters, *args):
