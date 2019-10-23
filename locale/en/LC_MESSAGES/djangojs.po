@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-23 18:06+0800\n"
+"POT-Creation-Date: 2019-10-23 19:34+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3671,26 +3671,20 @@ msgid "卸载"
 msgstr "Uninstall"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:70
-#, fuzzy
-#| msgid "名称"
 msgid "升级"
-msgstr "Name"
+msgstr "Upgrate"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:84
-#, fuzzy
-#| msgid "主包源"
 msgid "主机"
-msgstr " Main Package Sources"
+msgstr "Host"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:92
 msgid "通信IP"
 msgstr "Communication IP"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:93
-#, fuzzy
-#| msgid "搜索IP，多个以逗号隔开"
 msgid "多个用英文逗号隔开"
-msgstr "Search IP, multiple are separated by commas"
+msgstr "multiple are separated by commas"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:107
 msgid "登录IP"
@@ -3734,10 +3728,8 @@ msgid "是否安装cygwin"
 msgstr "Install cygwin"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:175
-#, fuzzy
-#| msgid "序号"
 msgid "端口号"
-msgstr "Index"
+msgstr "Port"
 
 #: pipeline_plugins/components/static/components/atoms/sites/open/nodeman/nodeman_create_task.js:189
 msgid "登录账号"
