@@ -11,14 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from __future__ import absolute_import
+from __future__ import absolute_import, unicode_literals
 
 import logging
 import traceback
 
-from auth_backend.resources.base import ObjectResource
+from django.db.models.signals import post_delete, post_save
 
-from django.db.models.signals import post_save, post_delete
+from auth_backend.resources.base import ObjectResource
 
 logger = logging.getLogger('root')
 

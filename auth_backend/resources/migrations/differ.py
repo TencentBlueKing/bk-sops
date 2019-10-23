@@ -11,6 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from __future__ import absolute_import, unicode_literals
+
+from builtins import object
 from django.conf import settings
 
 
@@ -25,7 +28,7 @@ class SnapshotDiffer(object):
 
         operations = []
 
-        for scope, last_resources in self.last_snapshot.items():
+        for scope, last_resources in list(self.last_snapshot.items()):
 
             # scope not exist anymore
             if scope not in self.snapshot:
@@ -93,7 +96,7 @@ class SnapshotDiffer(object):
             }
         }]
 
-        for scope, resources in self.snapshot.items():
+        for scope, resources in list(self.snapshot.items()):
             operations.append({
                 'operation': 'batch_upsert_resource_types',
                 'data': {
