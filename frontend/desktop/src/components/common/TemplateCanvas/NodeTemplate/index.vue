@@ -118,7 +118,7 @@
                             'branchgateway',
                             'convergegateway'
                         ].indexOf(this.node.type) > -1) {
-                        this.$emit('onNodeWrapClick', this.node.id)
+                        this.$emit('onNodeWrapClick', this.node.id, e)
                         // e.stopPropagation()
                     }
                 }
