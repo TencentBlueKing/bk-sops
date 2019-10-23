@@ -84,14 +84,7 @@ def query_atom_by_group(*args):
     :param args: (group_by, filters, page_index, limit)
     """
     group_by = args[0]
-    if group_by in [
-        AE.atom_execute,
-        AE.atom_instance,
-        AE.atom_execute_times,
-        AE.atom_execute_fail_times,
-        AE.atom_avg_execute_time,
-        AE.atom_fail_percent
-    ]:
+    if group_by in AE.atom_dimensions:
         success, content = task_flow_instance.dispatch(*args)
     else:
         success, content = task_template.dispatch(*args)
