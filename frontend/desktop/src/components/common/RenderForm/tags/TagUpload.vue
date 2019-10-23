@@ -29,7 +29,7 @@
                 :before-upload="beforeUpload"
                 :before-remove="beforeRemove"
                 :file-list="fileValue">
-                <bk-button size="small" theme="primary">{{ text }}</bk-button>
+                <bk-button size="small" theme="primary">{{ uploadText }}</bk-button>
                 <div slot="tip" class="el-upload__tip">{{ placeholder }}</div>
             </el-upload>
             <bk-button v-if="!auto_upload" size="small" type="success" @click="onSubmit">{{ i18n.submit }}</bk-button>
@@ -72,7 +72,7 @@
         auto_upload: {
             type: Boolean,
             required: false,
-            default: false,
+            default: true,
             desc: 'auto upload after selecting file'
         },
         limit: {
@@ -131,7 +131,7 @@
                 return this.fileValue.join(',')
             },
             uploadText () {
-                return this.text || (this.auto_upload ? this.i18n.select : this.i18n.upload)
+                return this.text || (this.auto_upload ? this.i18n.upload : this.i18n.select)
             }
         },
         methods: {
