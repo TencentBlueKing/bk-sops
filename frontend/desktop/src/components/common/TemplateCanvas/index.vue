@@ -28,6 +28,7 @@
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
             @onEndpointClick="onEndpointClick"
+            @onNodeMoving="onNodeMoving"
             @onNodeMoveStop="onNodeMoveStop"
             @onOverlayClick="onOverlayClick"
             @onFrameSelectEnd="onFrameSelectEnd"
@@ -80,6 +81,9 @@
         </js-flow>
         <help-info
             :is-show-hot-key="isShowHotKey"
+            @onZoomIn="onZoomIn"
+            @onZoomOut="onZoomOut"
+            @onResetPosition="onResetPosition"
             @onCloseHotkeyInfo="onCloseHotkeyInfo">
         </help-info>
         <div ref="dragReferenceLine" class="drag-reference-line"></div>
@@ -396,7 +400,6 @@
                 if (source.id === targetId) {
                     return false // 节点不可以连接自身
                 }
-
                 let arrow
                 const nodeEl = document.getElementById(targetId)
                 const nodeRects = nodeEl.getBoundingClientRect()
@@ -437,6 +440,9 @@
             // 拖拽到端点上连接
             onBeforeDrop (line) {
                 const { sourceId, targetId, connection, dropEndpoint } = line
+                if (sourceId === targetId) {
+                    return false
+                }
                 const data = {
                     source: {
                         id: sourceId,
@@ -535,21 +541,36 @@
                     this.isDisableEndPoint = false
                 }
             },
+            // 节点拖动回调
+            onNodeMoving (node) {
+                // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
+                if (this.ReferenceLine.id && this.ReferenceLine.id === node.id) {
+                    this.handerReferenceLineHide()
+                }
+            },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
+                const deviationMap = {
+                    'Left': { x: 2, y: 0 },
+                    'Right': { x: -2, y: 0 },
+                    'Top': { x: 0, y: 2 },
+                    'Bottom': { x: 0, y: -2 }
+                }
+                const type = endpoint.anchor.type
                 // 第二次点击
                 if (this.ReferenceLine.id && endpoint.elementId !== this.ReferenceLine.id) {
                     this.createLine(
                         { id: this.ReferenceLine.id, arrow: this.ReferenceLine.arrow },
-                        { id: endpoint.elementId, arrow: endpoint.anchor.type }
+                        { id: endpoint.elementId, arrow: type }
                     )
+                    this.ReferenceLine.id = ''
                     return false
                 }
                 const line = this.$refs.dragReferenceLine
                 const { clientX, clientY } = event
-                line.style.left = clientX + 'px'
-                line.style.top = clientY - 50 + 'px'
-                this.ReferenceLine = { x: clientX, y: clientY, id: endpoint.elementId, arrow: endpoint.anchor.type }
+                line.style.left = clientX + deviationMap[type].x + 'px'
+                line.style.top = clientY - 50 + deviationMap[type].y + 'px'
+                this.ReferenceLine = { x: clientX, y: clientY, id: endpoint.elementId, arrow: type }
                 document.getElementById('canvas-flow').addEventListener('mousemove', this.handerReferenceLine, false)
             },
             // 生成参考线
@@ -572,21 +593,31 @@
                 document.body.addEventListener('click', this.handerReferenceLineHide, false)
             },
             // 移出参考线
-            handerReferenceLineHide (e) {
+            handerReferenceLineHide () {
                 const line = this.$refs.dragReferenceLine
                 this.ReferenceLine.id = ''
                 line.style.display = 'none'
                 document.getElementById('canvas-flow').removeEventListener('mousemove', this.handerReferenceLine, false)
                 document.body.removeEventListener('click', this.handerReferenceLineHide, false)
             },
+            // 创建连线
             createLine (source, target) {
+                if (source.id === target.id) return false
                 const line = {
                     source,
                     target
                 }
-                this.$refs.jsFlow.createConnector(line)
-                this.$emit('onLineChange', 'add', line)
-                this.ReferenceLine.id = ''
+                const validateMessage = validatePipeline.isLineValid(line, this.canvasData)
+                if (validateMessage.result) {
+                    this.$emit('onLineChange', 'add', line)
+                    this.$refs.jsFlow.createConnector(line)
+                    this.ReferenceLine.id = ''
+                } else {
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'warning'
+                    })
+                }
             },
             onRetryClick (id) {
                 this.$emit('onRetryClick', id)
@@ -633,7 +664,14 @@
                 })
             },
             // 点击展开快捷节点面板
-            onNodeWrapClick (id) {
+            onNodeWrapClick (id, event) {
+                if (this.ReferenceLine.id) {
+                    // 自动连线
+                    this.onConnectionDragStop({ id: this.ReferenceLine.id, arrow: this.ReferenceLine.arrow }, id, event)
+                    // 移出参考线
+                    this.handerReferenceLineHide()
+                    return
+                }
                 if (this.idOfNodeShortcutPanel) {
                     this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 }
@@ -644,7 +682,7 @@
                 this.idOfNodeShortcutPanel = id
             },
             // 隐藏快捷节点面板
-            handerShortcutPanelHide () {
+            handerShortcutPanelHide (e) {
                 this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
                 this.idOfNodeShortcutPanel = ''
@@ -804,7 +842,7 @@
             }
         }
         .jsflow-node.actived {
-            z-index: 99999;
+            z-index: 5;
         }
     }
     .drag-reference-line {
@@ -815,6 +853,7 @@
         background: #979ba5;
         left: 120px;
         top: 126px;
+        z-index: 1;
         &::before {
             position: absolute;
             right: 0;

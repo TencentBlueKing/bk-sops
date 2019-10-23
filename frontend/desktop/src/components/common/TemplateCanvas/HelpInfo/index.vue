@@ -13,14 +13,32 @@
     <div class="help-info-wrap">
         <div v-if="isShowHotKey" class="hot-key-container">
             <transition name="wrapperLeft">
-                <div class="hot-key-panel">
+                <div v-if="isMac" class="hot-key-panel">
                     <p class="text title">Mac</p>
-                    <p
-                        v-for="(text, index) in hotKeys"
-                        :key="index"
-                        class="text">
-                        {{ text }}
-                    </p>
+                    <!-- <p class="text">Command + z {{i18n.reset}}/Undo</p> -->
+                    <!-- <p class="text">Command + Shift + z {{i18n.restore}}/Redo</p> -->
+                    <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
+                    <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
+                    <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                    <!-- <p class="text">Command + {{i18n.multiple}}</p> -->
+                    <!-- <p class="text">Command + A {{i18n.selectAll}}</p> -->
+                    <!-- <p class="text">[{{i18n.afterSelect}}] Command + Del {{i18n.delNode}}</p> -->
+                    <!-- <p class="text">[{{i18n.afterSelect}}] {{i18n.moveNode}}</p> -->
+                    <!-- <p class="text">[{{i18n.afterSelect}}] Esc{{i18n.cancel}}</p> -->
+                    <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                </div>
+                <div v-else class="hot-key-panel">
+                    <p class="text title">Windows</p>
+                    <!-- <p class="text">Alt + z {{i18n.reset}}/Undo</p> -->
+                    <!-- <p class="text">Alt + Shift + z {{i18n.restore}}/Redo</p> -->
+                    <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
+                    <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
+                    <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                    <!-- <p class="text">Alt + {{i18n.multiple}}</p> -->
+                    <!-- <p class="text">Alt + A {{i18n.selectAll}}</p> -->
+                    <!-- <p class="text">[{{i18n.afterSelect}}] Alt + Del {{i18n.delNode}}</p> -->
+                    <!-- <p class="text">[{{i18n.afterSelect}}] {{i18n.moveNode}}</p> -->
+                    <!-- <p class="text">[{{i18n.afterSelect}  }] Esc{{i18n.cancel}}</p> -->
                     <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                 </div>
             </transition>
@@ -29,6 +47,7 @@
 </template>
 <script>
     import '@/utils/i18n.js'
+    const isMac = /macintosh|mac os x/i.test(navigator.userAgent.toLowerCase())
     export default {
         name: 'HelpInfo',
         props: {
@@ -39,22 +58,46 @@
         },
         data () {
             return {
-                hotKeys: [
-                    gettext('Command + z ：撤销/Undo'),
-                    gettext('Command + Shift + z ：恢复/Redo'),
-                    gettext('Ctrl + (+) ：放大'),
-                    gettext('Ctrl + (-) ：缩小'),
-                    gettext('Command + 鼠标左键单击 ：连续选中节点'),
-                    gettext('Command + A ：选中所有节点'),
-                    gettext('[选中后] Command + Del ：删除节点'),
-                    gettext('[选中后] 箭头（上下左右）：移动流程元素'),
-                    gettext('[选中后] Esc：取消选中')
-                ]
+                i18n: {
+                    reset: gettext('：撤销'),
+                    restore: gettext('：恢复'),
+                    zoomIn: gettext('：放大'),
+                    zoomOut: gettext('：缩小'),
+                    reduction: gettext('：还原'),
+                    multiple: gettext('鼠标左键单击 ：连续选中节点'),
+                    selectAll: gettext('选中所有节点'),
+                    afterSelect: gettext('选中后'),
+                    delNode: gettext('：删除节点'),
+                    moveNode: gettext('箭头（上下左右）：移动流程元素'),
+                    cancel: gettext('：取消选中')
+                },
+                isMac
             }
+        },
+        mounted () {
+            document.body.addEventListener('keydown', this.handerKeyDown, false)
+        },
+        beforeDestroy () {
+            document.body.removeEventListener('keydown', this.handerKeyDown, false)
         },
         methods: {
             onCloseHotkeyInfo () {
                 this.$emit('onCloseHotkeyInfo')
+            },
+            handerKeyDown (e) {
+                const ctrl = window.event.ctrlKey
+                if ((e.keyCode === 107 || e.keyCode === 187) && ctrl) {
+                    e.preventDefault()
+                    this.$emit('onZoomIn')
+                }
+                if ((e.keyCode === 109 || e.keyCode === 189) && ctrl) {
+                    e.preventDefault()
+                    this.$emit('onZoomOut')
+                }
+                if (e.keyCode === 79 && ctrl) {
+                    e.preventDefault()
+                    this.$emit('onResetPosition')
+                }
             }
         }
     }

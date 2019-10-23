@@ -15,7 +15,7 @@
         v-if="idOfNodeShortcutPanel === node.id"
         class="shortcut-panel">
         <ul class="shortcut-wrap">
-            <li @click.stop="onShowNodeConfig" class="shortcut-item common-icon-node-subflow"></li>
+            <li v-if="isShowConfigIcon" @click.stop="onShowNodeConfig" class="shortcut-item common-icon-gear"></li>
             <li @click="onAppendNode('tasknode')" class="shortcut-item common-icon-node-tasknode"></li>
             <li @click="onAppendNode('subflow')" class="shortcut-item common-icon-node-subflow"></li>
             <li @click="onAppendNode('parallelgateway')" class="shortcut-item common-icon-node-parallelgateway"></li>
@@ -60,7 +60,7 @@
             },
             // 是否显示节点配置 icon
             isShowConfigIcon () {
-                return ['tasknode', 'subflow'].indexOf(this.currentLocation.type) > -1
+                return ['startpoint', 'endpoint'].indexOf(this.currentLocation.type) === -1
             }
         },
         methods: {
@@ -134,7 +134,7 @@
     .shortcut-wrap {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: left;
         flex-wrap: wrap;
         padding: 9px 12px 0px 14px;
         width: 120px;
@@ -143,8 +143,12 @@
         .shortcut-item {
             font-size: 27px;
             margin-bottom: 11px;
+            margin-right: 4px;
             color: #52699d;
             cursor: pointer;
+            &:hover {
+                color: #3a84ff;
+            }
         }
     }
 }
