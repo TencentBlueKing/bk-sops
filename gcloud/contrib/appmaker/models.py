@@ -12,8 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import base64
-import datetime
-import re
 import logging
 
 from django.db import models
@@ -38,15 +36,11 @@ from gcloud.core.utils import (
     convert_readable_username,
     name_handler,
     time_now_str,
-    timestamp_to_datetime
 )
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.permissions import task_template_resource
 
 logger = logging.getLogger("root")
-
-APPMAKER_REGEX = re.compile(r'^category|create_time|creator_name|editor_name|'
-                            r'template_schema_id|finish_time|task_template_id|task_template_name')
 
 
 class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -224,37 +218,6 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         app_maker_obj.name = del_name[:20]
         app_maker_obj.save()
         return True, app_maker_obj.code
-
-    def general_filter(self, filters):
-        """
-        @summary: 通用过滤
-        @param filters:
-        @return:
-        """
-        prefix_filters = {}
-        for cond, value in filters.items():
-            if value in ['None', ''] or cond == 'type':
-                continue
-            if cond == 'create_time':
-                filter_cond = '%s__gte' % cond
-                prefix_filters.update({filter_cond: timestamp_to_datetime(value)})
-                continue
-            elif cond == 'finish_time':
-                filter_cond = 'create_time__lt'
-                prefix_filters.update({filter_cond: timestamp_to_datetime(value) + datetime.timedelta(days=1)})
-                continue
-            if APPMAKER_REGEX.match(cond):
-                filter_cond = 'task_template__%s' % cond
-            else:
-                filter_cond = cond
-            prefix_filters.update({filter_cond: value})
-
-        try:
-            appmaker = self.filter(**prefix_filters)
-            return True, appmaker, None
-        except Exception as e:
-            message = u"query_appmaker params conditions[%s] have invalid key or value: %s" % (filters, e)
-            return False, None, message
 
     def group_by_project_id(self, appmaker, group_by):
         # 按起始时间、业务（可选）查询各类型轻应用个数和占比√(echarts)

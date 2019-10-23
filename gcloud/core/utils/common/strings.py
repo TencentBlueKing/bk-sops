@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
 import re
 import logging
 
@@ -75,16 +74,7 @@ def check_and_rename_params(conditions, group_by, group_by_check=AE.group_list):
     :param group_by_check:分组检查内容
     :return:
     """
-    # conditions 是否是一个dict.
-    # 本地测试时请注释该try
     result_dict = {'success': False, 'content': None, "conditions": conditions, "group_by": None}
-    try:
-        conditions = json.loads(conditions)
-    except Exception:
-        message = u"param conditions[%s] cannot be converted to dict" % conditions
-        logger.error(message)
-        result_dict['content'] = message
-        return result_dict
     if not isinstance(conditions, dict):
         message = u"params conditions[%s] are invalid dict data" % conditions
         logger.error(message)
