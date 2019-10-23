@@ -343,6 +343,15 @@
                 }
             },
             onCreateNodeBefore (node) {
+                const nodeMenuEl = document.querySelector(`.node-menu`)
+                if (node.atomId && nodeMenuEl) {
+                    const nodeEl = document.querySelector('.adding-node')
+                    const nodeWidth = nodeEl.offsetWidth
+                    const nodeMenuWidth = nodeMenuEl.offsetWidth
+                    if (nodeMenuWidth - node.x > (nodeWidth / 2)) {
+                        return false
+                    }
+                }
                 const validateMessage = validatePipeline.isLocationValid(node, this.flowData.nodes)
 
                 if (!validateMessage.result) {
