@@ -131,6 +131,12 @@ class AnalysisElement(object):
                   'atom_execute_times',
                   'atom_avg_execute_time',
                   'atom_fail_percent']
+    atom_dimensions = [atom_execute,
+                       atom_instance,
+                       atom_execute_times,
+                       atom_execute_fail_times,
+                       atom_avg_execute_time,
+                       atom_fail_percent]
 
 
 AE = AnalysisElement()
