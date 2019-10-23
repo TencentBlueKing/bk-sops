@@ -23,6 +23,28 @@ logger = logging.getLogger('root')
 
 PIPELINE_REGEX = re.compile(r'^name|create_time|creator|create_time|executor|'
                             r'start_time|finish_time|is_started|is_finished')
+TASK_GROUP_BY_METHODS = {
+    # 按流程执行状态查询流程个数
+    AE.state: TaskFlowInstance.objects.group_by_state,
+    # 查询不同业务对应的流程数
+    AE.project_id: TaskFlowInstance.objects.group_by_project_id,
+    # 查询不同轻应用对应的流程数
+    AE.appmaker_instance: TaskFlowInstance.objects.group_by_appmaker_instance,
+    # 查询各标准插件被执行次数
+    AE.atom_execute_times: TaskFlowInstance.objects.group_by_atom_execute_times,
+    # 查询各标准插件失败次数
+    AE.atom_execute_fail_times: TaskFlowInstance.objects.group_by_atom_execute_fail_times,
+    # 查询各标准插件失败率
+    AE.atom_fail_percent: TaskFlowInstance.objects.group_by_atom_fail_percent,
+    # 查询各标准插件平均耗时（不计算子流程)
+    AE.atom_avg_execute_time: TaskFlowInstance.objects.group_by_atom_avg_execute_time,
+    # 被引用的任务实例列表
+    AE.atom_instance: TaskFlowInstance.objects.group_by_atom_instance,
+    # 各任务实例执行的标准插件节点个数、子流程节点个数、网关节点数
+    AE.instance_node: TaskFlowInstance.objects.group_by_instance_node,
+    #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
+    AE.instance_time: TaskFlowInstance.objects.group_by_instance_time,
+}
 
 
 def produce_filter(filters):
@@ -76,29 +98,6 @@ def dispatch(group_by, filters=None, page=None, limit=None):
             error=e)
         logger.error(message)
         return False, message
-
-    TASK_GROUP_BY_METHODS = {
-        # 按流程执行状态查询流程个数
-        AE.state: TaskFlowInstance.objects.group_by_state,
-        # 查询不同业务对应的流程数
-        AE.project_id: TaskFlowInstance.objects.group_by_project_id,
-        # 查询不同轻应用对应的流程数
-        AE.appmaker_instance: TaskFlowInstance.objects.group_by_appmaker_instance,
-        # 查询各标准插件被执行次数
-        AE.atom_execute_times: TaskFlowInstance.objects.group_by_atom_execute_times,
-        # 查询各标准插件失败次数
-        AE.atom_execute_fail_times: TaskFlowInstance.objects.group_by_atom_execute_fail_times,
-        # 查询各标准插件失败率
-        AE.atom_fail_percent: TaskFlowInstance.objects.group_by_atom_fail_percent,
-        # 查询各标准插件平均耗时（不计算子流程)
-        AE.atom_avg_execute_time: TaskFlowInstance.objects.group_by_atom_avg_execute_time,
-        # 被引用的任务实例列表
-        AE.atom_instance: TaskFlowInstance.objects.group_by_atom_instance,
-        # 各任务实例执行的标准插件节点个数、子流程节点个数、网关节点数
-        AE.instance_node: TaskFlowInstance.objects.group_by_instance_node,
-        #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
-        AE.instance_time: TaskFlowInstance.objects.group_by_instance_time,
-    }
 
     # 查询不同类别、创建方式、流程类型对应的流程数
     if group_by in [AE.category, AE.create_method, AE.flow_type]:

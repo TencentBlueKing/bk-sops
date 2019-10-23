@@ -23,6 +23,20 @@ logger = logging.getLogger('root')
 
 TEMPLATE_REGEX = re.compile(r'^name|creator_name|editor_name|'
                             r'create_time|edit_time|edit_finish_time|finish_time')
+TEMPLATE_GROUP_BY_METHODS = {
+    # 按流程模板执行状态查询流程个数
+    AE.state: TaskTemplate.objects.group_by_state,
+    # 查询不同业务的模板个数
+    AE.project_id: TaskTemplate.objects.group_by_project_id,
+    # 查询不同原子引用的模板个数
+    AE.atom_cite: TaskTemplate.objects.group_by_atom_cite,
+    # 按起始时间、业务（可选）、类型（可选）、标准插件查询被引用的流程模板列表(dataTable)
+    AE.atom_template: TaskTemplate.objects.group_by_atom_template,
+    # 需要获得符合的查询的对应 template_id 列表
+    AE.atom_execute: TaskTemplate.objects.group_by_atom_execute,
+    # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
+    AE.template_node: TaskTemplate.objects.group_by_template_node
+}
 
 
 def produce_filter(filters):
@@ -74,21 +88,6 @@ def dispatch(group_by, filters=None, page=None, limit=None):
             error=e)
         logger.error(message)
         return False, message
-
-    TEMPLATE_GROUP_BY_METHODS = {
-        # 按流程模板执行状态查询流程个数
-        AE.state: TaskTemplate.objects.group_by_state,
-        # 查询不同业务的模板个数
-        AE.project_id: TaskTemplate.objects.group_by_project_id,
-        # 查询不同原子引用的模板个数
-        AE.atom_cite: TaskTemplate.objects.group_by_atom_cite,
-        # 按起始时间、业务（可选）、类型（可选）、标准插件查询被引用的流程模板列表(dataTable)
-        AE.atom_template: TaskTemplate.objects.group_by_atom_template,
-        # 需要获得符合的查询的对应 template_id 列表
-        AE.atom_execute: TaskTemplate.objects.group_by_atom_execute,
-        # 按起始时间、业务（可选）、类型（可选）查询各流程模板标准插件节点个数、子流程节点个数、网关节点数
-        AE.template_node: TaskTemplate.objects.group_by_template_node
-    }
 
     # 不同类别、创建方法、流程类型对应的任务数
     if group_by in [AE.category, AE.create_method, AE.flow_type]:
