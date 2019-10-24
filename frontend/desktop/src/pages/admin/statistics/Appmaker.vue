@@ -36,6 +36,8 @@
                                 v-model="appmakerProject"
                                 class="statistics-select"
                                 :placeholder="i18n.selectProject"
+                                :searchable="true"
+                                :clearable="true"
                                 :disabled="projectList.length === 0"
                                 @change="appmakerFilterChange">
                                 <bk-option
@@ -51,6 +53,8 @@
                                 v-model="appmakerCategory"
                                 class="statistics-select"
                                 :placeholder="i18n.selectCategory"
+                                :searchable="true"
+                                :clearable="true"
                                 :disabled="categoryList.length === 0"
                                 @change="appmakerFilterChange">
                                 <bk-option
@@ -108,7 +112,7 @@
             prop: 'templateName'
         },
         {
-            label: gettext('所属项目'),
+            label: gettext('项目'),
             prop: 'projectName'
         },
         {
@@ -247,11 +251,11 @@
                     this.categoryDataLoading = true
                     const query = {
                         group_by: 'category',
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             project_id: this.categoryDataProject
-                        })
+                        }
                     }
                     this.categoryData = await this.loadAnalysisData(query)
                 } catch (e) {
@@ -265,11 +269,11 @@
                     this.projectDataLoading = true
                     const query = {
                         group_by: 'project_id',
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             category: this.projectDataCategory
-                        })
+                        }
                     }
                     this.projectData = await this.loadAnalysisData(query)
                 } catch (e) {
@@ -283,13 +287,13 @@
                     this.appmakerDataLoading = true
                     const query = {
                         group_by: 'appmaker_instance',
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             project_id: this.appmakerProject,
                             category: this.appmakerCategory,
                             order_by: this.appmakerSort
-                        }),
+                        },
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
