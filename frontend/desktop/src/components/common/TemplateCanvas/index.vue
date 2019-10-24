@@ -803,9 +803,8 @@
                 border-radius: 50%;
             }
             .branch-condition {
-                padding: 4px 10px;
-                min-width: 60px;
-                max-width: 200px;
+                padding: 4px 6px;
+                width: 60px;
                 font-size: 12px;
                 text-align: center;
                 color: #978e4d;

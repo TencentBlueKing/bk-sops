@@ -48,6 +48,7 @@
 <script>
     import '@/utils/i18n.js'
     import dom from '@/utils/dom.js'
+    import { NAME_REG, STRING_LENGTH } from '@/constants/index.js'
     export default {
         name: 'conditionEdit',
         props: ['isSettingPanelShow', 'isShowConditionEdit'],
@@ -61,7 +62,9 @@
                 conditionName: '',
                 expression: '',
                 conditionRule: {
-                    required: true
+                    required: true,
+                    max: STRING_LENGTH.VARIABLE_NAME_MAX_LENGTH,
+                    regex: NAME_REG
                 },
                 expressionRule: {
                     required: true
