@@ -36,6 +36,8 @@
                                 v-model="tplProject"
                                 class="statistics-select"
                                 :placeholder="i18n.selectProject"
+                                :searchable="true"
+                                :clearable="true"
                                 :disabled="projectList.length === 0"
                                 @change="tplFilterChange">
                                 <bk-option
@@ -51,6 +53,8 @@
                                 v-model="tplCategory"
                                 class="statistics-select"
                                 :placeholder="i18n.selectCategory"
+                                :searchable="true"
+                                :clearable="true"
                                 :disabled="categoryList.length === 0"
                                 @change="tplFilterChange">
                                 <bk-option
@@ -131,11 +135,13 @@
         },
         {
             label: gettext('子流程数'),
-            prop: 'subprocessTotal'
+            prop: 'subprocessTotal',
+            sortable: true
         },
         {
             label: gettext('网关数'),
-            prop: 'gatewaysTotal'
+            prop: 'gatewaysTotal',
+            sortable: true
         },
         {
             label: gettext('创建任务数'),
@@ -271,11 +277,11 @@
                     this.categoryDataLoading = true
                     const query = {
                         group_by: 'category',
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             project_id: this.categoryDataProject
-                        })
+                        }
                     }
                     this.categoryData = await this.loadAnalysisData(query)
                 } catch (e) {
@@ -289,11 +295,11 @@
                     this.projectDataLoading = true
                     const query = {
                         group_by: 'project_id',
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             category: this.projectDataCategory
-                        })
+                        }
                     }
                     this.projectData = await this.loadAnalysisData(query)
                 } catch (e) {
@@ -307,13 +313,13 @@
                     this.tplDataLoading = true
                     const query = {
                         group_by: 'template_node',
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             project_id: this.tplProject,
                             category: this.tplCategory,
                             order_by: this.tplSort
-                        }),
+                        },
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }
