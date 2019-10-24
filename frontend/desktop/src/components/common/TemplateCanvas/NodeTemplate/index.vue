@@ -185,9 +185,16 @@
     }
 
     @mixin taskNodeStyle ($color) {
-        .subflow-node-icon,
         .node-status-block {
             background-color: $color;
+        }
+       .sub-body {
+            .t-left .triangle{
+                background-color: $color;
+            }
+            .t-center {
+                border-color: $color;
+            }
         }
     }
     .jsflow-node.selected {
@@ -315,6 +322,23 @@
                 @include taskNodeStyle ($greenDark)
             }
             
+        }
+        .subflow-node {
+            &:hover > .ui-node-shadow {
+                box-shadow: 0px 0px 20px 0px $activeShadow;
+            }
+            &.failed {
+                @include taskNodeStyle ($redDark)
+            }
+            &.suspended {
+                @include taskNodeStyle ($yellowDark)
+            }
+            &.running {
+                @include taskNodeStyle ($yellowDark)
+            }
+            &.finished {
+                @include taskNodeStyle ($greenDark)
+            }
         }
         .subflow-node-icon {
             position: absolute;

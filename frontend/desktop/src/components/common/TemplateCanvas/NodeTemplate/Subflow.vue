@@ -22,6 +22,7 @@
                 <div class="t-left">
                     <div class="triangle"></div>
                 </div>
+                <div class="blue-bar"></div>
                 <div class="t-center"></div>
                 <div class="t-right">
                     <div class="triangle"></div>
@@ -118,14 +119,22 @@
                     background: #52699d;
                 }
             }
+            .blue-bar {
+                position: absolute;
+                left: 37px;
+                top: 0;
+                width: 6px;
+                height: 100%;
+                background: #52699d;
+            }
             .t-center {
                 position: absolute;
-                left: 36px;
+                left: 43px;
                 top: 0;
-                width: 94px;
+                width: 95px;
                 height: 100%;
                 background: #fafbfd;
-                border-left: 6px solid #52699d;
+                // border-left: 6px solid #52699d;
             }
             .t-right {
                 float: right;

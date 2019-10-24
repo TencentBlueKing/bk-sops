@@ -74,7 +74,7 @@
             onAppendNode (type) {
                 const { x, y, id, type: currType } = this.currentLocation
                 const EndX = x + 200
-                const newNodeId = uuid()
+                const newNodeId = 'node' + uuid()
                 const location = {
                     type,
                     y,

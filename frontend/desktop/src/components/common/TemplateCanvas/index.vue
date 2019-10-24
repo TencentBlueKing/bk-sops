@@ -10,7 +10,7 @@
 * specific language governing permissions and limitations under the License.
 */
 <template>
-    <div>
+    <div class="canvas-container">
         <js-flow
             ref="jsFlow"
             selector="entry-item"
@@ -665,6 +665,11 @@
             },
             // 点击展开快捷节点面板
             onNodeWrapClick (id, event) {
+                // 如果不是模版编辑页面，点击节点相当于打开配置面板（任务执行是打开执行信息面板）
+                if (!this.editable) {
+                    this.onNodeClick(id)
+                    return
+                }
                 if (this.ReferenceLine.id) {
                     // 自动连线
                     this.onConnectionDragStop({ id: this.ReferenceLine.id, arrow: this.ReferenceLine.arrow }, id, event)
@@ -751,6 +756,10 @@
     }
 </script>
 <style lang="scss">
+    .canvas-container {
+        width: 100%;
+        height: 100%;
+    }
     .canvas-wrapper.jsflow {
         border: none;
         background: #e1e4e8;
