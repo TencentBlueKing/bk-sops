@@ -188,7 +188,7 @@
             },
             {
                 label: gettext('创建时间'),
-                prop: 'create_time',
+                prop: 'createTime',
                 sortable: true
             }
         ]
