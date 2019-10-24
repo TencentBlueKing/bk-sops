@@ -84,6 +84,7 @@
                 <li v-if="isVariableEditing && theKeyOfEditing === ''">
                     <VariableEdit
                         ref="addVariablePanel"
+                        :system-constants="systemConstants"
                         :variable-data="variableData"
                         :variable-type-list="variableTypeList"
                         :is-new-variable="true"
@@ -244,7 +245,7 @@
              * 编辑变量
              * @param {String} key 变量key值
              */
-            onEditVariable (key) {
+            onEditVariable (key, index) {
                 if (key === this.theKeyOfEditing && this.isVariableEditing) {
                     this.onChangeEdit(false)
                 } else {
@@ -253,6 +254,8 @@
                 }
 
                 this.$emit('variableDataChanged')
+                const sysVarLen = this.systemConstantsList.length
+                this.scrollPanelToView(sysVarLen + index)
             },
             /**
              * 变量顺序拖拽
@@ -276,8 +279,8 @@
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
                 // 滚到到底部
-                const container = document.querySelector('.variable-list')
-                container.scrollTop = container.scrollHeight
+                const allvarLen = this.systemConstantsList.length + this.constantsArray.length
+                this.scrollPanelToView(allvarLen)
             },
             /**
              * 变量输出勾选
