@@ -177,9 +177,6 @@
         &:hover {
             box-shadow: -1px 1px 8px $shadow, 1px -1px 8px $shadow;
         }
-        .circle-node-text {
-            // background: $color;
-        }
         .node-type-icon {
             color: $color;
         }
