@@ -342,8 +342,9 @@ const template = {
         },
         // 配置分支网关条件
         setBranchCondition (state, condition) {
-            const { id, nodeId, name } = condition
-            state.gateways[nodeId]['conditions'][id].evaluate = name
+            const { id, nodeId, name, value } = condition
+            state.gateways[nodeId]['conditions'][id].name = name
+            state.gateways[nodeId]['conditions'][id].evaluate = value
         },
         // 节点增加、删除、编辑操作，数据更新
         setLocation (state, payload) {

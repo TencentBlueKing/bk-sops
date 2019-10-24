@@ -91,7 +91,11 @@ const validatePipeline = {
         let sourceLinesLinked = 0
         let targetLinesLinked = 0
         let isLoop = false
-
+        if (source.id === target.id) {
+            const i18n_text = gettext('相同节点不能回连')
+            const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`
+            return this.getMessage(false, message)
+        }
         if (sourceRule.max_out === 0) {
             const i18n_text = gettext('只能添加输入连线')
             const message = `${NODE_DICT[sourceNode.type]}${i18n_text}`

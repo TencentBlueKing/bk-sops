@@ -29,11 +29,11 @@
  */
 export const endpointOptions = {
     endpoint: 'Dot',
-    connector: ['Flowchart', { stub: [1, 6], alwaysRespectStub: true, gap: 8, cornerRadius: 2 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
+    connector: ['Flowchart', { stub: [6, 10], alwaysRespectStub: true, gap: 0, cornerRadius: 2 }], // 'Bezier'、'Straight'、'Flowchart'、'State Machine'，格式 [ type, params]
     connectorOverlays: [
         ['PlainArrow', { width: 8, length: 6, location: 1, id: 'arrow' }]
     ],
-    paintStyle: { fill: 'rgba(0, 0, 0, 0)', stroke: 'rgba(52, 138, 243, 0.15)', strokeWidth: 1, radius: 7 },
+    paintStyle: { fill: 'rgba(0, 0, 0, 0)', strokeWidth: 1, radius: 7 },
     hoverPaintStyle: { fill: '#348af3', stroke: '#348af3' },
     cssClass: 'template-canvas-endpoint',
     hoverClass: 'template-canvas-endpoint-hover',
@@ -53,7 +53,13 @@ export const nodeOptions = {
  * tips: endpoint 设置 connector 属性后，instance.connect 方法设置 connector 的属性无效
  */
 export const connectorOptions = {
-    paintStyle: { fill: 'transparent', stroke: '#a9adb6', strokeWidth: 2 },
+    paintStyle: {
+        fill: 'transparent',
+        strokeWidth: 2,
+        stroke: '#a9adb6',
+        outlineStroke: 'tranparent',
+        outlineWidth: 4
+    },
     hoverPaintStyle: { fill: 'transparent', stroke: '#3a84ff' },
     cssClass: 'bk-sops-connector',
     hoverClass: 'bk-sops-connector-hover',
