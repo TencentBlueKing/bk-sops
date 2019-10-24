@@ -14,16 +14,19 @@
         <div
             :class="[
                 'task-node',
+                'process-node',
                 node.status ? node.status.toLowerCase() : '',
-                { 'isActived': node.isActived }
+                { 'actived': node.isActived }
             ]">
+            <div class="node-status-block">
+                <img class="node-icon" :src="node.icon || defaultTypeIcon" />
+            </div>
             <div class="node-name">
                 <p>{{ node.name }}</p>
             </div>
-            <div class="stage-name">{{node.stage_name}}</div>
             <div class="node-options-icon">
                 <template v-if="node.optional">
-                    <div v-if="node.mode === 'edit'" class="optional-icon"></div>
+                    <span v-if="node.mode === 'edit'" class="optional-icon"></span>
                     <bk-checkbox
                         v-else-if="node.mode === 'select'"
                         :value="node.checked"
@@ -31,9 +34,9 @@
                         @change="onNodeCheckClick">
                     </bk-checkbox>
                 </template>
-                <div v-if="node.error_ignorable && node.mode === 'edit'" class="dark-circle common-icon-dark-circle-i"></div>
-                <div v-if="node.isSkipped" class="dark-circle common-icon-dark-circle-s"></div>
-                <div v-if="node.can_retry" class="dark-circle common-icon-dark-circle-r"></div>
+                <span v-if="node.error_ignorable && node.mode === 'edit'" class="dark-circle common-icon-dark-circle-i"></span>
+                <span v-if="node.isSkipped" class="dark-circle common-icon-dark-circle-s"></span>
+                <span v-if="node.can_retry" class="dark-circle common-icon-dark-circle-r"></span>
             </div>
             <div v-if="node.status === 'SUSPENDED' || node.status === 'RUNNING'" class="task-status-icon">
                 <i v-if="node.status === 'RUNNING' && node.code === 'sleep_timer'" class="common-icon-clock"></i>
@@ -86,6 +89,7 @@
         },
         data () {
             return {
+                defaultTypeIcon: require('@/assets/images/atom-type-default.svg'),
                 i18n: {
                     retry: gettext('重试'),
                     skip: gettext('跳过'),
@@ -149,30 +153,34 @@
     }
 </script>
 <style lang="scss" scoped>
+    .node-status-block {
+        .node-icon {
+            width: 16px;
+        }
+    }
     .node-options-icon {
-        display: inline-block;
         position: absolute;
-        top: -10px;
-        left: -20px;
-        width: 14px;
+        top: -30px;
+        left: 0;
     }
     .optional-icon {
+        display: inline-block;
         position: relative;
-        width: 14px;
-        height: 14px;
-        line-height: 14px;
+        width: 11px;
+        height: 11px;
+        line-height: 11px;
         font-size: 12px;
         color: #ffffff;
         text-align: center;
         border-radius: 100%;
-        background: #348aff;
+        background: #979ba5;
         &::after {
             content: "";
             position: absolute;
-            left: 2px;
+            left: 3px;
             top: 3px;
-            height: 4px;
-            width: 8px;
+            height: 2px;
+            width: 5px;
             border-left: 1px solid;
             border-bottom: 1px solid;
             border-color: #ffffff;
@@ -180,8 +188,7 @@
         }
     }
     .dark-circle {
-        margin-top: 2px;
-        font-size: 14px;
-        color: #348af3;
+        font-size: 12px;
+        color: #979ba5;
     }
 </style>
