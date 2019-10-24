@@ -41,6 +41,7 @@
                 :common="common"
                 :template_id="template_id"
                 :canvas-data="canvasData"
+                @variableDataChanged="variableDataChanged"
                 @onNodeClick="onNodeClick"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
@@ -710,7 +711,6 @@
             },
             // 分支网关失焦
             onLabelBlur (labelData) {
-                this.variableDataChanged()
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
@@ -734,6 +734,7 @@
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
+                            this.variableDataChanged()
                             this.$bkMessage({
                                 message: gettext('排版完成，原内容在本地缓存中'),
                                 theme: 'success'
@@ -752,23 +753,21 @@
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
-                        if (changeType === 'add' && location.atomId) { // drag new single node
-                            this.setActivities({ type: 'add', location })
-                            this.getSingleAtomConfig(location)
-                            return
-                        }
-                        if (changeType === 'delete') {
-                            this.hideConfigPanel()
-                        }
-                        this.setActivities({ type: changeType, location })
-                        break
                     case 'subflow':
-                        if (changeType === 'add' && location.atomId) { // drag new subflow node
+                        // 添加任务节点
+                        if (changeType === 'add' && location.atomId) {
                             this.setActivities({ type: 'add', location })
-                            this.getSubflowConfig(location)
+                            if (location.type === 'tasknode') {
+                                this.getSingleAtomConfig(location)
+                            } else {
+                                this.getSubflowConfig(location)
+                            }
                             return
                         }
                         if (changeType === 'delete') {
+                            if (this.idOfNodeInConfigPanel === location.id) {
+                                this.idOfNodeInConfigPanel = ''
+                            }
                             this.hideConfigPanel()
                         }
                         this.setActivities({ type: changeType, location })
@@ -790,7 +789,6 @@
                 this.setLine({ type: changeType, line })
             },
             onLocationMoveDone (location) {
-                this.variableDataChanged()
                 this.setLocationXY(location)
             },
             globalVariableUpdate (val) {
