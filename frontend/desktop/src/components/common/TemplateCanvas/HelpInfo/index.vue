@@ -36,6 +36,11 @@
 <script>
     import '@/utils/i18n.js'
     const isMac = /macintosh|mac os x/i.test(navigator.userAgent.toLowerCase())
+    const hotKeyTriggeringConditions = [
+        { emit: 'onZoomIn', keyCodes: [107, 187], ctrl: true },
+        { emit: 'onZoomOut', keyCodes: [109, 198], ctrl: true },
+        { emit: 'onResetPosition', keyCodes: [96, 48], ctrl: true }
+    ]
     export default {
         name: 'HelpInfo',
         props: {
@@ -63,7 +68,8 @@
                     moveNode: gettext('箭头（上下左右）：移动流程元素'),
                     cancel: gettext('：取消选中')
                 },
-                isMac
+                isMac,
+                hotKeyTriggeringConditions
             }
         },
         mounted () {
@@ -78,18 +84,19 @@
             },
             handerKeyDown (e) {
                 const ctrl = window.event.ctrlKey
-                if ((e.keyCode === 107 || e.keyCode === 187) && ctrl) {
+                const emitName = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl).emit
+                if (emitName && this.isUsable(emitName)) {
                     e.preventDefault()
-                    this.$emit('onZoomIn')
+                    this.$emit(emitName)
                 }
-                if ((e.keyCode === 109 || e.keyCode === 189) && ctrl) {
-                    e.preventDefault()
-                    this.$emit('onZoomOut')
+            },
+            isUsable (emitName) {
+                // 只读模式可用快捷键列表
+                const readOnlyModeCanUse = ['onZoomIn', 'onZoomOut', 'onResetPosition']
+                if (!this.editable && readOnlyModeCanUse.indexOf(emitName) < -1) {
+                    return false
                 }
-                if (e.keyCode === 79 && ctrl) {
-                    e.preventDefault()
-                    this.$emit('onResetPosition')
-                }
+                return true
             }
         }
     }
