@@ -185,7 +185,7 @@
                     x: 0,
                     y: 0
                 },
-                ReferenceLine: {
+                referenceLine: {
                     x: 0,
                     y: 0,
                     id: '',
@@ -199,14 +199,14 @@
         mounted () {
             this.isDisableStartPoint = !!this.canvasData.locations.find((location) => location.type === 'startpoint')
             this.isDisableEndPoint = !!this.canvasData.locations.find((location) => location.type === 'endpoint')
-            document.body.addEventListener('click', this.handerShortcutPanelHide, false)
+            document.body.addEventListener('click', this.handleShortcutPanelHide, false)
         },
         beforeDestroy () {
             this.$refs.jsFlow.$el.removeEventListener('mousemove', this.pasteMousePosHandler)
             document.removeEventListener('keydown', this.nodeLinePastehandler)
             document.removeEventListener('keydown', this.nodeLineDeletehandler)
-            document.body.removeEventListener('click', this.handerShortcutPanelHide, false)
-            document.body.removeEventListener('click', this.handerReferenceLineHide, false)
+            document.body.removeEventListener('click', this.handleShortcutPanelHide, false)
+            document.body.removeEventListener('click', this.handleReferenceLineHide, false)
         },
         methods: {
             onZoomIn () {
@@ -544,8 +544,8 @@
             // 节点拖动回调
             onNodeMoving (node) {
                 // 在有参考线的情况下，拖动参考线来源节点，将移出参考线
-                if (this.ReferenceLine.id && this.ReferenceLine.id === node.id) {
-                    this.handerReferenceLineHide()
+                if (this.referenceLine.id && this.referenceLine.id === node.id) {
+                    this.handleReferenceLineHide()
                 }
             },
             // 锚点点击回调
@@ -558,25 +558,25 @@
                 }
                 const type = endpoint.anchor.type
                 // 第二次点击
-                if (this.ReferenceLine.id && endpoint.elementId !== this.ReferenceLine.id) {
+                if (this.referenceLine.id && endpoint.elementId !== this.referenceLine.id) {
                     this.createLine(
-                        { id: this.ReferenceLine.id, arrow: this.ReferenceLine.arrow },
+                        { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
                     )
-                    this.ReferenceLine.id = ''
+                    this.referenceLine.id = ''
                     return false
                 }
                 const line = this.$refs.dragReferenceLine
                 const { clientX, clientY } = event
                 line.style.left = clientX + deviationMap[type].x + 'px'
                 line.style.top = clientY - 50 + deviationMap[type].y + 'px'
-                this.ReferenceLine = { x: clientX, y: clientY, id: endpoint.elementId, arrow: type }
-                document.getElementById('canvas-flow').addEventListener('mousemove', this.handerReferenceLine, false)
+                this.referenceLine = { x: clientX, y: clientY, id: endpoint.elementId, arrow: type }
+                document.getElementById('canvas-flow').addEventListener('mousemove', this.handleReferenceLine, false)
             },
             // 生成参考线
-            handerReferenceLine (e) {
+            handleReferenceLine (e) {
                 const line = this.$refs.dragReferenceLine
-                const { x: startX, y: startY } = this.ReferenceLine
+                const { x: startX, y: startY } = this.referenceLine
                 const { clientX, clientY } = e
                 const pX = clientX - startX
                 const pY = clientY - startY
@@ -590,15 +590,15 @@
                 line.style.width = len + 'px'
                 line.style.transformOrigin = `top left`
                 line.style.transform = 'rotate(' + r + 'deg)'
-                document.body.addEventListener('click', this.handerReferenceLineHide, false)
+                document.body.addEventListener('click', this.handleReferenceLineHide, false)
             },
             // 移出参考线
-            handerReferenceLineHide () {
+            handleReferenceLineHide () {
                 const line = this.$refs.dragReferenceLine
-                this.ReferenceLine.id = ''
+                this.referenceLine.id = ''
                 line.style.display = 'none'
-                document.getElementById('canvas-flow').removeEventListener('mousemove', this.handerReferenceLine, false)
-                document.body.removeEventListener('click', this.handerReferenceLineHide, false)
+                document.getElementById('canvas-flow').removeEventListener('mousemove', this.handleReferenceLine, false)
+                document.body.removeEventListener('click', this.handleReferenceLineHide, false)
             },
             // 创建连线
             createLine (source, target) {
@@ -611,7 +611,7 @@
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', line)
                     this.$refs.jsFlow.createConnector(line)
-                    this.ReferenceLine.id = ''
+                    this.referenceLine.id = ''
                 } else {
                     this.$bkMessage({
                         message: validateMessage.message,
@@ -670,11 +670,11 @@
                     this.onNodeClick(id)
                     return
                 }
-                if (this.ReferenceLine.id) {
+                if (this.referenceLine.id) {
                     // 自动连线
-                    this.onConnectionDragStop({ id: this.ReferenceLine.id, arrow: this.ReferenceLine.arrow }, id, event)
+                    this.onConnectionDragStop({ id: this.referenceLine.id, arrow: this.referenceLine.arrow }, id, event)
                     // 移出参考线
-                    this.handerReferenceLineHide()
+                    this.handleReferenceLineHide()
                     return
                 }
                 if (this.idOfNodeShortcutPanel) {
@@ -687,7 +687,7 @@
                 this.idOfNodeShortcutPanel = id
             },
             // 隐藏快捷节点面板
-            handerShortcutPanelHide (e) {
+            handleShortcutPanelHide (e) {
                 this.onUpdateNodeInfo(this.idOfNodeShortcutPanel, { isActived: false })
                 this.toggleNodeLevel(this.idOfNodeShortcutPanel, false)
                 this.idOfNodeShortcutPanel = ''
