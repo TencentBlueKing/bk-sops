@@ -329,6 +329,9 @@
                 this.onChangeEdit(true)
                 this.theKeyOfEditing = ''
                 this.$emit('variableDataChanged')
+                // 滚到到底部
+                const container = document.querySelector('.variable-list')
+                container.scrollTop = container.scrollHeight
             },
             /**
              * 变量 key 复制
