@@ -27,6 +27,8 @@
                             v-model="tableAtom"
                             class="statistics-select"
                             :placeholder="i18n.selectAtom"
+                            :searchable="true"
+                            :clearable="true"
                             :disabled="atomListData.length === 0"
                             @change="tableFilterChange">
                             <bk-option
@@ -42,6 +44,8 @@
                             v-model="tableProject"
                             class="statistics-select"
                             :placeholder="i18n.selectProject"
+                            :searchable="true"
+                            :clearable="true"
                             :disabled="projectList.length === 0"
                             @change="tableFilterChange">
                             <bk-option
@@ -58,6 +62,8 @@
                             class="statistics-select"
                             :placeholder="i18n.selectCategory"
                             :disabled="categoryList.length === 0"
+                            :searchable="true"
+                            :clearable="true"
                             @change="tableFilterChange">
                             <bk-option
                                 v-for="option in categoryList"
@@ -141,7 +147,7 @@
                 prop: 'templateName'
             },
             {
-                label: gettext('所属项目'),
+                label: gettext('项目'),
                 prop: 'projectName'
             },
             {
@@ -169,7 +175,7 @@
                 prop: 'instanceName'
             },
             {
-                label: gettext('所属项目'),
+                label: gettext('项目'),
                 prop: 'projectName'
             },
             {
@@ -182,7 +188,7 @@
             },
             {
                 label: gettext('创建时间'),
-                prop: 'create_time',
+                prop: 'createTime',
                 sortable: true
             }
         ]
@@ -348,11 +354,11 @@
                     this.rankDataLoading = true
                     const query = {
                         group_by: this.rankDataCite,
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             project_id: this.rankDataProject
-                        })
+                        }
                     }
                     this.rankData = await this.loadAnalysisData(query)
                 } catch (e) {
@@ -366,14 +372,14 @@
                     this.tableDataLoading = true
                     const query = {
                         group_by: this.activeTab,
-                        conditions: JSON.stringify({
+                        conditions: {
                             create_time: this.dateRange[0],
                             finish_time: this.dateRange[1],
                             component_code: this.tableAtom,
                             project_id: this.tableProject,
                             category: this.tableCategory,
                             order_by: this.tableSort
-                        }),
+                        },
                         pageIndex: this.pagination.current,
                         limit: this.pagination.limit
                     }

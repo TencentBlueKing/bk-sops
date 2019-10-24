@@ -34,21 +34,23 @@
                 </bk-select>
             </bk-form-item>
         </bk-form>
-        <div class="chart-content" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
-            <template v-if="dataLoading || dataList.length > 0">
-                <div
-                    v-for="(item, index) in dataList"
-                    class="data-item"
-                    :key="index">
-                    <span class="data-label" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
-                    <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
-                        <div class="block" :style="getBlockStyle(item.value)">
-                            <span class="num">{{ item.value }}</span>
+        <div class="content-wrapper" v-bkloading="{ isLoading: dataLoading, opacity: 1 }">
+            <div class="chart-content">
+                <template v-if="dataLoading || dataList.length > 0">
+                    <div
+                        v-for="(item, index) in dataList"
+                        class="data-item"
+                        :key="index">
+                        <span class="data-label" :style="{ width: `${labelWidth}px` }">{{ item.name }}</span>
+                        <div class="data-bar" :style="{ width: `calc(100% - ${labelWidth + 100}px)` }">
+                            <div class="block" :style="getBlockStyle(item.value)">
+                                <span class="num">{{ item.value }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </template>
-            <no-data v-else></no-data>
+                </template>
+                <no-data v-else></no-data>
+            </div>
         </div>
     </div>
 </template>
@@ -134,10 +136,16 @@
         top: 14px;
         right: 20px;
     }
-    .chart-content {
+    .content-wrapper {
         margin-top: 28px;
         height: 245px;
+    }
+    .chart-content {
+        height: 100%;
         overflow-y: auto;
+        &.loading {
+            overflow: hidden;
+        }
     }
     .data-item {
         height: 34px;
