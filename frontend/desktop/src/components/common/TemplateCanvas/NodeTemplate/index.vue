@@ -189,11 +189,8 @@
             background-color: $color;
         }
        .sub-body {
-            .t-left .triangle{
+            .t-left .triangle, .blue-bar{
                 background-color: $color;
-            }
-            .t-center {
-                border-color: $color;
             }
         }
     }
