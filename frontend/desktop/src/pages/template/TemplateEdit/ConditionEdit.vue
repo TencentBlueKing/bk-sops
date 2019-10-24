@@ -73,10 +73,10 @@
             }
         },
         mounted () {
-            document.body.addEventListener('click', this.handleeConditionEditlShow, false)
+            document.body.addEventListener('click', this.handleConditionEdit, false)
         },
         beforeDestroy () {
-            document.body.removeEventListener('click', this.handleeConditionEditlShow, false)
+            document.body.removeEventListener('click', this.handleConditionEdit, false)
         },
         methods: {
             updateConditionData (data) {
@@ -85,9 +85,9 @@
                 this.expression = data.value
             },
             /**
-             * 处理节点配置面板和全局变量面板之外的点击事件
+             * 处理分支条件编辑面板之外的点击事件
              */
-            handleeConditionEditlShow (e) {
+            handleConditionEdit (e) {
                 if (!this.isShowConditionEdit) {
                     return
                 }
@@ -131,7 +131,6 @@
     height: calc(100% - 50px);
     background: #ffffff;
     border-left: 1px solid #dddddd;
-    -webkit-box-shadow: -4px 0 6px -4px rgba(0, 0, 0, .15);
     box-shadow: -4px 0 6px -4px rgba(0, 0, 0, .15);
     overflow-y: auto;
     z-index: 5;
@@ -161,7 +160,6 @@
                 font-size: 14px;
                 .required {
                     color: #ff2602;
-                    font-family: "SimSun";
                 }
             }
             .ui-textarea {

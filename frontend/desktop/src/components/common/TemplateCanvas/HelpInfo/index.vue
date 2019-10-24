@@ -15,30 +15,16 @@
             <transition name="wrapperLeft">
                 <div v-if="isMac" class="hot-key-panel">
                     <p class="text title">Mac</p>
-                    <!-- <p class="text">Command + z {{i18n.reset}}/Undo</p> -->
-                    <!-- <p class="text">Command + Shift + z {{i18n.restore}}/Redo</p> -->
                     <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                     <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                     <p class="text">Ctrl + o {{i18n.reduction}}</p>
-                    <!-- <p class="text">Command + {{i18n.multiple}}</p> -->
-                    <!-- <p class="text">Command + A {{i18n.selectAll}}</p> -->
-                    <!-- <p class="text">[{{i18n.afterSelect}}] Command + Del {{i18n.delNode}}</p> -->
-                    <!-- <p class="text">[{{i18n.afterSelect}}] {{i18n.moveNode}}</p> -->
-                    <!-- <p class="text">[{{i18n.afterSelect}}] Esc{{i18n.cancel}}</p> -->
                     <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                 </div>
                 <div v-else class="hot-key-panel">
                     <p class="text title">Windows</p>
-                    <!-- <p class="text">Alt + z {{i18n.reset}}/Undo</p> -->
-                    <!-- <p class="text">Alt + Shift + z {{i18n.restore}}/Redo</p> -->
                     <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
                     <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
                     <p class="text">Ctrl + o {{i18n.reduction}}</p>
-                    <!-- <p class="text">Alt + {{i18n.multiple}}</p> -->
-                    <!-- <p class="text">Alt + A {{i18n.selectAll}}</p> -->
-                    <!-- <p class="text">[{{i18n.afterSelect}}] Alt + Del {{i18n.delNode}}</p> -->
-                    <!-- <p class="text">[{{i18n.afterSelect}}] {{i18n.moveNode}}</p> -->
-                    <!-- <p class="text">[{{i18n.afterSelect}  }] Esc{{i18n.cancel}}</p> -->
                     <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
                 </div>
             </transition>

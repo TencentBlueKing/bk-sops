@@ -133,11 +133,11 @@
         tips: gettext('系统不会保存您所做的更改，确认离开？'),
         saved: gettext('保存成功'),
         error: gettext('任务节点参数错误，请点击错误节点查看详情'),
-        delete_success: gettext('删除本地缓存成功'),
-        delete_fail: gettext('该本地缓存不存在，删除失败'),
-        replace_success: gettext('替换流程成功'),
-        add_cache: gettext('新增流程本地缓存成功'),
-        replace_save: gettext('替换流程自动保存')
+        deleteSuccess: gettext('删除本地缓存成功'),
+        deleteFail: gettext('该本地缓存不存在，删除失败'),
+        replaceSuccess: gettext('替换流程成功'),
+        addCache: gettext('新增流程本地缓存成功'),
+        replaceSave: gettext('替换流程自动保存')
     }
 
     export default {
@@ -916,12 +916,12 @@
             onDeleteDraft (key) {
                 if (draft.deleteDraft(key)) {
                     this.$bkMessage({
-                        'message': i18n.delete_success,
+                        'message': i18n.deleteSuccess,
                         'theme': 'success'
                     })
                 } else {
                     this.$bkMessage({
-                        'message': i18n.delete_fail,
+                        'message': i18n.deleteFail,
                         'theme': 'error'
                     })
                 }
@@ -938,10 +938,10 @@
                     const lastTemplateSerializable = JSON.stringify(lastTemplate)
                     // 替换之前进行保存
                     if (nowTemplateSerializable !== lastTemplateSerializable) {
-                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replace_save)
+                        draft.addDraft(this.username, this.project_id, this.getTemplateIdOrTemplateUUID(), this.getLocalTemplateData(), i18n.replaceSave)
                     }
                     this.$bkMessage({
-                        'message': i18n.replace_success,
+                        'message': i18n.replaceSuccess,
                         'theme': 'success'
                     })
                 }
@@ -972,7 +972,7 @@
                 }
                 if (isMessage) {
                     this.$bkMessage({
-                        'message': i18n.add_cache,
+                        'message': i18n.addCache,
                         'theme': 'success'
                     })
                 }

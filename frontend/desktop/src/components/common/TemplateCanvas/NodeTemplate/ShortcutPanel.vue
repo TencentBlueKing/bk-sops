@@ -15,12 +15,15 @@
         v-if="idOfNodeShortcutPanel === node.id"
         class="shortcut-panel">
         <ul class="shortcut-wrap">
-            <li v-if="isShowConfigIcon" @click.stop="onShowNodeConfig" class="shortcut-item common-icon-gear"></li>
-            <li @click="onAppendNode('tasknode')" class="shortcut-item common-icon-node-tasknode"></li>
-            <li @click="onAppendNode('subflow')" class="shortcut-item common-icon-node-subflow"></li>
-            <li @click="onAppendNode('parallelgateway')" class="shortcut-item common-icon-node-parallelgateway"></li>
-            <li @click="onAppendNode('branchgateway')" class="shortcut-item common-icon-node-branchgateway"></li>
-            <li @click="onAppendNode('convergegateway')" class="shortcut-item common-icon-node-convergegateway"></li>
+            <li
+                v-if="isShowConfigIcon"
+                class="shortcut-item common-icon-gear"
+                @click.stop="onShowNodeConfig"></li>
+            <li
+                v-for="(name, index) in nodeTypeList"
+                :key="index"
+                :class="['shortcut-item', `common-icon-node-${name}`]"
+                @click="onAppendNode(name)"></li>
         </ul>
     </div>
 </template>
@@ -52,6 +55,7 @@
         },
         data () {
             return {
+                nodeTypeList: ['tasknode', 'subflow', 'parallelgateway', 'branchgateway', 'convergegateway']
             }
         },
         computed: {
@@ -73,12 +77,12 @@
              */
             onAppendNode (type) {
                 const { x, y, id, type: currType } = this.currentLocation
-                const EndX = x + 200
+                const endX = x + 200
                 const newNodeId = 'node' + uuid()
                 const location = {
                     type,
                     y,
-                    x: EndX,
+                    x: endX,
                     mode: 'edit',
                     id: newNodeId
                 }
@@ -139,7 +143,7 @@
         padding: 9px 12px 0px 14px;
         width: 120px;
         overflow: hidden;
-        background: rgba($color: #ffffff, $alpha: 0.35);
+        background: rgba(255, 255, 255, .35);
         .shortcut-item {
             font-size: 27px;
             margin-bottom: 11px;
