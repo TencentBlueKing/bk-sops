@@ -711,9 +711,9 @@ class TaskFlowInstanceManager(models.Manager, managermixins.ClassificationCountM
 
         groups = []
         for pipeline in pipeline_data:
-            item = {'atom_total': pipeline.atom_total,
-                    'subprocess_total': pipeline.subprocess_total,
-                    'gateways_total': pipeline.gateways_total}
+            item = {'atomTotal': pipeline.atom_total,
+                    'subprocessTotal': pipeline.subprocess_total,
+                    'gatewaysTotal': pipeline.gateways_total}
             item.update(taskflow_dict[pipeline.instance_id])
             groups.append(item)
         return total, groups
