@@ -728,8 +728,8 @@
             },
             // 切换节点层级状态
             toggleNodeLevel (id, isActived) {
-                if (!id) return
                 const node = document.getElementById(id)
+                if (!id || !node) return
                 if (!isActived) {
                     node.classList.remove('actived')
                 } else {
