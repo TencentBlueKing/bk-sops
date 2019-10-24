@@ -299,6 +299,7 @@
                     name: value
                 }
                 $branchEl.classList.remove('editing')
+                this.$emit('variableDataChanged')
                 this.$emit('onLabelBlur', labelData)
             },
             onToggleAllNode (val) {
@@ -352,6 +353,7 @@
                     })
                     return false
                 }
+                this.$emit('variableDataChanged')
                 return true
             },
             onCreateNodeAfter (node) {
@@ -421,6 +423,7 @@
                 const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', data)
+                    this.$emit('variableDataChanged')
                     return true
                 } else {
                     this.$bkMessage({
@@ -484,9 +487,11 @@
                         id: connection.targetId
                     }
                 }
+                this.$emit('variableDataChanged')
                 this.$emit('onLineChange', 'delete', line)
             },
             onNodeMoveStop (loc) {
+                this.$emit('variableDataChanged')
                 this.$emit('onLocationMoveDone', loc)
             },
             onOverlayClick (overlay, e) {
@@ -499,6 +504,7 @@
             },
             onNodeRemove (node) {
                 this.$refs.jsFlow.removeNode(node)
+                this.$emit('variableDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
 
                 if (node.type === 'startpoint') {
