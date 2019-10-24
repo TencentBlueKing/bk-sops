@@ -41,7 +41,9 @@
                 </div>
             </div>
             <local-cache v-for="cache in cacheList" :key="cache.id" :value="cache"></local-cache>
-            <NoData v-if="!cacheList.length"></NoData>
+            <div class="cache-empty">
+                <NoData v-if="!cacheList.length"></NoData>
+            </div>
         </div>
         <div class="empty-data" v-if="emptyData">
             <p>{{i18n.noData}}<router-link to="/admin/manage/source_edit/package_edit/">{{i18n.create}}</router-link>{{i18n.sourceManage}}</p>
@@ -157,11 +159,9 @@
             color: #3a84ff;
         }
     }
-    .page-manage {
-        .no-data-wrapper {
-            margin-top: 30px;
-            background: transparent;
-            color: #c4c6cc;
-        }
+    .cache-empty {
+        padding: 30px 0;
+        background: #ffffff;
+        border: 1px solid #dde4eb;
     }
 </style>

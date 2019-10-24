@@ -356,7 +356,7 @@
 <style lang="scss" scoped>
 @import '@/scss/config.scss';
 header {
-    min-width: 1320px;
+    min-width: 1334px;
     padding: 0 25px;
     height: 50px;
     font-size: 14px;

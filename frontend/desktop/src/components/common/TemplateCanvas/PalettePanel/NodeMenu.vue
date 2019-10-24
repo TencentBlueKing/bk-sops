@@ -67,6 +67,7 @@
     </transition>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import NoData from '@/components/common/base/NoData.vue'
     import NodeItem from './NodeItem.vue'
     import dom from '@/utils/dom.js'

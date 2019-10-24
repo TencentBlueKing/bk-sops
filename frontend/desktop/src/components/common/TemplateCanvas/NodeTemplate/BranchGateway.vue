@@ -25,6 +25,8 @@
     </el-tooltip>
 </template>
 <script>
+    import '@/utils/i18n.js'
+
     export default {
         name: 'BranchGateway',
         props: {

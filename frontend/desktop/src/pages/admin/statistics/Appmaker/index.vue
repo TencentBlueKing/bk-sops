@@ -188,7 +188,7 @@
                 i18n: i18n,
                 projectId: undefined,
                 category: undefined,
-                choiceBusinessName: '',
+                choiceProjectName: '',
                 choiceCategoryName: '',
                 isDropdownShow: false,
                 datePickerRefShow: false,
@@ -234,11 +234,11 @@
                         prop: 'templateName',
                         label: i18n.templateName,
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}appmaker/home/${row.businessId}">${row.templateName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}appmaker/home/${row.projectId}">${row.templateName}</a>`
                         }
                     },
                     {
-                        prop: 'businessName', // 识别id
+                        prop: 'projectName', // 识别id
                         label: i18n.ownBusiness, // 表头显示名称
                         align: 'center' // 对其格式，可选（right，left，center）
                     },
@@ -316,7 +316,7 @@
         },
         created () {
             this.getDateTime()
-            this.choiceBusinessName = this.i18n.choiceAllBusiness
+            this.choiceProjectName = this.i18n.choiceAllBusiness
             this.choiceCategoryName = this.i18n.choiceAllCategory
             this.onChangeCategoryTime()
             this.onChangeBusinessTime()

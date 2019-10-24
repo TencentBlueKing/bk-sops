@@ -24,8 +24,8 @@
                             <bk-select
                                 v-model="currentAtom"
                                 class="node-select"
-                                font-size="14"
                                 :searchable="true"
+                                :clearable="false"
                                 @selected="onAtomSelect">
                                 <bk-option
                                     v-for="(option, index) in atomList"
@@ -60,7 +60,11 @@
                     <div class="form-item">
                         <label class="required">{{ i18n.node_name }}</label>
                         <div class="form-content">
-                            <bk-input v-model="nodeName" name="nodeName" class="node-name" v-validate="nodeNameRule" />
+                            <bk-input
+                                v-model="nodeName"
+                                name="nodeName"
+                                class="node-name"
+                                v-validate="nodeNameRule" />
                             <span v-show="errors.has('nodeName')" class="common-error-tip error-msg">{{ errors.first('nodeName') }}</span>
                         </div>
                     </div>
@@ -77,16 +81,22 @@
                             <bk-checkbox
                                 v-model="errorCouldBeIgnored"
                                 @change="onIgnoredChange">
-                                <i class="common-icon-dark-circle-i"></i>
-                                {{i18n.ignore}}
+                                <div class="checkbox-text-wrapper">
+                                    <i class="common-icon-dark-circle-i"></i>
+                                    <span class="checkbox-text">{{i18n.ignore}}</span>
+                                </div>
                             </bk-checkbox>
                             <bk-checkbox v-model="isSkip" :disabled="isDisable">
-                                <i class="common-icon-dark-circle-s"></i>
-                                {{i18n.manuallySkip}}
+                                <div class="checkbox-text-wrapper">
+                                    <i class="common-icon-dark-circle-s"></i>
+                                    <span class="checkbox-text">{{i18n.manuallySkip}}</span>
+                                </div>
                             </bk-checkbox>
                             <bk-checkbox v-model="isRetry" :disabled="isDisable">
-                                <i class="common-icon-dark-circle-r"></i>
-                                {{i18n.manuallyRetry}}
+                                <div class="checkbox-text-wrapper">
+                                    <i class="common-icon-dark-circle-r"></i>
+                                    <span class="checkbox-text">{{i18n.manuallyRetry}}</span>
+                                </div>
                             </bk-checkbox>
                             <div id="html-error-ingored-tootip" class="tips-item" style="white-space: normal;">
                                 <p>
@@ -100,7 +110,7 @@
                                 </p>
                             </div>
                             <i v-bk-tooltips="htmlConfig" ref="tooltipsHtml" class="common-icon-info ui-failure-info"></i>
-                            <span v-show="manuallyEmpty" class="common-warning-tip">{{ i18n.manuallyEmpty}}</span>
+                            <span v-show="manuallyEmpty" class="error-handler-warning-tip common-warning-tip">{{ i18n.manuallyEmpty}}</span>
                         </div>
                     </div>
                     <div class="form-item">
@@ -302,6 +312,7 @@
             ...mapState({
                 'activities': state => state.template.activities,
                 'constants': state => state.template.constants,
+                'location': state => state.template.location,
                 'atomForm': state => state.atomForm.form,
                 'atomFormConfig': state => state.atomForm.config,
                 'atomFormOutput': state => state.atomForm.output,
@@ -412,6 +423,8 @@
         watch: {
             idOfNodeInConfigPanel (val) {
                 this.nodeId = val
+                this.taskTypeEmpty = false
+                this.errors.clear()
                 this.initData()
             },
             isRetry (val) {
@@ -459,14 +472,17 @@
              * 加载标准插件配置文件或子流程表单配置
              * @param {String} version 子流程版本
              */
-            getConfig (version) {
+            async getConfig (version) {
                 if ((typeof this.currentAtom === 'string' && this.currentAtom !== '')
                     || (typeof this.currentAtom === 'number' && !isNaN(this.currentAtom))) {
                     if (this.isSingleAtom) {
-                        return this.getAtomConfig(this.currentAtom)
+                        await this.getAtomConfig(this.currentAtom)
                     } else {
-                        return this.getSubflowConfig(this.currentAtom, version)
+                        await this.getSubflowConfig(this.currentAtom, version)
                     }
+                    this.$nextTick(() => {
+                        this.markInvalidForm()
+                    })
                 } else {
                     this.markInvalidForm()
                 }
@@ -587,7 +603,6 @@
                     this.getNodeFormData()
                     this.$nextTick(() => {
                         this.updateActivities()
-                        this.markInvalidForm()
                     })
                 } catch (e) {
                     errorHandler(e, this)
@@ -617,7 +632,6 @@
                 this.getNodeFormData()
                 this.$nextTick(() => {
                     this.updateActivities()
-                    this.markInvalidForm()
                 })
             },
             /**
@@ -778,6 +792,7 @@
                     this.$emit('onUpdateNodeInfo', this.nodeId, {
                         status,
                         name: this.nodeName,
+                        mode: 'edit',
                         stage_name: this.stageName,
                         optional: this.nodeCouldBeSkipped,
                         error_ignorable: this.errorCouldBeIgnored,
@@ -789,9 +804,9 @@
                 })
             },
             markInvalidForm () {
-                const nodeEls = document.querySelector('#' + this.nodeId).querySelector('.node-with-text')
-                if (nodeEls && !this.isAtomChanged) {
-                    const status = nodeEls.dataset.status
+                const nodeEl = this.location.find(item => item.id === this.idOfNodeInConfigPanel)
+                if (nodeEl && !this.isAtomChanged) {
+                    const status = nodeEl.status
                     if (status === 'FAILED') {
                         this.$validator.validateAll()
                         this.$refs.renderForm && this.$refs.renderForm.validate()
@@ -1136,17 +1151,10 @@
         right: 56px;
     }
     .basic-info-form {
-        .node-select,
-        /deep/ .bk-form-input {
-            font-size: 14px;
-        }
         .error-handler {
             position: relative;
             height: 32px;
             line-height: 32px;
-            /deep/ .bk-form-checkbox {
-                font-size: unset;
-            }
         }
         .desc-tooltip,
         .update-tooltip,
@@ -1166,14 +1174,21 @@
         .common-icon-dark-circle-i,
         .common-icon-dark-circle-s,
         .common-icon-dark-circle-r {
-            display: inline-block;
-            vertical-align: middle;
+            padding-right: 4px;
             color: #a6b0c7;
         }
-        .common-warning-tip {
+        .checkbox-text-wrapper {
+            display: flex;
+            align-items: center;
+            .checkbox-text {
+                font-size: 12px;
+            }
+        }
+        .error-handler-warning-tip {
+            position: absolute;
+            top: 22px;
+            left: 0;
             font-size: 12px;
-            height: 20px;
-            line-height: 20px;
         }
         .bk-switcher {
             top: 5px;
@@ -1181,9 +1196,6 @@
     }
 }
 // 子流程选择下拉框字号
-.subflow-option-name {
-    font-size: 14px;
-}
 .form-item {
     margin-bottom: 20px;
     @include clearfix;
@@ -1195,7 +1207,7 @@
         float: left;
         margin-top: 8px;
         width: 100px;
-        font-size: 14px;
+        font-size: 12px;
         color: $greyDefault;
         text-align: right;
         &.required:before {
@@ -1243,7 +1255,6 @@
 .inputs-info {
     /deep/ .render-form {
         .rf-form-item {
-            font-size: 14px;
             .rf-tag-label {
                 color: $greyDefault;
             }

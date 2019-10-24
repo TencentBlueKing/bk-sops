@@ -83,6 +83,16 @@
                 return this.hasPermission(['create'], this.authActions, this.authOperations)
             }
         },
+        watch: {
+            'permissionData': {
+                deep: true,
+                handler (val) {
+                    if (val.permission.length > 0) {
+                        this.loadPermissionUrl()
+                    }
+                }
+            }
+        },
         created () {
             if (this.permissionData.type === 'project' && this.viewMode !== 'appmaker') {
                 this.queryProjectCreatePerm()

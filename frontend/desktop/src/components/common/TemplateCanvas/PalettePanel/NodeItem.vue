@@ -20,6 +20,8 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
+
     export default {
         name: 'NodeItem',
         props: {

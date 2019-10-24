@@ -75,14 +75,19 @@
         },
         computed: {
             ...mapState({
-                'constants': state => state.template.constants
+                'constants': state => state.template.constants,
+                'systemConstants': state => state.template.systemConstants
             }),
             constantArr: {
                 get () {
+                    let Keylist = []
                     if (this.constants) {
-                        return Object.keys(this.constants)
+                        Keylist = [...Object.keys(this.constants)]
                     }
-                    return []
+                    if (this.systemConstants) {
+                        Keylist = [...Keylist, ...Object.keys(this.systemConstants)]
+                    }
+                    return Keylist
                 },
                 set (val) {
                     this.varList = val
@@ -140,8 +145,6 @@
 
 .tag-input {
     /deep/ .el-input__inner {
-        height: 36px;
-        line-height: 36px;
         padding: 0 10px;
     }
     .rf-form-wrapper {
@@ -165,7 +168,7 @@
         .rf-select-item {
             padding: 0 10px;
             line-height: 32px;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
             &:hover {
                 background: #eef6fe;

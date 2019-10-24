@@ -19,6 +19,7 @@ from .apis.gse import CollectionsGSE
 from .apis.job import CollectionsJOB
 from .apis.sops import CollectionsSOPS
 from .apis.esb import CollectionsEsb
+from .apis.nodeman import CollectionsNodeMan
 
 
 # Available components
@@ -31,4 +32,5 @@ AVAILABLE_COLLECTIONS = {
     'job': CollectionsJOB,
     'sops': CollectionsSOPS,
     'esb': CollectionsEsb,
+    'nodeman': CollectionsNodeMan
 }

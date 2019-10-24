@@ -42,6 +42,7 @@
                 :template_id="template_id"
                 :canvas-data="canvasData"
                 @onConditionClick="onOpenConditionEdit"
+                @variableDataChanged="variableDataChanged"
                 @onNodeClick="onNodeClick"
                 @onLabelBlur="onLabelBlur"
                 @onLocationChange="onLocationChange"
@@ -119,6 +120,7 @@
     import tools from '@/utils/tools.js'
     import atomFilter from '@/utils/atomFilter.js'
     import { errorHandler } from '@/utils/errorHandler.js'
+    import validatePipeline from '@/utils/validatePipeline.js'
     import TemplateHeader from './TemplateHeader.vue'
     import TemplateCanvas from '@/components/common/TemplateCanvas/index.vue'
     import TemplateSetting from './TemplateSetting/TemplateSetting.vue'
@@ -275,13 +277,18 @@
                 }
             }
         },
-        created () {
+        async created () {
             this.initTemplateData()
+            // 获取流程内置变量
+            this.templateDataLoading = true
+            const result = await this.loadInternalVariable()
+            this.setInternalVariable(result.data || [])
             if (this.type === 'edit' || this.type === 'clone') {
                 this.getTemplateData()
             } else {
                 const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
                 this.setTemplateName(name)
+                this.templateDataLoading = false
             }
             // 复制并替换本地缓存的内容
             if (this.type === 'clone') {
@@ -322,6 +329,7 @@
                 'saveTemplateData',
                 'loadCommonTemplateData',
                 'loadCustomVarCollection',
+                'loadInternalVariable',
                 'getLayoutedPipeline'
             ]),
             ...mapActions('atomForm/', [
@@ -347,6 +355,7 @@
                 'setStartpoint',
                 'setEndpoint',
                 'setBranchCondition',
+                'setInternalVariable',
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree'
@@ -428,7 +437,6 @@
                 }
             },
             async getTemplateData () {
-                this.templateDataLoading = true
                 try {
                     const data = {
                         templateId: this.template_id,
@@ -713,10 +721,14 @@
             },
             // 分支网关失焦
             onLabelBlur (labelData) {
-                this.variableDataChanged()
                 this.setBranchCondition(labelData)
             },
             async onFormatPosition () {
+                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
                 if (this.canvasDataLoading) {
                     return
                 }
@@ -732,6 +744,7 @@
                         this.setPipelineTree(res.data.pipeline_tree)
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
+                            this.variableDataChanged()
                             this.$bkMessage({
                                 message: gettext('排版完成，原内容在本地缓存中'),
                                 theme: 'success'
@@ -750,23 +763,21 @@
                 this.setLocation({ type: changeType, location })
                 switch (location.type) {
                     case 'tasknode':
-                        if (changeType === 'add' && location.atomId) { // drag new single node
-                            this.setActivities({ type: 'add', location })
-                            this.getSingleAtomConfig(location)
-                            return
-                        }
-                        if (changeType === 'delete') {
-                            this.hideConfigPanel()
-                        }
-                        this.setActivities({ type: changeType, location })
-                        break
                     case 'subflow':
-                        if (changeType === 'add' && location.atomId) { // drag new subflow node
+                        // 添加任务节点
+                        if (changeType === 'add' && location.atomId) {
                             this.setActivities({ type: 'add', location })
-                            this.getSubflowConfig(location)
+                            if (location.type === 'tasknode') {
+                                this.getSingleAtomConfig(location)
+                            } else {
+                                this.getSubflowConfig(location)
+                            }
                             return
                         }
                         if (changeType === 'delete') {
+                            if (this.idOfNodeInConfigPanel === location.id) {
+                                this.idOfNodeInConfigPanel = ''
+                            }
                             this.hideConfigPanel()
                         }
                         this.setActivities({ type: changeType, location })
@@ -788,13 +799,15 @@
                 this.setLine({ type: changeType, line })
             },
             onLocationMoveDone (location) {
-                this.variableDataChanged()
                 this.setLocationXY(location)
             },
             globalVariableUpdate (val) {
                 this.isGlobalVariableUpdate = val
             },
             onUpdateNodeInfo (id, data) {
+                const location = this.canvasData.locations.find(item => item.id === id)
+                const updatedLocation = Object.assign(location, data)
+                this.setLocation({ type: 'edit', location: updatedLocation })
                 this.$refs.templateCanvas.onUpdateNodeInfo(id, data)
             },
             onDeleteConstant (key) {
@@ -886,6 +899,12 @@
             },
             // 校验节点配置
             checkNodeAndSaveTemplate () {
+                // 校验节点数目
+                const validateMessage = validatePipeline.isDataValid(this.canvasData)
+                if (!validateMessage.result) {
+                    errorHandler({ message: validateMessage.message }, this)
+                    return
+                }
                 // 节点配置是否错误
                 const nodeWithErrors = document.querySelectorAll('.node-with-text.FAILED')
                 if (nodeWithErrors && nodeWithErrors.length) {

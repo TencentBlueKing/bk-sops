@@ -11,12 +11,39 @@
 */
 <template>
     <div class="tag-datatable">
-        <bk-button
-            v-if="add_btn && editable && formMode"
-            class="add-column" type="default"
-            @click="add_row">
-            {{ i18n.add_text }}
-        </bk-button>
+        <template v-if="editable && formMode">
+            <bk-button
+                v-if="add_btn"
+                class="add-column"
+                size="small"
+                @click="add_row">
+                {{ i18n.add_text }}
+            </bk-button>
+            <div v-for="btn in table_buttons" :key="btn.type" class="table-buttons">
+                <bk-button
+                    v-if="btn.type !== 'import'"
+                    type="default"
+                    size="small"
+                    @click="onBtnClick(btn.callback)">
+                    {{ btn.text}}
+                </bk-button>
+                <el-upload
+                    v-else
+                    ref="upload"
+                    class="upload-btn"
+                    action="/"
+                    :show-file-list="false"
+                    :on-change="importExcel"
+                    :auto-upload="false">
+                    <bk-button
+                        slot="trigger"
+                        size="small"
+                        type="default">
+                        {{ btn.text }}
+                    </bk-button>
+                </el-upload>
+            </div>
+        </template>
         <el-table
             v-if="Array.isArray(value)"
             style="width: 100%; font-size: 12px"
@@ -74,6 +101,8 @@
     import { getFormMixins } from '../formMixins.js'
     import FormItem from '../FormItem.vue'
     import FormGroup from '../FormGroup.vue'
+    import XLSX from 'xlsx'
+    import errorHandler from '@/utils/errorHandler.js'
 
     const datatableAttrs = {
         columns: {
@@ -122,6 +151,11 @@
                 return data
             },
             desc: 'how to process data after getting remote data'
+        },
+        table_buttons: {
+            type: Array,
+            required: false,
+            desc: 'dataTable buttons setting'
         }
     }
     export default {
@@ -193,7 +227,81 @@
             ...mapMutations('template/', [
                 'deleteVariable'
             ]),
-
+            formatJson (filterVal, jsonData) {
+                return jsonData.map(v => filterVal.map(j => v[j]))
+            },
+            export2Excel () {
+                require.ensure([], () => {
+                    const TableToExcel = require('table-to-excel')
+                    const tableToExcel = new TableToExcel()
+                    const tableHeader = []
+                    const tableData = []
+                    const filterVal = []
+                    for (let i = 0; i < this.columns.length; i++) {
+                        const tagCode = this.columns[i].tag_code
+                        const name = this.columns[i].attrs.name
+                        tableHeader.push(name)
+                        filterVal.push(tagCode)
+                    }
+                    tableData.push(tableHeader)
+                    const list = this.tableValue
+                    for (let i = 0; i < list.length; i++) {
+                        const row = []
+                        for (let j = 0; j < filterVal.length; j++) {
+                            row.push(list[i][filterVal[j]])
+                        }
+                        tableData.push(row)
+                    }
+                    tableToExcel.render(tableData)
+                })
+            },
+            importExcel (file) {
+                const types = file.name.split('.')[1]
+                const fileType = ['xlsx', 'xlc', 'xlm', 'xls', 'xlt', 'xlw', 'csv'].some(item => item === types)
+                if (!fileType) {
+                    errorHandler(gettext('格式错误！请选择xlsx,xls,xlc,xlm,xlt,xlw或csv文件'))
+                    return
+                }
+                this.file2Xce(file).then(tabJson => {
+                    if (tabJson && tabJson.length > 0) {
+                        // 首先做一个name与tag_code的对应字典
+                        const nameToTagCode = {}
+                        for (let i = 0; i < this.columns.length; i++) {
+                            nameToTagCode[this.columns[i].attrs.name] = this.columns[i].tag_code
+                        }
+                        // 循环进行对比，如果发现与表头一致的name，就将其替换成tag_code
+                        const excelValue = tabJson[0]['sheet']
+                        for (let i = 0; i < excelValue.length; i++) {
+                            for (const key in excelValue[i]) {
+                                const newKey = nameToTagCode[key]
+                                excelValue[i][newKey] = excelValue[i][key]
+                                delete excelValue[i][key]
+                            }
+                        }
+                        this.tableValue = tabJson[0]['sheet']
+                    }
+                })
+            },
+            file2Xce (file) {
+                return new Promise(function (resolve, reject) {
+                    const reader = new FileReader()
+                    reader.onload = function (e) {
+                        const data = e.target.result
+                        const wb = XLSX.read(data, {
+                            type: 'binary'
+                        })
+                        const result = []
+                        wb.SheetNames.forEach((sheetName) => {
+                            result.push({
+                                sheetName: sheetName,
+                                sheet: XLSX.utils.sheet_to_json(wb.Sheets[sheetName])
+                            })
+                        })
+                        resolve(result)
+                    }
+                    reader.readAsBinaryString(file.raw)
+                })
+            },
             /**
              * 表格内每列的数据的校验
              * 筛选 ref 接口获得的子表单组件，分别调用 validate 方法
@@ -228,6 +336,9 @@
                     formMode: this.editRowNumber === index,
                     validateSet: ['required', 'custom', 'regex']
                 }
+            },
+            onBtnClick (callback) {
+                typeof callback === 'function' && callback()
             },
             onEdit (index, row) {
                 this.editRowNumber = index
@@ -337,21 +448,26 @@
     }
 </script>
 <style lang="scss" scoped>
-@import '@/scss/config.scss';
-.tag-datatable {
-    .el-table .tag-form.tag-input {
-        margin-right: 0;
+    @import '@/scss/config.scss';
+    .tag-datatable {
+        .el-table .tag-form.tag-input {
+            margin-right: 0;
+        }
+        .rf-form-item {
+            margin: 0;
+        }
     }
-    .rf-form-item {
-        margin: 0;
+    .add-column {
+        margin-bottom: 10px;
     }
-}
-.add-column {
-    margin-bottom: 10px;
-}
-.operate-btn {
-    color: $blueDefault;
-    white-space: nowrap;
-    cursor: pointer;
-}
+    .operate-btn {
+        color: $blueDefault;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .table-buttons{
+        display: inline-block;
+        margin-left: 10px;
+        margin-bottom: 15px;
+    }
 </style>

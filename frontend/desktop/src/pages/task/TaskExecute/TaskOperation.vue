@@ -255,8 +255,10 @@
                     checkFlow: gettext('查看流程')
                 },
                 taskId: this.instance_id,
+                isloadCacheStatus: false,
                 isTaskParamsShow: false,
                 isNodeInfoPanelShow: false,
+                cacheNodeId: '',
                 nodeInfoType: '',
                 state: '',
                 selectedFlowPath: path, // 选择面包屑路径
@@ -287,7 +289,8 @@
         },
         computed: {
             ...mapState({
-                userType: state => state.userType
+                userType: state => state.userType,
+                view_mode: state => state.view_mode
             }),
             completePipelineData () {
                 return JSON.parse(this.instanceFlow)
@@ -356,9 +359,9 @@
             paramsCanBeModify () {
                 return this.isTopTask && this.state === 'CREATED'
             },
-            // 职能化/审计中心时,隐藏[查看流程]按钮
+            // 职能化/审计中心/轻应用时,隐藏[查看流程]按钮
             isShowViewProcess () {
-                return this.userType !== 'functor' && this.userType !== 'auditor'
+                return this.userType !== 'functor' && this.userType !== 'auditor' && this.view_mode !== 'appmaker'
             }
         },
         watch: {
@@ -393,17 +396,19 @@
                 'pauseNodeResume'
             ]),
             async loadTaskStatus () {
-                const data = {
-                    instance_id: this.taskId,
-                    project_id: this.project_id
-                }
-                if (this.selectedFlowPath.length > 1) {
-                    data.instance_id = this.instance_id
-                    data.subprocess_id = this.taskId
-                }
                 try {
                     this.$emit('taskStatusLoadChange', true)
-                    const instanceStatus = await this.getInstanceStatus(data)
+                    const data = {
+                        instance_id: this.taskId,
+                        project_id: this.project_id
+                    }
+                    if (this.selectedFlowPath.length > 1) {
+                        data.instance_id = this.instance_id
+                        data.subprocess_id = this.taskId
+                    }
+                    const instanceStatus = !this.isloadCacheStatus
+                        ? await this.getInstanceStatus(data)
+                        : await this.getCacheStatusData()
                     if (instanceStatus.result) {
                         this.state = instanceStatus.data.state
                         this.instanceStatus = instanceStatus.data
@@ -421,6 +426,24 @@
                 } finally {
                     this.$emit('taskStatusLoadChange', false)
                 }
+            },
+            /**
+             * 获取缓存状态数据
+             * @description
+             * 待jsFlow更新 updateCanvas 方法解决后删除异步代码，
+             * 然后使用 updateCanvas 替代 v-if
+             */
+            getCacheStatusData () {
+                return new Promise((resolve) => {
+                    this.isloadCacheStatus = false
+                    const cacheStatus = this.instanceStatus.children
+                    setTimeout(() => {
+                        resolve({
+                            data: cacheStatus[this.cacheNodeId],
+                            result: true
+                        })
+                    }, 0)
+                })
             },
             async taskExecute () {
                 try {
@@ -795,7 +818,8 @@
             },
             getTplURL () {
                 let routerData = ''
-                if (this.templateSource === 'business') {
+                // business 兼容老数据
+                if (this.templateSource === 'business' || this.templateSource === 'project') {
                     routerData = `/template/edit/${this.project_id}/?template_id=${this.template_id}`
                 } else if (this.templateSource === 'common') {
                     routerData = `/template/home/${this.project_id}/?common=1&common_template=common`
@@ -885,6 +909,11 @@
                     type: 'SubProcess'
                 })
                 this.pipelineData = this.pipelineData.activities[id].pipeline
+                // 子流程完成或失败时，点击获取接口缓存的数据
+                if (['FINISHED', 'FAILED'].includes(this.state)) {
+                    this.isloadCacheStatus = true
+                    this.cacheNodeId = id
+                }
                 this.updateTaskStatus(id)
             },
             // 面包屑点击

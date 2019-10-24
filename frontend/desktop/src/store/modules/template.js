@@ -155,7 +155,8 @@ const template = {
         subprocess_info: {
             details: [],
             subproc_has_update: false
-        }
+        },
+        systemConstants: []
     },
     mutations: {
         setTemplateName (state, name) {
@@ -486,7 +487,7 @@ const template = {
                             id: location.id,
                             incoming: '',
                             loop: null,
-                            name: location.name,
+                            name: location.name || '',
                             optional: false,
                             outgoing: '',
                             stage_name: gettext('步骤1'),
@@ -501,7 +502,7 @@ const template = {
                             id: location.id,
                             incoming: '',
                             loop: null,
-                            name: location.name,
+                            name: location.name || '',
                             optional: false,
                             outgoing: '',
                             stage_name: gettext('步骤1'),
@@ -738,6 +739,10 @@ const template = {
             const { lines, locations } = tools.deepClone(payload)
             state.line = lines
             state.location = locations
+        },
+        // 设置内置变量
+        setInternalVariable (state, payload) {
+            state.systemConstants = payload
         }
     },
     actions: {
@@ -816,6 +821,12 @@ const template = {
         },
         getCollectedTemplateDetail ({ commit }, ids) {
             return api.getCollectedTemplateDetail(ids).then(
+                response => response.data
+            )
+        },
+        // 获取内置变量
+        loadInternalVariable ({ commit }) {
+            return api.getInternalVariableList().then(
                 response => response.data
             )
         }
