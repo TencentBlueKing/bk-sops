@@ -201,9 +201,9 @@
   dest_http_method: POST
 
 - path: /v2/sops/get_plugin_list/
-  name: get_component_list
+  name: get_plugin_list
   label: 查询某个项目下的插件列表
-  label_en: Query component list
+  label_en: Query plugin list
   method: GET
   api_type: query
   comp_codename: generic.v2.sops.sops_component

@@ -34,7 +34,7 @@ class HttpRequestService(Service):
             self.InputItem(name=_(u'HTTP 请求方法'),
                            key='bk_http_request_method',
                            type='string',
-                           schema=StringItemSchema(description=_(u'HTTP 请求方式'))),
+                           schema=StringItemSchema(description=_(u'HTTP 请求方法'))),
             self.InputItem(name=_(u'HTTP 请求目标地址'),
                            key='bk_http_request_url',
                            type='string',

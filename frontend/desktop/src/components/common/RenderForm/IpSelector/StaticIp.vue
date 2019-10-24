@@ -13,9 +13,8 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button theme="default" @click="onAddPanelShow" :disabled="!editable">{{i18n.add}}</bk-button>
+                <bk-button theme="default" :disabled="!editable" @click="onAddPanelShow">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
-                    v-if="isShowQuantity"
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
@@ -290,11 +289,12 @@
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
         padding: 0px;
+        font-size: 12px;
     }
 }
 .operation-btn {
     padding: 5px 8px;
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
     &:hover {
         color: #3a84ff;

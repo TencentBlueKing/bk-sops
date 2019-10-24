@@ -295,7 +295,7 @@
         choiceAllCategory: gettext('全部分类'),
         choiceAllBusiness: gettext('全部项目'),
         templateName: gettext('流程名称'),
-        businessName: gettext('所属项目'),
+        projectName: gettext('所属项目'),
         editTime: gettext('更新时间'),
         editor: gettext('更新人'),
         category: gettext('分类'),
@@ -324,7 +324,7 @@
                 i18n: i18n,
                 projectId: undefined,
                 category: undefined,
-                choiceBusinessName: '',
+                choiceProjectName: '',
                 isDropdownShow: false,
                 choiceDownShow: false,
                 datePickerRefShow: false,
@@ -351,12 +351,12 @@
                         width: '285',
                         title: 'templateName',
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}template/edit/${row.businessId}/?template_id=${row.templateId}">${row.templateName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}template/edit/${row.projectId}/?template_id=${row.templateId}">${row.templateName}</a>`
                         }
                     },
                     {
-                        prop: 'businessName', // 识别id
-                        label: i18n.businessName, // 表头显示名称
+                        prop: 'projectName', // 识别id
+                        label: i18n.projectName, // 表头显示名称
                         align: 'center'// 对其格式，可选（right，left，center）
                     },
                     {
@@ -392,12 +392,12 @@
                         width: '285',
                         title: 'instanceName',
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.businessId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.projectId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
                         }
                     },
                     {
-                        prop: 'businessName', // 识别id
-                        label: i18n.businessName, // 表头显示名称
+                        prop: 'projectName', // 识别id
+                        label: i18n.projectName, // 表头显示名称
                         align: 'center' // 对其格式，可选（right，left，center）
                     },
                     {
@@ -483,12 +483,12 @@
                         prop: 'instanceName',
                         label: i18n.instanceName,
                         formatter: (row, column, cellValue, index) => {
-                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.businessId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
+                            return `<a class="template-router" target="_blank" href="${this.site_url}taskflow/execute/${row.projectId}/?instance_id=${row.instanceId}">${row.instanceName}</a>`
                         }
                     },
                     {
-                        prop: 'businessName',
-                        label: i18n.businessName,
+                        prop: 'projectName',
+                        label: i18n.projectName,
                         align: 'center'
                     },
                     {
@@ -546,7 +546,7 @@
         },
         created () {
             this.getDateTime()
-            this.choiceBusinessName = this.i18n.choiceAllBusiness
+            this.choiceProjectName = this.i18n.choiceAllBusiness
             this.onChangeBusinessTime()
             this.onAtomTemplateData()
             this.getCategorys()

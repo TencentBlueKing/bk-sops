@@ -108,8 +108,6 @@
                     <div class="common-form-content">
                         <bk-select
                             v-model="projectDetail.timeZone"
-                            class="bk-select-inline"
-                            :popover-width="260"
                             :searchable="true"
                             :disabled="dialogType === 'edit'"
                             :placeholder="i18n.statusPlaceholder"
@@ -557,9 +555,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 520px;
             .switch-status {
                 display: inline-block;
+            }
+            .bk-form-checkbox {
+                margin-right: 30px;
             }
         }
         .search-input {

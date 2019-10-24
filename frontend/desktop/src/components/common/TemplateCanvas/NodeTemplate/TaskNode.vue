@@ -28,9 +28,9 @@
                 <template v-if="node.optional">
                     <span v-if="node.mode === 'edit'" class="optional-icon"></span>
                     <bk-checkbox
-                        v-else-if="node.mode === 'select' || ndoe.mode === 'selectDisabled'"
+                        v-else-if="node.mode === 'select'"
                         :value="node.checked"
-                        :disabled="node.mode === 'selectDisabled'"
+                        :disabled="node.checkDisable"
                         @change="onNodeCheckClick">
                     </bk-checkbox>
                 </template>
@@ -72,9 +72,11 @@
             </template>
         </div>
     </el-tooltip>
-    
+
 </template>
 <script>
+    import '@/utils/i18n.js'
+
     export default {
         name: 'TaskNode',
         props: {
@@ -142,6 +144,9 @@
                 this.$emit('onModifyTimeClick', this.node.id)
             },
             onNodeCheckClick () {
+                if (this.node.checkDisable) {
+                    return
+                }
                 this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
             }
         }

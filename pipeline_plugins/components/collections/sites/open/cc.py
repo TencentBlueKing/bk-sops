@@ -189,7 +189,7 @@ class CCTransferHostModuleService(Service):
             data.set_outputs('ex_data', host_result['message'])
             return False
 
-        cc_module_select = data.get_one_of_inputs('cc_module_select')
+        cc_module_select = cc_format_tree_mode_id(data.get_one_of_inputs('cc_module_select'))
         cc_is_increment = data.get_one_of_inputs('cc_is_increment')
 
         cc_kwargs = {
@@ -433,11 +433,11 @@ class CCReplaceFaultMachineService(Service):
             new_host = host_dict.get(new_ip)
 
             if not fault_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % fault_ip)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % fault_ip
                 return False
 
             if not new_host:
-                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下" % new_ip)
+                data.outputs.ex_data = _(u"无法查询到 %s 机器信息，请确认该机器是否在当前业务下") % new_ip
                 return False
 
             update_item = {
@@ -626,7 +626,7 @@ class CCUpdateSetServiceStatusService(Service):
                 self.InputItem(name=_(u'服务状态'),
                                key='cc_set_status',
                                type='string',
-                               schema=StringItemSchema(description=_(u'集群服务器状态，开放(1)，关闭(2)'),
+                               schema=StringItemSchema(description=_(u'集群服务器状态，开放(1)或关闭(2)'),
                                                        enum=['1', '2']))]
 
     def outputs_format(self):

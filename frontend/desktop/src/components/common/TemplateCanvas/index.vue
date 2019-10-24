@@ -90,6 +90,7 @@
     </div>
 </template>
 <script>
+    import '@/utils/i18n.js'
     import JsFlow from '@/assets/js/jsflow.esm.js'
     import { uuid } from '@/utils/uuid.js'
     import NodeTemplate from './NodeTemplate/index.vue'
@@ -333,6 +334,7 @@
                         overlayId
                     })
                 }
+                this.$emit('variableDataChanged')
             },
             onToggleAllNode (val) {
                 this.$emit('onToggleAllNode', val)
@@ -376,6 +378,15 @@
                 }
             },
             onCreateNodeBefore (node) {
+                const nodeMenuEl = document.querySelector(`.node-menu`)
+                if (node.atomId && nodeMenuEl) {
+                    const nodeEl = document.querySelector('.adding-node')
+                    const nodeWidth = nodeEl.offsetWidth
+                    const nodeMenuWidth = nodeMenuEl.offsetWidth
+                    if (nodeMenuWidth - node.x > (nodeWidth / 2)) {
+                        return false
+                    }
+                }
                 const validateMessage = validatePipeline.isLocationValid(node, this.flowData.nodes)
 
                 if (!validateMessage.result) {
@@ -385,6 +396,7 @@
                     })
                     return false
                 }
+                this.$emit('variableDataChanged')
                 return true
             },
             onCreateNodeAfter (node) {
@@ -456,6 +468,7 @@
                 const validateMessage = validatePipeline.isLineValid(data, this.canvasData)
                 if (validateMessage.result) {
                     this.$emit('onLineChange', 'add', data)
+                    this.$emit('variableDataChanged')
                     return true
                 } else {
                     this.$bkMessage({
@@ -466,9 +479,11 @@
             },
             onConnection (line) {
                 this.$nextTick(() => {
-                    const lineId = this.canvasData.lines.filter(item => {
+                    const lineInCanvasData = this.canvasData.lines.filter(item => {
                         return item.source.id === line.sourceId && item.target.id === line.targetId
-                    })[0].id
+                    })[0]
+                    const lineId = lineInCanvasData.id
+                    // 增加连线删除 icon
                     this.$refs.jsFlow.addLineOverlay(line, {
                         type: 'Label',
                         name: '<i class="common-icon-dark-circle-close"></i>',
@@ -476,6 +491,7 @@
                         id: `close_${lineId}`
                     })
                     const branchInfo = this.canvasData.branchConditions[line.source.id]
+                    // 增加分支网关 label
                     if (branchInfo && Object.keys(branchInfo).length > 0) {
                         const labelValue = branchInfo[lineId].evaluate
                         // 兼容旧数据，分支条件里没有 name 属性的情况
@@ -493,6 +509,20 @@
                         }
                         this.$refs.jsFlow.addLineOverlay(line, labelData)
                     }
+                    // 调整连线配置
+                    if (lineInCanvasData.hasOwnProperty('midpoint')) {
+                        const config = [
+                            'Flowchart',
+                            {
+                                stub: [6, 6],
+                                alwaysRespectStub: true,
+                                gap: 8,
+                                cornerRadius: 2,
+                                midpoint: lineInCanvasData.midpoint
+                            }
+                        ]
+                        this.$refs.jsFlow.setConnector(lineInCanvasData.source.id, lineInCanvasData.target.id, config)
+                    }
                 })
             },
             onConnectionDetached (connection) {
@@ -504,9 +534,11 @@
                         id: connection.targetId
                     }
                 }
+                this.$emit('variableDataChanged')
                 this.$emit('onLineChange', 'delete', line)
             },
             onNodeMoveStop (loc) {
+                this.$emit('variableDataChanged')
                 this.$emit('onLocationMoveDone', loc)
             },
             onOverlayClick (overlay, e) {
@@ -533,6 +565,7 @@
             },
             onNodeRemove (node) {
                 this.$refs.jsFlow.removeNode(node)
+                this.$emit('variableDataChanged')
                 this.$emit('onLocationChange', 'delete', node)
 
                 if (node.type === 'startpoint') {
