@@ -159,7 +159,7 @@
     const TABLE_COLUMN = [
         {
             label: gettext('任务ID'),
-            prop: 'intanceId',
+            prop: 'instanceId',
             sortable: true
         },
         {
@@ -199,7 +199,7 @@
         },
         {
             label: gettext('耗时'),
-            prop: 'executeTime',
+            prop: 'elapsedTime',
             sortable: true
         }
     ]
