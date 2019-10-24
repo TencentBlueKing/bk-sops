@@ -13,19 +13,21 @@
     <div class="help-info-wrap">
         <div v-if="isShowHotKey" class="hot-key-container">
             <transition name="wrapperLeft">
-                <div v-if="isMac" class="hot-key-panel">
-                    <p class="text title">Mac</p>
-                    <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
-                    <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                    <p class="text">Ctrl + o {{i18n.reduction}}</p>
-                    <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
-                </div>
-                <div v-else class="hot-key-panel">
-                    <p class="text title">Windows</p>
-                    <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
-                    <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
-                    <p class="text">Ctrl + o {{i18n.reduction}}</p>
-                    <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                <div :class="['hot-key-panel', { 'min-top': !editable }]">
+                    <template v-if="isMac">
+                        <p class="text title">Mac</p>
+                        <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
+                        <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
+                        <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                        <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                    </template>
+                    <template v-else>
+                        <p class="text title">Windows</p>
+                        <p class="text">Ctrl + (+) {{i18n.zoomIn}}</p>
+                        <p class="text">Ctrl + (-) {{i18n.zoomOut}}</p>
+                        <p class="text">Ctrl + o {{i18n.reduction}}</p>
+                        <span class="close" @click.stop="onCloseHotkeyInfo"><i class="common-icon-dark-circle-close"></i></span>
+                    </template>
                 </div>
             </transition>
         </div>
@@ -40,6 +42,10 @@
             isShowHotKey: {
                 type: Boolean,
                 default: false
+            },
+            editable: {
+                type: Boolean,
+                default: true
             }
         },
         data () {
@@ -105,6 +111,10 @@
         border-radius: 10px;
         background-color: #777A85;
         transition: all 0.5s ease;
+        &.min-top {
+            left: 40px;
+            top: 70px;
+        }
         .title {
             margin-bottom: 20px;
         }

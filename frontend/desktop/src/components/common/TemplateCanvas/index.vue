@@ -80,6 +80,7 @@
             </template>
         </js-flow>
         <help-info
+            :editable="editable"
             :is-show-hot-key="isShowHotKey"
             @onZoomIn="onZoomIn"
             @onZoomOut="onZoomOut"
