@@ -84,10 +84,10 @@
             },
             handerKeyDown (e) {
                 const ctrl = window.event.ctrlKey
-                const emitName = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl).emit
-                if (emitName && this.isUsable(emitName)) {
+                const action = this.hotKeyTriggeringConditions.find(m => m.keyCodes.indexOf(e.keyCode) > -1 && !!ctrl === m.ctrl)
+                if (action && this.isUsable(action.emit)) {
                     e.preventDefault()
-                    this.$emit(emitName)
+                    this.$emit(action.emit)
                 }
             },
             isUsable (emitName) {
