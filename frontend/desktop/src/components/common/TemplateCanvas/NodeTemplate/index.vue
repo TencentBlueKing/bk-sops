@@ -13,7 +13,8 @@
     <div
         class="canvas-node-item"
         @mousedown="onMousedown"
-        @click.stop="onNodeClick">
+        @click.stop="onNodeClick"
+        @dblclick="onDblclick">
         <component
             :is="nodeTemplate"
             :node="node"
@@ -102,6 +103,9 @@
             onMousedown (e) {
                 const { pageX: x, pageY: y } = e
                 this.moveFlag = { x, y }
+            },
+            onDblclick () {
+                this.$emit('onShowNodeConfig', this.node.id)
             },
             onNodeClick (e) {
                 const moveBuffer = 2
