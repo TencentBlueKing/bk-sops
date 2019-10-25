@@ -28,7 +28,7 @@ from auth_backend.plugins.shortcuts import (
     verify_or_return_insufficient_perms
 )
 
-from pipeline_web.drawing import CANVAS_WIDTH
+from pipeline_web.drawing import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing import draw_pipeline as draw_pipeline_tree
 
 from gcloud.conf import settings
@@ -398,8 +398,12 @@ def draw_pipeline(request):
         message = 'json loads pipeline_tree error: %s' % e
         logger.exception(e)
         return JsonResponse({'result': False, 'message': message})
+    kwargs = {'canvas_width': canvas_width}
+    for kw in list(POSITION.keys()):
+        if kw in params:
+            kwargs[kw] = params[kw]
     try:
-        draw_pipeline_tree(pipeline_tree, canvas_width=canvas_width)
+        draw_pipeline_tree(pipeline_tree, **kwargs)
     except Exception as e:
         message = 'draw pipeline_tree error: %s' % e
         logger.exception(e)
