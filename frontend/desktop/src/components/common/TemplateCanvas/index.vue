@@ -24,6 +24,7 @@
             @onCreateNodeBefore="onCreateNodeBefore"
             @onCreateNodeAfter="onCreateNodeAfter"
             @onConnectionDragStop="onConnectionDragStop"
+            @onBeforeDrag="onBeforeDrag"
             @onBeforeDrop="onBeforeDrop"
             @onConnection="onConnection"
             @onConnectionDetached="onConnectionDetached"
@@ -582,8 +583,15 @@
                     this.handleReferenceLineHide()
                 }
             },
+            // 连线拖拽前回调
+            onBeforeDrag (connection) {
+                this.handleReferenceLineHide()
+            },
             // 锚点点击回调
             onEndpointClick (endpoint, event) {
+                if (!this.editable) {
+                    return false
+                }
                 const deviationMap = {
                     'Left': { x: 2, y: 0 },
                     'Right': { x: -2, y: 0 },
@@ -624,7 +632,7 @@
                 line.style.width = len + 'px'
                 line.style.transformOrigin = `top left`
                 line.style.transform = 'rotate(' + r + 'deg)'
-                document.body.addEventListener('click', this.handleReferenceLineHide, false)
+                document.body.addEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 移出参考线
             handleReferenceLineHide () {
@@ -632,7 +640,7 @@
                 this.referenceLine.id = ''
                 line.style.display = 'none'
                 document.getElementById('canvas-flow').removeEventListener('mousemove', this.handleReferenceLine, false)
-                document.body.removeEventListener('click', this.handleReferenceLineHide, false)
+                document.body.removeEventListener('mousedown', this.handleReferenceLineHide, false)
             },
             // 创建连线
             createLine (source, target) {
