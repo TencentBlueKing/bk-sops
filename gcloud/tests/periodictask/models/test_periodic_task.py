@@ -127,6 +127,7 @@ class PeriodicTaskTestCase(TestCase):
                 'project_id': self.project.id,
                 'category': self.template.category,
                 'template_id': self.template.pipeline_template.template_id,
+                'template_source': 'project',
                 'template_num_id': self.template.id
             },
             spread=True
@@ -176,7 +177,7 @@ class PeriodicTaskTestCase(TestCase):
 
     @patch(TASKTEMPLATE_GET, MagicMock(side_effect=Exception()))
     def test_task_template_name__task_does_not_exist(self):
-        self.assertIsNone(self.task.task_template_name)
+        self.assertEqual(self.task.task_template_name, '')
 
     def test_set_enabled(self):
         self.task.set_enabled(True)

@@ -16,6 +16,8 @@ import logging
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from gcloud.commons.template.models import CommonTemplate
+from gcloud.taskflow3.constants import TEMPLATE_SOURCE, PROJECT, COMMON
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
 from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as PipelinePeriodicTaskHistory
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
@@ -32,21 +34,25 @@ logger = logging.getLogger("root")
 
 class PeriodicTaskManager(models.Manager):
     def create(self, **kwargs):
+        template_source = kwargs.get('template_source', PROJECT)
         task = self.create_pipeline_task(
             project=kwargs['project'],
             template=kwargs['template'],
             name=kwargs['name'],
             cron=kwargs['cron'],
             pipeline_tree=kwargs['pipeline_tree'],
-            creator=kwargs['creator']
+            creator=kwargs['creator'],
+            template_source=template_source
         )
         return super(PeriodicTaskManager, self).create(
             project=kwargs['project'],
             task=task,
-            template_id=kwargs['template'].id)
+            template_id=kwargs['template'].id,
+            template_source=template_source
+        )
 
-    def create_pipeline_task(self, project, template, name, cron, pipeline_tree, creator):
-        if template.project.id != project.id:
+    def create_pipeline_task(self, project, template, name, cron, pipeline_tree, creator, template_source=PROJECT):
+        if template_source == PROJECT and template.project.id != project.id:
             raise InvalidOperationException('template %s do not belong to project[%s]' %
                                             (template.id,
                                              project.name))
@@ -54,6 +60,7 @@ class PeriodicTaskManager(models.Manager):
             'project_id': project.id,
             'category': template.category,
             'template_id': template.pipeline_template.template_id,
+            'template_source': template_source,
             'template_num_id': template.id
         }
 
@@ -79,6 +86,9 @@ class PeriodicTask(models.Model):
                                 on_delete=models.SET_NULL)
     task = models.ForeignKey(PipelinePeriodicTask, verbose_name=_(u"pipeline 层周期任务"))
     template_id = models.CharField(_(u"创建任务所用的模板ID"), max_length=255)
+    template_source = models.CharField(_(u"流程模板来源"), max_length=32,
+                                       choices=TEMPLATE_SOURCE,
+                                       default=PROJECT)
 
     objects = PeriodicTaskManager()
 
@@ -124,13 +134,20 @@ class PeriodicTask(models.Model):
 
     @property
     def task_template_name(self):
-        name = None
-        try:
-            name = TaskTemplate.objects.get(id=self.template_id).name
-        except Exception as e:
-            logger.warning(_(u"模板不存在，错误信息：%s") % e)
-        finally:
-            return name
+        name = ''
+        if self.template_source == PROJECT:
+            try:
+                name = TaskTemplate.objects.get(project=self.project, id=self.template_id).name
+            except Exception as e:
+                logger.warning(_(u"流程模板[project={project}, id={template_id}]不存在：{error}").format(
+                    project=self.project, template_id=self.template_id, error=e))
+        elif self.template_source == COMMON:
+            try:
+                name = CommonTemplate.objects.get(id=self.template_id).name
+            except Exception as e:
+                logger.warning(_(u"公共流程模板[id={template_id}]不存在：{error}").format(
+                    template_id=self.template_id, error=e))
+        return name
 
     def set_enabled(self, enabled):
         self.task.set_enabled(enabled)

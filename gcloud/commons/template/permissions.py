@@ -31,7 +31,9 @@ common_template_resource = DjangoModelResource(
         Action(id='view', name=_(u"查看"), is_instance_related=True),
         Action(id='edit', name=_(u"编辑"), is_instance_related=True),
         Action(id='delete', name=_(u"删除"), is_instance_related=True),
-        Action(id='create_task', name=_(u"新建任务"), is_instance_related=True)
+        Action(id='create_task', name=_(u"新建任务"), is_instance_related=True),
+        Action(id='create_mini_app', name=_(u"新建轻应用"), is_instance_related=True),
+        Action(id='create_periodic_task', name=_(u"新建周期任务"), is_instance_related=True)
     ],
     operations=[
         {
@@ -53,6 +55,14 @@ common_template_resource = DjangoModelResource(
         {
             'operate_id': 'create_task',
             'actions_id': ['view', 'create_task']
+        },
+        {
+            'operate_id': 'create_mini_app',
+            'actions_id': ['view', 'create_mini_app']
+        },
+        {
+            'operate_id': 'create_periodic_task',
+            'actions_id': ['view', 'create_periodic_task']
         },
         {
             'operate_id': 'clone',
