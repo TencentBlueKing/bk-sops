@@ -51,11 +51,6 @@
                     "action_id": "create_task"
                 }, 
                 {
-                    "action_name": "新建轻应用", 
-                    "is_related_resource": true, 
-                    "action_id": "create_mini_app"
-                }, 
-                {
                     "action_name": "新建周期任务", 
                     "is_related_resource": true, 
                     "action_id": "create_periodic_task"

@@ -195,7 +195,7 @@ class PeriodicTaskResource(GCloudModelResource):
 
         if template_source == PROJECT:
             try:
-                template = TaskTemplate.objects.get(id=template_id, project=project)
+                template = TaskTemplate.objects.get(id=template_id, project=project, is_deleted=False)
             except TaskTemplate.DoesNotExist:
                 raise BadRequest('template[id={template_id}] of project[project_id] does not exist'.format(
                     template_id=template_id,
@@ -218,7 +218,7 @@ class PeriodicTaskResource(GCloudModelResource):
 
         elif template_source == COMMON:
             try:
-                template = CommonTemplate.objects.get(id=template_id)
+                template = CommonTemplate.objects.get(id=template_id, is_deleted=False)
             except CommonTemplate.DoesNotExist:
                 raise BadRequest('common template[id=%s] does not exist' % template_id)
             perms_tuples = [

@@ -39,7 +39,7 @@ def forward_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    snapshot_json = '0003_bk_sops_201910241434'
+    snapshot_json = '0003_bk_sops_201910251722'
 
     dependencies = [('auth_backend', '0002_201909061515')]
 
