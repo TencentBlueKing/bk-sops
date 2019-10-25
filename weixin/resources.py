@@ -29,11 +29,13 @@ from gcloud.taskflow3.resources import TaskFlowInstanceResource
 
 class WxBusinessResource(BusinessResource):
     class Meta(BusinessResource.Meta):
+        resource_name = 'weixin_business'
         authorization = GCloudReadOnlyAuthorization()
 
 
 class WxTaskTemplateResource(TaskTemplateResource):
     class Meta(TaskTemplateResource.Meta):
+        resource_name = 'weixin_template'
         authorization = GCloudReadOnlyAuthorization()
 
 
@@ -44,15 +46,21 @@ class WxTaskFlowInstanceResource(TaskFlowInstanceResource):
         """
         return HttpResponseForbidden()
 
+    class Meta(TaskFlowInstanceResource.Meta):
+        resource_name = 'weixin_taskflow'
+
 
 class WxTemplateSchemeResource(TemplateSchemeResource):
     class Meta(TemplateSchemeResource.Meta):
+        resource_name = 'weixin_scheme'
         authorization = ReadOnlyAuthorization()
 
 
 class WxComponentModelResource(ComponentModelResource):
-    pass
+    class Meta(ComponentModelResource.Meta):
+        resource_name = 'weixin_component'
 
 
 class WxVariableModelResource(VariableModelResource):
-    pass
+    class Meta(VariableModelResource.Meta):
+        resource_name = 'weixin_variable'
