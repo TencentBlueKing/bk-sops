@@ -31,7 +31,7 @@
             <div class="ui-node-shadow"></div>
             <!-- 子流程图标 -->
             <i class="node-icon common-icon-subflow-mark"></i>
-            <div class="node-name">
+            <div class="node-name" :title="node.name">
                 {{ node.name }}
             </div>
             <div class="node-options-icon">
