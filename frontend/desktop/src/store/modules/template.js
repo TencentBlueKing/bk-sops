@@ -585,7 +585,7 @@ const template = {
                     state.gateways[location.id] = {
                         id: location.id,
                         incoming: location.type === 'convergegateway' ? [] : '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: location.type === 'convergegateway' ? '' : [],
                         type: ATOM_TYPE_DICT[location.type]
                     }
@@ -642,7 +642,7 @@ const template = {
                     state.start_event = {
                         id: location.id,
                         incoming: '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: '',
                         type: 'EmptyStartEvent'
                     }
@@ -680,7 +680,7 @@ const template = {
                     state.end_event = {
                         id: location.id,
                         incoming: '',
-                        name: location.name,
+                        name: location.name || '',
                         outgoing: '',
                         type: 'EmptyEndEvent'
                     }
