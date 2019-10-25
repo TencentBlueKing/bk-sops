@@ -605,7 +605,7 @@
                         { id: this.referenceLine.id, arrow: this.referenceLine.arrow },
                         { id: endpoint.elementId, arrow: type }
                     )
-                    this.referenceLine.id = ''
+                    this.handleReferenceLineHide()
                     return false
                 }
                 const line = this.$refs.dragReferenceLine
@@ -637,8 +637,10 @@
             // 移出参考线
             handleReferenceLineHide () {
                 const line = this.$refs.dragReferenceLine
+                if (line) {
+                    line.style.display = 'none'
+                }
                 this.referenceLine.id = ''
-                line.style.display = 'none'
                 document.getElementById('canvas-flow').removeEventListener('mousemove', this.handleReferenceLine, false)
                 document.body.removeEventListener('mousedown', this.handleReferenceLineHide, false)
             },
