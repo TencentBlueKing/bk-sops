@@ -380,6 +380,7 @@ class APITest(TestCase):
                     category=tmpl.category,
                     pipeline_instance=TEST_DATA,
                     template_id=TEST_TEMPLATE_ID,
+                    template_source='common',
                     create_method='api',
                     create_info=TEST_APP_CODE,
                     flow_type='common',
