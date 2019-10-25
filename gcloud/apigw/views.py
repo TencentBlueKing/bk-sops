@@ -525,7 +525,7 @@ def create_periodic_task(request, template_id, project_id):
                                                                                         project_id=project.id,
                                                                                         params=params))
 
-    if template_source == {BUSINESS, PROJECT}:
+    if template_source in {BUSINESS, PROJECT}:
         template_source = PROJECT
         try:
             template = TaskTemplate.objects.get(pk=template_id, project_id=project.id, is_deleted=False)
@@ -547,8 +547,7 @@ def create_periodic_task(request, template_id, project_id):
                                         status=200)
     else:
         try:
-            template = CommonTemplate.objects.select_related('pipeline_template').get(id=template_id,
-                                                                                      is_deleted=False)
+            template = CommonTemplate.objects.get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
             result = {
                 'result': False,
