@@ -235,6 +235,7 @@ def create_task(request, template_id, project_id):
 
     # 兼容老版本的接口调用
     if template_source in {BUSINESS, PROJECT}:
+        template_source = PROJECT
         try:
             tmpl = TaskTemplate.objects.select_related('pipeline_template').get(id=template_id,
                                                                                 project_id=project.id,
@@ -309,6 +310,7 @@ def create_task(request, template_id, project_id):
         pipeline_instance=data,
         category=tmpl.category,
         template_id=template_id,
+        template_source=template_source,
         create_method='api',
         create_info=app_code,
         flow_type=params.get('flow_type', 'common'),
