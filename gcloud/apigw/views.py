@@ -243,6 +243,7 @@ def create_task(request, template_id, bk_biz_id):
         pipeline_instance=data,
         category=tmpl.category,
         template_id=template_id,
+        template_source=template_source,
         create_method='api',
         create_info=app_code,
         flow_type=params.get('flow_type', 'common'),
