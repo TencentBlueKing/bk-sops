@@ -116,12 +116,42 @@
                         location
                     })
                 } else {
+                    if (['parallelgateway', 'branchgateway'].indexOf(currType) > -1 && isHaveNodeBehind) {
+                        // 拿到并行中最靠下的节点
+                        const { x: parallelX, y: parallelY } = this.getParallelNodeMinDistance(id)
+                        location.y = parallelY + 100
+                        location.x = parallelX
+                    }
                     this.$emit('onAppendNode', { location, line })
                 }
             },
             // 是否存在节点在需要追加节点后面
             isHaveNodeBehind (id) {
                 return this.canvasData.lines.some(line => line.source.id === id)
+            },
+            /**
+             * 获得并行节点中最靠下面的节点
+             * @param {String} nodeId 并行网管/分支网管
+             */
+            getParallelNodeMinDistance (nodeId) {
+                const { lines, locations } = this.canvasData
+                const { y } = locations.find(m => m.id === nodeId)
+                const parallelNodes = lines.filter(m => m.source.id === nodeId).map(m => m.target.id)
+                let maxDistance = null
+                // 距离网管节点垂直距离最近的节点
+                let needNodeLocation = null
+                locations.forEach((m, index) => {
+                    if (parallelNodes.indexOf(m.id) > -1) {
+                        if (maxDistance === null) {
+                            maxDistance = m.y - y
+                            needNodeLocation = m
+                        } else if (parallelNodes.indexOf(m.id) && m.y - y > maxDistance) {
+                            maxDistance = m.y - y
+                            needNodeLocation = m
+                        }
+                    }
+                })
+                return needNodeLocation
             }
         }
     }
