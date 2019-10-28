@@ -19,8 +19,6 @@ REMOTE_ANALYSIS_URL = '%s/console/static/js/analysis.min.js' % os.environ.get('B
 REMOTE_API_URL = '%s/console/static/bk_api/api.js' % os.environ.get('BK_PAAS_HOST', _BK_PAAS_HOST)
 
 ESB_SDK_NAME = 'packages.blueking.component'
-ESB_AUTH_COMPONENT_SYSTEM = 'bk_login'
-ESB_AUTH_GET_USER_INFO = 'get_user'
 
 CALLBACK_KEY = b'jbSH1_3PFsM8WRZZpUXJPhlJuvuA44A7Ov0nPhFk5ZY='
 RSA_PRIV_KEY = """

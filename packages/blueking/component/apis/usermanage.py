@@ -11,13 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from ..base import ComponentAPI
 
-def adapt_get_user_data(data):
-    if 'bk_username' in data:
-        data['uin'] = data.pop('bk_username')
-    if 'bk_role' in data:
-        data['role'] = data.pop('bk_role')
-    if 'bk_supplier_account' in data:
-        data.pop('bk_supplier_account')
 
-    return data
+class CollectionsUserManage(object):
+    """Collections of SOPS APIS"""
+
+    def __init__(self, client):
+        self.client = client
+
+        self.retrieve_user = ComponentAPI(
+            client=self.client, method='GET',
+            path='/api/c/compapi{bk_api_ver}/usermanage/retrieve_user/',
+            description=u'查询用户具体详情'
+        )
