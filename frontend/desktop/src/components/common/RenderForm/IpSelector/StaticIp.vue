@@ -13,13 +13,13 @@
     <div class="static-ip">
         <div v-show="!isIpAddingPanelShow" class="ip-list-panel">
             <div class="operation-area">
-                <bk-button theme="default" size="small" :disabled="!editable" @click="onAddPanelShow">{{i18n.add}}</bk-button>
+                <bk-button theme="default" :disabled="!editable" @click="onAddPanelShow">{{i18n.add}}</bk-button>
                 <bk-dropdown-menu
                     trigger="click"
                     :disabled="!editable"
                     @show="onDropdownShow"
                     @hide="onDropdownHide">
-                    <bk-button theme="default" size="small" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
+                    <bk-button theme="default" class="trigger-btn" slot="dropdown-trigger" :disabled="!editable">
                         <span>{{i18n.moreOperations}}</span>
                         <i :class="['bk-icon icon-angle-down',{ 'icon-flip': isDropdownShow }]"></i>
                     </bk-button>
@@ -289,6 +289,7 @@
     .bk-dropdown-menu, .trigger-btn {
         width: 162px;
         padding: 0px;
+        font-size: 12px;
     }
 }
 .operation-btn {
@@ -315,7 +316,7 @@
 }
 .ip-search-wrap {
     position: absolute;
-    top: -3px;
+    top: 0;
     right: 0;
     width: 50%;
 }

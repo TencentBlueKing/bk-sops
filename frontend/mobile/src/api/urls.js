@@ -11,11 +11,11 @@
 */
 export function getMobileUrlSetting (SITE_URL, BIZ_CC_ID, PLATFORM_URL = 'weixin/') {
     return {
-        business: SITE_URL + PLATFORM_URL + 'api/v3/business/',
-        component: SITE_URL + PLATFORM_URL + 'api/v3/component/',
-        template: SITE_URL + PLATFORM_URL + 'api/v3/template/',
-        variable: SITE_URL + PLATFORM_URL + 'api/v3/variable/',
-        instance: SITE_URL + PLATFORM_URL + 'api/v3/taskflow/',
+        business: SITE_URL + PLATFORM_URL + 'api/v3/weixin_business/',
+        component: SITE_URL + PLATFORM_URL + 'api/v3/weixin_component/',
+        template: SITE_URL + PLATFORM_URL + 'api/v3/weixin_template/',
+        variable: SITE_URL + PLATFORM_URL + 'api/v3/weixin_variable/',
+        instance: SITE_URL + PLATFORM_URL + 'api/v3/weixin_taskflow/',
         templateCollect: SITE_URL + PLATFORM_URL + 'template/api/collect/' + BIZ_CC_ID + '/',
         templateCollectList: SITE_URL + PLATFORM_URL + 'template/api/get_collect_template/' + BIZ_CC_ID + '/',
         instancePreview: SITE_URL + PLATFORM_URL + 'taskflow/api/preview_task_tree/' + BIZ_CC_ID + '/',
@@ -34,6 +34,6 @@ export function getMobileUrlSetting (SITE_URL, BIZ_CC_ID, PLATFORM_URL = 'weixin
         pauseSubProcess: SITE_URL + PLATFORM_URL + 'taskflow/api/nodes/action/pause_subproc/' + BIZ_CC_ID + '/',
         resumeSubProcess: SITE_URL + PLATFORM_URL + 'taskflow/api/nodes/action/resume_subproc/' + BIZ_CC_ID + '/',
         setSleepNode: SITE_URL + PLATFORM_URL + 'taskflow/api/nodes/spec/timer/reset/' + BIZ_CC_ID + '/',
-        schemes: SITE_URL + PLATFORM_URL + 'api/v3/scheme/'
+        schemes: SITE_URL + PLATFORM_URL + 'api/v3/weixin_scheme/'
     }
 }
