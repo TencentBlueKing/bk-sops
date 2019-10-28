@@ -460,6 +460,10 @@
             left: 0;
             width: 100%;
             height: 100%;
+            text-align: center;
+            .bk-button {
+                margin-top: 12px;
+            }
         }
         &:nth-child(2n) {
             margin-right: 0;
@@ -482,12 +486,10 @@
                 }
             }
             .apply-permission-mask {
-                padding: 12px 0;
                 background: rgba(255, 255, 255, 0.6);
                 text-align: center;
             }
             .bk-button {
-                width: 80px;
                 height: 32px;
                 line-height: 30px;
             }

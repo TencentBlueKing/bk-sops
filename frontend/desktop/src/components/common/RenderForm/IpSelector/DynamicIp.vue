@@ -156,7 +156,7 @@
 <style lang="scss" scoped>
 .dynamic-ip-num {
     padding: 20px 0;
-    font-size: 14px;
+    font-size: 12px;
     color: #313238;
     & > span {
         color: #3a84ff;
