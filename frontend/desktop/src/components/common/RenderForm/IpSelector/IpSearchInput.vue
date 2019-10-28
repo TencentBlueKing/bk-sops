@@ -14,7 +14,7 @@
         <bk-input
             class="search-input"
             right-icon="bk-icon icon-search"
-            font-size="large"
+            font-size="normal"
             :placeholder="placeholder"
             :disabled="!editable"
             :clearable="true"

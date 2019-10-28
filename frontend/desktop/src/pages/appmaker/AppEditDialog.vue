@@ -88,12 +88,13 @@
             <div class="common-form-item">
                 <label>{{i18n.appDesc}}</label>
                 <div class="common-form-content">
-                    <textarea
+                    <bk-input
                         class="app-desc"
                         name="appDesc"
+                        type="textarea"
                         v-model="appData.appDesc"
                         v-validate="appDescRule">
-                    </textarea>
+                    </bk-input>
                     <span v-show="errors.has('appDesc')" class="common-error-tip error-msg">{{ errors.first('appDesc') }}</span>
                 </div>
             </div>
@@ -154,7 +155,8 @@
                         name: '',
                         template_scheme_id: '',
                         desc: '',
-                        logo_url: undefined
+                        logo_url: undefined,
+                        appActions: []
                     }
                 }
             }
@@ -219,19 +221,23 @@
             }
         },
         watch: {
-            currentAppData (val) {
-                const { template_id, name, template_scheme_id, desc, logo_url } = val
-                this.appData = {
-                    appTemplate: template_id ? Number(template_id) : '',
-                    appName: name,
-                    appScheme: template_scheme_id ? Number(template_scheme_id) : '',
-                    appDesc: desc,
-                    appLogo: undefined
-                }
-                this.logoUrl = logo_url
-                if (template_id !== '') {
-                    this.getTemplateScheme()
-                }
+            currentAppData: {
+                handler (val) {
+                    const { template_id, name, template_scheme_id, desc, logo_url, auth_actions } = val
+                    this.appData = {
+                        appActions: auth_actions,
+                        appTemplate: template_id ? Number(template_id) : '',
+                        appName: name,
+                        appScheme: template_scheme_id ? Number(template_scheme_id) : '',
+                        appDesc: desc,
+                        appLogo: undefined
+                    }
+                    this.logoUrl = logo_url
+                    if (template_id !== '') {
+                        this.getTemplateScheme()
+                    }
+                },
+                deep: true
             }
         },
         created () {
@@ -322,13 +328,23 @@
                 this.appData.appName = this.appData.appName.trim()
                 this.$validator.validateAll().then((result) => {
                     if (!result) return
-                    this.$emit('onEditConfirm', this.appData)
+                    this.$emit('onEditConfirm', this.appData, this.resetAppData)
                 })
             },
             onCancel () {
                 this.$emit('onEditCancel')
                 this.errors.clear()
                 this.appTemplateEmpty = false
+            },
+            resetAppData () {
+                this.appData = {
+                    appTemplate: '',
+                    appName: '',
+                    appScheme: '',
+                    appDesc: '',
+                    appActions: [],
+                    appLogo: undefined
+                }
             }
         }
     }
@@ -361,15 +377,7 @@
     .app-desc {
         width: 100%;
         height: 80px;
-        border: 1px solid #c4c6cc;
-        outline: none;
-        resize: none;
-        &:hover {
-            border-color: #c0c4cc;
-        }
-        &:focus {
-            border-color: #3c96ff;
-        }
+        font-size: 12px;
     }
     .upload-btn-wrapper {
         display: block;

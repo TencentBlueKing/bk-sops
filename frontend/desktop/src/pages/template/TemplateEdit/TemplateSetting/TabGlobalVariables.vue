@@ -52,98 +52,34 @@
                 <span class="col-delete t-head"></span>
             </div>
             <ul class="variable-list" ref="variableList">
-                <draggable class="variable-drag" v-model="constantsArray" handle=".col-item-drag" @end="onDragEnd">
-                    <li
+                <VariableItem
+                    v-for="(constant, index) in systemConstantsList"
+                    class="system-constants-item"
+                    :key="index"
+                    :outputs="outputs"
+                    :is-variable-editing="isVariableEditing"
+                    :constant="constant"
+                    :variable-data="variableData"
+                    :variable-type-list="variableTypeList"
+                    :the-key-of-editing="theKeyOfEditing"
+                    :is-system-var="true"
+                    @onEditVariable="onEditVariable"
+                    @onChangeVariableOutput="onChangeVariableOutput"
+                    @onDeleteVariable="onDeleteVariable" />
+                <draggable class="variable-drag" v-model="constantsArray" :options="{ handle: '.col-item-drag' }" @end="onDragEnd">
+                    <VariableItem
                         v-for="(constant, index) in constantsArray"
-                        :key="constant.key"
-                        :class="[
-                            'clearfix',
-                            'variable-item',
-                            { 'variable-editing': isVariableEditing && theKeyOfEditing === constant.key }
-                        ]">
-                        <div class="variable-content" @click="onEditVariable(constant.key)">
-                            <i class="col-item-drag bk-icon icon-sort"></i>
-                            <span class="col-item col-name">
-                                <p class="col-constant-name">{{constant.name}}</p>
-                            </span>
-                            <span class="col-item col-key">
-                                <p class="col-constant-key">{{constant.key}}</p>
-                                <a
-                                    class="col-key-copy"
-                                    href="javascript:void(0)"
-                                    v-bk-tooltips.click="{
-                                        content: i18n.copied,
-                                        placements: ['bottom']
-                                    }"
-                                    @click.stop="onCopyKey(constant.key)">
-                                    {{ i18n.copy }}
-                                </a>
-                            </span>
-                            <span class="col-item col-attributes">
-                                <span class="icon-wrap">
-                                    <i
-                                        v-if="constant.source_type !== 'component_outputs'"
-                                        class="common-icon-show-left"
-                                        v-bk-tooltips="{
-                                            content: i18n.inputs,
-                                            placements: ['bottom']
-                                        }">
-                                    </i>
-                                    <i
-                                        v-else
-                                        class="common-icon-hide-right color-org"
-                                        v-bk-tooltips="{
-                                            content: i18n.outputs,
-                                            placements: ['bottom']
-                                        }">
-                                    </i>
-                                    <i
-                                        v-if="constant.show_type === 'show'"
-                                        class="common-icon-eye-show"
-                                        v-bk-tooltips="{
-                                            content: i18n.show,
-                                            placements: ['bottom']
-                                        }">
-                                    </i>
-                                    <i
-                                        v-else
-                                        class="common-icon-eye-hide color-org"
-                                        v-bk-tooltips="{
-                                            content: i18n.hide,
-                                            placements: ['bottom']
-                                        }">
-                                    </i>
-                                </span>
-                            </span>
-                            <span class="col-item col-output">
-                                <div @click="onPreventDefalut">
-                                    <bk-switcher
-                                        size="small"
-                                        on-text="ON"
-                                        off-text="OFF"
-                                        :selected="outputs.indexOf(constant.key) > -1"
-                                        @change="onChangeVariableOutput(constant.key, $event)">
-                                    </bk-switcher>
-                                </div>
-                            </span>
-                            <i
-                                class="col-item-delete common-icon-dark-circle-close"
-                                @click.stop="onDeleteVariable(constant.key, index)">
-                            </i>
-                        </div>
-                        <div
-                            v-if="isVariableEditing && theKeyOfEditing === constant.key"
-                            :key="`${constant.key}-edit`">
-                            <VariableEdit
-                                ref="editVariablePanel"
-                                :variable-data="variableData"
-                                :variable-type-list="variableTypeList"
-                                :is-new-variable="false"
-                                @scrollPanelToView="scrollPanelToView"
-                                @onChangeEdit="onChangeEdit">
-                            </VariableEdit>
-                        </div>
-                    </li>
+                        :ref="`variableKey_${constant.key}`"
+                        :key="index"
+                        :outputs="outputs"
+                        :is-variable-editing="isVariableEditing"
+                        :constant="constant"
+                        :variable-data="variableData"
+                        :variable-type-list="variableTypeList"
+                        :the-key-of-editing="theKeyOfEditing"
+                        @onEditVariable="onEditVariable"
+                        @onChangeVariableOutput="onChangeVariableOutput"
+                        @onDeleteVariable="onDeleteVariable" />
                 </draggable>
                 <li v-if="isVariableEditing && theKeyOfEditing === ''">
                     <VariableEdit
@@ -155,7 +91,7 @@
                         @onChangeEdit="onChangeEdit">
                     </VariableEdit>
                 </li>
-                <li v-if="!isVariableEditing && !constantsArray.length" class="empty-variable-tip">
+                <li v-if="isShowNodata" class="empty-variable-tip">
                     <NoData>
                         <p>{{i18n.emptyVariableTip}}</p>
                     </NoData>
@@ -183,11 +119,13 @@
     import tools from '@/utils/tools.js'
     import draggable from 'vuedraggable'
     import VariableEdit from './VariableEdit.vue'
+    import VariableItem from './VariableItem.vue'
     import NoData from '@/components/common/base/NoData.vue'
     export default {
         name: 'TabGlobalVariables',
         components: {
             VariableEdit,
+            VariableItem,
             draggable,
             NoData
         },
@@ -199,7 +137,6 @@
                     new: gettext('新建'),
                     name: gettext('名称'),
                     attributes: gettext('属性'),
-                    inputs: gettext('输入'),
                     outputs: gettext('输出'),
                     outputsTitle: gettext('输出：'),
                     attr: gettext('属性'),
@@ -210,13 +147,8 @@
                     outputsDesc: gettext('表示该变量会作为该流程模板的输出参数，在被其他流程模板当做子流程节点时可以引用。'),
                     emptyVariableTip: gettext('无数据，请手动新增变量或者勾选标准插件参数自动生成'),
                     tips: gettext('删除变量'),
-                    confirm: gettext('确认删除该变量？'),
-                    copied: gettext('已复制'),
-                    copy: gettext('复制'),
-                    show: gettext('显示'),
-                    hide: gettext('隐藏')
+                    confirm: gettext('确认删除该变量？')
                 },
-                copyText: '',
                 theKeyOfEditing: '',
                 constantsArray: [],
                 deleteConfirmDialogShow: false
@@ -227,6 +159,7 @@
                 'projectBaseInfo': state => state.template.projectBaseInfo,
                 'outputs': state => state.template.outputs,
                 'constants': state => state.template.constants,
+                'systemConstants': state => state.template.systemConstants,
                 'timeout': state => state.template.time_out
             }),
             variableData () {
@@ -247,6 +180,17 @@
                         value: ''
                     }
                 }
+            },
+            isShowNodata () {
+                return !this.isVariableEditing && !this.constantsArray.length && !this.systemConstants
+            },
+            systemConstantsList () {
+                const list = []
+                Object.keys(this.systemConstants).forEach(key => {
+                    list.push(this.systemConstants[key])
+                })
+                list.sort((a, b) => b.index - a.index)
+                return list
             }
         },
         watch: {
@@ -283,7 +227,9 @@
             },
             saveVariable () {
                 if (this.theKeyOfEditing) {
-                    return this.$refs.editVariablePanel[0].saveVariable()
+                    const target = `variableKey_${this.theKeyOfEditing}`
+                    const targetComponent = this.$refs[target][0].$refs.editVariablePanel
+                    return targetComponent && targetComponent.saveVariable()
                 }
 
                 return this.$refs.addVariablePanel.saveVariable()
@@ -333,27 +279,9 @@
                 this.$emit('variableDataChanged')
             },
             /**
-             * 变量 key 复制
-             */
-            onCopyKey (key) {
-                this.copyText = key
-                document.addEventListener('copy', this.copyHandler)
-                document.execCommand('copy')
-                document.removeEventListener('copy', this.copyHandler)
-                this.copyText = ''
-            },
-            /**
-             * 复制操作回调函数
-             */
-            copyHandler (e) {
-                e.clipboardData.setData('text/html', this.copyText)
-                e.clipboardData.setData('text/plain', this.copyText)
-                e.preventDefault()
-            },
-            /**
              * 变量输出勾选
              */
-            onChangeVariableOutput (key, checked) {
+            onChangeVariableOutput ({ key, checked }) {
                 const changeType = checked ? 'add' : 'delete'
                 this.setOutputs({ changeType, key })
                 this.$emit('variableDataChanged')
@@ -361,7 +289,7 @@
             /**
              *  删除变量
              */
-            onDeleteVariable (key, index) {
+            onDeleteVariable ({ key, index }) {
                 this.deleteVarKey = key
                 this.deleteVarIndex = index
                 this.deleteConfirmDialogShow = true
@@ -387,9 +315,6 @@
             },
             onChangeEdit (val) {
                 this.$emit('changeVariableEditing', val)
-            },
-            onPreventDefalut (e) {
-                window.event ? window.event.cancelBubble = true : e.stopPropagation()
             }
         }
     }
@@ -505,109 +430,11 @@ $localBorderColor: #d8e2e7;
         overflow-x: hidden;
         overflow-y: auto;
         @include scrollbar;
-        .variable-item {
-            position: relative;
-            cursor: pointer;
-            &:hover {
-                background: $blueStatus;
-            }
-            &.variable-editing {
-                background: $blueStatus;
-            }
-            .variable-content {
-                display: table;
-                padding: 0 20px 0 45px;
-                height: 40px;
-                line-height: 40px;
-                &:hover {
-                    .col-item-drag {
-                        display: inline-block;
-                    }
-                    .col-item-delete {
-                        display: inline-block;
-                    }
-                }
-                .col-item-delete {
-                    color: #c4c6cc;
-                    &:hover {
-                        color: #979ba5;
-                    }
-                }
-            }
-        }
-        .col-item {
-            display: table-cell;
+    }
+    .empty-variable-tip {
+        margin-top: 120px;
+        /deep/ .no-data-wording {
             font-size: 12px;
-            vertical-align: middle;
-            word-break: break-all;
-            text-align: left;
-            border-bottom: 1px solid #ebebeb;
-        }
-        .col-item-drag {
-            display: none;
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            color: #979ba5;
-            cursor: move;
-            &:hover {
-                color: #348aff;
-            }
-        }
-        .col-item-delete {
-            display: none;
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 14px;
-            color: #979ba5;
-        }
-        .col-name {
-            .col-constant-name {
-                width: 90px;
-                overflow: hidden;
-                text-overflow:ellipsis;
-                white-space: nowrap;
-            }
-        }
-        .col-key {
-            position: relative;
-            .col-constant-key {
-                display: inline-block;
-                width: 90px;
-                vertical-align: middle;
-               line-height: 2;
-            }
-            .col-key-copy {
-                margin-left: 2px;
-                color: #52699d;
-                text-decoration: underline;
-            }
-        }
-        .col-output {
-            .bk-switcher .bk-switcher-small {
-                margin-left: 32px;
-            }
-            .bk-switcher.bk-switcher-small {
-                width: 28px;
-                height: 16px;
-                line-height: 10px;
-            }
-            .bk-switcher.bk-switcher-small:after {
-                top: 1px;
-                width: 14px;
-                height: 14px;
-            }
-            .bk-switcher.bk-switcher-small.is-checked:after {
-                margin-left: -15px;
-            }
-        }
-        .variable-edit-td {
-            padding: 0;
-            width: 412px;
-        }
-        .empty-variable-tip {
-            margin-top: 120px;
         }
     }
 }

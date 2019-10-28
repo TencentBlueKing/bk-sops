@@ -14,7 +14,7 @@
         <div class="node-menu" v-if="showNodeMenu" v-bk-clickoutside="handleClickOutSide">
             <i
                 :class="[
-                    'common-icon-left-pin',
+                    'common-icon-pin',
                     'node-list-pin',
                     { 'actived': isFixedNodeMenu }
                 ]"
@@ -181,9 +181,9 @@
     }
     .node-list-pin {
         position: absolute;
-        top: 0;
-        right: 0;
-        font-size: 24px;
+        top: 4px;
+        right: 4px;
+        font-size: 12px;
         color: #999999;
         cursor: pointer;
         z-index: 1;

@@ -83,6 +83,7 @@
             <div v-html="failInfo"></div>
             <IpLogContent
                 v-if="nodeInfo.ex_data.show_ip_log"
+                :project-id="renderData.biz_cc_id"
                 :node-info="nodeInfo">
             </IpLogContent>
         </section>
