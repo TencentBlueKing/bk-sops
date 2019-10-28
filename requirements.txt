@@ -24,6 +24,7 @@ python-magic==0.4.15
 cryptography==2.3.1
 GitPython==2.1.11
 PyJWT==1.6.1
+future==0.18.1
 
 # pipeline
 ujson==1.35
