@@ -19,7 +19,6 @@ from auth_backend.resources.inspect import FixedCreatorTypeFieldInspect
 from auth_backend.backends import get_backend_from_config
 
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.contrib.function.models import FunctionTask
 from gcloud.core.permissions import project_resource
 
 
